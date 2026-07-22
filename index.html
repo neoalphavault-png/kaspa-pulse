@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kaspa Pulse — AlphaVault</title>
-  <link rel="icon" type="image/png" href="favicon.png">
 <meta name="description" content="The only dashboard that adds up all of Kaspa: live total DeFi TVL across both L2s, real usage, smart-contract adoption, holder behaviour, mining power. Live where it matters, weekly signal where it counts.">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
 <style>
   :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --txt:#FFFFFF; --dim:#8A9096; --dimmer:#5C6268; }
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -24,6 +25,9 @@
   .hero .sub { font-size:13px; color:var(--dimmer); }
   .hero .breakdown { font-size:13px; color:var(--dim); margin-top:12px; }
   .hero .breakdown b { color:var(--txt); }
+  .hero .volline { font-size:13px; color:var(--dim); margin-top:8px; }
+  .hero .volline b { color:var(--txt); }
+  .hero .volline .lv { color:var(--teal); font-size:11px; font-weight:700; }
   .hero .deltas { margin-top:10px; font-size:13px; font-weight:700; }
   .sec { font-size:12px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; margin:38px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:6px; }
   .sec .tag { letter-spacing:1px; text-transform:none; }
@@ -57,6 +61,19 @@
   footer .src { font-size:11px; color:var(--dimmer); }
   footer a { color:var(--dim); text-decoration:none; }
   @media (max-width:520px){ .hero .big{font-size:44px;} }
+  .comeback { text-align:center; font-size:12px; color:var(--dim); margin:20px 0 0; }
+  .comeback b { color:var(--teal); font-weight:600; }
+  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:14px; padding:30px 24px; margin:34px 0 0; text-align:center; box-shadow:0 0 40px rgba(73,234,203,0.06); }
+  .subscribe .st { font-size:18px; font-weight:700; color:var(--txt); letter-spacing:-0.3px; }
+  .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
+  .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
+  .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
+  .subscribe input::placeholder { color:var(--dimmer); }
+  .subscribe input:focus { outline:none; border-color:var(--teal); }
+  .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .subscribe button:hover { opacity:0.9; }
+  .subscribe .fine { font-size:11px; color:var(--dimmer); margin-top:10px; }
+  @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
 </style>
 </head>
 <body>
@@ -71,6 +88,7 @@
     <div class="big" id="totalTvl">…</div>
     <div class="sub">capital committed across both L2s (total TVL) — the number nobody else adds up</div>
     <div class="breakdown" id="breakdown"></div>
+    <div class="volline" id="volline"></div>
     <div class="deltas" id="heroDeltas"></div>
   </section>
 
@@ -89,8 +107,23 @@
     <div style="font-size:11px;color:var(--dimmer);text-align:center;margin-top:10px;font-style:italic;">more trend charts unlock as the weekly history grows</div>
   </div>
 
+  <div class="comeback">fresh numbers drop <b>every monday</b> — worth a bookmark if you hold $KAS</div>
+
   <div class="ctx" id="ctx"></div>
   <div class="philosophy">live numbers where it matters · weekly signal where it counts</div>
+
+  <div class="subscribe">
+    <div class="st">get the weekly pulse in your inbox</div>
+    <div class="ss">every monday · the numbers + a few lines of context · no hype, no spam</div>
+    <form action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="you@email.com" required>
+      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="locale" value="en">
+      <input type="hidden" name="html_type" value="simple">
+      <button type="submit">subscribe</button>
+    </form>
+    <div class="fine">free · unsubscribe anytime · just the data</div>
+  </div>
 
   <div class="cta">weekly breakdown with context every monday → <a href="https://x.com/gokugalax" target="_blank">@gokugalax on X</a></div>
 
@@ -109,8 +142,8 @@ const DATA = {
   emission: { block_reward: 2.45, next_reduction: "~16 days", annual_inflation_pct: 4.6 },
   hashrate_windows: { d7: -2.3, d30: -19.6, d90: -24.8 },
   history: [
-    {date:"2026-07-13", m:{tvl_total:null, tvl_kasplex:475000, tvl_igra:null, tps:0.74, covenant_tx:44, igra_tx:47625, kasplex_tx:872, holders:46.14, hashrate:319.3, active_addr:88500, block_reward:2.45}},
-    {date:"2026-07-20", m:{tvl_total:1966832, tvl_kasplex:386832, tvl_igra:1580000, tps:0.87, covenant_tx:1578, igra_tx:45306, kasplex_tx:872, holders:46.19, hashrate:313.7, active_addr:90200, block_reward:2.45}}
+    {date:"2026-07-13", m:{tvl_total:null, tvl_kasplex:475000, tvl_igra:null, tps:0.74, covenant_tx:44, igra_tx:47625, kasplex_tx:872, holders:46.14, hashrate:319.3, active_addr:88500, block_reward:2.45, dex_vol:88000}},
+    {date:"2026-07-20", m:{tvl_total:1966832, tvl_kasplex:386832, tvl_igra:1580000, tps:0.87, covenant_tx:1578, igra_tx:45306, kasplex_tx:872, holders:46.19, hashrate:313.7, active_addr:90200, block_reward:2.45, dex_vol:96000}}
   ]
 };
 
@@ -140,6 +173,20 @@ function renderHero(kasplex, igra, liveTag){
   else $("heroDeltas").innerHTML = `<span class="flat">trend starts with next weekly reading</span>`;
 }
 renderHero(null,null,false);
+// dex volume line — weekly fallback, then live
+function renderVol(v, live){
+  $("volline").innerHTML = "traded today: <b>"+fmtUsd(v)+"</b> across all kaspa DEXs" + (live?' <span class="lv">LIVE</span>':'');
+}
+renderVol(cur.dex_vol, false);
+fetch("https://api.llama.fi/overview/dexs/kasplex?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true")
+  .then(r=>r.json()).then(k=>{
+    const kv = k.total24h || 0;
+    fetch("https://api.llama.fi/overview/dexs/igra?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true")
+      .then(r=>r.json()).then(i=>{
+        const iv = i.total24h || 0;
+        if(kv+iv > 0) renderVol(kv+iv, true);
+      }).catch(()=>{});
+  }).catch(()=>{});
 fetch("https://api.llama.fi/v2/chains").then(r=>r.json()).then(chains=>{
   let k=null,i=null;
   for(const c of chains){ const n=(c.name||"").toLowerCase();
