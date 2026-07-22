@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kaspa Pulse — AlphaVault</title>
-<meta name="description" content="The only dashboard that adds up all of Kaspa: total DeFi TVL across both L2s, real usage, smart-contract adoption, holder behaviour, mining power. Weekly trends, sourced.">
+<meta name="description" content="The only dashboard that adds up all of Kaspa: live total DeFi TVL across both L2s, real usage, smart-contract adoption, holder behaviour, mining power. Live where it matters, weekly signal where it counts.">
 <style>
   :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --txt:#FFFFFF; --dim:#8A9096; --dimmer:#5C6268; }
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -14,7 +14,9 @@
   header { display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--line); padding-bottom:16px; }
   .logo { font-size:14px; letter-spacing:5px; font-weight:700; }
   .logo span { color:var(--teal); }
-  .updated { font-size:11px; color:var(--dimmer); letter-spacing:1px; }
+  .updated { font-size:11px; color:var(--dimmer); letter-spacing:1px; text-align:right; }
+  .live-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--teal); margin-right:5px; animation:pulse 2s infinite; vertical-align:1px; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
   .hero { text-align:center; padding:44px 0 34px; }
   .hero .label { font-size:13px; letter-spacing:3px; color:var(--dim); text-transform:uppercase; }
   .hero .big { font-size:60px; font-weight:700; color:var(--teal); margin:8px 0 4px; }
@@ -22,7 +24,8 @@
   .hero .breakdown { font-size:13px; color:var(--dim); margin-top:12px; }
   .hero .breakdown b { color:var(--txt); }
   .hero .deltas { margin-top:10px; font-size:13px; font-weight:700; }
-  .sec { font-size:12px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; margin:26px 0 10px; }
+  .sec { font-size:12px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; margin:26px 0 10px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px; }
+  .sec .tag { letter-spacing:1px; text-transform:none; }
   .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; }
   .card .name { font-size:13px; color:var(--txt); font-weight:600; }
@@ -39,7 +42,8 @@
   .ctx b { color:var(--txt); }
   .chart-box { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-top:12px; }
   .chart-box .title { font-size:12px; color:var(--dim); letter-spacing:1px; margin-bottom:10px; }
-  .cta { text-align:center; margin:30px 0 26px; font-size:13px; color:var(--dim); }
+  .philosophy { text-align:center; font-size:12px; color:var(--dimmer); font-style:italic; margin:26px 0 0; }
+  .cta { text-align:center; margin:22px 0 26px; font-size:13px; color:var(--dim); }
   .cta a { color:var(--teal); text-decoration:none; }
   footer { border-top:1px solid var(--line); padding-top:16px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
   footer .brand { font-size:11px; letter-spacing:4px; color:var(--teal); opacity:0.75; }
@@ -52,21 +56,21 @@
 <div class="wrap">
   <header>
     <div class="logo">ALPHA<span>VAULT</span> · KASPA PULSE</div>
-    <div class="updated" id="updated"></div>
+    <div class="updated"><span class="live-dot"></span>LIVE PRICES &amp; TVL<br><span id="weeklyStamp"></span></div>
   </header>
 
   <section class="hero">
-    <div class="label">Total money in Kaspa DeFi</div>
-    <div class="big" id="totalTvl">—</div>
+    <div class="label"><span class="live-dot"></span>Total money in Kaspa DeFi</div>
+    <div class="big" id="totalTvl">…</div>
     <div class="sub">capital committed across both L2s (total TVL) — the number nobody else adds up</div>
     <div class="breakdown" id="breakdown"></div>
     <div class="deltas" id="heroDeltas"></div>
   </section>
 
-  <div class="sec">Usage — is anyone actually using it?</div>
+  <div class="sec"><span>Usage — is anyone actually using it?</span><span class="tag" id="weeklyTag"></span></div>
   <div class="grid" id="usageCards"></div>
 
-  <div class="sec">Holders &amp; Security</div>
+  <div class="sec"><span>Holders &amp; Security</span><span class="tag">weekly reading</span></div>
   <div class="grid" id="baseCards"></div>
 
   <div class="chart-box">
@@ -75,54 +79,72 @@
   </div>
 
   <div class="ctx" id="ctx"></div>
+  <div class="philosophy">live numbers where it matters · weekly signal where it counts</div>
 
   <div class="cta">weekly breakdown with context every monday → <a href="https://x.com/gokugalax" target="_blank">@gokugalax on X</a></div>
 
   <footer>
     <div class="brand">ALPHAVAULT</div>
-    <div class="src">data: <a href="https://defillama.com" target="_blank">defillama</a> · <a href="https://kaspalytics.com" target="_blank">kaspalytics</a> · <a href="https://kaspa.stream" target="_blank">kaspa.stream</a> · kaspa.org</div>
+    <div class="src">data: <a href="https://defillama.com" target="_blank">defillama</a> · <a href="https://www.coingecko.com" target="_blank">coingecko</a> · <a href="https://kaspalytics.com" target="_blank">kaspalytics</a> · <a href="https://kaspa.stream" target="_blank">kaspa.stream</a></div>
   </footer>
 </div>
 
 <script>
-// v1: embedded data. Later: fetch('dashboard_data.json') pushed by the monday cron.
+// Weekly curated data — replaced every Monday. Live values (TVL, price) fetched on load with these as fallback.
 const DATA = {
   updated: "2026-07-20",
-  context: { price_usd: 0.028, mcap: "$765M", mined_pct: 96.1 },
+  next_update: "2026-07-27",
+  context_fallback: { price_usd: 0.028, mcap_usd: 765000000, mined_pct: 96.1 },
   hashrate_windows: { d7: -2.3, d30: -19.6, d90: -24.8 },
   history: [
-    {date:"2026-07-13", m:{tvl_total:null, tvl_kasplex:475000, tvl_igra:null, tps:0.74, covenant_tx:44, igra_tx:47625, kasplex_tx:833, holders:46.14, hashrate:319.3}},
+    {date:"2026-07-13", m:{tvl_total:null, tvl_kasplex:475000, tvl_igra:null, tps:0.74, covenant_tx:44, igra_tx:47625, kasplex_tx:872, holders:46.14, hashrate:319.3}},
     {date:"2026-07-20", m:{tvl_total:1966832, tvl_kasplex:386832, tvl_igra:1580000, tps:0.87, covenant_tx:1578, igra_tx:45306, kasplex_tx:872, holders:46.19, hashrate:313.7}}
   ]
 };
 
 const $ = id => document.getElementById(id);
-const fmtUsd = n => n==null?"—":(n>=1e6?"$"+(n/1e6).toFixed(2)+"M":"$"+Math.round(n/1e3)+"K");
+const fmtUsd = n => n==null?"—":(n>=1e9?"$"+(n/1e9).toFixed(2)+"B":n>=1e6?"$"+(n/1e6).toFixed(2)+"M":"$"+Math.round(n/1e3)+"K");
 const fmtN = n => n==null?"—":n.toLocaleString("en-US");
 const H = DATA.history, cur = H[H.length-1].m;
 const back = w => H.length>w ? H[H.length-1-w].m : null;
 
-function delta(key, weeksBack, label){
-  const p = back(weeksBack); 
-  if(!p || p[key]==null || cur[key]==null) return `<div class="tr"><span class="win">${label}</span><span class="flat">—</span></div>`;
-  const pct=(cur[key]-p[key])/Math.abs(p[key])*100;
-  const cls=Math.abs(pct)<0.5?"flat":(pct>0?"up":"down");
-  const txt=Math.abs(pct)<0.5?"→ flat":(pct>0?"▲ +":"▼ ")+pct.toFixed(1)+"%";
-  return `<div class="tr"><span class="win">${label}</span><span class="${cls}">${txt}</span></div>`;
-}
-const trendBlock = key => delta(key,1,"vs last week") + delta(key,4,"vs last month");
+$("weeklyStamp").textContent = "WEEKLY READING: " + DATA.updated + " · NEXT: " + DATA.next_update;
+$("weeklyTag").textContent = "weekly reading · updated every monday";
 
-$("updated").textContent = "UPDATED " + DATA.updated;
-$("totalTvl").textContent = fmtUsd(cur.tvl_total);
-$("breakdown").innerHTML = `Igra <b>${fmtUsd(cur.tvl_igra)}</b> · Kasplex <b>${fmtUsd(cur.tvl_kasplex)}</b>`;
-{ // hero deltas vs 1w/4w on total (falls back silently)
-  const p1=back(1), p4=back(4);
-  let s="";
-  if(p1&&p1.tvl_total!=null&&cur.tvl_total!=null){const pc=(cur.tvl_total-p1.tvl_total)/p1.tvl_total*100;s+=`<span class="${pc>0?'up':'down'}">${pc>0?'▲ +':'▼ '}${pc.toFixed(1)}% vs last week</span>`;}
-  else s+=`<span class="flat">first full reading — trend starts next week</span>`;
-  $("heroDeltas").innerHTML=s;
-}
+function deltaTxt(c,p){ if(c==null||p==null) return null; const pct=(c-p)/Math.abs(p)*100;
+  return { pct, cls:Math.abs(pct)<0.5?"flat":(pct>0?"up":"down"), txt:Math.abs(pct)<0.5?"→ flat":(pct>0?"▲ +":"▼ ")+pct.toFixed(1)+"%" }; }
+function trRow(key,weeks,label){ const p=back(weeks); const d=p?deltaTxt(cur[key],p[key]):null;
+  return `<div class="tr"><span class="win">${label}</span><span class="${d?d.cls:'flat'}">${d?d.txt:'—'}</span></div>`; }
+const trendBlock = key => trRow(key,1,"vs last week") + trRow(key,4,"vs last month");
 
+// --- HERO: live TVL from DefiLlama, fallback to weekly snapshot ---
+function renderHero(kasplex, igra, liveTag){
+  const total = (kasplex!=null&&igra!=null) ? kasplex+igra : cur.tvl_total;
+  $("totalTvl").textContent = fmtUsd(total);
+  $("breakdown").innerHTML = `Igra <b>${fmtUsd(igra??cur.tvl_igra)}</b> · Kasplex <b>${fmtUsd(kasplex??cur.tvl_kasplex)}</b>${liveTag?' · <span class="up" style="font-size:11px">LIVE</span>':''}`;
+  const p1 = back(1);
+  if(p1 && p1.tvl_total!=null && total!=null){ const d=deltaTxt(total,p1.tvl_total);
+    $("heroDeltas").innerHTML = `<span class="${d.cls}">${d.txt} vs last week's reading</span>`; }
+  else $("heroDeltas").innerHTML = `<span class="flat">trend starts with next weekly reading</span>`;
+}
+renderHero(null,null,false);
+fetch("https://api.llama.fi/v2/chains").then(r=>r.json()).then(chains=>{
+  let k=null,i=null;
+  for(const c of chains){ const n=(c.name||"").toLowerCase();
+    if(n==="kasplex") k=c.tvl; if(n==="igra") i=c.tvl; }
+  if(k!=null&&i!=null) renderHero(k,i,true);
+}).catch(()=>{});
+
+// --- context: live price/mcap from CoinGecko, fallback ---
+function renderCtx(p,m,liveTag){
+  $("ctx").innerHTML = `<span>KAS price <b>$${p}</b>${liveTag?' <span class="up" style="font-size:10px">LIVE</span>':''}</span>`+
+    `<span>Market cap <b>${fmtUsd(m)}</b></span><span>Supply mined <b>${DATA.context_fallback.mined_pct}%</b></span>`;
+}
+renderCtx(DATA.context_fallback.price_usd, DATA.context_fallback.mcap_usd, false);
+fetch("https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd&include_market_cap=true")
+  .then(r=>r.json()).then(d=>{ if(d.kaspa) renderCtx(d.kaspa.usd, d.kaspa.usd_market_cap, true); }).catch(()=>{});
+
+// --- weekly cards ---
 $("usageCards").innerHTML = `
   <div class="card"><div class="name">Real network usage</div><div class="expl">* transactions per second, spam filtered out</div>
     <div class="val">${cur.tps} TPS</div><div class="trends">${trendBlock("tps")}</div></div>
@@ -146,9 +168,7 @@ $("baseCards").innerHTML = `
   <div class="card"><div class="name">Kasplex TVL</div><div class="expl">* capital on the Kasplex L2 alone</div>
     <div class="val">${fmtUsd(cur.tvl_kasplex)}</div><div class="trends">${trendBlock("tvl_kasplex")}</div></div>`;
 
-$("ctx").innerHTML = `<span>Price <b>$${DATA.context.price_usd}</b></span><span>Market cap <b>${DATA.context.mcap}</b></span><span>Supply mined <b>${DATA.context.mined_pct}%</b></span>`;
-
-// TVL chart
+// --- chart ---
 const pts = H.map(h=>({d:h.date, v:h.m.tvl_total ?? h.m.tvl_kasplex}));
 const W=820,Hh=210,P=42;
 const vs=pts.map(p=>p.v), max=Math.max(...vs)*1.15;
