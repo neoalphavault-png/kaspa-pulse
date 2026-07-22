@@ -25,13 +25,19 @@
   .hero .breakdown { font-size:13px; color:var(--dim); margin-top:12px; }
   .hero .breakdown b { color:var(--txt); }
   .hero .deltas { margin-top:10px; font-size:13px; font-weight:700; }
-  .sec { font-size:12px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; margin:26px 0 10px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px; }
+  .sec { font-size:12px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; margin:38px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:6px; }
   .sec .tag { letter-spacing:1px; text-transform:none; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .grid.four { grid-template-columns:repeat(4,1fr); }
+  @media (max-width:760px){ .grid, .grid.four { grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:440px){ .grid, .grid.four { grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; transition:border-color .2s; }
+  .card:hover { border-color:#2A3038; }
   .card .name { font-size:13px; color:var(--txt); font-weight:600; }
   .card .expl { font-size:11px; color:var(--dimmer); margin-top:3px; min-height:24px; }
   .card .val { font-size:26px; font-weight:700; margin-top:8px; }
+  .card { display:flex; flex-direction:column; }
+  .trends, .split, .split-lbl { margin-top:auto; }
   .trends { margin-top:8px; display:flex; flex-direction:column; gap:2px; }
   .tr { display:flex; justify-content:space-between; font-size:12px; }
   .tr .win { color:var(--dimmer); }
@@ -41,7 +47,7 @@
   .split-lbl { display:flex; justify-content:space-between; font-size:11px; color:var(--dim); margin-top:5px; }
   .ctx { display:flex; flex-wrap:wrap; gap:18px; justify-content:center; font-size:12px; color:var(--dim); margin:30px 0 6px; }
   .ctx b { color:var(--txt); }
-  .chart-box { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-top:12px; }
+  .chart-box { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px; margin-top:14px; }
   .chart-box .title { font-size:12px; color:var(--dim); letter-spacing:1px; margin-bottom:10px; }
   .philosophy { text-align:center; font-size:12px; color:var(--dimmer); font-style:italic; margin:26px 0 0; }
   .cta { text-align:center; margin:22px 0 26px; font-size:13px; color:var(--dim); }
@@ -69,7 +75,10 @@
   </section>
 
   <div class="sec"><span>Usage — is anyone actually using it?</span><span class="tag" id="weeklyTag"></span></div>
-  <div class="grid" id="usageCards"></div>
+  <div class="grid four" id="usageCards"></div>
+
+  <div class="sec"><span>Supply — the tightening story</span><span class="tag">weekly reading</span></div>
+  <div class="grid" id="supplyCards"></div>
 
   <div class="sec"><span>Holders &amp; Security</span><span class="tag">weekly reading</span></div>
   <div class="grid" id="baseCards"></div>
@@ -77,6 +86,7 @@
   <div class="chart-box">
     <div class="title">TOTAL DEFI TVL — WEEK BY WEEK</div>
     <div id="chart"></div>
+    <div style="font-size:11px;color:var(--dimmer);text-align:center;margin-top:10px;font-style:italic;">more trend charts unlock as the weekly history grows</div>
   </div>
 
   <div class="ctx" id="ctx"></div>
@@ -96,10 +106,11 @@ const DATA = {
   updated: "2026-07-20",
   next_update: "2026-07-27",
   context_fallback: { price_usd: 0.028, mcap_usd: 765000000, mined_pct: 96.1 },
+  emission: { block_reward: 2.45, next_reduction: "~16 days", annual_inflation_pct: 4.6 },
   hashrate_windows: { d7: -2.3, d30: -19.6, d90: -24.8 },
   history: [
-    {date:"2026-07-13", m:{tvl_total:null, tvl_kasplex:475000, tvl_igra:null, tps:0.74, covenant_tx:44, igra_tx:47625, kasplex_tx:872, holders:46.14, hashrate:319.3}},
-    {date:"2026-07-20", m:{tvl_total:1966832, tvl_kasplex:386832, tvl_igra:1580000, tps:0.87, covenant_tx:1578, igra_tx:45306, kasplex_tx:872, holders:46.19, hashrate:313.7}}
+    {date:"2026-07-13", m:{tvl_total:null, tvl_kasplex:475000, tvl_igra:null, tps:0.74, covenant_tx:44, igra_tx:47625, kasplex_tx:872, holders:46.14, hashrate:319.3, active_addr:88500, block_reward:2.45}},
+    {date:"2026-07-20", m:{tvl_total:1966832, tvl_kasplex:386832, tvl_igra:1580000, tps:0.87, covenant_tx:1578, igra_tx:45306, kasplex_tx:872, holders:46.19, hashrate:313.7, active_addr:90200, block_reward:2.45}}
   ]
 };
 
@@ -145,12 +156,26 @@ renderCtx(DATA.context_fallback.price_usd, DATA.context_fallback.mcap_usd, false
 fetch("https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd&include_market_cap=true")
   .then(r=>r.json()).then(d=>{ if(d.kaspa) renderCtx(d.kaspa.usd, d.kaspa.usd_market_cap, true); }).catch(()=>{});
 
+// --- supply & emission cards ---
+$("supplyCards").innerHTML = `
+  <div class="card"><div class="name">Supply issued</div><div class="expl">* share of all KAS that will ever exist, already mined</div>
+    <div class="val">${DATA.context_fallback.mined_pct}%</div>
+    <div class="trends"><div class="tr"><span class="win">new issuance</span><span class="flat">nearly done</span></div></div></div>
+  <div class="card"><div class="name">Block reward</div><div class="expl">* KAS minted per block — drops on each reduction</div>
+    <div class="val">${DATA.emission.block_reward}</div>
+    <div class="trends"><div class="tr"><span class="win">next reduction</span><span class="down">${DATA.emission.next_reduction}</span></div></div></div>
+  <div class="card"><div class="name">Annual inflation</div><div class="expl">* new supply added per year at current rate</div>
+    <div class="val">~${DATA.emission.annual_inflation_pct}%</div>
+    <div class="trends"><div class="tr"><span class="win">trend</span><span class="up">▼ falling</span></div></div></div>`;
+
 // --- weekly cards ---
 $("usageCards").innerHTML = `
   <div class="card"><div class="name">Real network usage</div><div class="expl">* transactions per second, spam filtered out</div>
     <div class="val">${cur.tps} TPS</div><div class="trends">${trendBlock("tps")}</div></div>
   <div class="card"><div class="name">Smart-contract activity</div><div class="expl">* covenant transactions per day (live since June)</div>
     <div class="val">${fmtN(cur.covenant_tx)}/day</div><div class="trends">${trendBlock("covenant_tx")}</div></div>
+  <div class="card"><div class="name">Active addresses</div><div class="expl">* wallets active per day — how many people actually use it</div>
+    <div class="val">${fmtN(cur.active_addr)}</div><div class="trends">${trendBlock("active_addr")}</div></div>
   <div class="card"><div class="name">L2 activity split</div><div class="expl">* transactions per day on each L2</div>
     <div class="val">${(cur.igra_tx/(cur.igra_tx+cur.kasplex_tx)*100).toFixed(0)}% Igra</div>
     <div class="split"><div class="a" style="width:${cur.igra_tx/(cur.igra_tx+cur.kasplex_tx)*100}%"></div><div class="b" style="flex:1"></div></div>
