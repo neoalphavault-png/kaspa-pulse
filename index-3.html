@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaspa Pulse — AlphaVault</title>
+<meta name="description" content="The only dashboard that adds up all of Kaspa: total DeFi TVL across both L2s, real usage, smart-contract adoption, holder behaviour, mining power. Weekly trends, sourced.">
+<style>
+  :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --txt:#FFFFFF; --dim:#8A9096; --dimmer:#5C6268; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
+         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
+  .wrap { max-width:920px; margin:0 auto; padding:28px 18px 56px; }
+  header { display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--line); padding-bottom:16px; }
+  .logo { font-size:14px; letter-spacing:5px; font-weight:700; }
+  .logo span { color:var(--teal); }
+  .updated { font-size:11px; color:var(--dimmer); letter-spacing:1px; }
+  .hero { text-align:center; padding:44px 0 34px; }
+  .hero .label { font-size:13px; letter-spacing:3px; color:var(--dim); text-transform:uppercase; }
+  .hero .big { font-size:60px; font-weight:700; color:var(--teal); margin:8px 0 4px; }
+  .hero .sub { font-size:13px; color:var(--dimmer); }
+  .hero .breakdown { font-size:13px; color:var(--dim); margin-top:12px; }
+  .hero .breakdown b { color:var(--txt); }
+  .hero .deltas { margin-top:10px; font-size:13px; font-weight:700; }
+  .sec { font-size:12px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; margin:26px 0 10px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; }
+  .card .name { font-size:13px; color:var(--txt); font-weight:600; }
+  .card .expl { font-size:11px; color:var(--dimmer); margin-top:3px; min-height:24px; }
+  .card .val { font-size:26px; font-weight:700; margin-top:8px; }
+  .trends { margin-top:8px; display:flex; flex-direction:column; gap:2px; }
+  .tr { display:flex; justify-content:space-between; font-size:12px; }
+  .tr .win { color:var(--dimmer); }
+  .up { color:var(--teal); font-weight:700; } .down { color:var(--red); font-weight:700; } .flat { color:var(--dim); font-weight:700; }
+  .split { display:flex; gap:0; height:10px; border-radius:5px; overflow:hidden; margin-top:10px; }
+  .split .a { background:var(--teal); } .split .b { background:#2A6E63; }
+  .split-lbl { display:flex; justify-content:space-between; font-size:11px; color:var(--dim); margin-top:5px; }
+  .ctx { display:flex; flex-wrap:wrap; gap:18px; justify-content:center; font-size:12px; color:var(--dim); margin:30px 0 6px; }
+  .ctx b { color:var(--txt); }
+  .chart-box { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-top:12px; }
+  .chart-box .title { font-size:12px; color:var(--dim); letter-spacing:1px; margin-bottom:10px; }
+  .cta { text-align:center; margin:30px 0 26px; font-size:13px; color:var(--dim); }
+  .cta a { color:var(--teal); text-decoration:none; }
+  footer { border-top:1px solid var(--line); padding-top:16px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  footer .brand { font-size:11px; letter-spacing:4px; color:var(--teal); opacity:0.75; }
+  footer .src { font-size:11px; color:var(--dimmer); }
+  footer a { color:var(--dim); text-decoration:none; }
+  @media (max-width:520px){ .hero .big{font-size:44px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">ALPHA<span>VAULT</span> · KASPA PULSE</div>
+    <div class="updated" id="updated"></div>
+  </header>
+
+  <section class="hero">
+    <div class="label">Total money in Kaspa DeFi</div>
+    <div class="big" id="totalTvl">—</div>
+    <div class="sub">capital committed across both L2s (total TVL) — the number nobody else adds up</div>
+    <div class="breakdown" id="breakdown"></div>
+    <div class="deltas" id="heroDeltas"></div>
+  </section>
+
+  <div class="sec">Usage — is anyone actually using it?</div>
+  <div class="grid" id="usageCards"></div>
+
+  <div class="sec">Holders &amp; Security</div>
+  <div class="grid" id="baseCards"></div>
+
+  <div class="chart-box">
+    <div class="title">TOTAL DEFI TVL — WEEK BY WEEK</div>
+    <div id="chart"></div>
+  </div>
+
+  <div class="ctx" id="ctx"></div>
+
+  <div class="cta">weekly breakdown with context every monday → <a href="https://x.com/gokugalax" target="_blank">@gokugalax on X</a></div>
+
+  <footer>
+    <div class="brand">ALPHAVAULT</div>
+    <div class="src">data: <a href="https://defillama.com" target="_blank">defillama</a> · <a href="https://kaspalytics.com" target="_blank">kaspalytics</a> · <a href="https://kaspa.stream" target="_blank">kaspa.stream</a> · kaspa.org</div>
+  </footer>
+</div>
+
+<script>
+// v1: embedded data. Later: fetch('dashboard_data.json') pushed by the monday cron.
+const DATA = {
+  updated: "2026-07-20",
+  context: { price_usd: 0.028, mcap: "$765M", mined_pct: 96.1 },
+  hashrate_windows: { d7: -2.3, d30: -19.6, d90: -24.8 },
+  history: [
+    {date:"2026-07-13", m:{tvl_total:null, tvl_kasplex:475000, tvl_igra:null, tps:0.74, covenant_tx:44, igra_tx:47625, kasplex_tx:833, holders:46.14, hashrate:319.3}},
+    {date:"2026-07-20", m:{tvl_total:1966832, tvl_kasplex:386832, tvl_igra:1580000, tps:0.87, covenant_tx:1578, igra_tx:45306, kasplex_tx:872, holders:46.19, hashrate:313.7}}
+  ]
+};
+
+const $ = id => document.getElementById(id);
+const fmtUsd = n => n==null?"—":(n>=1e6?"$"+(n/1e6).toFixed(2)+"M":"$"+Math.round(n/1e3)+"K");
+const fmtN = n => n==null?"—":n.toLocaleString("en-US");
+const H = DATA.history, cur = H[H.length-1].m;
+const back = w => H.length>w ? H[H.length-1-w].m : null;
+
+function delta(key, weeksBack, label){
+  const p = back(weeksBack); 
+  if(!p || p[key]==null || cur[key]==null) return `<div class="tr"><span class="win">${label}</span><span class="flat">—</span></div>`;
+  const pct=(cur[key]-p[key])/Math.abs(p[key])*100;
+  const cls=Math.abs(pct)<0.5?"flat":(pct>0?"up":"down");
+  const txt=Math.abs(pct)<0.5?"→ flat":(pct>0?"▲ +":"▼ ")+pct.toFixed(1)+"%";
+  return `<div class="tr"><span class="win">${label}</span><span class="${cls}">${txt}</span></div>`;
+}
+const trendBlock = key => delta(key,1,"vs last week") + delta(key,4,"vs last month");
+
+$("updated").textContent = "UPDATED " + DATA.updated;
+$("totalTvl").textContent = fmtUsd(cur.tvl_total);
+$("breakdown").innerHTML = `Igra <b>${fmtUsd(cur.tvl_igra)}</b> · Kasplex <b>${fmtUsd(cur.tvl_kasplex)}</b>`;
+{ // hero deltas vs 1w/4w on total (falls back silently)
+  const p1=back(1), p4=back(4);
+  let s="";
+  if(p1&&p1.tvl_total!=null&&cur.tvl_total!=null){const pc=(cur.tvl_total-p1.tvl_total)/p1.tvl_total*100;s+=`<span class="${pc>0?'up':'down'}">${pc>0?'▲ +':'▼ '}${pc.toFixed(1)}% vs last week</span>`;}
+  else s+=`<span class="flat">first full reading — trend starts next week</span>`;
+  $("heroDeltas").innerHTML=s;
+}
+
+$("usageCards").innerHTML = `
+  <div class="card"><div class="name">Real network usage</div><div class="expl">* transactions per second, spam filtered out</div>
+    <div class="val">${cur.tps} TPS</div><div class="trends">${trendBlock("tps")}</div></div>
+  <div class="card"><div class="name">Smart-contract activity</div><div class="expl">* covenant transactions per day (live since June)</div>
+    <div class="val">${fmtN(cur.covenant_tx)}/day</div><div class="trends">${trendBlock("covenant_tx")}</div></div>
+  <div class="card"><div class="name">L2 activity split</div><div class="expl">* transactions per day on each L2</div>
+    <div class="val">${(cur.igra_tx/(cur.igra_tx+cur.kasplex_tx)*100).toFixed(0)}% Igra</div>
+    <div class="split"><div class="a" style="width:${cur.igra_tx/(cur.igra_tx+cur.kasplex_tx)*100}%"></div><div class="b" style="flex:1"></div></div>
+    <div class="split-lbl"><span>Igra ${fmtN(cur.igra_tx)}</span><span>Kasplex ${fmtN(cur.kasplex_tx)}</span></div></div>`;
+
+$("baseCards").innerHTML = `
+  <div class="card"><div class="name">Long-term holders</div><div class="expl">* share of all KAS untouched for over a year</div>
+    <div class="val">${cur.holders.toFixed(0)}%</div><div class="trends">${trendBlock("holders")}</div></div>
+  <div class="card"><div class="name">Mining power</div><div class="expl">* computing power securing the network (hashrate)</div>
+    <div class="val">${cur.hashrate} PH/s</div>
+    <div class="trends">
+      <div class="tr"><span class="win">7 days</span><span class="${DATA.hashrate_windows.d7>0?'up':(Math.abs(DATA.hashrate_windows.d7)<0.5?'flat':'down')}">${DATA.hashrate_windows.d7>0?'▲ +':'▼ '}${Math.abs(DATA.hashrate_windows.d7)}%</span></div>
+      <div class="tr"><span class="win">30 days</span><span class="down">▼ ${Math.abs(DATA.hashrate_windows.d30)}%</span></div>
+      <div class="tr"><span class="win">90 days</span><span class="down">▼ ${Math.abs(DATA.hashrate_windows.d90)}%</span></div>
+    </div></div>
+  <div class="card"><div class="name">Kasplex TVL</div><div class="expl">* capital on the Kasplex L2 alone</div>
+    <div class="val">${fmtUsd(cur.tvl_kasplex)}</div><div class="trends">${trendBlock("tvl_kasplex")}</div></div>`;
+
+$("ctx").innerHTML = `<span>Price <b>$${DATA.context.price_usd}</b></span><span>Market cap <b>${DATA.context.mcap}</b></span><span>Supply mined <b>${DATA.context.mined_pct}%</b></span>`;
+
+// TVL chart
+const pts = H.map(h=>({d:h.date, v:h.m.tvl_total ?? h.m.tvl_kasplex}));
+const W=820,Hh=210,P=42;
+const vs=pts.map(p=>p.v), max=Math.max(...vs)*1.15;
+const x=i=>P+(W-2*P)*(pts.length>1?i/(pts.length-1):0.5), y=v=>Hh-P-(Hh-2*P)*(v/max);
+let path=pts.map((p,i)=>(i?"L":"M")+x(i)+","+y(p.v)).join(" ");
+let dots=pts.map((p,i)=>`<circle cx="${x(i)}" cy="${y(p.v)}" r="4" fill="#49EACB"/>`+
+  `<text x="${x(i)}" y="${Hh-14}" fill="#5C6268" font-size="10" text-anchor="middle">${p.d.slice(5)}</text>`+
+  `<text x="${x(i)}" y="${y(p.v)-10}" fill="#8A9096" font-size="10" text-anchor="middle">${fmtUsd(p.v)}</text>`).join("");
+$("chart").innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" width="100%"><path d="${path}" stroke="#49EACB" stroke-width="2" fill="none"/>${dots}</svg>`;
+</script>
+</body>
+</html>
