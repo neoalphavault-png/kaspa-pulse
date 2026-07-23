@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="favicon.png">
 <style>
-  :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --txt:#FFFFFF; --dim:#8A9096; --dimmer:#5C6268; }
+  :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --grid:#14171B; --teal:#49EACB; --red:#E36A6A; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
          background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
@@ -30,6 +30,7 @@
   .hero .volline .lv { color:var(--teal); font-size:11px; font-weight:700; }
   .hero .deltas { margin-top:10px; font-size:13px; font-weight:700; }
   .sec { font-size:12px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; margin:38px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:6px; }
+  .sec span:first-child::before { content:""; display:inline-block; width:12px; height:3px; border-radius:2px; background:var(--teal); margin-right:9px; vertical-align:2px; opacity:0.85; }
   .sec .tag { letter-spacing:1px; text-transform:none; }
   .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
   .grid.four { grid-template-columns:repeat(4,1fr); }
@@ -38,7 +39,7 @@
   .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; transition:border-color .2s; }
   .card:hover { border-color:#2A3038; }
   .card .name { font-size:13px; color:var(--txt); font-weight:600; }
-  .card .expl { font-size:11px; color:var(--dimmer); margin-top:3px; min-height:24px; }
+  .card .expl { font-size:12px; line-height:16px; color:var(--dimmer); margin-top:4px; min-height:32px; }
   .card .val { font-size:26px; font-weight:700; margin-top:8px; }
   .card { display:flex; flex-direction:column; }
   .trends, .split, .split-lbl { margin-top:auto; }
@@ -46,7 +47,7 @@
   .tr { display:flex; justify-content:space-between; font-size:12px; }
   .tr .win { color:var(--dimmer); }
   .up { color:var(--teal); font-weight:700; } .down { color:var(--red); font-weight:700; } .flat { color:var(--dim); font-weight:700; }
-  .split { display:flex; gap:0; height:10px; border-radius:5px; overflow:hidden; margin-top:10px; }
+  .split { display:flex; gap:2px; height:10px; border-radius:5px; overflow:hidden; margin-top:10px; }
   .split .a { background:var(--teal); } .split .b { background:#2A6E63; }
   .split-lbl { display:flex; justify-content:space-between; font-size:11px; color:var(--dim); margin-top:5px; }
   .ctx { display:flex; flex-wrap:wrap; gap:18px; justify-content:center; font-size:12px; color:var(--dim); margin:30px 0 6px; }
@@ -70,6 +71,7 @@
   .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
   .subscribe input::placeholder { color:var(--dimmer); }
   .subscribe input:focus { outline:none; border-color:var(--teal); }
+  a:focus-visible, button:focus-visible, input:focus-visible { outline:2px solid var(--teal); outline-offset:2px; }
   .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
   .subscribe button:hover { opacity:0.9; }
   .subscribe .fine { font-size:11px; color:var(--dimmer); margin-top:10px; }
@@ -100,7 +102,7 @@
   <div class="grid four" id="usageCards"></div>
 
   <div class="sec"><span>Supply — the tightening story</span><span class="tag">weekly reading</span></div>
-  <div class="grid" id="supplyCards"></div>
+  <div class="grid four" id="supplyCards"></div>
 
   <div class="sec"><span>Holders &amp; Security</span><span class="tag">weekly reading</span></div>
   <div class="grid four" id="baseCards"></div>
@@ -148,13 +150,18 @@ const DATA = {
   hashrate_windows: { d7: -2.3, d30: -19.6, d90: -24.8 },
   history: [
     {date:"2026-07-13", m:{tvl_total:null, tvl_kasplex:475000, tvl_igra:null, tps:0.74, covenant_tx:44, igra_tx:47625, kasplex_tx:872, holders:46.14, hashrate:319.3, active_addr:88500, block_reward:2.45, dex_vol:88000}},
-    {date:"2026-07-20", m:{tvl_total:1966832, tvl_kasplex:386832, tvl_igra:1580000, tps:0.87, covenant_tx:1578, igra_tx:45306, kasplex_tx:872, holders:46.19, hashrate:313.7, active_addr:90200, block_reward:2.45, dex_vol:96000, holder_addr:783970}}
+    {date:"2026-07-20", m:{tvl_total:1966832, tvl_kasplex:386832, tvl_igra:1580000, tps:0.87, covenant_tx:1578, igra_tx:45306, kasplex_tx:872, holders:46.19, hashrate:313.7, active_addr:90200, block_reward:2.45, dex_vol:96000, holder_addr:783970, exchange_kas:3950000000}}
   ],
   // holder_addr: Kaspalytics "Address Count (meaningful balance)" — kaspalytics.com/app/address/count/meaningful-balance
-  // erster Wert abgelesen 2026-07-23; ab Mo 27.07. jeden Montag mitpflegen wie die anderen Werte
+  // exchange_kas: Kaspalytics "Known Exchange Holdings" — kaspalytics.com/app/supply/exchange-holdings
+  // erste Werte abgelesen 2026-07-23; ab Mo 27.07. jeden Montag mitpflegen wie die anderen Werte
   holder_baselines: {
     m3: { date:"2026-04-23", n:775190 },   // 3 Monate zurück
     y1: { date:"2025-07-23", n:734840 }    // 1 Jahr zurück
+  },
+  exchange_baselines: {
+    m3: { date:"2026-04-23", n:3890000000 },   // 3.89B KAS
+    y1: { date:"2025-07-24", n:3070000000 }    // 3.07B KAS
   }
 };
 
@@ -241,6 +248,12 @@ fetch("https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd
   .then(r=>r.json()).then(d=>{ if(d.kaspa) renderCtx(d.kaspa.usd, d.kaspa.usd_market_cap, true); }).catch(()=>{});
 
 // --- supply & emission cards ---
+// exchange holdings: MEHR auf Börsen = potenzieller Verkaufsdruck → Anstieg wird rot, Rückgang teal (invertierte Färbung)
+const fmtKas = n => n==null?"—":(n>=1e9?(n/1e9).toFixed(2)+"B":(n/1e6).toFixed(0)+"M");
+const invRow = (label, c, p) => { const d = deltaTxt(c, p); if(!d) return `<div class="tr"><span class="win">${label}</span><span class="flat">—</span></div>`;
+  const cls = d.cls==="up" ? "down" : (d.cls==="down" ? "up" : "flat");
+  return `<div class="tr"><span class="win">${label}</span><span class="${cls}">${d.txt}</span></div>`; };
+const exPrev = back(1);
 $("supplyCards").innerHTML = `
   <div class="card"><div class="name">Supply issued</div><div class="expl">* share of all KAS that will ever exist, already mined</div>
     <div class="val">${DATA.context_fallback.mined_pct}%</div>
@@ -250,7 +263,14 @@ $("supplyCards").innerHTML = `
     <div class="trends"><div class="tr"><span class="win">next reduction</span><span class="down">${DATA.emission.next_reduction}</span></div></div></div>
   <div class="card"><div class="name">Annual inflation</div><div class="expl">* new supply added per year at current rate</div>
     <div class="val">~${DATA.emission.annual_inflation_pct}%</div>
-    <div class="trends"><div class="tr"><span class="win">trend</span><span class="up">▼ falling</span></div></div></div>`;
+    <div class="trends"><div class="tr"><span class="win">trend</span><span class="up">▼ falling</span></div></div></div>
+  <div class="card"><div class="name">KAS on exchanges</div><div class="expl">* coins on known exchange wallets — potential sell-side supply</div>
+    <div class="val">${fmtKas(cur.exchange_kas)}</div>
+    <div class="trends">
+      ${invRow("vs last week", cur.exchange_kas, exPrev ? exPrev.exchange_kas : null)}
+      ${invRow("vs 3 months", cur.exchange_kas, DATA.exchange_baselines.m3.n)}
+      ${invRow("vs 1 year", cur.exchange_kas, DATA.exchange_baselines.y1.n)}
+    </div></div>`;
 
 // --- weekly cards ---
 $("usageCards").innerHTML = `
@@ -294,11 +314,27 @@ const pts = H.map(h=>({d:h.date, v:h.m.tvl_total ?? h.m.tvl_kasplex}));
 const W=820,Hh=210,P=42;
 const vs=pts.map(p=>p.v), max=Math.max(...vs)*1.15;
 const x=i=>P+(W-2*P)*(pts.length>1?i/(pts.length-1):0.5), y=v=>Hh-P-(Hh-2*P)*(v/max);
+// recessive hairline gridlines at clean values
+const step = max>1.5e6 ? 5e5 : 2.5e5;
+let grid="";
+for(let g=step; g<max; g+=step){
+  grid += `<line x1="${P}" x2="${W-P}" y1="${y(g)}" y2="${y(g)}" stroke="#14171B" stroke-width="1"/>`+
+          `<text x="${P-8}" y="${y(g)+3}" fill="#7A828C" font-size="9" text-anchor="end">${fmtUsd(g)}</text>`;
+}
 let path=pts.map((p,i)=>(i?"L":"M")+x(i)+","+y(p.v)).join(" ");
-let dots=pts.map((p,i)=>`<circle cx="${x(i)}" cy="${y(p.v)}" r="4" fill="#49EACB"/>`+
-  `<text x="${x(i)}" y="${Hh-14}" fill="#5C6268" font-size="10" text-anchor="middle">${p.d.slice(5)}</text>`+
-  `<text x="${x(i)}" y="${y(p.v)-10}" fill="#8A9096" font-size="10" text-anchor="middle">${fmtUsd(p.v)}</text>`).join("");
-$("chart").innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" width="100%"><path d="${path}" stroke="#49EACB" stroke-width="2" fill="none"/>${dots}</svg>`;
+// soft area wash under the line (~10% opacity fading out)
+const area = path + ` L ${x(pts.length-1)},${Hh-P} L ${x(0)},${Hh-P} Z`;
+let dots=pts.map((p,i)=>`<circle cx="${x(i)}" cy="${y(p.v)}" r="4" fill="#49EACB" stroke="#0B0E12" stroke-width="2"><title>${p.d}: ${fmtUsd(p.v)}</title></circle>`+
+  `<text x="${x(i)}" y="${Hh-14}" fill="#7A828C" font-size="10" text-anchor="middle">${p.d.slice(5)}</text>`+
+  `<text x="${x(i)}" y="${y(p.v)-12}" fill="#9BA3AB" font-size="10" text-anchor="middle">${fmtUsd(p.v)}</text>`).join("");
+$("chart").innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" width="100%">
+  <defs><linearGradient id="tvlfill" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#49EACB" stop-opacity="0.14"/><stop offset="100%" stop-color="#49EACB" stop-opacity="0"/>
+  </linearGradient></defs>
+  ${grid}
+  <path d="${area}" fill="url(#tvlfill)"/>
+  <path d="${path}" stroke="#49EACB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  ${dots}</svg>`;
 </script>
 </body>
 </html>
