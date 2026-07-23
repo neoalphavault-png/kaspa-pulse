@@ -103,7 +103,7 @@
   <div class="grid" id="supplyCards"></div>
 
   <div class="sec"><span>Holders &amp; Security</span><span class="tag">weekly reading</span></div>
-  <div class="grid" id="baseCards"></div>
+  <div class="grid four" id="baseCards"></div>
 
   <div class="chart-box">
     <div class="title">TOTAL DEFI TVL — WEEK BY WEEK</div>
@@ -148,8 +148,14 @@ const DATA = {
   hashrate_windows: { d7: -2.3, d30: -19.6, d90: -24.8 },
   history: [
     {date:"2026-07-13", m:{tvl_total:null, tvl_kasplex:475000, tvl_igra:null, tps:0.74, covenant_tx:44, igra_tx:47625, kasplex_tx:872, holders:46.14, hashrate:319.3, active_addr:88500, block_reward:2.45, dex_vol:88000}},
-    {date:"2026-07-20", m:{tvl_total:1966832, tvl_kasplex:386832, tvl_igra:1580000, tps:0.87, covenant_tx:1578, igra_tx:45306, kasplex_tx:872, holders:46.19, hashrate:313.7, active_addr:90200, block_reward:2.45, dex_vol:96000}}
-  ]
+    {date:"2026-07-20", m:{tvl_total:1966832, tvl_kasplex:386832, tvl_igra:1580000, tps:0.87, covenant_tx:1578, igra_tx:45306, kasplex_tx:872, holders:46.19, hashrate:313.7, active_addr:90200, block_reward:2.45, dex_vol:96000, holder_addr:783970}}
+  ],
+  // holder_addr: Kaspalytics "Address Count (meaningful balance)" — kaspalytics.com/app/address/count/meaningful-balance
+  // erster Wert abgelesen 2026-07-23; ab Mo 27.07. jeden Montag mitpflegen wie die anderen Werte
+  holder_baselines: {
+    m3: { date:"2026-04-23", n:775190 },   // 3 Monate zurück
+    y1: { date:"2025-07-23", n:734840 }    // 1 Jahr zurück
+  }
 };
 
 const $ = id => document.getElementById(id);
@@ -206,7 +212,7 @@ function renderHero(kasplex, igra, liveTag){
 renderHero(null,null,false);
 // dex volume line — weekly fallback, then live
 function renderVol(v, live){
-  $("volline").innerHTML = "traded today: <b>"+fmtUsd(v)+"</b> across all kaspa DEXs" + (live?' <span class="lv">LIVE</span>':'');
+  $("volline").innerHTML = "traded (24h): <b>"+fmtUsd(v)+"</b> across all kaspa DEXs" + (live?' <span class="lv">LIVE</span>':'');
 }
 renderVol(cur.dex_vol, false);
 fetch("https://api.llama.fi/overview/dexs/kasplex?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true")
@@ -227,7 +233,7 @@ fetch("https://api.llama.fi/v2/chains").then(r=>r.json()).then(chains=>{
 
 // --- context: live price/mcap from CoinGecko, fallback ---
 function renderCtx(p,m,liveTag){
-  $("ctx").innerHTML = `<span>KAS price <b>$${p}</b>${liveTag?' <span class="up" style="font-size:10px">LIVE</span>':''}</span>`+
+  $("ctx").innerHTML = `<span>KAS price <b>$${(+p).toFixed(4)}</b>${liveTag?' <span class="up" style="font-size:10px">LIVE</span>':''}</span>`+
     `<span>Market cap <b>${fmtUsd(m)}</b></span><span>Supply mined <b>${DATA.context_fallback.mined_pct}%</b></span>`;
 }
 renderCtx(DATA.context_fallback.price_usd, DATA.context_fallback.mcap_usd, false);
@@ -259,9 +265,20 @@ $("usageCards").innerHTML = `
     <div class="split"><div class="a" style="width:${cur.igra_tx/(cur.igra_tx+cur.kasplex_tx)*100}%"></div><div class="b" style="flex:1"></div></div>
     <div class="split-lbl"><span>Igra ${fmtN(cur.igra_tx)}</span><span>Kasplex ${fmtN(cur.kasplex_tx)}</span></div></div>`;
 
+// holder-address deltas vs fixed baselines (Kaspalytics)
+const hbRow = (label, base) => { const d = deltaTxt(cur.holder_addr, base);
+  return `<div class="tr"><span class="win">${label}</span><span class="${d?d.cls:'flat'}">${d?d.txt:'—'}</span></div>`; };
+
 $("baseCards").innerHTML = `
   <div class="card"><div class="name">Long-term holders</div><div class="expl">* share of all KAS untouched for over a year</div>
     <div class="val">${cur.holders.toFixed(0)}%</div><div class="trends">${trendBlock("holders")}</div></div>
+  <div class="card"><div class="name">Addresses holding KAS</div><div class="expl">* wallets with more than dust (&gt;0.00001 KAS) — addresses, not people</div>
+    <div class="val">${fmtN(cur.holder_addr)}</div>
+    <div class="trends">
+      ${trRow("holder_addr",1,"vs last week")}
+      ${hbRow("vs 3 months", DATA.holder_baselines.m3.n)}
+      ${hbRow("vs 1 year", DATA.holder_baselines.y1.n)}
+    </div></div>
   <div class="card"><div class="name">Mining power</div><div class="expl">* computing power securing the network (hashrate)</div>
     <div class="val">${cur.hashrate} PH/s</div>
     <div class="trends">
