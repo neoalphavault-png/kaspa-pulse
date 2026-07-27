@@ -19,7 +19,7 @@
   .updated { font-size:11px; color:var(--dimmer); letter-spacing:1px; text-align:right; }
   .live-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--teal); margin-right:5px; animation:pulse 2s infinite; vertical-align:1px; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
-  .hero { text-align:center; padding:44px 0 34px; }
+  .hero { text-align:center; padding:58px 0 46px; }
   .hero .label { font-size:13px; letter-spacing:3px; color:var(--dim); text-transform:uppercase; }
   .hero .big { font-size:60px; font-weight:700; color:var(--teal); margin:8px 0 4px; }
   .hero .sub { font-size:13px; color:var(--dimmer); }
@@ -29,17 +29,21 @@
   .hero .volline b { color:var(--txt); }
   .hero .volline .lv { color:var(--teal); font-size:11px; font-weight:700; }
   .hero .deltas { margin-top:10px; font-size:13px; font-weight:700; }
-  .sec { font-size:12px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; margin:38px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:6px; }
-  .sec span:first-child::before { content:""; display:inline-block; width:12px; height:3px; border-radius:2px; background:var(--teal); margin-right:9px; vertical-align:2px; opacity:0.85; }
-  .sec .tag { letter-spacing:1px; text-transform:none; }
-  .read { font-size:13.5px; line-height:20px; color:var(--dim); font-style:italic; margin:-2px 0 16px; max-width:860px; }
+  .sec { margin:88px 0 8px; display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:6px; }
+  .hero + .sec { margin-top:30px; }
+  .sec .t { font-size:25px; font-weight:700; letter-spacing:-0.4px; color:var(--txt); }
+  .sec .t::before { content:""; display:inline-block; width:22px; height:4px; border-radius:2px; background:var(--teal); margin-right:13px; vertical-align:6px; }
+  .sec .t span { color:var(--dimmer); font-weight:600; }
+  .sec .tag { font-size:11px; letter-spacing:1px; color:var(--dimmer); }
+  .read { font-size:14.5px; line-height:22px; color:var(--dim); margin:10px 0 26px; max-width:820px; }
   .read b { color:var(--txt); font-weight:600; }
-  .read .rl { color:var(--teal); font-style:normal; font-weight:700; letter-spacing:2px; font-size:10px; text-transform:uppercase; margin-right:9px; }
-  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .read .rl { color:var(--teal); font-weight:700; letter-spacing:2px; font-size:10px; text-transform:uppercase; margin-right:10px; }
+  @media (max-width:520px){ .sec .t{font-size:21px;} .sec{margin:64px 0 6px;} }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
   .grid.four { grid-template-columns:repeat(4,1fr); }
   @media (max-width:760px){ .grid, .grid.four { grid-template-columns:repeat(2,1fr); } }
   @media (max-width:440px){ .grid, .grid.four { grid-template-columns:1fr; } }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; transition:border-color .2s; }
+  .card { background:var(--card); border:1px solid #15181C; border-radius:16px; padding:19px 18px; transition:border-color .2s; }
   .card:hover { border-color:#2A3038; }
   .card .name { font-size:13px; color:var(--txt); font-weight:600; }
   .card .expl { font-size:12px; line-height:16px; color:var(--dimmer); margin-top:4px; min-height:32px; }
@@ -53,9 +57,9 @@
   .split { display:flex; gap:2px; height:10px; border-radius:5px; overflow:hidden; margin-top:10px; }
   .split .a { background:var(--teal); } .split .b { background:#2A6E63; }
   .split-lbl { display:flex; justify-content:space-between; font-size:11px; color:var(--dim); margin-top:5px; }
-  .ctx { display:flex; flex-wrap:wrap; gap:18px; justify-content:center; font-size:12px; color:var(--dim); margin:30px 0 6px; }
+  .ctx { display:flex; flex-wrap:wrap; gap:18px; justify-content:center; font-size:12px; color:var(--dim); margin:44px 0 6px; }
   .ctx b { color:var(--txt); }
-  .chart-box { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px; margin-top:14px; }
+  .chart-box { background:var(--card); border:1px solid #15181C; border-radius:16px; padding:24px; margin-top:72px; }
   .chart-box .title { font-size:12px; color:var(--dim); letter-spacing:1px; margin-bottom:10px; }
   .philosophy { text-align:center; font-size:12px; color:var(--dimmer); font-style:italic; margin:26px 0 0; }
   .cta { text-align:center; margin:22px 0 26px; font-size:13px; color:var(--dim); }
@@ -66,9 +70,9 @@
   footer a { color:var(--dim); text-decoration:none; }
   footer .legal { width:100%; text-align:center; font-size:11px; color:var(--dimmer); margin-top:6px; }
   @media (max-width:520px){ .hero .big{font-size:44px;} }
-  .comeback { text-align:center; font-size:12px; color:var(--dim); margin:20px 0 0; }
+  .comeback { text-align:center; font-size:12px; color:var(--dim); margin:28px 0 0; }
   .comeback b { color:var(--teal); font-weight:600; }
-  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:14px; padding:30px 24px; margin:34px 0 0; text-align:center; box-shadow:0 0 40px rgba(73,234,203,0.06); }
+  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:34px 24px; margin:72px 0 0; text-align:center; box-shadow:0 0 40px rgba(73,234,203,0.06); }
   .subscribe .st { font-size:18px; font-weight:700; color:var(--txt); letter-spacing:-0.3px; }
   .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
   .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
@@ -102,23 +106,23 @@
     <div class="deltas" id="heroDeltas"></div>
   </section>
 
-  <div class="sec"><span>Usage — is anyone actually using it?</span><span class="tag" id="weeklyTag"></span></div>
+  <div class="sec"><div class="t">Usage. <span>is anyone actually using it?</span></div><div class="tag" id="weeklyTag"></div></div>
   <div class="read"><span class="rl">the read</span>l2 traffic is <b>98% igra</b> and covenant transactions settled near 900 a day after the launch spike. usage is still small in absolute terms — what matters this early is that <b>activity keeps growing while price doesn't</b>.</div>
   <div class="grid four" id="usageCards"></div>
 
-  <div class="sec"><span>DEX volume — where KAS actually trades</span><span class="tag">weekly reading</span></div>
+  <div class="sec"><div class="t">DEX volume. <span>where KAS actually trades</span></div><div class="tag">weekly reading</div></div>
   <div class="read"><span class="rl">the read</span>about <b>$133K a day</b> changes hands on kaspa DEXs, almost all of it on krokoswap. total fees under $350 a day tell the honest story — <b>the rails work, the volume hasn't arrived yet</b>.</div>
   <div class="grid four" id="dexCards"></div>
 
-  <div class="sec"><span>Supply — the tightening story</span><span class="tag">weekly reading</span></div>
+  <div class="sec"><div class="t">Supply. <span>the tightening story</span></div><div class="tag">weekly reading</div></div>
   <div class="read"><span class="rl">the read</span>96% of all KAS is already mined and the next reward cut lands in <b>~9 days</b>. the one to watch is exchanges — balances <b>ticked down this week</b>, fewer coins sitting where they can be sold.</div>
   <div class="grid four" id="supplyCards"></div>
 
-  <div class="sec"><span>Holders &amp; Security</span><span class="tag">weekly reading</span></div>
+  <div class="sec"><div class="t">Holders &amp; Security. <span>who is still here</span></div><div class="tag">weekly reading</div></div>
   <div class="read"><span class="rl">the read</span><b>over half of all KAS hasn't moved in a year</b> and holder addresses grew again — right through a 16% weekly hashrate drop. holders are calm, miners are stressed ahead of the reward cut. that's what a shakeout looks like.</div>
   <div class="grid four" id="baseCards"></div>
 
-  <div class="sec"><span>Whale watch — the biggest wallet on the chain</span><span class="tag">live balance · weekly deltas</span></div>
+  <div class="sec"><div class="t">Whale watch. <span>the biggest wallet on the chain</span></div><div class="tag">live balance · weekly deltas</div></div>
   <div class="read"><span class="rl">the read</span>the chain's largest address added <b>+15.2M KAS this week</b> — buying every single week, never sending to exchanges. the day this wallet moves toward an exchange, you'll read it here first.</div>
   <div class="grid" id="whaleCards"></div>
 
