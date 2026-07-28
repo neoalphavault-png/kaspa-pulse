@@ -46,6 +46,8 @@
   a { color:var(--teal); }
   .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
   .subscribe .st { font-size:18px; font-weight:700; }
+  .subscribe .st b { color:var(--teal); font-weight:700; }
+  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
   .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
   .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
   .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
@@ -109,17 +111,18 @@
   <div class="note">We track Entity X's balance live and publish the weekly delta every Monday on the <a href="/">Kaspa Pulse dashboard</a> — the day this wallet moves toward an exchange, you'll read it there first.</div>
 
   <div class="subscribe">
-    <div class="st">get the weekly kaspa numbers in your inbox</div>
-    <div class="ss">every monday · entity x delta, holders, exchange balances, tvl · no hype, no spam</div>
+    <div class="badge">free · instant</div>
+    <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
+    <div class="ss">the 8 numbers that actually matter (including entity x) and how to read them · plus the weekly pulse every monday</div>
     <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
       <input type="email" name="EMAIL" placeholder="you@email.com" required>
       <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
       <input type="hidden" name="locale" value="en">
       <input type="hidden" name="html_type" value="simple">
-      <button type="submit" id="subBtn">subscribe</button>
+      <button type="submit" id="subBtn">get it</button>
     </form>
     <div class="msg" id="subMsg"></div>
-    <div class="fine">free · unsubscribe anytime · just the data</div>
+    <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
   </div>
 
   <footer>
@@ -149,7 +152,7 @@ fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).t
     try {
       const res = await fetch(form.action, { method:"POST", body:new FormData(form) });
       const j = await res.json();
-      if (j.success) { msg.textContent = "✓ almost there — check your inbox and click the confirmation link"; msg.className = "msg ok"; form.reset(); }
+      if (j.success) { msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
       else { msg.textContent = j.message || "something went wrong — please try again"; msg.className = "msg err"; }
     } catch(_) { form.submit(); }
     btn.disabled = false; btn.textContent = old;
