@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>What is Entity X? Kaspa's Biggest Wallet, Explained — Kaspa Pulse</title>
-<meta name="description" content="Entity X is the largest single Kaspa address: 1.49B KAS, 5.4% of all supply, more than a third of what all exchanges hold combined. Live balance, weekly buying pattern, and what it means — explained.">
+<meta name="description" content="Entity X is the largest single Kaspa address — one wallet holding around 5% of all circulating KAS. Live balance, the weekly buying pattern on-chain, who might be behind it, and what it means — explained.">
 <link rel="canonical" href="https://kaspapulse.com/entity-x.html">
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
@@ -74,26 +74,26 @@
 
   <div class="live">
     <div class="lbl"><span class="live-dot"></span>Entity X balance right now</div>
-    <div class="bal" id="bal">1.494B KAS</div>
-    <div class="usd" id="usd">≈ $43M · 5.4% of all circulating KAS</div>
+    <div class="bal" id="bal">—</div>
+    <div class="usd" id="usd">fetching live balance…</div>
     <div class="upd">fetched live from the kaspa network · weekly context updated every monday on the <a href="/">dashboard</a></div>
   </div>
 
   <h2>The short answer</h2>
-  <p><b>Entity X is the largest single Kaspa address.</b> The name is just a label that block explorers like <a href="https://kaspa.stream" target="_blank" rel="noopener">kaspa.stream</a> gave it — nobody knows who controls it. As of late July 2026 it holds about <b>1.49 billion KAS</b>, which is roughly <b>5.4% of everything in circulation</b>, and more than a third of what all known exchanges hold combined.</p>
+  <p><b>Entity X is the largest single Kaspa address.</b> The name is just a label that block explorers like <a href="https://kaspa.stream" target="_blank" rel="noopener">kaspa.stream</a> gave it — nobody knows who controls it. Its exact balance is shown above, fetched live from the Kaspa network as you read this — a share of circulating supply so large that in July 2026 it exceeded a third of what all known exchanges held combined.</p>
 
   <div class="facts">
-    <div class="fact"><div class="v teal">1.49B KAS</div><div class="l">current balance — one address, verifiable on any explorer</div></div>
-    <div class="fact"><div class="v teal">5.4%</div><div class="l">of all circulating KAS (~27.6B) in this single wallet</div></div>
-    <div class="fact"><div class="v red">&gt; ⅓</div><div class="l">of all known exchange holdings combined (3.94B KAS)</div></div>
-    <div class="fact"><div class="v teal">+84M</div><div class="l">KAS added in the last 90 days — weekly buys, zero sells</div></div>
+    <div class="fact"><div class="v teal" id="factBal">live ↑</div><div class="l">current balance — one address, verifiable on any explorer, shown live above</div></div>
+    <div class="fact"><div class="v teal" id="factPct">live ↑</div><div class="l">share of all circulating KAS held in this single wallet — computed live from supply</div></div>
+    <div class="fact"><div class="v red">&gt; ⅓</div><div class="l">of all known exchange holdings combined (3.94B KAS) — as measured July 2026</div></div>
+    <div class="fact"><div class="v teal">+84M</div><div class="l">KAS added in the 90 days to late July 2026 — weekly buys, zero sells</div></div>
   </div>
 
   <h2>What the on-chain record shows</h2>
   <ul>
-    <li><b>It buys every single week.</b> In the week ending July 27, 2026 it added ~17M KAS, withdrawn directly from Bitget and Gate.io. Over the last 90 days: ~84M KAS.</li>
+    <li><b>It buys every single week.</b> In the week ending July 27, 2026 it added ~17M KAS, withdrawn directly from Bitget and Gate.io. In the 90 days before that: ~84M KAS.</li>
     <li><b>It has never sent coins to an exchange.</b> Since tracking began, flows go one way: in.</li>
-    <li><b>It's young at this size.</b> One year ago no single Kaspa address held more than 1B KAS. Entity X crossed that line within the last year and kept going.</li>
+    <li><b>It reached this size fast.</b> Between April and July 2026 alone the balance grew from about 1.41 billion to just under 1.5 billion KAS — and it kept going.</li>
     <li><b>First activity:</b> March 2024. A few hundred transactions total — large, deliberate withdrawals, not trading.</li>
   </ul>
 
@@ -101,7 +101,7 @@
   <p>Honestly: <b>nobody knows, and anyone who claims to is guessing.</b> The plausible theories are a very early large holder consolidating, an institution or fund custodying a position, or an OTC desk's cold storage. What the chain rules out is just as useful: the pattern (steady weekly withdrawals from exchanges, never selling) looks like <b>patient accumulation</b>, not market-making or exchange infrastructure.</p>
 
   <h2>Why it matters</h2>
-  <p>Two reasons. First, <b>concentration</b>: one unknown party holding 5.4% of supply is a real risk factor — if this wallet ever moved toward an exchange, it would matter, fast. Second, <b>signal</b>: someone with tens of millions of dollars keeps choosing to take KAS off exchanges at these prices, every week, through the entire drawdown. You don't have to copy them. But it's one of the few on-chain facts in crypto you can verify yourself in 30 seconds.</p>
+  <p>Two reasons. First, <b>concentration</b>: one unknown party holding 5.4% of supply is a real risk factor — if this wallet ever moved toward an exchange, it would matter, fast. Second, <b>signal</b>: someone with tens of millions of dollars keeps choosing to take KAS off exchanges week after week — straight through the 2025–2026 drawdown. You don't have to copy them. But it's one of the few on-chain facts in crypto you can verify yourself in 30 seconds.</p>
 
   <h2>Verify it yourself</h2>
   <p>Don't trust us — check the address on any explorer:</p>
@@ -126,22 +126,35 @@
   </div>
 
   <footer>
-    <div>not financial advice · data: kaspa.stream, kaspalytics, api.kaspa.org · further reading: <a href="/merged-mining.html">kaspa merged mining, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/">kaspapulse.com</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>not financial advice · data: kaspa.stream, kaspalytics, api.kaspa.org · further reading: <a href="/merged-mining.html">kaspa merged mining, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/">kaspapulse.com</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
   </footer>
 </div>
 
 <script>
-// live balance
+// live balance + live share of circulating supply
 const EX_ADDR = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a";
 fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).then(j=>{
-  if(j && j.balance){
-    const kas = j.balance/1e8;
-    document.getElementById("bal").textContent = (kas/1e9).toFixed(3)+"B KAS";
+  if(!(j && j.balance)) throw new Error("no data");
+  const kas = j.balance/1e8;
+  document.getElementById("bal").textContent = (kas/1e9).toFixed(3)+"B KAS";
+  document.getElementById("factBal").textContent = (kas/1e9).toFixed(2)+"B KAS";
+
+  // share of circulating supply — both sides live
+  fetch("https://api.kaspa.org/info/coinsupply").then(r=>r.json()).then(s=>{
+    const circ = s && s.circulatingSupply ? parseFloat(s.circulatingSupply)/1e8 : 0;
+    if(!circ) return;
+    const pct = (kas/circ*100).toFixed(2);
+    document.getElementById("factPct").textContent = pct+"%";
+    document.getElementById("usd").textContent = pct+"% of all circulating KAS";
+    // usd value on top of it, if the price feed answers
     fetch("https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd")
       .then(r=>r.json()).then(d=>{ if(d.kaspa) document.getElementById("usd").textContent =
-        "≈ $"+((kas*d.kaspa.usd)/1e6).toFixed(1)+"M · "+(kas/27.6e9*100).toFixed(2)+"% of all circulating KAS"; }).catch(()=>{});
-  }
-}).catch(()=>{});
+        "≈ $"+((kas*d.kaspa.usd)/1e6).toFixed(1)+"M · "+pct+"% of all circulating KAS"; }).catch(()=>{});
+  }).catch(()=>{});
+}).catch(()=>{
+  document.getElementById("bal").textContent = "—";
+  document.getElementById("usd").innerHTML = "live feed temporarily unavailable · check the address below on any explorer, or the <a href='/'>dashboard</a>";
+});
 // newsletter ajax (same as dashboard)
 (function(){
   const form = document.getElementById("subForm"), btn = document.getElementById("subBtn"), msg = document.getElementById("subMsg");
