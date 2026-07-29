@@ -348,8 +348,8 @@ $("baseCards").innerHTML = `
       ${hbRow("vs 1 year", DATA.holder_baselines.y1.n)}
     </div></div>
   <div class="card"><div class="name">Mining power</div><div class="expl">* computing power securing the network (hashrate) — <a href="/kaspa-hashrate.html" style="color:var(--teal); text-decoration:none;">how to read this number →</a></div>
-    <div class="val">${cur.hashrate} PH/s</div>
-    <div class="trends">
+    <div class="val" id="hrVal">${cur.hashrate} PH/s</div>
+    <div class="trends" id="hrTrends">
       <div class="tr"><span class="win">7 days</span><span class="${DATA.hashrate_windows.d7>0?'up':(Math.abs(DATA.hashrate_windows.d7)<0.5?'flat':'down')}">${DATA.hashrate_windows.d7>0?'▲ +':'▼ '}${Math.abs(DATA.hashrate_windows.d7)}%</span></div>
       <div class="tr"><span class="win">30 days</span><span class="down">▼ ${Math.abs(DATA.hashrate_windows.d30)}%</span></div>
       <div class="tr"><span class="win">90 days</span><span class="down">▼ ${Math.abs(DATA.hashrate_windows.d90)}%</span></div>
@@ -392,6 +392,27 @@ $("whaleCards").innerHTML = `
   <div class="card"><div class="name">Behaviour</div><div class="expl">* accumulates weekly, no outflows to exchanges since tracking began</div>
     <div class="val">buys weekly</div>
     <div class="trends"><div class="tr"><span class="win">signal to watch</span><span class="flat">first move toward an exchange</span></div></div></div>`;
+// --- live hashrate (weekly snapshot as fallback) ---
+// trend rows are recomputed against the same weekly baselines the static view uses,
+// so the live value and the arrows always agree. baselines derive from cur.hashrate
+// and the stored window percentages — keeps working after every monday data update.
+fetch("https://api.kaspa.org/info/hashrate?stringOnly=false").then(r=>r.json()).then(j=>{
+  if(!(j && j.hashrate)) return;
+  const ph = j.hashrate/1e3;
+  $("hrVal").innerHTML = ph.toFixed(1)+' PH/s <span style="color:var(--teal); font-size:11px; font-weight:700; letter-spacing:1px; vertical-align:6px;">LIVE</span>';
+  const baseOf = w => cur.hashrate/(1 + w/100);           // implied absolute baseline
+  const row = (label, basePh) => {
+    const p = (ph/basePh - 1)*100;
+    const cls = p > 0.5 ? "up" : (p < -0.5 ? "down" : "flat");
+    const arrow = p > 0.5 ? "▲ +" : (p < -0.5 ? "▼ " : "· ");
+    return '<div class="tr"><span class="win">'+label+'</span><span class="'+cls+'">'+arrow+Math.abs(p).toFixed(1)+'%</span></div>';
+  };
+  $("hrTrends").innerHTML =
+    row("vs mon reading", cur.hashrate) +
+    row("30 days", baseOf(DATA.hashrate_windows.d30)) +
+    row("90 days", baseOf(DATA.hashrate_windows.d90));
+}).catch(()=>{});
+
 // live balance from api.kaspa.org (weekly snapshot as fallback)
 fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).then(j=>{
   if(j && j.balance) $("exBal").innerHTML = (j.balance/1e8/1e9).toFixed(3)+"B KAS <span class='up' style='font-size:10px'>LIVE</span>";
