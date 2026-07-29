@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaspa Merged Mining, Explained — Does ZKas Take Kaspa's Hashrate? — Kaspa Pulse</title>
+<meta name="description" content="Merged mining lets Kaspa miners secure a second network (like ZKas) with the same work, for free. It does not pull hashrate away from Kaspa — here's how it actually works, in plain language.">
+<link rel="canonical" href="https://kaspapulse.com/merged-mining.html">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
+         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
+  .wrap { max-width:780px; margin:0 auto; padding:28px 18px 56px; }
+  header { display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--line); padding-bottom:16px; }
+  .logo { font-size:14px; letter-spacing:5px; font-weight:700; }
+  .logo a { color:var(--txt); text-decoration:none; }
+  .logo span { color:var(--teal); }
+  .back { font-size:12px; color:var(--dim); }
+  .back a { color:var(--teal); text-decoration:none; }
+  h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
+  h1 b { color:var(--teal); }
+  .sub { font-size:16px; color:var(--dim); line-height:24px; }
+  h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin:56px 0 14px; }
+  h2::before { content:""; display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--teal); margin-right:11px; vertical-align:5px; }
+  p { font-size:15px; line-height:24px; color:var(--dim); margin:0 0 14px; }
+  p b, li b { color:var(--txt); font-weight:600; }
+  ul { margin:0 0 14px 20px; }
+  li { font-size:15px; line-height:24px; color:var(--dim); margin-bottom:8px; }
+  .answer { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:24px 26px; margin:34px 0; }
+  .answer .lbl { font-size:12px; letter-spacing:3px; color:var(--teal); text-transform:uppercase; font-weight:700; margin-bottom:10px; }
+  .answer p { margin:0; font-size:16px; line-height:25px; color:var(--txt); }
+  .facts { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:24px 0 8px; }
+  @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} }
+  .fact { background:var(--card); border:1px solid #15181C; border-radius:14px; padding:18px; }
+  .fact .v { font-size:22px; font-weight:700; }
+  .fact .v.teal { color:var(--teal); } .fact .v.red { color:var(--red); }
+  .fact .l { font-size:12.5px; color:var(--dimmer); margin-top:6px; line-height:17px; }
+  .note { font-size:13px; color:var(--dimmer); font-style:italic; border-left:3px solid var(--teal); padding:4px 0 4px 14px; margin:20px 0; line-height:20px; }
+  a { color:var(--teal); }
+  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
+  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
+  .subscribe .st { font-size:18px; font-weight:700; }
+  .subscribe .st b { color:var(--teal); }
+  .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
+  .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
+  .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
+  .subscribe input::placeholder { color:var(--dimmer); }
+  .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .subscribe .msg { display:none; font-size:13px; font-weight:600; margin-top:14px; padding:10px 14px; border-radius:8px; }
+  .subscribe .msg.ok { display:block; color:var(--teal); background:rgba(73,234,203,0.08); border:1px solid rgba(73,234,203,0.35); }
+  .subscribe .msg.err { display:block; color:var(--red); background:rgba(227,106,106,0.08); border:1px solid rgba(227,106,106,0.35); }
+  .subscribe .fine { font-size:11px; color:var(--dimmer); margin-top:10px; }
+  @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
+  footer { border-top:1px solid var(--line); margin-top:48px; padding-top:16px; text-align:center; font-size:11px; color:var(--dimmer); }
+  footer a { color:var(--dim); text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><a href="/">ALPHA<span>VAULT</span> · KASPA PULSE</a></div>
+    <div class="back"><a href="/">← live dashboard</a></div>
+  </header>
+
+  <h1>Kaspa merged mining, explained. <b>And no, it doesn't steal hashrate.</b></h1>
+  <div class="sub">New networks like ZKas launched "merged mined with Kaspa" — and half the community immediately worried that Kaspa's mining power is being drained. Here's what merged mining actually is, in plain language.</div>
+
+  <div class="answer">
+    <div class="lbl">The short answer</div>
+    <p>Merged mining lets Kaspa miners secure a second network <b>with the exact same work they're already doing</b>. No extra electricity, no switching, no hashrate leaving Kaspa. The miner earns rewards on both chains for one unit of work. If anything, it makes mining Kaspa <b>more</b> profitable — not less.</p>
+  </div>
+
+  <h2>How it actually works</h2>
+  <p>Think of a miner's work as a lottery ticket. Normally, one ticket enters one lottery: find a valid hash, win a Kaspa block. With merged mining, <b>the same ticket enters two lotteries at once</b>. The miner does the identical computation (Kaspa's kHeavyHash), and the result can satisfy Kaspa's difficulty, the second network's difficulty, or both.</p>
+  <ul>
+    <li><b>The work is done once.</b> Same machine, same electricity, same hash.</li>
+    <li><b>Kaspa always comes first.</b> The second chain just accepts proofs of the work that was already done for Kaspa.</li>
+    <li><b>Rewards stack.</b> Miners collect KAS as usual, plus the second network's coin as a bonus.</li>
+  </ul>
+  <p>This isn't a new invention — Dogecoin has been merged mined with Litecoin since 2014, and it's one of the reasons Dogecoin's security never collapsed despite its meme origins.</p>
+
+  <h2>The misconception, addressed directly</h2>
+  <p>When Kaspa's hashrate dropped sharply in July 2026, some community members guessed miners were "switching to ZKas." That's not how it works. <b>A merged-mined network cannot pull hashrate away from Kaspa, because participating requires mining Kaspa.</b> The real drivers of hashrate moves are boring economics: KAS price, electricity costs, and reward reductions squeezing older machines out.</p>
+
+  <div class="facts">
+    <div class="fact"><div class="v teal">1 unit of work</div><div class="l">secures both chains simultaneously — nothing is split or diverted</div></div>
+    <div class="fact"><div class="v teal">2 reward streams</div><div class="l">KAS plus the merged chain's coin, for the same electricity</div></div>
+    <div class="fact"><div class="v teal">Since 2014</div><div class="l">proven model: Dogecoin has been merged mined with Litecoin for over a decade</div></div>
+    <div class="fact"><div class="v red">0 KAS hashrate</div><div class="l">leaves Kaspa through merged mining — by construction</div></div>
+  </div>
+
+  <h2>What is ZKas?</h2>
+  <p>ZKas is the first network to merge mine with Kaspa, launched in late July 2026. It's a privacy-focused chain: a fork of Kaspa's codebase where <b>every amount, sender and recipient is hidden by default</b> (using zero-knowledge proofs, the same cryptographic family Zcash pioneered — but shielded for all transactions, not optionally). It runs Kaspa's kHeavyHash and GHOSTDAG at one block per second.</p>
+  <p>Honest context: ZKas is <b>days old</b> at the time of writing. Tiny community, unaudited, teething problems, and its own separate token economics — don't confuse ZKas's supply numbers with Kaspa's. Whether it succeeds or fades, the merged-mining mechanism it uses is sound.</p>
+
+  <h2>Why this matters for Kaspa</h2>
+  <p>Two reasons. First, <b>miner economics</b>: every additional merged-mined network makes running a Kaspa miner slightly more profitable, which supports Kaspa's security budget long after block rewards shrink. Second, <b>it's a compliment</b>: networks choose to merge mine with Kaspa because its proof-of-work is worth borrowing. Bitcoin has this dynamic with its sidechains — Kaspa having it this early is notable.</p>
+
+  <div class="note">We track Kaspa's actual hashrate weekly on the <a href="/">Kaspa Pulse dashboard</a> — including honest context on what moves it (reward cuts, price) and what doesn't (merged mining).</div>
+
+  <div class="subscribe">
+    <div class="badge">free · instant</div>
+    <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
+    <div class="ss">the 8 numbers that actually matter (including mining power) and how to read them · plus the weekly pulse every monday</div>
+    <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="you@email.com" required>
+      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="locale" value="en">
+      <input type="hidden" name="html_type" value="simple">
+      <button type="submit" id="subBtn">get it</button>
+    </form>
+    <div class="msg" id="subMsg"></div>
+    <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
+  </div>
+
+  <footer>
+    <div>not financial advice · further reading: <a href="/entity-x.html">what is entity x?</a> · <a href="/">kaspapulse.com</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  const form = document.getElementById("subForm"), btn = document.getElementById("subBtn"), msg = document.getElementById("subMsg");
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    btn.disabled = true; const old = btn.textContent; btn.textContent = "…";
+    msg.className = "msg";
+    try {
+      const res = await fetch(form.action, { method:"POST", body:new FormData(form) });
+      const j = await res.json();
+      if (j.success) { msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
+      else { msg.textContent = j.message || "something went wrong — please try again"; msg.className = "msg err"; }
+    } catch(_) { form.submit(); }
+    btn.disabled = false; btn.textContent = old;
+  });
+})();
+</script>
+</body>
+</html>
