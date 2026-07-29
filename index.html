@@ -347,7 +347,7 @@ $("baseCards").innerHTML = `
       ${hbRow("vs 3 months", DATA.holder_baselines.m3.n)}
       ${hbRow("vs 1 year", DATA.holder_baselines.y1.n)}
     </div></div>
-  <div class="card"><div class="name">Mining power</div><div class="expl">* computing power securing the network (hashrate)</div>
+  <div class="card"><div class="name">Mining power</div><div class="expl">* computing power securing the network (hashrate) — <a href="/kaspa-hashrate.html" style="color:var(--teal); text-decoration:none;">how to read this number →</a></div>
     <div class="val">${cur.hashrate} PH/s</div>
     <div class="trends">
       <div class="tr"><span class="win">7 days</span><span class="${DATA.hashrate_windows.d7>0?'up':(Math.abs(DATA.hashrate_windows.d7)<0.5?'flat':'down')}">${DATA.hashrate_windows.d7>0?'▲ +':'▼ '}${Math.abs(DATA.hashrate_windows.d7)}%</span></div>
