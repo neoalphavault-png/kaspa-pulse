@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaspa Hashrate, Explained — What Secures the Network and What Moves the Number — Kaspa Pulse</title>
+<meta name="description" content="Kaspa is secured by purpose-built ASIC miners running kHeavyHash. Live hashrate, how to read it next to Bitcoin's, the three traps in hashrate charts, and what actually moves the number — explained.">
+<link rel="canonical" href="https://kaspapulse.com/kaspa-hashrate.html">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
+         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
+  .wrap { max-width:780px; margin:0 auto; padding:28px 18px 56px; }
+  header { display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--line); padding-bottom:16px; }
+  .logo { font-size:14px; letter-spacing:5px; font-weight:700; }
+  .logo a { color:var(--txt); text-decoration:none; }
+  .logo span { color:var(--teal); }
+  .back { font-size:12px; color:var(--dim); }
+  .back a { color:var(--teal); text-decoration:none; }
+  h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
+  h1 b { color:var(--teal); }
+  .sub { font-size:16px; color:var(--dim); line-height:24px; }
+  h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin:56px 0 14px; }
+  h2::before { content:""; display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--teal); margin-right:11px; vertical-align:5px; }
+  h3 { font-size:16px; font-weight:700; margin:26px 0 7px; color:var(--txt); }
+  p { font-size:15px; line-height:24px; color:var(--dim); margin:0 0 14px; }
+  p b, li b { color:var(--txt); font-weight:600; }
+  ul { margin:0 0 14px 20px; }
+  li { font-size:15px; line-height:24px; color:var(--dim); margin-bottom:8px; }
+  .answer { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:24px 26px; margin:34px 0; }
+  .answer .lbl { font-size:12px; letter-spacing:3px; color:var(--teal); text-transform:uppercase; font-weight:700; margin-bottom:10px; }
+  .answer p { margin:0; font-size:16px; line-height:25px; color:var(--txt); }
+
+  /* live number block */
+  .live { background:var(--card); border:1px solid #15181C; border-radius:18px; padding:26px 26px 22px; margin:30px 0 8px; }
+  .live .lbl { font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700; }
+  .live .lbl i { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--teal); margin-right:7px; vertical-align:1px; }
+  .live .big { font-size:52px; font-weight:700; letter-spacing:-2px; color:var(--teal); line-height:1.05; margin:10px 0 4px; }
+  .live .cap { font-size:13px; color:var(--dimmer); line-height:19px; }
+  .split { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; border-top:1px solid #15181C; padding-top:18px; }
+  .split div .v { font-size:19px; font-weight:700; }
+  .split div .k { font-size:11.5px; color:var(--dimmer); margin-top:4px; line-height:16px; }
+
+  /* comparison table */
+  table { width:100%; border-collapse:collapse; margin:20px 0 8px; }
+  th { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--dimmer); text-align:left; font-weight:700; padding:0 0 10px; border-bottom:1px solid var(--line); }
+  th.r, td.r { text-align:right; }
+  td { font-size:14.5px; color:var(--dim); padding:12px 0; border-bottom:1px solid #101317; }
+  td.n { color:var(--txt); font-weight:600; }
+  tr.me td { color:var(--teal); font-weight:700; }
+
+  .facts { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:24px 0 8px; }
+  .fact { background:var(--card); border:1px solid #15181C; border-radius:14px; padding:18px; }
+  .fact .v { font-size:22px; font-weight:700; }
+  .fact .v.teal { color:var(--teal); } .fact .v.red { color:var(--red); }
+  .fact .l { font-size:12.5px; color:var(--dimmer); margin-top:6px; line-height:17px; }
+  .note { font-size:13px; color:var(--dimmer); font-style:italic; border-left:3px solid var(--teal); padding:4px 0 4px 14px; margin:20px 0; line-height:20px; }
+  a { color:var(--teal); }
+  @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} .live .big{font-size:40px;} .split{grid-template-columns:1fr; gap:14px;} td,th{font-size:13px;} }
+
+  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
+  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
+  .subscribe .st { font-size:18px; font-weight:700; }
+  .subscribe .st b { color:var(--teal); }
+  .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
+  .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
+  .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
+  .subscribe input::placeholder { color:var(--dimmer); }
+  .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .subscribe .msg { display:none; font-size:13px; font-weight:600; margin-top:14px; padding:10px 14px; border-radius:8px; }
+  .subscribe .msg.ok { display:block; color:var(--teal); background:rgba(73,234,203,0.08); border:1px solid rgba(73,234,203,0.35); }
+  .subscribe .msg.err { display:block; color:var(--red); background:rgba(227,106,106,0.08); border:1px solid rgba(227,106,106,0.35); }
+  .subscribe .fine { font-size:11px; color:var(--dimmer); margin-top:10px; }
+  @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
+  footer { border-top:1px solid var(--line); margin-top:48px; padding-top:16px; text-align:center; font-size:11px; color:var(--dimmer); }
+  footer a { color:var(--dim); text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><a href="/">ALPHA<span>VAULT</span> · KASPA PULSE</a></div>
+    <div class="back"><a href="/">← live dashboard</a></div>
+  </header>
+
+  <h1>Kaspa hashrate, explained. <b>What the number secures — and what actually moves it.</b></h1>
+  <div class="sub">Hashrate is the most quoted and most misread number in proof-of-work. Here's what Kaspa's actually measures, how to place it next to Bitcoin's without fooling yourself, and which moves in the chart mean something.</div>
+
+  <div class="answer">
+    <div class="lbl">The short answer</div>
+    <p>Kaspa's hashrate is the total computing power miners aim at the network every second. It is produced almost entirely by <b>purpose-built ASIC machines</b> running Kaspa's own algorithm, <b>kHeavyHash</b>. The live figure is below. The number matters because it is a price tag: it tells you roughly what it would cost to attack the chain — and rebuilding this much specialised hardware is not something an attacker does quietly.</p>
+  </div>
+
+  <div class="live">
+    <div class="lbl"><i></i>Kaspa network hashrate · live</div>
+    <div class="big" id="hrBig">—</div>
+    <div class="cap" id="hrCap">fetching from the kaspa network…</div>
+    <div class="split">
+      <div><div class="v" id="hrEh">—</div><div class="k">in exahash terms</div></div>
+      <div><div class="v" id="hrVsBtc">—</div><div class="k">Bitcoin's network vs. this one — different algorithm, see the trap section below</div></div>
+      <div><div class="v">kHeavyHash</div><div class="k">Kaspa's proof-of-work · ASIC-mined</div></div>
+    </div>
+  </div>
+  <div class="note">This figure is fetched live from the public Kaspa API every time the page loads — the same source we use for the weekly <a href="/">Kaspa Pulse dashboard</a>. Nothing here is hardcoded.</div>
+
+  <h2>What hashrate actually measures</h2>
+  <p>Every second, each mining machine makes billions of attempts at solving the current block. Hashrate is the sum of all those attempts across every machine in the world pointed at Kaspa. More hashrate means an attacker needs more physical hardware and more electricity to overpower the honest majority.</p>
+  <p>That's why hashrate is best read as a <b>security budget</b>. It represents real capital — machines bought, facilities built, power contracts signed — committed by people who only earn their money back if the network keeps running honestly. Like TVL for smart contracts, it is a number someone has to pay for, which is what makes it hard to fake.</p>
+  <p>What hashrate is <b>not</b>: it is not adoption, not transaction demand, and not a price signal. A chain can have enormous hashrate and empty blocks, or modest hashrate and a busy economy. It measures the wall around the city, not the life inside it.</p>
+
+  <h2>How Kaspa mining works</h2>
+  <ul>
+    <li><b>The algorithm is kHeavyHash</b> — Kaspa's own proof-of-work, mined by dedicated ASIC hardware. GPU mining stopped being competitive when the first ASICs arrived in 2023.</li>
+    <li><b>Blocks come fast.</b> The Crescendo upgrade in 2025 took Kaspa to 10 blocks per second — the blockDAG structure lets parallel blocks coexist instead of being thrown away.</li>
+    <li><b>Difficulty adjusts continuously.</b> Where Bitcoin retunes every two weeks, Kaspa's difficulty tracks the hashrate block by block, so swings in mining power don't cause long disruptions in block times.</li>
+    <li><b>Rewards decline every month.</b> Kaspa's emission follows a smooth curve: block rewards drop by about 5.6% each month — Bitcoin's four-yearly halving, spread into small monthly steps. Each step slightly squeezes the oldest, least efficient machines.</li>
+  </ul>
+  <p>One thing that does <b>not</b> affect the hashrate: merged mining. Networks like ZKas reuse the exact same kHeavyHash work Kaspa miners already produce, so no mining power leaves Kaspa — participating requires mining Kaspa. We explain the mechanism in full in <a href="/merged-mining.html">Kaspa merged mining, explained</a>.</p>
+
+  <h2>Three traps in reading any hashrate number</h2>
+  <p>These apply to every proof-of-work chain, and they're the reason hashrate headlines mislead so reliably.</p>
+
+  <h3>1. Cross-chain comparisons are physically meaningless</h3>
+  <p>A kHeavyHash hash and a SHA-256 hash are different computations on different hardware. Saying "Bitcoin has thousands of times Kaspa's hashrate" is like comparing kilometres to kilograms — the units don't convert. What <b>is</b> comparable across chains is the economics: how much real hardware and electricity stands behind each network. The table below shows the raw factor anyway, because you'll see it quoted everywhere — just read it as a statement of scale, never as a security ratio.</p>
+
+  <h3>2. Hashrate follows price, with a lag</h3>
+  <p>Miners are businesses. When the coin price falls, margins compress, and the least efficient machines eventually shut off — weeks or months later, once hosting contracts and hope run out. A falling hashrate usually tells you about <b>yesterday's</b> miner economics, not tomorrow's network health. The same works in reverse: hashrate keeps climbing long after a rally starts, as ordered machines come online.</p>
+
+  <h3>3. More hashrate is not more decentralisation</h3>
+  <p>Total hashrate says nothing about how it's distributed. A network where three pools control the majority of blocks has a different risk profile than one with dozens of independent operators, at identical total hashrate. When you evaluate security, ask both questions: how big is the wall, and how many hands hold it.</p>
+
+  <h2>For context: Kaspa next to Bitcoin</h2>
+  <p>Both figures are fetched live, so this table is current whenever you're reading it. Remember trap number one: the factor is scale, not security.</p>
+  <table>
+    <thead><tr><th>Network</th><th class="r">Hashrate</th><th class="r">vs. Kaspa</th></tr></thead>
+    <tbody id="cmpBody">
+      <tr><td colspan="3" style="color:#7A828C">loading…</td></tr>
+    </tbody>
+  </table>
+  <p>Bitcoin's SHA-256 network is the largest computing effort in crypto and has a 12-year head start in ASIC development. The honest reading for Kaspa: it is secured by a dedicated, single-purpose ASIC fleet — which is the strongest form of proof-of-work security a young chain can have, because that hardware is useless for anything except mining kHeavyHash. An attacker can't rent it from a general-purpose market the way GPU-mined chains can be attacked.</p>
+
+  <h2>What actually matters at this stage</h2>
+  <p>The absolute number is a headline. Four readings carry actual information:</p>
+
+  <div class="facts">
+    <div class="fact"><div class="v teal">Direction vs. price</div><div class="l">Hashrate holding steady while price falls means miners with conviction (or long contracts). Hashrate falling faster than price means margins are breaking.</div></div>
+    <div class="fact"><div class="v teal">After each reward cut</div><div class="l">Kaspa cuts block rewards monthly. Watching whether hashrate dips and recovers after a cut shows how much margin the miner base has left.</div></div>
+    <div class="fact"><div class="v teal">Recovery speed</div><div class="l">After a squeeze, how fast the hashrate rebuilds tells you whether efficient new machines are replacing the old ones — fleet turnover is a health signal.</div></div>
+    <div class="fact"><div class="v red">Pool concentration</div><div class="l">Total hashrate says nothing about distribution. A handful of pools controlling most blocks is the quieter risk — check both numbers.</div></div>
+  </div>
+
+  <div class="note">We publish Kaspa's hashrate with weekly context every Monday on the <a href="/">Kaspa Pulse dashboard</a> — including honest reads on what moved it (reward cuts, price, efficiency turnover) and what didn't (merged mining).</div>
+
+  <div class="subscribe">
+    <div class="badge">free · instant</div>
+    <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
+    <div class="ss">the 8 numbers that actually matter (hashrate is one of them) and how to read each one · plus the weekly pulse every monday</div>
+    <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="you@email.com" required>
+      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="locale" value="en">
+      <input type="hidden" name="html_type" value="simple">
+      <button type="submit" id="subBtn">get it</button>
+    </form>
+    <div class="msg" id="subMsg"></div>
+    <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
+  </div>
+
+  <footer>
+    <div>not financial advice · further reading: <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">kaspa merged mining, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/">kaspapulse.com</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+  </footer>
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Kaspa's hashrate?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Kaspa's hashrate is the total computing power miners direct at the network, produced by purpose-built ASIC machines running the kHeavyHash algorithm. The live figure is published on this page, fetched directly from the public Kaspa API." }
+    },
+    {
+      "@type": "Question",
+      "name": "What algorithm does Kaspa use for mining?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Kaspa uses kHeavyHash, its own proof-of-work algorithm, mined by dedicated ASIC hardware. GPU mining stopped being competitive after the first Kaspa ASICs arrived in 2023." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can you compare Kaspa's hashrate to Bitcoin's?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not directly. Kaspa's kHeavyHash and Bitcoin's SHA-256 are different computations on different hardware, so raw hash counts don't convert between the two. What can be compared is the economics behind each network — the real hardware and electricity committed to it. Any raw factor between the two numbers is a statement of scale, not a security ratio." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does merged mining reduce Kaspa's hashrate?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Merged-mined networks such as ZKas reuse the same kHeavyHash work Kaspa miners already produce, so no mining power leaves Kaspa — participating in merged mining requires mining Kaspa. Hashrate moves are driven by miner economics: coin price, electricity costs, and Kaspa's monthly block reward reductions." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does Kaspa's hashrate go down?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Hashrate follows miner profitability with a lag. When the KAS price falls or a monthly reward reduction lands, the least efficient machines eventually become unprofitable and shut off. A falling hashrate usually reflects past miner economics rather than a change in the health of the network itself." }
+    }
+  ]
+}
+</script>
+
+<script>
+(function(){
+  // kaspa api returns TH/s · blockchain.info returns GH/s
+  const KAS_URL = "https://api.kaspa.org/info/hashrate?stringOnly=false";
+  const BTC_URL = "https://blockchain.info/q/hashrate?cors=true";
+
+  const fmtPH = ph => ph >= 1000 ? (ph/1000).toFixed(2)+" EH/s"
+                    : ph >= 1   ? ph.toFixed(1)+" PH/s"
+                    : (ph*1000).toFixed(0)+" TH/s";
+
+  fetch(KAS_URL).then(r=>r.json()).then(j=>{
+    const th = j && j.hashrate ? j.hashrate : 0;
+    if (!th) throw new Error("no data");
+    const kasPH = th/1e3;
+    document.getElementById("hrBig").textContent = fmtPH(kasPH);
+    document.getElementById("hrCap").textContent = "total mining power aimed at kaspa right now · source: api.kaspa.org";
+    document.getElementById("hrEh").textContent = (kasPH/1000).toFixed(3)+" EH/s";
+
+    // bitcoin for the comparison table — separate fetch, page still works if it fails
+    fetch(BTC_URL).then(r=>r.text()).then(t=>{
+      const btcGH = parseFloat(t);
+      if (!btcGH) return;
+      const btcPH = btcGH/1e6;
+      const factor = Math.round(btcPH/kasPH);
+      document.getElementById("hrVsBtc").textContent = factor.toLocaleString("en-US")+"× scale";
+      document.getElementById("cmpBody").innerHTML =
+        "<tr><td class='n'>Bitcoin (SHA-256)</td><td class='r'>"+fmtPH(btcPH)+"</td><td class='r'>"+factor.toLocaleString("en-US")+"×</td></tr>"+
+        "<tr class='me'><td>Kaspa (kHeavyHash)</td><td class='r'>"+fmtPH(kasPH)+"</td><td class='r'>1×</td></tr>";
+    }).catch(()=>{
+      document.getElementById("cmpBody").innerHTML =
+        "<tr class='me'><td>Kaspa (kHeavyHash)</td><td class='r'>"+fmtPH(kasPH)+"</td><td class='r'>1×</td></tr>"+
+        "<tr><td colspan='3' style='color:#7A828C'>bitcoin reference feed unavailable — kaspa figure above is live</td></tr>";
+    });
+  }).catch(()=>{
+    document.getElementById("hrBig").textContent = "—";
+    document.getElementById("hrCap").innerHTML = "live feed temporarily unavailable · the current weekly reading is always on the <a href='/'>dashboard</a>";
+    document.getElementById("cmpBody").innerHTML =
+      "<tr><td colspan='3' style='color:#7A828C'>comparison table needs the live feed — <a href='/'>see the dashboard</a> for this week's figures</td></tr>";
+  });
+})();
+</script>
+
+<script>
+(function(){
+  const form = document.getElementById("subForm"), btn = document.getElementById("subBtn"), msg = document.getElementById("subMsg");
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    btn.disabled = true; const old = btn.textContent; btn.textContent = "…";
+    msg.className = "msg";
+    try {
+      const res = await fetch(form.action, { method:"POST", body:new FormData(form) });
+      const j = await res.json();
+      if (j.success) { msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
+      else { msg.textContent = j.message || "something went wrong — please try again"; msg.className = "msg err"; }
+    } catch(_) { form.submit(); }
+    btn.disabled = false; btn.textContent = old;
+  });
+})();
+</script>
+</body>
+</html>
