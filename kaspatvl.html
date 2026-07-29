@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaspa TVL Explained — What Total Value Locked on Kaspa Actually Means — Kaspa Pulse</title>
+<meta name="description" content="Kaspa's TVL is about $2 million, spread across two layer-2 networks. Here's why the base layer holds no TVL at all, the three traps in reading any TVL number, and what to watch instead of the absolute figure.">
+<link rel="canonical" href="https://kaspapulse.com/kaspa-tvl.html">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
+         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
+  .wrap { max-width:780px; margin:0 auto; padding:28px 18px 56px; }
+  header { display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--line); padding-bottom:16px; }
+  .logo { font-size:14px; letter-spacing:5px; font-weight:700; }
+  .logo a { color:var(--txt); text-decoration:none; }
+  .logo span { color:var(--teal); }
+  .back { font-size:12px; color:var(--dim); }
+  .back a { color:var(--teal); text-decoration:none; }
+  h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
+  h1 b { color:var(--teal); }
+  .sub { font-size:16px; color:var(--dim); line-height:24px; }
+  h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin:56px 0 14px; }
+  h2::before { content:""; display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--teal); margin-right:11px; vertical-align:5px; }
+  h3 { font-size:16px; font-weight:700; margin:26px 0 7px; color:var(--txt); }
+  p { font-size:15px; line-height:24px; color:var(--dim); margin:0 0 14px; }
+  p b, li b { color:var(--txt); font-weight:600; }
+  ul { margin:0 0 14px 20px; }
+  li { font-size:15px; line-height:24px; color:var(--dim); margin-bottom:8px; }
+  .answer { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:24px 26px; margin:34px 0; }
+  .answer .lbl { font-size:12px; letter-spacing:3px; color:var(--teal); text-transform:uppercase; font-weight:700; margin-bottom:10px; }
+  .answer p { margin:0; font-size:16px; line-height:25px; color:var(--txt); }
+
+  /* live number block */
+  .live { background:var(--card); border:1px solid #15181C; border-radius:18px; padding:26px 26px 22px; margin:30px 0 8px; }
+  .live .lbl { font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700; }
+  .live .lbl i { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--teal); margin-right:7px; vertical-align:1px; }
+  .live .big { font-size:52px; font-weight:700; letter-spacing:-2px; color:var(--teal); line-height:1.05; margin:10px 0 4px; }
+  .live .cap { font-size:13px; color:var(--dimmer); line-height:19px; }
+  .split { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; border-top:1px solid #15181C; padding-top:18px; }
+  .split div .v { font-size:19px; font-weight:700; }
+  .split div .k { font-size:11.5px; color:var(--dimmer); margin-top:4px; line-height:16px; }
+
+  /* comparison table */
+  table { width:100%; border-collapse:collapse; margin:20px 0 8px; }
+  th { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--dimmer); text-align:left; font-weight:700; padding:0 0 10px; border-bottom:1px solid var(--line); }
+  th.r, td.r { text-align:right; }
+  td { font-size:14.5px; color:var(--dim); padding:12px 0; border-bottom:1px solid #101317; }
+  td.n { color:var(--txt); font-weight:600; }
+  tr.me td { color:var(--teal); font-weight:700; }
+
+  .facts { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:24px 0 8px; }
+  .fact { background:var(--card); border:1px solid #15181C; border-radius:14px; padding:18px; }
+  .fact .v { font-size:22px; font-weight:700; }
+  .fact .v.teal { color:var(--teal); } .fact .v.red { color:var(--red); }
+  .fact .l { font-size:12.5px; color:var(--dimmer); margin-top:6px; line-height:17px; }
+  .note { font-size:13px; color:var(--dimmer); font-style:italic; border-left:3px solid var(--teal); padding:4px 0 4px 14px; margin:20px 0; line-height:20px; }
+  a { color:var(--teal); }
+  @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} .live .big{font-size:40px;} .split{grid-template-columns:1fr; gap:14px;} td,th{font-size:13px;} }
+
+  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
+  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
+  .subscribe .st { font-size:18px; font-weight:700; }
+  .subscribe .st b { color:var(--teal); }
+  .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
+  .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
+  .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
+  .subscribe input::placeholder { color:var(--dimmer); }
+  .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .subscribe .msg { display:none; font-size:13px; font-weight:600; margin-top:14px; padding:10px 14px; border-radius:8px; }
+  .subscribe .msg.ok { display:block; color:var(--teal); background:rgba(73,234,203,0.08); border:1px solid rgba(73,234,203,0.35); }
+  .subscribe .msg.err { display:block; color:var(--red); background:rgba(227,106,106,0.08); border:1px solid rgba(227,106,106,0.35); }
+  .subscribe .fine { font-size:11px; color:var(--dimmer); margin-top:10px; }
+  @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
+  footer { border-top:1px solid var(--line); margin-top:48px; padding-top:16px; text-align:center; font-size:11px; color:var(--dimmer); }
+  footer a { color:var(--dim); text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><a href="/">ALPHA<span>VAULT</span> · KASPA PULSE</a></div>
+    <div class="back"><a href="/">← live dashboard</a></div>
+  </header>
+
+  <h1>Kaspa TVL, explained. <b>Why the number is small — and what it actually tells you.</b></h1>
+  <div class="sub">Kaspa's total value locked is a rounding error next to Ethereum's. That comparison is real, but it's also the least interesting thing about the number. Here's how to read it properly.</div>
+
+  <div class="answer">
+    <div class="lbl">The short answer</div>
+    <p>Kaspa's base layer holds <b>no TVL at all</b> — it has no general smart contracts, by design. Every dollar counted as "Kaspa TVL" sits on two layer-2 networks, <b>Kasplex</b> and <b>Igra</b>, both of which opened for business in 2025–2026. The number is small because the surface capital can sit on has only existed since mid-2025 — not because capital looked at Kaspa and walked away.</p>
+  </div>
+
+  <div class="live">
+    <div class="lbl"><i></i>Total value locked on Kaspa · live</div>
+    <div class="big" id="tvlTotal">—</div>
+    <div class="cap" id="tvlCap">fetching from DefiLlama…</div>
+    <div class="split">
+      <div><div class="v" id="vKasplex">—</div><div class="k">Kasplex L2</div></div>
+      <div><div class="v" id="vIgra">—</div><div class="k">Igra L2</div></div>
+      <div><div class="v" id="vShare">—</div><div class="k">share of all DeFi</div></div>
+    </div>
+  </div>
+  <div class="note">These figures are pulled live from DefiLlama every time this page loads — the same source we use for the weekly <a href="/">Kaspa Pulse dashboard</a>. Nothing here is hardcoded.</div>
+
+  <h2>What TVL actually measures</h2>
+  <p>Total value locked is the dollar value of assets people have deposited into a chain's smart contracts — liquidity sitting in decentralised exchange pools, collateral parked in lending markets, tokens committed to staking contracts.</p>
+  <p>The reason anyone cares is that TVL is a <b>trust measure</b>. It is capital that someone deliberately handed over to a piece of code and left there, accepting the risk that the code fails. People do not do that casually. A chain with real TVL has convinced real money that its contracts work.</p>
+  <p>What TVL is <b>not</b>: it is not the value of the network, not trading volume, not a user count, and not a measure of how good the technology is. A chain can have excellent engineering and near-zero TVL simply because nothing has been built on it yet. That is precisely Kaspa's situation.</p>
+
+  <h2>Why Kaspa's layer 1 holds nothing — and why that's deliberate</h2>
+  <p>Kaspa's base layer is a UTXO chain, closer in design to Bitcoin than to Ethereum. It moves coins and secures them with proof-of-work; it does not run arbitrary programs. There is nowhere on layer 1 to lock value, so the honest figure for Kaspa L1 TVL is <b>zero</b>.</p>
+  <p>Bitcoin is in the same position, and it's a useful sanity check: Bitcoin's several billion dollars of counted TVL doesn't live on Bitcoin's base chain either. It lives in wrapped assets and sidechain-style constructions built alongside it. Nobody reads Bitcoin's low base-layer programmability as a flaw.</p>
+  <p>Smart contracts on Kaspa live one layer up:</p>
+  <ul>
+    <li><b>Kasplex</b> — an EVM-compatible layer 2, live since mid-2025 and the first place Kaspa DeFi actually existed.</li>
+    <li><b>Igra</b> — a second EVM layer 2, launched in 2026. How the total splits between the two at any moment is shown live at the top of this page.</li>
+  </ul>
+  <p>So whenever you see "Kaspa TVL", read it as <b>"Kaspa layer-2 TVL"</b>. It is a measure of how far the smart-contract ecosystem has come, not of Kaspa itself.</p>
+
+  <h2>Three traps in reading any TVL number</h2>
+  <p>These apply to every chain, not just Kaspa — and they're the reason TVL headlines are so often misleading.</p>
+
+  <h3>1. It's denominated in dollars, not tokens</h3>
+  <p>If the price of the assets locked falls 20% and not a single person moves a coin, TVL falls 20%. A large share of the "TVL growth" reported across crypto in any bull market is just price appreciation on capital that was already there. The inverse is worse: a chain can be <b>gaining real deposits while its TVL chart falls</b>, purely because the market is red. Always check the direction of TVL against the direction of price before you conclude anything.</p>
+
+  <h3>2. Incentives buy TVL, and rented TVL leaves</h3>
+  <p>Chains and protocols routinely pay for deposits with token emissions. That capital is mercenary: it arrives for the yield and exits the week the yield stops. A TVL chart that spikes vertically on the back of an incentive programme tells you about the size of the budget, not the depth of the interest.</p>
+
+  <h3>3. The same dollar gets counted more than once</h3>
+  <p>Deposit an asset into protocol A, receive a receipt token, deposit that receipt into protocol B — and the underlying dollar now shows up in two TVL figures. In mature ecosystems built on looping and restaking, this inflates headline numbers substantially. It's less of a factor on a young chain like Kaspa, which is one of the few advantages of being early: the number is comparatively clean.</p>
+
+  <h2>For context: where Kaspa sits</h2>
+  <p>All figures live from DefiLlama, so this table is current whenever you're reading it.</p>
+  <table>
+    <thead><tr><th>Chain</th><th class="r">TVL</th><th class="r">vs. Kaspa</th></tr></thead>
+    <tbody id="cmpBody">
+      <tr><td colspan="3" style="color:#7A828C">loading…</td></tr>
+    </tbody>
+  </table>
+  <p>The gap is enormous, and pretending otherwise would be useless to you. Kaspa's DeFi ecosystem is a fraction of a percent of the total. What that reflects is age: Ethereum has had smart contracts since 2015, Solana since 2020 — Kaspa's layer 2s only since mid-2025 (Kasplex), with Igra following in 2026. The relevant question isn't whether Kaspa has caught up — it obviously hasn't — but whether the line is moving in the right direction from a standing start.</p>
+
+  <h2>What actually matters at this stage</h2>
+  <p>The absolute number is close to meaningless this early. Three readings are not:</p>
+
+  <div class="facts">
+    <div class="fact"><div class="v teal">Direction vs. price</div><div class="l">TVL rising while KAS is flat or down means genuine new deposits, not price effects. This is the single most useful read on the chart.</div></div>
+    <div class="fact"><div class="v teal">The split</div><div class="l">How the total divides between Kasplex and Igra shows which layer 2 builders and liquidity are actually choosing — and whether it's consolidating.</div></div>
+    <div class="fact"><div class="v teal">Turnover</div><div class="l">TVL against daily DEX volume. Capital that trades is working capital; capital that sits is a parked number. High turnover on small TVL beats the reverse.</div></div>
+    <div class="fact"><div class="v red">Concentration risk</div><div class="l">On a chain this size, a single large depositor entering or leaving can move total TVL by double digits. Don't read one week's swing as a trend.</div></div>
+  </div>
+
+  <p>That last point deserves emphasis. At a total in the low millions, <b>Kaspa's TVL is not yet a statistically robust signal</b>. One whale, one bridge deployment, one incentive campaign can dominate the chart. Treat weekly moves as anecdotes and monthly direction as data.</p>
+
+  <div class="note">We publish Kaspa's TVL, its layer-2 split and the DEX volume behind it every Monday on the <a href="/">Kaspa Pulse dashboard</a> — with a plain-language read on what changed and why, not just the figures.</div>
+
+  <div class="subscribe">
+    <div class="badge">free · instant</div>
+    <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
+    <div class="ss">the 8 numbers that actually matter (TVL is one of them) and how to read each one · plus the weekly pulse every monday</div>
+    <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="you@email.com" required>
+      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="locale" value="en">
+      <input type="hidden" name="html_type" value="simple">
+      <button type="submit" id="subBtn">get it</button>
+    </form>
+    <div class="msg" id="subMsg"></div>
+    <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
+  </div>
+
+  <footer>
+    <div>not financial advice · further reading: <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">kaspa merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+  </footer>
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Kaspa's TVL?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Kaspa's total value locked is the combined TVL of its two EVM layer-2 networks, Kasplex and Igra. The live figure is published on this page, pulled directly from DefiLlama. Kaspa's base layer holds no TVL because it does not run general smart contracts." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does Kaspa's layer 1 have no TVL?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Kaspa layer 1 is a UTXO proof-of-work chain, similar in design to Bitcoin. It moves and secures coins but does not execute arbitrary programs, so there is nowhere on layer 1 to lock value. Smart contracts on Kaspa live on layer 2." }
+    },
+    {
+      "@type": "Question",
+      "name": "Where does Kaspa DeFi actually run?",
+      "acceptedAnswer": { "@type": "Answer", "text": "On two EVM-compatible layer 2s: Kasplex, live since mid-2025, and Igra, which followed in 2026. The base layer itself runs no smart contracts." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is a low TVL bad for Kaspa?",
+      "acceptedAnswer": { "@type": "Answer", "text": "It reflects age more than rejection. Kaspa's smart-contract layers launched in 2025–2026, while Ethereum has had smart contracts since 2015. At this size the absolute figure is not a robust signal — the direction of TVL against price, the split between the two layer 2s, and the ratio of TVL to DEX volume are more informative." }
+    }
+  ]
+}
+</script>
+
+<script>
+(function(){
+  const fmt = n => n >= 1e9 ? "$"+(n/1e9).toFixed(2)+"B"
+                 : n >= 1e6 ? "$"+(n/1e6).toFixed(2)+"M"
+                 : n >= 1e3 ? "$"+(n/1e3).toFixed(0)+"K" : "$"+n.toFixed(0);
+
+  fetch("https://api.llama.fi/v2/chains").then(r=>r.json()).then(list=>{
+    const get = name => { const c = list.find(x => (x.name||"").toLowerCase() === name); return c ? c.tvl : 0; };
+    const kasplex = get("kasplex"), igra = get("igra");
+    const total = kasplex + igra;
+    if (!total) return;
+
+    const allDefi = list.reduce((s,c)=> s + (c.tvl>0 ? c.tvl : 0), 0);
+
+    document.getElementById("tvlTotal").textContent = fmt(total);
+    document.getElementById("vKasplex").textContent = fmt(kasplex);
+    document.getElementById("vIgra").textContent = fmt(igra);
+    const share = (total/allDefi)*100;
+    document.getElementById("vShare").textContent = share < 0.01 ? share.toFixed(4)+"%" : share.toFixed(3)+"%";
+    document.getElementById("tvlCap").textContent =
+      "Kasplex + Igra combined · Kaspa layer 1 holds none of it · source: DefiLlama";
+
+    const peers = [
+      {n:"Ethereum", k:"ethereum"}, {n:"Solana", k:"solana"},
+      {n:"Base", k:"base"}, {n:"Bitcoin", k:"bitcoin"}
+    ];
+    let html = "";
+    peers.forEach(p => {
+      const v = get(p.k);
+      if (!v) return;
+      html += "<tr><td class='n'>"+p.n+"</td><td class='r'>"+fmt(v)+"</td><td class='r'>"+Math.round(v/total).toLocaleString("en-US")+"×</td></tr>";
+    });
+    html += "<tr class='me'><td>Kaspa (Kasplex + Igra)</td><td class='r'>"+fmt(total)+"</td><td class='r'>1×</td></tr>";
+    document.getElementById("cmpBody").innerHTML = html;
+  }).catch(()=>{
+    document.getElementById("tvlTotal").textContent = "—";
+    document.getElementById("tvlCap").innerHTML = "live feed temporarily unavailable · the current weekly reading is always on the <a href='/'>dashboard</a>";
+    document.getElementById("cmpBody").innerHTML =
+      "<tr><td colspan='3' style='color:#7A828C'>comparison table needs the live feed — <a href='/'>see the dashboard</a> for this week's figures</td></tr>";
+  });
+})();
+</script>
+
+<script>
+(function(){
+  const form = document.getElementById("subForm"), btn = document.getElementById("subBtn"), msg = document.getElementById("subMsg");
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    btn.disabled = true; const old = btn.textContent; btn.textContent = "…";
+    msg.className = "msg";
+    try {
+      const res = await fetch(form.action, { method:"POST", body:new FormData(form) });
+      const j = await res.json();
+      if (j.success) { msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
+      else { msg.textContent = j.message || "something went wrong — please try again"; msg.className = "msg err"; }
+    } catch(_) { form.submit(); }
+    btn.disabled = false; btn.textContent = old;
+  });
+})();
+</script>
+</body>
+</html>
