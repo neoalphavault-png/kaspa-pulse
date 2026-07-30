@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Many Kaspa Are There? Supply, Max Supply and the Fair Launch — Kaspa Pulse</title>
+<meta name="description" content="Kaspa's supply approaches a hard ceiling of about 28.7 billion KAS, and every single coin was mined — no premine, no ICO, no team allocation. Live circulating supply, the fair launch story, and the three traps in reading supply numbers — explained.">
+<link rel="canonical" href="https://kaspapulse.com/kaspa-supply.html">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
+         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
+  .wrap { max-width:780px; margin:0 auto; padding:8px 18px 56px; }
+
+  /* nav */
+  .nav { position:sticky; top:0; z-index:60; background:rgba(5,6,8,0.88); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
+  .nav .nt { max-width:780px; margin:0 auto; padding:13px 18px 9px; display:flex; justify-content:space-between; align-items:center; }
+  .nav .nlogo { font-size:13px; letter-spacing:4px; font-weight:700; }
+  .nav .nlogo a { color:var(--txt); text-decoration:none; }
+  .nav .nlogo span { color:var(--teal); }
+  .nav-cta { font-size:10px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color:var(--teal); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:5px 12px; text-decoration:none; background:rgba(73,234,203,0.07); white-space:nowrap; }
+  .nav .nc { max-width:780px; margin:0 auto; padding:0 12px 10px; display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; }
+  .nav .nc::-webkit-scrollbar { display:none; }
+  .nav .nc a { font-size:12px; color:var(--dim); text-decoration:none; padding:5px 11px; border-radius:999px; white-space:nowrap; border:1px solid transparent; }
+  .nav .nc a:hover { color:var(--txt); }
+  .nav .nc a.on { color:var(--teal); background:rgba(73,234,203,0.08); border-color:rgba(73,234,203,0.25); }
+
+  h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
+  h1 b { color:var(--teal); }
+  .sub { font-size:16px; color:var(--dim); line-height:24px; }
+  h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin:60px 0 14px; }
+  h2::before { content:""; display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--teal); margin-right:11px; vertical-align:5px; }
+  h3 { font-size:16px; font-weight:700; margin:26px 0 7px; color:var(--txt); }
+  p { font-size:15px; line-height:24px; color:var(--dim); margin:0 0 14px; }
+  p b, li b { color:var(--txt); font-weight:600; }
+  ul { margin:0 0 14px 20px; }
+  li { font-size:15px; line-height:24px; color:var(--dim); margin-bottom:8px; }
+  .answer { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:24px 26px; margin:34px 0; }
+  .answer .lbl { font-size:12px; letter-spacing:3px; color:var(--teal); text-transform:uppercase; font-weight:700; margin-bottom:10px; }
+  .answer p { margin:0; font-size:16px; line-height:25px; color:var(--txt); }
+
+  /* live number block */
+  .live { background:var(--card); border:1px solid #15181C; border-radius:18px; padding:26px 26px 22px; margin:30px 0 8px; }
+  .live .lbl { font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700; }
+  .live .lbl i { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--teal); margin-right:7px; vertical-align:1px; }
+  .live .big { font-size:52px; font-weight:700; letter-spacing:-2px; color:var(--teal); line-height:1.05; margin:10px 0 4px; }
+  .live .cap { font-size:13px; color:var(--dimmer); line-height:19px; }
+  .bar { height:14px; border-radius:999px; background:#15181C; overflow:hidden; margin:18px 0 8px; }
+  .bar i { display:block; height:100%; background:linear-gradient(90deg, rgba(73,234,203,0.7), var(--teal)); border-radius:999px; width:0%; transition:width 1.2s cubic-bezier(0.22,1,0.36,1); }
+  .barcap { font-size:12px; color:var(--dimmer); }
+  .split { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; border-top:1px solid #15181C; padding-top:18px; }
+  .split div .v { font-size:19px; font-weight:700; }
+  .split div .k { font-size:11.5px; color:var(--dimmer); margin-top:4px; line-height:16px; }
+
+  /* comparison table */
+  table { width:100%; border-collapse:collapse; margin:20px 0 8px; }
+  th { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--dimmer); text-align:left; font-weight:700; padding:0 0 10px; border-bottom:1px solid var(--line); }
+  td { font-size:14.5px; color:var(--dim); padding:12px 0; border-bottom:1px solid #101317; vertical-align:top; }
+  td.n { color:var(--txt); font-weight:600; white-space:nowrap; padding-right:14px; }
+  tr.me td { color:var(--teal); font-weight:700; }
+
+  .facts { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:24px 0 8px; }
+  .fact { background:var(--card); border:1px solid #15181C; border-radius:14px; padding:18px; }
+  .fact .v { font-size:22px; font-weight:700; }
+  .fact .v.teal { color:var(--teal); } .fact .v.red { color:var(--red); }
+  .fact .l { font-size:12.5px; color:var(--dimmer); margin-top:6px; line-height:17px; }
+  .note { font-size:13px; color:var(--dimmer); font-style:italic; border-left:3px solid var(--teal); padding:4px 0 4px 14px; margin:20px 0; line-height:20px; }
+  a { color:var(--teal); }
+  @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} .live .big{font-size:40px;} .split{grid-template-columns:1fr; gap:14px;} td,th{font-size:13px;} td.n{white-space:normal;} }
+
+  /* motion */
+  .rv { opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
+  .rv.vis { opacity:1; transform:none; }
+  @media (prefers-reduced-motion: reduce){ .rv { opacity:1; transform:none; transition:none; } .bar i { transition:none; } }
+
+  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
+  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
+  .subscribe .st { font-size:18px; font-weight:700; }
+  .subscribe .st b { color:var(--teal); }
+  .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
+  .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
+  .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
+  .subscribe input::placeholder { color:var(--dimmer); }
+  .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .subscribe .msg { display:none; font-size:13px; font-weight:600; margin-top:14px; padding:10px 14px; border-radius:8px; }
+  .subscribe .msg.ok { display:block; color:var(--teal); background:rgba(73,234,203,0.08); border:1px solid rgba(73,234,203,0.35); }
+  .subscribe .msg.err { display:block; color:var(--red); background:rgba(227,106,106,0.08); border:1px solid rgba(227,106,106,0.35); }
+  .subscribe .fine { font-size:11px; color:var(--dimmer); margin-top:10px; }
+  @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
+  footer { border-top:1px solid var(--line); margin-top:48px; padding-top:16px; text-align:center; font-size:11px; color:var(--dimmer); }
+  footer a { color:var(--dim); text-decoration:none; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nt">
+    <div class="nlogo"><a href="/">ALPHA<span>VAULT</span> · KASPA PULSE</a></div>
+    <a class="nav-cta" href="#subForm">free cheat sheet</a>
+  </div>
+  <div class="nc">
+    <a href="/">dashboard</a>
+    <a href="/kaspa-supply.html" class="on">supply</a>
+    <a href="/kaspa-halving.html">halving</a>
+    <a href="/kaspa-hashrate.html">hashrate</a>
+    <a href="/kaspa-tvl.html">tvl</a>
+    <a href="/entity-x.html">entity x</a>
+    <a href="/merged-mining.html">merged mining</a>
+  </div>
+</nav>
+<div class="wrap">
+
+  <h1>Kaspa's supply, explained. <b>How many KAS exist — and why nobody got a single one for free.</b></h1>
+  <div class="sub">Every KAS in existence was mined by someone's hardware. No premine, no ICO, no team allocation, no VC unlock waiting to hit the market. Here's the live count, the fair-launch story behind it, and the three traps in reading any supply number.</div>
+
+  <div class="answer">
+    <div class="lbl">The short answer</div>
+    <p>Kaspa's supply approaches a hard ceiling of about <b>28.7 billion KAS</b>. The live circulating figure is below — and because the emission curve decays geometrically, the overwhelming majority of all KAS that will ever exist has already been mined. Every coin entered circulation the same way: as a <b>mining reward, starting from block one</b> on November 7, 2021. There was no other door.</p>
+  </div>
+
+  <div class="live">
+    <div class="lbl"><i></i>KAS in circulation · live</div>
+    <div class="big" id="supBig">—</div>
+    <div class="cap" id="supCap">fetching from the kaspa network…</div>
+    <div class="bar"><i id="supBar"></i></div>
+    <div class="barcap" id="barCap">&nbsp;</div>
+    <div class="split">
+      <div><div class="v" id="vMax">—</div><div class="k">maximum supply — a hard mathematical ceiling, not a promise</div></div>
+      <div><div class="v" id="vLeft">—</div><div class="k">still to be mined, spread over the coming decades</div></div>
+      <div><div class="v" id="vInfl">—</div><div class="k">new supply over the next 12 months, relative to today — falls every month</div></div>
+    </div>
+  </div>
+  <div class="note">All figures are fetched live from the public Kaspa API every time this page loads. Nothing here is hardcoded — check back in a year and the numbers will have updated themselves.</div>
+
+  <h2>Where the coins came from</h2>
+  <p>Kaspa launched on <b>November 7, 2021</b>, announced publicly before the first block. There was no initial coin offering, no tokens created at genesis, no allocation for the founders, and no discounted round for investors. The supply at block zero was <b>exactly zero</b>. Everything since has been minted one block reward at a time, paid to whoever contributed the mining work — on ordinary CPUs and GPUs in the early months, on ASICs since 2023.</p>
+  <p>That makes Kaspa part of a small club. Most major chains distributed a large share of their supply before the public could earn any:</p>
+  <table>
+    <thead><tr><th>Network</th><th>How initial supply was created</th><th>Insiders at day one</th></tr></thead>
+    <tbody>
+      <tr><td class="n">Bitcoin (2009)</td><td>mined from block one</td><td>none</td></tr>
+      <tr><td class="n">Ethereum (2015)</td><td>created at genesis, sold in the 2014 crowdsale</td><td>the majority of initial supply</td></tr>
+      <tr><td class="n">Solana (2020)</td><td>genesis allocations to investors, team and foundation</td><td>roughly half of initial supply</td></tr>
+      <tr class="me"><td class="n">Kaspa (2021)</td><td>mined from block one</td><td>none</td></tr>
+    </tbody>
+  </table>
+  <p>This is a historical fact, not a value judgment — Ethereum and Solana built enormous ecosystems on their models. But it changes how you read Kaspa's supply data: <b>there is no unlock schedule to track, no vesting cliff to fear, no foundation treasury that can hit the market.</b> What you see on chain is the whole story.</p>
+
+  <h2>Why the ceiling is approached, never touched</h2>
+  <p>Kaspa's emission follows a smooth geometric curve: block rewards shrink by about 5.6% every month, halving every 12 months. Summed to infinity, that curve converges on the ~28.7B ceiling — each year adds half of whatever remains. The practical consequence: supply growth is front-loaded and the tail is thin. The remaining coins will trickle out over decades, with rewards mathematically reaching zero in the 2050s. The full schedule, with the current block reward live, is on <a href="/kaspa-halving.html">the Kaspa halving, explained</a>.</p>
+
+  <h2>Three traps in reading any supply number</h2>
+
+  <h3>1. "Circulating supply" is defined by whoever reports it</h3>
+  <p>Aggregator sites make choices: do burned coins count, do dormant coins count, do foundation treasuries count? For most chains those choices move the number by double-digit percentages. Kaspa is unusually clean — everything mined is circulating by any definition — but if you compare across sites and see small differences, that's methodology, not mystery.</p>
+
+  <h3>2. Dilution fear doesn't transfer to a 96%-mined chain</h3>
+  <p>In most of crypto, "fully diluted valuation" towers over market cap because most supply hasn't been released. For Kaspa the two numbers nearly coincide — the dilution that terrifies holders of heavily-vested tokens is arithmetically almost over here. When you see FDV-based warnings applied to Kaspa, check the live percentage above before taking them seriously.</p>
+
+  <h3>3. Supply says nothing about distribution</h3>
+  <p>A fair launch means nobody was <b>given</b> coins — it doesn't mean coins are evenly spread today. Whoever mined early and held, holds large positions now, and the single biggest address holds over 5% of everything in circulation. Supply tells you how many coins exist; it takes address-level data to see who has them. We track exactly that on <a href="/entity-x.html">what is entity x?</a></p>
+
+  <h2>What this means in practice</h2>
+  <div class="facts">
+    <div class="fact"><div class="v teal">0 premine</div><div class="l">no coins existed before public mining began — supply started at zero on november 7, 2021</div></div>
+    <div class="fact"><div class="v teal">0 unlocks</div><div class="l">no vesting schedules, no investor cliffs, no treasury releases — nothing scheduled to hit the market, ever</div></div>
+    <div class="fact"><div class="v teal">FDV ≈ market cap</div><div class="l">with ~96% mined, the gap between fully diluted and circulating valuation has nearly closed</div></div>
+    <div class="fact"><div class="v red">Fair ≠ equal</div><div class="l">a fair start says nothing about today's distribution — concentration is its own metric, tracked separately</div></div>
+  </div>
+
+  <div class="note">We publish the supply picture — emission, the reward schedule and who actually holds the coins — every Monday on the <a href="/">Kaspa Pulse dashboard</a>, in plain language, not just figures.</div>
+
+  <div class="subscribe">
+    <div class="badge">free · instant</div>
+    <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
+    <div class="ss">the 8 numbers that actually matter (supply is one of them) and how to read each one · plus the weekly pulse every monday</div>
+    <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="you@email.com" required>
+      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="locale" value="en">
+      <input type="hidden" name="html_type" value="simple">
+      <button type="submit" id="subBtn">get it</button>
+    </form>
+    <div class="msg" id="subMsg"></div>
+    <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
+  </div>
+
+  <footer>
+    <div>not financial advice · further reading: <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/merged-mining.html">kaspa merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+  </footer>
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How many Kaspa are there?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Kaspa's supply approaches a maximum of about 28.7 billion KAS. The live circulating figure is published on this page, fetched directly from the public Kaspa API. Because Kaspa's emission decays geometrically, the large majority of all KAS was mined within the first years after the November 2021 launch." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is Kaspa's maximum supply?",
+      "acceptedAnswer": { "@type": "Answer", "text": "About 28.7 billion KAS. This is a mathematical ceiling produced by Kaspa's geometric emission curve — block rewards fall by roughly 5.6% per month, so total supply converges on the ceiling without ever quite touching it. Rewards reach zero in the 2050s." }
+    },
+    {
+      "@type": "Question",
+      "name": "Did Kaspa have a premine or ICO?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Kaspa launched publicly on November 7, 2021 with zero coins in existence. There was no premine, no initial coin offering, no team allocation and no investor round. Every KAS in circulation entered as a mining reward, starting from block one." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Kaspa inflationary?",
+      "acceptedAnswer": { "@type": "Answer", "text": "New supply is still being mined, but the rate falls by design — block rewards shrink about 5.6% every month, halving each year. With roughly 96% of all KAS already mined, annual new supply is a small and continuously shrinking share of circulating supply. The live emission rate is computed on this page." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Kaspa have token unlocks or vesting?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Because there was no premine and no allocations, there are no vesting schedules, unlock cliffs or treasury releases. The only source of new KAS is the fixed, publicly computable mining emission schedule." }
+    }
+  ]
+}
+</script>
+
+<script>
+(function(){
+  const fmtB = n => (n/1e9).toFixed(2)+"B";
+
+  function countUp(el, target, fmt, dur){
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches){ el.textContent = fmt(target); return; }
+    const t0 = performance.now();
+    function frame(t){
+      const p = Math.min(1, (t-t0)/dur);
+      const e = 1 - Math.pow(1-p, 3);
+      el.textContent = fmt(target*e);
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  fetch("https://api.kaspa.org/info/coinsupply").then(r=>r.json()).then(s=>{
+    const circ = parseFloat(s.circulatingSupply)/1e8, max = parseFloat(s.maxSupply)/1e8;
+    if(!(circ && max)) throw new Error("no data");
+    const pct = circ/max*100;
+    const left = max - circ;
+    // next-12-months emission is always half of what remains (geometric sum), independent of block rate
+    const inflPct = (left/2)/circ*100;
+
+    countUp(document.getElementById("supBig"), circ, n=>fmtB(n)+" KAS", 1100);
+    document.getElementById("supCap").textContent = "every one of them mined — no premine, no ICO, no allocations · source: api.kaspa.org";
+    document.getElementById("supBar").style.width = pct.toFixed(2)+"%";
+    document.getElementById("barCap").textContent = pct.toFixed(2)+"% of the ~"+fmtB(max)+" ceiling is already in circulation";
+    document.getElementById("vMax").textContent = "~"+fmtB(max)+" KAS";
+    document.getElementById("vLeft").textContent = fmtB(left)+" KAS";
+    document.getElementById("vInfl").textContent = "≈ "+inflPct.toFixed(1)+"%";
+  }).catch(()=>{
+    document.getElementById("supBig").textContent = "—";
+    document.getElementById("supCap").innerHTML = "live feed temporarily unavailable · the weekly reading is always on the <a href='/'>dashboard</a>";
+  });
+})();
+</script>
+
+<script>
+(function(){
+  if(!("IntersectionObserver" in window)) return;
+  const els = document.querySelectorAll(".answer,.live,.fact,h2,table,.note,.subscribe");
+  const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("vis"); io.unobserve(e.target); } }),{threshold:0.1});
+  els.forEach(el=>{ el.classList.add("rv"); io.observe(el); });
+})();
+</script>
+
+<script>
+(function(){
+  const form = document.getElementById("subForm"), btn = document.getElementById("subBtn"), msg = document.getElementById("subMsg");
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    btn.disabled = true; const old = btn.textContent; btn.textContent = "…";
+    msg.className = "msg";
+    try {
+      const res = await fetch(form.action, { method:"POST", body:new FormData(form) });
+      const j = await res.json();
+      if (j.success) { msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
+      else { msg.textContent = j.message || "something went wrong — please try again"; msg.className = "msg err"; }
+    } catch(_) { form.submit(); }
+    btn.disabled = false; btn.textContent = old;
+  });
+})();
+</script>
+</body>
+</html>
