@@ -121,6 +121,15 @@
     .nav .nc.open { display:flex; flex-direction:column; gap:4px; padding:8px 18px 14px; border-top:1px solid var(--line); }
     .nav .nc.open a { font-size:14px; padding:10px 12px; }
   }
+  /* v2.2: live vs weekly mode divider */
+  .modeline { display:flex; align-items:center; gap:14px; margin:34px 0 -14px; }
+  .modeline::before, .modeline::after { content:""; flex:1; height:1px; background:var(--line); }
+  .modeline .mi { font-size:11px; color:var(--dimmer); letter-spacing:0.5px; text-align:center; line-height:17px; max-width:520px; }
+  .modeline .mi b { color:var(--dim); font-weight:600; }
+  .modeline .mi .lvw { color:var(--teal); font-weight:700; }
+  .sec .tag { border:1px solid var(--line); border-radius:999px; padding:3px 11px; font-size:10.5px; letter-spacing:1px; color:var(--dimmer); background:rgba(255,255,255,0.015); white-space:nowrap; }
+  .sec .tag i { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--dimmer); margin-right:6px; vertical-align:1px; font-style:normal; }
+  .sec .tag.lv i { background:var(--teal); animation:pulse 2s infinite; }
 </style>
 </head>
 <body>
@@ -151,32 +160,34 @@
     <a class="heropill" href="#subscribe"><b>FREE CHEAT SHEET</b> · the 8 Kaspa numbers that actually matter <span class="arr">→</span></a>
   </section>
 
+  <div class="modeline"><div class="mi"><span class="lvw">live</span> <b>numbers above refresh on every visit</b> · the panels below are the <b>fixed monday reading</b>, kept still all week so the trends compare like with like · <b id="modeDate"></b></div></div>
+
   <section class="panel">
-    <div class="sec"><div class="t"><span class="snum">01</span>Usage. <span>is anyone actually using it?</span></div><div class="tag" id="weeklyTag"></div></div>
+    <div class="sec"><div class="t"><span class="snum">01</span>Usage. <span>is anyone actually using it?</span></div><div class="tag wk" id="weeklyTag"><i></i><span>weekly</span></div></div>
     <div class="read"><span class="rl">the read</span>l2 traffic is <b>98% igra</b> and covenant transactions settled near 900 a day after the launch spike. usage is still small in absolute terms — what matters this early is that <b>activity keeps growing while price doesn't</b>.</div>
     <div class="grid four" id="usageCards"></div>
   </section>
 
   <section class="panel">
-    <div class="sec"><div class="t"><span class="snum">02</span>DEX volume. <span>where KAS actually trades</span></div><div class="tag">weekly reading</div></div>
+    <div class="sec"><div class="t"><span class="snum">02</span>DEX volume. <span>where KAS actually trades</span></div><div class="tag wk"><i></i><span>weekly</span></div></div>
     <div class="read"><span class="rl">the read</span>about <b>$133K a day</b> changes hands on kaspa DEXs, almost all of it on krokoswap — and since this weekend there's a third venue, <b>KRON, the first native L1 DEX</b> (not on defillama yet, so not in these numbers — we add it once it's independently trackable). the rails work, the volume hasn't arrived yet.</div>
     <div class="grid four" id="dexCards"></div>
   </section>
 
   <section class="panel">
-    <div class="sec"><div class="t"><span class="snum">03</span>Supply. <span>the tightening story</span></div><div class="tag">weekly reading</div></div>
+    <div class="sec"><div class="t"><span class="snum">03</span>Supply. <span>the tightening story</span></div><div class="tag wk"><i></i><span>weekly</span></div></div>
     <div class="read"><span class="rl">the read</span>96% of all KAS is already mined and the next reward cut lands in <b>~9 days</b>. the one to watch is exchanges — balances <b>ticked down this week</b>, fewer coins sitting where they can be sold. <a href="/kaspa-halving.html" style="color:var(--teal); text-decoration:none;">how the monthly halving works →</a></div>
     <div class="grid four" id="supplyCards"></div>
   </section>
 
   <section class="panel">
-    <div class="sec"><div class="t"><span class="snum">04</span>Holders &amp; Security. <span>who is still here</span></div><div class="tag">weekly reading</div></div>
+    <div class="sec"><div class="t"><span class="snum">04</span>Holders &amp; Security. <span>who is still here</span></div><div class="tag wk"><i></i><span>weekly</span></div></div>
     <div class="read"><span class="rl">the read</span><b>over half of all KAS hasn't moved in a year</b> and holder addresses grew again — right through a 16% weekly hashrate drop. holders are calm, miners are stressed ahead of the reward cut. that's what a shakeout looks like. <a href="/merged-mining.html" style="color:var(--teal); text-decoration:none;">does merged mining take hashrate? →</a></div>
     <div class="grid four" id="baseCards"></div>
   </section>
 
   <section class="panel">
-    <div class="sec"><div class="t"><span class="snum">05</span>Whale watch. <span>the biggest wallet on the chain</span></div><div class="tag">live balance · weekly deltas</div></div>
+    <div class="sec"><div class="t"><span class="snum">05</span>Whale watch. <span>the biggest wallet on the chain</span></div><div class="tag lv"><i></i>live balance · weekly deltas</div></div>
     <div class="read"><span class="rl">the read</span>the chain's largest address added <b>+15.2M KAS this week</b> — buying every single week, never sending to exchanges. the day this wallet moves toward an exchange, you'll read it here first. <a href="/entity-x.html" style="color:var(--teal); text-decoration:none;">what is entity x? →</a></div>
     <div class="grid" id="whaleCards"></div>
   </section>
@@ -283,7 +294,8 @@ const H = DATA.history, cur = H[H.length-1].m;
 const back = w => H.length>w ? H[H.length-1-w].m : null;
 
 $("weeklyStamp").textContent = "WEEKLY READING: " + DATA.updated + " · NEXT: " + DATA.next_update;
-$("weeklyTag").textContent = "weekly reading · updated every monday";
+$("modeDate").textContent = "this reading: " + DATA.updated;
+document.querySelectorAll(".sec .tag.wk span").forEach(el => { el.textContent = "monday reading · " + DATA.updated; });
 
 function deltaTxt(c,p){ if(c==null||p==null) return null; const pct=(c-p)/Math.abs(p)*100;
   return { pct, cls:Math.abs(pct)<0.5?"flat":(pct>0?"up":"down"), txt:Math.abs(pct)<0.5?"→ flat":(pct>0?"▲ +":"▼ ")+pct.toFixed(1)+"%" }; }
