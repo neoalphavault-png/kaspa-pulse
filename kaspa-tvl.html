@@ -92,13 +92,29 @@
   .rv { opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
   .rv.vis { opacity:1; transform:none; }
   @media (prefers-reduced-motion: reduce){ .rv { opacity:1; transform:none; transition:none; } }
+  /* v2.1: mobile menu + tables */
+  .nright { display:flex; align-items:center; gap:8px; }
+  .nburger { display:none; background:none; border:1px solid var(--line); color:var(--dim); border-radius:8px; padding:4px 10px; font-size:15px; line-height:1.3; cursor:pointer; font-family:inherit; }
+  .tblwrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tblwrap table { min-width:540px; }
+  @media (max-width:640px){
+    .nburger { display:block; }
+    .nav .nc { display:none; }
+    .nav .nc.open { display:flex; flex-direction:column; gap:4px; padding:8px 18px 14px; border-top:1px solid var(--line); }
+    .nav .nc.open a { font-size:14px; padding:10px 12px; }
+  }
+  /* v2.1: section bands */
+  .band { background:linear-gradient(180deg, #0B0E14, #090C10); border-top:1px solid #181C23; border-bottom:1px solid #181C23; box-shadow:inset 0 1px 0 rgba(255,255,255,0.02); }
+  .band .fact, .band .note, .band .chart, .band .supply, .band .live { background:#0F1218; }
+  .wrap2 { max-width:780px; margin:0 auto; padding:10px 18px 40px; }
+  .wrap2 h2:first-child { margin-top:40px; }
 </style>
 </head>
 <body>
 <nav class="nav">
   <div class="nt">
     <div class="nlogo"><a href="/">ALPHA<span>VAULT</span> · KASPA PULSE</a></div>
-    <a class="nav-cta" href="#subForm">free cheat sheet</a>
+    <div class="nright"><a class="nav-cta" href="#subForm">free cheat sheet</a><button class="nburger" aria-label="menu">☰</button></div>
   </div>
   <div class="nc">
     <a href="/">dashboard</a>
@@ -132,11 +148,17 @@
   </div>
   <div class="note">These figures are pulled live from DefiLlama every time this page loads — the same source we use for the weekly <a href="/">Kaspa Pulse dashboard</a>. Nothing here is hardcoded.</div>
 
+</div>
+
+<div class="band"><div class="wrap2">
   <h2>What TVL actually measures</h2>
   <p>Total value locked is the dollar value of assets people have deposited into a chain's smart contracts — liquidity sitting in decentralised exchange pools, collateral parked in lending markets, tokens committed to staking contracts.</p>
   <p>The reason anyone cares is that TVL is a <b>trust measure</b>. It is capital that someone deliberately handed over to a piece of code and left there, accepting the risk that the code fails. People do not do that casually. A chain with real TVL has convinced real money that its contracts work.</p>
   <p>What TVL is <b>not</b>: it is not the value of the network, not trading volume, not a user count, and not a measure of how good the technology is. A chain can have excellent engineering and near-zero TVL simply because nothing has been built on it yet. That is precisely Kaspa's situation.</p>
 
+</div></div>
+
+<div class="wrap2">
   <h2>Why Kaspa's layer 1 holds nothing — and why that's deliberate</h2>
   <p>Kaspa's base layer is a UTXO chain, closer in design to Bitcoin than to Ethereum. It moves coins and secures them with proof-of-work; it does not run arbitrary programs. There is nowhere on layer 1 to lock value, so the honest figure for Kaspa L1 TVL is <b>zero</b>.</p>
   <p>Bitcoin is in the same position, and it's a useful sanity check: Bitcoin's several billion dollars of counted TVL doesn't live on Bitcoin's base chain either. It lives in wrapped assets and sidechain-style constructions built alongside it. Nobody reads Bitcoin's low base-layer programmability as a flaw.</p>
@@ -147,6 +169,9 @@
   </ul>
   <p>So whenever you see "Kaspa TVL", read it as <b>"Kaspa layer-2 TVL"</b>. It is a measure of how far the smart-contract ecosystem has come, not of Kaspa itself.</p>
 
+</div>
+
+<div class="band"><div class="wrap2">
   <h2>Three traps in reading any TVL number</h2>
   <p>These apply to every chain, not just Kaspa — and they're the reason TVL headlines are so often misleading.</p>
 
@@ -159,16 +184,22 @@
   <h3>3. The same dollar gets counted more than once</h3>
   <p>Deposit an asset into protocol A, receive a receipt token, deposit that receipt into protocol B — and the underlying dollar now shows up in two TVL figures. In mature ecosystems built on looping and restaking, this inflates headline numbers substantially. It's less of a factor on a young chain like Kaspa, which is one of the few advantages of being early: the number is comparatively clean.</p>
 
+</div></div>
+
+<div class="wrap2">
   <h2>For context: where Kaspa sits</h2>
   <p>All figures live from DefiLlama, so this table is current whenever you're reading it.</p>
-  <table>
+  <div class="tblwrap"><table>
     <thead><tr><th>Chain</th><th class="r">TVL</th><th class="r">vs. Kaspa</th></tr></thead>
     <tbody id="cmpBody">
       <tr><td colspan="3" style="color:#7A828C">loading…</td></tr>
     </tbody>
-  </table>
+  </table></div>
   <p>The gap is enormous, and pretending otherwise would be useless to you. Kaspa's DeFi ecosystem is a fraction of a percent of the total. What that reflects is age: Ethereum has had smart contracts since 2015, Solana since 2020 — Kaspa's layer 2s only since mid-2025 (Kasplex), with Igra following in 2026. The relevant question isn't whether Kaspa has caught up — it obviously hasn't — but whether the line is moving in the right direction from a standing start.</p>
 
+</div>
+
+<div class="band"><div class="wrap2">
   <h2>What actually matters at this stage</h2>
   <p>At this size, the absolute number is close to meaningless. Three readings are not:</p>
 
@@ -181,6 +212,9 @@
 
   <p>That last point deserves emphasis. At a total in the low millions, <b>Kaspa's TVL is not yet a statistically robust signal</b>. One whale, one bridge deployment, one incentive campaign can dominate the chart. Treat weekly moves as anecdotes and monthly direction as data.</p>
 
+</div></div>
+
+<div class="wrap2">
   <div class="note">We publish Kaspa's TVL, its layer-2 split and the DEX volume behind it every Monday on the <a href="/">Kaspa Pulse dashboard</a> — with a plain-language read on what changed and why, not just the figures.</div>
 
   <div class="subscribe">
@@ -298,6 +332,12 @@
   const els = document.querySelectorAll(".answer,.live,.chart,.supply,.fact,h2,table,.note,.subscribe");
   const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("vis"); io.unobserve(e.target); } }),{threshold:0.1});
   els.forEach(el=>{ el.classList.add("rv"); io.observe(el); });
+})();
+</script>
+<script>
+(function(){
+  const b = document.querySelector(".nburger"), c = document.querySelector(".nav .nc");
+  if(b && c) b.addEventListener("click", function(){ c.classList.toggle("open"); b.textContent = c.classList.contains("open") ? "\u2715" : "\u2630"; });
 })();
 </script>
 </body>
