@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaspa Halving, Explained — Why It Happens Every Month, Not Every Four Years — Kaspa Pulse</title>
+<meta name="description" content="Kaspa has no single dramatic halving. Block rewards fall by about 5.6% every month — a smooth curve that halves emission every year. Live current reward, the next reduction date, and what the schedule actually means — explained.">
+<link rel="canonical" href="https://kaspapulse.com/kaspa-halving.html">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
+         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
+  .wrap { max-width:780px; margin:0 auto; padding:28px 18px 56px; }
+  header { display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--line); padding-bottom:16px; }
+  .logo { font-size:14px; letter-spacing:5px; font-weight:700; }
+  .logo a { color:var(--txt); text-decoration:none; }
+  .logo span { color:var(--teal); }
+  .back { font-size:12px; color:var(--dim); }
+  .back a { color:var(--teal); text-decoration:none; }
+  h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
+  h1 b { color:var(--teal); }
+  .sub { font-size:16px; color:var(--dim); line-height:24px; }
+  h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin:56px 0 14px; }
+  h2::before { content:""; display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--teal); margin-right:11px; vertical-align:5px; }
+  h3 { font-size:16px; font-weight:700; margin:26px 0 7px; color:var(--txt); }
+  p { font-size:15px; line-height:24px; color:var(--dim); margin:0 0 14px; }
+  p b, li b { color:var(--txt); font-weight:600; }
+  ul { margin:0 0 14px 20px; }
+  li { font-size:15px; line-height:24px; color:var(--dim); margin-bottom:8px; }
+  .answer { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:24px 26px; margin:34px 0; }
+  .answer .lbl { font-size:12px; letter-spacing:3px; color:var(--teal); text-transform:uppercase; font-weight:700; margin-bottom:10px; }
+  .answer p { margin:0; font-size:16px; line-height:25px; color:var(--txt); }
+
+  /* live number block */
+  .live { background:var(--card); border:1px solid #15181C; border-radius:18px; padding:26px 26px 22px; margin:30px 0 8px; }
+  .live .lbl { font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700; }
+  .live .lbl i { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--teal); margin-right:7px; vertical-align:1px; }
+  .live .big { font-size:52px; font-weight:700; letter-spacing:-2px; color:var(--teal); line-height:1.05; margin:10px 0 4px; }
+  .live .cap { font-size:13px; color:var(--dimmer); line-height:19px; }
+  .split { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; border-top:1px solid #15181C; padding-top:18px; }
+  .split div .v { font-size:19px; font-weight:700; }
+  .split div .k { font-size:11.5px; color:var(--dimmer); margin-top:4px; line-height:16px; }
+
+  /* emission curve */
+  .chart { background:var(--card); border:1px solid #15181C; border-radius:18px; padding:22px 22px 14px; margin:24px 0 8px; }
+  .chart .clbl { font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700; margin-bottom:14px; }
+  .chart svg { width:100%; height:auto; display:block; }
+
+  /* supply bar */
+  .supply { background:var(--card); border:1px solid #15181C; border-radius:18px; padding:22px; margin:24px 0 8px; }
+  .supply .slbl { font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700; }
+  .supply .sbig { font-size:34px; font-weight:700; color:var(--teal); margin:8px 0 10px; letter-spacing:-1px; }
+  .supply .bar { height:14px; border-radius:999px; background:#15181C; overflow:hidden; }
+  .supply .bar i { display:block; height:100%; background:linear-gradient(90deg, rgba(73,234,203,0.7), var(--teal)); border-radius:999px; width:0%; transition:width 0.6s; }
+  .supply .scap { font-size:12.5px; color:var(--dimmer); margin-top:10px; line-height:18px; }
+
+  /* comparison table */
+  table { width:100%; border-collapse:collapse; margin:20px 0 8px; }
+  th { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--dimmer); text-align:left; font-weight:700; padding:0 0 10px; border-bottom:1px solid var(--line); }
+  th.r, td.r { text-align:right; }
+  td { font-size:14.5px; color:var(--dim); padding:12px 0; border-bottom:1px solid #101317; }
+  td.n { color:var(--txt); font-weight:600; }
+  tr.me td { color:var(--teal); font-weight:700; }
+
+  .facts { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:24px 0 8px; }
+  .fact { background:var(--card); border:1px solid #15181C; border-radius:14px; padding:18px; }
+  .fact .v { font-size:22px; font-weight:700; }
+  .fact .v.teal { color:var(--teal); } .fact .v.red { color:var(--red); }
+  .fact .l { font-size:12.5px; color:var(--dimmer); margin-top:6px; line-height:17px; }
+  .note { font-size:13px; color:var(--dimmer); font-style:italic; border-left:3px solid var(--teal); padding:4px 0 4px 14px; margin:20px 0; line-height:20px; }
+  a { color:var(--teal); }
+  @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} .live .big{font-size:40px;} .split{grid-template-columns:1fr; gap:14px;} td,th{font-size:13px;} }
+
+  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
+  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
+  .subscribe .st { font-size:18px; font-weight:700; }
+  .subscribe .st b { color:var(--teal); }
+  .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
+  .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
+  .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
+  .subscribe input::placeholder { color:var(--dimmer); }
+  .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .subscribe .msg { display:none; font-size:13px; font-weight:600; margin-top:14px; padding:10px 14px; border-radius:8px; }
+  .subscribe .msg.ok { display:block; color:var(--teal); background:rgba(73,234,203,0.08); border:1px solid rgba(73,234,203,0.35); }
+  .subscribe .msg.err { display:block; color:var(--red); background:rgba(227,106,106,0.08); border:1px solid rgba(227,106,106,0.35); }
+  .subscribe .fine { font-size:11px; color:var(--dimmer); margin-top:10px; }
+  @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
+  footer { border-top:1px solid var(--line); margin-top:48px; padding-top:16px; text-align:center; font-size:11px; color:var(--dimmer); }
+  footer a { color:var(--dim); text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><a href="/">ALPHA<span>VAULT</span> · KASPA PULSE</a></div>
+    <div class="back"><a href="/">← live dashboard</a></div>
+  </header>
+
+  <h1>The Kaspa halving, explained. <b>It happens every month — and that changes everything about how to read it.</b></h1>
+  <div class="sub">If you're waiting for Kaspa's big halving day, you can stop: there isn't one. Kaspa cut its emission into twelve small steps a year instead of one cliff every four. Here's the schedule, the current numbers live, and what the monthly cut actually does.</div>
+
+  <div class="answer">
+    <div class="lbl">The short answer</div>
+    <p>Kaspa's block reward drops by <b>about 5.6% every month</b> — twelve steps a year that compound to a full halving every 12 months. The schedule is fixed mathematics, set in code since the deflationary phase began in <b>May 2022 at 440 KAS per block</b>, and it runs until rewards reach zero in the 2050s. No votes, no surprises, no event to trade. The current reward and the next reduction are shown live below.</p>
+  </div>
+
+  <div class="live">
+    <div class="lbl"><i></i>Kaspa block reward · live schedule position</div>
+    <div class="big" id="rwBig">—</div>
+    <div class="cap" id="rwCap">deriving from the emission schedule…</div>
+    <div class="split">
+      <div><div class="v" id="nxDate">—</div><div class="k">next monthly reduction (approximate — steps are score-based, dates can drift by a day or two)</div></div>
+      <div><div class="v" id="nxAmt">—</div><div class="k">reward after the next step</div></div>
+      <div><div class="v">−5.6%</div><div class="k">every month · ×(1/2)<sup>1/12</sup> · halves every 12 months</div></div>
+    </div>
+  </div>
+  <div class="note">These figures are computed from Kaspa's fixed emission formula, anchored to the public Kaspa API, every time this page loads. The schedule is deterministic — this is one of the few numbers in crypto you can calculate years ahead.</div>
+
+  <h2>How the schedule works</h2>
+  <p>Bitcoin cuts its block reward in half once every four years, in one dramatic overnight step. Kaspa took the same idea and smoothed it out: every month, the reward is multiplied by (1/2)<sup>1/12</sup> — roughly a 5.6% reduction. Chain twelve of those together and you get exactly one halving per year. The community calls it the <b>chromatic phase</b>, because the monthly ratio matches the twelve semitones of a musical octave.</p>
+  <p>Two details matter for reading the numbers correctly:</p>
+  <ul>
+    <li><b>Emission is defined per second, not per block.</b> When the Crescendo upgrade in 2025 took Kaspa from 1 to 10 blocks per second, the per-block reward was divided by ten — but the coins minted per second didn't change. Comparing per-block rewards across eras misleads; the per-second emission curve is the real schedule.</li>
+    <li><b>Steps land on schedule scores, not calendar dates.</b> Each reduction triggers at a fixed point in the chain's own clock, roughly every 30.4 days. That's why the date above says approximate.</li>
+  </ul>
+
+  <div class="chart">
+    <div class="clbl">Block reward · the full curve, past and future</div>
+    <svg id="curveSvg" viewBox="0 0 640 240" role="img" aria-label="Kaspa block reward decay curve"></svg>
+  </div>
+
+  <div class="supply" id="supplyBox">
+    <div class="slbl"><span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--teal); margin-right:7px; vertical-align:1px;"></span>How much of all KAS already exists · live</div>
+    <div class="sbig" id="supPct">—</div>
+    <div class="bar"><i id="supBar"></i></div>
+    <div class="scap" id="supCap">fetching circulating supply…</div>
+  </div>
+  <div class="note">This is the quiet consequence of the schedule: the coin you're reading about is already almost fully distributed. What remains is a thin, shrinking stream — not a flood waiting to hit the market.</div>
+
+  <h2>Same job, two schedules</h2>
+  <p>The comparison everyone reaches for is Bitcoin's halving, so here it is done properly:</p>
+  <table>
+    <thead><tr><th></th><th class="r">Bitcoin</th><th class="r">Kaspa</th></tr></thead>
+    <tbody>
+      <tr><td class="n">Cadence</td><td class="r">every 4 years</td><td class="r">every month</td></tr>
+      <tr><td class="n">Size of each cut</td><td class="r">−50% overnight</td><td class="r">−5.6% per step</td></tr>
+      <tr><td class="n">Effect over 12 months</td><td class="r">0% or −50%</td><td class="r">−50%, smoothly</td></tr>
+      <tr><td class="n">Shock to miners</td><td class="r">one cliff, mass shakeout</td><td class="r">constant gentle squeeze</td></tr>
+      <tr><td class="n">Tradeable "event"</td><td class="r">yes, famously</td><td class="r">no — and that's the point</td></tr>
+    </tbody>
+  </table>
+  <p>Over any 12-month window the two schedules remove the same share of new supply. The difference is entirely in <b>how it arrives</b>: Bitcoin delivers it as a cliff that reshapes its mining industry every four years; Kaspa delivers it as a slope that miners absorb one small step at a time.</p>
+
+  <h2>Three traps in reading any halving</h2>
+
+  <h3>1. The Bitcoin halving narrative doesn't transfer</h3>
+  <p>Bitcoin's halving lore — the four-year cycle, the pre-halving rally, the supply shock — is built on a rare, dramatic, heavily marketed event. Kaspa has no such event. A 5.6% monthly step is not a catalyst; it's background physics. Anyone selling you a "Kaspa halving play" is borrowing a story from a different chain.</p>
+
+  <h3>2. Less new supply is not more demand</h3>
+  <p>A reward cut reduces the number of new coins miners can sell. That is arithmetic, not a price argument: if nobody wants the coin, halving the trickle of new supply changes nothing. Emission cuts only matter in combination with demand — they amplify whatever direction demand already points.</p>
+
+  <h3>3. The real effect is on miners, not on price</h3>
+  <p>Each step cuts every miner's revenue by 5.6% at constant price. Efficient machines shrug; the oldest hardware slides below break-even and eventually shuts off. This is why hashrate tends to dip and recover around reductions — and why the interesting chart after each step is the <a href="/kaspa-hashrate.html">hashrate</a>, not the price.</p>
+
+  <h2>What actually matters at each step</h2>
+  <div class="facts">
+    <div class="fact"><div class="v teal">Hashrate response</div><div class="l">Does mining power hold through the cut and recover after? That reveals how much margin the miner base has left. We track it weekly.</div></div>
+    <div class="fact"><div class="v teal">Emission vs. volume</div><div class="l">Daily new supply set against daily traded volume shows how easily the market absorbs what miners must sell.</div></div>
+    <div class="fact"><div class="v teal">The % mined</div><div class="l">The live figure above. The closer it gets to 100%, the more Kaspa's security budget must come from fees and merged mining instead of new coins.</div></div>
+    <div class="fact"><div class="v red">Anyone selling the event</div><div class="l">There is no event. A monthly schedule that everyone can compute years ahead surprises nobody and pumps nothing by itself.</div></div>
+  </div>
+
+  <div class="note">We publish the reward, the hashrate around each monthly step, and what changed every Monday on the <a href="/">Kaspa Pulse dashboard</a> — in plain language, not just figures.</div>
+
+  <div class="subscribe">
+    <div class="badge">free · instant</div>
+    <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
+    <div class="ss">the 8 numbers that actually matter (emission is one of them) and how to read each one · plus the weekly pulse every monday</div>
+    <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="you@email.com" required>
+      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="locale" value="en">
+      <input type="hidden" name="html_type" value="simple">
+      <button type="submit" id="subBtn">get it</button>
+    </form>
+    <div class="msg" id="subMsg"></div>
+    <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
+  </div>
+
+  <footer>
+    <div>not financial advice · further reading: <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/merged-mining.html">kaspa merged mining, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/">kaspapulse.com</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+  </footer>
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Does Kaspa have a halving?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes, but not as a single event. Kaspa's block reward decreases by a factor of (1/2)^(1/12) every month — about 5.6% per step — which compounds to a full halving every 12 months. This smooth schedule, called the chromatic phase, began in May 2022 at 440 KAS per block and is fixed in code." }
+    },
+    {
+      "@type": "Question",
+      "name": "When is the next Kaspa halving?",
+      "acceptedAnswer": { "@type": "Answer", "text": "A reduction happens roughly every 30.4 days, triggered by the chain's own score rather than a calendar date. The date and size of the next step are computed live on this page from the fixed emission schedule." }
+    },
+    {
+      "@type": "Question",
+      "name": "How much does the Kaspa block reward decrease?",
+      "acceptedAnswer": { "@type": "Answer", "text": "About 5.6% per month. Twelve consecutive monthly steps multiply to exactly one half, so emission falls 50% over any 12-month window — the same yearly rate as Bitcoin's four-year halving, delivered smoothly instead of as a cliff." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is the Kaspa halving bullish for the price?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not by itself. A monthly reduction that anyone can compute years in advance surprises nobody and creates no supply shock. Reduced emission only amplifies whatever demand already exists. The measurable effect of each step is on miner margins, which is why hashrate around each reduction is the more informative chart." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is Kaspa's maximum supply and how much is mined?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Kaspa's supply approaches a maximum of about 28.7 billion KAS. The live percentage already in circulation is shown on this page, fetched from the public Kaspa API. Because the emission curve decays geometrically, the large majority of all KAS was mined within the first years after the 2021 launch." }
+    }
+  ]
+}
+</script>
+
+<script>
+(function(){
+  // Kaspa chromatic emission: reward ×(1/2)^(1/12) every ~30.4 days.
+  // Anchored to api.kaspa.org/info/halving; the fixed 2026-07-05 step (2.44997 KAS)
+  // serves as offline fallback anchor — a historical constant, so the page works
+  // and stays correct even if the API is unreachable or returns stale data.
+  const R = Math.pow(0.5, 1/12);                       // 0.943874…
+  const STEP = (365.25/12) * 86400000;                 // one chromatic month in ms
+  const FALLBACK = { ts: 1783280744000, amt: 2.44997148 }; // 2026-07-05 19:45 UTC step (historical)
+
+  function render(anchorTs, anchorAmt){
+    // roll the anchor forward to the next step still in the future
+    let ts = anchorTs, amt = anchorAmt;
+    while (ts <= Date.now()) { ts += STEP; amt *= R; }
+    const current = amt / R;
+
+    const fmtD = d => new Date(d).toLocaleDateString("en-US",{month:"short", day:"numeric", year:"numeric"}).toLowerCase();
+    document.getElementById("rwBig").textContent = current.toFixed(2)+" KAS";
+    document.getElementById("rwCap").textContent = "per block, at 10 blocks per second · derived from the fixed schedule, anchored to api.kaspa.org";
+    document.getElementById("nxDate").textContent = "≈ "+fmtD(ts);
+    document.getElementById("nxAmt").textContent = amt.toFixed(2)+" KAS";
+    drawCurve(ts, amt);
+  }
+
+  function drawCurve(nextTs, nextAmt){
+    // draw per-block reward (10 bps era) from 2025 to 2032, mark "now"
+    const svg = document.getElementById("curveSvg");
+    const W=640, H=240, padL=44, padR=14, padT=16, padB=30;
+    const t0 = Date.UTC(2025,0,1), t1 = Date.UTC(2032,0,1);
+    const rewardAt = t => { // steps between t and the anchored next step
+      const n = Math.ceil((nextTs - t)/STEP);          // how many steps anchor is ahead
+      return nextAmt / Math.pow(R, n);
+    };
+    const maxY = rewardAt(t0)*1.08;
+    const X = t => padL + (t-t0)/(t1-t0)*(W-padL-padR);
+    const Y = v => padT + (1 - v/maxY)*(H-padT-padB);
+    let path = "";
+    for(let t=t0; t<=t1; t+=STEP/4){ path += (path?" L":"M")+X(t).toFixed(1)+" "+Y(rewardAt(t)).toFixed(1); }
+    let g = "";
+    // axis
+    g += '<line x1="'+padL+'" y1="'+(H-padB)+'" x2="'+(W-padR)+'" y2="'+(H-padB)+'" stroke="#1A1D21"/>';
+    for(let yr=2025; yr<=2032; yr++){
+      const x = X(Date.UTC(yr,0,1));
+      g += '<text x="'+x+'" y="'+(H-10)+'" fill="#7A828C" font-size="11" text-anchor="middle">'+yr+'</text>';
+    }
+    // y labels
+    [1,2,3].forEach(v=>{ if(v<maxY) g += '<text x="'+(padL-8)+'" y="'+(Y(v)+4)+'" fill="#7A828C" font-size="11" text-anchor="end">'+v+'</text>'
+      + '<line x1="'+padL+'" y1="'+Y(v)+'" x2="'+(W-padR)+'" y2="'+Y(v)+'" stroke="#101317"/>'; });
+    g += '<text x="'+(padL-8)+'" y="'+(padT+6)+'" fill="#7A828C" font-size="10" text-anchor="end">KAS</text>';
+    // curve
+    g += '<path d="'+path+'" fill="none" stroke="#49EACB" stroke-width="2.5" stroke-linecap="round"/>';
+    // "now" marker
+    const now = Date.now();
+    if(now>t0 && now<t1){
+      const nx=X(now), ny=Y(rewardAt(now));
+      g += '<line x1="'+nx+'" y1="'+(H-padB)+'" x2="'+nx+'" y2="'+ny+'" stroke="#49EACB" stroke-opacity="0.35" stroke-dasharray="3 4"/>';
+      g += '<circle cx="'+nx+'" cy="'+ny+'" r="5" fill="#49EACB"/>';
+      g += '<text x="'+nx+'" y="'+(ny-12)+'" fill="#FFFFFF" font-size="12" font-weight="700" text-anchor="middle">you are here</text>';
+    }
+    svg.innerHTML = g;
+  }
+
+  fetch("https://api.kaspa.org/info/halving")
+    .then(r=>r.json())
+    .then(j=>{
+      if(j && j.nextHalvingTimestamp && j.nextHalvingAmount) render(j.nextHalvingTimestamp*1000, j.nextHalvingAmount);
+      else render(FALLBACK.ts, FALLBACK.amt);
+    })
+    .catch(()=> render(FALLBACK.ts, FALLBACK.amt));
+
+  // supply progress — live
+  fetch("https://api.kaspa.org/info/coinsupply").then(r=>r.json()).then(s=>{
+    const circ = parseFloat(s.circulatingSupply)/1e8, max = parseFloat(s.maxSupply)/1e8;
+    if(!(circ && max)) return;
+    const pct = circ/max*100;
+    document.getElementById("supPct").textContent = pct.toFixed(2)+"% mined";
+    document.getElementById("supBar").style.width = pct.toFixed(2)+"%";
+    document.getElementById("supCap").textContent =
+      (circ/1e9).toFixed(2)+"B of "+(max/1e9).toFixed(2)+"B KAS in circulation · "+((max-circ)/1e9).toFixed(2)+"B still to be mined over the coming decades · source: api.kaspa.org";
+  }).catch(()=>{
+    document.getElementById("supPct").textContent = "—";
+    document.getElementById("supCap").innerHTML = "live feed temporarily unavailable · the weekly reading is always on the <a href='/'>dashboard</a>";
+  });
+})();
+</script>
+
+<script>
+(function(){
+  const form = document.getElementById("subForm"), btn = document.getElementById("subBtn"), msg = document.getElementById("subMsg");
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    btn.disabled = true; const old = btn.textContent; btn.textContent = "…";
+    msg.className = "msg";
+    try {
+      const res = await fetch(form.action, { method:"POST", body:new FormData(form) });
+      const j = await res.json();
+      if (j.success) { msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
+      else { msg.textContent = j.message || "something went wrong — please try again"; msg.className = "msg err"; }
+    } catch(_) { form.submit(); }
+    btn.disabled = false; btn.textContent = old;
+  });
+})();
+</script>
+</body>
+</html>
