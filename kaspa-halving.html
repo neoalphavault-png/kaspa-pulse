@@ -89,14 +89,41 @@
   @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
   footer { border-top:1px solid var(--line); margin-top:48px; padding-top:16px; text-align:center; font-size:11px; color:var(--dimmer); }
   footer a { color:var(--dim); text-decoration:none; }
+  /* v2: nav + motion */
+  html { scroll-behavior:smooth; }
+  .nav { position:sticky; top:0; z-index:60; background:rgba(5,6,8,0.88); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
+  .nav .nt { max-width:780px; margin:0 auto; padding:13px 18px 9px; display:flex; justify-content:space-between; align-items:center; }
+  .nav .nlogo { font-size:13px; letter-spacing:4px; font-weight:700; }
+  .nav .nlogo a { color:var(--txt); text-decoration:none; }
+  .nav .nlogo span { color:var(--teal); }
+  .nav-cta { font-size:10px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color:var(--teal); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:5px 12px; text-decoration:none; background:rgba(73,234,203,0.07); white-space:nowrap; }
+  .nav .nc { max-width:780px; margin:0 auto; padding:0 12px 10px; display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; }
+  .nav .nc::-webkit-scrollbar { display:none; }
+  .nav .nc a { font-size:12px; color:var(--dim); text-decoration:none; padding:5px 11px; border-radius:999px; white-space:nowrap; border:1px solid transparent; }
+  .nav .nc a:hover { color:var(--txt); }
+  .nav .nc a.on { color:var(--teal); background:rgba(73,234,203,0.08); border-color:rgba(73,234,203,0.25); }
+  .rv { opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
+  .rv.vis { opacity:1; transform:none; }
+  @media (prefers-reduced-motion: reduce){ .rv { opacity:1; transform:none; transition:none; } }
 </style>
 </head>
 <body>
+<nav class="nav">
+  <div class="nt">
+    <div class="nlogo"><a href="/">ALPHA<span>VAULT</span> · KASPA PULSE</a></div>
+    <a class="nav-cta" href="#subForm">free cheat sheet</a>
+  </div>
+  <div class="nc">
+    <a href="/">dashboard</a>
+    <a href="/kaspa-supply.html">supply</a>
+    <a href="/kaspa-halving.html" class="on">halving</a>
+    <a href="/kaspa-hashrate.html">hashrate</a>
+    <a href="/kaspa-tvl.html">tvl</a>
+    <a href="/entity-x.html">entity x</a>
+    <a href="/merged-mining.html">merged mining</a>
+  </div>
+</nav>
 <div class="wrap">
-  <header>
-    <div class="logo"><a href="/">ALPHA<span>VAULT</span> · KASPA PULSE</a></div>
-    <div class="back"><a href="/">← live dashboard</a></div>
-  </header>
 
   <h1>The Kaspa halving, explained. <b>It happens every month — and that changes everything about how to read it.</b></h1>
   <div class="sub">If you're waiting for Kaspa's big halving day, you can stop: there isn't one. Kaspa cut its emission into twelve small steps a year instead of one cliff every four. Here's the schedule, the current numbers live, and what the monthly cut actually does.</div>
@@ -329,6 +356,14 @@
     } catch(_) { form.submit(); }
     btn.disabled = false; btn.textContent = old;
   });
+})();
+</script>
+<script>
+(function(){
+  if(!("IntersectionObserver" in window)) return;
+  const els = document.querySelectorAll(".answer,.live,.chart,.supply,.fact,h2,table,.note,.subscribe");
+  const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("vis"); io.unobserve(e.target); } }),{threshold:0.1});
+  els.forEach(el=>{ el.classList.add("rv"); io.observe(el); });
 })();
 </script>
 </body>
