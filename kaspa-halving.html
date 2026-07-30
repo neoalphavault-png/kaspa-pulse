@@ -71,7 +71,7 @@
   .fact .l { font-size:12.5px; color:var(--dimmer); margin-top:6px; line-height:17px; }
   .note { font-size:13px; color:var(--dimmer); font-style:italic; border-left:3px solid var(--teal); padding:4px 0 4px 14px; margin:20px 0; line-height:20px; }
   a { color:var(--teal); }
-  @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} .live .big{font-size:40px;} .split{grid-template-columns:1fr; gap:14px;} td,th{font-size:13px;} }
+  @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} .live .big{font-size:40px;} .split{grid-template-columns:1fr; gap:14px;} td,th{font-size:13px;} .chart{padding:16px 8px 8px 8px;} .chart .clbl{padding-left:8px;} }
 
   .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
   .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
@@ -107,14 +107,15 @@
   @media (prefers-reduced-motion: reduce){ .rv { opacity:1; transform:none; transition:none; } }
   /* v2.1: mobile menu + tables */
   .nright { display:flex; align-items:center; gap:8px; }
-  .nburger { display:none; background:none; border:1px solid var(--line); color:var(--dim); border-radius:8px; padding:4px 10px; font-size:15px; line-height:1.3; cursor:pointer; font-family:inherit; }
+  .nburger { display:none; background:none; border:1px solid var(--line); color:var(--txt); border-radius:10px; padding:8px 14px; font-size:19px; line-height:1.2; cursor:pointer; font-family:inherit; }
   .tblwrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
   .tblwrap table { min-width:540px; }
   @media (max-width:640px){
     .nburger { display:block; }
     .nav .nc { display:none; }
     .nav .nc.open { display:flex; flex-direction:column; gap:4px; padding:8px 18px 14px; border-top:1px solid var(--line); }
-    .nav .nc.open a { font-size:14px; padding:10px 12px; }
+    .nav .nc.open a { font-size:15px; padding:11px 12px; }
+    .nav .nlogo { font-size:12px; letter-spacing:3px; }
   }
   /* v2.1: section bands */
   .band { background:linear-gradient(180deg, #0B0E14, #090C10); border-top:1px solid #181C23; border-bottom:1px solid #181C23; box-shadow:inset 0 1px 0 rgba(255,255,255,0.02); }
@@ -174,7 +175,7 @@
 
   <div class="chart">
     <div class="clbl">Block reward · the full curve, past and future</div>
-    <svg id="curveSvg" viewBox="0 0 640 240" role="img" aria-label="Kaspa block reward decay curve"></svg>
+    <svg id="curveSvg" viewBox="0 0 640 240" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Kaspa block reward decay curve"></svg>
   </div>
 
   <div class="supply" id="supplyBox">
@@ -310,9 +311,10 @@
   function drawCurve(nextTs, nextAmt){
     // draw per-block reward (10 bps era) from 2025 to 2032, mark "now"
     const svg = document.getElementById("curveSvg");
-    const MB = (window.innerWidth || 640) < 520;   // mobile: bigger labels, fewer ticks
-    const FS = MB ? 16 : 11, FS2 = MB ? 17 : 12;
-    const W=640, H=240, padL=MB?52:44, padR=14, padT=16, padB=MB?36:30;
+    const MB = (window.innerWidth || 640) < 520;
+    if (MB) svg.setAttribute("viewBox", "0 0 640 260");   // mobile: bigger labels, fewer ticks
+    const FS = MB ? 20 : 11, FS2 = MB ? 22 : 12;
+    const W=640, H=MB?260:240, padL=MB?62:44, padR=MB?44:24, padT=MB?20:16, padB=MB?44:30;
     const t0 = Date.UTC(2025,0,1), t1 = Date.UTC(2032,0,1);
     const rewardAt = t => { // steps between t and the anchored next step
       const n = Math.ceil((nextTs - t)/STEP);          // how many steps anchor is ahead
@@ -343,7 +345,7 @@
       const nx=X(now), ny=Y(rewardAt(now));
       g += '<line x1="'+nx+'" y1="'+(H-padB)+'" x2="'+nx+'" y2="'+ny+'" stroke="#49EACB" stroke-opacity="0.35" stroke-dasharray="3 4"/>';
       g += '<circle cx="'+nx+'" cy="'+ny+'" r="5" fill="#49EACB"/>';
-      g += '<text x="'+nx+'" y="'+(ny-13)+'" fill="#FFFFFF" font-size="'+FS2+'" font-weight="700" text-anchor="middle">you are here</text>';
+      g += '<text x="'+nx+'" y="'+(ny-(MB?18:13))+'" fill="#FFFFFF" font-size="'+FS2+'" font-weight="700" text-anchor="middle">you are here</text>';
     }
     svg.innerHTML = g;
   }
