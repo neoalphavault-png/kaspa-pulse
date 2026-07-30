@@ -92,13 +92,29 @@
   @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
   footer { border-top:1px solid var(--line); margin-top:48px; padding-top:16px; text-align:center; font-size:11px; color:var(--dimmer); }
   footer a { color:var(--dim); text-decoration:none; }
+  /* v2.1: mobile menu + tables */
+  .nright { display:flex; align-items:center; gap:8px; }
+  .nburger { display:none; background:none; border:1px solid var(--line); color:var(--dim); border-radius:8px; padding:4px 10px; font-size:15px; line-height:1.3; cursor:pointer; font-family:inherit; }
+  .tblwrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tblwrap table { min-width:540px; }
+  @media (max-width:640px){
+    .nburger { display:block; }
+    .nav .nc { display:none; }
+    .nav .nc.open { display:flex; flex-direction:column; gap:4px; padding:8px 18px 14px; border-top:1px solid var(--line); }
+    .nav .nc.open a { font-size:14px; padding:10px 12px; }
+  }
+  /* v2.1: section bands */
+  .band { background:linear-gradient(180deg, #0B0E14, #090C10); border-top:1px solid #181C23; border-bottom:1px solid #181C23; box-shadow:inset 0 1px 0 rgba(255,255,255,0.02); }
+  .band .fact, .band .note { background:#0F1218; }
+  .wrap2 { max-width:780px; margin:0 auto; padding:10px 18px 40px; }
+  .wrap2 h2:first-child { margin-top:40px; }
 </style>
 </head>
 <body>
 <nav class="nav">
   <div class="nt">
     <div class="nlogo"><a href="/">ALPHA<span>VAULT</span> · KASPA PULSE</a></div>
-    <a class="nav-cta" href="#subForm">free cheat sheet</a>
+    <div class="nright"><a class="nav-cta" href="#subForm">free cheat sheet</a><button class="nburger" aria-label="menu">☰</button></div>
   </div>
   <div class="nc">
     <a href="/">dashboard</a>
@@ -133,11 +149,13 @@
     </div>
   </div>
   <div class="note">All figures are fetched live from the public Kaspa API every time this page loads. Nothing here is hardcoded — check back in a year and the numbers will have updated themselves.</div>
+</div>
 
+<div class="band"><div class="wrap2">
   <h2>Where the coins came from</h2>
   <p>Kaspa launched on <b>November 7, 2021</b>, announced publicly before the first block. There was no initial coin offering, no tokens created at genesis, no allocation for the founders, and no discounted round for investors. The supply at block zero was <b>exactly zero</b>. Everything since has been minted one block reward at a time, paid to whoever contributed the mining work — on ordinary CPUs and GPUs in the early months, on ASICs since 2023.</p>
   <p>That makes Kaspa part of a small club. Most major chains distributed a large share of their supply before the public could earn any:</p>
-  <table>
+  <div class="tblwrap"><table>
     <thead><tr><th>Network</th><th>How initial supply was created</th><th>Insiders at day one</th></tr></thead>
     <tbody>
       <tr><td class="n">Bitcoin (2009)</td><td>mined from block one</td><td>none</td></tr>
@@ -145,12 +163,16 @@
       <tr><td class="n">Solana (2020)</td><td>genesis allocations to investors, team and foundation</td><td>roughly half of initial supply</td></tr>
       <tr class="me"><td class="n">Kaspa (2021)</td><td>mined from block one</td><td>none</td></tr>
     </tbody>
-  </table>
+  </table></div>
   <p>This is a historical fact, not a value judgment — Ethereum and Solana built enormous ecosystems on their models. But it changes how you read Kaspa's supply data: <b>there is no unlock schedule to track, no vesting cliff to fear, no foundation treasury that can hit the market.</b> What you see on chain is the whole story.</p>
+</div></div>
 
+<div class="wrap2">
   <h2>Why the ceiling is approached, never touched</h2>
   <p>Kaspa's emission follows a smooth geometric curve: block rewards shrink by about 5.6% every month, halving every 12 months. Summed to infinity, that curve converges on the ~28.7B ceiling — each year adds half of whatever remains. The practical consequence: supply growth is front-loaded and the tail is thin. The remaining coins will trickle out over decades, with rewards mathematically reaching zero in the 2050s. The full schedule, with the current block reward live, is on <a href="/kaspa-halving.html">the Kaspa halving, explained</a>.</p>
+</div>
 
+<div class="band"><div class="wrap2">
   <h2>Three traps in reading any supply number</h2>
 
   <h3>1. "Circulating supply" is defined by whoever reports it</h3>
@@ -161,7 +183,9 @@
 
   <h3>3. Supply says nothing about distribution</h3>
   <p>A fair launch means nobody was <b>given</b> coins — it doesn't mean coins are evenly spread today. Whoever mined early and held, holds large positions now, and the single biggest address holds over 5% of everything in circulation. Supply tells you how many coins exist; it takes address-level data to see who has them. We track exactly that on <a href="/entity-x.html">what is entity x?</a></p>
+</div></div>
 
+<div class="wrap2">
   <h2>What this means in practice</h2>
   <div class="facts">
     <div class="fact"><div class="v teal">0 premine</div><div class="l">no coins existed before public mining began — supply started at zero on november 7, 2021</div></div>
@@ -288,6 +312,12 @@
     } catch(_) { form.submit(); }
     btn.disabled = false; btn.textContent = old;
   });
+})();
+</script>
+<script>
+(function(){
+  const b = document.querySelector(".nburger"), c = document.querySelector(".nav .nc");
+  if(b && c) b.addEventListener("click", function(){ c.classList.toggle("open"); b.textContent = c.classList.contains("open") ? "\u2715" : "\u2630"; });
 })();
 </script>
 </body>
