@@ -105,13 +105,29 @@
   .rv { opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
   .rv.vis { opacity:1; transform:none; }
   @media (prefers-reduced-motion: reduce){ .rv { opacity:1; transform:none; transition:none; } }
+  /* v2.1: mobile menu + tables */
+  .nright { display:flex; align-items:center; gap:8px; }
+  .nburger { display:none; background:none; border:1px solid var(--line); color:var(--dim); border-radius:8px; padding:4px 10px; font-size:15px; line-height:1.3; cursor:pointer; font-family:inherit; }
+  .tblwrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tblwrap table { min-width:540px; }
+  @media (max-width:640px){
+    .nburger { display:block; }
+    .nav .nc { display:none; }
+    .nav .nc.open { display:flex; flex-direction:column; gap:4px; padding:8px 18px 14px; border-top:1px solid var(--line); }
+    .nav .nc.open a { font-size:14px; padding:10px 12px; }
+  }
+  /* v2.1: section bands */
+  .band { background:linear-gradient(180deg, #0B0E14, #090C10); border-top:1px solid #181C23; border-bottom:1px solid #181C23; box-shadow:inset 0 1px 0 rgba(255,255,255,0.02); }
+  .band .fact, .band .note, .band .chart, .band .supply, .band .live { background:#0F1218; }
+  .wrap2 { max-width:780px; margin:0 auto; padding:10px 18px 40px; }
+  .wrap2 h2:first-child { margin-top:40px; }
 </style>
 </head>
 <body>
 <nav class="nav">
   <div class="nt">
     <div class="nlogo"><a href="/">ALPHA<span>VAULT</span> · KASPA PULSE</a></div>
-    <a class="nav-cta" href="#subForm">free cheat sheet</a>
+    <div class="nright"><a class="nav-cta" href="#subForm">free cheat sheet</a><button class="nburger" aria-label="menu">☰</button></div>
   </div>
   <div class="nc">
     <a href="/">dashboard</a>
@@ -145,6 +161,9 @@
   </div>
   <div class="note">These figures are computed from Kaspa's fixed emission formula, anchored to the public Kaspa API, every time this page loads. The schedule is deterministic — this is one of the few numbers in crypto you can calculate years ahead.</div>
 
+</div>
+
+<div class="band"><div class="wrap2">
   <h2>How the schedule works</h2>
   <p>Bitcoin cuts its block reward in half once every four years, in one dramatic overnight step. Kaspa took the same idea and smoothed it out: every month, the reward is multiplied by (1/2)<sup>1/12</sup> — roughly a 5.6% reduction. Chain twelve of those together and you get exactly one halving per year. The community calls it the <b>chromatic phase</b>, because the monthly ratio matches the twelve semitones of a musical octave.</p>
   <p>Two details matter for reading the numbers correctly:</p>
@@ -166,9 +185,12 @@
   </div>
   <div class="note">This is the quiet consequence of the schedule: the coin you're reading about is already almost fully distributed. What remains is a thin, shrinking stream — not a flood waiting to hit the market.</div>
 
+</div></div>
+
+<div class="wrap2">
   <h2>Same job, two schedules</h2>
   <p>The comparison everyone reaches for is Bitcoin's halving, so here it is done properly:</p>
-  <table>
+  <div class="tblwrap"><table>
     <thead><tr><th></th><th class="r">Bitcoin</th><th class="r">Kaspa</th></tr></thead>
     <tbody>
       <tr><td class="n">Cadence</td><td class="r">every 4 years</td><td class="r">every month</td></tr>
@@ -177,9 +199,12 @@
       <tr><td class="n">Shock to miners</td><td class="r">one cliff, mass shakeout</td><td class="r">constant gentle squeeze</td></tr>
       <tr><td class="n">Tradeable "event"</td><td class="r">yes, famously</td><td class="r">no — and that's the point</td></tr>
     </tbody>
-  </table>
+  </table></div>
   <p>Over any 12-month window the two schedules remove the same share of new supply. The difference is entirely in <b>how it arrives</b>: Bitcoin delivers it as a cliff that reshapes its mining industry every four years; Kaspa delivers it as a slope that miners absorb one small step at a time.</p>
 
+</div>
+
+<div class="band"><div class="wrap2">
   <h2>Three traps in reading any halving</h2>
 
   <h3>1. The Bitcoin halving narrative doesn't transfer</h3>
@@ -191,6 +216,9 @@
   <h3>3. The real effect is on miners, not on price</h3>
   <p>Each step cuts every miner's revenue by 5.6% at constant price. Efficient machines shrug; the oldest hardware slides below break-even and eventually shuts off. This is why hashrate tends to dip and recover around reductions — and why the interesting chart after each step is the <a href="/kaspa-hashrate.html">hashrate</a>, not the price.</p>
 
+</div></div>
+
+<div class="wrap2">
   <h2>What actually matters at each step</h2>
   <div class="facts">
     <div class="fact"><div class="v teal">Hashrate response</div><div class="l">Does mining power hold through the cut and recover after? That reveals how much margin the miner base has left. We track it weekly.</div></div>
@@ -282,7 +310,9 @@
   function drawCurve(nextTs, nextAmt){
     // draw per-block reward (10 bps era) from 2025 to 2032, mark "now"
     const svg = document.getElementById("curveSvg");
-    const W=640, H=240, padL=44, padR=14, padT=16, padB=30;
+    const MB = (window.innerWidth || 640) < 520;   // mobile: bigger labels, fewer ticks
+    const FS = MB ? 16 : 11, FS2 = MB ? 17 : 12;
+    const W=640, H=240, padL=MB?52:44, padR=14, padT=16, padB=MB?36:30;
     const t0 = Date.UTC(2025,0,1), t1 = Date.UTC(2032,0,1);
     const rewardAt = t => { // steps between t and the anchored next step
       const n = Math.ceil((nextTs - t)/STEP);          // how many steps anchor is ahead
@@ -297,22 +327,23 @@
     // axis
     g += '<line x1="'+padL+'" y1="'+(H-padB)+'" x2="'+(W-padR)+'" y2="'+(H-padB)+'" stroke="#1A1D21"/>';
     for(let yr=2025; yr<=2032; yr++){
+      if(MB && yr % 2) continue;
       const x = X(Date.UTC(yr,0,1));
-      g += '<text x="'+x+'" y="'+(H-10)+'" fill="#7A828C" font-size="11" text-anchor="middle">'+yr+'</text>';
+      g += '<text x="'+x+'" y="'+(H-8)+'" fill="#7A828C" font-size="'+FS+'" text-anchor="middle">'+yr+'</text>';
     }
     // y labels
-    [1,2,3].forEach(v=>{ if(v<maxY) g += '<text x="'+(padL-8)+'" y="'+(Y(v)+4)+'" fill="#7A828C" font-size="11" text-anchor="end">'+v+'</text>'
+    [1,2,3].forEach(v=>{ if(v<maxY) g += '<text x="'+(padL-8)+'" y="'+(Y(v)+5)+'" fill="#7A828C" font-size="'+FS+'" text-anchor="end">'+v+'</text>'
       + '<line x1="'+padL+'" y1="'+Y(v)+'" x2="'+(W-padR)+'" y2="'+Y(v)+'" stroke="#101317"/>'; });
-    g += '<text x="'+(padL-8)+'" y="'+(padT+6)+'" fill="#7A828C" font-size="10" text-anchor="end">KAS</text>';
+    g += '<text x="'+(padL-8)+'" y="'+(padT+6)+'" fill="#7A828C" font-size="'+FS+'" text-anchor="end">KAS</text>';
     // curve
-    g += '<path d="'+path+'" fill="none" stroke="#49EACB" stroke-width="2.5" stroke-linecap="round"/>';
+    g += '<path d="'+path+'" fill="none" stroke="#49EACB" stroke-width="'+(MB?3.2:2.5)+'" stroke-linecap="round"/>';
     // "now" marker
     const now = Date.now();
     if(now>t0 && now<t1){
       const nx=X(now), ny=Y(rewardAt(now));
       g += '<line x1="'+nx+'" y1="'+(H-padB)+'" x2="'+nx+'" y2="'+ny+'" stroke="#49EACB" stroke-opacity="0.35" stroke-dasharray="3 4"/>';
       g += '<circle cx="'+nx+'" cy="'+ny+'" r="5" fill="#49EACB"/>';
-      g += '<text x="'+nx+'" y="'+(ny-12)+'" fill="#FFFFFF" font-size="12" font-weight="700" text-anchor="middle">you are here</text>';
+      g += '<text x="'+nx+'" y="'+(ny-13)+'" fill="#FFFFFF" font-size="'+FS2+'" font-weight="700" text-anchor="middle">you are here</text>';
     }
     svg.innerHTML = g;
   }
@@ -364,6 +395,12 @@
   const els = document.querySelectorAll(".answer,.live,.chart,.supply,.fact,h2,table,.note,.subscribe");
   const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("vis"); io.unobserve(e.target); } }),{threshold:0.1});
   els.forEach(el=>{ el.classList.add("rv"); io.observe(el); });
+})();
+</script>
+<script>
+(function(){
+  const b = document.querySelector(".nburger"), c = document.querySelector(".nav .nc");
+  if(b && c) b.addEventListener("click", function(){ c.classList.toggle("open"); b.textContent = c.classList.contains("open") ? "\u2715" : "\u2630"; });
 })();
 </script>
 </body>
