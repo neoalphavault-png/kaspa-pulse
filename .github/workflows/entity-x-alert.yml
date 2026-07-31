@@ -1,0 +1,37 @@
+name: entity-x-alert
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: entity-x-alert
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: run alert check
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: python3 scripts/entity_x_alert.py
+
+      - name: persist state if changed
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add scripts/entity_x_state.json
+          if git diff --staged --quiet; then
+            echo "state unveraendert, kein commit"
+          else
+            git commit -m "entity x state update [bot]"
+            git push
+          fi
