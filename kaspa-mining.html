@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mining Kaspa, Explained — What It Takes, What It Pays, Live — Kaspa Pulse</title>
+<meta name="description" content="Kaspa is mined by kHeavyHash ASICs — GPU mining stopped being competitive in 2023. Live network hashrate, the current block reward, a live expected-earnings calculator, and the three traps in every mining calculator — explained.">
+<link rel="canonical" href="https://kaspapulse.com/kaspa-mining.html">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
+         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
+  .wrap { max-width:780px; margin:0 auto; padding:8px 18px 56px; }
+
+  /* nav */
+  .nav { position:sticky; top:0; z-index:60; background:rgba(5,6,8,0.88); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
+  .nav .nt { max-width:780px; margin:0 auto; padding:13px 18px 9px; display:flex; justify-content:space-between; align-items:center; }
+  .nav .nlogo { font-size:13px; letter-spacing:4px; font-weight:700; }
+  .nav .nlogo a { color:var(--txt); text-decoration:none; }
+  .nav .nlogo span { color:var(--teal); }
+  .nav-cta { font-size:10px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color:var(--teal); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:5px 12px; text-decoration:none; background:rgba(73,234,203,0.07); white-space:nowrap; }
+  .nright { display:flex; align-items:center; gap:8px; }
+  .nburger { display:none; background:none; border:1px solid var(--line); color:var(--txt); border-radius:10px; padding:8px 14px; font-size:19px; line-height:1.2; cursor:pointer; font-family:inherit; }
+  .nav .nc { max-width:780px; margin:0 auto; padding:0 12px 10px; display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; }
+  .nav .nc::-webkit-scrollbar { display:none; }
+  .nav .nc a { font-size:12px; color:var(--dim); text-decoration:none; padding:5px 11px; border-radius:999px; white-space:nowrap; border:1px solid transparent; }
+  .nav .nc a:hover { color:var(--txt); }
+  .nav .nc a.on { color:var(--teal); background:rgba(73,234,203,0.08); border-color:rgba(73,234,203,0.25); }
+  @media (max-width:640px){
+    .nburger { display:block; }
+    .nav .nc { display:none; }
+    .nav .nc.open { display:flex; flex-direction:column; gap:4px; padding:8px 18px 14px; border-top:1px solid var(--line); }
+    .nav .nc.open a { font-size:15px; padding:11px 12px; }
+    .nav .nlogo { font-size:12px; letter-spacing:3px; }
+  }
+
+  h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
+  h1 b { color:var(--teal); }
+  .sub { font-size:16px; color:var(--dim); line-height:24px; }
+  h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin:60px 0 14px; }
+  h2::before { content:""; display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--teal); margin-right:11px; vertical-align:5px; }
+  h3 { font-size:16px; font-weight:700; margin:26px 0 7px; color:var(--txt); }
+  p { font-size:15px; line-height:24px; color:var(--dim); margin:0 0 14px; }
+  p b, li b { color:var(--txt); font-weight:600; }
+  ul { margin:0 0 14px 20px; }
+  li { font-size:15px; line-height:24px; color:var(--dim); margin-bottom:8px; }
+  .answer { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:24px 26px; margin:34px 0; }
+  .answer .lbl { font-size:12px; letter-spacing:3px; color:var(--teal); text-transform:uppercase; font-weight:700; margin-bottom:10px; }
+  .answer p { margin:0; font-size:16px; line-height:25px; color:var(--txt); }
+
+  .live { background:var(--card); border:1px solid #15181C; border-radius:18px; padding:26px 26px 22px; margin:30px 0 8px; }
+  .live .lbl { font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700; }
+  .live .lbl i { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--teal); margin-right:7px; vertical-align:1px; }
+  .live .big { font-size:52px; font-weight:700; letter-spacing:-2px; color:var(--teal); line-height:1.05; margin:10px 0 4px; }
+  .live .cap { font-size:13px; color:var(--dimmer); line-height:19px; }
+  .split { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; border-top:1px solid #15181C; padding-top:18px; }
+  .split div .v { font-size:19px; font-weight:700; }
+  .split div .k { font-size:11.5px; color:var(--dimmer); margin-top:4px; line-height:16px; }
+
+  /* calculator */
+  .calc { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:18px; padding:24px 26px; margin:24px 0 8px; }
+  .calc .clbl { font-size:11px; letter-spacing:3px; color:var(--teal); text-transform:uppercase; font-weight:700; margin-bottom:14px; }
+  .calc .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .calc input { background:#050608; border:1px solid var(--line); border-radius:10px; padding:12px 14px; color:var(--txt); font-size:16px; font-family:inherit; width:150px; }
+  .calc input:focus { outline:none; border-color:var(--teal); }
+  .calc .unit { font-size:13px; color:var(--dimmer); }
+  .calc .out { margin-top:18px; border-top:1px solid #15181C; padding-top:16px; display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .calc .out .v { font-size:22px; font-weight:700; color:var(--teal); }
+  .calc .out .k { font-size:11.5px; color:var(--dimmer); margin-top:4px; line-height:16px; }
+  .calc .fine { font-size:11.5px; color:var(--dimmer); margin-top:14px; line-height:16px; }
+  @media (max-width:520px){ .calc .out { grid-template-columns:1fr; gap:14px; } }
+
+  table { width:100%; border-collapse:collapse; margin:20px 0 8px; }
+  th { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--dimmer); text-align:left; font-weight:700; padding:0 0 10px; border-bottom:1px solid var(--line); }
+  th.r, td.r { text-align:right; }
+  td { font-size:14.5px; color:var(--dim); padding:12px 0; border-bottom:1px solid #101317; }
+  td.n { color:var(--txt); font-weight:600; }
+  tr.me td { color:var(--teal); font-weight:700; }
+  .tblwrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tblwrap table { min-width:540px; }
+
+  .facts { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:24px 0 8px; }
+  .fact { background:var(--card); border:1px solid #15181C; border-radius:14px; padding:18px; }
+  .fact .v { font-size:22px; font-weight:700; }
+  .fact .v.teal { color:var(--teal); } .fact .v.red { color:var(--red); }
+  .fact .l { font-size:12.5px; color:var(--dimmer); margin-top:6px; line-height:17px; }
+  .note { font-size:13px; color:var(--dimmer); font-style:italic; border-left:3px solid var(--teal); padding:4px 0 4px 14px; margin:20px 0; line-height:20px; }
+  a { color:var(--teal); }
+  @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} .live .big{font-size:40px;} .split{grid-template-columns:1fr; gap:14px;} td,th{font-size:13px;} }
+
+  .band { background:linear-gradient(180deg, #0B0E14, #090C10); border-top:1px solid #181C23; border-bottom:1px solid #181C23; box-shadow:inset 0 1px 0 rgba(255,255,255,0.02); }
+  .band .fact, .band .note { background:#0F1218; }
+  .wrap2 { max-width:780px; margin:0 auto; padding:10px 18px 40px; }
+  .wrap2 h2:first-child { margin-top:40px; }
+
+  .rv { opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
+  .rv.vis { opacity:1; transform:none; }
+  @media (prefers-reduced-motion: reduce){ .rv { opacity:1; transform:none; transition:none; } }
+
+  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
+  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
+  .subscribe .st { font-size:18px; font-weight:700; }
+  .subscribe .st b { color:var(--teal); }
+  .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
+  .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
+  .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
+  .subscribe input::placeholder { color:var(--dimmer); }
+  .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .subscribe .msg { display:none; font-size:13px; font-weight:600; margin-top:14px; padding:10px 14px; border-radius:8px; }
+  .subscribe .msg.ok { display:block; color:var(--teal); background:rgba(73,234,203,0.08); border:1px solid rgba(73,234,203,0.35); }
+  .subscribe .msg.err { display:block; color:var(--red); background:rgba(227,106,106,0.08); border:1px solid rgba(227,106,106,0.35); }
+  .subscribe .fine { font-size:11px; color:var(--dimmer); margin-top:10px; }
+  @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
+  footer { border-top:1px solid var(--line); margin-top:48px; padding-top:16px; text-align:center; font-size:11px; color:var(--dimmer); }
+  footer a { color:var(--dim); text-decoration:none; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nt">
+    <div class="nlogo"><a href="/">ALPHA<span>VAULT</span> · KASPA PULSE</a></div>
+    <div class="nright"><a class="nav-cta" href="#subForm">free cheat sheet</a><button class="nburger" aria-label="menu">☰</button></div>
+  </div>
+  <div class="nc">
+    <a href="/">dashboard</a>
+    <a href="/kaspa-supply.html">supply</a>
+    <a href="/kaspa-halving.html">halving</a>
+    <a href="/kaspa-hashrate.html">hashrate</a>
+    <a href="/kaspa-mining.html" class="on">mining</a>
+    <a href="/kaspa-tvl.html">tvl</a>
+    <a href="/kaspa-smart-contracts.html">smart contracts</a>
+    <a href="/entity-x.html">entity x</a>
+    <a href="/merged-mining.html">merged mining</a>
+  </div>
+</nav>
+<div class="wrap">
+
+  <h1>Mining Kaspa, explained. <b>What it takes, what it pays — with the numbers live.</b></h1>
+  <div class="sub">Most mining guides sell you hardware or hide the math. This page does neither: how Kaspa mining actually works, what a given hashrate earns at this exact moment, and the three traps in every profitability calculator.</div>
+
+  <div class="answer">
+    <div class="lbl">The short answer</div>
+    <p>Kaspa is mined with <b>purpose-built ASICs</b> running kHeavyHash — GPU and CPU mining stopped being competitive when the first ASICs arrived in <b>2023</b>. Rewards are paid per block at <b>10 blocks per second</b>, the block reward falls about <b>5.6% every month</b> by fixed schedule, and every miner's expected income is simple arithmetic: your share of the network's hashrate times the coins minted per day. That arithmetic runs live below.</p>
+  </div>
+
+  <div class="live">
+    <div class="lbl"><i></i>The mining economy · live</div>
+    <div class="big" id="mBig">—</div>
+    <div class="cap" id="mCap">fetching from the kaspa network…</div>
+    <div class="split">
+      <div><div class="v" id="vReward">—</div><div class="k">current reward per block, from the fixed schedule</div></div>
+      <div><div class="v" id="vDaily">—</div><div class="k">new KAS minted per day, network-wide</div></div>
+      <div><div class="v" id="vCut">—</div><div class="k">next monthly reward reduction (approximate)</div></div>
+    </div>
+  </div>
+
+  <div class="calc">
+    <div class="clbl">What would your hashrate earn · live math</div>
+    <div class="row">
+      <input type="number" id="myTh" min="0" step="0.1" placeholder="10" inputmode="decimal" aria-label="your hashrate in terahash per second">
+      <span class="unit">TH/s of kHeavyHash · try the spec of any KS-series machine</span>
+    </div>
+    <div class="out">
+      <div><div class="v" id="oShare">—</div><div class="k">your share of the current network</div></div>
+      <div><div class="v" id="oKas">—</div><div class="k">expected KAS per day at today's reward</div></div>
+      <div><div class="v" id="oBlocks">—</div><div class="k">expected blocks found per day</div></div>
+    </div>
+    <div class="fine">pure protocol arithmetic against the live network hashrate and the current reward. before pool fees, before electricity, and the reward drops about 5.6% every month. this is the starting point every honest calculation shares, not a profit promise.</div>
+  </div>
+  <div class="note">Everything above is computed live on every page load, from the public Kaspa API and the fixed emission schedule. Nothing is hardcoded.</div>
+</div>
+
+<div class="band"><div class="wrap2">
+  <h2>How Kaspa mining works</h2>
+  <ul>
+    <li><b>The algorithm is kHeavyHash</b>, Kaspa's own proof-of-work. It is mined by dedicated ASIC machines — the KS series from several manufacturers. CPUs mined the earliest blocks after the 2021 launch, GPUs followed, and ASICs ended both eras in 2023.</li>
+    <li><b>Blocks come every tenth of a second.</b> Since the Crescendo upgrade in 2025, Kaspa produces 10 blocks per second — hundreds of thousands of reward events per day, spread across all miners.</li>
+    <li><b>Difficulty adjusts continuously</b>, block by block, so the network absorbs hashrate swings without long disruptions.</li>
+    <li><b>The reward falls monthly.</b> About 5.6% per step, halving every 12 months — the full schedule, with the current value live, is on <a href="/kaspa-halving.html">the Kaspa halving, explained</a>. Any payback calculation that ignores this is fiction.</li>
+    <li><b>Merged mining pays a bonus.</b> Networks like ZKas reuse the same kHeavyHash work, so a Kaspa miner can earn a second coin for the same electricity — without taking anything from Kaspa. The mechanism is explained in <a href="/merged-mining.html">merged mining, explained</a>.</li>
+  </ul>
+
+  <h2>Why Kaspa's block rate changes the solo question</h2>
+  <p>On Bitcoin, one block every ten minutes means a small solo miner might wait years for a single payout — variance forces almost everyone into pools. Kaspa mints <b>864,000 blocks a day</b>, which changes that math completely: even a modest share of the network expects multiple blocks per day, as the calculator above shows. Pools still smooth income and handle infrastructure, and most miners use them — but on Kaspa that is a convenience choice, not a mathematical necessity. That is a genuine structural difference, not marketing.</p>
+  <div class="tblwrap"><table>
+    <thead><tr><th>Reward cadence</th><th class="r">Bitcoin</th><th class="r">Kaspa</th></tr></thead>
+    <tbody>
+      <tr><td class="n">Blocks per day</td><td class="r">~144</td><td class="r">~864,000</td></tr>
+      <tr><td class="n">Reward events to share</td><td class="r">rare and large</td><td class="r">constant and small</td></tr>
+      <tr><td class="n">Reward schedule</td><td class="r">−50% every 4 years</td><td class="r">−5.6% every month</td></tr>
+      <tr><td class="n">Solo mining variance</td><td class="r">brutal</td><td class="r">mild at moderate scale</td></tr>
+    </tbody>
+  </table></div>
+</div></div>
+
+<div class="wrap2">
+  <h2>Three traps in every mining calculator</h2>
+
+  <h3>1. Profitability is mostly your electricity price</h3>
+  <p>The protocol side of mining income — the part this page computes — is exact. The profit side depends on your power cost, and that single number swings the result from great to hopeless. A machine that prints money at 4 cents per kWh loses money at 20. No online calculator knows your tariff; treat every "daily profit" figure as someone else's electricity bill.</p>
+
+  <h3>2. Today's reward is not next quarter's reward</h3>
+  <p>Kaspa's emission falls on a fixed monthly schedule. Over a one-year payback horizon the block reward halves — so a calculator using today's reward for month twelve overstates late income by up to half. Serious payback math applies the schedule, which is public and exact.</p>
+
+  <h3>3. Network hashrate is not standing still</h3>
+  <p>Your share of the network is the live figure above — today. Every new machine that comes online dilutes it, and hashrate tends to follow price with a lag, as explained in <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a>. Assume the denominator grows; be pleasantly surprised if it does not.</p>
+</div>
+
+<div class="band"><div class="wrap2">
+  <h2>What actually matters before you buy hardware</h2>
+  <div class="facts">
+    <div class="fact"><div class="v teal">Your power price</div><div class="l">the dominant variable in every outcome — know your all-in cost per kWh before comparing machines</div></div>
+    <div class="fact"><div class="v teal">Efficiency, not hashrate</div><div class="l">joules per terahash decides who survives each monthly reward step — newer generations squeeze out older ones</div></div>
+    <div class="fact"><div class="v teal">The emission schedule</div><div class="l">public, exact and falling — run payback math against the declining curve, never against today's reward alone</div></div>
+    <div class="fact"><div class="v red">Resale reality</div><div class="l">a kHeavyHash ASIC mines kaspa and nothing else — if mining stops paying, the hardware has no second life</div></div>
+  </div>
+
+  <div class="note">We track the network hashrate, the reward schedule and what moved around each monthly cut every Monday on the <a href="/">Kaspa Pulse dashboard</a> — in plain language, not just figures.</div>
+
+  <div class="subscribe">
+    <div class="badge">free · instant</div>
+    <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
+    <div class="ss">the 8 numbers that actually matter (mining power is one of them) and how to read each one · plus the weekly pulse every monday</div>
+    <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="you@email.com" required>
+      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="locale" value="en">
+      <input type="hidden" name="html_type" value="simple">
+      <button type="submit" id="subBtn">get it</button>
+    </form>
+    <div class="msg" id="subMsg"></div>
+    <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
+  </div>
+
+  <footer>
+    <div>not financial advice · further reading: <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/">kaspapulse.com</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+  </footer>
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do you mine Kaspa?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Kaspa is mined with dedicated ASIC machines running the kHeavyHash algorithm, typically pointed at a mining pool. Rewards are paid per block at 10 blocks per second. GPU and CPU mining stopped being competitive after ASICs arrived in 2023." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can you still GPU mine Kaspa?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Technically yes, economically no. Since kHeavyHash ASICs arrived in 2023, GPU mining earns a negligible share of rewards relative to its electricity cost. Competitive Kaspa mining requires ASIC hardware." }
+    },
+    {
+      "@type": "Question",
+      "name": "How much does a Kaspa miner earn per day?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Expected income is your hashrate divided by the total network hashrate, times the coins minted per day. This page computes it live from the public Kaspa API and the fixed emission schedule. Note that the block reward falls about 5.6% every month, and profit further depends on your electricity price and pool fees." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is solo mining Kaspa viable?",
+      "acceptedAnswer": { "@type": "Answer", "text": "More viable than on most chains. Kaspa produces about 864,000 blocks per day, so even a modest share of network hashrate expects multiple block finds daily — variance is mild compared to Bitcoin's 144 blocks per day. Pools remain the common choice for convenience and smoothing, but on Kaspa they are not a mathematical necessity at moderate scale." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the merged mining bonus for Kaspa miners?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Merged-mined networks such as ZKas accept the same kHeavyHash work Kaspa miners already produce, so a miner can earn a second network's coin for the same electricity, provided their pool submits the work to both chains. No hashrate leaves Kaspa in the process." }
+    }
+  ]
+}
+</script>
+
+<script>
+(function(){
+  // live: network hashrate + schedule-derived reward + calculator
+  const R = Math.pow(0.5, 1/12);
+  const STEP = (365.25/12) * 86400000;
+  const FALLBACK = { ts: 1783280744000, amt: 2.44997148 }; // 2026-07-05 step, historical constant
+  const BLOCKS_PER_DAY = 10 * 86400;
+
+  let netTH = null, reward = null, nextTs = null;
+
+  function fmtD(d){ return new Date(d).toLocaleDateString("en-US",{month:"short", day:"numeric", year:"numeric"}).toLowerCase(); }
+
+  function renderTop(){
+    if (netTH){
+      const ph = netTH/1e3;
+      document.getElementById("mBig").textContent = (ph>=1000 ? (ph/1000).toFixed(2)+" EH/s" : ph.toFixed(1)+" PH/s");
+      document.getElementById("mCap").textContent = "total network hashrate you'd be sharing rewards with · source: api.kaspa.org";
+    }
+    if (reward){
+      document.getElementById("vReward").textContent = reward.toFixed(2)+" KAS";
+      document.getElementById("vDaily").textContent = (reward*BLOCKS_PER_DAY/1e6).toFixed(2)+"M KAS";
+      document.getElementById("vCut").textContent = "≈ "+fmtD(nextTs);
+    }
+    calc();
+  }
+
+  function calc(){
+    const el = document.getElementById("myTh");
+    const th = parseFloat(el.value);
+    if (!netTH || !reward || !(th > 0)){
+      ["oShare","oKas","oBlocks"].forEach(id => document.getElementById(id).textContent = "—");
+      return;
+    }
+    const share = th/netTH;
+    const kasDay = share * reward * BLOCKS_PER_DAY;
+    const blocksDay = share * BLOCKS_PER_DAY;
+    document.getElementById("oShare").textContent = share < 0.0001 ? (share*1e6).toFixed(1)+" ppm" : (share*100).toFixed(3)+"%";
+    document.getElementById("oKas").textContent = kasDay >= 1000 ? Math.round(kasDay).toLocaleString("en-US")+" KAS" : kasDay.toFixed(1)+" KAS";
+    document.getElementById("oBlocks").textContent = blocksDay >= 10 ? Math.round(blocksDay).toLocaleString("en-US") : blocksDay.toFixed(2);
+  }
+  document.getElementById("myTh").addEventListener("input", calc);
+
+  // reward from anchor (stale-proof roll-forward)
+  function applyAnchor(ts, amt){
+    let t = ts, a = amt;
+    while (t <= Date.now()) { t += STEP; a *= R; }
+    reward = a / R; nextTs = t;
+    renderTop();
+  }
+  fetch("https://api.kaspa.org/info/halving").then(r=>r.json()).then(j=>{
+    if (j && j.nextHalvingTimestamp && j.nextHalvingAmount) applyAnchor(j.nextHalvingTimestamp*1000, j.nextHalvingAmount);
+    else applyAnchor(FALLBACK.ts, FALLBACK.amt);
+  }).catch(()=> applyAnchor(FALLBACK.ts, FALLBACK.amt));
+
+  fetch("https://api.kaspa.org/info/hashrate?stringOnly=false").then(r=>r.json()).then(j=>{
+    if (j && j.hashrate){ netTH = j.hashrate; renderTop(); }
+    else throw new Error("no data");
+  }).catch(()=>{
+    document.getElementById("mBig").textContent = "—";
+    document.getElementById("mCap").innerHTML = "live feed temporarily unavailable · the weekly reading is always on the <a href='/'>dashboard</a>";
+  });
+})();
+</script>
+
+<script>
+(function(){
+  if(!("IntersectionObserver" in window)) return;
+  const els = document.querySelectorAll(".answer,.live,.calc,.fact,h2,h3,table,.note,.subscribe");
+  const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("vis"); io.unobserve(e.target); } }),{threshold:0.1});
+  els.forEach(el=>{ el.classList.add("rv"); io.observe(el); });
+})();
+</script>
+
+<script>
+(function(){
+  const b = document.querySelector(".nburger"), c = document.querySelector(".nav .nc");
+  if(b && c) b.addEventListener("click", function(){ c.classList.toggle("open"); b.textContent = c.classList.contains("open") ? "✕" : "☰"; });
+})();
+</script>
+
+<script>
+(function(){
+  const form = document.getElementById("subForm"), btn = document.getElementById("subBtn"), msg = document.getElementById("subMsg");
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    btn.disabled = true; const old = btn.textContent; btn.textContent = "…";
+    msg.className = "msg";
+    try {
+      const res = await fetch(form.action, { method:"POST", body:new FormData(form) });
+      const j = await res.json();
+      if (j.success) { msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
+      else { msg.textContent = j.message || "something went wrong — please try again"; msg.className = "msg err"; }
+    } catch(_) { form.submit(); }
+    btn.disabled = false; btn.textContent = old;
+  });
+})();
+</script>
+</body>
+</html>

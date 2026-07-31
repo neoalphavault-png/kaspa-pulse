@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Does Kaspa Have Smart Contracts? Covenants, Argent and the EVM Layer 2s — Kaspa Pulse</title>
+<meta name="description" content="Yes — since June 30, 2026 Kaspa runs native covenant contracts on layer 1, and full EVM smart contracts on two layer 2s. How the stack actually fits together, what makes it different from Ethereum, and the three traps in reading it — explained.">
+<link rel="canonical" href="https://kaspapulse.com/kaspa-smart-contracts.html">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
+         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
+  .wrap { max-width:780px; margin:0 auto; padding:8px 18px 56px; }
+
+  /* nav */
+  .nav { position:sticky; top:0; z-index:60; background:rgba(5,6,8,0.88); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
+  .nav .nt { max-width:780px; margin:0 auto; padding:13px 18px 9px; display:flex; justify-content:space-between; align-items:center; }
+  .nav .nlogo { font-size:13px; letter-spacing:4px; font-weight:700; }
+  .nav .nlogo a { color:var(--txt); text-decoration:none; }
+  .nav .nlogo span { color:var(--teal); }
+  .nav-cta { font-size:10px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color:var(--teal); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:5px 12px; text-decoration:none; background:rgba(73,234,203,0.07); white-space:nowrap; }
+  .nright { display:flex; align-items:center; gap:8px; }
+  .nburger { display:none; background:none; border:1px solid var(--line); color:var(--txt); border-radius:10px; padding:8px 14px; font-size:19px; line-height:1.2; cursor:pointer; font-family:inherit; }
+  .nav .nc { max-width:780px; margin:0 auto; padding:0 12px 10px; display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; }
+  .nav .nc::-webkit-scrollbar { display:none; }
+  .nav .nc a { font-size:12px; color:var(--dim); text-decoration:none; padding:5px 11px; border-radius:999px; white-space:nowrap; border:1px solid transparent; }
+  .nav .nc a:hover { color:var(--txt); }
+  .nav .nc a.on { color:var(--teal); background:rgba(73,234,203,0.08); border-color:rgba(73,234,203,0.25); }
+  @media (max-width:640px){
+    .nburger { display:block; }
+    .nav .nc { display:none; }
+    .nav .nc.open { display:flex; flex-direction:column; gap:4px; padding:8px 18px 14px; border-top:1px solid var(--line); }
+    .nav .nc.open a { font-size:15px; padding:11px 12px; }
+    .nav .nlogo { font-size:12px; letter-spacing:3px; }
+  }
+
+  h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
+  h1 b { color:var(--teal); }
+  .sub { font-size:16px; color:var(--dim); line-height:24px; }
+  h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin:60px 0 14px; }
+  h2::before { content:""; display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--teal); margin-right:11px; vertical-align:5px; }
+  h3 { font-size:16px; font-weight:700; margin:26px 0 7px; color:var(--txt); }
+  p { font-size:15px; line-height:24px; color:var(--dim); margin:0 0 14px; }
+  p b, li b { color:var(--txt); font-weight:600; }
+  ul { margin:0 0 14px 20px; }
+  li { font-size:15px; line-height:24px; color:var(--dim); margin-bottom:8px; }
+  .answer { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:24px 26px; margin:34px 0; }
+  .answer .lbl { font-size:12px; letter-spacing:3px; color:var(--teal); text-transform:uppercase; font-weight:700; margin-bottom:10px; }
+  .answer p { margin:0; font-size:16px; line-height:25px; color:var(--txt); }
+
+  .live { background:var(--card); border:1px solid #15181C; border-radius:18px; padding:26px 26px 22px; margin:30px 0 8px; }
+  .live .lbl { font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700; }
+  .live .lbl i { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--teal); margin-right:7px; vertical-align:1px; }
+  .live .big { font-size:52px; font-weight:700; letter-spacing:-2px; color:var(--teal); line-height:1.05; margin:10px 0 4px; }
+  .live .cap { font-size:13px; color:var(--dimmer); line-height:19px; }
+  .split { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; border-top:1px solid #15181C; padding-top:18px; }
+  .split div .v { font-size:19px; font-weight:700; }
+  .split div .k { font-size:11.5px; color:var(--dimmer); margin-top:4px; line-height:16px; }
+
+  table { width:100%; border-collapse:collapse; margin:20px 0 8px; }
+  th { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--dimmer); text-align:left; font-weight:700; padding:0 0 10px; border-bottom:1px solid var(--line); }
+  td { font-size:14.5px; color:var(--dim); padding:12px 10px 12px 0; border-bottom:1px solid #101317; vertical-align:top; }
+  td.n { color:var(--txt); font-weight:600; white-space:nowrap; padding-right:14px; }
+  td.hl { color:var(--teal); font-weight:600; }
+  .tblwrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tblwrap table { min-width:540px; }
+
+  .facts { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:24px 0 8px; }
+  .fact { background:var(--card); border:1px solid #15181C; border-radius:14px; padding:18px; }
+  .fact .v { font-size:22px; font-weight:700; }
+  .fact .v.teal { color:var(--teal); } .fact .v.red { color:var(--red); }
+  .fact .l { font-size:12.5px; color:var(--dimmer); margin-top:6px; line-height:17px; }
+  .note { font-size:13px; color:var(--dimmer); font-style:italic; border-left:3px solid var(--teal); padding:4px 0 4px 14px; margin:20px 0; line-height:20px; }
+  a { color:var(--teal); }
+  @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} .live .big{font-size:40px;} .split{grid-template-columns:1fr; gap:14px;} td,th{font-size:13px;} td.n{white-space:normal;} }
+
+  .band { background:linear-gradient(180deg, #0B0E14, #090C10); border-top:1px solid #181C23; border-bottom:1px solid #181C23; box-shadow:inset 0 1px 0 rgba(255,255,255,0.02); }
+  .band .fact, .band .note { background:#0F1218; }
+  .wrap2 { max-width:780px; margin:0 auto; padding:10px 18px 40px; }
+  .wrap2 h2:first-child { margin-top:40px; }
+
+  .rv { opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
+  .rv.vis { opacity:1; transform:none; }
+  @media (prefers-reduced-motion: reduce){ .rv { opacity:1; transform:none; transition:none; } }
+
+  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
+  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
+  .subscribe .st { font-size:18px; font-weight:700; }
+  .subscribe .st b { color:var(--teal); }
+  .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
+  .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
+  .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
+  .subscribe input::placeholder { color:var(--dimmer); }
+  .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .subscribe .msg { display:none; font-size:13px; font-weight:600; margin-top:14px; padding:10px 14px; border-radius:8px; }
+  .subscribe .msg.ok { display:block; color:var(--teal); background:rgba(73,234,203,0.08); border:1px solid rgba(73,234,203,0.35); }
+  .subscribe .msg.err { display:block; color:var(--red); background:rgba(227,106,106,0.08); border:1px solid rgba(227,106,106,0.35); }
+  .subscribe .fine { font-size:11px; color:var(--dimmer); margin-top:10px; }
+  @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
+  footer { border-top:1px solid var(--line); margin-top:48px; padding-top:16px; text-align:center; font-size:11px; color:var(--dimmer); }
+  footer a { color:var(--dim); text-decoration:none; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nt">
+    <div class="nlogo"><a href="/">ALPHA<span>VAULT</span> · KASPA PULSE</a></div>
+    <div class="nright"><a class="nav-cta" href="#subForm">free cheat sheet</a><button class="nburger" aria-label="menu">☰</button></div>
+  </div>
+  <div class="nc">
+    <a href="/">dashboard</a>
+    <a href="/kaspa-supply.html">supply</a>
+    <a href="/kaspa-halving.html">halving</a>
+    <a href="/kaspa-hashrate.html">hashrate</a>
+    <a href="/kaspa-mining.html">mining</a>
+    <a href="/kaspa-tvl.html">tvl</a>
+    <a href="/kaspa-smart-contracts.html" class="on">smart contracts</a>
+    <a href="/entity-x.html">entity x</a>
+    <a href="/merged-mining.html">merged mining</a>
+  </div>
+</nav>
+<div class="wrap">
+
+  <h1>Kaspa smart contracts, explained. <b>Where they actually run — and why the answer changed in 2026.</b></h1>
+  <div class="sub">"Kaspa has no smart contracts" was true for years — and repeating it today marks you as out of date. Contracts now run in two places on Kaspa, built two very different ways. Here's the full stack, in plain language.</div>
+
+  <div class="answer">
+    <div class="lbl">The short answer</div>
+    <p><b>Yes, Kaspa has smart contracts — in two layers.</b> Since the Toccata hard fork on <b>June 30, 2026</b>, Kaspa's layer 1 runs native <b>covenant contracts</b>: programmable spending rules that live directly inside UTXOs, written in the high-level language <b>Argent</b>. And on top of layer 1, two <b>EVM layer 2s</b> — Kasplex and Igra — run full Ethereum-style contracts, with the live capital committed to them shown below.</p>
+  </div>
+
+  <div class="live">
+    <div class="lbl"><i></i>Capital in Kaspa smart contracts · live</div>
+    <div class="big" id="scTvl">—</div>
+    <div class="cap" id="scCap">fetching from DefiLlama…</div>
+    <div class="split">
+      <div><div class="v" id="vKasplex">—</div><div class="k">Kasplex L2 (zkEVM, live since 2025)</div></div>
+      <div><div class="v" id="vIgra">—</div><div class="k">Igra L2 (EVM, live since 2026)</div></div>
+      <div><div class="v">jun 30, 2026</div><div class="k">native covenants activated on layer 1 (Toccata hard fork)</div></div>
+    </div>
+  </div>
+  <div class="note">The layer-2 figures are fetched live from DefiLlama on every page load. Native layer-1 covenants hold spending rules, not pooled capital — which is exactly the point, as explained below.</div>
+</div>
+
+<div class="band"><div class="wrap2">
+  <h2>The stack, from bottom to top</h2>
+  <p>Kaspa's answer to smart contracts is unusual because it refuses the standard shortcut. Most chains bolt a single global virtual machine onto their base layer. Kaspa instead built three distinct levels, each with its own job:</p>
+
+  <h3>Layer 1: covenants — contracts that live inside coins</h3>
+  <p>Kaspa's base layer is a UTXO chain, like Bitcoin. A covenant is a <b>programmable spending rule attached to a UTXO</b>: the coin itself carries code plus a piece of state, committed on chain as a hash. Whoever wants to spend that coin must reveal the code and state, and the network verifies that the spend follows the rules. There is no global computer executing everyone's programs — <b>each contract is a small, self-contained state machine partitioned across UTXOs</b>, which is why covenant apps inherit layer 1's speed and parallelism instead of competing for one shared engine.</p>
+
+  <h3>Argent: the language that makes covenants writable</h3>
+  <p>Raw covenant scripting is unforgiving — one wrong byte and funds are stuck. <b>Argent</b> is the high-level language built to fix that: developers define <b>actors</b> (a contract plus the state it owns), entries (the operations you can call), and transition rules, and the compiler generates the underlying script. Two design choices matter for non-developers too. Every app is a <b>closed system under one covenant ID</b> — outside code cannot inject itself into an app's state machine. And the compiler is only needed at build time; creating transactions afterwards needs only a lightweight runtime, <b>so tooling in other languages can drive the same apps</b>. Core developer Michael Sutton documents the whole workflow in public live-coding sessions on the Kaspa Native channel — episode one builds a working ticketing app from scratch.</p>
+
+  <h3>Layer 2: full EVM, familiar tooling</h3>
+  <p>For everything that expects Ethereum — Solidity contracts, MetaMask, existing DeFi codebases — Kaspa has two EVM layer 2s that settle against layer 1: <b>Kasplex</b>, a zkEVM live since 2025, and <b>Igra</b>, live since 2026. This is where Kaspa's DeFi actually operates today, and where the TVL shown above lives. The trade-off is the standard one: EVM compatibility and rich tooling, in exchange for each L2's own performance and trust profile.</p>
+</div></div>
+
+<div class="wrap2">
+  <h2>How this differs from Ethereum</h2>
+  <p>The comparison everyone wants, done honestly:</p>
+  <div class="tblwrap"><table>
+    <thead><tr><th></th><th>Ethereum</th><th>Kaspa L1 covenants</th><th>Kaspa L2s</th></tr></thead>
+    <tbody>
+      <tr><td class="n">Model</td><td>one global virtual machine</td><td class="hl">state machines inside UTXOs</td><td>EVM, per rollup</td></tr>
+      <tr><td class="n">Where state lives</td><td>global account tree</td><td class="hl">partitioned across UTXOs</td><td>the L2's own state</td></tr>
+      <tr><td class="n">Language</td><td>Solidity and friends</td><td class="hl">Argent</td><td>Solidity and friends</td></tr>
+      <tr><td class="n">Runs existing ETH code</td><td>natively</td><td>no — different model</td><td>yes</td></tr>
+      <tr><td class="n">Maturity</td><td>since 2015</td><td class="hl">since june 2026</td><td>since 2025–2026</td></tr>
+    </tbody>
+  </table></div>
+  <p>Neither approach is free. Ethereum's global machine makes composability trivial and congestion structural. Kaspa's partitioned model keeps the base layer fast and parallel, but asks developers to learn a genuinely different way of building — which is why the tooling work around Argent matters as much as the protocol itself.</p>
+</div>
+
+<div class="band"><div class="wrap2">
+  <h2>Three traps in reading "kaspa smart contracts"</h2>
+
+  <h3>1. The old answer still circulates</h3>
+  <p>Years of "Kaspa is payments only, no smart contracts" left a deep imprint — you will still hear it from commentators and see it in older articles. It stopped being true on June 30, 2026. Anyone repeating it today is describing a chain that no longer exists; check the activation date, not the vibes.</p>
+
+  <h3>2. "EVM on Kaspa" is not "Kaspa speed for EVM"</h3>
+  <p>The layer 2s are their own systems. They inherit settlement from Kaspa's layer 1, but their throughput, latency and trust assumptions are their own. When you see EVM performance claims, ask which layer they describe — the honest answer is almost never "layer 1."</p>
+
+  <h3>3. Young contracts are unaudited contracts</h3>
+  <p>The first wave of covenant apps and L2 protocols is weeks-to-months old. Some launched anonymous, some unaudited, and the standard advice from Kaspa's own core contributors is blunt: know what you buy. A working demo is not a security review. The mechanism being sound says nothing about any individual app being safe.</p>
+</div></div>
+
+<div class="wrap2">
+  <h2>What actually matters at this stage</h2>
+  <div class="facts">
+    <div class="fact"><div class="v teal">Covenant activity</div><div class="l">daily covenant transactions show whether apps are actually being used — we track the weekly count every monday</div></div>
+    <div class="fact"><div class="v teal">L2 capital direction</div><div class="l">the live TVL above, read as a trend — whether builders and liquidity keep arriving matters more than the absolute size</div></div>
+    <div class="fact"><div class="v teal">Developer tooling</div><div class="l">languages, templates and public teaching material lower the entry cost — the input that precedes every usage number</div></div>
+    <div class="fact"><div class="v red">Audit status</div><div class="l">until the first wave of apps is independently audited, position sizes should assume contract risk is real</div></div>
+  </div>
+
+  <div class="note">We publish the covenant transaction count, the L2 split and what changed every Monday on the <a href="/">Kaspa Pulse dashboard</a> — with a plain-language read, not just figures. Related: <a href="/kaspa-tvl.html">what TVL on Kaspa means</a> and <a href="/merged-mining.html">how merged mining works</a>.</div>
+
+  <div class="subscribe">
+    <div class="badge">free · instant</div>
+    <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
+    <div class="ss">the 8 numbers that actually matter (smart-contract activity is one of them) and how to read each one · plus the weekly pulse every monday</div>
+    <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="you@email.com" required>
+      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="locale" value="en">
+      <input type="hidden" name="html_type" value="simple">
+      <button type="submit" id="subBtn">get it</button>
+    </form>
+    <div class="msg" id="subMsg"></div>
+    <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
+  </div>
+
+  <footer>
+    <div>not financial advice · further reading: <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+  </footer>
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Does Kaspa have smart contracts?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes, in two layers. Since the Toccata hard fork on June 30, 2026, Kaspa's layer 1 runs native covenant contracts — programmable spending rules living inside UTXOs, written in the Argent language. In addition, two EVM layer 2s, Kasplex (since 2025) and Igra (since 2026), run full Ethereum-style smart contracts on top of Kaspa." }
+    },
+    {
+      "@type": "Question",
+      "name": "What are Kaspa covenants?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Covenants are programmable spending rules attached to individual UTXOs on Kaspa's layer 1. Each contract is a small self-contained state machine: the coin carries code plus state committed as a hash, and any spend must reveal and satisfy those rules. There is no single global virtual machine — state is partitioned across UTXOs, preserving layer 1's speed and parallelism." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is Argent on Kaspa?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Argent is the high-level language for writing covenant applications on Kaspa's layer 1. Developers define actors (a contract plus its state) and entries (callable operations), and the compiler generates the underlying script. Each app is a closed system under one covenant ID, and transactions can be created with a lightweight runtime without the compiler." }
+    },
+    {
+      "@type": "Question",
+      "name": "Are Kaspa smart contracts EVM compatible?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Layer 1 covenants are not EVM compatible — they use a different, UTXO-native model. Full EVM compatibility lives on Kaspa's layer 2s: Kasplex, a zkEVM live since 2025, and Igra, live since 2026, which run Solidity contracts and standard Ethereum tooling." }
+    },
+    {
+      "@type": "Question",
+      "name": "Are smart contracts on Kaspa safe to use?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The mechanisms are live on mainnet, but the first wave of applications launched in 2025–2026 and much of it is young, some of it anonymous or unaudited. Kaspa's own core contributors advise users to understand exactly what they are buying. Treat individual apps as carrying real contract risk until independently audited." }
+    }
+  ]
+}
+</script>
+
+<script>
+(function(){
+  const fmt = n => n >= 1e9 ? "$"+(n/1e9).toFixed(2)+"B"
+               : n >= 1e6 ? "$"+(n/1e6).toFixed(2)+"M"
+               : n >= 1e3 ? "$"+(n/1e3).toFixed(0)+"K" : "$"+n.toFixed(0);
+  fetch("https://api.llama.fi/v2/chains").then(r=>r.json()).then(list=>{
+    const get = name => { const c = list.find(x => (x.name||"").toLowerCase() === name); return c ? c.tvl : 0; };
+    const kasplex = get("kasplex"), igra = get("igra");
+    const total = kasplex + igra;
+    if (!total) throw new Error("no data");
+    document.getElementById("scTvl").textContent = fmt(total);
+    document.getElementById("vKasplex").textContent = fmt(kasplex);
+    document.getElementById("vIgra").textContent = fmt(igra);
+    document.getElementById("scCap").textContent = "total value locked across both EVM layer 2s · source: DefiLlama";
+  }).catch(()=>{
+    document.getElementById("scTvl").textContent = "—";
+    document.getElementById("scCap").innerHTML = "live feed temporarily unavailable · the weekly reading is always on the <a href='/'>dashboard</a>";
+  });
+})();
+</script>
+
+<script>
+(function(){
+  if(!("IntersectionObserver" in window)) return;
+  const els = document.querySelectorAll(".answer,.live,.fact,h2,h3,table,.note,.subscribe");
+  const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("vis"); io.unobserve(e.target); } }),{threshold:0.1});
+  els.forEach(el=>{ el.classList.add("rv"); io.observe(el); });
+})();
+</script>
+
+<script>
+(function(){
+  const b = document.querySelector(".nburger"), c = document.querySelector(".nav .nc");
+  if(b && c) b.addEventListener("click", function(){ c.classList.toggle("open"); b.textContent = c.classList.contains("open") ? "✕" : "☰"; });
+})();
+</script>
+
+<script>
+(function(){
+  const form = document.getElementById("subForm"), btn = document.getElementById("subBtn"), msg = document.getElementById("subMsg");
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    btn.disabled = true; const old = btn.textContent; btn.textContent = "…";
+    msg.className = "msg";
+    try {
+      const res = await fetch(form.action, { method:"POST", body:new FormData(form) });
+      const j = await res.json();
+      if (j.success) { msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
+      else { msg.textContent = j.message || "something went wrong — please try again"; msg.className = "msg err"; }
+    } catch(_) { form.submit(); }
+    btn.disabled = false; btn.textContent = old;
+  });
+})();
+</script>
+</body>
+</html>
