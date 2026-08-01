@@ -85,6 +85,13 @@
   .heropill:hover { background:rgba(73,234,203,0.16); }
   .heropill b { color:var(--teal); font-weight:700; letter-spacing:0.3px; }
   .heropill .arr { color:var(--teal); font-weight:700; }
+  .heropills { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; align-items:center; margin-top:22px; }
+  .heropills .heropill { margin-top:0; text-align:left; }
+  .heropill b { white-space:nowrap; }
+  .heropill.dc { background:rgba(88,101,242,0.12); border-color:rgba(88,101,242,0.45); }
+  .heropill.dc:hover { background:rgba(88,101,242,0.20); }
+  .heropill.dc b, .heropill.dc .arr { color:#9BA6F8; }
+  @media (max-width:560px){ .heropills .heropill { font-size:12px; padding:8px 13px; } }
   .subscribe .st b { color:var(--teal); font-weight:700; }
   .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
   .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
@@ -152,6 +159,7 @@
     <a href="/kaspa-mining.html">mining</a>
     <a href="/kaspa-tvl.html">tvl</a>
     <a href="/kaspa-smart-contracts.html">smart contracts</a>
+    <a href="/kron.html">kron</a>
     <a href="/entity-x.html">entity x</a>
     <a href="/merged-mining.html">merged mining</a>
   </div>
@@ -165,7 +173,10 @@
     <div class="breakdown" id="breakdown"></div>
     <div class="volline" id="volline"></div>
     <div class="deltas" id="heroDeltas"></div>
-    <a class="heropill" href="#subscribe"><b>FREE CHEAT SHEET</b> · the 8 Kaspa numbers that actually matter <span class="arr">→</span></a>
+    <div class="heropills">
+      <a class="heropill" href="#subscribe"><b>FREE CHEAT SHEET</b> · the 8 Kaspa numbers that actually matter <span class="arr">→</span></a>
+      <a class="heropill dc" href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener"><b>LIVE ALERTS</b> · a bot watches the entity x wallet for you <span class="arr">→</span></a>
+    </div>
   </section>
 
   <div class="modeline"><div class="mi"><span class="lvw">live</span> <b>numbers above refresh on every visit</b> · the panels below are the <b>fixed monday reading</b>, kept still all week so the trends compare like with like · <b id="modeDate"></b></div></div>
