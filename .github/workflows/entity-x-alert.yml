@@ -1,12 +1,19 @@
+# Kaspa Pulse · Entity X Watcher
+# Ablageort im Repo: .github/workflows/entity-x-alert.yml
+#
+# Der Job startet alle 10 Minuten und pollt dann intern jede Minute, bis
+# neun Minuten um sind. Dadurch liegt die Erkennungszeit bei rund einer Minute
+# statt bei bis zu 30 Minuten. Braucht ein Repository-Secret DISCORD_WEBHOOK.
+
 name: entity-x-alert
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
-  workflow_dispatch: {}
+    - cron: "*/10 * * * *"   # alle 10 Minuten, der Job selbst laeuft 9 Minuten durch
+  workflow_dispatch: {}       # manueller Testlauf ueber den Actions-Tab
 
 permissions:
-  contents: write
+  contents: write             # darf die State-Datei zurueck ins Repo schreiben
 
 concurrency:
   group: entity-x-alert
@@ -15,13 +22,15 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: run alert check
+      - name: watch entity x
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          LOOP_SECONDS: "540"
         run: python3 scripts/entity_x_alert.py
 
       - name: persist state if changed
