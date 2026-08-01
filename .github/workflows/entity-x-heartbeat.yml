@@ -1,21 +1,47 @@
+# Kaspa Pulse · Entity X Heartbeat
+# Ablageort im Repo: .github/workflows/entity-x-heartbeat.yml
+#
+# Einmal taeglich, unveraendert 16:00 deutsche Sommerzeit. GitHub verschiebt
+# geplante Laeufe bei Last, volle Stunden sind am schlimmsten, deshalb 14:07 UTC
+# statt 14:00. Das nimmt den groessten Teil der Verspaetung raus.
+# Neu: schreibt eine eigene State-Datei fuer den 24-Stunden-Vergleich.
+
 name: entity-x-heartbeat
 
 on:
   schedule:
-    - cron: "0 14 * * *"
+    - cron: "7 14 * * *"
   workflow_dispatch: {}
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: entity-x-heartbeat
+  cancel-in-progress: false
 
 jobs:
-  heartbeat:
+  beat:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: send daily heartbeat
+      - name: daily check
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: python3 scripts/entity_x_heartbeat.py
+
+      - name: persist daily state
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add scripts/entity_x_daily.json
+          if git diff --staged --quiet; then
+            echo "state unveraendert, kein commit"
+          else
+            git commit -m "entity x daily state [bot]"
+            git pull --rebase origin main
+            git push
+          fi
