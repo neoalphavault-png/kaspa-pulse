@@ -33,5 +33,6 @@ jobs:
             echo "state unveraendert, kein commit"
           else
             git commit -m "entity x state update [bot]"
+            git pull --rebase origin main
             git push
           fi
