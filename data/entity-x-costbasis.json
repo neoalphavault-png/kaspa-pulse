@@ -1,7 +1,7 @@
 {
-  "generated_at": 1785700058,
+  "generated_at": 1785705676,
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
-  "method": "volume weighted daily average price, kucoin with bybit gap fill",
+  "method": "volume weighted daily average price, kucoin with mexc and bybit gap fill",
   "reliable": true,
   "deposits": 292,
   "kas_received": 1538094578.44,
@@ -9,19 +9,125 @@
   "usd_invested": 135484235.1,
   "avg_cost_usd": 0.088086,
   "outflow_kas": 39038233.45,
+  "outflow_count": 20,
+  "first_outflow": "2024-03-07",
+  "last_outflow": "2026-06-18",
+  "outflows": [
+    {
+      "day": "2024-03-07",
+      "kas": 2.0,
+      "tx": "2a59e5f49830acfa7fec5f1c6d4821963f5895c069b2bbed8a160bddeb295748"
+    },
+    {
+      "day": "2024-03-29",
+      "kas": 10.0,
+      "tx": "cd1fd92d2fbc432c8b6a0e380eb7de3368c8e8cbf3c39a681643aa01f436c2e8"
+    },
+    {
+      "day": "2024-03-29",
+      "kas": 10.0,
+      "tx": "c024a95c173ed3458b2d4dfb3b759a4e7af2c8b18819f41721e04ef93b65d27a"
+    },
+    {
+      "day": "2024-04-02",
+      "kas": 1.0,
+      "tx": "ef2e2e05758151b28228495aeda0081d9587763060e22ea1820ccb671a3d3025"
+    },
+    {
+      "day": "2024-04-03",
+      "kas": 1310.0,
+      "tx": "381a9432a9d8bbce2cbb965e0a2e51b0adbe84f7bb012e58a38237c988a8717e"
+    },
+    {
+      "day": "2024-09-12",
+      "kas": 300.0,
+      "tx": "8d9e989327882a92fbc7ca0828b12fa8954cd671757477224a964c00b45439d1"
+    },
+    {
+      "day": "2024-09-19",
+      "kas": 1140000.0,
+      "tx": "51d4cdfe781684cda3f94ef78ee33f9698d6d27a0580b491b13a4991d9e7f466"
+    },
+    {
+      "day": "2025-05-12",
+      "kas": 3151025.0,
+      "tx": "72edb68f09b8f8f459a791318be54e51a8a363655d5af604c9b1c9c2eb79845a"
+    },
+    {
+      "day": "2025-07-24",
+      "kas": 4794864.0,
+      "tx": "bb32453d1d5eca4b6a047d2d246d06c4d0512da967d9a5e55d669224a7d17261"
+    },
+    {
+      "day": "2025-10-27",
+      "kas": 1454731.0,
+      "tx": "4052e27d6ff28f1f9cc2c8318c07f0792b9789e3968b244c555534055f2228cf"
+    },
+    {
+      "day": "2025-11-06",
+      "kas": 5714289.0,
+      "tx": "ff2400f27f1b7bdce6e94545a09fe39594225f8f4c2460a8dfe091b8a6672821"
+    },
+    {
+      "day": "2025-12-24",
+      "kas": 1384901.0,
+      "tx": "f0e00d6133a6cc8c3f9a84b682e0b14d9636dff43741263e56a5952fe4a8e35d"
+    },
+    {
+      "day": "2026-01-07",
+      "kas": 120.8,
+      "tx": "ec5ca82af0f2a64fb7a5fd469fc0dfaf7ec38bf5d2281cf105a9fec2de970fd3"
+    },
+    {
+      "day": "2026-01-21",
+      "kas": 3396168.0,
+      "tx": "67349f7e979a39b8928c7041c475f18d7f0944d53bd59301b337a875b41a2464"
+    },
+    {
+      "day": "2026-01-30",
+      "kas": 2680399.0,
+      "tx": "4a8300c997da31bf72d7d3bd2170a72e006b7c90372cd8939202ed1cd8269a64"
+    },
+    {
+      "day": "2026-02-02",
+      "kas": 4082620.0,
+      "tx": "39fb73b0b702e98357ff584afc1e3567456c81e6409ce180c05fc1e55576a62a"
+    },
+    {
+      "day": "2026-02-05",
+      "kas": 1119619.0,
+      "tx": "9d55257f334e29e1d4ee66b3df196ace0dbc99fdcba2c817482845dabb9190d0"
+    },
+    {
+      "day": "2026-03-19",
+      "kas": 3100141.65,
+      "tx": "45518a5eeebd8c99dc9936c2c384c2494edf9e1e9000c79adb1121a19dddac33"
+    },
+    {
+      "day": "2026-05-07",
+      "kas": 4937995.0,
+      "tx": "8671ec587a90113773fa279d33089c9349f17bb56ad8ce2f73351eedaf4c0385"
+    },
+    {
+      "day": "2026-06-18",
+      "kas": 2079727.0,
+      "tx": "2ed0acf4676a4eca8abf491678fe8ab6095db6f59fa095cdf457ca91f4234c7d"
+    }
+  ],
   "balance_kas": 1499056470.11,
   "first_deposit": "2024-03-06",
   "last_deposit": "2026-08-01",
   "largest_deposit_kas": 90000000.0,
   "largest_deposit_day": "2024-03-11",
-  "price_now": 0.02691,
-  "value_now_usd": 40339609.61,
-  "unrealized_usd": -95144625.49,
-  "unrealized_pct": -70.23,
+  "price_now": 0.02699,
+  "value_now_usd": 40459534.13,
+  "unrealized_usd": -95024700.98,
+  "unrealized_pct": -70.14,
   "missing_price_days": [],
   "missing_share": 0.0,
   "price_source_days": {
     "kucoin": 882,
+    "mexc": 0,
     "bybit": 0
   },
   "by_month": [
