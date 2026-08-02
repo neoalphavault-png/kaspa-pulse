@@ -1,0 +1,38 @@
+name: entity x cost basis
+
+on:
+  # Montags 03:00 UTC, damit die Zahl fuer den Wochenzahlen-Post frisch ist.
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: entity-x-costbasis
+  cancel-in-progress: false
+
+jobs:
+  compute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: compute the cost basis
+        run: python3 scripts/entity_x_costbasis.py
+
+      - name: persist result if changed
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/entity-x-costbasis.json
+          if git diff --staged --quiet; then
+            echo "cost basis unveraendert, kein commit"
+          else
+            git commit -m "entity x cost basis update [bot]"
+            git pull --rebase origin main
+            git push
+          fi
