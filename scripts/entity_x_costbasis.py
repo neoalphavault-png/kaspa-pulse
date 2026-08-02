@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-# Kaspa Pulse - Entity X Cost Basis v1
+# Kaspa Pulse - Entity X Cost Basis v2
 # Ablageort im Repo: scripts/entity_x_costbasis.py
 #
 # Was das Ding macht:
 #   1. Zieht die komplette Transaktionshistorie der Entity-X-Adresse ueber
-#      api.kaspa.org und filtert die echten Zufluesse heraus.
-#   2. Holt die taegliche Preishistorie von KuCoin, luecken werden mit Bybit
-#      gefuellt. Benutzt wird NICHT der Schlusskurs, sondern der volumen-
+#      api.kaspa.org und filtert die echten Zufluesse heraus. Abfluesse
+#      werden einzeln mit Datum, Menge und Transaktionsnummer festgehalten.
+#   2. Holt die taegliche Preishistorie von KuCoin, luecken werden mit MEXC
+#      und danach Bybit gefuellt. Bybit sperrt Rechenzentrums-IPs und
+#      antwortet vom GitHub-Runner mit 403, steht deshalb ganz hinten.
+#      Benutzt wird NICHT der Schlusskurs, sondern der volumen-
 #      gewichtete Tagesdurchschnitt (Umsatz geteilt durch Volumen). Wer an
 #      einem Tag kauft, kauft nicht um Mitternacht.
 #   3. Rechnet daraus einen gewichteten Einstandspreis und schreibt alles
@@ -131,6 +134,7 @@ def net_flows(txs):
     als Kauf gezaehlt, falls die Adresse doch einmal etwas sendet.
     """
     inflows = []
+    outflows = []
     outflow_kas = 0.0
     unresolved = 0
     for t in txs:
@@ -156,16 +160,21 @@ def net_flows(txs):
                             "tx": t.get("transaction_id", "")})
         elif net < -DUST_KAS:
             outflow_kas += -net
+            # Jeder Abfluss einzeln. Ein einziger grosser Vorgang am Anfang
+            # ist eine voellig andere Geschichte als viele kleine ueber Jahre.
+            outflows.append({"ts": bt, "day": day(bt), "kas": -net,
+                             "tx": t.get("transaction_id", "")})
     if unresolved:
         print(f"WARN {unresolved} eingaenge ohne aufgeloeste herkunft. "
               f"bei einer reinen sammeladresse ist das unkritisch.",
               file=sys.stderr)
     inflows.sort(key=lambda x: x["ts"])
-    return inflows, outflow_kas
+    outflows.sort(key=lambda x: x["ts"])
+    return inflows, outflows, outflow_kas
 
 
 # ---------------------------------------------------------------------------
-# 2. Preishistorie. VWAP je Tag, KuCoin zuerst, Bybit als Lueckenfueller.
+# 2. Preishistorie. VWAP je Tag, KuCoin zuerst, dann MEXC, dann Bybit.
 # ---------------------------------------------------------------------------
 def _vwap(volume, turnover, fallback):
     try:
@@ -198,6 +207,35 @@ def kucoin_days(start_s, end_s):
     return out
 
 
+def mexc_days(start_ms, end_ms):
+    """MEXC liefert [zeit_ms, open, high, low, close, volume, endzeit, umsatz].
+
+    Bybit sperrt Rechenzentrums-IPs (403 vom GitHub-Runner), MEXC nicht.
+    Deshalb steht MEXC vor Bybit in der Kette.
+    """
+    out = {}
+    cur = start_ms
+    for _ in range(20):
+        if cur >= end_ms:
+            break
+        url = ("https://api.mexc.com/api/v3/klines"
+               f"?symbol=KASUSDT&interval=1d&limit=1000"
+               f"&startTime={cur}&endTime={end_ms}")
+        rows = get_json(url, timeout=25)
+        if not rows:
+            break
+        newest = 0
+        for r in rows:
+            ts = int(r[0])
+            newest = max(newest, ts)
+            out[day(ts)] = _vwap(r[5], r[7], r[4])
+        print(f"mexc: {len(rows)} tageskerzen bis {day(newest)}")
+        if len(rows) < 1000:
+            break
+        cur = newest + 86400_000
+    return out
+
+
 def bybit_days(start_ms, end_ms):
     """Bybit liefert [zeit_ms, open, high, low, close, volume, turnover]."""
     out = {}
@@ -226,23 +264,36 @@ def price_history(first_ms, last_ms):
     start_s = int(first_ms / 1000) - 3 * 86400
     end_s = int(last_ms / 1000) + 2 * 86400
     prices = {}
-    src = {"kucoin": 0, "bybit": 0}
-    try:
-        k = kucoin_days(start_s, end_s)
-        for dstr, p in k.items():
-            if PRICE_MIN < p < PRICE_MAX:
-                prices[dstr] = p
-                src["kucoin"] += 1
-    except Exception as e:
-        print(f"WARN kucoin historie fehlgeschlagen: {e}", file=sys.stderr)
-    try:
-        b = bybit_days(start_s * 1000, end_s * 1000)
-        for dstr, p in b.items():
+    src = {"kucoin": 0, "mexc": 0, "bybit": 0}
+    # Alle Tage, die wir im Zeitraum ueberhaupt brauchen koennten.
+    wanted = set()
+    t = (start_s // 86400) * 86400
+    while t <= end_s:
+        wanted.add(day(t * 1000))
+        t += 86400
+    for name, fn in [
+        ("kucoin", lambda: kucoin_days(start_s, end_s)),
+        ("mexc", lambda: mexc_days(start_s * 1000, end_s * 1000)),
+        ("bybit", lambda: bybit_days(start_s * 1000, end_s * 1000)),
+    ]:
+        # Sind schon alle Tage da, fragen wir die naechste Boerse gar nicht
+        # erst. Spart Zeit und vermeidet unnoetige Sperren.
+        if not (wanted - set(prices)):
+            print(f"alle tage vorhanden, {name} wird nicht mehr gebraucht")
+            break
+        try:
+            got = fn()
+        except Exception as e:
+            print(f"WARN {name} historie fehlgeschlagen: {e}", file=sys.stderr)
+            continue
+        for dstr, p in got.items():
             if dstr not in prices and PRICE_MIN < p < PRICE_MAX:
                 prices[dstr] = p
-                src["bybit"] += 1
-    except Exception as e:
-        print(f"WARN bybit historie fehlgeschlagen: {e}", file=sys.stderr)
+                src[name] += 1
+    fehlend = sorted(wanted - set(prices))
+    if fehlend:
+        print(f"hinweis: {len(fehlend)} kalendertage ohne kurs, "
+              f"z.b. {', '.join(fehlend[:5])}")
     return prices, src
 
 
@@ -311,16 +362,23 @@ def main():
         print("ERROR keine transaktionen erhalten", file=sys.stderr)
         sys.exit(1)
 
-    inflows, outflow_kas = net_flows(txs)
+    inflows, outflows, outflow_kas = net_flows(txs)
     if not inflows:
         print("ERROR keine zufluesse gefunden", file=sys.stderr)
         sys.exit(1)
-    print(f"{len(inflows)} zufluesse, {outflow_kas:,.0f} KAS jemals abgeflossen")
+    print(f"{len(inflows)} zufluesse, {len(outflows)} abfluesse, "
+          f"{outflow_kas:,.0f} KAS jemals abgeflossen")
+
+    if outflows:
+        print("\nabfluesse im einzelnen")
+        for f in outflows:
+            print(f"  {f['day']}  {f['kas']:>16,.0f} KAS  {f['tx']}")
+        print("")
 
     print("hole preishistorie ...")
     prices, src = price_history(inflows[0]["ts"], inflows[-1]["ts"])
-    print(f"{len(prices)} tagespreise, davon {src['kucoin']} kucoin "
-          f"und {src['bybit']} bybit")
+    print(f"{len(prices)} tagespreise, davon {src['kucoin']} kucoin, "
+          f"{src['mexc']} mexc und {src['bybit']} bybit")
 
     kas_total = 0.0
     usd_total = 0.0
@@ -371,7 +429,8 @@ def main():
     out = {
         "generated_at": int(time.time()),
         "address": ADDRESS,
-        "method": "volume weighted daily average price, kucoin with bybit gap fill",
+        "method": ("volume weighted daily average price, "
+                   "kucoin with mexc and bybit gap fill"),
         "reliable": reliable,
         "deposits": len(inflows),
         "kas_received": round(kas_total, 2),
@@ -379,6 +438,11 @@ def main():
         "usd_invested": round(usd_total, 2),
         "avg_cost_usd": round(avg, 6) if avg else None,
         "outflow_kas": round(outflow_kas, 2),
+        "outflow_count": len(outflows),
+        "first_outflow": outflows[0]["day"] if outflows else None,
+        "last_outflow": outflows[-1]["day"] if outflows else None,
+        "outflows": [{"day": f["day"], "kas": round(f["kas"], 2),
+                      "tx": f["tx"]} for f in outflows],
         "balance_kas": round(bal, 2) if bal else None,
         "first_deposit": inflows[0]["day"],
         "last_deposit": inflows[-1]["day"],
@@ -411,7 +475,10 @@ def main():
     print(f"erster kauf         {inflows[0]['day']}")
     print(f"letzter kauf        {inflows[-1]['day']}")
     print(f"KAS gekauft         {kas_total:,.0f}")
-    print(f"KAS jemals raus     {outflow_kas:,.0f}")
+    print(f"KAS jemals raus     {outflow_kas:,.0f} in {len(outflows)} vorgaengen")
+    if outflows:
+        print(f"erster abfluss      {outflows[0]['day']}")
+        print(f"letzter abfluss     {outflows[-1]['day']}")
     print(f"groesster kauf      {largest['kas']:,.0f} KAS am {largest['day']}")
     if reliable:
         print(f"investiert          {fmt_usd(usd_total)}")
