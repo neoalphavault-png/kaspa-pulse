@@ -207,8 +207,8 @@
 
   <section class="panel">
     <div class="sec"><div class="t"><span class="snum">05</span>Whale watch. <span>the biggest wallet on the chain</span></div><div class="tag lv"><i></i>live balance · weekly deltas</div></div>
-    <div class="read"><span class="rl">the read</span>the chain's largest address added <b>+15.2M KAS this week</b> — buying every single week, never sending to exchanges. the day this wallet moves toward an exchange, you'll read it here first. <a href="/entity-x.html" style="color:var(--teal); text-decoration:none;">what is entity x? →</a></div>
-    <div class="grid" id="whaleCards"></div>
+    <div class="read"><span class="rl">the read</span>the chain's largest address added <b>+15.2M KAS this week</b> and has bought <b><span id="rdBought">1.54B</span> KAS in total at an average of <span id="rdAvg">$0.0881</span></b> — our own calculation, from every transaction on chain. it is not untouched, though: <b><span id="rdOut">39.0M</span> KAS have left the wallet</b> in <span id="rdOutCnt">20</span> transfers since 2024, <span id="rdShare">2.54%</span> of everything it ever bought. whether those were sales or a move to a second wallet, the chain doesn't say. <a href="/entity-x.html" style="color:var(--teal); text-decoration:none;">the full record →</a></div>
+    <div class="grid four" id="whaleCards"></div>
   </section>
 
   <div class="chart-box">
@@ -465,9 +465,63 @@ $("whaleCards").innerHTML = `
   <div class="card"><div class="name">Share of supply</div><div class="expl">* one wallet vs all known exchanges combined (${fmtKas(cur.exchange_kas)} KAS)</div>
     <div class="val">${exShare}%</div>
     <div class="trends"><div class="tr"><span class="win">vs all exchanges</span><span class="flat">&gt; ⅓ of their total</span></div></div></div>
-  <div class="card"><div class="name">Behaviour</div><div class="expl">* accumulates weekly, no outflows to exchanges since tracking began</div>
-    <div class="val">buys weekly</div>
-    <div class="trends"><div class="tr"><span class="win">signal to watch</span><span class="flat">first move toward an exchange</span></div></div></div>`;
+  <div class="card"><div class="name">Average entry</div><div class="expl">* our own calculation — every deposit this wallet ever received, valued at the volume weighted price of its day</div>
+    <div class="val" id="exCost">—</div>
+    <div class="trends" id="exCostTrends">
+      <div class="tr"><span class="win">total invested</span><span class="flat">—</span></div>
+      <div class="tr"><span class="win">unrealized</span><span class="flat">—</span></div>
+    </div></div>
+  <div class="card"><div class="name">Coins moved out</div><div class="expl">* KAS that has left this address since 2024 — sold or moved to another wallet, the chain doesn't say which</div>
+    <div class="val" id="exOut">—</div>
+    <div class="trends" id="exOutTrends">
+      <div class="tr"><span class="win">share of all it bought</span><span class="flat">—</span></div>
+      <div class="tr"><span class="win">last move</span><span class="flat">—</span></div>
+    </div></div>`;
+
+// --- cost basis: our own number, computed weekly by a bot, read from disk ---
+// Bleibt still, wenn die Datei fehlt oder sich selbst fuer unbelastbar erklaert.
+// Lieber zwei Kacheln mit Strich als zwei Kacheln mit einer falschen Zahl.
+(function(){
+  const dstr = s => { if(!s) return "—"; const [y,m,d] = s.split("-");
+    return d.replace(/^0/,"")+" "+["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"][+m-1]+" "+y; };
+  fetch("/data/entity-x-costbasis.json", {cache:"no-store"}).then(r=>r.json()).then(cb=>{
+    if(!(cb && cb.reliable && cb.avg_cost_usd)) return;
+    $("exCost").innerHTML = "$"+cb.avg_cost_usd.toFixed(4);
+    const spot = () => { const el = document.querySelector("#ctx b"); if(!el) return cb.price_now;
+      const v = parseFloat(el.textContent.replace("$","")); return isFinite(v) && v>0 ? v : cb.price_now; };
+    const paint = () => {
+      const p = spot(), held = cb.balance_kas;
+      const rows = [`<div class="tr"><span class="win">total invested</span><span class="flat">${fmtUsd(cb.usd_invested)}</span></div>`];
+      if(p && held){
+        const pnl = held*p - cb.usd_invested, pct = pnl/cb.usd_invested*100;
+        rows.push(`<div class="tr"><span class="win">unrealized</span><span class="${pnl<0?'down':'up'}">${pnl<0?'▼ ':'▲ +'}${fmtUsd(Math.abs(pnl))} (${pct.toFixed(0)}%)</span></div>`);
+      } else {
+        rows.push(`<div class="tr"><span class="win">unrealized</span><span class="flat">—</span></div>`);
+      }
+      $("exCostTrends").innerHTML = rows.join("");
+    };
+    // Der Live-Kurs kommt von CoinGecko und braucht manchmal laenger als
+    // unsere Datei. Zweimal nachrechnen kostet nichts.
+    paint(); setTimeout(paint, 2500); setTimeout(paint, 6000);
+
+    // Die read-Zeile darueber traegt dieselben Zahlen. Stuenden dort andere
+    // als in der Kachel darunter, waere das Panel in sich widerspruechlich.
+    const set = (id, v) => { const e = $(id); if(e) e.textContent = v; };
+    set("rdAvg", "$"+cb.avg_cost_usd.toFixed(4));
+    if(cb.kas_received) set("rdBought", (cb.kas_received/1e9).toFixed(2)+"B");
+
+    if(cb.outflow_kas != null){
+      $("exOut").innerHTML = (cb.outflow_kas/1e6).toFixed(1)+"M KAS";
+      const share = cb.kas_received ? (cb.outflow_kas/cb.kas_received*100).toFixed(2)+"%" : "—";
+      set("rdOut", (cb.outflow_kas/1e6).toFixed(1)+"M");
+      set("rdOutCnt", cb.outflow_count);
+      set("rdShare", share);
+      $("exOutTrends").innerHTML =
+        `<div class="tr"><span class="win">share of all it bought</span><span class="flat">${share}</span></div>`+
+        `<div class="tr"><span class="win">last move</span><span class="flat">${dstr(cb.last_outflow)}</span></div>`;
+    }
+  }).catch(()=>{});
+})();
 // --- live hashrate (weekly snapshot as fallback) ---
 // trend rows are recomputed against the same weekly baselines the static view uses,
 // so the live value and the arrows always agree. baselines derive from cur.hashrate
