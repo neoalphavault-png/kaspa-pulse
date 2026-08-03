@@ -386,8 +386,14 @@ const setRd = (id, v) => { const e = $(id); if(e) e.textContent = v; };
 
 function deltaTxt(c,p){ if(c==null||p==null) return null; const pct=(c-p)/Math.abs(p)*100;
   return { pct, cls:Math.abs(pct)<0.5?"flat":(pct>0?"up":"down"), txt:Math.abs(pct)<0.5?"→ flat":(pct>0?"▲ +":"▼ ")+Math.abs(pct).toFixed(1)+"%" }; }
+// Serien, deren Definition am 03.08. geaendert wurde. Ein blosser Strich sieht aus wie
+// ein Fehler. Hier soll dastehen, WARUM es keinen Vergleich gibt. Sobald zwei Lesungen
+// mit derselben Definition vorliegen, rechnet deltaTxt wieder normal und das Label
+// verschwindet von selbst. Beim naechsten Definitionswechsel Key hier eintragen.
+const RESTARTED = { covenant_tx:"baseline week", active_addr:"baseline week" };
 function trRow(key,weeks,label){ const p=back(weeks); const d=p?deltaTxt(cur[key],p[key]):null;
-  return `<div class="tr"><span class="win">${label}</span><span class="${d?d.cls:'flat'}">${d?d.txt:'—'}</span></div>`; }
+  const miss = (!d && RESTARTED[key] && cur[key]!=null) ? RESTARTED[key] : "—";
+  return `<div class="tr"><span class="win">${label}</span><span class="${d?d.cls:'flat'}">${d?d.txt:miss}</span></div>`; }
 const trendBlock = key => trRow(key,1,"vs last week") + trRow(key,4,"vs last month");
 
 // --- HERO: live TVL from DefiLlama, fallback to weekly snapshot ---
