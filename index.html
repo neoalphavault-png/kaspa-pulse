@@ -183,31 +183,31 @@
 
   <section class="panel">
     <div class="sec"><div class="t"><span class="snum">01</span>Usage. <span>is anyone actually using it?</span></div><div class="tag wk" id="weeklyTag"><i></i><span>weekly</span></div></div>
-    <div class="read"><span class="rl">the read</span>l2 traffic is <b>98% igra</b> and covenant transactions settled near 900 a day after the launch spike. usage is still small in absolute terms — what matters this early is that <b>activity keeps growing while price doesn't</b>.</div>
+    <div class="read"><span class="rl">the read</span>l2 traffic is <b><span id="rdIgraShare">98%</span> igra</b>: <span id="rdIgraTx">49,237</span> of <span id="rdL2Tx">50,307</span> daily transactions run there, while kasplex carries the rest. we also changed how we count covenant activity this week — we had been counting <i>events</i>, we now count <i>creating transactions</i>, so that series restarts at <b><span id="rdCov">3,517</span> a day</b> and the old numbers are not comparable. usage is still small in absolute terms. what matters this early is that <b>activity keeps growing while price doesn't</b>.</div>
     <div class="grid four" id="usageCards"></div>
   </section>
 
   <section class="panel">
     <div class="sec"><div class="t"><span class="snum">02</span>DEX volume. <span>where KAS actually trades</span></div><div class="tag wk"><i></i><span>weekly</span></div></div>
-    <div class="read"><span class="rl">the read</span>about <b>$133K a day</b> changes hands on kaspa DEXs, almost all of it on krokoswap — and since this weekend there's a third venue, <b>KRON, the first native L1 DEX</b> (not on defillama yet, so not in these numbers — we add it once it's independently trackable). the rails work, the volume hasn't arrived yet.</div>
+    <div class="read"><span class="rl">the read</span>about <b><span id="rdDex">$109K</span> a day</b> changes hands on kaspa DEXs, and the split is the interesting part: <b><span id="rdKasplexDex">$99K</span> of it sits on kasplex</b> while igra, which carries 98% of all transactions, trades only <b><span id="rdIgraDex">$10K</span></b>. everything happens on igra, trading happens on kasplex. a third venue went live this weekend, <b>KRON, the first native L1 DEX</b>, doing about <b>$25K a day</b> across its 3 graduated tokens — that's its own reporting, not defillama's, so it stays out of the numbers above until it's independently trackable. the rails work, the volume hasn't arrived yet.</div>
     <div class="grid four" id="dexCards"></div>
   </section>
 
   <section class="panel">
     <div class="sec"><div class="t"><span class="snum">03</span>Supply. <span>the tightening story</span></div><div class="tag wk"><i></i><span>weekly</span></div></div>
-    <div class="read"><span class="rl">the read</span>96% of all KAS is already mined and the next reward cut lands in <b>~9 days</b>. the one to watch is exchanges — balances <b>ticked down this week</b>, fewer coins sitting where they can be sold. <a href="/kaspa-halving.html" style="color:var(--teal); text-decoration:none;">how the monthly halving works →</a></div>
+    <div class="read"><span class="rl">the read</span>96% of all KAS is already mined and the next reward cut lands <b>this wednesday</b>, taking the block reward from 2.450 to 2.312 KAS. the one to watch is exchanges — the addresses we track sent out <b>85.2M KAS more than they took in</b> over the past seven days, fewer coins sitting where they can be sold. <a href="/kaspa-halving.html" style="color:var(--teal); text-decoration:none;">how the monthly halving works →</a></div>
     <div class="grid four" id="supplyCards"></div>
   </section>
 
   <section class="panel">
     <div class="sec"><div class="t"><span class="snum">04</span>Holders &amp; Security. <span>who is still here</span></div><div class="tag wk"><i></i><span>weekly</span></div></div>
-    <div class="read"><span class="rl">the read</span><b>over half of all KAS hasn't moved in a year</b> and holder addresses grew again — right through a 16% weekly hashrate drop. holders are calm, miners are stressed ahead of the reward cut. that's what a shakeout looks like. <a href="/merged-mining.html" style="color:var(--teal); text-decoration:none;">does merged mining take hashrate? →</a></div>
+    <div class="read"><span class="rl">the read</span><b>over half of all KAS hasn't moved in a year</b> and holder addresses grew again — this time right through a <b>+31% hashrate week</b>, which reverses last week's drop. more machines competing for the same emission means less per machine: at today's price that's about <b>$161 per PH per day</b>, and wednesday's cut takes it to roughly <b>$152</b>. holders are calm, miners are getting squeezed from both sides at once. <a href="/merged-mining.html" style="color:var(--teal); text-decoration:none;">does merged mining take hashrate? →</a></div>
     <div class="grid four" id="baseCards"></div>
   </section>
 
   <section class="panel">
     <div class="sec"><div class="t"><span class="snum">05</span>Whale watch. <span>the biggest wallet on the chain</span></div><div class="tag lv"><i></i>live balance · weekly deltas</div></div>
-    <div class="read"><span class="rl">the read</span>the chain's largest address added <b>+15.2M KAS this week</b> and has bought <b><span id="rdBought">1.54B</span> KAS in total at an average of <span id="rdAvg">$0.0881</span></b> — our own calculation, from every transaction on chain. it is not untouched, though: <b><span id="rdOut">39.0M</span> KAS have left the wallet</b> in <span id="rdOutCnt">20</span> transfers since 2024, <span id="rdShare">2.54%</span> of everything it ever bought. whether those were sales or a move to a second wallet, the chain doesn't say. <a href="/entity-x.html" style="color:var(--teal); text-decoration:none;">the full record →</a></div>
+    <div class="read"><span class="rl">the read</span>the chain's largest address added <b>+<span id="rdWeek">11.7M</span> KAS this week</b> and has bought <b><span id="rdBought">1.54B</span> KAS in total at an average of <span id="rdAvg">$0.0881</span></b> — our own calculation, from every transaction on chain. it is not untouched, though: <b><span id="rdOut">39.0M</span> KAS have left the wallet</b> in <span id="rdOutCnt">20</span> transfers since 2024, <span id="rdShare">2.54%</span> of everything it ever bought. whether those were sales or a move to a second wallet, the chain doesn't say. <a href="/entity-x.html" style="color:var(--teal); text-decoration:none;">the full record →</a></div>
     <div class="grid four" id="whaleCards"></div>
   </section>
 
@@ -257,27 +257,53 @@
 <script>
 // Weekly curated data — replaced every Monday. Live values (TVL, price) fetched on load with these as fallback.
 const DATA = {
-  updated: "2026-07-27",
-  next_update: "2026-08-03",
-  context_fallback: { price_usd: 0.0291, mcap_usd: 802000000, mined_pct: 96.17 },
-  circ_supply: 27601503810,
+  updated: "2026-08-03",
+  next_update: "2026-08-10",
+  context_fallback: { price_usd: 0.026, mcap_usd: 718150000, mined_pct: 96.21 },
+  // kaspa.stream druckt nur "27.62B", keine exakte Ziffernfolge. Gegenprobe: mcap 718.15M / 0.026 = 27.621B
+  circ_supply: 27620000000,
   // annual_inflation neu berechnet: block reward 2.45 × 10.2 BPS × 86400 × 365 / circ supply ≈ 2.9% (alter Wert 4.6% war veraltet)
-  emission: { block_reward: 2.45, next_reduction: "~9 days", annual_inflation_pct: 2.9 },
-  hashrate_windows: { d7: -16.1, d30: -32.7, d90: -31.2 },
-  dex_windows: { kasplex_w: 1.5, igra_w: -26.3 },  // defillama weekly change je Chain — ab nächster Woche über history/trendBlock
-  fees_7d: 1936,  // defillama fees kasplex $495 + igra $1441, 7 Tage
+  emission: { block_reward: 2.45, next_reduction: "in 2 days", annual_inflation_pct: 2.9 },
+  // d7 aus der eigenen Reihe (262.3 → 342.5). d30/d90 sind gegen die ABSOLUTEN Vorwochen-Basen
+  // gerechnet (389.7 / 381.3 PH/s), die Anker sind damit eine Woche alt. ⚠️ TODO: ab nächster Woche
+  // die Kaspalytics-Hashrate-Kurve mitscreenshotten, dann haben wir eigene 30/90-Tage-Anker
+  hashrate_windows: { d7: 30.6, d30: -12.1, d90: -10.2 },
+  dex_windows: { kasplex_w: -4.8, igra_w: -65.0 },  // je Chain gegen die Vorwoche aus history gerechnet
+  fees_7d: null,  // ⚠️ defillama zeigt auf der Chain-Seite nur 24h, die 7-Tage-Summe braucht den Umschalter
   // SERIEN-UMSTELLUNG 27.07.: holder_addr = Kaspalytics Distribution Table, Summe aller Buckets ab 0.01 KAS (vorher gemischte Quelle)
   //                            active_addr = Kaspalytics "Number of Unique Active Addresses" (vorher breitere Zählung, alte Werte auf null gesetzt)
   //                            holders (1J+ inaktiv) = Kaspalytics "Supply Not Moved in Over 1 Year", Serie frisch ab 27.07.
+  //
+  // SERIEN-UMSTELLUNG 03.08. (drei Stück, alle aus demselben Grund: Definition war nicht festgenagelt)
+  //  1) covenant_tx = ab jetzt Kaspalytics "Covenant-Creating Txs" (24h). Die alten Werte 44/1578/918 kamen
+  //     von kcc20 und zählten Events, nicht Transaktionen. kcc20 zeigt am 03.08. 6.534 Events gegen 3.517
+  //     Creating-Txs. Der scheinbare Sprung von 918 auf 3.517 wäre reine Definition gewesen, nicht Wachstum.
+  //     Alte Werte auf null, Reihe startet neu.
+  //  2) active_addr = Kaspalytics "Number of Unique Active Addresses", ab jetzt IMMER der letzte VOLLE Tag
+  //     (also gestern), nie der laufende. 7.440 und 7.950 waren am Lesetag angebrochene Tage und damit zu
+  //     niedrig. Der Sprung auf 13.940 ist überwiegend dieser Lesefehler, nicht Wachstum. Alte Werte auf null.
+  //  3) holders = Summe der Kaspalytics-Aging-Buckets über 1 Jahr. Die sichtbaren Zeilen (3-4J 7,13 + 2-3J
+  //     13,27 + 1-2J 26,51) ergeben 46,91%, alle neun Zeilen zusammen aber nur 96,31%. Die fehlenden 3,69%
+  //     sind der nicht gerenderte Bereich über 4 Jahren (Kaspa startete 11/2021). 46,91 + 3,69 = 50,60%,
+  //     was zur Vorwoche (50,47) passt. Reine 46,91 zu melden wäre ein Minus von 3,6 Punkten in einer Woche
+  //     gewesen, also rund 980M KAS in Bewegung. Das hat nicht stattgefunden.
   history: [
-    {date:"2026-07-13", m:{tvl_total:null, tvl_kasplex:475000, tvl_igra:null, tps:0.74, covenant_tx:44, igra_tx:47625, kasplex_tx:872, holders:null, hashrate:319.3, active_addr:null, block_reward:2.45, dex_vol:88000}},
-    {date:"2026-07-20", m:{tvl_total:1966832, tvl_kasplex:386832, tvl_igra:1580000, tps:0.87, covenant_tx:1578, igra_tx:45306, kasplex_tx:872, holders:null, hashrate:313.7, active_addr:7440, block_reward:2.45, dex_vol:96000, holder_addr:744218, exchange_kas:3950000000, entityx_kas:1477070640}},
-    {date:"2026-07-27", m:{tvl_total:1962786, tvl_kasplex:387019, tvl_igra:1575767, tps:0.75, covenant_tx:918, igra_tx:42983, kasplex_tx:980, holders:50.47, hashrate:262.3, active_addr:7950, block_reward:2.45, dex_vol:132998, holder_addr:746067, exchange_kas:3940000000, entityx_kas:1492220896, kasplex_dex:104049, igra_dex:28949, fees_day:305}}
+    {date:"2026-07-13", m:{tvl_total:null, tvl_kasplex:475000, tvl_igra:null, tps:0.74, covenant_tx:null, igra_tx:47625, kasplex_tx:872, holders:null, hashrate:319.3, active_addr:null, block_reward:2.45, dex_vol:88000}},
+    {date:"2026-07-20", m:{tvl_total:1966832, tvl_kasplex:386832, tvl_igra:1580000, tps:0.87, covenant_tx:null, igra_tx:45306, kasplex_tx:872, holders:null, hashrate:313.7, active_addr:null, block_reward:2.45, dex_vol:96000, holder_addr:744218, exchange_kas:3950000000, entityx_kas:1477070640}},
+    {date:"2026-07-27", m:{tvl_total:1962786, tvl_kasplex:387019, tvl_igra:1575767, tps:0.75, covenant_tx:null, igra_tx:42983, kasplex_tx:980, holders:50.47, hashrate:262.3, active_addr:null, block_reward:2.45, dex_vol:132998, holder_addr:746067, exchange_kas:3940000000, entityx_kas:1492220896, kasplex_dex:104049, igra_dex:28949, fees_day:305}},
+    {date:"2026-08-03", m:{tvl_total:1832947, tvl_kasplex:342947, tvl_igra:1490000, tps:0.91, covenant_tx:3517, igra_tx:49237, kasplex_tx:1070, holders:50.60, hashrate:342.5, active_addr:13940, block_reward:2.45, dex_vol:109200, holder_addr:747603, exchange_kas:3854799342, entityx_kas:1503875035, kasplex_dex:99061, igra_dex:10139, fees_day:226}}
   ],
   holder_baselines: {
     m3: { date:"2026-04-27", n:735960 },   // Distribution Table, Summe Buckets ≥0.01
     y1: { date:"2025-07-27", n:695792 }
   },
+  // ⚠️ exchange_kas 03.08. ist FORTGESCHRIEBEN, nicht frisch abgelesen. Diese Woche kam der Screenshot der
+  // Adressliste statt der Summen-Ansicht. Die neun börsenmarkierten Adressen in den Top 10 summieren sich
+  // auf 5,42 Mrd, unsere Reihe steht aber bei 3,94 Mrd, das ist also ein anderer Korb (Uphold und Bitvavo
+  // sind Verwahrer, kaspa.stream zählt sie in der Summen-Ansicht vermutlich nicht mit). Gemessen ist der
+  // NETTOFLUSS: die Summe der 7-Tage-Spalten dieser neun Adressen ist minus 85.200.658 KAS. Den haben wir
+  // auf 3,94 Mrd angewendet. Richtung und Größe sind belegt, das absolute Niveau ist geerbt.
+  // TODO Montag: Summen-Ansicht screenshotten, dann den Korb einmal sauber definieren.
   exchange_baselines: {
     m3: { date:"2026-04-23", n:3890000000 },   // 3.89B KAS
     y1: { date:"2025-07-24", n:3070000000 }    // 3.07B KAS
@@ -317,6 +343,10 @@ const $ = id => document.getElementById(id);
 })();
 const fmtUsd = n => n==null?"—":(n>=1e9?"$"+(n/1e9).toFixed(2)+"B":n>=1e6?"$"+(n/1e6).toFixed(2)+"M":"$"+Math.round(n/1e3)+"K");
 const fmtN = n => n==null?"—":n.toLocaleString("en-US");
+// wRow rendert eine feste Prozentzahl (nicht aus history gerechnet). Muss VOR baseCards stehen.
+const wRow = (label, pct) => { if(pct==null) return `<div class="tr"><span class="win">${label}</span><span class="flat">n/a</span></div>`;
+  const cls = pct>0.5?"up":(pct<-0.5?"down":"flat");
+  return `<div class="tr"><span class="win">${label}</span><span class="${cls}">${pct>0?'▲ +':'▼ '}${Math.abs(pct)}%</span></div>`; };
 const H = DATA.history, cur = H[H.length-1].m;
 const back = w => H.length>w ? H[H.length-1-w].m : null;
 
@@ -324,8 +354,28 @@ $("weeklyStamp").textContent = "WEEKLY READING: " + DATA.updated + " · NEXT: " 
 $("modeDate").textContent = "this reading: " + DATA.updated;
 document.querySelectorAll(".sec .tag.wk span").forEach(el => { el.textContent = "monday reading · " + DATA.updated; });
 
+// Harte Zahlen in den read-Zeilen werden aus DATA gefuettert, damit kein Satz
+// stehen bleibt, wenn die Woche wechselt. Regel 9 aus dem SEO-Doc.
+const setRd = (id, v) => { const e = $(id); if(e) e.textContent = v; };
+(function fillRead(){
+  const l2 = (cur.igra_tx!=null && cur.kasplex_tx!=null) ? cur.igra_tx + cur.kasplex_tx : null;
+  if(l2){
+    setRd("rdIgraShare", Math.round(cur.igra_tx/l2*100) + "%");
+    setRd("rdIgraTx", fmtN(cur.igra_tx));
+    setRd("rdL2Tx", fmtN(l2));
+  }
+  setRd("rdCov", fmtN(cur.covenant_tx));
+  setRd("rdDex", fmtUsd(cur.dex_vol));
+  setRd("rdKasplexDex", fmtUsd(cur.kasplex_dex));
+  setRd("rdIgraDex", fmtUsd(cur.igra_dex));
+  const p = back(1);
+  if(p && cur.entityx_kas!=null && p.entityx_kas!=null){
+    setRd("rdWeek", ((cur.entityx_kas - p.entityx_kas)/1e6).toFixed(1) + "M");
+  }
+})();
+
 function deltaTxt(c,p){ if(c==null||p==null) return null; const pct=(c-p)/Math.abs(p)*100;
-  return { pct, cls:Math.abs(pct)<0.5?"flat":(pct>0?"up":"down"), txt:Math.abs(pct)<0.5?"→ flat":(pct>0?"▲ +":"▼ ")+pct.toFixed(1)+"%" }; }
+  return { pct, cls:Math.abs(pct)<0.5?"flat":(pct>0?"up":"down"), txt:Math.abs(pct)<0.5?"→ flat":(pct>0?"▲ +":"▼ ")+Math.abs(pct).toFixed(1)+"%" }; }
 function trRow(key,weeks,label){ const p=back(weeks); const d=p?deltaTxt(cur[key],p[key]):null;
   return `<div class="tr"><span class="win">${label}</span><span class="${d?d.cls:'flat'}">${d?d.txt:'—'}</span></div>`; }
 const trendBlock = key => trRow(key,1,"vs last week") + trRow(key,4,"vs last month");
@@ -426,16 +476,14 @@ $("baseCards").innerHTML = `
   <div class="card"><div class="name">Mining power</div><div class="expl">* computing power securing the network (hashrate) — <a href="/kaspa-hashrate.html" style="color:var(--teal); text-decoration:none;">how to read this number →</a></div>
     <div class="val" id="hrVal">${cur.hashrate} PH/s</div>
     <div class="trends" id="hrTrends">
-      <div class="tr"><span class="win">7 days</span><span class="${DATA.hashrate_windows.d7>0?'up':(Math.abs(DATA.hashrate_windows.d7)<0.5?'flat':'down')}">${DATA.hashrate_windows.d7>0?'▲ +':'▼ '}${Math.abs(DATA.hashrate_windows.d7)}%</span></div>
-      <div class="tr"><span class="win">30 days</span><span class="down">▼ ${Math.abs(DATA.hashrate_windows.d30)}%</span></div>
-      <div class="tr"><span class="win">90 days</span><span class="down">▼ ${Math.abs(DATA.hashrate_windows.d90)}%</span></div>
+      ${wRow("7 days", DATA.hashrate_windows.d7)}
+      ${wRow("30 days", DATA.hashrate_windows.d30)}
+      ${wRow("90 days", DATA.hashrate_windows.d90)}
     </div></div>
   <div class="card"><div class="name">Kasplex TVL</div><div class="expl">* capital on the Kasplex L2 alone</div>
     <div class="val">${fmtUsd(cur.tvl_kasplex)}</div><div class="trends">${trendBlock("tvl_kasplex")}</div></div>`;
 
 // --- DEX cards ---
-const wRow = (label, pct) => { const cls = pct>0.5?"up":(pct<-0.5?"down":"flat");
-  return `<div class="tr"><span class="win">${label}</span><span class="${cls}">${pct>0?'▲ +':'▼ '}${Math.abs(pct)}%</span></div>`; };
 $("dexCards").innerHTML = `
   <div class="card"><div class="name">DEX volume (24h)</div><div class="expl">* trading volume across all kaspa DEXs, both L2s combined</div>
     <div class="val">${fmtUsd(cur.dex_vol)}</div><div class="trends">${trendBlock("dex_vol")}</div></div>
@@ -445,7 +493,7 @@ $("dexCards").innerHTML = `
     <div class="val">${fmtUsd(cur.igra_dex)}</div><div class="trends">${wRow("vs last week", DATA.dex_windows.igra_w)}</div></div>
   <div class="card"><div class="name">Protocol fees (24h)</div><div class="expl">* what users actually paid to use both L2s — the adoption number that can't be faked</div>
     <div class="val">$${fmtN(cur.fees_day)}</div>
-    <div class="trends"><div class="tr"><span class="win">7-day total</span><span class="flat">$${fmtN(DATA.fees_7d)}</span></div></div></div>`;
+    <div class="trends"><div class="tr"><span class="win">7-day total</span><span class="flat">${DATA.fees_7d==null?"n/a this week":"$"+fmtN(DATA.fees_7d)}</span></div></div></div>`;
 
 // --- Whale watch: Entity X ---
 const EX_ADDR = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a";
