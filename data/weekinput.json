@@ -1,0 +1,29 @@
+{
+  "week": "2026-08-03",
+
+  "manual": {
+    "active_addr": null,
+    "tps": null,
+    "holders": null,
+    "dormant_pct": null,
+    "exchange_kas": null
+  },
+
+  "read": "",
+
+  "override": {},
+
+  "issue": null,
+
+  "_hinweise": {
+    "week": "der tag an dem der post rausgeht, format JJJJ-MM-TT. steht die woche schon in der history, passiert nichts und der lauf bleibt gruen. das datum ist der schalter, erst wenn du es hochstellst geht ein post raus.",
+    "active_addr": "kaspalytics, daily active addresses, ganze zahl",
+    "tps": "kaspalytics, transactions per second, eine nachkommastelle",
+    "holders": "kaspalytics, addresses holding a balance, ganze zahl",
+    "dormant_pct": "kaspalytics, anteil der ueber ein jahr nicht bewegt wurde, in prozent",
+    "exchange_kas": "kaspa.stream, summe der boersenbestaende in KAS, ganze zahl ohne punkte",
+    "read": "mindestens 40 zeichen. keine gedankenstriche, keine doppelpunkte, keine pfeile.",
+    "override": "nur im notfall. jedes automatische feld laesst sich hier festnageln, zum beispiel {\"tvl_kasplex\": 342947}. gueltige namen sind hashrate, block_reward, emission, mined_pct, tvl_kasplex, tvl_igra, tvl_total, dex_vol, chain_fees.",
+    "issue": "leer lassen. die nummer wird aus dem datum gerechnet."
+  }
+}
