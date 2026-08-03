@@ -1,0 +1,39 @@
+name: entity x outflows
+
+on:
+  # Montags 03:20 UTC, also nach dem Cost-Basis-Lauf. Beide Skripte lesen
+  # dieselbe Adresse, sie sollen sich nicht gleichzeitig durch die API paginieren.
+  schedule:
+    - cron: "20 3 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: entity-x-outflows
+  cancel-in-progress: false
+
+jobs:
+  trace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: trace the outflows
+        run: python3 scripts/entity_x_outflows.py
+
+      - name: persist result if changed
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/entity-x-outflows.json
+          if git diff --staged --quiet; then
+            echo "outflows unveraendert, kein commit"
+          else
+            git commit -m "entity x outflow tracing update [bot]"
+            git pull --rebase origin main
+            git push
+          fi
