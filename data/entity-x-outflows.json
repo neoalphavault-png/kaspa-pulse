@@ -1,17 +1,60 @@
 {
-  "generated_at": 1785753249,
+  "generated_at": 1785755393,
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "method": "outputs per outflow transaction, change to self removed, recipients profiled by balance and transaction count, one additional hop followed",
   "busy_tx_threshold": 5000,
-  "known_labels": 0,
+  "known_labels": 4,
+  "known_label_source": "kaspa.stream address labels, geprueft am 2026-08-03",
   "transactions_total": 503,
   "outflow_count": 20,
   "outflow_kas": 39038233.45,
   "verdict_counts": {
     "weitergeschickt, ziel unklar": 6,
     "liegt noch da": 2,
-    "boerse wahrscheinlich": 13
+    "boerse ueber zwischenadresse": 13
   },
+  "kas_by_verdict": {
+    "weitergeschickt, ziel unklar": 5320972.0,
+    "liegt noch da": 1311.0,
+    "boerse ueber zwischenadresse": 33715950.45
+  },
+  "by_exchange": {
+    "bybit": {
+      "kas": 8492617.0,
+      "transfers": 5,
+      "direct": 0,
+      "via_hop": 5,
+      "first_day": "2024-09-12",
+      "last_day": "2026-06-18"
+    },
+    "gate.io": {
+      "kas": 4794984.8,
+      "transfers": 2,
+      "direct": 0,
+      "via_hop": 2,
+      "first_day": "2025-07-24",
+      "last_day": "2026-01-07"
+    },
+    "bitvavo": {
+      "kas": 14714059.65,
+      "transfers": 5,
+      "direct": 0,
+      "via_hop": 5,
+      "first_day": "2025-10-27",
+      "last_day": "2026-03-19"
+    },
+    "bitget": {
+      "kas": 5714289.0,
+      "transfers": 1,
+      "direct": 0,
+      "via_hop": 1,
+      "first_day": "2025-11-06",
+      "last_day": "2025-11-06"
+    }
+  },
+  "named_exchange_kas": 33715950.45,
+  "named_exchange_share": 0.8637,
+  "caveat": "a deposit to an exchange address is not a sale. the chain shows the transfer, not the intent.",
   "outflows": [
     {
       "ts": 1709815872346,
@@ -26,6 +69,7 @@
           "kas": 2.0,
           "verdict": "weitergeschickt, ziel unklar",
           "reason": "am 2024-03-11 weiter an kaspa:qz5uzyhecgfjmcgg4wang7",
+          "exchange": null,
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 20,
@@ -61,6 +105,7 @@
           "kas": 10.0,
           "verdict": "weitergeschickt, ziel unklar",
           "reason": "am 2024-06-10 weiter an kaspa:qpykj9tu7j78yaalfxytnu",
+          "exchange": null,
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 20,
@@ -96,6 +141,7 @@
           "kas": 10.0,
           "verdict": "weitergeschickt, ziel unklar",
           "reason": "am 2024-03-29 weiter an kaspa:qpz2vgvlxhmyhmt22h538p",
+          "exchange": null,
           "profile": {
             "balance_kas": 1311.0,
             "tx_count": 9,
@@ -131,6 +177,7 @@
           "kas": 1.0,
           "verdict": "liegt noch da",
           "reason": "empfaenger haelt heute 1,311 KAS, hat also nichts bewegt",
+          "exchange": null,
           "profile": {
             "balance_kas": 1311.0,
             "tx_count": 9,
@@ -153,6 +200,7 @@
           "kas": 1310.0,
           "verdict": "liegt noch da",
           "reason": "empfaenger haelt heute 1,311 KAS, hat also nichts bewegt",
+          "exchange": null,
           "profile": {
             "balance_kas": 1311.0,
             "tx_count": 9,
@@ -173,8 +221,9 @@
         {
           "address": "kaspa:qz9ks6ltlurlazt0kkrk30dndkaa46y9a43vq49dtxrftmg4g69vc36v357ys",
           "kas": 300.0,
-          "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2024-09-19 an eine adresse mit 127,824 transaktionen",
+          "verdict": "boerse ueber zwischenadresse",
+          "reason": "am 2024-09-19 weitergeleitet an die auf kaspa.stream als bybit beschriftete adresse",
+          "exchange": "bybit",
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 4,
@@ -189,8 +238,8 @@
               "kas": 1137496.34828279
             },
             "to_profile": {
-              "balance_kas": 787683704.1207464,
-              "tx_count": 127824,
+              "balance_kas": 787662137.5241064,
+              "tx_count": 127825,
               "tx_count_source": "api"
             }
           }
@@ -208,8 +257,9 @@
         {
           "address": "kaspa:qz9ks6ltlurlazt0kkrk30dndkaa46y9a43vq49dtxrftmg4g69vc36v357ys",
           "kas": 1140000.0,
-          "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2024-09-19 an eine adresse mit 127,824 transaktionen",
+          "verdict": "boerse ueber zwischenadresse",
+          "reason": "am 2024-09-19 weitergeleitet an die auf kaspa.stream als bybit beschriftete adresse",
+          "exchange": "bybit",
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 4,
@@ -224,8 +274,8 @@
               "kas": 1137496.34828279
             },
             "to_profile": {
-              "balance_kas": 787683704.1207464,
-              "tx_count": 127824,
+              "balance_kas": 787662137.5241064,
+              "tx_count": 127825,
               "tx_count_source": "api"
             }
           }
@@ -243,8 +293,9 @@
         {
           "address": "kaspa:qrdxt5uf6756e0etcamccyhhyf0xlm0zfgu3fyund68p377l2u2sgj80updzy",
           "kas": 3151025.0,
-          "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2025-05-12 an eine adresse mit 127,824 transaktionen",
+          "verdict": "boerse ueber zwischenadresse",
+          "reason": "am 2025-05-12 weitergeleitet an die auf kaspa.stream als bybit beschriftete adresse",
+          "exchange": "bybit",
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 20,
@@ -259,8 +310,8 @@
               "kas": 3150995.88228152
             },
             "to_profile": {
-              "balance_kas": 787683704.1207464,
-              "tx_count": 127824,
+              "balance_kas": 787662137.5241064,
+              "tx_count": 127825,
               "tx_count_source": "api"
             }
           }
@@ -278,8 +329,9 @@
         {
           "address": "kaspa:qrl6dvnd6fjszucdnfueendlvvxdzcjrs2lcjune98up0whm954uz5k4dl80k",
           "kas": 4794864.0,
-          "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2025-08-06 an eine adresse mit 140,039 transaktionen",
+          "verdict": "boerse ueber zwischenadresse",
+          "reason": "am 2025-08-06 weitergeleitet an die auf kaspa.stream als gate.io beschriftete adresse",
+          "exchange": "gate.io",
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 8,
@@ -294,8 +346,8 @@
               "kas": 50532771.44843256
             },
             "to_profile": {
-              "balance_kas": 765837255.1927587,
-              "tx_count": 140039,
+              "balance_kas": 765831108.7331188,
+              "tx_count": 140040,
               "tx_count_source": "api"
             }
           }
@@ -313,8 +365,9 @@
         {
           "address": "kaspa:qzje8wvpf4k3m2j4tv2vh5nshrsm7dmfnu63fy79snhahzd7d58yxj55qymaw",
           "kas": 1454731.0,
-          "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2025-10-27 an eine adresse mit 24,492 transaktionen",
+          "verdict": "boerse ueber zwischenadresse",
+          "reason": "am 2025-10-27 weitergeleitet an die auf kaspa.stream als bitvavo beschriftete adresse",
+          "exchange": "bitvavo",
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 10,
@@ -329,8 +382,8 @@
               "kas": 1451687.99955
             },
             "to_profile": {
-              "balance_kas": 18049640.0761825,
-              "tx_count": 24492,
+              "balance_kas": 17948351.96281912,
+              "tx_count": 24494,
               "tx_count_source": "api"
             }
           }
@@ -348,8 +401,9 @@
         {
           "address": "kaspa:qplr6latmjqjmazjdykuzk07sfdg48ha9v98eg6pchtyy34egsvyzq204pv5p",
           "kas": 5714289.0,
-          "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2025-11-06 an eine adresse mit 111,950 transaktionen",
+          "verdict": "boerse ueber zwischenadresse",
+          "reason": "am 2025-11-06 weitergeleitet an die auf kaspa.stream als bitget beschriftete adresse",
+          "exchange": "bitget",
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 2,
@@ -364,8 +418,8 @@
               "kas": 5714286.5
             },
             "to_profile": {
-              "balance_kas": 210050824.5146408,
-              "tx_count": 111950,
+              "balance_kas": 210002257.63342932,
+              "tx_count": 111956,
               "tx_count_source": "api"
             }
           }
@@ -385,6 +439,7 @@
           "kas": 1384901.0,
           "verdict": "weitergeschickt, ziel unklar",
           "reason": "am 2026-03-30 weiter an kaspa:qrwf3qud6cylzrqnzucsu5",
+          "exchange": null,
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 20,
@@ -418,8 +473,9 @@
         {
           "address": "kaspa:qrl6dvnd6fjszucdnfueendlvvxdzcjrs2lcjune98up0whm954uz5k4dl80k",
           "kas": 120.8,
-          "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2026-01-23 an eine adresse mit 140,039 transaktionen",
+          "verdict": "boerse ueber zwischenadresse",
+          "reason": "am 2026-01-23 weitergeleitet an die auf kaspa.stream als gate.io beschriftete adresse",
+          "exchange": "gate.io",
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 8,
@@ -434,8 +490,8 @@
               "kas": 9963.3075697
             },
             "to_profile": {
-              "balance_kas": 765837255.1927587,
-              "tx_count": 140039,
+              "balance_kas": 765831108.7331188,
+              "tx_count": 140040,
               "tx_count_source": "api"
             }
           }
@@ -453,8 +509,9 @@
         {
           "address": "kaspa:qzje8wvpf4k3m2j4tv2vh5nshrsm7dmfnu63fy79snhahzd7d58yxj55qymaw",
           "kas": 3396168.0,
-          "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2026-01-21 an eine adresse mit 24,492 transaktionen",
+          "verdict": "boerse ueber zwischenadresse",
+          "reason": "am 2026-01-21 weitergeleitet an die auf kaspa.stream als bitvavo beschriftete adresse",
+          "exchange": "bitvavo",
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 10,
@@ -469,8 +526,8 @@
               "kas": 3394718.89220013
             },
             "to_profile": {
-              "balance_kas": 18049640.0761825,
-              "tx_count": 24492,
+              "balance_kas": 17948351.96281912,
+              "tx_count": 24494,
               "tx_count_source": "api"
             }
           }
@@ -488,8 +545,9 @@
         {
           "address": "kaspa:qzje8wvpf4k3m2j4tv2vh5nshrsm7dmfnu63fy79snhahzd7d58yxj55qymaw",
           "kas": 2680399.0,
-          "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2026-01-30 an eine adresse mit 24,492 transaktionen",
+          "verdict": "boerse ueber zwischenadresse",
+          "reason": "am 2026-01-30 weitergeleitet an die auf kaspa.stream als bitvavo beschriftete adresse",
+          "exchange": "bitvavo",
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 10,
@@ -504,8 +562,8 @@
               "kas": 2664544.90568019
             },
             "to_profile": {
-              "balance_kas": 18049640.0761825,
-              "tx_count": 24492,
+              "balance_kas": 17948351.96281912,
+              "tx_count": 24494,
               "tx_count_source": "api"
             }
           }
@@ -523,8 +581,9 @@
         {
           "address": "kaspa:qzje8wvpf4k3m2j4tv2vh5nshrsm7dmfnu63fy79snhahzd7d58yxj55qymaw",
           "kas": 4082620.0,
-          "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2026-02-02 an eine adresse mit 24,492 transaktionen",
+          "verdict": "boerse ueber zwischenadresse",
+          "reason": "am 2026-02-02 weitergeleitet an die auf kaspa.stream als bitvavo beschriftete adresse",
+          "exchange": "bitvavo",
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 10,
@@ -539,8 +598,8 @@
               "kas": 4078863.88626487
             },
             "to_profile": {
-              "balance_kas": 18049640.0761825,
-              "tx_count": 24492,
+              "balance_kas": 17948351.96281912,
+              "tx_count": 24494,
               "tx_count_source": "api"
             }
           }
@@ -560,6 +619,7 @@
           "kas": 1119619.0,
           "verdict": "weitergeschickt, ziel unklar",
           "reason": "am 2026-03-30 weiter an kaspa:qrwf3qud6cylzrqnzucsu5",
+          "exchange": null,
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 20,
@@ -593,8 +653,9 @@
         {
           "address": "kaspa:qzje8wvpf4k3m2j4tv2vh5nshrsm7dmfnu63fy79snhahzd7d58yxj55qymaw",
           "kas": 3100141.65,
-          "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2026-03-19 an eine adresse mit 24,492 transaktionen",
+          "verdict": "boerse ueber zwischenadresse",
+          "reason": "am 2026-03-19 weitergeleitet an die auf kaspa.stream als bitvavo beschriftete adresse",
+          "exchange": "bitvavo",
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 10,
@@ -609,8 +670,8 @@
               "kas": 3091522.94120709
             },
             "to_profile": {
-              "balance_kas": 18049640.0761825,
-              "tx_count": 24492,
+              "balance_kas": 17948351.96281912,
+              "tx_count": 24494,
               "tx_count_source": "api"
             }
           }
@@ -630,6 +691,7 @@
           "kas": 2816429.99997964,
           "verdict": "weitergeschickt, ziel unklar",
           "reason": "am 2026-07-06 weiter an kaspa:qrdxt5uf6756e0etcamccy",
+          "exchange": null,
           "profile": {
             "balance_kas": 1174365.99793264,
             "tx_count": 2,
@@ -653,8 +715,9 @@
         {
           "address": "kaspa:qrdxt5uf6756e0etcamccyhhyf0xlm0zfgu3fyund68p377l2u2sgj80updzy",
           "kas": 2121565.0,
-          "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2026-05-07 an eine adresse mit 127,824 transaktionen",
+          "verdict": "boerse ueber zwischenadresse",
+          "reason": "am 2026-05-07 weitergeleitet an die auf kaspa.stream als bybit beschriftete adresse",
+          "exchange": "bybit",
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 20,
@@ -669,8 +732,8 @@
               "kas": 2121464.98936
             },
             "to_profile": {
-              "balance_kas": 787683704.1207464,
-              "tx_count": 127824,
+              "balance_kas": 787662137.5241064,
+              "tx_count": 127825,
               "tx_count_source": "api"
             }
           }
@@ -688,8 +751,9 @@
         {
           "address": "kaspa:qrdxt5uf6756e0etcamccyhhyf0xlm0zfgu3fyund68p377l2u2sgj80updzy",
           "kas": 2079727.0,
-          "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2026-06-18 an eine adresse mit 127,824 transaktionen",
+          "verdict": "boerse ueber zwischenadresse",
+          "reason": "am 2026-06-18 weitergeleitet an die auf kaspa.stream als bybit beschriftete adresse",
+          "exchange": "bybit",
           "profile": {
             "balance_kas": 0.0,
             "tx_count": 20,
@@ -704,8 +768,8 @@
               "kas": 1579726.98936
             },
             "to_profile": {
-              "balance_kas": 787683704.1207464,
-              "tx_count": 127824,
+              "balance_kas": 787662137.5241064,
+              "tx_count": 127825,
               "tx_count_source": "api"
             }
           }
