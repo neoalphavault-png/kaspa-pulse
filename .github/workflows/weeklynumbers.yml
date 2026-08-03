@@ -1,0 +1,65 @@
+name: weekly numbers
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/week-input.json'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'nur rechnen und drucken, nicht posten'
+        type: boolean
+        default: true
+      force:
+        description: 'sprungbremse und dublettensperre ueberstimmen'
+        type: boolean
+        default: false
+      show_usd:
+        description: 'dollarwerte an emission und boersenbestand haengen'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-numbers
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - name: repo holen
+        uses: actions/checkout@v4
+
+      - name: python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: selbsttest
+        run: python3 scripts/weekly_numbers.py --selftest
+
+      - name: rechnen und posten
+        env:
+          DISCORD_WEBHOOK_WEEKLY: ${{ secrets.DISCORD_WEBHOOK_WEEKLY }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
+          FORCE: ${{ inputs.force && '1' || '' }}
+          SHOW_USD: ${{ inputs.show_usd && '1' || '' }}
+        run: python3 scripts/weekly_numbers.py
+
+      - name: history zurueckschreiben
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          if git diff --quiet -- data/weekly-history.json; then
+            echo "history unveraendert, nichts zu pushen"
+            exit 0
+          fi
+          git config user.name "kaspa pulse bot"
+          git config user.email "actions@github.com"
+          git add data/weekly-history.json
+          git commit -m "weekly numbers, woche fortgeschrieben"
+          git pull --rebase origin main
+          git push
