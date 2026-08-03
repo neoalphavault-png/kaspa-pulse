@@ -137,6 +137,8 @@ def net_flows(txs):
     outflows = []
     outflow_kas = 0.0
     unresolved = 0
+    dust_tx = 0
+    dust_kas = 0.0
     for t in txs:
         bt = t.get("block_time") or 0
         gain = 0.0
@@ -164,13 +166,21 @@ def net_flows(txs):
             # ist eine voellig andere Geschichte als viele kleine ueber Jahre.
             outflows.append({"ts": bt, "day": day(bt), "kas": -net,
                              "tx": t.get("transaction_id", "")})
+        else:
+            # Weder Kauf noch Abfluss. Meist Staubsendungen fremder Leute an
+            # eine beruehmte Adresse. Wir zaehlen sie, damit die Summe der
+            # Transaktionen aufgeht und niemand fragen kann, wo der Rest ist.
+            dust_tx += 1
+            dust_kas += net
+    print(f"davon {dust_tx} transaktionen unter der staubgrenze "
+          f"({dust_kas:,.4f} KAS netto), weder kauf noch abfluss")
     if unresolved:
         print(f"WARN {unresolved} eingaenge ohne aufgeloeste herkunft. "
               f"bei einer reinen sammeladresse ist das unkritisch.",
               file=sys.stderr)
     inflows.sort(key=lambda x: x["ts"])
     outflows.sort(key=lambda x: x["ts"])
-    return inflows, outflows, outflow_kas
+    return inflows, outflows, outflow_kas, {"tx": dust_tx, "kas": dust_kas}
 
 
 # ---------------------------------------------------------------------------
@@ -230,7 +240,10 @@ def mexc_days(start_ms, end_ms):
             newest = max(newest, ts)
             out[day(ts)] = _vwap(r[5], r[7], r[4])
         print(f"mexc: {len(rows)} tageskerzen bis {day(newest)}")
-        if len(rows) < 1000:
+        # MEXC liefert weniger Zeilen als angefragt. Eine volle Seite als
+        # Abbruchbedingung waere falsch, wir laufen weiter solange sich der
+        # neueste Zeitstempel bewegt.
+        if newest + 86400_000 <= cur:
             break
         cur = newest + 86400_000
     return out
@@ -254,7 +267,7 @@ def bybit_days(start_ms, end_ms):
             newest = max(newest, ts)
             out[day(ts)] = _vwap(r[5], r[6], r[4])
         print(f"bybit: {len(rows)} tageskerzen bis {day(newest)}")
-        if len(rows) < 1000:
+        if newest + 86400_000 <= cur:
             break
         cur = newest + 86400_000
     return out
@@ -362,7 +375,7 @@ def main():
         print("ERROR keine transaktionen erhalten", file=sys.stderr)
         sys.exit(1)
 
-    inflows, outflows, outflow_kas = net_flows(txs)
+    inflows, outflows, outflow_kas, dust = net_flows(txs)
     if not inflows:
         print("ERROR keine zufluesse gefunden", file=sys.stderr)
         sys.exit(1)
@@ -439,6 +452,9 @@ def main():
         "avg_cost_usd": round(avg, 6) if avg else None,
         "outflow_kas": round(outflow_kas, 2),
         "outflow_count": len(outflows),
+        "transactions_total": len(txs),
+        "dust_transactions": dust["tx"],
+        "dust_kas": round(dust["kas"], 4),
         "first_outflow": outflows[0]["day"] if outflows else None,
         "last_outflow": outflows[-1]["day"] if outflows else None,
         "outflows": [{"day": f["day"], "kas": round(f["kas"], 2),
