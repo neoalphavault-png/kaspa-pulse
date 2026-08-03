@@ -1,20 +1,15 @@
 {
   "week": "2026-08-03",
-
   "manual": {
-    "active_addr": null,
-    "tps": null,
-    "holders": null,
-    "dormant_pct": null,
-    "exchange_kas": null
+    "active_addr": 13940,
+    "tps": 0.91,
+    "holders": 747603,
+    "dormant_pct": 50.6,
+    "exchange_kas": 3854799342
   },
-
-  "read": "",
-
+  "read": "more machines joined the network than at any point this quarter, and the reward per machine drops on wednesday. miners are paying more to earn less. that is a bet on later, not on today.",
   "override": {},
-
   "issue": null,
-
   "_hinweise": {
     "week": "der tag an dem der post rausgeht, format JJJJ-MM-TT. steht die woche schon in der history, passiert nichts und der lauf bleibt gruen. das datum ist der schalter, erst wenn du es hochstellst geht ein post raus.",
     "active_addr": "kaspalytics, daily active addresses, ganze zahl",
