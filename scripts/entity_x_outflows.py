@@ -51,8 +51,21 @@ BUSY_TX = 5000
 # Adressen, die wir sicher zuordnen koennen. Bitte nur eintragen, was auf
 # kaspa.stream oder von der Boerse selbst als solche ausgewiesen ist.
 # Solange die Liste leer ist, arbeitet das Skript rein verhaltensbasiert.
+#
+# Stand 03.08.2026: alle vier Ziel-Hotwallets von kaspa.stream beschriftet,
+# von Ben einzeln in der Adresssuche geprueft. Die Bestaende in Klammern sind
+# der Stand der Pruefung und dienen nur als Wiedererkennung, das Skript holt
+# den aktuellen Wert selbst.
+KNOWN_SOURCE = "kaspa.stream address labels, geprueft am 2026-08-03"
 KNOWN = {
-    # "kaspa:q...": "binance hot wallet",
+    # 765.831.109 KAS
+    "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m": "gate.io",
+    # 787.662.138 KAS
+    "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges": "bybit",
+    # 210.102.179 KAS
+    "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j": "bitget",
+    # 17.948.352 KAS
+    "kaspa:qzxs23g7txh3wq9d0t2z0hluhsflvzpf6d0yfum830ppumgtxa5d7zqca8r67": "bitvavo",
 }
 
 # Wie viele Transaktionen wir uns pro Empfaenger ansehen, um den zweiten
@@ -258,32 +271,58 @@ def next_hop(address, after_ts, min_kas):
 
 
 def classify(addr, profile, hop, received_kas):
-    """Einschaetzung mit Begruendung. Nie eine nackte Behauptung."""
-    if addr in KNOWN:
-        return "boerse", f"adresse ist als {KNOWN[addr]} bekannt"
+    """Einschaetzung mit Begruendung. Nie eine nackte Behauptung.
+
+    Rueckgabe: (verdict, reason, exchange). exchange ist None, solange wir
+    keinen Namen belegen koennen. Ein Name kommt ausschliesslich aus KNOWN,
+    also aus einem fremden Label, nie aus unserer eigenen Vermutung.
+
+    Wichtig fuer die Formulierung nach aussen: auch ein sicher benannter
+    Boersen-Eingang ist KEIN Verkauf. Er ist eine Einzahlung. Was danach
+    passiert, sieht die Kette nicht.
+    """
     n = profile.get("tx_count")
     bal = profile.get("balance_kas")
+
+    # 1. Direkt auf eine beschriftete Hotwallet.
+    if addr in KNOWN:
+        return ("boerse", f"empfaenger ist auf kaspa.stream als "
+                f"{KNOWN[addr]} beschriftet", KNOWN[addr])
+
+    # 2. Ueber eine Zwischenadresse auf eine beschriftete Hotwallet. Das ist
+    #    das uebliche Einzahlungsmuster. Der Name ist belegt, der Weg dorthin
+    #    ist von uns rekonstruiert, deshalb ein eigenes Urteil.
+    hop_addr = hop["to"]["address"] if hop else None
+    if hop_addr and hop_addr in KNOWN:
+        return ("boerse ueber zwischenadresse",
+                f"am {hop['day']} weitergeleitet an die auf kaspa.stream als "
+                f"{KNOWN[hop_addr]} beschriftete adresse", KNOWN[hop_addr])
+
+    # 3. Kein Label, aber ein Aktivitaetsprofil, das keine Privatperson sein
+    #    kann. Ab hier reden wir nur noch von Wahrscheinlichkeit.
     if n is not None and n >= BUSY_TX:
-        return "boerse wahrscheinlich", (
-            f"empfaenger hat {n:,} transaktionen, das ist kein privates wallet")
-    if hop and hop["to"]["address"] in KNOWN:
-        return "boerse wahrscheinlich", (
-            f"weitergeleitet an {KNOWN[hop['to']['address']]} am {hop['day']}")
-    if hop and hop.get("to_profile", {}).get("tx_count", 0) >= BUSY_TX:
-        return "boerse wahrscheinlich", (
-            f"weitergeleitet am {hop['day']} an eine adresse mit "
-            f"{hop['to_profile']['tx_count']:,} transaktionen")
+        return ("boerse wahrscheinlich",
+                f"empfaenger hat {n:,} transaktionen, das ist kein privates "
+                f"wallet", None)
+
+    hop_n = (hop or {}).get("to_profile", {}).get("tx_count")
+    if hop_n is not None and hop_n >= BUSY_TX:
+        return ("boerse wahrscheinlich",
+                f"weitergeleitet am {hop['day']} an eine adresse mit "
+                f"{hop_n:,} transaktionen", None)
+
     if hop:
-        return "weitergeschickt, ziel unklar", (
-            f"am {hop['day']} weiter an {hop['to']['address'][:28]}")
+        return ("weitergeschickt, ziel unklar",
+                f"am {hop['day']} weiter an {hop_addr[:28]}", None)
     if bal is not None and bal >= received_kas * 0.95:
-        return "liegt noch da", (
-            f"empfaenger haelt heute {bal:,.0f} KAS, hat also nichts bewegt")
+        return ("liegt noch da",
+                f"empfaenger haelt heute {bal:,.0f} KAS, hat also nichts "
+                f"bewegt", None)
     if bal is not None:
-        return "unklar", (
-            f"empfaenger haelt heute {bal:,.0f} KAS von {received_kas:,.0f} "
-            f"erhaltenen, kein weiterer sprung gefunden")
-    return "unklar", "empfaenger nicht profilierbar"
+        return ("unklar",
+                f"empfaenger haelt heute {bal:,.0f} KAS von {received_kas:,.0f} "
+                f"erhaltenen, kein weiterer sprung gefunden", None)
+    return "unklar", "empfaenger nicht profilierbar", None
 
 
 # ---------------------------------------------------------------------------
@@ -321,19 +360,43 @@ def main():
                 hn, hhow = tx_count(hop["to"]["address"])
                 hop["to_profile"] = {"balance_kas": hb, "tx_count": hn,
                                      "tx_count_source": hhow}
-            verdict, why = classify(a, profiles[a], hop, d["kas"])
+            verdict, why, exch = classify(a, profiles[a], hop, d["kas"])
             d["verdict"] = verdict
             d["reason"] = why
+            d["exchange"] = exch
             d["profile"] = profiles[a]
             d["next_hop"] = hop
             print(f"    an {a}")
-            print(f"       {d['kas']:,.0f} KAS  [{verdict}]  {why}")
+            label = f"[{verdict}]" + (f" -> {exch}" if exch else "")
+            print(f"       {d['kas']:,.0f} KAS  {label}  {why}")
         print("")
 
     counts = {}
+    kas_by_verdict = {}
+    by_exchange = {}
+    named_kas = 0.0
     for f in flows:
         for d in f["destinations"]:
-            counts[d["verdict"]] = counts.get(d["verdict"], 0) + 1
+            v = d["verdict"]
+            counts[v] = counts.get(v, 0) + 1
+            kas_by_verdict[v] = round(kas_by_verdict.get(v, 0.0) + d["kas"], 2)
+            e = d.get("exchange")
+            if e:
+                rec = by_exchange.setdefault(
+                    e, {"kas": 0.0, "transfers": 0, "direct": 0, "via_hop": 0,
+                        "first_day": f["day"], "last_day": f["day"]})
+                rec["kas"] = round(rec["kas"] + d["kas"], 2)
+                rec["transfers"] += 1
+                if v == "boerse":
+                    rec["direct"] += 1
+                else:
+                    rec["via_hop"] += 1
+                if f["day"] < rec["first_day"]:
+                    rec["first_day"] = f["day"]
+                if f["day"] > rec["last_day"]:
+                    rec["last_day"] = f["day"]
+                named_kas += d["kas"]
+    named_kas = round(named_kas, 2)
 
     out = {
         "generated_at": int(time.time()),
@@ -343,10 +406,18 @@ def main():
                    "one additional hop followed"),
         "busy_tx_threshold": BUSY_TX,
         "known_labels": len(KNOWN),
+        "known_label_source": KNOWN_SOURCE,
         "transactions_total": len(txs),
         "outflow_count": len(flows),
         "outflow_kas": round(total_out, 2),
         "verdict_counts": counts,
+        "kas_by_verdict": kas_by_verdict,
+        "by_exchange": by_exchange,
+        "named_exchange_kas": named_kas,
+        "named_exchange_share": (round(named_kas / total_out, 4)
+                                 if total_out else 0),
+        "caveat": ("a deposit to an exchange address is not a sale. the chain "
+                   "shows the transfer, not the intent."),
         "outflows": flows,
     }
     os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)
@@ -359,7 +430,19 @@ def main():
     print(f"abfluesse           {len(flows)}")
     print(f"KAS jemals raus     {total_out:,.0f}")
     for k, v in sorted(counts.items(), key=lambda x: -x[1]):
-        print(f"  {k:<32} {v}")
+        print(f"  {k:<32} {v:>3}  {kas_by_verdict.get(k, 0):>16,.0f} KAS")
+    if by_exchange:
+        print("-" * 64)
+        print("NACH BOERSE (nur belegte labels)")
+        for e, r in sorted(by_exchange.items(), key=lambda x: -x[1]["kas"]):
+            share = r["kas"] / total_out * 100 if total_out else 0
+            print(f"  {e:<12} {r['kas']:>16,.0f} KAS  {share:5.1f}%  "
+                  f"{r['transfers']} transfers  "
+                  f"{r['first_day']} bis {r['last_day']}")
+        print(f"  {'summe':<12} {named_kas:>16,.0f} KAS  "
+              f"{named_kas / total_out * 100 if total_out else 0:5.1f}%")
+        print(f"\n  quelle der labels: {KNOWN_SOURCE}")
+        print("  merke: eine einzahlung auf eine boerse ist kein verkauf.")
     if not KNOWN:
         print("\nhinweis: KNOWN ist leer. die einschaetzung ist rein")
         print("verhaltensbasiert. sobald wir echte boersen-labels von")
