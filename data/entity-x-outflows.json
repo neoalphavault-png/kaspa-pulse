@@ -1,0 +1,716 @@
+{
+  "generated_at": 1785753249,
+  "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
+  "method": "outputs per outflow transaction, change to self removed, recipients profiled by balance and transaction count, one additional hop followed",
+  "busy_tx_threshold": 5000,
+  "known_labels": 0,
+  "transactions_total": 503,
+  "outflow_count": 20,
+  "outflow_kas": 39038233.45,
+  "verdict_counts": {
+    "weitergeschickt, ziel unklar": 6,
+    "liegt noch da": 2,
+    "boerse wahrscheinlich": 13
+  },
+  "outflows": [
+    {
+      "ts": 1709815872346,
+      "day": "2024-03-07",
+      "tx": "2a59e5f49830acfa7fec5f1c6d4821963f5895c069b2bbed8a160bddeb295748",
+      "net_out_kas": 2.00002047,
+      "sent_gross_kas": 6.72,
+      "change_back_kas": 4.71997953,
+      "destinations": [
+        {
+          "address": "kaspa:qr4znetsvjehrrfn75rra5zej50nsgx7v3zlkk54ljsddsry6sa6y3zs6s2sz",
+          "kas": 2.0,
+          "verdict": "weitergeschickt, ziel unklar",
+          "reason": "am 2024-03-11 weiter an kaspa:qz5uzyhecgfjmcgg4wang7",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 20,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1710145940036,
+            "day": "2024-03-11",
+            "tx": "9ce777465c769d755070c85ffc832341d32632cad72b6d1f7523c63a6b45158f",
+            "to": {
+              "address": "kaspa:qz5uzyhecgfjmcgg4wang74235yjmpcfj6wf4qqz893r3vdw4ycpqr3p4xcdv",
+              "kas": 991.99994711
+            },
+            "to_profile": {
+              "balance_kas": 0.0,
+              "tx_count": 2,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1711714415077,
+      "day": "2024-03-29",
+      "tx": "cd1fd92d2fbc432c8b6a0e380eb7de3368c8e8cbf3c39a681643aa01f436c2e8",
+      "net_out_kas": 10.00003164,
+      "sent_gross_kas": 121600974.05979064,
+      "change_back_kas": 121600964.059759,
+      "destinations": [
+        {
+          "address": "kaspa:qr4znetsvjehrrfn75rra5zej50nsgx7v3zlkk54ljsddsry6sa6y3zs6s2sz",
+          "kas": 10.0,
+          "verdict": "weitergeschickt, ziel unklar",
+          "reason": "am 2024-06-10 weiter an kaspa:qpykj9tu7j78yaalfxytnu",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 20,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1718032799683,
+            "day": "2024-06-10",
+            "tx": "2036464361343e3c872d4767fb8ce2a4b17971cc3a5b740dbd4d2e92519393aa",
+            "to": {
+              "address": "kaspa:qpykj9tu7j78yaalfxytnuth2zkmaq6ltec3jm3w6es8s4jxguq2xlcsuu5xg",
+              "kas": 3628696.03277931
+            },
+            "to_profile": {
+              "balance_kas": 0.0,
+              "tx_count": 4,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1711714458913,
+      "day": "2024-03-29",
+      "tx": "c024a95c173ed3458b2d4dfb3b759a4e7af2c8b18819f41721e04ef93b65d27a",
+      "net_out_kas": 10.00003165,
+      "sent_gross_kas": 131602218.159059,
+      "change_back_kas": 131602208.15902735,
+      "destinations": [
+        {
+          "address": "kaspa:qpu9pjmd8xk7zpjyap8820auxyks76gtqzj84dzeagv3yhhexvz86wkdaewcx",
+          "kas": 10.0,
+          "verdict": "weitergeschickt, ziel unklar",
+          "reason": "am 2024-03-29 weiter an kaspa:qpz2vgvlxhmyhmt22h538p",
+          "profile": {
+            "balance_kas": 1311.0,
+            "tx_count": 9,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1711714523787,
+            "day": "2024-03-29",
+            "tx": "4ad832f90252aaba34718e8d724a982fbe92548f3adb348a9f98fb5fa5022cc4",
+            "to": {
+              "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
+              "kas": 10.49989576
+            },
+            "to_profile": {
+              "balance_kas": 1503875035.5051956,
+              "tx_count": 503,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1712070771633,
+      "day": "2024-04-02",
+      "tx": "ef2e2e05758151b28228495aeda0081d9587763060e22ea1820ccb671a3d3025",
+      "net_out_kas": 1.00003162,
+      "sent_gross_kas": 141602208.15901077,
+      "change_back_kas": 141602207.15897915,
+      "destinations": [
+        {
+          "address": "kaspa:qpu9pjmd8xk7zpjyap8820auxyks76gtqzj84dzeagv3yhhexvz86wkdaewcx",
+          "kas": 1.0,
+          "verdict": "liegt noch da",
+          "reason": "empfaenger haelt heute 1,311 KAS, hat also nichts bewegt",
+          "profile": {
+            "balance_kas": 1311.0,
+            "tx_count": 9,
+            "tx_count_source": "api"
+          },
+          "next_hop": null
+        }
+      ]
+    },
+    {
+      "ts": 1712149024720,
+      "day": "2024-04-03",
+      "tx": "381a9432a9d8bbce2cbb965e0a2e51b0adbe84f7bb012e58a38237c988a8717e",
+      "net_out_kas": 1310.00003162,
+      "sent_gross_kas": 144702203.87897915,
+      "change_back_kas": 144700893.87894753,
+      "destinations": [
+        {
+          "address": "kaspa:qpu9pjmd8xk7zpjyap8820auxyks76gtqzj84dzeagv3yhhexvz86wkdaewcx",
+          "kas": 1310.0,
+          "verdict": "liegt noch da",
+          "reason": "empfaenger haelt heute 1,311 KAS, hat also nichts bewegt",
+          "profile": {
+            "balance_kas": 1311.0,
+            "tx_count": 9,
+            "tx_count_source": "api"
+          },
+          "next_hop": null
+        }
+      ]
+    },
+    {
+      "ts": 1726143504905,
+      "day": "2024-09-12",
+      "tx": "8d9e989327882a92fbc7ca0828b12fa8954cd671757477224a964c00b45439d1",
+      "net_out_kas": 300.00003165,
+      "sent_gross_kas": 155900890.05894753,
+      "change_back_kas": 155900590.05891588,
+      "destinations": [
+        {
+          "address": "kaspa:qz9ks6ltlurlazt0kkrk30dndkaa46y9a43vq49dtxrftmg4g69vc36v357ys",
+          "kas": 300.0,
+          "verdict": "boerse wahrscheinlich",
+          "reason": "weitergeleitet am 2024-09-19 an eine adresse mit 127,824 transaktionen",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 4,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1726750847756,
+            "day": "2024-09-19",
+            "tx": "4cc601f698003467e764fce52abebb09732f216d82ab074cac715c2509a2b3ec",
+            "to": {
+              "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
+              "kas": 1137496.34828279
+            },
+            "to_profile": {
+              "balance_kas": 787683704.1207464,
+              "tx_count": 127824,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1726748402131,
+      "day": "2024-09-19",
+      "tx": "51d4cdfe781684cda3f94ef78ee33f9698d6d27a0580b491b13a4991d9e7f466",
+      "net_out_kas": 1140000.00003165,
+      "sent_gross_kas": 163800586.83891588,
+      "change_back_kas": 162660586.83888423,
+      "destinations": [
+        {
+          "address": "kaspa:qz9ks6ltlurlazt0kkrk30dndkaa46y9a43vq49dtxrftmg4g69vc36v357ys",
+          "kas": 1140000.0,
+          "verdict": "boerse wahrscheinlich",
+          "reason": "weitergeleitet am 2024-09-19 an eine adresse mit 127,824 transaktionen",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 4,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1726750847756,
+            "day": "2024-09-19",
+            "tx": "4cc601f698003467e764fce52abebb09732f216d82ab074cac715c2509a2b3ec",
+            "to": {
+              "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
+              "kas": 1137496.34828279
+            },
+            "to_profile": {
+              "balance_kas": 787683704.1207464,
+              "tx_count": 127824,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1747052948267,
+      "day": "2025-05-12",
+      "tx": "72edb68f09b8f8f459a791318be54e51a8a363655d5af604c9b1c9c2eb79845a",
+      "net_out_kas": 3151025.00003162,
+      "sent_gross_kas": 204880581.83888423,
+      "change_back_kas": 201729556.8388526,
+      "destinations": [
+        {
+          "address": "kaspa:qrdxt5uf6756e0etcamccyhhyf0xlm0zfgu3fyund68p377l2u2sgj80updzy",
+          "kas": 3151025.0,
+          "verdict": "boerse wahrscheinlich",
+          "reason": "weitergeleitet am 2025-05-12 an eine adresse mit 127,824 transaktionen",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 20,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1747061374956,
+            "day": "2025-05-12",
+            "tx": "10427fdf0a6e000ba504d271fd531364c77ec259c78a5de88ae8c50b20556949",
+            "to": {
+              "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
+              "kas": 3150995.88228152
+            },
+            "to_profile": {
+              "balance_kas": 787683704.1207464,
+              "tx_count": 127824,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1753356647969,
+      "day": "2025-07-24",
+      "tx": "bb32453d1d5eca4b6a047d2d246d06c4d0512da967d9a5e55d669224a7d17261",
+      "net_out_kas": 4794864.00003165,
+      "sent_gross_kas": 226149551.8388526,
+      "change_back_kas": 221354687.83882096,
+      "destinations": [
+        {
+          "address": "kaspa:qrl6dvnd6fjszucdnfueendlvvxdzcjrs2lcjune98up0whm954uz5k4dl80k",
+          "kas": 4794864.0,
+          "verdict": "boerse wahrscheinlich",
+          "reason": "weitergeleitet am 2025-08-06 an eine adresse mit 140,039 transaktionen",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 8,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1754439080288,
+            "day": "2025-08-06",
+            "tx": "dd975f1ee04b80c2ae8d8afe8befcbcf09153901dddf0995f4b01531e44f0d15",
+            "to": {
+              "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
+              "kas": 50532771.44843256
+            },
+            "to_profile": {
+              "balance_kas": 765837255.1927587,
+              "tx_count": 140039,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1761571802885,
+      "day": "2025-10-27",
+      "tx": "4052e27d6ff28f1f9cc2c8318c07f0792b9789e3968b244c555534055f2228cf",
+      "net_out_kas": 1454731.00003165,
+      "sent_gross_kas": 310604975.837401,
+      "change_back_kas": 309150244.8373693,
+      "destinations": [
+        {
+          "address": "kaspa:qzje8wvpf4k3m2j4tv2vh5nshrsm7dmfnu63fy79snhahzd7d58yxj55qymaw",
+          "kas": 1454731.0,
+          "verdict": "boerse wahrscheinlich",
+          "reason": "weitergeleitet am 2025-10-27 an eine adresse mit 24,492 transaktionen",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 10,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1761574503993,
+            "day": "2025-10-27",
+            "tx": "32d0e6528ed31716d9cbaa9d0243b8f4ceaddce1600db86826f7ef2ebee6f2f5",
+            "to": {
+              "address": "kaspa:qzxs23g7txh3wq9d0t2z0hluhsflvzpf6d0yfum830ppumgtxa5d7zqca8r67",
+              "kas": 1451687.99955
+            },
+            "to_profile": {
+              "balance_kas": 18049640.0761825,
+              "tx_count": 24492,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1762436229540,
+      "day": "2025-11-06",
+      "tx": "ff2400f27f1b7bdce6e94545a09fe39594225f8f4c2460a8dfe091b8a6672821",
+      "net_out_kas": 5714289.00003165,
+      "sent_gross_kas": 374208944.3028578,
+      "change_back_kas": 368494655.30282617,
+      "destinations": [
+        {
+          "address": "kaspa:qplr6latmjqjmazjdykuzk07sfdg48ha9v98eg6pchtyy34egsvyzq204pv5p",
+          "kas": 5714289.0,
+          "verdict": "boerse wahrscheinlich",
+          "reason": "weitergeleitet am 2025-11-06 an eine adresse mit 111,950 transaktionen",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 2,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1762436368467,
+            "day": "2025-11-06",
+            "tx": "c8f7b1e477e4f2690c53209a728db60f558fbb0ac8fa95d189153317f6ba42a2",
+            "to": {
+              "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
+              "kas": 5714286.5
+            },
+            "to_profile": {
+              "balance_kas": 210050824.5146408,
+              "tx_count": 111950,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1766570745921,
+      "day": "2025-12-24",
+      "tx": "f0e00d6133a6cc8c3f9a84b682e0b14d9636dff43741263e56a5952fe4a8e35d",
+      "net_out_kas": 1384901.00003165,
+      "sent_gross_kas": 401807228.80115014,
+      "change_back_kas": 400422327.8011185,
+      "destinations": [
+        {
+          "address": "kaspa:qrdxt5uf6756e0etcamccyhhyf0xlm0zfgu3fyund68p377l2u2sgj80updzy",
+          "kas": 1384901.0,
+          "verdict": "weitergeschickt, ziel unklar",
+          "reason": "am 2026-03-30 weiter an kaspa:qrwf3qud6cylzrqnzucsu5",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 20,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1774874149802,
+            "day": "2026-03-30",
+            "tx": "4db88bedcd78d99968c77afd7844c3be42fea170aec7a149e33d21e08bd9fc91",
+            "to": {
+              "address": "kaspa:qrwf3qud6cylzrqnzucsu5clxd4d5g0a0c6033mqqv9j4mtzj89mqjfmpkmsj",
+              "kas": 3023883.0
+            },
+            "to_profile": {
+              "balance_kas": 0.0,
+              "tx_count": 1428,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1767803588818,
+      "day": "2026-01-07",
+      "tx": "ec5ca82af0f2a64fb7a5fd469fc0dfaf7ec38bf5d2281cf105a9fec2de970fd3",
+      "net_out_kas": 120.80003166,
+      "sent_gross_kas": 428495796.5723945,
+      "change_back_kas": 428495675.7723628,
+      "destinations": [
+        {
+          "address": "kaspa:qrl6dvnd6fjszucdnfueendlvvxdzcjrs2lcjune98up0whm954uz5k4dl80k",
+          "kas": 120.8,
+          "verdict": "boerse wahrscheinlich",
+          "reason": "weitergeleitet am 2026-01-23 an eine adresse mit 140,039 transaktionen",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 8,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1769136173922,
+            "day": "2026-01-23",
+            "tx": "8450eba751f9452964f2e2d61e823f4a841d0bfa8180bf9432f2749280d363f8",
+            "to": {
+              "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
+              "kas": 9963.3075697
+            },
+            "to_profile": {
+              "balance_kas": 765837255.1927587,
+              "tx_count": 140039,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1768999789584,
+      "day": "2026-01-21",
+      "tx": "67349f7e979a39b8928c7041c475f18d7f0944d53bd59301b337a875b41a2464",
+      "net_out_kas": 3396168.00003171,
+      "sent_gross_kas": 460621265.22647285,
+      "change_back_kas": 457225097.22644114,
+      "destinations": [
+        {
+          "address": "kaspa:qzje8wvpf4k3m2j4tv2vh5nshrsm7dmfnu63fy79snhahzd7d58yxj55qymaw",
+          "kas": 3396168.0,
+          "verdict": "boerse wahrscheinlich",
+          "reason": "weitergeleitet am 2026-01-21 an eine adresse mit 24,492 transaktionen",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 10,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1768999919894,
+            "day": "2026-01-21",
+            "tx": "1751f98111477e5d53aeef6c7bc939ba538a225991d16c43fef772e9d7c77fe9",
+            "to": {
+              "address": "kaspa:qzxs23g7txh3wq9d0t2z0hluhsflvzpf6d0yfum830ppumgtxa5d7zqca8r67",
+              "kas": 3394718.89220013
+            },
+            "to_profile": {
+              "balance_kas": 18049640.0761825,
+              "tx_count": 24492,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1769778104962,
+      "day": "2026-01-30",
+      "tx": "4a8300c997da31bf72d7d3bd2170a72e006b7c90372cd8939202ed1cd8269a64",
+      "net_out_kas": 2680399.00003171,
+      "sent_gross_kas": 481536858.1393076,
+      "change_back_kas": 478856459.1392759,
+      "destinations": [
+        {
+          "address": "kaspa:qzje8wvpf4k3m2j4tv2vh5nshrsm7dmfnu63fy79snhahzd7d58yxj55qymaw",
+          "kas": 2680399.0,
+          "verdict": "boerse wahrscheinlich",
+          "reason": "weitergeleitet am 2026-01-30 an eine adresse mit 24,492 transaktionen",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 10,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1769779911935,
+            "day": "2026-01-30",
+            "tx": "bd83f6ded93e9d40c590ab5f5ed1b4a9efeb5b47ae61f5838af68f1b2dc74ada",
+            "to": {
+              "address": "kaspa:qzxs23g7txh3wq9d0t2z0hluhsflvzpf6d0yfum830ppumgtxa5d7zqca8r67",
+              "kas": 2664544.90568019
+            },
+            "to_profile": {
+              "balance_kas": 18049640.0761825,
+              "tx_count": 24492,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1770036689031,
+      "day": "2026-02-02",
+      "tx": "39fb73b0b702e98357ff584afc1e3567456c81e6409ce180c05fc1e55576a62a",
+      "net_out_kas": 4082620.00003165,
+      "sent_gross_kas": 501316453.0792759,
+      "change_back_kas": 497233833.07924426,
+      "destinations": [
+        {
+          "address": "kaspa:qzje8wvpf4k3m2j4tv2vh5nshrsm7dmfnu63fy79snhahzd7d58yxj55qymaw",
+          "kas": 4082620.0,
+          "verdict": "boerse wahrscheinlich",
+          "reason": "weitergeleitet am 2026-02-02 an eine adresse mit 24,492 transaktionen",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 10,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1770037005628,
+            "day": "2026-02-02",
+            "tx": "7655f4f4788b65b91825130db4d458d01404de1e404a9c420d5bad8307f46bb5",
+            "to": {
+              "address": "kaspa:qzxs23g7txh3wq9d0t2z0hluhsflvzpf6d0yfum830ppumgtxa5d7zqca8r67",
+              "kas": 4078863.88626487
+            },
+            "to_profile": {
+              "balance_kas": 18049640.0761825,
+              "tx_count": 24492,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1770297209176,
+      "day": "2026-02-05",
+      "tx": "9d55257f334e29e1d4ee66b3df196ace0dbc99fdcba2c817482845dabb9190d0",
+      "net_out_kas": 1119619.00003171,
+      "sent_gross_kas": 518255546.19914997,
+      "change_back_kas": 517135927.19911826,
+      "destinations": [
+        {
+          "address": "kaspa:qrdxt5uf6756e0etcamccyhhyf0xlm0zfgu3fyund68p377l2u2sgj80updzy",
+          "kas": 1119619.0,
+          "verdict": "weitergeschickt, ziel unklar",
+          "reason": "am 2026-03-30 weiter an kaspa:qrwf3qud6cylzrqnzucsu5",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 20,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1774874149802,
+            "day": "2026-03-30",
+            "tx": "4db88bedcd78d99968c77afd7844c3be42fea170aec7a149e33d21e08bd9fc91",
+            "to": {
+              "address": "kaspa:qrwf3qud6cylzrqnzucsu5clxd4d5g0a0c6033mqqv9j4mtzj89mqjfmpkmsj",
+              "kas": 3023883.0
+            },
+            "to_profile": {
+              "balance_kas": 0.0,
+              "tx_count": 1428,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1773924473787,
+      "day": "2026-03-19",
+      "tx": "45518a5eeebd8c99dc9936c2c384c2494edf9e1e9000c79adb1121a19dddac33",
+      "net_out_kas": 3100141.65003175,
+      "sent_gross_kas": 537915878.9426242,
+      "change_back_kas": 534815737.29259247,
+      "destinations": [
+        {
+          "address": "kaspa:qzje8wvpf4k3m2j4tv2vh5nshrsm7dmfnu63fy79snhahzd7d58yxj55qymaw",
+          "kas": 3100141.65,
+          "verdict": "boerse wahrscheinlich",
+          "reason": "weitergeleitet am 2026-03-19 an eine adresse mit 24,492 transaktionen",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 10,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1773925774409,
+            "day": "2026-03-19",
+            "tx": "ee9654df0145d7ee8b154ab6d5047ab5c9d633266d1236757abbfb2f8ab00bbc",
+            "to": {
+              "address": "kaspa:qzxs23g7txh3wq9d0t2z0hluhsflvzpf6d0yfum830ppumgtxa5d7zqca8r67",
+              "kas": 3091522.94120709
+            },
+            "to_profile": {
+              "balance_kas": 18049640.0761825,
+              "tx_count": 24492,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1778152850714,
+      "day": "2026-05-07",
+      "tx": "8671ec587a90113773fa279d33089c9349f17bb56ad8ce2f73351eedaf4c0385",
+      "net_out_kas": 4937995.0,
+      "sent_gross_kas": 4937995.0,
+      "change_back_kas": 0.0,
+      "destinations": [
+        {
+          "address": "kaspa:qpmhmvvkv76c8krueahagnjks8v89c8aaxat9rdlv8dxwk3ft5keyme0k0z27",
+          "kas": 2816429.99997964,
+          "verdict": "weitergeschickt, ziel unklar",
+          "reason": "am 2026-07-06 weiter an kaspa:qrdxt5uf6756e0etcamccy",
+          "profile": {
+            "balance_kas": 1174365.99793264,
+            "tx_count": 2,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1783337681935,
+            "day": "2026-07-06",
+            "tx": "eeeadf2a611e9ce8a9d2283d30038b2d46bc9dbbd691e9dc064102c27893e362",
+            "to": {
+              "address": "kaspa:qrdxt5uf6756e0etcamccyhhyf0xlm0zfgu3fyund68p377l2u2sgj80updzy",
+              "kas": 1642064.0
+            },
+            "to_profile": {
+              "balance_kas": 0.0,
+              "tx_count": 20,
+              "tx_count_source": "api"
+            }
+          }
+        },
+        {
+          "address": "kaspa:qrdxt5uf6756e0etcamccyhhyf0xlm0zfgu3fyund68p377l2u2sgj80updzy",
+          "kas": 2121565.0,
+          "verdict": "boerse wahrscheinlich",
+          "reason": "weitergeleitet am 2026-05-07 an eine adresse mit 127,824 transaktionen",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 20,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1778156360670,
+            "day": "2026-05-07",
+            "tx": "94053c8e2428b5a31c11aab9152a146a45de4476e82e6f76ee801039f1a70fde",
+            "to": {
+              "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
+              "kas": 2121464.98936
+            },
+            "to_profile": {
+              "balance_kas": 787683704.1207464,
+              "tx_count": 127824,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1781785674335,
+      "day": "2026-06-18",
+      "tx": "2ed0acf4676a4eca8abf491678fe8ab6095db6f59fa095cdf457ca91f4234c7d",
+      "net_out_kas": 2079727.00003159,
+      "sent_gross_kas": 562815735.6225924,
+      "change_back_kas": 560736008.6225609,
+      "destinations": [
+        {
+          "address": "kaspa:qrdxt5uf6756e0etcamccyhhyf0xlm0zfgu3fyund68p377l2u2sgj80updzy",
+          "kas": 2079727.0,
+          "verdict": "boerse wahrscheinlich",
+          "reason": "weitergeleitet am 2026-06-18 an eine adresse mit 127,824 transaktionen",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 20,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1781788807317,
+            "day": "2026-06-18",
+            "tx": "c962a034149aebb9b029401301fa927154d7dafcdd0f3c6ae515aadd90805b5d",
+            "to": {
+              "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
+              "kas": 1579726.98936
+            },
+            "to_profile": {
+              "balance_kas": 787683704.1207464,
+              "tx_count": 127824,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
