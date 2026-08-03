@@ -93,6 +93,30 @@
   .band .fact, .band .note, .band .chart, .band .supply, .band .live { background:#0F1218; }
   .wrap2 { max-width:780px; margin:0 auto; padding:10px 18px 40px; }
   .wrap2 h2:first-child { margin-top:40px; }
+  /* v2.2: cost basis + outflow record */
+  table { border-collapse:collapse; width:100%; font-size:13.5px; }
+  th { text-align:left; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--dimmer);
+       font-weight:700; padding:0 12px 9px 0; border-bottom:1px solid var(--line); white-space:nowrap; }
+  td { padding:10px 12px 10px 0; border-bottom:1px solid #101317; color:var(--dim); white-space:nowrap; }
+  td.n { text-align:right; color:var(--txt); font-variant-numeric:tabular-nums; font-weight:600; }
+  td.tx { font-family:monospace; font-size:11px; color:var(--dimmer); }
+  td.tx a { color:var(--dimmer); text-decoration:none; border-bottom:1px dotted #2A2F36; }
+  td.tx a:hover { color:var(--teal); border-bottom-color:var(--teal); }
+  tr.dust td { color:var(--dimmer); font-style:italic; }
+  .cb { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:26px 24px; margin:26px 0 8px; }
+  .cb .cbt { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--dim); text-align:center; }
+  .cb .cbv { font-size:50px; font-weight:700; color:var(--teal); letter-spacing:-1.5px; text-align:center; margin:8px 0 2px; }
+  .cb .cbs { font-size:13px; color:var(--dimmer); text-align:center; }
+  .cb .cbrow { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:22px; padding-top:20px; border-top:1px solid var(--line); }
+  .cb .cbi { text-align:center; }
+  .cb .cbi .k { font-size:22px; font-weight:700; }
+  .cb .cbi .k.red { color:var(--red); } .cb .cbi .k.teal { color:var(--teal); }
+  .cb .cbi .d { font-size:11.5px; color:var(--dimmer); margin-top:5px; line-height:16px; }
+  @media (max-width:520px){ .cb .cbv{font-size:38px;} .cb .cbrow{grid-template-columns:1fr; gap:18px;}
+    /* Auf dem Handy soll die Transaktionsnummer mit ins Bild, sonst sieht
+       niemand den Beleg und die Tabelle wirkt wie eine Behauptung. */
+    .tblwrap table{min-width:0;} table{font-size:12px;} th,td{padding-right:6px;}
+    td.tx{font-size:9px;} }
 </style>
 </head>
 <body>
@@ -136,7 +160,7 @@
     <div class="fact"><div class="v teal" id="factBal">live ↑</div><div class="l">current balance — one address, verifiable on any explorer, shown live above</div></div>
     <div class="fact"><div class="v teal" id="factPct">live ↑</div><div class="l">share of all circulating KAS held in this single wallet — computed live from supply</div></div>
     <div class="fact"><div class="v red">&gt; ⅓</div><div class="l">of all known exchange holdings combined (3.94B KAS) — as measured July 2026</div></div>
-    <div class="fact"><div class="v teal">+84M</div><div class="l">KAS added in the 90 days to late July 2026 — weekly buys, zero sells</div></div>
+    <div class="fact"><div class="v teal" id="factCost">$0.0881</div><div class="l">average price this wallet paid per KAS — our own calculation from every deposit on chain</div></div>
   </div>
 
 </div></div>
@@ -145,7 +169,7 @@
   <h2>What the on-chain record shows</h2>
   <ul>
     <li><b>It buys every single week.</b> In the week ending July 27, 2026 it added ~17M KAS, withdrawn directly from Bitget and Gate.io. In the 90 days before that: ~84M KAS.</li>
-    <li><b>It has never sent coins to an exchange.</b> Since tracking began, flows go one way: in.</li>
+    <li><b>Coins have left it — <span id="bSum">39,038,233</span> KAS in <span id="bCnt">20</span> transfers since March 2024.</b> You will read almost everywhere that this wallet has never sent a coin out. That is simply not true, and we only know because we rebuilt the address from every transaction ourselves. It is still a small number: <span id="bShare">2.54%</span> of everything the wallet ever bought, against <span id="bRest">97.46%</span> still sitting there. <a href="#outflows">Every single transfer is listed below.</a></li>
     <li><b>It reached this size fast.</b> Between April and July 2026 alone the balance grew from about 1.41 billion to just under 1.5 billion KAS — and it kept going.</li>
     <li><b>First activity:</b> March 2024. A few hundred transactions total — large, deliberate withdrawals, not trading.</li>
   </ul>
@@ -153,8 +177,65 @@
 </div>
 
 <div class="band"><div class="wrap2">
+  <h2 id="costbasis">What Entity X actually paid</h2>
+  <p>Everyone quotes this wallet's balance. Almost nobody has worked out what it cost. So we did it ourselves, from the raw chain data, and we publish the method along with the number.</p>
+  <p>We pull <b>every transaction</b> this address has ever been part of, keep only the true net inflows, and value each one at the <b>volume weighted average price of the day it landed</b> — not the daily close. Nobody buys at midnight. That single choice is why our number will differ slightly from anyone using closing prices, and it is the more honest of the two.</p>
+
+  <div class="cb" id="cbBox">
+    <div class="cbt">Average entry price</div>
+    <div class="cbv" id="cbAvg">$0.0881</div>
+    <div class="cbs" id="cbSub">across 292 deposits between 6 Mar 2024 and 1 Aug 2026</div>
+    <div class="cbrow">
+      <div class="cbi"><div class="k teal" id="cbInv">$135.5M</div><div class="d">put into this wallet, in dollars, at the prices of the day</div></div>
+      <div class="cbi"><div class="k" id="cbVal">$40.5M</div><div class="d">what the same coins are worth right now</div></div>
+      <div class="cbi"><div class="k red" id="cbPnl">−$95.0M</div><div class="d">unrealized, and still buying every week</div></div>
+    </div>
+  </div>
+  <div class="note">Read that bottom row again. This wallet is roughly <b>70% underwater</b> on a nine figure position and it kept buying right through it, with its most recent deposit landing days ago. Whatever it is, it is not trading.</div>
+
+  <p style="font-size:13px;">Method, in full: net inflows only, so change from a wallet's own spending is never miscounted as a purchase. Daily prices from KuCoin, with MEXC and Bybit filling any gaps. If more than 2% of the coins land on days we cannot price, the number is marked unreliable and this box disappears rather than showing you something half true. Recomputed automatically every Monday.</p>
+
+</div></div>
+
+<div class="wrap2">
+  <h2 id="outflows">Every coin that has left this wallet</h2>
+  <p>The claim you will read almost everywhere is that Entity X has never sent a single coin out. <b>That is not correct.</b> Since March 2024, <b><span id="oSum">39,038,233</span> KAS</b> have left the address across <b><span id="oCnt">20</span> transfers</b>. Here is every one of them, with the transaction you can open on any explorer.</p>
+  <p>Keep the scale in mind before anyone turns this into a headline. It is <b><span id="oShare">2.54%</span> of everything the wallet ever bought</b>. The other <span id="oRest">97.46%</span> is still there, and the most recent purchase was days ago. And crucially, <b>the chain does not tell us whether these coins were sold</b>. Sent to an exchange and sold, or moved to a second address the same owner controls, look identical from here. Anyone who tells you which it was is guessing.</p>
+
+  <div class="tblwrap">
+    <table id="outTbl">
+      <thead><tr><th>Date</th><th style="text-align:right">KAS out</th><th>Transaction</th></tr></thead>
+      <tbody id="outBody">
+      <tr class="dust"><td>7 Mar 2024</td><td class="n">2</td><td class="tx"><a href="https://explorer.kaspa.org/txs/2a59e5f49830acfa7fec5f1c6d4821963f5895c069b2bbed8a160bddeb295748" target="_blank" rel="noopener" title="2a59e5f49830acfa7fec5f1c6d4821963f5895c069b2bbed8a160bddeb295748">2a59e5f498…295748</a></td></tr>
+      <tr class="dust"><td>29 Mar 2024</td><td class="n">10</td><td class="tx"><a href="https://explorer.kaspa.org/txs/cd1fd92d2fbc432c8b6a0e380eb7de3368c8e8cbf3c39a681643aa01f436c2e8" target="_blank" rel="noopener" title="cd1fd92d2fbc432c8b6a0e380eb7de3368c8e8cbf3c39a681643aa01f436c2e8">cd1fd92d2f…36c2e8</a></td></tr>
+      <tr class="dust"><td>29 Mar 2024</td><td class="n">10</td><td class="tx"><a href="https://explorer.kaspa.org/txs/c024a95c173ed3458b2d4dfb3b759a4e7af2c8b18819f41721e04ef93b65d27a" target="_blank" rel="noopener" title="c024a95c173ed3458b2d4dfb3b759a4e7af2c8b18819f41721e04ef93b65d27a">c024a95c17…65d27a</a></td></tr>
+      <tr class="dust"><td>2 Apr 2024</td><td class="n">1</td><td class="tx"><a href="https://explorer.kaspa.org/txs/ef2e2e05758151b28228495aeda0081d9587763060e22ea1820ccb671a3d3025" target="_blank" rel="noopener" title="ef2e2e05758151b28228495aeda0081d9587763060e22ea1820ccb671a3d3025">ef2e2e0575…3d3025</a></td></tr>
+      <tr class="dust"><td>3 Apr 2024</td><td class="n">1,310</td><td class="tx"><a href="https://explorer.kaspa.org/txs/381a9432a9d8bbce2cbb965e0a2e51b0adbe84f7bb012e58a38237c988a8717e" target="_blank" rel="noopener" title="381a9432a9d8bbce2cbb965e0a2e51b0adbe84f7bb012e58a38237c988a8717e">381a9432a9…a8717e</a></td></tr>
+      <tr class="dust"><td>12 Sep 2024</td><td class="n">300</td><td class="tx"><a href="https://explorer.kaspa.org/txs/8d9e989327882a92fbc7ca0828b12fa8954cd671757477224a964c00b45439d1" target="_blank" rel="noopener" title="8d9e989327882a92fbc7ca0828b12fa8954cd671757477224a964c00b45439d1">8d9e989327…5439d1</a></td></tr>
+      <tr><td>19 Sep 2024</td><td class="n">1,140,000</td><td class="tx"><a href="https://explorer.kaspa.org/txs/51d4cdfe781684cda3f94ef78ee33f9698d6d27a0580b491b13a4991d9e7f466" target="_blank" rel="noopener" title="51d4cdfe781684cda3f94ef78ee33f9698d6d27a0580b491b13a4991d9e7f466">51d4cdfe78…e7f466</a></td></tr>
+      <tr><td>12 May 2025</td><td class="n">3,151,025</td><td class="tx"><a href="https://explorer.kaspa.org/txs/72edb68f09b8f8f459a791318be54e51a8a363655d5af604c9b1c9c2eb79845a" target="_blank" rel="noopener" title="72edb68f09b8f8f459a791318be54e51a8a363655d5af604c9b1c9c2eb79845a">72edb68f09…79845a</a></td></tr>
+      <tr><td>24 Jul 2025</td><td class="n">4,794,864</td><td class="tx"><a href="https://explorer.kaspa.org/txs/bb32453d1d5eca4b6a047d2d246d06c4d0512da967d9a5e55d669224a7d17261" target="_blank" rel="noopener" title="bb32453d1d5eca4b6a047d2d246d06c4d0512da967d9a5e55d669224a7d17261">bb32453d1d…d17261</a></td></tr>
+      <tr><td>27 Oct 2025</td><td class="n">1,454,731</td><td class="tx"><a href="https://explorer.kaspa.org/txs/4052e27d6ff28f1f9cc2c8318c07f0792b9789e3968b244c555534055f2228cf" target="_blank" rel="noopener" title="4052e27d6ff28f1f9cc2c8318c07f0792b9789e3968b244c555534055f2228cf">4052e27d6f…2228cf</a></td></tr>
+      <tr><td>6 Nov 2025</td><td class="n">5,714,289</td><td class="tx"><a href="https://explorer.kaspa.org/txs/ff2400f27f1b7bdce6e94545a09fe39594225f8f4c2460a8dfe091b8a6672821" target="_blank" rel="noopener" title="ff2400f27f1b7bdce6e94545a09fe39594225f8f4c2460a8dfe091b8a6672821">ff2400f27f…672821</a></td></tr>
+      <tr><td>24 Dec 2025</td><td class="n">1,384,901</td><td class="tx"><a href="https://explorer.kaspa.org/txs/f0e00d6133a6cc8c3f9a84b682e0b14d9636dff43741263e56a5952fe4a8e35d" target="_blank" rel="noopener" title="f0e00d6133a6cc8c3f9a84b682e0b14d9636dff43741263e56a5952fe4a8e35d">f0e00d6133…a8e35d</a></td></tr>
+      <tr class="dust"><td>7 Jan 2026</td><td class="n">121</td><td class="tx"><a href="https://explorer.kaspa.org/txs/ec5ca82af0f2a64fb7a5fd469fc0dfaf7ec38bf5d2281cf105a9fec2de970fd3" target="_blank" rel="noopener" title="ec5ca82af0f2a64fb7a5fd469fc0dfaf7ec38bf5d2281cf105a9fec2de970fd3">ec5ca82af0…970fd3</a></td></tr>
+      <tr><td>21 Jan 2026</td><td class="n">3,396,168</td><td class="tx"><a href="https://explorer.kaspa.org/txs/67349f7e979a39b8928c7041c475f18d7f0944d53bd59301b337a875b41a2464" target="_blank" rel="noopener" title="67349f7e979a39b8928c7041c475f18d7f0944d53bd59301b337a875b41a2464">67349f7e97…1a2464</a></td></tr>
+      <tr><td>30 Jan 2026</td><td class="n">2,680,399</td><td class="tx"><a href="https://explorer.kaspa.org/txs/4a8300c997da31bf72d7d3bd2170a72e006b7c90372cd8939202ed1cd8269a64" target="_blank" rel="noopener" title="4a8300c997da31bf72d7d3bd2170a72e006b7c90372cd8939202ed1cd8269a64">4a8300c997…269a64</a></td></tr>
+      <tr><td>2 Feb 2026</td><td class="n">4,082,620</td><td class="tx"><a href="https://explorer.kaspa.org/txs/39fb73b0b702e98357ff584afc1e3567456c81e6409ce180c05fc1e55576a62a" target="_blank" rel="noopener" title="39fb73b0b702e98357ff584afc1e3567456c81e6409ce180c05fc1e55576a62a">39fb73b0b7…76a62a</a></td></tr>
+      <tr><td>5 Feb 2026</td><td class="n">1,119,619</td><td class="tx"><a href="https://explorer.kaspa.org/txs/9d55257f334e29e1d4ee66b3df196ace0dbc99fdcba2c817482845dabb9190d0" target="_blank" rel="noopener" title="9d55257f334e29e1d4ee66b3df196ace0dbc99fdcba2c817482845dabb9190d0">9d55257f33…9190d0</a></td></tr>
+      <tr><td>19 Mar 2026</td><td class="n">3,100,142</td><td class="tx"><a href="https://explorer.kaspa.org/txs/45518a5eeebd8c99dc9936c2c384c2494edf9e1e9000c79adb1121a19dddac33" target="_blank" rel="noopener" title="45518a5eeebd8c99dc9936c2c384c2494edf9e1e9000c79adb1121a19dddac33">45518a5eee…ddac33</a></td></tr>
+      <tr><td>7 May 2026</td><td class="n">4,937,995</td><td class="tx"><a href="https://explorer.kaspa.org/txs/8671ec587a90113773fa279d33089c9349f17bb56ad8ce2f73351eedaf4c0385" target="_blank" rel="noopener" title="8671ec587a90113773fa279d33089c9349f17bb56ad8ce2f73351eedaf4c0385">8671ec587a…4c0385</a></td></tr>
+      <tr><td>18 Jun 2026</td><td class="n">2,079,727</td><td class="tx"><a href="https://explorer.kaspa.org/txs/2ed0acf4676a4eca8abf491678fe8ab6095db6f59fa095cdf457ca91f4234c7d" target="_blank" rel="noopener" title="2ed0acf4676a4eca8abf491678fe8ab6095db6f59fa095cdf457ca91f4234c7d">2ed0acf467…234c7d</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:13px; margin-top:14px;">The <span id="oDustN">7</span> greyed rows are dust, a few coins each, almost certainly test transactions or someone else's spam. The <span id="oRealN">13</span> real transfers total <span id="oRealSum">39,036,480</span> KAS. The pattern is worth noting: nothing meaningful for the first eighteen months, then roughly one transfer every four to seven weeks from May 2025 onward, averaging 3M KAS. Nothing has left since <b id="outLast">18 Jun 2026</b>.</p>
+
+</div>
+
+<div class="band"><div class="wrap2">
   <h2>Who is behind it?</h2>
-  <p>Honestly: <b>nobody knows, and anyone who claims to is guessing.</b> The plausible theories are a very early large holder consolidating, an institution or fund custodying a position, or an OTC desk's cold storage. What the chain rules out is just as useful: the pattern (steady weekly withdrawals from exchanges, never selling) looks like <b>patient accumulation</b>, not market-making or exchange infrastructure.</p>
+  <p>Honestly: <b>nobody knows, and anyone who claims to is guessing.</b> The plausible theories are a very early large holder consolidating, an institution or fund custodying a position, or an OTC desk's cold storage. What the chain rules out is just as useful: the pattern — steady weekly withdrawals from exchanges, buying roughly forty times faster than it sends anything out — looks like <b>patient accumulation</b>, not market-making or exchange infrastructure.</p>
 
 </div></div>
 
@@ -209,6 +290,9 @@ const EX_ADDR = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4
 fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).then(j=>{
   if(!(j && j.balance)) throw new Error("no data");
   const kas = j.balance/1e8;
+  // Der Cost-Basis-Block weiter unten rechnet mit dem Live-Bestand, sobald er
+  // da ist. Vorher nimmt er den Stand vom letzten Botlauf.
+  window.__exBal = kas;
   document.getElementById("bal").textContent = (kas/1e9).toFixed(3)+"B KAS";
   document.getElementById("factBal").textContent = (kas/1e9).toFixed(2)+"B KAS";
 
@@ -228,6 +312,77 @@ fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).t
   document.getElementById("bal").textContent = "—";
   document.getElementById("usd").innerHTML = "live feed temporarily unavailable · check the address below on any explorer, or the <a href='/'>dashboard</a>";
 });
+// --- our own cost basis, computed weekly by a bot, read from disk ---
+// Wenn die Datei fehlt, bleiben die statischen Zahlen im HTML stehen.
+// Wenn das Skript sich selbst fuer unbelastbar erklaert, verschwindet der
+// ganze Block. Lieber keine Zahl als eine falsche.
+(function(){
+  const M = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const dstr = s => { if(!s) return "—"; const a = s.split("-"); return (+a[2])+" "+M[+a[1]-1]+" "+a[0]; };
+  const usd = n => { const v = Math.abs(n);
+    return (n<0?"−":"")+"$"+(v>=1e9?(v/1e9).toFixed(2)+"B":v>=1e6?(v/1e6).toFixed(1)+"M":(v/1e3).toFixed(0)+"K"); };
+  const el = id => document.getElementById(id);
+
+  fetch("/data/entity-x-costbasis.json", {cache:"no-store"}).then(r=>r.json()).then(cb=>{
+    if(!(cb && cb.reliable && cb.avg_cost_usd)){
+      const box = el("cbBox"); if(box) box.style.display = "none";
+      const f = el("factCost"); if(f){ f.textContent = "—"; }
+      return;
+    }
+    el("cbAvg").textContent = "$"+cb.avg_cost_usd.toFixed(4);
+    el("factCost").textContent = "$"+cb.avg_cost_usd.toFixed(4);
+    el("cbSub").textContent = "across "+cb.deposits+" deposits between "
+      + dstr(cb.first_deposit)+" and "+dstr(cb.last_deposit);
+    el("cbInv").textContent = usd(cb.usd_invested);
+
+    // Wert und Verlust gegen den Live-Kurs, nicht gegen den vom Montag.
+    const paint = (price, held) => {
+      const p = price || cb.price_now, h = held || cb.balance_kas;
+      if(!(p && h)) return;
+      const val = h*p, pnl = val - cb.usd_invested;
+      el("cbVal").textContent = usd(val);
+      const pct = pnl/cb.usd_invested*100;
+      el("cbPnl").textContent = usd(pnl)+" ("+(pct<0?"−":"+")+Math.abs(pct).toFixed(0)+"%)";
+      el("cbPnl").className = "k " + (pnl<0 ? "red" : "teal");
+    };
+    paint(null, null);
+    fetch("https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd")
+      .then(r=>r.json()).then(d=>{ if(d && d.kaspa){ window.__exPx = d.kaspa.usd;
+        paint(d.kaspa.usd, window.__exBal || null); } }).catch(()=>{});
+    // Bestand und Kurs kommen aus zwei unabhaengigen Abrufen. Wer zuerst da
+    // ist, weiss keiner. Also einmal nachrechnen, wenn beide Zeit hatten.
+    setTimeout(() => paint(window.__exPx || null, window.__exBal || null), 3000);
+
+    // Abflusszahlen im Fliesstext. Der Bot laeuft jede Woche, die Saetze
+    // duerfen nicht auf dem Stand von heute stehen bleiben.
+    const set = (id, v) => { const e = el(id); if(e) e.textContent = v; };
+    const num = n => Math.round(n).toLocaleString("en-US");
+    if(cb.outflow_kas != null && cb.kas_received){
+      const share = cb.outflow_kas / cb.kas_received * 100;
+      set("oSum", num(cb.outflow_kas));  set("bSum", num(cb.outflow_kas));
+      set("oCnt", cb.outflow_count);     set("bCnt", cb.outflow_count);
+      set("oShare", share.toFixed(2)+"%");   set("bShare", share.toFixed(2)+"%");
+      set("oRest", (100-share).toFixed(2)+"%"); set("bRest", (100-share).toFixed(2)+"%");
+    }
+
+    // Abflusstabelle nur ersetzen, wenn die Datei sie wirklich mitbringt.
+    if(Array.isArray(cb.outflows) && cb.outflows.length){
+      const dust = cb.outflows.filter(o => o.kas < 100000);
+      const real = cb.outflows.filter(o => o.kas >= 100000);
+      set("oDustN", dust.length);
+      set("oRealN", real.length);
+      set("oRealSum", num(real.reduce((a,o)=>a+o.kas,0)));
+      el("outBody").innerHTML = cb.outflows.map(o => {
+        const small = o.kas < 100000;
+        const sh = o.tx ? o.tx.slice(0,10)+"…"+o.tx.slice(-6) : "—";
+        return '<tr'+(small?' class="dust"':'')+'><td>'+dstr(o.day)+'</td>'
+          + '<td class="n">'+Math.round(o.kas).toLocaleString("en-US")+'</td>'
+          + '<td class="tx"><a href="https://explorer.kaspa.org/txs/'+o.tx+'" target="_blank" rel="noopener" title="'+o.tx+'">'+sh+'</a></td></tr>';
+      }).join("");
+      if(cb.last_outflow) el("outLast").textContent = dstr(cb.last_outflow);
+    }
+  }).catch(()=>{});
+})();
 // newsletter ajax (same as dashboard)
 (function(){
   const form = document.getElementById("subForm"), btn = document.getElementById("subBtn"), msg = document.getElementById("subMsg");
