@@ -195,7 +195,7 @@
 
   <section class="panel">
     <div class="sec"><div class="t"><span class="snum">03</span>Supply. <span>the tightening story</span></div><div class="tag wk"><i></i><span>weekly</span></div></div>
-    <div class="read"><span class="rl">the read</span>96% of all KAS is already mined and the next reward cut lands <b>this wednesday</b>, taking the block reward from 2.450 to 2.312 KAS. the one to watch is exchanges — the addresses we track sent out <b>85.2M KAS more than they took in</b> over the past seven days, fewer coins sitting where they can be sold. <a href="/kaspa-halving.html" style="color:var(--teal); text-decoration:none;">how the monthly halving works →</a></div>
+    <div class="read"><span class="rl">the read</span>96% of all KAS is already mined and the next reward cut lands <b>wednesday, august 5</b>, taking the block reward from 2.450 to 2.312 KAS. the one to watch is exchanges — the addresses we track sent out <b>85.2M KAS more than they took in</b> over the past seven days, fewer coins sitting where they can be sold. <a href="/kaspa-halving.html" style="color:var(--teal); text-decoration:none;">how the monthly halving works →</a></div>
     <div class="grid four" id="supplyCards"></div>
   </section>
 
@@ -263,7 +263,9 @@ const DATA = {
   // kaspa.stream druckt nur "27.62B", keine exakte Ziffernfolge. Gegenprobe: mcap 718.15M / 0.026 = 27.621B
   circ_supply: 27620000000,
   // annual_inflation neu berechnet: block reward 2.45 × 10.2 BPS × 86400 × 365 / circ supply ≈ 2.9% (alter Wert 4.6% war veraltet)
-  emission: { block_reward: 2.45, next_reduction: "in 2 days", annual_inflation_pct: 2.9 },
+  // next_reduction wird aus dem Datum gerechnet, nicht als Text gepflegt. Sonst steht
+  // am Donnerstag noch "in 2 days" auf der Seite. Regel 9 aus dem SEO-Doc.
+  emission: { block_reward: 2.45, next_reduction_at: "2026-08-05T06:15:00Z", annual_inflation_pct: 2.9 },
   // d7 aus der eigenen Reihe (262.3 → 342.5). d30/d90 sind gegen die ABSOLUTEN Vorwochen-Basen
   // gerechnet (389.7 / 381.3 PH/s), die Anker sind damit eine Woche alt. ⚠️ TODO: ab nächster Woche
   // die Kaspalytics-Hashrate-Kurve mitscreenshotten, dann haben wir eigene 30/90-Tage-Anker
@@ -347,6 +349,14 @@ const fmtN = n => n==null?"—":n.toLocaleString("en-US");
 const wRow = (label, pct) => { if(pct==null) return `<div class="tr"><span class="win">${label}</span><span class="flat">n/a</span></div>`;
   const cls = pct>0.5?"up":(pct<-0.5?"down":"flat");
   return `<div class="tr"><span class="win">${label}</span><span class="${cls}">${pct>0?'▲ +':'▼ '}${Math.abs(pct)}%</span></div>`; };
+// Countdown bis zur naechsten Reward-Reduktion, kalendertaggenau in UTC.
+const nextRedTxt = (() => {
+  const iso = DATA.emission.next_reduction_at; if(!iso) return "—";
+  const t = new Date(iso), n = new Date();
+  const day = d => Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  const d = Math.round((day(t) - day(n)) / 86400000);
+  return d > 1 ? "in " + d + " days" : d === 1 ? "tomorrow" : d === 0 ? "today" : "just happened";
+})();
 const H = DATA.history, cur = H[H.length-1].m;
 const back = w => H.length>w ? H[H.length-1-w].m : null;
 
@@ -434,7 +444,7 @@ $("supplyCards").innerHTML = `
     <div class="trends"><div class="tr"><span class="win">new issuance</span><span class="flat">nearly done</span></div></div></div>
   <div class="card"><div class="name">Block reward</div><div class="expl">* KAS minted per block — drops on each reduction · <a href="/kaspa-halving.html" style="color:var(--teal); text-decoration:none;">how the schedule works →</a></div>
     <div class="val">${DATA.emission.block_reward}</div>
-    <div class="trends"><div class="tr"><span class="win">next reduction</span><span class="down">${DATA.emission.next_reduction}</span></div></div></div>
+    <div class="trends"><div class="tr"><span class="win">next reduction</span><span class="down">${nextRedTxt}</span></div></div></div>
   <div class="card"><div class="name">Annual inflation</div><div class="expl">* new supply added per year at current rate</div>
     <div class="val">~${DATA.emission.annual_inflation_pct}%</div>
     <div class="trends"><div class="tr"><span class="win">trend</span><span class="up">▼ falling</span></div></div></div>
