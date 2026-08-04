@@ -1,6 +1,17 @@
 #!/usr/bin/env python3
-# Kaspa Pulse - Entity X Watcher v3
+# Kaspa Pulse - Entity X Watcher v4
 # Ablageort im Repo: scripts/entity_x_alert.py
+#
+# Neu gegenueber v3:
+#   1. KORREKTUR. Der Bot hat behauptet, diese Adresse habe null Abfluesse.
+#      Das ist falsch. Unser eigener Tracer zaehlt 20 Abfluesse ueber
+#      39.038.233 KAS, den letzten am 18.06.2026. Der Bot meinte damit nur
+#      seine eigene State-Datei, aber so liest es niemand, und wir
+#      widerlegen uns auf der eigenen Domain. Negative Behauptungen sind
+#      die gefaehrlichsten. Beide Stellen sind ersetzt.
+#   2. NETTO IST NICHT BRUTTO. Der Watcher vergleicht Kontostaende. Ein
+#      positives Delta beweist nicht, dass nichts abgeflossen ist. Die
+#      gruene Nachricht sagt das jetzt selbst.
 #
 # Neu gegenueber v2:
 #   1. DOLLARWERTE. Jede Zahl steht jetzt doppelt da, in KAS und in USD.
@@ -36,7 +47,7 @@ INFLOW_MIN_KAS = 500_000      # Zufluss ab 500.000 KAS ist ein Alarm
 RED = 0xFF4D4D
 GREEN = 0x49EACB
 POLL_SECONDS = 60
-UA = {"User-Agent": "kaspapulse-watch/3.0"}
+UA = {"User-Agent": "kaspapulse-watch/4.0"}
 
 # Plausibilitaetsfenster fuer den Preis. Was ausserhalb liegt, ist ein Fehler
 # der Boerse und keine Marktbewegung. Lieber kein Dollarwert als ein falscher.
@@ -236,7 +247,9 @@ def check_once():
             f"balance is now **{fmt(balance)} KAS**{usd_part(balance, price, lead=', about ')}, "
             f"it was {fmt(last)} KAS."
             f"{pctline}\n\n"
-            "this address had zero outflows since tracking began, so this is the first move of its kind. "
+            "this is not the first time coins have left this wallet. our tracer "
+            "counts every one of them and publishes the full history at "
+            "kaspapulse.com/entity-x.html. "
             "coins leaving a wallet can mean a sale, an exchange deposit or an internal transfer. "
             "we report the movement, never the motive.",
             RED, price=price, ping=True,
@@ -256,7 +269,8 @@ def check_once():
             f"balance is now **{fmt(balance)} KAS**"
             f"{usd_part(balance, price, lead=', about ')}."
             f"{pctline}\n\n"
-            "still zero outflows since tracking began. the pile only grows.",
+            "this is a net figure. deposits and withdrawals inside the same "
+            "window cancel out before we see them.",
             GREEN, price=price,
         )
         save_state(balance)
