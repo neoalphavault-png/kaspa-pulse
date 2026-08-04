@@ -1,10 +1,20 @@
 #!/usr/bin/env python3
-# Kaspa Pulse - Entity X Heartbeat v3
+# Kaspa Pulse - Entity X Heartbeat v4
 # Ablageort im Repo: scripts/entity_x_heartbeat.py
+#
+# Neu gegenueber v3:
+#   1. KORREKTUR. Vier Stellen haben "no outflow since tracking began" oder
+#      "the streak continues" behauptet. Unser eigener Tracer zaehlt 20
+#      Abfluesse ueber 39.038.233 KAS. Die Behauptung war falsch und stand
+#      im Widerspruch zu kaspapulse.com/entity-x.html.
+#   2. STRUKTURELL. Dieser Job vergleicht nur Tagessalden. Aus einem
+#      positiven Delta folgt logisch nicht, dass nichts abgeflossen ist.
+#      Der Bot kann diese Aussage gar nicht treffen, also trifft er sie
+#      nicht mehr.
 #
 # Einmal am Tag. Der Heartbeat vergleicht mit dem Stand von gestern und faerbt
 # die Nachricht danach ein.
-#   grau  = nichts bewegt, die Serie laeuft weiter
+#   grau  = kein Nettounterschied zu gestern
 #   gruen = ueber Nacht dazugekauft, mit Tagesdifferenz
 #   rot   = ueber Nacht abgeflossen
 #
@@ -31,7 +41,7 @@ GREY = 0x7A828C
 GREEN = 0x49EACB
 RED = 0xFF4D4D
 NOISE_KAS = 1  # alles darunter gilt als unveraendert
-UA = {"User-Agent": "kaspapulse-heartbeat/3.0"}
+UA = {"User-Agent": "kaspapulse-heartbeat/4.0"}
 
 PRICE_MIN = 0.0001
 PRICE_MAX = 100.0
@@ -212,7 +222,8 @@ def main():
             "⚪ daily check",
             f"entity x holds **{fmt(balance)} KAS**.{pctline}\n"
             f"{holdline}"
-            "no outflow since tracking began. the streak continues.",
+            "we count every coin that enters and leaves this wallet. the full "
+            "history sits at kaspapulse.com/entity-x.html.",
             GREY, price=price,
         )
     else:
@@ -222,7 +233,8 @@ def main():
                 "⚪ daily check. nothing moved",
                 f"entity x still holds **{fmt(balance)} KAS**, unchanged since yesterday.{pctline}\n"
                 f"{holdline}{driftline}"
-                "no outflow since tracking began. the streak continues.",
+                "every coin that ever left this wallet is counted at "
+                "kaspapulse.com/entity-x.html.",
                 GREY, price=price,
             )
         elif diff > 0:
@@ -232,7 +244,8 @@ def main():
                 f"{usd_part(diff, price)}.\n"
                 f"the wallet now holds **{fmt(balance)} KAS**"
                 f"{usd_part(balance, price, lead=', about ')}.{pctline}\n"
-                "still zero outflows since tracking began.",
+                "this is a net figure. deposits and withdrawals inside the "
+                "same day cancel out before we see them.",
                 GREEN, price=price,
             )
         else:
@@ -242,7 +255,7 @@ def main():
                 f"{usd_part(-diff, price)}.\n"
                 f"the wallet now holds **{fmt(balance)} KAS**"
                 f"{usd_part(balance, price, lead=', about ')}.{pctline}\n"
-                "this ends the zero outflow streak. movement reported, motive unknown.",
+                "movement reported, motive unknown.",
                 RED, price=price,
             )
 
