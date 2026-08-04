@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Kaspa Pulse - Reward Cut Alert v3
+# Kaspa Pulse - Reward Cut Alert v4
 # Ablageort im Repo: scripts/reward_cut_alert.py
 #
 # Kaspa halbiert nicht alle vier Jahre, sondern jeden Monat ein Stueck.
@@ -7,14 +7,20 @@
 # wir rechnen ihn aus einem Anker vor. Die API /info/blockreward ist
 # veraltet und wird bewusst NICHT benutzt.
 #
-# Neu gegenueber v2:
-#   1. EMBEDS statt Textwand, violett fuer Protokoll-Ereignisse. Damit ist
-#      im Kanal auf einen Blick klar, dass es nicht um eine Wallet geht.
-#   2. DOLLARWERTE. Gleiche Preis-Fallback-Kette wie die Entity-X-Bots.
-#   3. VORWARNUNG 24 STUNDEN VORHER. Der Kanal sagt Bescheid, bevor es
-#      passiert, nicht erst danach. Das ist der halbe Wert der Sache.
-#   4. PUNKTLANDUNG. Faellt der Cut in die naechsten 15 Minuten, wartet der
-#      Job bis zur Sekunde und postet dann. Kein Warten auf den naechsten Lauf.
+# Neu gegenueber v3 (Lesbarkeit, keine Logikaenderung):
+#   1. ZAHLENDIAET. Die Vorwarnung hatte zwoelf Zahlen in fuenf Zeilen.
+#      Jetzt sind es drei plus ein Vergleich. Wer mehr will, klickt die
+#      Halving-Seite in der Fusszeile.
+#   2. context_lines() liefert EINE Zeile statt zwei. Die Jahresausgabe
+#      (542M KAS, 1,96 Prozent, Dollarwert) ist raus. Im Vorbeiscrollen
+#      verarbeitet die niemand.
+#   3. VERGLEICH STATT DEFINITION. "one step of twelve" und die Klippe
+#      gegen die Treppe erklaeren den Mechanismus ohne eine einzige
+#      Nachkommastelle.
+#   4. EHRLICHER SCHLUSSSATZ. "the schedule has never moved" ist raus.
+#      Der Zeitplan steht, die geschaetzten Uhrzeiten wandern, weil der
+#      Schritt auf einem Block Score landet und nicht auf einer Uhr. Der
+#      neue Satz sagt beides und macht aus der Abweichung ein Argument.
 #
 # Nur Python-Standardbibliothek, keine Abhaengigkeiten.
 
@@ -46,7 +52,7 @@ SLEEP_MAX = 900     # bis zu 15 Minuten auf die Punktlandung warten
 
 PRICE_MIN = 0.0001
 PRICE_MAX = 100.0
-UA = {"User-Agent": "kaspapulse-rewardcut/3.0"}
+UA = {"User-Agent": "kaspapulse-rewardcut/4.0"}
 
 
 def get_json(url, timeout=25):
@@ -121,7 +127,12 @@ def fetch_price_usd():
 
 
 def fetch_supply():
-    """Gibt (circulating, max) zurueck. Faellt still auf None zurueck."""
+    """Gibt (circulating, max) zurueck. Faellt still auf None zurueck.
+
+    Seit v4 nicht mehr im Nachrichtentext benutzt. Bleibt stehen, weil die
+    Zahl fuer kuenftige Auswertungen gebraucht wird und der Abruf nichts
+    kostet, solange ihn niemand aufruft.
+    """
     try:
         d = get_json(API_SUPPLY)
         circ = int(d["circulatingSupply"]) / SOMPI
@@ -218,38 +229,31 @@ def utc_str(ts):
 
 
 def context_lines(reward_after, price):
-    """Taegliche Emission und Jahresausgabe. Faellt weg, was nicht da ist."""
-    lines = []
+    """Genau eine Zeile. Uebersetzt den Reward in etwas Vorstellbares.
+
+    Vorher standen hier zwei Zeilen mit sechs Zahlen, darunter die
+    Jahresausgabe. Die ist raus. Sie ist richtig, aber sie beantwortet
+    keine Frage, die jemand beim Lesen tatsaechlich hat.
+    """
     d_now = daily(reward_after / RATIO)
     d_new = daily(reward_after)
     drop = d_now - d_new
     usd = f", about {fmt_usd(drop * price)} at today's price" if price else ""
-    lines.append(
-        f"daily issuance falls from **{fmt(d_now)} KAS** to **{fmt(d_new)} KAS**. "
-        f"that is {fmt(drop)} fewer coins every single day{usd}."
-    )
-    circ, mx = fetch_supply()
-    if circ and mx and mx > circ:
-        yearly = (mx - circ) / 2
-        yusd = f" and worth **{fmt_usd(yearly * price)}** at today's price" if price else ""
-        lines.append(
-            f"over the next twelve months the network will issue about "
-            f"**{fmt(yearly)} KAS**, roughly **{yearly / circ * 100:.2f} percent** "
-            f"of what exists today{yusd}."
-        )
-    return "\n".join(lines)
+    return (f"in plain terms, the network creates about **{fmt(drop)} fewer KAS "
+            f"every day** from now on{usd}.")
 
 
 def announce_cut(before, after, ts, price):
     pct = (1 - after / before) * 100
     send_embed(
-        "🟣 kaspa just cut its block reward",
-        f"the reward dropped from **{before:.8f} KAS** to **{after:.8f} KAS** per block, "
-        f"a cut of **{pct:.2f} percent**.\n"
+        "🟣 it happened. the reward just got cut",
+        f"the block reward went from **{before:.8f} KAS** to **{after:.8f} KAS**. "
+        f"that is **{pct:.2f} percent** less, and it is the same number this "
+        "channel posted yesterday, down to the eighth decimal.\n\n"
+        "no cliff, no shock. one step down a staircase that takes twelve steps "
+        "to reach the half.\n\n"
         f"{context_lines(after, price)}\n\n"
-        "kaspa does this every month instead of once every four years. "
-        "no cliff, no shock, just a smaller number every thirty days. "
-        f"the next cut lands on {utc_str(schedule(ts + 60)[0])}.",
+        f"the next step is estimated for {utc_str(schedule(ts + 60)[0])}.",
         PURPLE, price=price,
     )
 
@@ -257,12 +261,17 @@ def announce_cut(before, after, ts, price):
 def announce_prewarn(before, after, ts, price):
     pct = (1 - after / before) * 100
     send_embed(
-        "🔵 heads up. the next reward cut is one day away",
-        f"on {utc_str(ts)} the block reward drops from **{before:.8f} KAS** "
-        f"to **{after:.8f} KAS**, a cut of **{pct:.2f} percent**.\n"
+        "🔵 heads up. the reward gets cut tomorrow",
+        f"the block reward drops from **{before:.8f} KAS** to **{after:.8f} KAS**. "
+        f"that is **{pct:.2f} percent** less.\n\n"
+        "this is not a halving. it is one step of twelve. walk down all twelve "
+        "and the reward has halved, then the count starts again.\n\n"
+        "bitcoin does the same thing once every four years, all at once. kaspa "
+        "spreads it across the year, so no miner wakes up to half the revenue.\n\n"
         f"{context_lines(after, price)}\n\n"
-        "this is not a prediction, it is arithmetic. "
-        "the schedule was fixed when the chain launched and it has never moved.",
+        f"the estimate right now is {utc_str(ts)}. that minute will shift a "
+        "little, because the step lands on a block score and not on a clock. "
+        "the number does not shift at all.",
         BLUE, price=price,
     )
 
