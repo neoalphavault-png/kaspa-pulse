@@ -3,7 +3,7 @@
   "eyebrow": "NUMBER OF THE DAY",
   "value": "5.61%",
   "value_label": "how much the kaspa block reward fell this morning",
-  "headline": "bitcoin cuts once every *four years*.\nkaspa cut again this morning.",
+  "headline": "bitcoin cuts once every *four years*.\nkaspa cuts every month.",
   "panes": [
     {
       "kind": "compare",
@@ -14,7 +14,7 @@
           "label": "kaspa",
           "sub": "every month",
           "value": "5.61%",
-          "pct": 11.2,
+          "pct": 11.225137463661294,
           "tone": "teal"
         },
         {
@@ -35,7 +35,7 @@
       ]
     }
   ],
-  "note": "we published this number the evening before it happened. the amount is fixed arithmetic, only the minute drifts.",
+  "note": "the amount is fixed arithmetic and cannot move. the moment lands on a block score, not on a clock, so the minute drifts.",
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com"
 }
