@@ -44,6 +44,7 @@ jobs:
 
       - name: post to discord
         env:
+          DISCORD_WEBHOOK_NUMBER: ${{ secrets.DISCORD_WEBHOOK_NUMBER }}
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
           python scripts/post_number_of_day.py \
