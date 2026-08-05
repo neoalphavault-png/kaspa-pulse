@@ -234,6 +234,26 @@ def age_phrase(days):
     return "%d weeks ago" % int(round(days / 7.0))
 
 
+# ---------------------------------------------------------------- posttext
+
+# hausstil auf X: klein geschrieben, unter sechzig woertern, keine hashtags,
+# hoechstens ein $KAS, kein kursziel, kein link im ersten post. der link steht
+# in der selbstantwort, deshalb sind es hier immer zwei felder.
+MAX_POST_WORDS = 60
+HALVING_URL = "kaspapulse.com/kaspa-halving.html"
+SITE_URL = "kaspapulse.com"
+
+
+def post_block(text, reply):
+    """Baut den X Text und prueft die eigene Laengenregel sofort."""
+    text = " ".join(str(text).split())
+    words = len(text.split())
+    if words > MAX_POST_WORDS:
+        raise ValueError("posttext hat %d woerter, erlaubt sind %d"
+                         % (words, MAX_POST_WORDS))
+    return {"x": text, "reply": " ".join(str(reply).split())}
+
+
 # ---------------------------------------------------------------- kandidaten
 
 def cand_cut_today(ctx):
@@ -306,6 +326,13 @@ def cand_cut_today(ctx):
                      "lands on a block score, not on a clock, so the minute drifts."),
             "sources": "api.kaspa.org",
             "site": "kaspapulse.com",
+            "post": post_block(
+                "the kaspa block reward %s %.2f percent %s. bitcoin does 50 "
+                "percent once every four years. kaspa does one small step every "
+                "month, and twelve of them land on the same 50 percent. the "
+                "network now mints %s fewer KAS per day."
+                % (verb, pct, when, fmt_int(gone)),
+                "the live emission numbers are on " + HALVING_URL),
         },
     }
 
@@ -362,6 +389,13 @@ def cand_cut_countdown(ctx):
                      "because it depends on how fast blocks are found."),
             "sources": "api.kaspa.org",
             "site": "kaspapulse.com",
+            "post": post_block(
+                "the next kaspa reward cut lands in %d %s. bitcoin waits about "
+                "%s days for its next one, and kaspa cuts %d more times before "
+                "that date. daily emission drops from %s to %s KAS."
+                % (d, word, fmt_int(btc_days), int(btc_days / (STEP / DAY)),
+                   fmt_millions(e_now), fmt_millions(e_next)),
+                "the countdown runs live on " + HALVING_URL),
         },
     }
 
@@ -414,6 +448,13 @@ def cand_mined_left(ctx):
                      "is a shrinking series and never quite reaches the maximum."),
             "sources": "api.kaspa.org",
             "site": "kaspapulse.com",
+            "post": post_block(
+                "%.2f percent of every KAS that will ever exist is already mined. "
+                "%s KAS are still to come, and 99 percent is reached in %s at the "
+                "current schedule. what comes after keeps halving every twelve "
+                "months."
+                % (pct, fmt_int(left), when99.strftime("%B %Y").lower()),
+                "the full emission schedule is on " + HALVING_URL),
         },
     }
 
@@ -474,6 +515,13 @@ def _move_candidate(ctx, key, title, unit_fmt, label, headline_word,
                      "high. that is why the comparison holds."),
             "sources": sources,
             "site": "kaspapulse.com",
+            "post": post_block(
+                "%s on kaspa is %s %.0f percent against %s. %s today, %s then, "
+                "both read from the same source %d days apart. we report the "
+                "movement, never the motive."
+                % (headline_word, direction, abs(change), age_phrase(age),
+                   unit_fmt(now), unit_fmt(then), age),
+                "the weekly readings behind that are on " + SITE_URL),
         },
     }
 
@@ -728,6 +776,37 @@ def run_selftest():
                     print("  FEHL interpunktion %s %s" % (n, exc))
     ok("alle kandidaten halten die zeichenregel",
        not [f for f in fails if f.startswith("interpunktion")])
+
+    print("posttexte")
+    seen_posts = 0
+    bad = []
+    cd_ctx = build_context(now_ts=ANCHOR_TS + STEP - 5 * DAY,
+                           live=FAKE_LIVE, history=FAKE_HISTORY)
+    for n, fn in CANDIDATES:
+        for c in (far, cut_ctx, cd_ctx):
+            r = fn(c)
+            if not r:
+                continue
+            p = r["payload"].get("post")
+            if not p or not p.get("x") or not p.get("reply"):
+                bad.append("%s ohne posttext" % n)
+                continue
+            seen_posts += 1
+            x = p["x"]
+            if len(x.split()) > MAX_POST_WORDS:
+                bad.append("%s zu lang" % n)
+            if "#" in x:
+                bad.append("%s hat ein hashtag" % n)
+            if x.count("$KAS") > 1:
+                bad.append("%s nennt $KAS mehrfach" % n)
+            if "kaspapulse.com" in x:
+                bad.append("%s hat den link im ersten post" % n)
+            if x[:1].isupper():
+                bad.append("%s faengt gross an" % n)
+            if "kaspapulse.com" not in p["reply"]:
+                bad.append("%s hat keinen link in der antwort" % n)
+    ok("jeder kandidat liefert einen posttext", seen_posts >= len(CANDIDATES))
+    ok("posttexte halten den hausstil", not bad, bad)
 
     print("")
     if fails:
