@@ -1,0 +1,59 @@
+name: number of the day
+
+# bewusst KEIN zeitplan. die json wird von hand gepflegt, ein taeglicher lauf
+# wuerde nur dieselbe grafik neu rendern. sobald die daten aus einer quelle
+# kommen, wird der schedule block darunter einkommentiert.
+on:
+  workflow_dispatch:
+  # schedule:
+  #   # 08:12 UTC = 10:12 DE. bewusst nicht zur vollen stunde.
+  #   - cron: "12 8 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: install playwright
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: render
+        run: |
+          python scripts/number_of_day.py \
+            --input data/number-of-day.json \
+            --output graphics/number-of-day.png
+
+      - name: archive dated copy
+        run: |
+          DAY=$(date -u +%Y-%m-%d)
+          mkdir -p graphics/archive
+          cp graphics/number-of-day.png "graphics/archive/$DAY.png"
+
+      - name: commit
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add graphics/
+          if git diff --staged --quiet; then
+            echo "nothing changed"
+          else
+            git commit -m "number of the day $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+      - name: upload for download
+        uses: actions/upload-artifact@v4
+        with:
+          name: number-of-day
+          path: graphics/number-of-day.png
