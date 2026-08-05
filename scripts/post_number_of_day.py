@@ -34,6 +34,21 @@ UA = {"User-Agent": "kaspa-pulse-bot/1.0 (+https://kaspapulse.com)"}
 TIMEOUT = 30
 TAIL = "full numbers on kaspapulse.com"
 
+# eigener kanal, eigener absendername. der webhook fuer die zahl des tages
+# ist ein anderer als der fuer die alerts. faellt er weg, laeuft der post
+# ersatzweise ueber den alten kanal, aber mit sichtbarer warnung im log.
+WEBHOOK_ENVS = ("DISCORD_WEBHOOK_NUMBER", "DISCORD_WEBHOOK")
+BOT_NAME = "number of the day"
+
+
+def pick_webhook():
+    """nimmt den ersten gesetzten webhook und sagt, welcher es war."""
+    for name in WEBHOOK_ENVS:
+        url = os.environ.get(name, "").strip()
+        if url:
+            return name, url
+    return None, ""
+
 
 def clean(text):
     """entfernt die betonungssternchen des renderers, laesst den rest stehen."""
@@ -106,16 +121,22 @@ def main():
         print("anhang %s" % args.image)
         return 0
 
-    url = os.environ.get("DISCORD_WEBHOOK", "").strip()
+    which, url = pick_webhook()
     if not url:
-        print("ERROR: DISCORD_WEBHOOK secret fehlt", file=sys.stderr)
+        print("ERROR: weder DISCORD_WEBHOOK_NUMBER noch DISCORD_WEBHOOK gesetzt",
+              file=sys.stderr)
         return 1
+    if which != WEBHOOK_ENVS[0]:
+        print("WARNUNG: %s fehlt, der post laeuft ueber %s"
+              % (WEBHOOK_ENVS[0], which), file=sys.stderr)
 
     with open(args.image, "rb") as f:
         blob = f.read()
 
     fields = {"payload_json": json.dumps(
-        {"content": msg, "allowed_mentions": {"parse": []}},
+        {"content": msg,
+         "username": BOT_NAME,
+         "allowed_mentions": {"parse": []}},
         ensure_ascii=False)}
     body, ctype = multipart(fields, "number-of-day.png", blob)
 
