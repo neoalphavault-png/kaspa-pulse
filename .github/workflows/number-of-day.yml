@@ -42,6 +42,14 @@ jobs:
           mkdir -p graphics/archive
           cp graphics/number-of-day.png "graphics/archive/$DAY.png"
 
+      - name: post to discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          python scripts/post_number_of_day.py \
+            --data data/number-of-day.json \
+            --image graphics/number-of-day.png
+
       - name: commit
         run: |
           git config user.name "kaspa-pulse-bot"
