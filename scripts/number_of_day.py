@@ -85,48 +85,48 @@ body{
 }
 .top{display:flex;justify-content:space-between;align-items:baseline;
      border-bottom:1px solid var(--line);padding-bottom:16px}
-.brand{font-size:18px;letter-spacing:6px;font-weight:700}
+.brand{font-size:22px;letter-spacing:6px;font-weight:700}
 .brand span{color:var(--teal)}
-.iss{font-size:13px;letter-spacing:3px;color:var(--dimmer)}
+.iss{font-size:17px;letter-spacing:3px;color:var(--dimmer)}
 
-.eyebrow{font-size:14px;letter-spacing:5px;color:var(--teal-dk);
-         margin:34px 0 14px;font-weight:700}
-.value{font-size:150px;font-weight:700;letter-spacing:-6px;line-height:0.9}
-.value-label{font-size:23px;color:var(--dim);margin-top:14px;line-height:1.35}
+.eyebrow{font-size:19px;letter-spacing:5px;color:var(--teal-dk);
+         margin:28px 0 14px;font-weight:700}
+.value{font-size:132px;font-weight:700;letter-spacing:-6px;line-height:0.9}
+.value-label{font-size:30px;color:var(--dim);margin-top:16px;line-height:1.35}
 
-h1{font-size:56px;letter-spacing:-1.6px;line-height:1.06;margin:30px 0 0}
+h1{font-size:56px;letter-spacing:-1.6px;line-height:1.06;margin:26px 0 0}
 em{font-style:normal;color:var(--teal);font-weight:700}
 
-.panes{display:flex;flex-direction:column;gap:20px;flex:1;margin-top:28px}
+.panes{display:flex;flex-direction:column;gap:18px;flex:1;margin-top:28px}
 .p{background:var(--card);border:1px solid var(--line);border-radius:22px;
-   padding:26px 30px 24px;display:flex;flex-direction:column}
+   padding:24px 30px 22px;display:flex;flex-direction:column}
 .p.grow{flex:1}
-.lbl{font-size:13px;letter-spacing:3px;color:var(--dimmer);margin-bottom:3px}
-.lbl2{font-size:16px;color:var(--dimmer);margin-bottom:20px;line-height:1.35}
+.lbl{font-size:19px;letter-spacing:3px;color:var(--dimmer);margin-bottom:3px}
+.lbl2{font-size:22px;color:var(--dimmer);margin-bottom:18px;line-height:1.35}
 
 /* horizontale balken. der laengere balken ist bewusst der langweilige,
    damit das auge zuerst den unterschied sieht und dann erst die frequenz liest. */
-.rows{display:flex;flex-direction:column;gap:30px;justify-content:center}
+.rows{display:flex;flex-direction:column;gap:26px;justify-content:center}
 .row{display:flex;flex-direction:column;gap:8px}
 .rhead{display:flex;justify-content:space-between;align-items:baseline}
-.rname{font-size:22px;font-weight:700}
-.rsub{font-size:16px;color:var(--dimmer);margin-left:12px;font-weight:400}
-.rval{font-size:26px;font-weight:700}
-.track{height:38px;background:#141A21;border-radius:10px;overflow:hidden}
+.rname{font-size:31px;font-weight:700}
+.rsub{font-size:22px;color:var(--dimmer);margin-left:12px;font-weight:400}
+.rval{font-size:36px;font-weight:700}
+.track{height:42px;background:#141A21;border-radius:10px;overflow:hidden}
 .fill{height:100%;border-radius:10px;background:var(--faint)}
 .fill.teal{background:var(--teal)}
 .fill.red{background:var(--red)}
 .fill.grey{background:#39424C}
 
-.anchor{display:flex;flex-direction:column;gap:16px;flex:1;justify-content:center}
-.anchor .a{font-size:24px;line-height:1.4;color:var(--txt)}
+.anchor{display:flex;flex-direction:column;gap:14px;flex:1;justify-content:center}
+.anchor .a{font-size:30px;line-height:1.36;color:var(--txt)}
 .anchor .a em{color:var(--teal);font-weight:700;font-style:normal}
 
-.note{margin-top:18px;font-size:17px;color:var(--dim);line-height:1.45}
+.note{margin-top:16px;font-size:22px;color:var(--dim);line-height:1.45}
 .foot{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);
-      font-size:15px;color:var(--dimmer);line-height:1.5;
+      font-size:20px;color:var(--dimmer);line-height:1.5;
       display:flex;justify-content:space-between;align-items:baseline}
-.foot b{color:var(--teal);font-weight:700;font-size:18px}
+.foot b{color:var(--teal);font-weight:700;font-size:24px}
 """
 
 PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><style>{css}</style></head>
