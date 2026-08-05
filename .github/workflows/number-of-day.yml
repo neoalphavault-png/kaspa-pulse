@@ -1,13 +1,10 @@
 name: number of the day
 
-# bewusst KEIN zeitplan. die json wird von hand gepflegt, ein taeglicher lauf
-# wuerde nur dieselbe grafik neu rendern. sobald die daten aus einer quelle
-# kommen, wird der schedule block darunter einkommentiert.
 on:
   workflow_dispatch:
-  # schedule:
-  #   # 08:12 UTC = 10:12 DE. bewusst nicht zur vollen stunde.
-  #   - cron: "12 8 * * *"
+  schedule:
+    # 08:12 UTC = 10:12 DE. bewusst nicht zur vollen stunde.
+    - cron: "12 8 * * *"
 
 permissions:
   contents: write
@@ -28,6 +25,11 @@ jobs:
           pip install playwright
           python -m playwright install --with-deps chromium
 
+      - name: pick the number
+        run: |
+          python scripts/number_of_day_data.py \
+            --out data/number-of-day.json
+
       - name: render
         run: |
           python scripts/number_of_day.py \
@@ -44,7 +46,7 @@ jobs:
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
-          git add graphics/
+          git add graphics/ data/
           if git diff --staged --quiet; then
             echo "nothing changed"
           else
