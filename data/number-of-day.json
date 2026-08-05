@@ -37,5 +37,9 @@
   ],
   "note": "the amount is fixed arithmetic and cannot move. the moment lands on a block score, not on a clock, so the minute drifts.",
   "sources": "api.kaspa.org",
-  "site": "kaspapulse.com"
+  "site": "kaspapulse.com",
+  "post": {
+    "x": "the kaspa block reward fell 5.61 percent this morning. bitcoin does 50 percent once every four years. kaspa does one small step every month, and twelve of them land on the same 50 percent. the network now mints 118,805 fewer KAS per day.",
+    "reply": "the live emission numbers are on kaspapulse.com/kaspa-halving.html"
+  }
 }
