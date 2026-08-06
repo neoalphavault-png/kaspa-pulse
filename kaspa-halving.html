@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kaspa Halving, Explained — Why It Happens Every Month, Not Every Four Years — Kaspa Pulse</title>
-<meta name="description" content="Kaspa has no single dramatic halving. Block rewards fall by about 5.6% every month — a smooth curve that halves emission every year. Live current reward, the next reduction date, and what the schedule actually means — explained.">
+<title>Kaspa Halving Countdown — Live Timer to the Next Reduction, and Why It Happens Every Month — Kaspa Pulse</title>
+<meta name="description" content="The only live Kaspa halving countdown. Kaspa has no four-year halving — block rewards fall about 5.6% every month. See the exact time and date of the next reduction, the current reward, and what the schedule actually means.">
 <link rel="canonical" href="https://kaspapulse.com/kaspa-halving.html">
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
@@ -39,6 +39,12 @@
   .live .lbl i { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--teal); margin-right:7px; vertical-align:1px; }
   .live .big { font-size:52px; font-weight:700; letter-spacing:-2px; color:var(--teal); line-height:1.05; margin:10px 0 4px; }
   .live .cap { font-size:13px; color:var(--dimmer); line-height:19px; }
+  .cd { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:20px 0 6px; }
+  .cd .cell { background:#0A0F14; border:1px solid #15181C; border-radius:14px; padding:16px 6px 12px; text-align:center; }
+  .cd .n { font-size:44px; font-weight:700; letter-spacing:-1.5px; color:var(--teal); line-height:1; font-variant-numeric:tabular-nums; }
+  .cd .u { font-size:11px; letter-spacing:2px; color:var(--dimmer); text-transform:uppercase; font-weight:700; margin-top:8px; }
+  .cdcap { font-size:12.5px; color:var(--dimmer); line-height:18px; margin-top:4px; }
+  @media (max-width:520px){ .cd{gap:7px;} .cd .n{font-size:30px;} .cd .cell{padding:12px 4px 10px;} }
   .split { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; border-top:1px solid #15181C; padding-top:18px; }
   .split div .v { font-size:19px; font-weight:700; }
   .split div .k { font-size:11.5px; color:var(--dimmer); margin-top:4px; line-height:16px; }
@@ -134,6 +140,7 @@
     <a href="/">dashboard</a>
     <a href="/kaspa-supply.html">supply</a>
     <a href="/kaspa-halving.html" class="on">halving</a>
+    <a href="/kaspa-staking.html">staking</a>
     <a href="/kaspa-hashrate.html">hashrate</a>
     <a href="/kaspa-mining.html">mining</a>
     <a href="/kaspa-tvl.html">tvl</a>
@@ -145,8 +152,8 @@
 </nav>
 <div class="wrap">
 
-  <h1>The Kaspa halving, explained. <b>It happens every month — and that changes everything about how to read it.</b></h1>
-  <div class="sub">If you're waiting for Kaspa's big halving day, you can stop: there isn't one. Kaspa cut its emission into twelve small steps a year instead of one cliff every four. Here's the schedule, the current numbers live, and what the monthly cut actually does.</div>
+  <h1>Kaspa halving countdown. <b>The next reduction is ticking below — because it happens every month, not every four years.</b></h1>
+  <div class="sub">If you're waiting for Kaspa's big halving day, you can stop: there isn't one. Kaspa cut its emission into twelve small steps a year instead of one cliff every four. Here's the live countdown to the next reduction date, the current numbers, and what the monthly cut actually does.</div>
 
   <div class="answer">
     <div class="lbl">The short answer</div>
@@ -154,8 +161,15 @@
   </div>
 
   <div class="live">
-    <div class="lbl"><i></i>Kaspa block reward · live schedule position</div>
-    <div class="big" id="rwBig">—</div>
+    <div class="lbl"><i></i>Kaspa halving countdown · next monthly reduction</div>
+    <div class="cd">
+      <div class="cell"><div class="n" id="cdD">–</div><div class="u">days</div></div>
+      <div class="cell"><div class="n" id="cdH">–</div><div class="u">hours</div></div>
+      <div class="cell"><div class="n" id="cdM">–</div><div class="u">min</div></div>
+      <div class="cell"><div class="n" id="cdS">–</div><div class="u">sec</div></div>
+    </div>
+    <div class="cdcap" id="cdCap">computing the next reduction from the fixed emission schedule…</div>
+    <div class="big" id="rwBig" style="margin-top:22px;">—</div>
     <div class="cap" id="rwCap">deriving from the emission schedule…</div>
     <div class="split">
       <div><div class="v" id="nxDate">—</div><div class="k">next monthly reduction (approximate — steps are score-based, dates can drift by a day or two)</div></div>
@@ -257,7 +271,7 @@
   </div>
 
   <footer>
-    <div>not financial advice · further reading: <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/merged-mining.html">kaspa merged mining, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/">kaspapulse.com</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>not financial advice · further reading: <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/merged-mining.html">kaspa merged mining, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/">kaspapulse.com</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
   </footer>
 </div>
 
@@ -273,8 +287,8 @@
     },
     {
       "@type": "Question",
-      "name": "When is the next Kaspa halving?",
-      "acceptedAnswer": { "@type": "Answer", "text": "A reduction happens roughly every 30.4 days, triggered by the chain's own score rather than a calendar date. The date and size of the next step are computed live on this page from the fixed emission schedule." }
+      "name": "When is the next Kaspa halving? Is there a countdown?",
+      "acceptedAnswer": { "@type": "Answer", "text": "A reduction happens roughly every 30.4 days, triggered by the chain's own score rather than a calendar date. This page shows a live countdown in days, hours, minutes and seconds to the next reduction, computed from the fixed emission schedule and anchored to the public Kaspa API, along with the exact expected date and the reward after the step." }
     },
     {
       "@type": "Question",
@@ -316,7 +330,37 @@
     document.getElementById("rwCap").textContent = "per block, at 10 blocks per second · derived from the fixed schedule, anchored to api.kaspa.org";
     document.getElementById("nxDate").textContent = "≈ "+fmtD(ts);
     document.getElementById("nxAmt").textContent = amt.toFixed(2)+" KAS";
+    startCountdown(ts, amt);
     drawCurve(ts, amt);
+  }
+
+  // the countdown itself. steps trigger on the chain's own score, so the last
+  // minutes can drift — the caption says so instead of pretending otherwise.
+  let cdTimer = null;
+  function startCountdown(targetTs, nextAmt){
+    const fmtDT = d => new Date(d).toLocaleString("en-US",{month:"short", day:"numeric",
+      year:"numeric", hour:"2-digit", minute:"2-digit", hour12:false, timeZoneName:"short"}).toLowerCase();
+    const pad = n => String(n).padStart(2,"0");
+    if (cdTimer) clearInterval(cdTimer);
+    function tick(){
+      let left = targetTs - Date.now();
+      if (left <= 0){
+        // step reached: roll the schedule forward one month
+        targetTs += STEP; nextAmt *= R; left = targetTs - Date.now();
+        document.getElementById("nxDate").textContent = "≈ "+new Date(targetTs)
+          .toLocaleDateString("en-US",{month:"short", day:"numeric", year:"numeric"}).toLowerCase();
+        document.getElementById("nxAmt").textContent = nextAmt.toFixed(2)+" KAS";
+      }
+      const s = Math.floor(left/1000);
+      document.getElementById("cdD").textContent = Math.floor(s/86400);
+      document.getElementById("cdH").textContent = pad(Math.floor(s%86400/3600));
+      document.getElementById("cdM").textContent = pad(Math.floor(s%3600/60));
+      document.getElementById("cdS").textContent = pad(s%60);
+    }
+    document.getElementById("cdCap").textContent =
+      "expected around "+fmtDT(targetTs)+", shown in your local time · the trigger is a chain score, not a clock, so the final minutes can drift slightly";
+    tick();
+    cdTimer = setInterval(tick, 1000);
   }
 
   function drawCurve(nextTs, nextAmt){
