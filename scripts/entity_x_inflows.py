@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Kaspa Pulse - Entity X Inflow Tracing v1.0
+# Kaspa Pulse - Entity X Inflow Tracing v1.1
 # Ablageort im Repo: scripts/entity_x_inflows.py
 #
 # Frage, die das Skript beantwortet:
@@ -10,28 +10,12 @@
 # Kaeufe. Das Gegenmuster waere: Zufluesse kommen direkt von beschrifteten
 # Boersen-Hotwallets, das saehe nach Abhebungen aus.
 #
-# Vorgehen, Spiegelbild des Abfluss-Tracers:
-#   1. Komplette Transaktionshistorie holen, echte Zufluesse isolieren.
-#      Gleiche Netto-Logik wie in entity_x_outflows.py und im Cost-Basis-
-#      Skript, damit alle drei dieselbe Welt sehen.
-#   2. Pro Zufluss die Absenderadressen aus den Eingaengen aufloesen.
-#      Eigene Eingaenge (Konsolidierung mit sich selbst) zaehlen nicht.
-#      Coinbase-Transaktionen (Mining direkt) werden eigens markiert.
-#   3. Absender profilieren: Kontostand und Transaktionszahl. Eine Adresse
-#      mit zehntausenden Transaktionen ist eine Boersen-Hotwallet, eine mit
-#      dreien ein frisches Wallet. Profiliert werden die groessten Absender,
-#      der Rest geht aggregiert in die Statistik, denn "sehr viele sehr
-#      kleine Absender" ist selbst ein Befund.
-#   4. Ein Hop zurueck bei den groessten Absendern: woher hatte der Absender
-#      die Coins kurz vorher? Eine frische Adresse, die von einer Hotwallet
-#      befuellt wurde, ist das klassische Abhebungsmuster. Eine frische
-#      Adresse, die von einer anderen frischen Adresse befuellt wurde,
-#      passt zur Konsolidierungs-These.
+# v1.1: Zurechnungsfehler aus Lauf #2 behoben. Absender bekommen jetzt ihren
+# Anteil am Netto-Zufluss zugerechnet, nicht ihren Brutto-Input. Vorher
+# zaehlte das Wechselgeld der Hotwallets mit und gate.io stand bei 155.7%.
 #
 # Was das Skript NICHT tut: es behauptet nicht, wer Entity X ist, und es
-# nennt keine Motive. Es liefert Herkunft, Betrag, Datum und eine
-# Einschaetzung mit Begruendung. Regel wie immer: wir melden die Bewegung,
-# nie das Motiv.
+# nennt keine Motive. Wir melden die Bewegung, nie das Motiv.
 #
 # Nur Python-Standardbibliothek, keine Abhaengigkeiten.
 
@@ -46,7 +30,7 @@ OUT_FILE = "data/entity-x-inflows.json"
 
 API = "https://api.kaspa.org"
 SOMPI = 100_000_000
-UA = {"User-Agent": "kaspapulse-inflows/1.0"}
+UA = {"User-Agent": "kaspapulse-inflows/1.1"}
 
 PAGE_LIMIT = 500
 MAX_PAGES = 200
@@ -177,6 +161,13 @@ def inflows_with_sources(txs, address=ADDRESS, dust=DUST_KAS):
         net = gain - spend
         if net <= dust:
             continue
+        # Zurechnung: jeder Absender bekommt seinen Anteil am NETTO-Zufluss,
+        # nicht seinen Brutto-Input. Sonst zaehlt das Wechselgeld der
+        # Hotwallets mit und die Summen explodieren (siehe Lauf #2, 155.7%).
+        tot = sum(srcs.values())
+        if tot > 0:
+            f = net / tot
+            srcs = {a: v * f for a, v in srcs.items()}
         # Wir haben mehr bekommen als ausgegeben. Das ist ein echter Zufluss.
         coinbase = len(inputs) == 0
         result.append({
@@ -421,9 +412,9 @@ def main():
                      "clusters would fit a consolidation story, coinbase "
                      "would be mining directly."),
         "method": ("inputs per inflow transaction, self-inputs removed, "
-                   "senders aggregated across all inflows, top senders "
-                   "profiled by balance and transaction count, one hop "
-                   "traced backwards"),
+                   "net inflow attributed to senders pro rata, senders "
+                   "aggregated across all inflows, top senders profiled by "
+                   "balance and transaction count, one hop traced backwards"),
         "busy_tx_threshold": BUSY_TX,
         "profiled_top": PROFILE_TOP,
         "hop_top": HOP_TOP,
