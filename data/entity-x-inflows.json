@@ -1,8 +1,8 @@
 {
-  "generated_at": 1786025818,
+  "generated_at": 1786026433,
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "question": "where do entity x inflows come from. exchange hot wallets would look like withdrawals, fresh unlabeled clusters would fit a consolidation story, coinbase would be mining directly.",
-  "method": "inputs per inflow transaction, self-inputs removed, senders aggregated across all inflows, top senders profiled by balance and transaction count, one hop traced backwards",
+  "method": "inputs per inflow transaction, self-inputs removed, net inflow attributed to senders pro rata, senders aggregated across all inflows, top senders profiled by balance and transaction count, one hop traced backwards",
   "busy_tx_threshold": 5000,
   "profiled_top": 60,
   "hop_top": 25,
@@ -24,45 +24,45 @@
     "nicht einzeln profiliert": 71
   },
   "kas_by_verdict": {
-    "boerse": 3054965769.22,
-    "frisches wallet": 173076094.36,
-    "boerse wahrscheinlich": 31758800.77,
-    "boerse ueber zwischenadresse": 12440449.52,
-    "boerse ueber zwischenadresse wahrscheinlich": 8317840.22,
-    "unklar": 12043714.24,
-    "nicht einzeln profiliert": 3495338.29
+    "boerse": 1352419910.86,
+    "frisches wallet": 145476139.32,
+    "boerse wahrscheinlich": 20841797.38,
+    "boerse ueber zwischenadresse": 7408669.89,
+    "boerse ueber zwischenadresse wahrscheinlich": 7925795.91,
+    "unklar": 11304428.95,
+    "nicht einzeln profiliert": 2707513.01
   },
   "by_exchange": {
     "gate.io": {
-      "kas": 2410351973.59,
+      "kas": 951319951.4,
       "senders": 4
     },
     "bybit": {
-      "kas": 482884821.23,
+      "kas": 274147999.1,
       "senders": 1
     },
     "bitget": {
-      "kas": 129827742.02,
+      "kas": 111136525.28,
       "senders": 1
     },
     "bitvavo": {
-      "kas": 44341681.9,
+      "kas": 23224104.97,
       "senders": 1
     }
   },
-  "named_exchange_kas": 3067406218.73,
-  "named_exchange_share": 1.9814,
+  "named_exchange_kas": 1359828580.75,
+  "named_exchange_share": 0.8784,
   "caveat": "an inflow from an exchange wallet is a withdrawal, not a proven buy. a fresh unlabeled sender is consistent with consolidation, not proof of it. the chain shows the path, never the owner and never the motive.",
   "senders": [
     {
       "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-      "kas": 2397911524.069596,
+      "kas": 943911281.5122349,
       "transfers": 161,
       "first_day": "2024-03-06",
       "last_day": "2026-08-04",
       "profile": {
-        "balance_kas": 767476312.1181917,
-        "tx_count": 140211,
+        "balance_kas": 767334812.7412218,
+        "tx_count": 140212,
         "tx_count_source": "api"
       },
       "verdict": "boerse",
@@ -85,7 +85,7 @@
     },
     {
       "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-      "kas": 482884821.22750527,
+      "kas": 274147999.10051644,
       "transfers": 61,
       "first_day": "2024-10-03",
       "last_day": "2026-07-30",
@@ -113,8 +113,37 @@
       }
     },
     {
+      "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
+      "kas": 111136525.27507798,
+      "transfers": 17,
+      "first_day": "2026-01-13",
+      "last_day": "2026-08-05",
+      "profile": {
+        "balance_kas": 211600100.07405424,
+        "tx_count": 112572,
+        "tx_count_source": "api"
+      },
+      "verdict": "boerse",
+      "reason": "absender ist auf kaspa.stream als bitget beschriftet",
+      "exchange": "bitget",
+      "prev_hop": {
+        "ts": 1785901683549,
+        "day": "2026-08-05",
+        "tx": "134c6e21a9661e2233efd2138f2be7b1c07a1f5cd10c968bca653d90780538f3",
+        "frm": {
+          "address": "kaspa:qq8lje4emu2j8p6kwpz90clsflynkeefj3mtrzytg5yaxq3d4q5egtav6zkke",
+          "kas": 1133511.250875
+        },
+        "frm_profile": {
+          "balance_kas": 0.0,
+          "tx_count": 71,
+          "tx_count_source": "api"
+        }
+      }
+    },
+    {
       "address": "kaspa:qr4znetsvjehrrfn75rra5zej50nsgx7v3zlkk54ljsddsry6sa6y3zs6s2sz",
-      "kas": 135229788.0928,
+      "kas": 109541081.40384434,
       "transfers": 5,
       "first_day": "2024-03-11",
       "last_day": "2024-06-10",
@@ -142,37 +171,8 @@
       }
     },
     {
-      "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
-      "kas": 129827742.01717815,
-      "transfers": 17,
-      "first_day": "2026-01-13",
-      "last_day": "2026-08-05",
-      "profile": {
-        "balance_kas": 211500100.12405425,
-        "tx_count": 112571,
-        "tx_count_source": "api"
-      },
-      "verdict": "boerse",
-      "reason": "absender ist auf kaspa.stream als bitget beschriftet",
-      "exchange": "bitget",
-      "prev_hop": {
-        "ts": 1785901683549,
-        "day": "2026-08-05",
-        "tx": "134c6e21a9661e2233efd2138f2be7b1c07a1f5cd10c968bca653d90780538f3",
-        "frm": {
-          "address": "kaspa:qq8lje4emu2j8p6kwpz90clsflynkeefj3mtrzytg5yaxq3d4q5egtav6zkke",
-          "kas": 1133511.250875
-        },
-        "frm_profile": {
-          "balance_kas": 0.0,
-          "tx_count": 71,
-          "tx_count_source": "api"
-        }
-      }
-    },
-    {
       "address": "kaspa:qzxs23g7txh3wq9d0t2z0hluhsflvzpf6d0yfum830ppumgtxa5d7zqca8r67",
-      "kas": 44341681.8985146,
+      "kas": 23224104.97111361,
       "transfers": 4,
       "first_day": "2026-01-12",
       "last_day": "2026-07-28",
@@ -201,7 +201,7 @@
     },
     {
       "address": "kaspa:qr9fqcxp9xjprsm9sv7apy6qc0ja2p676m9gf9fkcww2qmaw4npxzllh7lrw0",
-      "kas": 24717024.98856722,
+      "kas": 14000005.0,
       "transfers": 4,
       "first_day": "2025-03-04",
       "last_day": "2026-01-08",
@@ -217,7 +217,7 @@
     },
     {
       "address": "kaspa:qr7pk7qc83k0eeurlq9lw6hn9tcktqvz4tr9mh440cs0vsxrqsl3v05gye8nk",
-      "kas": 13399022.04005288,
+      "kas": 12059119.83603403,
       "transfers": 1,
       "first_day": "2024-03-11",
       "last_day": "2024-03-11",
@@ -245,37 +245,8 @@
       }
     },
     {
-      "address": "kaspa:qps6gt57lwckt9mn6prmgkrzufvm9e6vmwfhtgn9uhpdnyqh499jz5l80dcgm",
-      "kas": 10001196.1,
-      "transfers": 2,
-      "first_day": "2024-03-11",
-      "last_day": "2024-03-11",
-      "profile": {
-        "balance_kas": 0.0,
-        "tx_count": 7,
-        "tx_count_source": "api"
-      },
-      "verdict": "boerse ueber zwischenadresse",
-      "reason": "absender wurde am 2023-12-11 von der auf kaspa.stream als gate.io beschrifteten adresse befuellt",
-      "exchange": "gate.io",
-      "prev_hop": {
-        "ts": 1702257008423,
-        "day": "2023-12-11",
-        "tx": "90d3eedc1f2e7d951d7d7fe4050b1a50ae0027c0f5d8524d8b0e0afd4fe6e62b",
-        "frm": {
-          "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 10549804.49279105
-        },
-        "frm_profile": {
-          "balance_kas": 767476312.1181917,
-          "tx_count": 140211,
-          "tx_count_source": "api"
-        }
-      }
-    },
-    {
       "address": "kaspa:qzawve4wfwalyszzgdykh9fw8stt89qvg6rf50dymzl35ld92wa2c0p0yvz25",
-      "kas": 10000000.0,
+      "kas": 9999999.99998343,
       "transfers": 1,
       "first_day": "2024-03-11",
       "last_day": "2024-03-11",
@@ -303,8 +274,37 @@
       }
     },
     {
+      "address": "kaspa:qps6gt57lwckt9mn6prmgkrzufvm9e6vmwfhtgn9uhpdnyqh499jz5l80dcgm",
+      "kas": 5001206.09974997,
+      "transfers": 2,
+      "first_day": "2024-03-11",
+      "last_day": "2024-03-11",
+      "profile": {
+        "balance_kas": 0.0,
+        "tx_count": 7,
+        "tx_count_source": "api"
+      },
+      "verdict": "boerse ueber zwischenadresse",
+      "reason": "absender wurde am 2023-12-11 von der auf kaspa.stream als gate.io beschrifteten adresse befuellt",
+      "exchange": "gate.io",
+      "prev_hop": {
+        "ts": 1702257008423,
+        "day": "2023-12-11",
+        "tx": "90d3eedc1f2e7d951d7d7fe4050b1a50ae0027c0f5d8524d8b0e0afd4fe6e62b",
+        "frm": {
+          "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
+          "kas": 10549804.49279105
+        },
+        "frm_profile": {
+          "balance_kas": 767334812.7412218,
+          "tx_count": 140212,
+          "tx_count_source": "api"
+        }
+      }
+    },
+    {
       "address": "kaspa:qq3ded2akz05nzaumzzazyjtxl024scxfpv4ht4wrhckyhypnc4pz0hyuk52v",
-      "kas": 4999989.9999,
+      "kas": 4999989.99965003,
       "transfers": 1,
       "first_day": "2024-03-11",
       "last_day": "2024-03-11",
@@ -333,7 +333,7 @@
     },
     {
       "address": "kaspa:qzkjdp8l79u4wayjjcvfvg4sdh9vhrhrdsspll6ue22qxy0mcyxkgplelkcpm",
-      "kas": 4426487.8445,
+      "kas": 4256896.16068892,
       "transfers": 5,
       "first_day": "2025-01-30",
       "last_day": "2025-07-31",
@@ -362,7 +362,7 @@
     },
     {
       "address": "kaspa:qzuuky4xcdd2ur0u24l0drn9xjyf0d95ll25hyk9ttcz4x9wxlhrcrrm8s0a5",
-      "kas": 3841599.584,
+      "kas": 3683288.04358761,
       "transfers": 9,
       "first_day": "2024-11-18",
       "last_day": "2025-07-31",
@@ -378,7 +378,7 @@
     },
     {
       "address": "kaspa:qpykj9tu7j78yaalfxytnuth2zkmaq6ltec3jm3w6es8s4jxguq2xlcsuu5xg",
-      "kas": 3628698.03275862,
+      "kas": 3628696.0527111,
       "transfers": 2,
       "first_day": "2024-03-11",
       "last_day": "2024-06-10",
@@ -407,7 +407,7 @@
     },
     {
       "address": "kaspa:qz4kt3t0qzpmpcgle28mgudu6lpu0fel6rgn0y2p808l8em7gd2exnss8cr2t",
-      "kas": 2459781.96,
+      "kas": 2409560.87955831,
       "transfers": 2,
       "first_day": "2026-01-12",
       "last_day": "2026-02-23",
@@ -436,7 +436,7 @@
     },
     {
       "address": "kaspa:qpd52l59kw8f7367x2adkgfaysptq8ru9cfv9c60p384ee2q4zh2wmc20esjr",
-      "kas": 2000000.0,
+      "kas": 1881523.69481397,
       "transfers": 1,
       "first_day": "2024-12-30",
       "last_day": "2024-12-30",
@@ -464,37 +464,8 @@
       }
     },
     {
-      "address": "kaspa:qrqlynq54v5f4clq22g9szlkxhg5798dm9zqp89t5m4vucy0a5rygtd850jvl",
-      "kas": 1837002.13,
-      "transfers": 3,
-      "first_day": "2025-05-06",
-      "last_day": "2026-07-18",
-      "profile": {
-        "balance_kas": 0.0,
-        "tx_count": 955,
-        "tx_count_source": "api"
-      },
-      "verdict": "boerse ueber zwischenadresse wahrscheinlich",
-      "reason": "absender wurde am 2026-07-17 von einer adresse mit 654,345 transaktionen befuellt",
-      "exchange": null,
-      "prev_hop": {
-        "ts": 1784295065042,
-        "day": "2026-07-17",
-        "tx": "45e1057e127fd44942c842c11bd8e4277171d0803b280ec81ac3519b9039594f",
-        "frm": {
-          "address": "kaspa:qpzpfwcsqsxhxwup26r55fd0ghqlhyugz8cp6y3wxuddc02vcxtjg75pspnwz",
-          "kas": 805001.64
-        },
-        "frm_profile": {
-          "balance_kas": 911228389.7773916,
-          "tx_count": 654345,
-          "tx_count_source": "api"
-        }
-      }
-    },
-    {
       "address": "kaspa:qq3k4du6wf2g26j7ds6fqmgtgavgm3zy676wntp2e52nsuns2n4s6xkndmx0y",
-      "kas": 1826539.2323696,
+      "kas": 1821936.57789443,
       "transfers": 1,
       "first_day": "2024-03-13",
       "last_day": "2024-03-13",
@@ -509,8 +480,37 @@
       "prev_hop": null
     },
     {
+      "address": "kaspa:qrqlynq54v5f4clq22g9szlkxhg5798dm9zqp89t5m4vucy0a5rygtd850jvl",
+      "kas": 1715345.0550997,
+      "transfers": 3,
+      "first_day": "2025-05-06",
+      "last_day": "2026-07-18",
+      "profile": {
+        "balance_kas": 0.0,
+        "tx_count": 955,
+        "tx_count_source": "api"
+      },
+      "verdict": "boerse ueber zwischenadresse wahrscheinlich",
+      "reason": "absender wurde am 2026-07-17 von einer adresse mit 654,347 transaktionen befuellt",
+      "exchange": null,
+      "prev_hop": {
+        "ts": 1784295065042,
+        "day": "2026-07-17",
+        "tx": "45e1057e127fd44942c842c11bd8e4277171d0803b280ec81ac3519b9039594f",
+        "frm": {
+          "address": "kaspa:qpzpfwcsqsxhxwup26r55fd0ghqlhyugz8cp6y3wxuddc02vcxtjg75pspnwz",
+          "kas": 805001.64
+        },
+        "frm_profile": {
+          "balance_kas": 911226510.2060316,
+          "tx_count": 654347,
+          "tx_count_source": "api"
+        }
+      }
+    },
+    {
       "address": "kaspa:qz20j2zf4qxx9m8xs6kf4pn8h7tn827hmxtqgrashfcjcuyt4el0yeh89f060",
-      "kas": 1723959.02,
+      "kas": 1706726.02742842,
       "transfers": 2,
       "first_day": "2025-05-06",
       "last_day": "2025-06-22",
@@ -531,15 +531,15 @@
           "kas": 14959888.0070468
         },
         "frm_profile": {
-          "balance_kas": 767476312.1181917,
-          "tx_count": 140211,
+          "balance_kas": 767334812.7412218,
+          "tx_count": 140212,
           "tx_count_source": "api"
         }
       }
     },
     {
       "address": "kaspa:qqt0gw5s6dzwzga2a3l40j0xlyfr7dmgpln9svfx4xst06h9wxcp6a5upfvf4",
-      "kas": 1304555.23882,
+      "kas": 1219001.79212269,
       "transfers": 5,
       "first_day": "2024-11-18",
       "last_day": "2025-08-06",
@@ -549,7 +549,7 @@
         "tx_count_source": "api"
       },
       "verdict": "boerse ueber zwischenadresse wahrscheinlich",
-      "reason": "absender wurde am 2025-08-06 von einer adresse mit 127,773 transaktionen befuellt",
+      "reason": "absender wurde am 2025-08-06 von einer adresse mit 127,774 transaktionen befuellt",
       "exchange": null,
       "prev_hop": {
         "ts": 1754499580767,
@@ -560,31 +560,31 @@
           "kas": 1035847.26934001
         },
         "frm_profile": {
-          "balance_kas": 30146.11265811,
-          "tx_count": 127773,
+          "balance_kas": 37646.11049491,
+          "tx_count": 127774,
           "tx_count_source": "api"
         }
       }
     },
     {
       "address": "kaspa:qphfy7yfwyj7uqw2q6v924q6xcsstfhdz70cdm7ewnzqt98r2x6jydujg6gle",
-      "kas": 1195133.636,
+      "kas": 1158514.23949,
       "transfers": 1,
       "first_day": "2026-03-11",
       "last_day": "2026-03-11",
       "profile": {
-        "balance_kas": 274535791.92219734,
-        "tx_count": 29398,
+        "balance_kas": 274517087.741104,
+        "tx_count": 29400,
         "tx_count_source": "api"
       },
       "verdict": "boerse wahrscheinlich",
-      "reason": "absender hat 29,398 transaktionen, das ist kein privates wallet",
+      "reason": "absender hat 29,400 transaktionen, das ist kein privates wallet",
       "exchange": null,
       "prev_hop": null
     },
     {
       "address": "kaspa:qq2cz9zuxjs57y97lgntq6z96hay2rf858pkjeduee9t20q2tsu0jy7jm09tw",
-      "kas": 1089773.7925,
+      "kas": 1081960.01911997,
       "transfers": 1,
       "first_day": "2025-06-22",
       "last_day": "2025-06-22",
@@ -600,7 +600,7 @@
     },
     {
       "address": "kaspa:qz7rh5j2djygjn7lprprtarvltucu9efajydyapr42eyae685z3p6us4ll2lk",
-      "kas": 829862.20601157,
+      "kas": 747319.98003703,
       "transfers": 1,
       "first_day": "2024-12-12",
       "last_day": "2024-12-12",
@@ -629,7 +629,7 @@
     },
     {
       "address": "kaspa:qqdnux6dcfa5wdaydjxyrrnwfpdaclha3yuzdkjpasxflgql6ukyvm9m2x400",
-      "kas": 749795.01,
+      "kas": 734552.89788342,
       "transfers": 1,
       "first_day": "2025-01-30",
       "last_day": "2025-01-30",
@@ -658,7 +658,7 @@
     },
     {
       "address": "kaspa:qz5hppxmt8tphv0glcj93q2fshurp56alm8ue8eu8ydlpxf7n3772kpuv4fqf",
-      "kas": 715294.4,
+      "kas": 700737.76473641,
       "transfers": 3,
       "first_day": "2024-10-03",
       "last_day": "2025-05-31",
@@ -687,7 +687,7 @@
     },
     {
       "address": "kaspa:qqp76e08sqlptcfm7t57222207xg42v44eqsc7jgq2a9dz0dfd48cjzd4484r",
-      "kas": 680000.0,
+      "kas": 672677.69099764,
       "transfers": 1,
       "first_day": "2025-05-06",
       "last_day": "2025-05-06",
@@ -716,7 +716,7 @@
     },
     {
       "address": "kaspa:qrtwdz6kuadydskwtex5lpnv5xra5cg2ja4qqysfcz4drr9pl2zdqtrtxzvhx",
-      "kas": 671716.25486181,
+      "kas": 658298.75446236,
       "transfers": 3,
       "first_day": "2024-10-03",
       "last_day": "2024-11-18",
@@ -732,7 +732,7 @@
     },
     {
       "address": "kaspa:qzm35r8vdcju0yrrzcn7x8tu3zk3rsuzrzr57vsux20qvg9thrh4kkamgjmay",
-      "kas": 603839.03155174,
+      "kas": 573757.60707925,
       "transfers": 2,
       "first_day": "2024-11-11",
       "last_day": "2025-01-23",
@@ -748,7 +748,7 @@
     },
     {
       "address": "kaspa:qp4us679pv3ecvc20namj7zcr32c7h65ft94mgx5lq4snt5ftyjwuqkc0rapl",
-      "kas": 519778.4,
+      "kas": 495127.10359286,
       "transfers": 4,
       "first_day": "2024-11-04",
       "last_day": "2025-07-03",
@@ -764,7 +764,7 @@
     },
     {
       "address": "kaspa:qrnv2ak7qy5cckp0mld4hfpcenm62244q24v93asc9zfg7qvdnfc7nq8yp6aq",
-      "kas": 500712.49277396,
+      "kas": 490533.82280251,
       "transfers": 1,
       "first_day": "2025-01-30",
       "last_day": "2025-01-30",
@@ -780,7 +780,7 @@
     },
     {
       "address": "kaspa:qqyzhdpkxeh9g9lc7qq048fmydx7uuzwwcwd5y0397hefk9pp389x8ke0dwt0",
-      "kas": 473849.173,
+      "kas": 466825.35744589,
       "transfers": 2,
       "first_day": "2024-10-03",
       "last_day": "2025-08-06",
@@ -795,56 +795,8 @@
       "prev_hop": null
     },
     {
-      "address": "kaspa:qp8fzwnzvak6cq5djtawdxlj3znxqtuxsg3ulkdnlgu0v22heuauk2tenfpmj",
-      "kas": 410038.1,
-      "transfers": 3,
-      "first_day": "2024-11-21",
-      "last_day": "2025-07-03",
-      "profile": {
-        "balance_kas": 0.0,
-        "tx_count": 718,
-        "tx_count_source": "api"
-      },
-      "verdict": "unklar",
-      "reason": "kein label, kein eindeutiges profil",
-      "exchange": null,
-      "prev_hop": null
-    },
-    {
-      "address": "kaspa:qqjl9uqfnt634p9rgru0502r4fuxsmk3fa5y2k0pwq5plvzxcpt8vw0x757h5",
-      "kas": 400393.77236438,
-      "transfers": 1,
-      "first_day": "2025-02-14",
-      "last_day": "2025-02-14",
-      "profile": {
-        "balance_kas": 0.0,
-        "tx_count": 2,
-        "tx_count_source": "api"
-      },
-      "verdict": "frisches wallet",
-      "reason": "absender hat nur 2 transaktionen und kein label, herkunft dahinter nicht gefunden",
-      "exchange": null,
-      "prev_hop": null
-    },
-    {
-      "address": "kaspa:qypu7h0sxewldhmkw6tv7xvltr6savz0smpqey0w6d7w8axpe8xaz6qu54qvad4",
-      "kas": 400310.29254071,
-      "transfers": 1,
-      "first_day": "2026-01-15",
-      "last_day": "2026-01-15",
-      "profile": {
-        "balance_kas": 306814.34042839,
-        "tx_count": 929,
-        "tx_count_source": "api"
-      },
-      "verdict": "unklar",
-      "reason": "kein label, kein eindeutiges profil",
-      "exchange": null,
-      "prev_hop": null
-    },
-    {
       "address": "kaspa:qq5wkve8vvt4t779tax9la2w9luxgalw4jr23h5d7c4gtypcz72ay83l2drez",
-      "kas": 400261.44,
+      "kas": 395951.38419793,
       "transfers": 1,
       "first_day": "2025-05-06",
       "last_day": "2025-05-06",
@@ -860,7 +812,7 @@
     },
     {
       "address": "kaspa:qpzl4zjmvd8s3zdm4449k8a9tfhfa2g87fn767nr3zaftpjtxugjutap0d88d",
-      "kas": 400000.0,
+      "kas": 394900.26427006,
       "transfers": 1,
       "first_day": "2025-07-03",
       "last_day": "2025-07-03",
@@ -875,8 +827,24 @@
       "prev_hop": null
     },
     {
+      "address": "kaspa:qp8fzwnzvak6cq5djtawdxlj3znxqtuxsg3ulkdnlgu0v22heuauk2tenfpmj",
+      "kas": 377715.60212947,
+      "transfers": 3,
+      "first_day": "2024-11-21",
+      "last_day": "2025-07-03",
+      "profile": {
+        "balance_kas": 0.0,
+        "tx_count": 718,
+        "tx_count_source": "api"
+      },
+      "verdict": "unklar",
+      "reason": "kein label, kein eindeutiges profil",
+      "exchange": null,
+      "prev_hop": null
+    },
+    {
       "address": "kaspa:qz3wh60peyaj8duvraz87f3xevztgvaahrhnzjszaw20djp78894q8rax9528",
-      "kas": 391676.802,
+      "kas": 371067.72216129,
       "transfers": 1,
       "first_day": "2025-07-31",
       "last_day": "2025-07-31",
@@ -892,7 +860,7 @@
     },
     {
       "address": "kaspa:qqyfddkgx9lrycw3ms00qjp3tnr6250wrenrww6turf0x7sdsju9xrxx57ud8",
-      "kas": 359460.91642468,
+      "kas": 354318.97589197,
       "transfers": 1,
       "first_day": "2025-08-06",
       "last_day": "2025-08-06",
@@ -907,24 +875,8 @@
       "prev_hop": null
     },
     {
-      "address": "kaspa:qrzx6mtk6n7ny3hpav5m3ydrmdmdqgsxg8rf78a6zj7gxle9278scdhkmuz43",
-      "kas": 358000.0,
-      "transfers": 1,
-      "first_day": "2025-01-20",
-      "last_day": "2025-01-20",
-      "profile": {
-        "balance_kas": 0.0,
-        "tx_count": 22,
-        "tx_count_source": "api"
-      },
-      "verdict": "frisches wallet",
-      "reason": "absender hat nur 22 transaktionen und kein label, herkunft dahinter nicht gefunden",
-      "exchange": null,
-      "prev_hop": null
-    },
-    {
       "address": "kaspa:qq2tuuff6qlzuu56dw89e7klvnwy5s3uel4w4thun9au5jmqgshc5m4qdz5c8",
-      "kas": 355185.99997964,
+      "kas": 350105.21036805,
       "transfers": 1,
       "first_day": "2025-08-06",
       "last_day": "2025-08-06",
@@ -939,8 +891,24 @@
       "prev_hop": null
     },
     {
+      "address": "kaspa:qrzx6mtk6n7ny3hpav5m3ydrmdmdqgsxg8rf78a6zj7gxle9278scdhkmuz43",
+      "kas": 337145.20292212,
+      "transfers": 1,
+      "first_day": "2025-01-20",
+      "last_day": "2025-01-20",
+      "profile": {
+        "balance_kas": 0.0,
+        "tx_count": 22,
+        "tx_count_source": "api"
+      },
+      "verdict": "frisches wallet",
+      "reason": "absender hat nur 22 transaktionen und kein label, herkunft dahinter nicht gefunden",
+      "exchange": null,
+      "prev_hop": null
+    },
+    {
       "address": "kaspa:qpnxjt2c8kgzrnlfdtxrqhx9dz9j62n3khsgdw8e4wq9hgme5jgz6cam8zwz2",
-      "kas": 351431.99997964,
+      "kas": 332940.50365288,
       "transfers": 1,
       "first_day": "2025-07-31",
       "last_day": "2025-07-31",
@@ -956,7 +924,7 @@
     },
     {
       "address": "kaspa:qz42kkm48y5l2ue5cq0zth28fpedafjfyp885sm6fsw0grshd7rkztvlgl9rg",
-      "kas": 309847.50934653,
+      "kas": 306511.0399244,
       "transfers": 1,
       "first_day": "2025-05-06",
       "last_day": "2025-05-06",
@@ -971,24 +939,8 @@
       "prev_hop": null
     },
     {
-      "address": "kaspa:qp4dd0h8qqqd7qk3pk9tutat2w4p8e9mzw8s2hztuqdp8yhua425gqz8eam7e",
-      "kas": 300000.0,
-      "transfers": 1,
-      "first_day": "2025-01-23",
-      "last_day": "2025-01-23",
-      "profile": {
-        "balance_kas": 0.0,
-        "tx_count": 67,
-        "tx_count_source": "api"
-      },
-      "verdict": "unklar",
-      "reason": "kein label, kein eindeutiges profil",
-      "exchange": null,
-      "prev_hop": null
-    },
-    {
       "address": "kaspa:qrzl0mhnh3l6rehp4r8ky7w2w5jehyjptxufftuhjfplvrjk8el4qmp534vem",
-      "kas": 294985.25073746,
+      "kas": 291808.81962417,
       "transfers": 1,
       "first_day": "2025-05-06",
       "last_day": "2025-05-06",
@@ -1003,40 +955,24 @@
       "prev_hop": null
     },
     {
-      "address": "kaspa:qz6njaq72wlv4tt24hcl8z3qul3vqdrh5vrnn2ne8j38kw2ult7ckx0yde6r2",
-      "kas": 275808.0,
+      "address": "kaspa:qp4dd0h8qqqd7qk3pk9tutat2w4p8e9mzw8s2hztuqdp8yhua425gqz8eam7e",
+      "kas": 283204.63003449,
       "transfers": 1,
-      "first_day": "2025-02-22",
-      "last_day": "2025-02-22",
+      "first_day": "2025-01-23",
+      "last_day": "2025-01-23",
       "profile": {
         "balance_kas": 0.0,
-        "tx_count": 16,
+        "tx_count": 67,
         "tx_count_source": "api"
       },
-      "verdict": "frisches wallet",
-      "reason": "absender hat nur 16 transaktionen und kein label, herkunft dahinter nicht gefunden",
-      "exchange": null,
-      "prev_hop": null
-    },
-    {
-      "address": "kaspa:qpk7l2ute5rgt9l83mj5v4xnhd6fftm850vxmf2l37au7hhlrx7kse33wdhfs",
-      "kas": 250927.446682,
-      "transfers": 1,
-      "first_day": "2025-01-30",
-      "last_day": "2025-01-30",
-      "profile": {
-        "balance_kas": 0.0,
-        "tx_count": 4,
-        "tx_count_source": "api"
-      },
-      "verdict": "frisches wallet",
-      "reason": "absender hat nur 4 transaktionen und kein label, herkunft dahinter nicht gefunden",
+      "verdict": "unklar",
+      "reason": "kein label, kein eindeutiges profil",
       "exchange": null,
       "prev_hop": null
     },
     {
       "address": "kaspa:qrqz7y3ee3qahq4kqvhfjx3jactwqrv63ccaxzhsvpn9fv9kklcuv5np3c4x9",
-      "kas": 250253.94510628,
+      "kas": 246471.15031728,
       "transfers": 1,
       "first_day": "2026-01-12",
       "last_day": "2026-01-12",
@@ -1051,8 +987,24 @@
       "prev_hop": null
     },
     {
+      "address": "kaspa:qpk7l2ute5rgt9l83mj5v4xnhd6fftm850vxmf2l37au7hhlrx7kse33wdhfs",
+      "kas": 245826.50012401,
+      "transfers": 1,
+      "first_day": "2025-01-30",
+      "last_day": "2025-01-30",
+      "profile": {
+        "balance_kas": 0.0,
+        "tx_count": 4,
+        "tx_count_source": "api"
+      },
+      "verdict": "frisches wallet",
+      "reason": "absender hat nur 4 transaktionen und kein label, herkunft dahinter nicht gefunden",
+      "exchange": null,
+      "prev_hop": null
+    },
+    {
       "address": "kaspa:qp5xmz5fjnlltqqhwvj7aag98sp4q2had7r37javye02cl4vf3fpj75f0ld2f",
-      "kas": 250000.49949538,
+      "kas": 244918.39626491,
       "transfers": 1,
       "first_day": "2025-01-30",
       "last_day": "2025-01-30",
@@ -1068,7 +1020,7 @@
     },
     {
       "address": "kaspa:qz9w7cl4p0vfv4mt98xd83mtw0a3vp8k0v4lglu6kt4ggp508f05g6jul8rav",
-      "kas": 250000.0,
+      "kas": 244917.90692346,
       "transfers": 1,
       "first_day": "2025-01-30",
       "last_day": "2025-01-30",
@@ -1084,7 +1036,7 @@
     },
     {
       "address": "kaspa:qpw2xhgkn29wrd7j6lh9ujm94asc3j30y3en4950uvqr9vhn4ujzcdr0c0fvt",
-      "kas": 250000.0,
+      "kas": 244917.90692346,
       "transfers": 1,
       "first_day": "2025-01-30",
       "last_day": "2025-01-30",
@@ -1100,7 +1052,7 @@
     },
     {
       "address": "kaspa:qrqza803k8als6f6hva203de04vmlrxa0t6fdjzfv33yuaja6tfxuygkfmgh8",
-      "kas": 218102.49,
+      "kas": 214226.59296801,
       "transfers": 2,
       "first_day": "2024-12-02",
       "last_day": "2025-07-03",
@@ -1116,7 +1068,7 @@
     },
     {
       "address": "kaspa:qqm23f0y8zwjjy2kdsc2xnj3k3s9ccmgvkvqujtkyahzydefmz4ykvdp55qee",
-      "kas": 204990.99083801,
+      "kas": 202377.49113728,
       "transfers": 1,
       "first_day": "2025-07-03",
       "last_day": "2025-07-03",
@@ -1131,8 +1083,24 @@
       "prev_hop": null
     },
     {
+      "address": "kaspa:qzv6umps6hpg92349ktl8qp52rcef9yljrjnxc0gwn9nqnu60h5sk8kdday03",
+      "kas": 196976.83504059,
+      "transfers": 1,
+      "first_day": "2026-01-12",
+      "last_day": "2026-01-12",
+      "profile": {
+        "balance_kas": 0.0,
+        "tx_count": 10,
+        "tx_count_source": "api"
+      },
+      "verdict": "frisches wallet",
+      "reason": "absender hat nur 10 transaktionen und kein label, herkunft dahinter nicht gefunden",
+      "exchange": null,
+      "prev_hop": null
+    },
+    {
       "address": "kaspa:qqazudyurpwz7r54wmjkt3xk3x28x4yfacss895nk8xm9rh7yqw8kqzz6m99j",
-      "kas": 200000.0,
+      "kas": 191285.91467412,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1148,7 +1116,7 @@
     },
     {
       "address": "kaspa:qpgkrrcuf429zezjxaz88pwcn7395duj9tescyzq78uclkhwtk2h2jrzld6ua",
-      "kas": 200000.0,
+      "kas": 191285.91467412,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1164,7 +1132,7 @@
     },
     {
       "address": "kaspa:qqutzyft3f8snkqam6zlwdj45sdjkap0eppvcmp9ykry47cu2u82sqf4x4kdl",
-      "kas": 200000.0,
+      "kas": 191285.91467412,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1179,56 +1147,24 @@
       "prev_hop": null
     },
     {
-      "address": "kaspa:qzv6umps6hpg92349ktl8qp52rcef9yljrjnxc0gwn9nqnu60h5sk8kdday03",
-      "kas": 200000.0,
-      "transfers": 1,
-      "first_day": "2026-01-12",
-      "last_day": "2026-01-12",
-      "profile": {
-        "balance_kas": 0.0,
-        "tx_count": 10,
-        "tx_count_source": "api"
-      },
-      "verdict": "frisches wallet",
-      "reason": "absender hat nur 10 transaktionen und kein label, herkunft dahinter nicht gefunden",
-      "exchange": null,
-      "prev_hop": null
-    },
-    {
       "address": "kaspa:qpq94ntnvy8p9q6wrdwtn37xtspgashrydc0kuu8ctpyxulmh0wlxh2807zdh",
-      "kas": 178503.32856441,
+      "kas": 178053.52210557,
       "transfers": 1,
       "first_day": "2024-03-13",
       "last_day": "2024-03-13",
       "profile": {
-        "balance_kas": 80149510.05519895,
-        "tx_count": 305929,
+        "balance_kas": 80145350.16302796,
+        "tx_count": 305930,
         "tx_count_source": "api"
       },
       "verdict": "boerse wahrscheinlich",
-      "reason": "absender hat 305,929 transaktionen, das ist kein privates wallet",
-      "exchange": null,
-      "prev_hop": null
-    },
-    {
-      "address": "kaspa:qp56tt4ezdqsz622jk9jyvl7c3zldquv7uuyu7x03h5ehkdmfhtnxqsrjzjwp",
-      "kas": 150000.0,
-      "transfers": 1,
-      "first_day": "2024-11-28",
-      "last_day": "2024-11-28",
-      "profile": {
-        "balance_kas": 0.0,
-        "tx_count": 27,
-        "tx_count_source": "api"
-      },
-      "verdict": "frisches wallet",
-      "reason": "absender hat nur 27 transaktionen und kein label, herkunft dahinter nicht gefunden",
+      "reason": "absender hat 305,930 transaktionen, das ist kein privates wallet",
       "exchange": null,
       "prev_hop": null
     },
     {
       "address": "kaspa:qrnf2522cpa85s0yu0jy53snjp5evetrg9vuz7rwgzyw4x7sajnvz0gr3lthn",
-      "kas": 137500.70536989,
+      "kas": 135387.49647486,
       "transfers": 1,
       "first_day": "2024-11-18",
       "last_day": "2024-11-18",
@@ -1244,7 +1180,7 @@
     },
     {
       "address": "kaspa:qpyknt9jmfu7ux7tq8h2d39up9n3v3mm8uhe0tq7l3hqnsgwzk2d2axuek4lu",
-      "kas": 137432.45000541,
+      "kas": 135320.2901075,
       "transfers": 1,
       "first_day": "2024-11-18",
       "last_day": "2024-11-18",
@@ -1260,7 +1196,7 @@
     },
     {
       "address": "kaspa:qphwxlsludlh67fy0x0ukdrfc8xqnqpuuszrdsnuwatrus922n5nsuu97gcsa",
-      "kas": 126388.522948,
+      "kas": 124777.15278217,
       "transfers": 1,
       "first_day": "2025-07-03",
       "last_day": "2025-07-03",
@@ -1276,47 +1212,101 @@
     },
     {
       "address": "kaspa:qqmyrr7293z6agawgz9gmryyqguj4mlkqfa3j6j3m9lu6jrhwfs35lz4alwhq",
-      "kas": 124999.99997964,
+      "kas": 123406.33256429,
       "transfers": 1,
       "first_day": "2025-07-03",
       "last_day": "2025-07-03",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
+      "profile": {
+        "balance_kas": 0.0,
+        "tx_count": 2,
+        "tx_count_source": "api"
+      },
+      "verdict": "frisches wallet",
+      "reason": "absender hat nur 2 transaktionen und kein label, herkunft dahinter nicht gefunden",
+      "exchange": null,
+      "prev_hop": null
     },
     {
       "address": "kaspa:qzaqkqaezl34jtnw3476jw370pas0lgzma2mgu46nf3zdl0mqcagxqkk87gt5",
-      "kas": 124999.99997964,
+      "kas": 123406.33256429,
       "transfers": 1,
       "first_day": "2025-07-03",
       "last_day": "2025-07-03",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
+      "profile": {
+        "balance_kas": 0.0,
+        "tx_count": 2,
+        "tx_count_source": "api"
+      },
+      "verdict": "frisches wallet",
+      "reason": "absender hat nur 2 transaktionen und kein label, herkunft dahinter nicht gefunden",
+      "exchange": null,
+      "prev_hop": null
     },
     {
       "address": "kaspa:qraauz0jphn5sjeklgm9m84smr7sxew2ve325spf0807kg9s6mnpc3ml3mm0e",
-      "kas": 124999.99997964,
+      "kas": 123406.33256429,
       "transfers": 1,
       "first_day": "2025-07-03",
       "last_day": "2025-07-03",
+      "profile": {
+        "balance_kas": 0.0,
+        "tx_count": 2,
+        "tx_count_source": "api"
+      },
+      "verdict": "frisches wallet",
+      "reason": "absender hat nur 2 transaktionen und kein label, herkunft dahinter nicht gefunden",
+      "exchange": null,
+      "prev_hop": null
+    },
+    {
+      "address": "kaspa:qznysjau4r56xs2qen0whfvhl2t3fa8wrs6t9pgl6e2jtu8pw70ngzflfwgfk",
+      "kas": 98232.29005853,
+      "transfers": 1,
+      "first_day": "2024-12-05",
+      "last_day": "2024-12-05",
+      "profile": {
+        "balance_kas": 0.0,
+        "tx_count": 53,
+        "tx_count_source": "api"
+      },
+      "verdict": "unklar",
+      "reason": "kein label, kein eindeutiges profil",
+      "exchange": null,
+      "prev_hop": null
+    },
+    {
+      "address": "kaspa:qz2jmc6mv0w97nh6zt5s4shvzw5ha2qwrsqf607tqkrpr07v0a2s6wnedzs8e",
+      "kas": 98159.43568438,
+      "transfers": 1,
+      "first_day": "2024-12-05",
+      "last_day": "2024-12-05",
       "verdict": "nicht einzeln profiliert",
       "reason": "unter den kleineren absendern, nur aggregiert",
       "exchange": null
     },
     {
-      "address": "kaspa:qqc278gtf5asz2jpfjrf5nsuuwhwutjawqydf8ka0xkza20yzdk0v8kjuy6nv",
-      "kas": 100000.04283695,
+      "address": "kaspa:qz3qfgdhgccc5shd2cjs9eyqthtu993dcm3t0vpz4ll009ldyjza638k6t66g",
+      "kas": 97540.45537487,
       "transfers": 1,
-      "first_day": "2025-01-29",
-      "last_day": "2025-01-29",
+      "first_day": "2024-12-02",
+      "last_day": "2024-12-02",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qp56tt4ezdqsz622jk9jyvl7c3zldquv7uuyu7x03h5ehkdmfhtnxqsrjzjwp",
+      "kas": 97349.55450373,
+      "transfers": 1,
+      "first_day": "2024-11-28",
+      "last_day": "2024-11-28",
       "verdict": "nicht einzeln profiliert",
       "reason": "unter den kleineren absendern, nur aggregiert",
       "exchange": null
     },
     {
       "address": "kaspa:qpxuah7fvsydu9lqlktehfq92zvm9czvw8q5l2qvjs06znk9u63ksrnn9yf56",
-      "kas": 100000.0,
+      "kas": 95642.95733706,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1326,7 +1316,7 @@
     },
     {
       "address": "kaspa:qpfgf0vrmxr9q72esgasd7aha5d2ug06dqrljlla4hu3mwd0hu9mzxacgtu6d",
-      "kas": 100000.0,
+      "kas": 95642.95733706,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1336,7 +1326,7 @@
     },
     {
       "address": "kaspa:qra6d3eycc2svnau8jqetsnwmwjazhs5d5wk5wefk4t3zvarhshewfe9v7rd3",
-      "kas": 100000.0,
+      "kas": 95642.95733706,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1346,7 +1336,7 @@
     },
     {
       "address": "kaspa:qrp0g9qxsy7attm03t925qrajqlvtnkvhy0mewy70ja8yzvud69uxk0ftj4np",
-      "kas": 100000.0,
+      "kas": 95642.95733706,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1356,7 +1346,7 @@
     },
     {
       "address": "kaspa:qzn8ckzq4cz46d4shvzndmacnh9rdfkqj3hr53ueza43wnyllyq22tg98v2rs",
-      "kas": 100000.0,
+      "kas": 95642.95733706,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1366,7 +1356,7 @@
     },
     {
       "address": "kaspa:qqfu3jv0d2zcykn06cw2sx6gnx7tphtldlnpsztpth74tg70r5rgw0f9dzler",
-      "kas": 100000.0,
+      "kas": 95642.95733706,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1376,7 +1366,7 @@
     },
     {
       "address": "kaspa:qq0a5ptqh2wh286tj8ln2k7pupxwqgctd9uvj4vr6xwmtxkugn95gge895l8u",
-      "kas": 100000.0,
+      "kas": 95642.95733706,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1386,7 +1376,7 @@
     },
     {
       "address": "kaspa:qra3jetrvz8megff66hfw0jnwdmdfdeyxynf4glrqxqv8wx3n2zequnqfcf7f",
-      "kas": 100000.0,
+      "kas": 95642.95733706,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1396,7 +1386,7 @@
     },
     {
       "address": "kaspa:qqgghzdman0dkcuwgrck0yaegz008uzkxysnyufcxu60ddeuhn4kzmy8xz6rt",
-      "kas": 100000.0,
+      "kas": 95642.95733706,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1406,7 +1396,7 @@
     },
     {
       "address": "kaspa:qrzg0azm6lkvlt79mvwvs7zggn3gwvxaahrlyfrlnwssjy3hy2t6wgalzuh46",
-      "kas": 100000.0,
+      "kas": 95642.95733706,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1416,7 +1406,7 @@
     },
     {
       "address": "kaspa:qz5m04spvtqdfwa2t2k9xwnksggwrrdwfnpktgwceuk2hhml9t9sxptyhdwwk",
-      "kas": 100000.0,
+      "kas": 95642.95733706,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1426,7 +1416,7 @@
     },
     {
       "address": "kaspa:qp2nr4flw0k6nvnae8nse84snjzpytp3qty49cydjg7k6e43t7h7vm7zxa5yz",
-      "kas": 100000.0,
+      "kas": 95642.95733706,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1436,7 +1426,7 @@
     },
     {
       "address": "kaspa:qqg4mqmet506kksx8sm2gmm2zzlegjj75u738lnscnnpkq93qthp53t0p9jzp",
-      "kas": 100000.0,
+      "kas": 95642.95733706,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1446,7 +1436,7 @@
     },
     {
       "address": "kaspa:qr0eken0pl63ydj49ymsh9z0k9nr03kzuuast5c0uxz4a9jqpcwtx50q2h50n",
-      "kas": 100000.0,
+      "kas": 95642.95733706,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1455,18 +1445,8 @@
       "exchange": null
     },
     {
-      "address": "kaspa:qz3qfgdhgccc5shd2cjs9eyqthtu993dcm3t0vpz4ll009ldyjza638k6t66g",
-      "kas": 100000.0,
-      "transfers": 1,
-      "first_day": "2024-12-02",
-      "last_day": "2024-12-02",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
       "address": "kaspa:qz23nzqvstaf72mky9c6224l7znjx996apk554ckn308te3hm9vsxwal6w7f7",
-      "kas": 99999.99997931,
+      "kas": 95642.95731727,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1476,7 +1456,7 @@
     },
     {
       "address": "kaspa:qqtgwturchmc54zy5h8q0e2z9nnpy7nem4lxjstjk894h9smnw0v5ww8zk7a0",
-      "kas": 99999.99991847,
+      "kas": 95642.95725908,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1486,7 +1466,7 @@
     },
     {
       "address": "kaspa:qqe8jnukrv6x25ka5xkyyx60amd7q37ke92g7cz65cdz93cnt3dq6ugac0ka8",
-      "kas": 99999.99928463,
+      "kas": 95642.95665286,
       "transfers": 1,
       "first_day": "2024-11-11",
       "last_day": "2024-11-11",
@@ -1495,28 +1475,8 @@
       "exchange": null
     },
     {
-      "address": "kaspa:qznysjau4r56xs2qen0whfvhl2t3fa8wrs6t9pgl6e2jtu8pw70ngzflfwgfk",
-      "kas": 99997.2,
-      "transfers": 1,
-      "first_day": "2024-12-05",
-      "last_day": "2024-12-05",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qz2jmc6mv0w97nh6zt5s4shvzw5ha2qwrsqf607tqkrpr07v0a2s6wnedzs8e",
-      "kas": 99923.03667327,
-      "transfers": 1,
-      "first_day": "2024-12-05",
-      "last_day": "2024-12-05",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
       "address": "kaspa:qzndpvakz84835vuc9um4k77js22lgxk4pd85jfldasr90zhgwx0sg5nl2l6z",
-      "kas": 87301.80176106,
+      "kas": 85760.96043914,
       "transfers": 1,
       "first_day": "2024-12-05",
       "last_day": "2024-12-05",
@@ -1526,7 +1486,7 @@
     },
     {
       "address": "kaspa:qp9mqa6xtqn0f9skv9jfl83jypykd9h00ahgggdw59dayjsw0w09jwqy74z4g",
-      "kas": 85000.0,
+      "kas": 83499.78454372,
       "transfers": 1,
       "first_day": "2024-12-05",
       "last_day": "2024-12-05",
@@ -1536,7 +1496,7 @@
     },
     {
       "address": "kaspa:qznmhn9vr3qcyyt9he6mzq694qwgxuy3mvfr7p37zle666r4ladnz483rhufc",
-      "kas": 85000.0,
+      "kas": 83499.78454372,
       "transfers": 1,
       "first_day": "2024-12-05",
       "last_day": "2024-12-05",
@@ -1546,7 +1506,7 @@
     },
     {
       "address": "kaspa:qqw9g2xvdzcxwallylv32y9lsug6wws22ur3ef9f527l3dym2509uye7m8hqv",
-      "kas": 85000.0,
+      "kas": 83499.78454372,
       "transfers": 1,
       "first_day": "2024-12-05",
       "last_day": "2024-12-05",
@@ -1556,7 +1516,7 @@
     },
     {
       "address": "kaspa:qzugu2zy3w59378m42mwng0sq93t06aerulhr4vekvvv2cnfyc89wv4ptg9vq",
-      "kas": 85000.0,
+      "kas": 83499.78454372,
       "transfers": 1,
       "first_day": "2024-12-05",
       "last_day": "2024-12-05",
@@ -1566,7 +1526,7 @@
     },
     {
       "address": "kaspa:qrlxrtrg5vl9lhq9dzldcgr3z3r6grk7ezwd6tvr8v6unl7l3qjxvcz6wnq2y",
-      "kas": 85000.0,
+      "kas": 83499.78454372,
       "transfers": 1,
       "first_day": "2024-12-05",
       "last_day": "2024-12-05",
@@ -1576,7 +1536,7 @@
     },
     {
       "address": "kaspa:qz46wfw2da2h4dzxze4sft2fx8zckvauh7wz8tznf2nfgp2znhpeja2g5tg84",
-      "kas": 85000.0,
+      "kas": 83499.78454372,
       "transfers": 1,
       "first_day": "2024-12-05",
       "last_day": "2024-12-05",
@@ -1586,7 +1546,7 @@
     },
     {
       "address": "kaspa:qz3h5jg4gz2fetgurx4vzh7humq9nett7d88ds24pyfcmrllrwsuxj4j7peju",
-      "kas": 85000.0,
+      "kas": 83499.78454372,
       "transfers": 1,
       "first_day": "2024-12-05",
       "last_day": "2024-12-05",
@@ -1596,7 +1556,7 @@
     },
     {
       "address": "kaspa:qpttfft4edad043kdw270p9h6tz7y5twhxsztfhq74z39xgjmx33x2uq07ynd",
-      "kas": 85000.0,
+      "kas": 83499.78454372,
       "transfers": 1,
       "first_day": "2024-12-05",
       "last_day": "2024-12-05",
@@ -1605,138 +1565,18 @@
       "exchange": null
     },
     {
-      "address": "kaspa:qr96rc2nyj453yl4ztmgevk67jy87zq644smuppug6p9ghnqcx9uqvrv58g5f",
-      "kas": 75860.33630032,
+      "address": "kaspa:qz6njaq72wlv4tt24hcl8z3qul3vqdrh5vrnn2ne8j38kw2ult7ckx0yde6r2",
+      "kas": 33354.37867203,
       "transfers": 1,
-      "first_day": "2025-04-02",
-      "last_day": "2025-04-02",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qrhdevsuwze0ylmwp8ke9ytmtak0crpapfp28pjkpg5d5g9yf92qzfmp7sxg5",
-      "kas": 50000.52215395,
-      "transfers": 1,
-      "first_day": "2025-01-29",
-      "last_day": "2025-01-29",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qr444y66tt84vt4tlq2t7w62vnccjh3d9622j09zu0n0pnaw9c6h6gmu7gyrk",
-      "kas": 32756.54586072,
-      "transfers": 1,
-      "first_day": "2025-04-02",
-      "last_day": "2025-04-02",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qqgzeynp2mfcufgrkys3ntsppxr6fzyl7h0dqvu0mrvv2umymn0gcd0see86m",
-      "kas": 22904.2582,
-      "transfers": 1,
-      "first_day": "2026-04-29",
-      "last_day": "2026-04-29",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qrmjj8hu5ufs6dtezfxrw27zpaam2n2shn5ch6wx8qgs6qycmw7nyrh5dalv2",
-      "kas": 22902.2581,
-      "transfers": 1,
-      "first_day": "2026-04-29",
-      "last_day": "2026-04-29",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qyp6pa8thtd8pneekhgfapdutychcvsa8z347tpt2j0up9elnqfh7ughucw5unv",
-      "kas": 12742.29023238,
-      "transfers": 1,
-      "first_day": "2025-02-07",
-      "last_day": "2025-02-07",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qrndej47wunxcvvvmwpaufpzgn60m8tzffset9vj55nnczdzwyl3sffjpepxy",
-      "kas": 10126.313982,
-      "transfers": 1,
-      "first_day": "2026-01-15",
-      "last_day": "2026-01-15",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qrpel4uku8u8gg2mwu3cyw8q7sk5sptr5wm340e6ztt72uk7yqrmk0wq8m2hj",
-      "kas": 10075.09456133,
-      "transfers": 1,
-      "first_day": "2024-11-08",
-      "last_day": "2024-11-08",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qpqzqph8le966txvsvjvehh5tv4pwlguhcac5age00wz0yyjud2zuk7jvznvd",
-      "kas": 4993.97113488,
-      "transfers": 1,
-      "first_day": "2026-05-27",
-      "last_day": "2026-05-27",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qpwzkfpfzjveycsq4wyq20qk5tqp4ysyr2ggwm85537qxa7udfrr6vsprqp3l",
-      "kas": 3049.77033819,
-      "transfers": 1,
-      "first_day": "2025-10-06",
-      "last_day": "2025-10-06",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qype4wxsz9v4kc3mfe0x77swtgg6g6lengjc38p29qyry58exw9g9pcy323fl6y",
-      "kas": 1993.955,
-      "transfers": 2,
-      "first_day": "2026-06-19",
-      "last_day": "2026-06-19",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qpdgx7r32r5w54vlpkvvgfn4qfj2lhldduwrskzllasf56ppdv9cgxkgy457e",
-      "kas": 1208.06368386,
-      "transfers": 1,
-      "first_day": "2026-06-04",
-      "last_day": "2026-06-04",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qrd9qhwlkukqlgeca56xtternzqjkdw5vk6c82ravgkwg6jrd6zv7t3y3j8d2",
-      "kas": 1096.17446838,
-      "transfers": 1,
-      "first_day": "2026-02-20",
-      "last_day": "2026-02-20",
+      "first_day": "2025-02-22",
+      "last_day": "2025-02-22",
       "verdict": "nicht einzeln profiliert",
       "reason": "unter den kleineren absendern, nur aggregiert",
       "exchange": null
     },
     {
       "address": "kaspa:qz5uzyhecgfjmcgg4wang74235yjmpcfj6wf4qqz893r3vdw4ycpqr3p4xcdv",
-      "kas": 991.99994711,
+      "kas": 892.7999524,
       "transfers": 1,
       "first_day": "2024-03-11",
       "last_day": "2024-03-11",
@@ -1745,78 +1585,28 @@
       "exchange": null
     },
     {
-      "address": "kaspa:qypn0psuan77alh5pc7jrzljfea7ad7qp7xp6g7ukfpqpju3vn9uzvs0gdmyayd",
-      "kas": 599.7673082,
-      "transfers": 1,
-      "first_day": "2025-10-24",
-      "last_day": "2025-10-24",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qqpzpn5e7enn2ylfdxvlwtm3829gn6j9z9dnnmcsw5arkgnurktty6ulgzkfk",
-      "kas": 465.81421743,
-      "transfers": 1,
-      "first_day": "2026-05-17",
-      "last_day": "2026-05-17",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qq7d8njwdqjnz7ws96w0fvfw9ccp4g0r4tsmlgz47ppcm9s7pd2r58rqud3hf",
-      "kas": 282.02408,
-      "transfers": 1,
-      "first_day": "2025-01-28",
-      "last_day": "2025-01-28",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qrmwx9ae6nv0mrdhsnahvy6wye4a7f8e3aa3y4jakzahtfdqgwhzuje3g0846",
-      "kas": 277.02398,
-      "transfers": 1,
-      "first_day": "2025-01-28",
-      "last_day": "2025-01-28",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qqpmhgq39uescwa4gfdgaythxaz9k2md6gcpfuerjv6ujxxjaa77slyvvjend",
-      "kas": 222.16964,
-      "transfers": 1,
-      "first_day": "2026-04-19",
-      "last_day": "2026-04-19",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qz4uw2pzgdyk90vnwveuk2j7x9pcjn5q8pgrrty6y5h64425g0pyxeu9rrjg9",
+      "address": "kaspa:qrpel4uku8u8gg2mwu3cyw8q7sk5sptr5wm340e6ztt72uk7yqrmk0wq8m2hj",
       "kas": 100.0,
       "transfers": 1,
-      "first_day": "2026-05-25",
-      "last_day": "2026-05-25",
+      "first_day": "2024-11-08",
+      "last_day": "2024-11-08",
       "verdict": "nicht einzeln profiliert",
       "reason": "unter den kleineren absendern, nur aggregiert",
       "exchange": null
     },
     {
-      "address": "kaspa:qzn6s7l4elcqjknrwsv9594w55kxjcgr4hsadfdjngmmh6zryhmg6w50had3s",
-      "kas": 84.00402245,
+      "address": "kaspa:qpdgx7r32r5w54vlpkvvgfn4qfj2lhldduwrskzllasf56ppdv9cgxkgy457e",
+      "kas": 100.0,
       "transfers": 1,
-      "first_day": "2025-11-23",
-      "last_day": "2025-11-23",
+      "first_day": "2026-06-04",
+      "last_day": "2026-06-04",
       "verdict": "nicht einzeln profiliert",
       "reason": "unter den kleineren absendern, nur aggregiert",
       "exchange": null
     },
     {
       "address": "kaspa:qrwlkl4f3465uhvqsdjhgx7t52ecae7vnkx63qgl4zydkky66crr5hcemu5pq",
-      "kas": 73.35,
+      "kas": 69.0,
       "transfers": 1,
       "first_day": "2026-01-29",
       "last_day": "2026-01-29",
@@ -1835,38 +1625,18 @@
       "exchange": null
     },
     {
-      "address": "kaspa:qptwty4nn6fx0vf8sj5rvn2xvn4qfcu9a2v5tdghu6a9zpud50kny2836h67a",
-      "kas": 45.66737755,
+      "address": "kaspa:qpqzqph8le966txvsvjvehh5tv4pwlguhcac5age00wz0yyjud2zuk7jvznvd",
+      "kas": 29.51324295,
       "transfers": 1,
-      "first_day": "2026-07-28",
-      "last_day": "2026-07-28",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qq0dkd4z26g0y84gnq4wrd5gdg8rhnp6r0v47xeqduhcuvarwt2kkqk3cpa7p",
-      "kas": 41.90334492,
-      "transfers": 1,
-      "first_day": "2025-10-19",
-      "last_day": "2025-10-19",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qq2ayxd8wnn6sfqwqpu9aevzeyvklkw54j28aau582uljs3mlckp50w0jfr0n",
-      "kas": 41.29167646,
-      "transfers": 1,
-      "first_day": "2025-02-21",
-      "last_day": "2025-02-21",
+      "first_day": "2026-05-27",
+      "last_day": "2026-05-27",
       "verdict": "nicht einzeln profiliert",
       "reason": "unter den kleineren absendern, nur aggregiert",
       "exchange": null
     },
     {
       "address": "kaspa:qryvg0498jmsws9vuq22vrj6ggnrqke4rwwlym434txjnwtp5zdev5hkunvc5",
-      "kas": 24.19978738,
+      "kas": 14.02025,
       "transfers": 1,
       "first_day": "2025-02-06",
       "last_day": "2025-02-06",
@@ -1875,38 +1645,18 @@
       "exchange": null
     },
     {
-      "address": "kaspa:qpw5g9vgfg0m0k2ck6zterevt7rs6fx50zfgrps7wyg5ny2qvjp9jk343hj0w",
-      "kas": 23.9997,
+      "address": "kaspa:qrd9qhwlkukqlgeca56xtternzqjkdw5vk6c82ravgkwg6jrd6zv7t3y3j8d2",
+      "kas": 11.01191601,
       "transfers": 1,
-      "first_day": "2025-11-09",
-      "last_day": "2025-11-09",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qracfkmhk9ml8dugh7pmm3kns9f90wpngxr8zaaklzhku6ztvdta2yzluk3yj",
-      "kas": 18.21125472,
-      "transfers": 1,
-      "first_day": "2026-07-23",
-      "last_day": "2026-07-23",
-      "verdict": "nicht einzeln profiliert",
-      "reason": "unter den kleineren absendern, nur aggregiert",
-      "exchange": null
-    },
-    {
-      "address": "kaspa:qpq6sg00mnsljaya8gal3q2htprj7cupnapmna0tm5r7gp26glxd6flj0pgnc",
-      "kas": 12.21786492,
-      "transfers": 1,
-      "first_day": "2025-10-05",
-      "last_day": "2025-10-05",
+      "first_day": "2026-02-20",
+      "last_day": "2026-02-20",
       "verdict": "nicht einzeln profiliert",
       "reason": "unter den kleineren absendern, nur aggregiert",
       "exchange": null
     },
     {
       "address": "kaspa:qpu9pjmd8xk7zpjyap8820auxyks76gtqzj84dzeagv3yhhexvz86wkdaewcx",
-      "kas": 10.49992741,
+      "kas": 10.49989576,
       "transfers": 1,
       "first_day": "2024-03-29",
       "last_day": "2024-03-29",
@@ -1915,8 +1665,78 @@
       "exchange": null
     },
     {
+      "address": "kaspa:qq2ayxd8wnn6sfqwqpu9aevzeyvklkw54j28aau582uljs3mlckp50w0jfr0n",
+      "kas": 10.0,
+      "transfers": 1,
+      "first_day": "2025-02-21",
+      "last_day": "2025-02-21",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qqpmhgq39uescwa4gfdgaythxaz9k2md6gcpfuerjv6ujxxjaa77slyvvjend",
+      "kas": 10.0,
+      "transfers": 1,
+      "first_day": "2026-04-19",
+      "last_day": "2026-04-19",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qracfkmhk9ml8dugh7pmm3kns9f90wpngxr8zaaklzhku6ztvdta2yzluk3yj",
+      "kas": 8.8888888,
+      "transfers": 1,
+      "first_day": "2026-07-23",
+      "last_day": "2026-07-23",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qzn6s7l4elcqjknrwsv9594w55kxjcgr4hsadfdjngmmh6zryhmg6w50had3s",
+      "kas": 7.0,
+      "transfers": 1,
+      "first_day": "2025-11-23",
+      "last_day": "2025-11-23",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qptwty4nn6fx0vf8sj5rvn2xvn4qfcu9a2v5tdghu6a9zpud50kny2836h67a",
+      "kas": 7.0,
+      "transfers": 1,
+      "first_day": "2026-07-28",
+      "last_day": "2026-07-28",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qqc278gtf5asz2jpfjrf5nsuuwhwutjawqydf8ka0xkza20yzdk0v8kjuy6nv",
+      "kas": 6.66664441,
+      "transfers": 1,
+      "first_day": "2025-01-29",
+      "last_day": "2025-01-29",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qpwzkfpfzjveycsq4wyq20qk5tqp4ysyr2ggwm85537qxa7udfrr6vsprqp3l",
+      "kas": 6.0,
+      "transfers": 1,
+      "first_day": "2025-10-06",
+      "last_day": "2025-10-06",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
       "address": "kaspa:qzlrs3ssuv7ttaqwa4uaehaj4znlkay5mtjsdwsprtwx4kzqdt5fkj3t6hxed",
-      "kas": 7.88146901,
+      "kas": 6.0,
       "transfers": 3,
       "first_day": "2025-12-28",
       "last_day": "2026-07-11",
@@ -1925,8 +1745,48 @@
       "exchange": null
     },
     {
+      "address": "kaspa:qzcwdava96e5ad99th548gjp7xukraxsqld0rmren6a7aeexshh4c8njzd0yz",
+      "kas": 5.5,
+      "transfers": 1,
+      "first_day": "2026-06-05",
+      "last_day": "2026-06-05",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qq7d8njwdqjnz7ws96w0fvfw9ccp4g0r4tsmlgz47ppcm9s7pd2r58rqud3hf",
+      "kas": 5.0,
+      "transfers": 1,
+      "first_day": "2025-01-28",
+      "last_day": "2025-01-28",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qrmwx9ae6nv0mrdhsnahvy6wye4a7f8e3aa3y4jakzahtfdqgwhzuje3g0846",
+      "kas": 5.0,
+      "transfers": 1,
+      "first_day": "2025-01-28",
+      "last_day": "2025-01-28",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qqjl9uqfnt634p9rgru0502r4fuxsmk3fa5y2k0pwq5plvzxcpt8vw0x757h5",
+      "kas": 5.0,
+      "transfers": 1,
+      "first_day": "2025-02-14",
+      "last_day": "2025-02-14",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
       "address": "kaspa:qrn5rlf4l2z25phs7jshckjp7cpxlyccx7auu8p4jmw4l7vdh70mz9xua0gvr",
-      "kas": 6.63877017,
+      "kas": 5.0,
       "transfers": 1,
       "first_day": "2025-05-29",
       "last_day": "2025-05-29",
@@ -1935,11 +1795,41 @@
       "exchange": null
     },
     {
-      "address": "kaspa:qzcwdava96e5ad99th548gjp7xukraxsqld0rmren6a7aeexshh4c8njzd0yz",
-      "kas": 5.60303206,
+      "address": "kaspa:qype4wxsz9v4kc3mfe0x77swtgg6g6lengjc38p29qyry58exw9g9pcy323fl6y",
+      "kas": 5.0,
+      "transfers": 2,
+      "first_day": "2026-06-19",
+      "last_day": "2026-06-19",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qypn0psuan77alh5pc7jrzljfea7ad7qp7xp6g7ukfpqpju3vn9uzvs0gdmyayd",
+      "kas": 4.44444444,
       "transfers": 1,
-      "first_day": "2026-06-05",
-      "last_day": "2026-06-05",
+      "first_day": "2025-10-24",
+      "last_day": "2025-10-24",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qq0dkd4z26g0y84gnq4wrd5gdg8rhnp6r0v47xeqduhcuvarwt2kkqk3cpa7p",
+      "kas": 4.0,
+      "transfers": 1,
+      "first_day": "2025-10-19",
+      "last_day": "2025-10-19",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qrhdevsuwze0ylmwp8ke9ytmtak0crpapfp28pjkpg5d5g9yf92qzfmp7sxg5",
+      "kas": 3.33335559,
+      "transfers": 1,
+      "first_day": "2025-01-29",
+      "last_day": "2025-01-29",
       "verdict": "nicht einzeln profiliert",
       "reason": "unter den kleineren absendern, nur aggregiert",
       "exchange": null
@@ -1955,8 +1845,78 @@
       "exchange": null
     },
     {
+      "address": "kaspa:qypu7h0sxewldhmkw6tv7xvltr6savz0smpqey0w6d7w8axpe8xaz6qu54qvad4",
+      "kas": 3.0,
+      "transfers": 1,
+      "first_day": "2026-01-15",
+      "last_day": "2026-01-15",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qrmjj8hu5ufs6dtezfxrw27zpaam2n2shn5ch6wx8qgs6qycmw7nyrh5dalv2",
+      "kas": 3.0,
+      "transfers": 1,
+      "first_day": "2026-04-29",
+      "last_day": "2026-04-29",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qpw5g9vgfg0m0k2ck6zterevt7rs6fx50zfgrps7wyg5ny2qvjp9jk343hj0w",
+      "kas": 2.0,
+      "transfers": 1,
+      "first_day": "2025-11-09",
+      "last_day": "2025-11-09",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qqgzeynp2mfcufgrkys3ntsppxr6fzyl7h0dqvu0mrvv2umymn0gcd0see86m",
+      "kas": 2.0,
+      "transfers": 1,
+      "first_day": "2026-04-29",
+      "last_day": "2026-04-29",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qqpzpn5e7enn2ylfdxvlwtm3829gn6j9z9dnnmcsw5arkgnurktty6ulgzkfk",
+      "kas": 2.0,
+      "transfers": 1,
+      "first_day": "2026-05-17",
+      "last_day": "2026-05-17",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qyp6pa8thtd8pneekhgfapdutychcvsa8z347tpt2j0up9elnqfh7ughucw5unv",
+      "kas": 1.6888,
+      "transfers": 1,
+      "first_day": "2025-02-07",
+      "last_day": "2025-02-07",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qrndej47wunxcvvvmwpaufpzgn60m8tzffset9vj55nnczdzwyl3sffjpepxy",
+      "kas": 1.337,
+      "transfers": 1,
+      "first_day": "2026-01-15",
+      "last_day": "2026-01-15",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
       "address": "kaspa:qz999se0svr7253vyh28dukw87fy62nthfhth6wpg4hwhug495uc72vlt9q7z",
-      "kas": 2.99983499,
+      "kas": 1.3211911,
       "transfers": 1,
       "first_day": "2025-02-08",
       "last_day": "2025-02-08",
@@ -1965,8 +1925,38 @@
       "exchange": null
     },
     {
+      "address": "kaspa:qpq6sg00mnsljaya8gal3q2htprj7cupnapmna0tm5r7gp26glxd6flj0pgnc",
+      "kas": 1.1,
+      "transfers": 1,
+      "first_day": "2025-10-05",
+      "last_day": "2025-10-05",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qz4uw2pzgdyk90vnwveuk2j7x9pcjn5q8pgrrty6y5h64425g0pyxeu9rrjg9",
+      "kas": 1.01001,
+      "transfers": 1,
+      "first_day": "2026-05-25",
+      "last_day": "2026-05-25",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qr96rc2nyj453yl4ztmgevk67jy87zq644smuppug6p9ghnqcx9uqvrv58g5f",
+      "kas": 0.99874236,
+      "transfers": 1,
+      "first_day": "2025-04-02",
+      "last_day": "2025-04-02",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
       "address": "kaspa:qp6s3sxrfa67qjwcnmzyu5pa3z8qvhtujcgdth3tuk6570xrn5umwtwqt9yjj",
-      "kas": 0.94,
+      "kas": 0.73339895,
       "transfers": 1,
       "first_day": "2025-09-11",
       "last_day": "2025-09-11",
@@ -1975,8 +1965,18 @@
       "exchange": null
     },
     {
+      "address": "kaspa:qr444y66tt84vt4tlq2t7w62vnccjh3d9622j09zu0n0pnaw9c6h6gmu7gyrk",
+      "kas": 0.43125764,
+      "transfers": 1,
+      "first_day": "2025-04-02",
+      "last_day": "2025-04-02",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
       "address": "kaspa:qz57q9wa3d7lwx5gyzwsvlt89eygd940hyaj3cpqr6xte99sjrtqusw2smhx2",
-      "kas": 0.46987384,
+      "kas": 0.36660105,
       "transfers": 1,
       "first_day": "2025-09-11",
       "last_day": "2025-09-11",
@@ -1995,7 +1995,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 4061.26747468
+          "kas": 6.72
         }
       ]
     },
@@ -2008,11 +2008,11 @@
       "sources": [
         {
           "address": "kaspa:qr4znetsvjehrrfn75rra5zej50nsgx7v3zlkk54ljsddsry6sa6y3zs6s2sz",
-          "kas": 1000.0
+          "kas": 9.98004013
         },
         {
           "address": "kaspa:qpykj9tu7j78yaalfxytnuth2zkmaq6ltec3jm3w6es8s4jxguq2xlcsuu5xg",
-          "kas": 1.99997931
+          "kas": 0.01995987
         }
       ]
     },
@@ -2025,7 +2025,7 @@
       "sources": [
         {
           "address": "kaspa:qr4znetsvjehrrfn75rra5zej50nsgx7v3zlkk54ljsddsry6sa6y3zs6s2sz",
-          "kas": 44999996.1
+          "kas": 31600974.0598919
         }
       ]
     },
@@ -2038,15 +2038,15 @@
       "sources": [
         {
           "address": "kaspa:qr4znetsvjehrrfn75rra5zej50nsgx7v3zlkk54ljsddsry6sa6y3zs6s2sz",
-          "kas": 86599985.96
+          "kas": 77939987.36391231
         },
         {
           "address": "kaspa:qr7pk7qc83k0eeurlq9lw6hn9tcktqvz4tr9mh440cs0vsxrqsl3v05gye8nk",
-          "kas": 13399022.04005288
+          "kas": 12059119.83603403
         },
         {
           "address": "kaspa:qz5uzyhecgfjmcgg4wang74235yjmpcfj6wf4qqz893r3vdw4ycpqr3p4xcdv",
-          "kas": 991.99994711
+          "kas": 892.7999524
         }
       ]
     },
@@ -2059,7 +2059,7 @@
       "sources": [
         {
           "address": "kaspa:qzawve4wfwalyszzgdykh9fw8stt89qvg6rf50dymzl35ld92wa2c0p0yvz25",
-          "kas": 10000000.0
+          "kas": 9999999.99998343
         }
       ]
     },
@@ -2072,7 +2072,7 @@
       "sources": [
         {
           "address": "kaspa:qps6gt57lwckt9mn6prmgkrzufvm9e6vmwfhtgn9uhpdnyqh499jz5l80dcgm",
-          "kas": 5000000.0
+          "kas": 10.0
         }
       ]
     },
@@ -2085,11 +2085,11 @@
       "sources": [
         {
           "address": "kaspa:qps6gt57lwckt9mn6prmgkrzufvm9e6vmwfhtgn9uhpdnyqh499jz5l80dcgm",
-          "kas": 5001196.1
+          "kas": 5001196.09974997
         },
         {
           "address": "kaspa:qq3ded2akz05nzaumzzazyjtxl024scxfpv4ht4wrhckyhypnc4pz0hyuk52v",
-          "kas": 4999989.9999
+          "kas": 4999989.99965003
         },
         {
           "address": "kaspa:qr9zhxr9pvssscwsnqctwjah93c0jrp3dqpqldwnjrrtptq0a4g0xg929x9k3",
@@ -2110,7 +2110,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 4039149.53753708
+          "kas": 3099996.72
         }
       ]
     },
@@ -2123,11 +2123,11 @@
       "sources": [
         {
           "address": "kaspa:qq3k4du6wf2g26j7ds6fqmgtgavgm3zy676wntp2e52nsuns2n4s6xkndmx0y",
-          "kas": 1826539.2323696
+          "kas": 1821936.57789443
         },
         {
           "address": "kaspa:qpq94ntnvy8p9q6wrdwtn37xtspgashrydc0kuu8ctpyxulmh0wlxh2807zdh",
-          "kas": 178503.32856441
+          "kas": 178053.52210557
         }
       ]
     },
@@ -2140,7 +2140,7 @@
       "sources": [
         {
           "address": "kaspa:qpu9pjmd8xk7zpjyap8820auxyks76gtqzj84dzeagv3yhhexvz86wkdaewcx",
-          "kas": 10.49992741
+          "kas": 10.49989576
         }
       ]
     },
@@ -2153,7 +2153,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 11498543.20449859
+          "kas": 11199996.18
         }
       ]
     },
@@ -2166,7 +2166,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 2716369.83875381
+          "kas": 1655996.56
         }
       ]
     },
@@ -2179,7 +2179,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 2573899.03387311
+          "kas": 950596.56
         }
       ]
     },
@@ -2192,7 +2192,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 4706874.49436274
+          "kas": 3770995.87
         }
       ]
     },
@@ -2205,7 +2205,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 3547051.42285226
+          "kas": 2273995.87
         }
       ]
     },
@@ -2218,7 +2218,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 2551635.58672343
+          "kas": 1004995.87
         }
       ]
     },
@@ -2231,7 +2231,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 8601221.8180719
+          "kas": 5456995.44
         }
       ]
     },
@@ -2244,7 +2244,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 3303897.77398998
+          "kas": 2682995.98
         }
       ]
     },
@@ -2257,7 +2257,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 10434451.69321501
+          "kas": 3136996.43
         }
       ]
     },
@@ -2270,7 +2270,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 7559497.39186179
+          "kas": 2705996.43
         }
       ]
     },
@@ -2283,7 +2283,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 8584335.04250226
+          "kas": 2503997.14
         }
       ]
     },
@@ -2296,7 +2296,7 @@
       "sources": [
         {
           "address": "kaspa:qr4znetsvjehrrfn75rra5zej50nsgx7v3zlkk54ljsddsry6sa6y3zs6s2sz",
-          "kas": 3628796.0328
+          "kas": 100.0
         }
       ]
     },
@@ -2309,7 +2309,7 @@
       "sources": [
         {
           "address": "kaspa:qpykj9tu7j78yaalfxytnuth2zkmaq6ltec3jm3w6es8s4jxguq2xlcsuu5xg",
-          "kas": 3628696.03277931
+          "kas": 3628696.03275123
         },
         {
           "address": "kaspa:qr4znetsvjehrrfn75rra5zej50nsgx7v3zlkk54ljsddsry6sa6y3zs6s2sz",
@@ -2326,7 +2326,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 7916557.36988608
+          "kas": 5317997.13
         }
       ]
     },
@@ -2339,7 +2339,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 4167960.82134326
+          "kas": 2632996.81
         }
       ]
     },
@@ -2352,7 +2352,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 3198470.74978567
+          "kas": 546596.44
         }
       ]
     },
@@ -2365,7 +2365,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 2997374.52631963
+          "kas": 1131996.8
         }
       ]
     },
@@ -2378,7 +2378,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 17974445.20335668
+          "kas": 2829997.15
         }
       ]
     },
@@ -2391,7 +2391,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 9580625.6714011
+          "kas": 6258997.17
         }
       ]
     },
@@ -2404,7 +2404,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 3454941.59267694
+          "kas": 2763996.88
         }
       ]
     },
@@ -2417,7 +2417,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 1400455.44116232
+          "kas": 1173996.88
         }
       ]
     },
@@ -2430,7 +2430,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 4378762.70746794
+          "kas": 1790997.07
         }
       ]
     },
@@ -2443,7 +2443,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 5575810.82880568
+          "kas": 3269997.43
         }
       ]
     },
@@ -2456,7 +2456,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 11092904.7151636
+          "kas": 6152997.43
         }
       ]
     },
@@ -2469,7 +2469,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 10739021.02433875
+          "kas": 7899996.78
         }
       ]
     },
@@ -2482,7 +2482,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 5308308.17002458
+          "kas": 2749996.78
         }
       ]
     },
@@ -2495,7 +2495,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 5260884.15777846
+          "kas": 1847997.1
         }
       ]
     },
@@ -2508,7 +2508,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 3286322.75172656
+          "kas": 970996.86
         }
       ]
     },
@@ -2521,7 +2521,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 4918062.15983114
+          "kas": 871497.18
         }
       ]
     },
@@ -2534,7 +2534,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 1545172.35430497
+          "kas": 462496.86
         }
       ]
     },
@@ -2547,7 +2547,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 2253745.05359268
+          "kas": 728196.86
         }
       ]
     },
@@ -2560,7 +2560,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 2206948.43633613
+          "kas": 1335996.8
         }
       ]
     },
@@ -2573,7 +2573,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 3997133.9677546
+          "kas": 2886996.47
         }
       ]
     },
@@ -2586,7 +2586,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 6305432.90733376
+          "kas": 5682997.17
         }
       ]
     },
@@ -2599,7 +2599,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 5257510.0532431
+          "kas": 2806371.17
         }
       ]
     },
@@ -2612,7 +2612,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 5203561.60250833
+          "kas": 1958997.06
         }
       ]
     },
@@ -2625,7 +2625,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 5940052.50258141
+          "kas": 1304997.06
         }
       ]
     },
@@ -2638,7 +2638,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 5900656.38310305
+          "kas": 2610997.01
         }
       ]
     },
@@ -2651,19 +2651,19 @@
       "sources": [
         {
           "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 1012795.1372999
+          "kas": 996586.66935656
         },
         {
           "address": "kaspa:qrtwdz6kuadydskwtex5lpnv5xra5cg2ja4qqysfcz4drr9pl2zdqtrtxzvhx",
-          "kas": 431609.66424481
+          "kas": 424702.31334105
         },
         {
           "address": "kaspa:qqyzhdpkxeh9g9lc7qq048fmydx7uuzwwcwd5y0397hefk9pp389x8ke0dwt0",
-          "kas": 144545.142
+          "kas": 142231.88513868
         },
         {
           "address": "kaspa:qz5hppxmt8tphv0glcj93q2fshurp56alm8ue8eu8ydlpxf7n3772kpuv4fqf",
-          "kas": 143779.13
+          "kas": 141478.13216372
         }
       ]
     },
@@ -2676,7 +2676,7 @@
       "sources": [
         {
           "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 5716462.57931674
+          "kas": 1319999.0
         }
       ]
     }
@@ -2691,7 +2691,7 @@
       "sources": [
         {
           "address": "kaspa:qphfy7yfwyj7uqw2q6v924q6xcsstfhdz70cdm7ewnzqt98r2x6jydujg6gle",
-          "kas": 1195133.636
+          "kas": 1158514.23949
         }
       ]
     },
@@ -2704,7 +2704,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 7921716.43170492
+          "kas": 5110117.96134756
         }
       ]
     },
@@ -2717,7 +2717,7 @@
       "sources": [
         {
           "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
-          "kas": 10756624.49
+          "kas": 7861888.50835
         }
       ]
     },
@@ -2730,7 +2730,7 @@
       "sources": [
         {
           "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 12766301.74860001
+          "kas": 12196708.934438
         }
       ]
     },
@@ -2743,7 +2743,7 @@
       "sources": [
         {
           "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 2470380.37813841
+          "kas": 1910824.280296
         }
       ]
     },
@@ -2756,7 +2756,7 @@
       "sources": [
         {
           "address": "kaspa:qqpmhgq39uescwa4gfdgaythxaz9k2md6gcpfuerjv6ujxxjaa77slyvvjend",
-          "kas": 222.16964
+          "kas": 10.0
         }
       ]
     },
@@ -2769,7 +2769,7 @@
       "sources": [
         {
           "address": "kaspa:qqgzeynp2mfcufgrkys3ntsppxr6fzyl7h0dqvu0mrvv2umymn0gcd0see86m",
-          "kas": 22904.2582
+          "kas": 2.0
         }
       ]
     },
@@ -2782,7 +2782,7 @@
       "sources": [
         {
           "address": "kaspa:qrmjj8hu5ufs6dtezfxrw27zpaam2n2shn5ch6wx8qgs6qycmw7nyrh5dalv2",
-          "kas": 22902.2581
+          "kas": 3.0
         }
       ]
     },
@@ -2795,7 +2795,7 @@
       "sources": [
         {
           "address": "kaspa:qqpzpn5e7enn2ylfdxvlwtm3829gn6j9z9dnnmcsw5arkgnurktty6ulgzkfk",
-          "kas": 465.81421743
+          "kas": 2.0
         }
       ]
     },
@@ -2808,7 +2808,7 @@
       "sources": [
         {
           "address": "kaspa:qzlrs3ssuv7ttaqwa4uaehaj4znlkay5mtjsdwsprtwx4kzqdt5fkj3t6hxed",
-          "kas": 2.00803195
+          "kas": 2.0
         }
       ]
     },
@@ -2821,7 +2821,7 @@
       "sources": [
         {
           "address": "kaspa:qz4uw2pzgdyk90vnwveuk2j7x9pcjn5q8pgrrty6y5h64425g0pyxeu9rrjg9",
-          "kas": 100.0
+          "kas": 1.01001
         }
       ]
     },
@@ -2834,7 +2834,7 @@
       "sources": [
         {
           "address": "kaspa:qpqzqph8le966txvsvjvehh5tv4pwlguhcac5age00wz0yyjud2zuk7jvznvd",
-          "kas": 4993.97113488
+          "kas": 29.51324295
         }
       ]
     },
@@ -2847,7 +2847,7 @@
       "sources": [
         {
           "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 6055911.47934472
+          "kas": 5413769.71507
         }
       ]
     },
@@ -2860,7 +2860,7 @@
       "sources": [
         {
           "address": "kaspa:qpdgx7r32r5w54vlpkvvgfn4qfj2lhldduwrskzllasf56ppdv9cgxkgy457e",
-          "kas": 1208.06368386
+          "kas": 100.0
         }
       ]
     },
@@ -2873,7 +2873,7 @@
       "sources": [
         {
           "address": "kaspa:qzcwdava96e5ad99th548gjp7xukraxsqld0rmren6a7aeexshh4c8njzd0yz",
-          "kas": 5.60303206
+          "kas": 5.5
         }
       ]
     },
@@ -2886,7 +2886,7 @@
       "sources": [
         {
           "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 3932050.99682663
+          "kas": 3600095.373739
         }
       ]
     },
@@ -2899,7 +2899,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 29129589.23723128
+          "kas": 27999998.33
         }
       ]
     },
@@ -2912,7 +2912,7 @@
       "sources": [
         {
           "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
-          "kas": 14496999.48835048
+          "kas": 13999995.0
         }
       ]
     },
@@ -2925,7 +2925,7 @@
       "sources": [
         {
           "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 3446844.86786196
+          "kas": 1726239.816236
         }
       ]
     },
@@ -2938,7 +2938,7 @@
       "sources": [
         {
           "address": "kaspa:qype4wxsz9v4kc3mfe0x77swtgg6g6lengjc38p29qyry58exw9g9pcy323fl6y",
-          "kas": 997.98
+          "kas": 2.0
         }
       ]
     },
@@ -2951,7 +2951,7 @@
       "sources": [
         {
           "address": "kaspa:qype4wxsz9v4kc3mfe0x77swtgg6g6lengjc38p29qyry58exw9g9pcy323fl6y",
-          "kas": 995.975
+          "kas": 3.0
         }
       ]
     },
@@ -2964,7 +2964,7 @@
       "sources": [
         {
           "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 3888895.59783263
+          "kas": 2219941.495512
         }
       ]
     },
@@ -2977,7 +2977,7 @@
       "sources": [
         {
           "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 1765654.61919892
+          "kas": 1493140.96087
         }
       ]
     },
@@ -2990,7 +2990,7 @@
       "sources": [
         {
           "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 1736716.82482882
+          "kas": 1331522.524284
         }
       ]
     },
@@ -3003,7 +3003,7 @@
       "sources": [
         {
           "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 851541.27999039
+          "kas": 585876.828918
         }
       ]
     },
@@ -3016,7 +3016,7 @@
       "sources": [
         {
           "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
-          "kas": 2237350.7010645
+          "kas": 1745550.2734
         }
       ]
     },
@@ -3029,7 +3029,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 9676986.20769322
+          "kas": 5200069.92909868
         }
       ]
     },
@@ -3042,7 +3042,7 @@
       "sources": [
         {
           "address": "kaspa:qzlrs3ssuv7ttaqwa4uaehaj4znlkay5mtjsdwsprtwx4kzqdt5fkj3t6hxed",
-          "kas": 2.8934533
+          "kas": 2.0
         }
       ]
     },
@@ -3055,7 +3055,7 @@
       "sources": [
         {
           "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
-          "kas": 1025306.266044
+          "kas": 880928.620128
         }
       ]
     },
@@ -3068,7 +3068,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 4006034.75350041
+          "kas": 2278233.021898
         }
       ]
     },
@@ -3081,7 +3081,7 @@
       "sources": [
         {
           "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 3947853.23355707
+          "kas": 3686513.803615
         }
       ]
     },
@@ -3094,11 +3094,11 @@
       "sources": [
         {
           "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 786509.33730833
+          "kas": 685068.56610368
         },
         {
           "address": "kaspa:qrqlynq54v5f4clq22g9szlkxhg5798dm9zqp89t5m4vucy0a5rygtd850jvl",
-          "kas": 758000.31
+          "kas": 660236.51703232
         }
       ]
     },
@@ -3111,7 +3111,7 @@
       "sources": [
         {
           "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
-          "kas": 909235.0734495
+          "kas": 877221.8552
         }
       ]
     },
@@ -3124,7 +3124,7 @@
       "sources": [
         {
           "address": "kaspa:qzxs23g7txh3wq9d0t2z0hluhsflvzpf6d0yfum830ppumgtxa5d7zqca8r67",
-          "kas": 11990119.86095098
+          "kas": 8965167.05518494
         }
       ]
     },
@@ -3137,7 +3137,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 9684622.19620855
+          "kas": 3015793.8927948
         }
       ]
     },
@@ -3150,7 +3150,7 @@
       "sources": [
         {
           "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
-          "kas": 776279.7166945
+          "kas": 775804.4452
         }
       ]
     },
@@ -3163,7 +3163,7 @@
       "sources": [
         {
           "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 52144581.06880256
+          "kas": 1367709.222586
         }
       ]
     },
@@ -3176,7 +3176,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 4618987.12141163
+          "kas": 1025771.7172674
         }
       ]
     },
@@ -3189,7 +3189,7 @@
       "sources": [
         {
           "address": "kaspa:qracfkmhk9ml8dugh7pmm3kns9f90wpngxr8zaaklzhku6ztvdta2yzluk3yj",
-          "kas": 18.21125472
+          "kas": 8.8888888
         }
       ]
     },
@@ -3202,7 +3202,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 5900963.6066782
+          "kas": 958648.224583
         }
       ]
     },
@@ -3215,7 +3215,7 @@
       "sources": [
         {
           "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
-          "kas": 845685.35076999
+          "kas": 844583.8304
         }
       ]
     },
@@ -3228,7 +3228,7 @@
       "sources": [
         {
           "address": "kaspa:qptwty4nn6fx0vf8sj5rvn2xvn4qfcu9a2v5tdghu6a9zpud50kny2836h67a",
-          "kas": 45.66737755
+          "kas": 7.0
         }
       ]
     },
@@ -3241,7 +3241,7 @@
       "sources": [
         {
           "address": "kaspa:qzxs23g7txh3wq9d0t2z0hluhsflvzpf6d0yfum830ppumgtxa5d7zqca8r67",
-          "kas": 18905337.26036993
+          "kas": 1175282.36348617
         }
       ]
     },
@@ -3254,7 +3254,7 @@
       "sources": [
         {
           "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 46806342.44607031
+          "kas": 66282.816508
         }
       ]
     },
@@ -3267,7 +3267,7 @@
       "sources": [
         {
           "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 46298062.9948885
+          "kas": 11823.408694
         }
       ]
     },
@@ -3280,7 +3280,7 @@
       "sources": [
         {
           "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
-          "kas": 4119523.45278161
+          "kas": 3778946.31824
         }
       ]
     },
@@ -3293,7 +3293,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 5305228.38143203
+          "kas": 4818565.3967645
         }
       ]
     },
@@ -3306,7 +3306,7 @@
       "sources": [
         {
           "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
-          "kas": 1804023.05044797
+          "kas": 1744254.5836
         }
       ]
     },
@@ -3319,7 +3319,7 @@
       "sources": [
         {
           "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 4575051.19750979
+          "kas": 851394.7220562
         }
       ]
     },
@@ -3332,7 +3332,7 @@
       "sources": [
         {
           "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
-          "kas": 2844481.883279
+          "kas": 2575462.2105
         }
       ]
     }
