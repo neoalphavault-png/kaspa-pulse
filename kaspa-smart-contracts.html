@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Does Kaspa Have Smart Contracts? Covenants, Argent and the EVM Layer 2s — Kaspa Pulse</title>
-<meta name="description" content="Yes — since June 30, 2026 Kaspa runs native covenant contracts on layer 1, and full EVM smart contracts on two layer 2s. How the stack actually fits together, what makes it different from Ethereum, and the three traps in reading it — explained.">
+<title>Does Kaspa Have Smart Contracts? Toccata Covenants, Argent and the EVM Layer 2s — Kaspa Pulse</title>
+<meta name="description" content="Yes — since the Toccata hard fork on June 30, 2026 Kaspa runs native covenant contracts on layer 1, and full EVM smart contracts on two layer 2s. How the stack actually fits together, what makes it different from Ethereum, and the three traps in reading it — explained.">
 <link rel="canonical" href="https://kaspapulse.com/kaspa-smart-contracts.html">
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
@@ -114,6 +114,7 @@
     <a href="/">dashboard</a>
     <a href="/kaspa-supply.html">supply</a>
     <a href="/kaspa-halving.html">halving</a>
+    <a href="/kaspa-staking.html">staking</a>
     <a href="/kaspa-hashrate.html">hashrate</a>
     <a href="/kaspa-mining.html">mining</a>
     <a href="/kaspa-tvl.html">tvl</a>
@@ -224,7 +225,7 @@
   </div>
 
   <footer>
-    <div>not financial advice · further reading: <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>not financial advice · further reading: <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
   </footer>
 </div>
 
@@ -257,6 +258,11 @@
       "@type": "Question",
       "name": "Are smart contracts on Kaspa safe to use?",
       "acceptedAnswer": { "@type": "Answer", "text": "The mechanisms are live on mainnet, but the first wave of applications launched in 2025–2026 and much of it is young, some of it anonymous or unaudited. Kaspa's own core contributors advise users to understand exactly what they are buying. Treat individual apps as carrying real contract risk until independently audited." }
+    },
+    {
+      "@type": "Question",
+      "name": "What did the Toccata hard fork actually add?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Toccata activated on Kaspa mainnet on June 30, 2026 at DAA score 474,165,565. It added covenant rules, covenant IDs, transaction introspection opcodes and zero-knowledge proof verification to layer 1. It did not add account-based smart contracts \u2014 Kaspa's own documentation states that Toccata does not turn Kaspa into an account-chain smart contract system. Full EVM contracts run on the layer 2s, Kasplex and Igra." }
     }
   ]
 }
