@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>What is Entity X? Kaspa's Biggest Wallet, Explained — Kaspa Pulse</title>
-<meta name="description" content="Entity X is the largest single Kaspa address — one wallet holding around 5% of all circulating KAS. Live balance, the weekly buying pattern on-chain, who might be behind it, and what it means — explained.">
+<title>What Is Entity X? Kaspa's Biggest Whale Wallet, Tracked Live — Kaspa Pulse</title>
+<meta name="description" content="Entity X is the largest single Kaspa address — a whale wallet holding around 5% of all circulating KAS. Live balance, the weekly buying pattern on-chain, who might be behind it, and what it means — explained.">
 <link rel="canonical" href="https://kaspapulse.com/entity-x.html">
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
@@ -129,6 +129,7 @@
     <a href="/">dashboard</a>
     <a href="/kaspa-supply.html">supply</a>
     <a href="/kaspa-halving.html">halving</a>
+    <a href="/kaspa-staking.html">staking</a>
     <a href="/kaspa-hashrate.html">hashrate</a>
     <a href="/kaspa-mining.html">mining</a>
     <a href="/kaspa-tvl.html">tvl</a>
@@ -280,7 +281,7 @@
   </div>
 
   <footer>
-    <div>not financial advice · data: kaspa.stream, kaspalytics, api.kaspa.org · further reading: <a href="/merged-mining.html">kaspa merged mining, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>not financial advice · data: kaspa.stream, kaspalytics, api.kaspa.org · further reading: <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/merged-mining.html">kaspa merged mining, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
   </footer>
 </div>
 
@@ -413,6 +414,34 @@ fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).t
   const b = document.querySelector(".nburger"), c = document.querySelector(".nav .nc");
   if(b && c) b.addEventListener("click", function(){ c.classList.toggle("open"); b.textContent = c.classList.contains("open") ? "\u2715" : "\u2630"; });
 })();
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Entity X on Kaspa?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Entity X is the largest single Kaspa address — one whale wallet holding around 5% of all circulating KAS. Its live balance, accumulation pattern and full outflow history are tracked on this page, read directly from the public Kaspa API." }
+    },
+    {
+      "@type": "Question",
+      "name": "Who is the biggest Kaspa whale?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The largest known single wallet is the address the community calls Entity X, holding roughly 5% of circulating supply. Its owner is unknown; this page documents the on-chain evidence and the main theories without claiming certainty." }
+    },
+    {
+      "@type": "Question",
+      "name": "Has Entity X sold its Kaspa?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Coins have left the wallet — every outflow is counted and listed on this page. Some outflows went to addresses that public labels attribute to exchanges. A transfer to an exchange address is not proof of a sale: we report the movement, never the motive." }
+    },
+    {
+      "@type": "Question",
+      "name": "How is the Entity X wallet tracked?",
+      "acceptedAnswer": { "@type": "Answer", "text": "A bot reads the address balance from the public Kaspa API every 30 minutes around the clock, and a daily check compares against the previous day. Alerts fire in the free Kaspa Pulse Discord the moment the balance moves." }
+    }
+  ]
+}
 </script>
 </body>
 </html>
