@@ -1,0 +1,67 @@
+name: dashboard weekly
+
+on:
+  workflow_dispatch:
+  schedule:
+    # montags 05:37 UTC = 07:37 DE sommerzeit. bewusst nicht zur vollen stunde.
+    - cron: "37 5 * * 1"
+    # nachzuegler, falls github den ersten start verschluckt
+    - cron: "3 7 * * 1"
+  push:
+    branches: [main]
+    paths:
+      - 'data/dashboard-input.json'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dashboard-weekly
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: sperre gegen doppellauf
+        id: guard
+        if: github.event_name == 'schedule'
+        run: |
+          DAY=$(date -u +%Y-%m-%d)
+          if grep -q "\"updated\": \"$DAY\"" data/weekly.json; then
+            echo "done=1" >> "$GITHUB_OUTPUT"
+            echo "heute schon gelaufen, nichts zu tun"
+          fi
+
+      - uses: actions/setup-python@v5
+        if: steps.guard.outputs.done != '1'
+        with:
+          python-version: "3.12"
+
+      - name: selbsttest
+        if: steps.guard.outputs.done != '1'
+        run: python3 scripts/dashboard_weekly.py --selftest
+
+      - name: autofill (cron und manueller start)
+        if: steps.guard.outputs.done != '1' && github.event_name != 'push'
+        run: python3 scripts/dashboard_weekly.py --autofill
+
+      - name: handwerte einmischen (push von dashboard-input.json)
+        if: steps.guard.outputs.done != '1' && github.event_name == 'push'
+        run: python3 scripts/dashboard_weekly.py --apply-input
+
+      - name: commit
+        if: steps.guard.outputs.done != '1'
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add index.html data/weekly.json data/weekly-notes.md
+          if git diff --staged --quiet; then
+            echo "nothing changed"
+          else
+            git commit -m "dashboard weekly $(date -u +%Y-%m-%d) (${{ github.event_name }})"
+            git pull --rebase origin main
+            git push
+          fi
