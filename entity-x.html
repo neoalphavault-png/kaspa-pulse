@@ -130,6 +130,7 @@
     <a href="/kaspa-supply.html">supply</a>
     <a href="/kaspa-halving.html">halving</a>
     <a href="/kaspa-staking.html">staking</a>
+    <a href="/kaspa-wallets.html">wallets</a>
     <a href="/kaspa-hashrate.html">hashrate</a>
     <a href="/kaspa-mining.html">mining</a>
     <a href="/kaspa-tvl.html">tvl</a>
@@ -234,9 +235,32 @@
 
 </div>
 
+
+<div class="band"><div class="wrap2">
+  <h2 id="inflows">Where do the coins come from?</h2>
+  <p>The other half of the ledger. In August 2026 we traced the origin of <b>every inflow this wallet has ever received</b>: 296 transfers, 1,548,084,255 KAS, from just <b>131 distinct senders</b>. Every sender was classified by public exchange labels and on-chain behaviour. The result is unambiguous:</p>
+
+  <div style="background:var(--card); border:1px solid #15181C; border-radius:18px; padding:24px 26px 20px; margin:22px 0 8px;">
+    <div style="font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700;">origin of all 1.55B KAS ever received &middot; traced 6 aug 2026</div>
+    <div style="display:flex; height:30px; border-radius:999px; overflow:hidden; margin:16px 0 12px;">
+      <div style="width:89.7%; background:linear-gradient(90deg, #1E9E88, #49EACB);"></div>
+      <div style="width:9.4%; background:#E3B85F;"></div>
+      <div style="width:0.9%; background:#3A424B;"></div>
+    </div>
+    <div style="font-size:13.5px; color:var(--dim); line-height:1.7;">
+      <span style="color:var(--teal); font-weight:700;">89.7% from exchanges</span> &middot; 87.4% arrived straight from the four hot wallets that kaspa.stream labels gate.io (61.5%), bybit (17.7%), bitget (7.2%) and bitvavo (1.5%), the rest via intermediates or exchange-like senders<br>
+      <span style="color:#E3B85F; font-weight:700;">9.4% from fresh unlabeled wallets</span> &middot; 26 senders, including one batch that all deposited on the same day in July 2025<br>
+      <span style="color:var(--dimmer); font-weight:700;">0.9% unclear</span> &middot; small senders with no label and no distinctive profile
+    </div>
+  </div>
+  <p style="margin-top:14px;">Two more facts fall out of the trace. <b>Zero coins ever arrived from mining.</b> Not one block reward has ever been paid to this address, which retires the popular "early miner stash" theory in its direct form. And the sender list is short: <b>131 addresses, most of the volume from four of them</b> — not the swarm of hundreds of small wallets that consolidation stories require.</p>
+  <div class="note">The honest limit of this method: <b>the chain goes dark inside an exchange.</b> A deposit and a withdrawal cannot be linked from outside, so where the coins entered gate.io or bybit from is visible only to their compliance teams. An inflow from an exchange wallet is a withdrawal, not a proven buy. We report the movement, never the motive — and the raw result, every address and every verdict, is public in <a href="/data/entity-x-inflows.json" target="_blank" rel="noopener">this JSON file</a>.</div>
+
+</div></div>
+
 <div class="band"><div class="wrap2">
   <h2>Who is behind it?</h2>
-  <p>Honestly: <b>nobody knows, and anyone who claims to is guessing.</b> The plausible theories are a very early large holder consolidating, an institution or fund custodying a position, or an OTC desk's cold storage. What the chain rules out is just as useful: the pattern — steady weekly withdrawals from exchanges, buying roughly forty times faster than it sends anything out — looks like <b>patient accumulation</b>, not market-making or exchange infrastructure.</p>
+  <p>Honestly: <b>nobody knows, and anyone who claims to is guessing.</b> But the inflow trace above narrows the field. Direct early-miner consolidation is effectively ruled out (zero coinbase, no wallet swarm), and no exchange fills its own cold storage from four competitors. What remains is the profile of <b>one very large, very patient buyer withdrawing from exchange accounts</b> — accounts on at least four venues, weekly withdrawals for years, straight through the drawdown. Who that is lives in the KYC files of those exchanges, and nowhere else.</p>
 
 </div></div>
 
@@ -439,6 +463,11 @@ fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).t
       "@type": "Question",
       "name": "How is the Entity X wallet tracked?",
       "acceptedAnswer": { "@type": "Answer", "text": "A bot reads the address balance from the public Kaspa API every 30 minutes around the clock, and a daily check compares against the previous day. Alerts fire in the free Kaspa Pulse Discord the moment the balance moves." }
+    },
+    {
+      "@type": "Question",
+      "name": "Where does Entity X get its KAS?",
+      "acceptedAnswer": { "@type": "Answer", "text": "We traced every inflow the wallet has ever received: 296 transfers totalling about 1.55 billion KAS from 131 distinct senders, as of August 2026. Roughly 90% arrived from exchanges, with 87.4% coming straight from hot wallets publicly labeled as gate.io, bybit, bitget and bitvavo. About 9% came from fresh unlabeled wallets and zero coins ever arrived from mining directly. An inflow from an exchange is a withdrawal, not a proven buy, and the chain never names the owner." }
     }
   ]
 }
