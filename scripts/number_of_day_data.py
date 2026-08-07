@@ -13,8 +13,12 @@ wird gar nicht erst gebaut.
 auswahl:
     jeder kandidat berechnet sich selbst und gibt eine punktzahl zurueck.
     der hoechste gewinnt. ein reward cut am selben tag schlaegt alles.
-    was in den letzten COOLDOWN_DAYS tagen schon dran war, wird abgewertet,
-    damit nicht dreimal die woche dieselbe grafik erscheint.
+    was gestern oder heute schon dran war, ist hart gesperrt (nachtrag
+    07.08.: die weiche abwertung reichte nicht, die zahl vom 96er-typ kam
+    zweimal hintereinander). was in den letzten COOLDOWN_DAYS tagen davor
+    dran war, wird abgewertet, damit nicht dreimal die woche dieselbe
+    grafik erscheint. haben nur gesperrte kandidaten zahlen, laeuft der
+    beste von ihnen als notnagel, denn kein post waere schlimmer.
 
 lokal:
     python3 scripts/number_of_day_data.py --dry-run
@@ -59,6 +63,7 @@ LOG_PATH = os.path.join(ROOT, "data", "number-of-day-log.json")
 OUT_PATH = os.path.join(ROOT, "data", "number-of-day.json")
 
 COOLDOWN_DAYS = 8
+HARD_BLOCK_DAYS = 1   # alter in tagen, bis zu dem ein kandidat hart gesperrt ist
 COOLDOWN_FACTOR = 0.15
 MIN_ANCHOR_AGE_DAYS = 21
 LOG_KEEP = 60
@@ -570,7 +575,8 @@ def recent_picks(log, today):
 
 def choose(ctx, log, force=None):
     cooled = recent_picks(log, ctx["today"])
-    scored = []
+    scored = []   # waehlbar
+    benched = []  # hart gesperrt, nur notnagel
     for name, fn in CANDIDATES:
         try:
             res = fn(ctx)
@@ -581,21 +587,32 @@ def choose(ctx, log, force=None):
             continue
         score = float(res["score"])
         note = ""
-        if name in cooled and name != "cut_today":
+        age = cooled.get(name)
+        if age is not None and name != "cut_today":
+            if age <= HARD_BLOCK_DAYS:
+                # harte sperre statt abwertung: was gestern oder heute
+                # schon lief, darf heute nicht nochmal gewinnen, egal wie
+                # hoch sein score ist. auf die bank, nicht in die auswahl.
+                benched.append((score, name, res["payload"],
+                                " (gesperrt, vor %d tagen dran)" % age))
+                continue
             score *= COOLDOWN_FACTOR
-            note = " (abgewertet, vor %d tagen dran)" % cooled[name]
+            note = " (abgewertet, vor %d tagen dran)" % age
         scored.append((score, name, res["payload"], note))
 
-    if not scored:
+    pool = scored if scored else benched
+    if not pool:
         raise Stop("kein kandidat hat zahlen geliefert")
 
-    scored.sort(key=lambda x: (-x[0], x[1]))
+    pool.sort(key=lambda x: (-x[0], x[1]))
+    benched.sort(key=lambda x: (-x[0], x[1]))
+    shown = pool if pool is not scored else scored + benched
     if force:
-        for s, name, payload, note in scored:
+        for s, name, payload, note in scored + benched:
             if name == force:
-                return name, payload, scored
+                return name, payload, shown
         raise Stop("kandidat %s hat heute keine zahlen" % force)
-    return scored[0][1], scored[0][2], scored
+    return pool[0][1], pool[0][2], shown
 
 
 # ---------------------------------------------------------------- hauptlauf
@@ -758,6 +775,15 @@ def run_selftest():
     log = [{"date": str(far["today"]), "candidate": "tvl_move"}]
     name2, _, _ = choose(far, log)
     ok("was gestern lief, gewinnt heute nicht", name2 != "tvl_move", name2)
+    log2 = log + [{"date": str(far["today"]), "candidate": name2}]
+    name2b, _, _ = choose(far, log2)
+    ok("auch der zweitplatzierte wiederholt sich nicht",
+       name2b not in ("tvl_move", name2), name2b)
+    all_blocked = [{"date": str(far["today"]), "candidate": n}
+                   for n, _ in CANDIDATES]
+    name2c, _, _ = choose(far, all_blocked)
+    ok("sind alle gesperrt, laeuft trotzdem einer als notnagel",
+       bool(name2c), name2c)
     cut_ctx = build_context(now_ts=ANCHOR_TS + STEP - 3600,
                             live=FAKE_LIVE, history=FAKE_HISTORY)
     name3, _, _ = choose(cut_ctx, [{"date": str(cut_ctx["today"]),
