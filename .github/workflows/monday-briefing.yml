@@ -38,6 +38,7 @@ jobs:
           DISCORD_WEBHOOK_BRIEFING: ${{ secrets.DISCORD_WEBHOOK_BRIEFING }}
           DISCORD_WEBHOOK_WEEKLY: ${{ secrets.DISCORD_WEBHOOK_WEEKLY }}
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          BREVO_LIST_ID: ${{ secrets.BREVO_LIST_ID }}
         run: |
           python scripts/monday_briefing.py
 
