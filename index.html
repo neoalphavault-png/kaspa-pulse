@@ -109,7 +109,7 @@
   .nav .nlogo { font-size:13px; letter-spacing:4px; font-weight:700; white-space:nowrap; }
   .nav .nlogo span { color:var(--teal); }
   .nav .nstamp { font-size:10px; color:var(--dimmer); letter-spacing:1px; text-align:right; line-height:14px; }
-  .nav .nc { max-width:920px; margin:0 auto; padding:0 12px 10px; display:flex; flex-wrap:wrap; gap:2px; row-gap:3px; }
+  .nav .nc { max-width:920px; margin:0 auto; padding:0 10px 10px; display:flex; flex-wrap:wrap; gap:2px; row-gap:3px; }
   .nav .nc::-webkit-scrollbar { display:none; }
   .nav .nc a { font-size:12px; color:var(--dim); text-decoration:none; padding:5px 8px; border-radius:999px; white-space:nowrap; border:1px solid transparent; }
   .nav .nc a:hover { color:var(--txt); }
@@ -257,66 +257,150 @@
 </div>
 
 <script>
-// Weekly curated data — replaced every Monday. Live values (TVL, price) fetched on load with these as fallback.
+// WEEKLY-DATA-START  wird von scripts/dashboard_weekly.py erzeugt.
+// nichts von hand aendern, quelle ist data/weekly.json, herkunft der
+// einzelnen reihen steht in data/weekly-notes.md
 const DATA = {
-  updated: "2026-08-03",
-  next_update: "2026-08-10",
-  context_fallback: { price_usd: 0.026, mcap_usd: 718150000, mined_pct: 96.21 },
-  // kaspa.stream druckt nur "27.62B", keine exakte Ziffernfolge. Gegenprobe: mcap 718.15M / 0.026 = 27.621B
-  circ_supply: 27620000000,
-  // annual_inflation neu berechnet: block reward 2.45 × 10.2 BPS × 86400 × 365 / circ supply ≈ 2.9% (alter Wert 4.6% war veraltet)
-  // next_reduction wird aus dem Datum gerechnet, nicht als Text gepflegt. Sonst steht
-  // am Donnerstag noch "in 2 days" auf der Seite. Regel 9 aus dem SEO-Doc.
-  emission: { block_reward: 2.45, next_reduction_at: "2026-08-05T06:15:00Z", annual_inflation_pct: 2.9 },
-  // d7 aus der eigenen Reihe (262.3 → 342.5). d30/d90 sind gegen die ABSOLUTEN Vorwochen-Basen
-  // gerechnet (389.7 / 381.3 PH/s), die Anker sind damit eine Woche alt. ⚠️ TODO: ab nächster Woche
-  // die Kaspalytics-Hashrate-Kurve mitscreenshotten, dann haben wir eigene 30/90-Tage-Anker
-  hashrate_windows: { d7: 30.6, d30: -12.1, d90: -10.2 },
-  dex_windows: { kasplex_w: -4.8, igra_w: -65.0 },  // je Chain gegen die Vorwoche aus history gerechnet
-  fees_7d: null,  // ⚠️ defillama zeigt auf der Chain-Seite nur 24h, die 7-Tage-Summe braucht den Umschalter
-  // SERIEN-UMSTELLUNG 27.07.: holder_addr = Kaspalytics Distribution Table, Summe aller Buckets ab 0.01 KAS (vorher gemischte Quelle)
-  //                            active_addr = Kaspalytics "Number of Unique Active Addresses" (vorher breitere Zählung, alte Werte auf null gesetzt)
-  //                            holders (1J+ inaktiv) = Kaspalytics "Supply Not Moved in Over 1 Year", Serie frisch ab 27.07.
-  //
-  // SERIEN-UMSTELLUNG 03.08. (drei Stück, alle aus demselben Grund: Definition war nicht festgenagelt)
-  //  1) covenant_tx = ab jetzt Kaspalytics "Covenant-Creating Txs" (24h). Die alten Werte 44/1578/918 kamen
-  //     von kcc20 und zählten Events, nicht Transaktionen. kcc20 zeigt am 03.08. 6.534 Events gegen 3.517
-  //     Creating-Txs. Der scheinbare Sprung von 918 auf 3.517 wäre reine Definition gewesen, nicht Wachstum.
-  //     Alte Werte auf null, Reihe startet neu.
-  //  2) active_addr = Kaspalytics "Number of Unique Active Addresses", ab jetzt IMMER der letzte VOLLE Tag
-  //     (also gestern), nie der laufende. 7.440 und 7.950 waren am Lesetag angebrochene Tage und damit zu
-  //     niedrig. Der Sprung auf 13.940 ist überwiegend dieser Lesefehler, nicht Wachstum. Alte Werte auf null.
-  //  3) holders = Summe der Kaspalytics-Aging-Buckets über 1 Jahr. Die sichtbaren Zeilen (3-4J 7,13 + 2-3J
-  //     13,27 + 1-2J 26,51) ergeben 46,91%, alle neun Zeilen zusammen aber nur 96,31%. Die fehlenden 3,69%
-  //     sind der nicht gerenderte Bereich über 4 Jahren (Kaspa startete 11/2021). 46,91 + 3,69 = 50,60%,
-  //     was zur Vorwoche (50,47) passt. Reine 46,91 zu melden wäre ein Minus von 3,6 Punkten in einer Woche
-  //     gewesen, also rund 980M KAS in Bewegung. Das hat nicht stattgefunden.
-  history: [
-    {date:"2026-07-13", m:{tvl_total:null, tvl_kasplex:475000, tvl_igra:null, tps:0.74, covenant_tx:null, igra_tx:47625, kasplex_tx:872, holders:null, hashrate:319.3, active_addr:null, block_reward:2.45, dex_vol:88000}},
-    {date:"2026-07-20", m:{tvl_total:1966832, tvl_kasplex:386832, tvl_igra:1580000, tps:0.87, covenant_tx:null, igra_tx:45306, kasplex_tx:872, holders:null, hashrate:313.7, active_addr:null, block_reward:2.45, dex_vol:96000, holder_addr:744218, exchange_kas:3950000000, entityx_kas:1477070640}},
-    {date:"2026-07-27", m:{tvl_total:1962786, tvl_kasplex:387019, tvl_igra:1575767, tps:0.75, covenant_tx:null, igra_tx:42983, kasplex_tx:980, holders:50.47, hashrate:262.3, active_addr:null, block_reward:2.45, dex_vol:132998, holder_addr:746067, exchange_kas:3940000000, entityx_kas:1492220896, kasplex_dex:104049, igra_dex:28949, fees_day:305}},
-    {date:"2026-08-03", m:{tvl_total:1832947, tvl_kasplex:342947, tvl_igra:1490000, tps:0.91, covenant_tx:3517, igra_tx:49237, kasplex_tx:1070, holders:50.60, hashrate:342.5, active_addr:13940, block_reward:2.45, dex_vol:109200, holder_addr:747603, exchange_kas:3854799342, entityx_kas:1503875035, kasplex_dex:99061, igra_dex:10139, fees_day:226}}
+  "updated": "2026-08-03",
+  "next_update": "2026-08-10",
+  "context_fallback": {
+    "price_usd": 0.026,
+    "mcap_usd": 718150000,
+    "mined_pct": 96.21
+  },
+  "circ_supply": 27620000000,
+  "emission": {
+    "block_reward": 2.45,
+    "next_reduction_at": "2026-08-05T06:15:00Z",
+    "annual_inflation_pct": 2.9
+  },
+  "hashrate_windows": {
+    "d7": 30.6,
+    "d30": -12.1,
+    "d90": -10.2
+  },
+  "dex_windows": {
+    "kasplex_w": -4.8,
+    "igra_w": -65
+  },
+  "fees_7d": null,
+  "history": [
+    {
+      "date": "2026-07-13",
+      "m": {
+        "tvl_total": null,
+        "tvl_kasplex": 475000,
+        "tvl_igra": null,
+        "tps": 0.74,
+        "covenant_tx": null,
+        "igra_tx": 47625,
+        "kasplex_tx": 872,
+        "holders": null,
+        "hashrate": 319.3,
+        "active_addr": null,
+        "block_reward": 2.45,
+        "dex_vol": 88000
+      }
+    },
+    {
+      "date": "2026-07-20",
+      "m": {
+        "tvl_total": 1966832,
+        "tvl_kasplex": 386832,
+        "tvl_igra": 1580000,
+        "tps": 0.87,
+        "covenant_tx": null,
+        "igra_tx": 45306,
+        "kasplex_tx": 872,
+        "holders": null,
+        "hashrate": 313.7,
+        "active_addr": null,
+        "block_reward": 2.45,
+        "dex_vol": 96000,
+        "holder_addr": 744218,
+        "exchange_kas": 3950000000,
+        "entityx_kas": 1477070640
+      }
+    },
+    {
+      "date": "2026-07-27",
+      "m": {
+        "tvl_total": 1962786,
+        "tvl_kasplex": 387019,
+        "tvl_igra": 1575767,
+        "tps": 0.75,
+        "covenant_tx": null,
+        "igra_tx": 42983,
+        "kasplex_tx": 980,
+        "holders": 50.47,
+        "hashrate": 262.3,
+        "active_addr": null,
+        "block_reward": 2.45,
+        "dex_vol": 132998,
+        "holder_addr": 746067,
+        "exchange_kas": 3940000000,
+        "entityx_kas": 1492220896,
+        "kasplex_dex": 104049,
+        "igra_dex": 28949,
+        "fees_day": 305
+      }
+    },
+    {
+      "date": "2026-08-03",
+      "m": {
+        "tvl_total": 1832947,
+        "tvl_kasplex": 342947,
+        "tvl_igra": 1490000,
+        "tps": 0.91,
+        "covenant_tx": 3517,
+        "igra_tx": 49237,
+        "kasplex_tx": 1070,
+        "holders": 50.6,
+        "hashrate": 342.5,
+        "active_addr": 13940,
+        "block_reward": 2.45,
+        "dex_vol": 109200,
+        "holder_addr": 747603,
+        "exchange_kas": 3854799342,
+        "entityx_kas": 1503875035,
+        "kasplex_dex": 99061,
+        "igra_dex": 10139,
+        "fees_day": 226
+      }
+    }
   ],
-  holder_baselines: {
-    m3: { date:"2026-04-27", n:735960 },   // Distribution Table, Summe Buckets ≥0.01
-    y1: { date:"2025-07-27", n:695792 }
+  "holder_baselines": {
+    "m3": {
+      "date": "2026-04-27",
+      "n": 735960
+    },
+    "y1": {
+      "date": "2025-07-27",
+      "n": 695792
+    }
   },
-  // ⚠️ exchange_kas 03.08. ist FORTGESCHRIEBEN, nicht frisch abgelesen. Diese Woche kam der Screenshot der
-  // Adressliste statt der Summen-Ansicht. Die neun börsenmarkierten Adressen in den Top 10 summieren sich
-  // auf 5,42 Mrd, unsere Reihe steht aber bei 3,94 Mrd, das ist also ein anderer Korb (Uphold und Bitvavo
-  // sind Verwahrer, kaspa.stream zählt sie in der Summen-Ansicht vermutlich nicht mit). Gemessen ist der
-  // NETTOFLUSS: die Summe der 7-Tage-Spalten dieser neun Adressen ist minus 85.200.658 KAS. Den haben wir
-  // auf 3,94 Mrd angewendet. Richtung und Größe sind belegt, das absolute Niveau ist geerbt.
-  // TODO Montag: Summen-Ansicht screenshotten, dann den Korb einmal sauber definieren.
-  exchange_baselines: {
-    m3: { date:"2026-04-23", n:3890000000 },   // 3.89B KAS
-    y1: { date:"2025-07-24", n:3070000000 }    // 3.07B KAS
+  "exchange_baselines": {
+    "m3": {
+      "date": "2026-04-23",
+      "n": 3890000000
+    },
+    "y1": {
+      "date": "2025-07-24",
+      "n": 3070000000
+    }
   },
-  entityx_baselines: {
-    m3: { date:"2026-04-27", n:1409703759 },   // Distribution Table 1B-10B-Bucket
-    y1: { date:"2025-07-27", n:null }          // vor einem Jahr existierte keine 1B+-Adresse
+  "entityx_baselines": {
+    "m3": {
+      "date": "2026-04-27",
+      "n": 1409703759
+    },
+    "y1": {
+      "date": "2025-07-27",
+      "n": null
+    }
   }
 };
+// WEEKLY-DATA-END
 
 const $ = id => document.getElementById(id);
 
@@ -467,14 +551,14 @@ $("supplyCards").innerHTML = `
 // --- weekly cards ---
 $("usageCards").innerHTML = `
   <div class="card"><div class="name">Real network usage</div><div class="expl">* transactions per second, spam filtered out</div>
-    <div class="val">${cur.tps} TPS</div><div class="trends">${trendBlock("tps")}</div></div>
+    <div class="val">${cur.tps!=null?cur.tps+" TPS":"—"}</div><div class="trends">${trendBlock("tps")}</div></div>
   <div class="card"><div class="name">Smart-contract activity</div><div class="expl">* covenant transactions per day (live since June)</div>
     <div class="val">${fmtN(cur.covenant_tx)}/day</div><div class="trends">${trendBlock("covenant_tx")}</div></div>
   <div class="card"><div class="name">Active addresses</div><div class="expl">* unique addresses transacting per day (kaspalytics) — the honest count, not the inflated one</div>
     <div class="val">${fmtN(cur.active_addr)}</div><div class="trends">${trendBlock("active_addr")}</div></div>
   <div class="card"><div class="name">L2 activity split</div><div class="expl">* transactions per day on each L2</div>
-    <div class="val">${(cur.igra_tx/(cur.igra_tx+cur.kasplex_tx)*100).toFixed(0)}% Igra</div>
-    <div class="split"><div class="a" style="width:${cur.igra_tx/(cur.igra_tx+cur.kasplex_tx)*100}%"></div><div class="b" style="flex:1"></div></div>
+    <div class="val">${(cur.igra_tx!=null&&cur.kasplex_tx!=null)?(cur.igra_tx/(cur.igra_tx+cur.kasplex_tx)*100).toFixed(0)+"% Igra":"—"}</div>
+    <div class="split"><div class="a" style="width:${(cur.igra_tx!=null&&cur.kasplex_tx!=null)?cur.igra_tx/(cur.igra_tx+cur.kasplex_tx)*100:0}%"></div><div class="b" style="flex:1"></div></div>
     <div class="split-lbl"><span>Igra ${fmtN(cur.igra_tx)}</span><span>Kasplex ${fmtN(cur.kasplex_tx)}</span></div></div>`;
 
 // holder-address deltas vs fixed baselines (Kaspalytics)
@@ -483,7 +567,7 @@ const hbRow = (label, base) => { const d = deltaTxt(cur.holder_addr, base);
 
 $("baseCards").innerHTML = `
   <div class="card"><div class="name">Long-term holders</div><div class="expl">* share of all KAS untouched for over a year</div>
-    <div class="val">${cur.holders.toFixed(1)}%</div><div class="trends">${trendBlock("holders")}</div></div>
+    <div class="val">${cur.holders!=null?cur.holders.toFixed(1)+"%":"—"}</div><div class="trends">${trendBlock("holders")}</div></div>
   <div class="card"><div class="name">Addresses holding KAS</div><div class="expl">* wallets holding at least 0.01 KAS — addresses, not people</div>
     <div class="val">${fmtN(cur.holder_addr)}</div>
     <div class="trends">
@@ -517,19 +601,19 @@ $("dexCards").innerHTML = `
 const EX_ADDR = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a";
 const wPrev = back(1);
 const exWk = (cur.entityx_kas!=null && wPrev && wPrev.entityx_kas!=null) ? cur.entityx_kas - wPrev.entityx_kas : null;
-const exM3 = DATA.entityx_baselines.m3.n!=null ? cur.entityx_kas - DATA.entityx_baselines.m3.n : null;
-const exShare = (cur.entityx_kas / DATA.circ_supply * 100).toFixed(2);
+const exM3 = (cur.entityx_kas!=null && DATA.entityx_baselines.m3.n!=null) ? cur.entityx_kas - DATA.entityx_baselines.m3.n : null;
+const exShare = cur.entityx_kas!=null ? (cur.entityx_kas / DATA.circ_supply * 100).toFixed(2)+"%" : "—";
 const exDeltaRow = (label, d) => d==null ? `<div class="tr"><span class="win">${label}</span><span class="flat">—</span></div>`
   : `<div class="tr"><span class="win">${label}</span><span class="${d>0?'up':(d<0?'down':'flat')}">${d>0?'▲ +':'▼ '}${(Math.abs(d)/1e6).toFixed(1)}M KAS</span></div>`;
 $("whaleCards").innerHTML = `
   <div class="card"><div class="name">Entity X balance</div><div class="expl">* the largest single kaspa address — labeled "entity x" by explorers. one address, verifiable on-chain</div>
-    <div class="val" id="exBal">${(cur.entityx_kas/1e9).toFixed(2)}B KAS</div>
+    <div class="val" id="exBal">${cur.entityx_kas!=null?(cur.entityx_kas/1e9).toFixed(2)+"B KAS":"—"}</div>
     <div class="trends">
       ${exDeltaRow("this week", exWk)}
       ${exDeltaRow("vs 3 months", exM3)}
     </div></div>
   <div class="card"><div class="name">Share of supply</div><div class="expl">* one wallet vs all known exchanges combined (${fmtKas(cur.exchange_kas)} KAS)</div>
-    <div class="val">${exShare}%</div>
+    <div class="val">${exShare}</div>
     <div class="trends"><div class="tr"><span class="win">vs all exchanges</span><span class="flat">&gt; ⅓ of their total</span></div></div></div>
   <div class="card"><div class="name">Average entry</div><div class="expl">* our own calculation — every deposit this wallet ever received, valued at the volume weighted price of its day</div>
     <div class="val" id="exCost">—</div>
