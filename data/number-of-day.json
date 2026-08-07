@@ -1,7 +1,7 @@
 {
-  "issue": "KASPA PULSE · AUG 6 2026",
+  "issue": "KASPA PULSE · AUG 7 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "96.23%",
+  "value": "96.24%",
   "value_label": "of every KAS that will ever exist is already mined",
   "headline": "the supply story is *almost over*.\nthe rest takes longer than the start.",
   "panes": [
@@ -13,15 +13,15 @@
         {
           "label": "mined",
           "sub": "in circulation",
-          "value": "96.23%",
+          "value": "96.24%",
           "pct": 100.0,
           "tone": "teal"
         },
         {
           "label": "left",
           "sub": "still to come",
-          "value": "3.77%",
-          "pct": 3.9145092229951244,
+          "value": "3.76%",
+          "pct": 3.9069674110205566,
           "tone": "grey"
         }
       ]
@@ -30,8 +30,8 @@
       "kind": "anchor",
       "title": "WHAT IS LEFT",
       "lines": [
-        "1,081,294,739 KAS are still unmined. that is *3.77 percent* of the maximum.",
-        "at the current schedule 99 percent is reached in july 2028. what comes after keeps halving every twelve months."
+        "1,079,289,815 KAS are still unmined. that is *3.76 percent* of the maximum.",
+        "at the current schedule 99 percent is reached in june 2028. what comes after keeps halving every twelve months."
       ]
     }
   ],
@@ -39,7 +39,7 @@
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "96.23 percent of every KAS that will ever exist is already mined. 1,081,294,739 KAS are still to come, and 99 percent is reached in july 2028 at the current schedule. what comes after keeps halving every twelve months.",
+    "x": "96.24 percent of every KAS that will ever exist is already mined. 1,079,289,815 KAS are still to come, and 99 percent is reached in june 2028 at the current schedule. what comes after keeps halving every twelve months.",
     "reply": "the full emission schedule is on kaspapulse.com/kaspa-halving.html"
   }
 }
