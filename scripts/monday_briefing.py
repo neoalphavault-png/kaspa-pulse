@@ -65,29 +65,38 @@ def human_to_int(text):
 # ---------------------------------------------------------------- quellen
 
 def get_youtube():
-    """abos und gesamtviews aus der kanalseite. youtube aendert sein markup
-    gern, deshalb mehrere muster je wert und im zweifel lieber None."""
+    """abos von der kanalseite, views aus youtubes offiziellem rss-feed.
+
+    der erste versuch (lauf vom 07.08.) hat gezeigt, dass regex auf der
+    html-seite fuer views unbrauchbar ist, da stand am ende eine 4. das
+    rss-feed hat eine stabile xml-struktur mit views je video, die summe
+    ist der gesamtwert. grenze: das feed listet nur die letzten 15 videos.
+    ab video 16 stimmt die summe nicht mehr, dann auf die youtube data api
+    mit key umstellen (notiz dazu erscheint automatisch im briefing)."""
     html = fetch(YOUTUBE_URL)
     subs = None
     for pat in (
         r'"subscriberCountText"\s*:\s*\{"simpleText"\s*:\s*"([\d.,KMB]+)\s+subscribers?"',
-        r'"content"\s*:\s*"([\d.,KMB]+)\s+subscribers?"',
-        r'([\d.,]+[KMB]?)\s+subscribers?"',
+        r'"subscriberCountText"\s*:\s*"([\d.,KMB]+)\s+subscribers?"',
+        r'"content"\s*:\s*"([\d.,KMB]+)\s+(?:subscribers?|Abonnenten)"',
+        r'([\d.,]+\s?[KMB]?)\s+(?:subscribers|Abonnenten)',
     ):
         m = re.search(pat, html)
         if m:
             subs = human_to_int(m.group(1))
             break
     views = None
-    for pat in (
-        r'"viewCountText"\s*:\s*\{"simpleText"\s*:\s*"([\d.,]+)\s+views"',
-        r'"viewCount"\s*:\s*\{"simpleText"\s*:\s*"([\d.,]+)\s+views"',
-        r'([\d.,]+)\s+views"',
-    ):
-        m = re.search(pat, html)
-        if m:
-            views = human_to_int(m.group(1))
-            break
+    m = (re.search(r'"channelId"\s*:\s*"(UC[\w-]{20,})"', html)
+         or re.search(r'"externalId"\s*:\s*"(UC[\w-]{20,})"', html))
+    if m:
+        xml = fetch("https://www.youtube.com/feeds/videos.xml?channel_id="
+                    + m.group(1))
+        counts = re.findall(r'views="(\d+)"', xml)
+        if counts:
+            views = sum(int(v) for v in counts)
+            if len(counts) >= 15:
+                print("WARNUNG: rss-feed randvoll (15 videos), views-summe "
+                      "bald unvollstaendig, auf youtube data api umstellen")
     return subs, views
 
 
@@ -97,18 +106,33 @@ def get_discord():
     url = ("https://discord.com/api/v9/invites/%s?with_counts=true"
            % DISCORD_INVITE)
     data = json.loads(fetch(url))
+    # rohwerte ins log, damit ein komischer wert (wie die 1 vom 07.08.)
+    # diagnostizierbar ist, ohne den lauf zu wiederholen
+    print("discord rohwerte: mitglieder=%s online=%s server=%s"
+          % (data.get("approximate_member_count"),
+             data.get("approximate_presence_count"),
+             (data.get("guild") or {}).get("name")))
     n = data.get("approximate_member_count")
     return int(n) if n is not None else None
 
 
 def get_brevo():
-    """kontaktzahl aus brevo. ohne key wird still uebersprungen, der key
-    ist ein repository secret und taucht nirgends im log auf."""
+    """kontaktzahl aus brevo. mit BREVO_LIST_ID zaehlt nur die kaspa-pulse-
+    liste (der kontoweite zaehler nahm am 07.08. alle projekte zusammen, 52
+    statt 7). ohne listen-id faellt es auf das konto zurueck, mit warnung."""
     key = os.environ.get("BREVO_API_KEY", "").strip()
     if not key:
         return None
-    data = json.loads(fetch(BREVO_URL, headers={"api-key": key,
-                                                "accept": "application/json"}))
+    headers = {"api-key": key, "accept": "application/json"}
+    list_id = os.environ.get("BREVO_LIST_ID", "").strip()
+    if list_id:
+        data = json.loads(fetch(
+            "https://api.brevo.com/v3/contacts/lists/%s/contacts?limit=1"
+            % list_id, headers=headers))
+    else:
+        print("WARNUNG: BREVO_LIST_ID fehlt, zaehle das ganze konto "
+              "statt nur kaspa pulse")
+        data = json.loads(fetch(BREVO_URL, headers=headers))
     n = data.get("count")
     return int(n) if n is not None else None
 
