@@ -1,0 +1,55 @@
+name: monday briefing
+
+on:
+  workflow_dispatch:
+  schedule:
+    # montags 06:17 UTC = 08:17 DE sommerzeit. bewusst nicht zur vollen stunde.
+    - cron: "17 6 * * 1"
+    # nachzuegler um 07:44 UTC, falls github den ersten start verschluckt.
+    # dank der sperre unten postet er nie doppelt.
+    - cron: "44 7 * * 1"
+
+permissions:
+  contents: write
+
+jobs:
+  briefing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: sperre gegen doppellauf
+        id: guard
+        run: |
+          DAY=$(date -u +%Y-%m-%d)
+          if [ -f data/channels-history.json ] && grep -q "\"$DAY\"" data/channels-history.json; then
+            echo "done=1" >> "$GITHUB_OUTPUT"
+            echo "heute schon gelaufen, nichts zu tun"
+          fi
+
+      - uses: actions/setup-python@v5
+        if: steps.guard.outputs.done != '1'
+        with:
+          python-version: "3.12"
+
+      - name: collect and post
+        if: steps.guard.outputs.done != '1'
+        env:
+          DISCORD_WEBHOOK_BRIEFING: ${{ secrets.DISCORD_WEBHOOK_BRIEFING }}
+          DISCORD_WEBHOOK_WEEKLY: ${{ secrets.DISCORD_WEBHOOK_WEEKLY }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+        run: |
+          python scripts/monday_briefing.py
+
+      - name: commit
+        if: steps.guard.outputs.done != '1'
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/channels-history.json
+          if git diff --staged --quiet; then
+            echo "nothing changed"
+          else
+            git commit -m "channel stats $(date -u +%Y-%m-%d)"
+            git push
+          fi
