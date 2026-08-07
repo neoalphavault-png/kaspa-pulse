@@ -184,6 +184,40 @@ def upsert_row(data, today):
     return row
 
 
+def apply_context(data, auto):
+    """preis, marketcap, supply, block reward. das ist tageskontext, kein
+    wochenwert, darf also an jedem wochentag aufgefrischt werden."""
+    if auto["circ_supply"] is not None:
+        data["circ_supply"] = auto["circ_supply"]
+    cf = data.setdefault("context_fallback", {})
+    if auto["price_usd"] is not None:
+        cf["price_usd"] = auto["price_usd"]
+    if auto["mcap_usd"] is not None:
+        cf["mcap_usd"] = auto["mcap_usd"]
+    if auto["mined_pct"] is not None:
+        cf["mined_pct"] = auto["mined_pct"]
+    if auto["block_reward"] is not None:
+        data.setdefault("emission", {})["block_reward"] = auto["block_reward"]
+
+
+def prune_non_mondays(data):
+    """wochenzeilen gehoeren auf den montag. testlaeufe an anderen tagen
+    (passiert, siehe 07.08.) hinterlassen sonst zeilen, die die d7-fenster
+    und den chart verfaelschen. hier fliegen sie wieder raus."""
+    hist = data.get("history", [])
+    keep = [r for r in hist if parse_date(r["date"]).weekday() == 0]
+    dropped = len(hist) - len(keep)
+    if dropped:
+        print("WARNUNG: %d nicht-montags-zeile(n) entfernt (testlaeufe)"
+              % dropped)
+        data["history"] = keep
+        if keep:
+            data["updated"] = keep[-1]["date"]
+            data["next_update"] = str(parse_date(keep[-1]["date"])
+                                      + dt.timedelta(days=7))
+    return dropped
+
+
 def apply_auto(data, auto, today):
     row = upsert_row(data, today)
     m = row["m"]
@@ -209,17 +243,7 @@ def apply_auto(data, auto, today):
     # kopfdaten
     data["updated"] = str(today)
     data["next_update"] = str(today + dt.timedelta(days=7))
-    if auto["circ_supply"] is not None:
-        data["circ_supply"] = auto["circ_supply"]
-    cf = data.setdefault("context_fallback", {})
-    if auto["price_usd"] is not None:
-        cf["price_usd"] = auto["price_usd"]
-    if auto["mcap_usd"] is not None:
-        cf["mcap_usd"] = auto["mcap_usd"]
-    if auto["mined_pct"] is not None:
-        cf["mined_pct"] = auto["mined_pct"]
-    if auto["block_reward"] is not None:
-        data.setdefault("emission", {})["block_reward"] = auto["block_reward"]
+    apply_context(data, auto)
 
     # fenster. ein fenster ohne anker behaelt seinen alten wert,
     # ein fenster mit anker wird frisch gerechnet.
@@ -260,7 +284,10 @@ def deep_merge(dst, src):
 
 
 def apply_input(data, inp, today):
-    row = upsert_row(data, today)
+    # handwerte gehoeren zur aktuellen lesung, also in die letzte zeile.
+    # ein upsert auf "heute" wuerde am dienstag eine neue zeile anlegen.
+    hist = data.get("history")
+    row = hist[-1] if hist else upsert_row(data, today)
     for k, v in (inp.get("row") or {}).items():
         # None heisst "diese woche nicht geliefert" und ueberschreibt nichts.
         # eine reihe bewusst leeren geht ueber den wert "leer".
@@ -373,6 +400,22 @@ def run_selftest():
        data["history"][-1]["m"]["holders"] == 50.9)
     ok("'leer' leert die reihe bewusst",
        data["history"][-1]["m"]["tps"] is None)
+    apply_input(data, {"row": {"holders": 51.0}}, dt.date(2026, 8, 11))
+    ok("dienstags-input landet in der montagszeile",
+       data["history"][-1]["date"] == "2026-08-10"
+       and data["history"][-1]["m"]["holders"] == 51.0)
+
+    print("montags-schutz")
+    data["history"].append({"date": "2026-08-14", "m": {"hashrate": 999.0}})
+    data["updated"] = "2026-08-14"
+    dropped = prune_non_mondays(data)
+    ok("freitags-testzeile entfernt", dropped == 1
+       and data["history"][-1]["date"] == "2026-08-10")
+    ok("kopfdatum zurueckgesetzt", data["updated"] == "2026-08-10"
+       and data["next_update"] == "2026-08-17")
+    ok("montagszeilen ueberleben das aufraeumen",
+       [r["date"] for r in data["history"]]
+       == ["2026-07-13", "2026-08-03", "2026-08-10"])
 
     print("")
     if fails:
@@ -400,7 +443,13 @@ def main():
 
     if args.autofill:
         auto, problems = fetch_auto()
-        apply_auto(data, auto, today)
+        prune_non_mondays(data)
+        if today.weekday() == 0:
+            apply_auto(data, auto, today)
+        else:
+            apply_context(data, auto)
+            print("kein montag, nur preis/kontext aufgefrischt, "
+                  "keine neue wochenzeile")
         for p in problems:
             print("WARNUNG %s" % p)
         got = sum(1 for v in auto.values() if v is not None)
