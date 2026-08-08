@@ -227,7 +227,7 @@
   <div class="subscribe" id="subscribe">
     <div class="badge">free · instant</div>
     <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
-    <div class="ss">the 8 numbers that actually matter and how to read them · plus the weekly pulse every monday · no hype, no spam</div>
+    <div class="ss">the 8 numbers whales watch and how to read them · plus the weekly pulse every monday · no hype, no spam</div>
     <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
       <input type="email" name="EMAIL" placeholder="you@email.com" required>
       <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
@@ -264,24 +264,24 @@ const DATA = {
   "updated": "2026-08-03",
   "next_update": "2026-08-10",
   "context_fallback": {
-    "price_usd": 0.025966,
-    "mcap_usd": 717119870,
-    "mined_pct": 96.24
+    "price_usd": 0.026,
+    "mcap_usd": 718150000,
+    "mined_pct": 96.21
   },
-  "circ_supply": 27625233137,
+  "circ_supply": 27620000000,
   "emission": {
-    "block_reward": 2.31,
+    "block_reward": 2.45,
     "next_reduction_at": "2026-08-05T06:15:00Z",
     "annual_inflation_pct": 2.9
   },
   "hashrate_windows": {
-    "d7": -7.8,
-    "d30": -1.1,
+    "d7": 30.6,
+    "d30": -12.1,
     "d90": -10.2
   },
   "dex_windows": {
-    "kasplex_w": -5.1,
-    "igra_w": -21.1
+    "kasplex_w": -4.8,
+    "igra_w": -65
   },
   "fees_7d": null,
   "history": [
@@ -739,5 +739,6 @@ $("chart").innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" width="100%">
   if(b && c) b.addEventListener("click", function(){ c.classList.toggle("open"); b.textContent = c.classList.contains("open") ? "\u2715" : "\u2630"; });
 })();
 </script>
+<script src="/capture.js" defer></script>
 </body>
 </html>
