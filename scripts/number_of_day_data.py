@@ -15,7 +15,10 @@ auswahl:
     der hoechste gewinnt. ein reward cut am selben tag schlaegt alles.
     was gestern oder heute schon dran war, ist hart gesperrt (nachtrag
     07.08.: die weiche abwertung reichte nicht, die zahl vom 96er-typ kam
-    zweimal hintereinander). was in den letzten COOLDOWN_DAYS tagen davor
+    zweimal hintereinander). einzelne kandidaten haben eine laengere
+    sperrfrist, siehe MIN_GAP, weil sie sich zu langsam bewegen fuer eine
+    taegliche meldung (nachtrag 10.08.: mined_left nur noch woechentlich).
+    was in den letzten COOLDOWN_DAYS tagen davor
     dran war, wird abgewertet, damit nicht dreimal die woche dieselbe
     grafik erscheint. haben nur gesperrte kandidaten zahlen, laeuft der
     beste von ihnen als notnagel, denn kein post waere schlimmer.
@@ -63,7 +66,16 @@ LOG_PATH = os.path.join(ROOT, "data", "number-of-day-log.json")
 OUT_PATH = os.path.join(ROOT, "data", "number-of-day.json")
 
 COOLDOWN_DAYS = 8
-HARD_BLOCK_DAYS = 1   # alter in tagen, bis zu dem ein kandidat hart gesperrt ist
+HARD_BLOCK_DAYS = 1   # standard-sperrfrist in tagen fuer alle kandidaten
+
+# einzelne kandidaten duerfen seltener dran sein als andere. der anteil der
+# geschuerften menge bewegt sich um 0.01 prozentpunkte pro tag, als taegliche
+# meldung ist er deshalb wertlos und wirkt wie eine wiederholung. eine woche
+# abstand macht daraus wieder eine nachricht. schluessel ist der kandidatenname,
+# wert die zahl der tage, die er nach einem einsatz gesperrt bleibt.
+MIN_GAP = {
+    "mined_left": 7,
+}
 COOLDOWN_FACTOR = 0.15
 MIN_ANCHOR_AGE_DAYS = 21
 LOG_KEEP = 60
@@ -588,13 +600,15 @@ def choose(ctx, log, force=None):
         score = float(res["score"])
         note = ""
         age = cooled.get(name)
+        gap = MIN_GAP.get(name, HARD_BLOCK_DAYS)
         if age is not None and name != "cut_today":
-            if age <= HARD_BLOCK_DAYS:
+            if age <= gap:
                 # harte sperre statt abwertung: was gestern oder heute
                 # schon lief, darf heute nicht nochmal gewinnen, egal wie
                 # hoch sein score ist. auf die bank, nicht in die auswahl.
                 benched.append((score, name, res["payload"],
-                                " (gesperrt, vor %d tagen dran)" % age))
+                                " (gesperrt bis tag %d, vor %d tagen dran)"
+                                % (gap + 1, age)))
                 continue
             score *= COOLDOWN_FACTOR
             note = " (abgewertet, vor %d tagen dran)" % age
@@ -779,6 +793,15 @@ def run_selftest():
     name2b, _, _ = choose(far, log2)
     ok("auch der zweitplatzierte wiederholt sich nicht",
        name2b not in ("tvl_move", name2), name2b)
+    gap_log = [{"date": str(far["today"] - dt.timedelta(days=3)),
+                "candidate": "mined_left"}]
+    name_gap, _, _ = choose(far, gap_log)
+    ok("langsame kennzahl bleibt auch nach 3 tagen gesperrt",
+       name_gap != "mined_left", name_gap)
+    gap_log8 = [{"date": str(far["today"] - dt.timedelta(days=8)),
+                 "candidate": "mined_left"}]
+    cooled8 = recent_picks(gap_log8, far["today"])
+    ok("nach 8 tagen ist sie wieder frei", "mined_left" not in cooled8)
     all_blocked = [{"date": str(far["today"]), "candidate": n}
                    for n, _ in CANDIDATES]
     name2c, _, _ = choose(far, all_blocked)
