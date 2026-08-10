@@ -1,11 +1,11 @@
 {
-  "generated_at": 1785755393,
+  "generated_at": 1786337914,
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "method": "outputs per outflow transaction, change to self removed, recipients profiled by balance and transaction count, one additional hop followed",
   "busy_tx_threshold": 5000,
   "known_labels": 4,
   "known_label_source": "kaspa.stream address labels, geprueft am 2026-08-03",
-  "transactions_total": 503,
+  "transactions_total": 510,
   "outflow_count": 20,
   "outflow_kas": 39038233.45,
   "verdict_counts": {
@@ -156,8 +156,8 @@
               "kas": 10.49989576
             },
             "to_profile": {
-              "balance_kas": 1503875035.5051956,
-              "tx_count": 503,
+              "balance_kas": 1510840084.0884922,
+              "tx_count": 510,
               "tx_count_source": "api"
             }
           }
@@ -238,8 +238,8 @@
               "kas": 1137496.34828279
             },
             "to_profile": {
-              "balance_kas": 787662137.5241064,
-              "tx_count": 127825,
+              "balance_kas": 776327767.1481762,
+              "tx_count": 128225,
               "tx_count_source": "api"
             }
           }
@@ -274,8 +274,8 @@
               "kas": 1137496.34828279
             },
             "to_profile": {
-              "balance_kas": 787662137.5241064,
-              "tx_count": 127825,
+              "balance_kas": 776327767.1481762,
+              "tx_count": 128225,
               "tx_count_source": "api"
             }
           }
@@ -310,8 +310,8 @@
               "kas": 3150995.88228152
             },
             "to_profile": {
-              "balance_kas": 787662137.5241064,
-              "tx_count": 127825,
+              "balance_kas": 776327767.1481762,
+              "tx_count": 128225,
               "tx_count_source": "api"
             }
           }
@@ -346,8 +346,8 @@
               "kas": 50532771.44843256
             },
             "to_profile": {
-              "balance_kas": 765831108.7331188,
-              "tx_count": 140040,
+              "balance_kas": 770407399.6219882,
+              "tx_count": 140367,
               "tx_count_source": "api"
             }
           }
@@ -382,8 +382,8 @@
               "kas": 1451687.99955
             },
             "to_profile": {
-              "balance_kas": 17948351.96281912,
-              "tx_count": 24494,
+              "balance_kas": 15242398.55441772,
+              "tx_count": 24620,
               "tx_count_source": "api"
             }
           }
@@ -418,8 +418,8 @@
               "kas": 5714286.5
             },
             "to_profile": {
-              "balance_kas": 210002257.63342932,
-              "tx_count": 111956,
+              "balance_kas": 212849797.71514365,
+              "tx_count": 112916,
               "tx_count_source": "api"
             }
           }
@@ -455,7 +455,7 @@
             },
             "to_profile": {
               "balance_kas": 0.0,
-              "tx_count": 1428,
+              "tx_count": 1430,
               "tx_count_source": "api"
             }
           }
@@ -490,8 +490,8 @@
               "kas": 9963.3075697
             },
             "to_profile": {
-              "balance_kas": 765831108.7331188,
-              "tx_count": 140040,
+              "balance_kas": 770407399.6219882,
+              "tx_count": 140367,
               "tx_count_source": "api"
             }
           }
@@ -526,8 +526,8 @@
               "kas": 3394718.89220013
             },
             "to_profile": {
-              "balance_kas": 17948351.96281912,
-              "tx_count": 24494,
+              "balance_kas": 15242398.55441772,
+              "tx_count": 24620,
               "tx_count_source": "api"
             }
           }
@@ -562,8 +562,8 @@
               "kas": 2664544.90568019
             },
             "to_profile": {
-              "balance_kas": 17948351.96281912,
-              "tx_count": 24494,
+              "balance_kas": 15242398.55441772,
+              "tx_count": 24620,
               "tx_count_source": "api"
             }
           }
@@ -598,8 +598,8 @@
               "kas": 4078863.88626487
             },
             "to_profile": {
-              "balance_kas": 17948351.96281912,
-              "tx_count": 24494,
+              "balance_kas": 15242398.55441772,
+              "tx_count": 24620,
               "tx_count_source": "api"
             }
           }
@@ -635,7 +635,7 @@
             },
             "to_profile": {
               "balance_kas": 0.0,
-              "tx_count": 1428,
+              "tx_count": 1430,
               "tx_count_source": "api"
             }
           }
@@ -670,8 +670,8 @@
               "kas": 3091522.94120709
             },
             "to_profile": {
-              "balance_kas": 17948351.96281912,
-              "tx_count": 24494,
+              "balance_kas": 15242398.55441772,
+              "tx_count": 24620,
               "tx_count_source": "api"
             }
           }
@@ -732,8 +732,8 @@
               "kas": 2121464.98936
             },
             "to_profile": {
-              "balance_kas": 787662137.5241064,
-              "tx_count": 127825,
+              "balance_kas": 776327767.1481762,
+              "tx_count": 128225,
               "tx_count_source": "api"
             }
           }
@@ -768,8 +768,8 @@
               "kas": 1579726.98936
             },
             "to_profile": {
-              "balance_kas": 787662137.5241064,
-              "tx_count": 127825,
+              "balance_kas": 776327767.1481762,
+              "tx_count": 128225,
               "tx_count_source": "api"
             }
           }
