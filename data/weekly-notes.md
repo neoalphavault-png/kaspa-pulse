@@ -65,3 +65,7 @@ pro Woche ein Abschnitt (Regel 42, eine Zahl ohne Quelle existiert nicht).
 - **exchange_baselines**: m3 23.04. = 3.89B KAS, y1 24.07.25 = 3.07B KAS.
 - **entityx_baselines**: m3 = Distribution Table 1B-10B-Bucket 27.04., y1 null,
   vor einem Jahr existierte keine 1B+-Adresse.
+
+## Woche 2026-08-10, handwerte
+
+Serienumstellung holder_addr ab 10.08.: Kaspalytics Address Count (Holding More than a Dust Balance), eine einzige Zahl statt Summe der Distribution-Table-Buckets. Der neue Wert 788.730 liegt 41.127 ueber der alten Reihe (747.603 am 03.08.), bei einem normalen Wochenwachstum von rund 1.500. Andere Metrik, kein Wachstum. Alte Werte und Baselines auf null, Reihe startet neu. holders 50,68 kommt ab jetzt direkt aus Supply Not Moved in Over 1 Year statt aus der Bucket-Summe; Gegenprobe: die Bucket-Rechnung ergab am 03.08. 50,60, der Chartwert schliesst nahtlos an, also kein Bruch sondern eine Vereinfachung. covenant_tx 1.060 am 09.08. gegen 3.517 in der Vorwoche; die Reihe ist extrem volatil (Spitzen bis 9.800 im Juli), ein Tageswert ist kein Trend. hashrate 289,5 PH/s live abgelesen, Anker aus dem Kaspalytics-Chart: 09.07. = 320 PH/s, 09.05. = 390 PH/s. exchange_kas erneut FORTGESCHRIEBEN: Nettofluss aus den 7-Tage-Spalten der neun boersenmarkierten Top-10-Adressen ist plus 38.275.446 KAS, angewendet auf 3.854.799.342. Vorschlag: naechste Woche auf Kaspalytics Exchange Holdings umstellen, eine einzige Zahl aus derselben Quellfamilie. fees_day 244 = Igra 235 plus Kasplex 9,03. igra_tx und kasplex_tx fehlen diese Woche, Quelle ungeklaert.
