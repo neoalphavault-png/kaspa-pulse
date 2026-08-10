@@ -1,18 +1,18 @@
 {
-  "generated_at": 1785741458,
+  "generated_at": 1786336186,
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "method": "volume weighted daily average price, kucoin with mexc and bybit gap fill",
   "reliable": true,
-  "deposits": 293,
-  "kas_received": 1542913143.83,
-  "kas_priced": 1542913143.83,
-  "usd_invested": 135612285.98,
-  "avg_cost_usd": 0.087894,
+  "deposits": 298,
+  "kas_received": 1549878190.43,
+  "kas_priced": 1549878190.43,
+  "usd_invested": 135792666.17,
+  "avg_cost_usd": 0.087615,
   "outflow_kas": 39038233.45,
   "outflow_count": 20,
-  "transactions_total": 503,
-  "dust_transactions": 190,
-  "dust_kas": 125.1236,
+  "transactions_total": 510,
+  "dust_transactions": 192,
+  "dust_kas": 127.1136,
   "first_outflow": "2024-03-07",
   "last_outflow": "2026-06-18",
   "outflows": [
@@ -117,19 +117,19 @@
       "tx": "2ed0acf4676a4eca8abf491678fe8ab6095db6f59fa095cdf457ca91f4234c7d"
     }
   ],
-  "balance_kas": 1503875035.51,
+  "balance_kas": 1510840084.09,
   "first_deposit": "2024-03-06",
-  "last_deposit": "2026-08-03",
+  "last_deposit": "2026-08-07",
   "largest_deposit_kas": 90000000.0,
   "largest_deposit_day": "2024-03-11",
-  "price_now": 0.02639,
-  "value_now_usd": 39687262.19,
-  "unrealized_usd": -95925023.79,
-  "unrealized_pct": -70.73,
+  "price_now": 0.0262,
+  "value_now_usd": 39584010.2,
+  "unrealized_usd": -96208655.96,
+  "unrealized_pct": -70.85,
   "missing_price_days": [],
   "missing_share": 0.0,
   "price_source_days": {
-    "kucoin": 883,
+    "kucoin": 889,
     "mexc": 0,
     "bybit": 0
   },
@@ -310,9 +310,9 @@
     },
     {
       "month": "2026-08",
-      "kas": 8597511.72,
-      "usd": 229552.53,
-      "avg": 0.0267
+      "kas": 15562558.31,
+      "usd": 409932.71,
+      "avg": 0.026341
     }
   ]
 }
