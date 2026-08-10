@@ -27,6 +27,7 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
 from number_of_day import walk_and_check  # noqa: E402
+import telegram_post  # noqa: E402
 
 DATA_PATH = os.path.join(ROOT, "data", "number-of-day.json")
 IMG_PATH = os.path.join(ROOT, "graphics", "number-of-day.png")
@@ -146,6 +147,9 @@ def main():
     with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
         r.read()
     print("gepostet, %d kB bild" % (len(blob) // 1024))
+
+    # spiegel nach telegram, faellt er aus, bleibt discord unberuehrt
+    telegram_post.send_photo(args.image, msg)
     return 0
 
 
