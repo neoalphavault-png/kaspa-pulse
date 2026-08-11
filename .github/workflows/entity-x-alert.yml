@@ -4,7 +4,6 @@
 # Der Job startet alle 10 Minuten und pollt dann intern jede Minute, bis
 # neun Minuten um sind. Dadurch liegt die Erkennungszeit bei rund einer Minute
 # statt bei bis zu 30 Minuten. Braucht ein Repository-Secret DISCORD_WEBHOOK.
-
 name: entity-x-alert
 
 on:
@@ -30,6 +29,8 @@ jobs:
       - name: watch entity x
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           LOOP_SECONDS: "540"
         run: python3 scripts/entity_x_alert.py
 
