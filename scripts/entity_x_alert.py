@@ -9,6 +9,7 @@
 import json
 import os
 import sys
+import time
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -69,7 +70,8 @@ def fmt(n):
     return f"{n:,.0f}"
 
 
-def main():
+def check_once():
+    """Eine Pruefung. Gibt True zurueck, wenn sich der Stand geaendert hat."""
     balance = fetch_balance_kas()
     state = load_state()
 
@@ -78,7 +80,7 @@ def main():
         save_state(balance)
         print(f"init, balance {fmt(balance)} KAS gespeichert")
         print("STATE_CHANGED=1")
-        return
+        return True
 
     last = state["balance_kas"]
     diff = balance - last
@@ -94,6 +96,7 @@ def main():
         save_state(balance)
         print(f"OUTFLOW alert, {fmt(-diff)} KAS")
         print("STATE_CHANGED=1")
+        return True
     elif diff >= INFLOW_STEP_KAS:
         send_all(
             "**entity x keeps stacking**\n"
@@ -104,9 +107,47 @@ def main():
         save_state(balance)
         print(f"INFLOW alert, +{fmt(diff)} KAS")
         print("STATE_CHANGED=1")
-    else:
-        print(f"no alert, balance {fmt(balance)} KAS, delta {diff:+,.0f} KAS")
-        print("STATE_CHANGED=0")
+        return True
+    print(f"no alert, balance {fmt(balance)} KAS, delta {diff:+,.0f} KAS")
+    print("STATE_CHANGED=0")
+    return False
+
+
+def main():
+    """Poll-Schleife.
+
+    Hintergrund, gemessen am 11.08.2026: GitHub startet den Zeitplan
+    */10 nicht alle zehn Minuten, sondern in der Praxis rund stuendlich.
+    Ein Lauf, der nur einmal prueft, hat deshalb eine Erkennungszeit von
+    bis zu einer Stunde. Der Job bleibt darum absichtlich lange am Leben
+    und prueft im Minutentakt, bis LOOP_SECONDS abgelaufen sind. Damit
+    deckt ein einzelner Start fast die gesamte Luecke bis zum naechsten ab.
+
+    LOOP_SECONDS=0 prueft genau einmal, das ist der Modus fuer Tests.
+    """
+    loop = int(os.environ.get("LOOP_SECONDS", "0") or 0)
+    interval = int(os.environ.get("POLL_INTERVAL", "60") or 60)
+    started = time.monotonic()
+    checks = 0
+    alerts = 0
+
+    while True:
+        checks += 1
+        try:
+            if check_once():
+                alerts += 1
+        except Exception as exc:  # noqa: BLE001
+            # ein einzelner fehlschlag darf die schleife nicht beenden,
+            # sonst reisst eine api-stoerung das ganze fenster.
+            print("pruefung fehlgeschlagen (%s)" % exc, file=sys.stderr)
+
+        elapsed = time.monotonic() - started
+        if elapsed + interval >= loop:
+            break
+        time.sleep(interval)
+
+    print("fertig nach %d pruefungen in %.0f sekunden, %d alarme"
+          % (checks, time.monotonic() - started, alerts))
 
 
 if __name__ == "__main__":
