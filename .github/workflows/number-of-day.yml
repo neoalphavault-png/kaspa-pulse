@@ -60,11 +60,13 @@ jobs:
           mkdir -p graphics/archive
           cp graphics/number-of-day.png "graphics/archive/$DAY.png"
 
-      - name: post to discord
+      - name: post to discord and telegram
         if: steps.guard.outputs.done != '1'
         env:
           DISCORD_WEBHOOK_NUMBER: ${{ secrets.DISCORD_WEBHOOK_NUMBER }}
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python scripts/post_number_of_day.py \
             --data data/number-of-day.json \
