@@ -1,18 +1,19 @@
 # Kaspa Pulse · Entity X Watcher
 # Ablageort im Repo: .github/workflows/entity-x-alert.yml
 #
-# Der Job startet alle 10 Minuten und pollt dann intern jede Minute, bis
-# neun Minuten um sind. Dadurch liegt die Erkennungszeit bei rund einer Minute
-# statt bei bis zu 30 Minuten. Braucht ein Repository-Secret DISCORD_WEBHOOK.
+# Gemessen am 11.08.2026: GitHub startet den Zeitplan */10 in der Praxis nur
+# etwa stuendlich, nicht alle zehn Minuten. Der Job bleibt deshalb 50 Minuten
+# am Leben und prueft intern jede Minute, damit die Luecke bis zum naechsten
+# Start fast geschlossen ist. Die concurrency group verhindert Doppellaeufe.
 name: entity-x-alert
 
 on:
   schedule:
-    - cron: "*/10 * * * *"   # alle 10 Minuten, der Job selbst laeuft 9 Minuten durch
-  workflow_dispatch: {}       # manueller Testlauf ueber den Actions-Tab
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
 
 permissions:
-  contents: write             # darf die State-Datei zurueck ins Repo schreiben
+  contents: write
 
 concurrency:
   group: entity-x-alert
@@ -21,7 +22,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 58
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -31,10 +32,12 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          LOOP_SECONDS: "540"
+          LOOP_SECONDS: "3000"
+          POLL_INTERVAL: "60"
         run: python3 scripts/entity_x_alert.py
 
       - name: persist state if changed
+        if: always()
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
