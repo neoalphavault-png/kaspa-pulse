@@ -20,8 +20,16 @@ auswahl:
     taegliche meldung (nachtrag 10.08.: mined_left nur noch woechentlich).
     was in den letzten COOLDOWN_DAYS tagen davor
     dran war, wird abgewertet, damit nicht dreimal die woche dieselbe
-    grafik erscheint. haben nur gesperrte kandidaten zahlen, laeuft der
-    beste von ihnen als notnagel, denn kein post waere schlimmer.
+    grafik erscheint.
+
+    nachtrag 12.08.: der notnagel hat die sperre ausgehebelt. lief an einem
+    tag kein anderer kandidat, kam der gesperrte trotzdem durch, und die
+    96er zahl stand sieben tage hintereinander im kanal. ab jetzt gilt die
+    umgekehrte reihenfolge. ein kandidat mit eigener MIN_GAP ist absolut
+    gesperrt und kommt nie als notnagel in frage. notnagel darf nur sein,
+    wer unter der standardsperre steht, also eine zahl die sich taeglich
+    bewegt. ist auch das leer, faellt der post an diesem tag aus. ein
+    wiederholter post ist schlimmer als kein post.
 
 lokal:
     python3 scripts/number_of_day_data.py --dry-run
@@ -61,6 +69,15 @@ DAY = 86400
 # im bild sichtbar ist und nicht als messwert durchgeht.
 BTC_HALVING_EST = dt.date(2028, 4, 16)
 
+# bitcoin, feste protokollwerte bis zum naechsten halving.
+BTC_BLOCKS_PER_DAY = 144
+BTC_REWARD = 3.125
+
+# groesste bekannte adresse, dieselbe die der alert bot beobachtet.
+WHALE_ADDRESS = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a"
+BALANCE_API = "https://api.kaspa.org/addresses/%s/balance"
+SOMPI = 100000000
+
 HISTORY_PATH = os.path.join(ROOT, "data", "weekly-history.json")
 LOG_PATH = os.path.join(ROOT, "data", "number-of-day-log.json")
 OUT_PATH = os.path.join(ROOT, "data", "number-of-day.json")
@@ -75,10 +92,20 @@ HARD_BLOCK_DAYS = 1   # standard-sperrfrist in tagen fuer alle kandidaten
 # wert die zahl der tage, die er nach einem einsatz gesperrt bleibt.
 MIN_GAP = {
     "mined_left": 7,
+    "whale_weight": 7,
+    "emission_vs_btc": 2,
+    "blocks_per_day": 21,
 }
 COOLDOWN_FACTOR = 0.15
 MIN_ANCHOR_AGE_DAYS = 21
 LOG_KEEP = 60
+
+# wie weit die auswahl ueberhaupt zurueckschaut. muss laenger sein als die
+# laengste sperrfrist, sonst laeuft ein kandidat mit MIN_GAP 21 nach acht
+# tagen wieder los, weil ihn davor niemand mehr im log findet. genau das ist
+# in der simulation aufgefallen. abgewertet wird trotzdem nur innerhalb von
+# COOLDOWN_DAYS, damit eine taegliche kennzahl nicht wochenlang gedrueckt wird.
+LOOKBACK_DAYS = max([COOLDOWN_DAYS] + list(MIN_GAP.values())) + 1
 
 MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
           "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
@@ -90,6 +117,10 @@ RETRIES = 3
 
 class Stop(Exception):
     """Abbruch mit Klartext. Lieber keine Grafik als eine falsche."""
+
+
+class Skip(Exception):
+    """Heute ist nichts frei. Kein Fehler, nur kein Post."""
 
 
 # ---------------------------------------------------------------- netzwerk
@@ -110,6 +141,34 @@ def http_json(url, tries=RETRIES):
             if i + 1 < tries:
                 time.sleep(2 * (i + 1))
     raise Stop("abruf fehlgeschlagen %s (%s)" % (url, last))
+
+
+def fetch_optional(what, fn):
+    """Holt eine Kuer. Faellt sie aus, faellt nur ein kandidat weg."""
+    try:
+        return fn()
+    except Exception as exc:  # noqa: BLE001
+        print("%s nicht erreichbar (%s), der kandidat faellt heute weg"
+              % (what, exc))
+        return None
+
+
+def fetch_prices():
+    d = http_json("https://api.coingecko.com/api/v3/simple/price"
+                  "?ids=kaspa,bitcoin&vs_currencies=usd", tries=2)
+    kas = float(d["kaspa"]["usd"])
+    btc = float(d["bitcoin"]["usd"])
+    if not (0.0001 <= kas <= 100.0) or not (1000.0 <= btc <= 10000000.0):
+        raise Stop("preis ausserhalb des fensters, kas %s btc %s" % (kas, btc))
+    return kas, btc
+
+
+def fetch_whale():
+    d = http_json(BALANCE_API % WHALE_ADDRESS, tries=2)
+    bal = int(d["balance"]) / SOMPI
+    if bal <= 0:
+        raise Stop("adressbestand ist null")
+    return bal
 
 
 def fetch_live():
@@ -134,6 +193,9 @@ def fetch_live():
     except Stop:
         tvl = {}
 
+    prices = fetch_optional("coingecko", fetch_prices)
+    whale = fetch_optional("adressbestand", fetch_whale)
+
     return {
         "circ": circ,
         "max": mx,
@@ -142,6 +204,9 @@ def fetch_live():
         "tvl_kasplex": tvl.get("kasplex"),
         "tvl_igra": tvl.get("igra"),
         "tvl_total": (tvl.get("kasplex", 0.0) + tvl.get("igra", 0.0)) or None,
+        "price_kas": prices[0] if prices else None,
+        "price_btc": prices[1] if prices else None,
+        "whale_kas": whale,
     }
 
 
@@ -186,6 +251,15 @@ def fmt_int(n):
 
 def fmt_millions(v):
     return "%.2f million" % (float(v) / 1e6)
+
+
+def fmt_kas(v):
+    v = float(v)
+    if v >= 1e9:
+        return "%.2fB KAS" % (v / 1e9)
+    if v >= 1e6:
+        return "%.1fM KAS" % (v / 1e6)
+    return "%s KAS" % fmt_int(v)
 
 
 def fmt_money(v):
@@ -559,18 +633,197 @@ def cand_tvl_move(ctx):
         "layer 2 tvl", 28.0, "defillama.com")
 
 
+def cand_emission_vs_btc(ctx):
+    """Wie viel neues geld beide netze pro tag drucken, in dollar."""
+    pk, pb = ctx.get("price_kas"), ctx.get("price_btc")
+    if not pk or not pb:
+        return None
+
+    kas_day = emission_per_day(ctx["reward"])
+    btc_day = BTC_REWARD * BTC_BLOCKS_PER_DAY
+    usd_kas = kas_day * pk
+    usd_btc = btc_day * pb
+    if usd_kas <= 0 or usd_btc <= 0:
+        return None
+    times = usd_btc / usd_kas
+    a, b = bar_pair(usd_kas, usd_btc)
+
+    return {
+        "score": 42.0,
+        "payload": {
+            "issue": issue_line(ctx["today"]),
+            "eyebrow": "NUMBER OF THE DAY",
+            "value": fmt_money(usd_kas),
+            "value_label": "of brand new kaspa supply is created every day",
+            "headline": "bitcoin prints *%.0f times* more\nnew supply every single day." % times,
+            "panes": [
+                {
+                    "kind": "compare",
+                    "title": "NEW SUPPLY PER DAY",
+                    "sub": "issuance valued at today's spot price",
+                    "rows": [
+                        {"label": "kaspa", "sub": fmt_millions(kas_day) + " KAS",
+                         "value": fmt_money(usd_kas), "pct": a, "tone": "teal"},
+                        {"label": "bitcoin", "sub": "%.0f BTC" % btc_day,
+                         "value": fmt_money(usd_btc), "pct": b, "tone": "grey"},
+                    ],
+                },
+                {
+                    "kind": "anchor",
+                    "title": "WHY THAT GAP CLOSES",
+                    "lines": [
+                        "kaspa cuts its reward *twelve times a year*. bitcoin "
+                        "cuts once every four years.",
+                        "the dollar figure moves with the price, the coin "
+                        "figure does not. only one of the two is a decision.",
+                    ],
+                },
+            ],
+            "note": ("bitcoin issuance is fixed at 3.125 coins per block and "
+                     "about 144 blocks a day until the next halving."),
+            "sources": "api.kaspa.org and coingecko.com",
+            "site": "kaspapulse.com",
+            "post": post_block(
+                "kaspa creates about %s of new supply per day. bitcoin creates "
+                "%s, roughly %.0f times more. kaspa cuts its reward twelve "
+                "times a year and bitcoin once every four years, so that gap "
+                "narrows every month without anyone voting on it."
+                % (fmt_money(usd_kas), fmt_money(usd_btc), times),
+                "the full emission schedule is on " + HALVING_URL),
+        },
+    }
+
+
+def cand_whale_weight(ctx):
+    """Die groesste bekannte adresse, gemessen in tagen netzwerkleistung."""
+    whale = ctx.get("whale_kas")
+    circ = ctx.get("circ")
+    if not whale or not circ:
+        return None
+
+    share = 100.0 * whale / circ
+    per_day = emission_per_day(ctx["reward"])
+    days = whale / per_day
+    rest = circ - whale
+    a, b = bar_pair(whale, rest)
+
+    return {
+        "score": 44.0,
+        "payload": {
+            "issue": issue_line(ctx["today"]),
+            "eyebrow": "NUMBER OF THE DAY",
+            "value": "%.2f%%" % share,
+            "value_label": "of every kaspa in circulation sits in one address",
+            "headline": "one address holds *%d days*\nof the entire network output." % round(days),
+            "panes": [
+                {
+                    "kind": "compare",
+                    "title": "THE LARGEST KNOWN ADDRESS",
+                    "sub": "balance against everything else in circulation",
+                    "rows": [
+                        {"label": "one address", "sub": "",
+                         "value": fmt_kas(whale), "pct": max(2.0, a),
+                         "tone": "teal"},
+                        {"label": "everyone else", "sub": "",
+                         "value": fmt_kas(rest), "pct": b, "tone": "grey"},
+                    ],
+                },
+                {
+                    "kind": "anchor",
+                    "title": "HOW LONG THAT TAKES TO MINE",
+                    "lines": [
+                        "at today's emission the whole network needs *%d days* "
+                        "to produce that many coins." % round(days),
+                        "the address has never been named and we will not "
+                        "guess. we report *what it does*, never who it is.",
+                    ],
+                },
+            ],
+            "note": ("an address is not a person. one owner can hold many "
+                     "addresses and an exchange can hold coins for thousands."),
+            "sources": "api.kaspa.org",
+            "site": "kaspapulse.com",
+            "post": post_block(
+                "one address holds %.2f percent of every kaspa in circulation, "
+                "about %s. at the current emission rate the entire network "
+                "needs %d days to mine that much. it has never been named. we "
+                "report what it does, never who it is."
+                % (share, fmt_kas(whale), round(days)),
+                "every move that wallet makes is on kaspapulse.com/entity-x.html"),
+        },
+    }
+
+
+def cand_blocks_per_day(ctx):
+    """Der evergreen. Selten, weil er sich nie aendert."""
+    kas_blocks = BPS * DAY
+    times = kas_blocks / float(BTC_BLOCKS_PER_DAY)
+    a, b = bar_pair(kas_blocks, BTC_BLOCKS_PER_DAY)
+
+    return {
+        "score": 20.0,
+        "payload": {
+            "issue": issue_line(ctx["today"]),
+            "eyebrow": "NUMBER OF THE DAY",
+            "value": fmt_int(kas_blocks),
+            "value_label": "blocks the kaspa network produces every single day",
+            "headline": "bitcoin finds *144 blocks*.\nkaspa finds %s." % fmt_int(kas_blocks),
+            "panes": [
+                {
+                    "kind": "compare",
+                    "title": "BLOCKS IN TWENTY FOUR HOURS",
+                    "sub": "protocol target, not an average of a good day",
+                    "rows": [
+                        {"label": "kaspa", "sub": "ten per second",
+                         "value": fmt_int(kas_blocks), "pct": a, "tone": "teal"},
+                        {"label": "bitcoin", "sub": "one per ten minutes",
+                         "value": "%d" % BTC_BLOCKS_PER_DAY, "pct": max(2.0, b),
+                         "tone": "grey"},
+                    ],
+                },
+                {
+                    "kind": "anchor",
+                    "title": "WHY IT DOES NOT COLLAPSE",
+                    "lines": [
+                        "that is *%s times* more blocks in the same day."
+                        % fmt_int(times),
+                        "blocks found at the same moment are not thrown away. "
+                        "they are *ordered and kept*, which is the part most "
+                        "comparisons leave out.",
+                    ],
+                },
+            ],
+            "note": ("the block rate is a protocol constant. the number of "
+                     "coins per block is what shrinks, not the number of blocks."),
+            "sources": "api.kaspa.org",
+            "site": "kaspapulse.com",
+            "post": post_block(
+                "kaspa produces %s blocks a day. bitcoin produces about 144. "
+                "ten every second against one every ten minutes. blocks found "
+                "at the same moment are not discarded, they are ordered and "
+                "kept, and that is the part most comparisons leave out."
+                % fmt_int(kas_blocks),
+                "how that ordering works is explained on " + SITE_URL),
+        },
+    }
+
+
 CANDIDATES = [
     ("cut_today", cand_cut_today),
     ("cut_countdown", cand_cut_countdown),
+    ("whale_weight", cand_whale_weight),
+    ("emission_vs_btc", cand_emission_vs_btc),
     ("mined_left", cand_mined_left),
     ("hashrate_move", cand_hashrate_move),
     ("tvl_move", cand_tvl_move),
+    ("blocks_per_day", cand_blocks_per_day),
 ]
 
 
 # ---------------------------------------------------------------- auswahl
 
-def recent_picks(log, today):
+def recent_picks(log, today, window=None):
+    window = LOOKBACK_DAYS if window is None else window
     out = {}
     for row in log or []:
         try:
@@ -578,7 +831,7 @@ def recent_picks(log, today):
         except ValueError:
             continue
         age = (today - d).days
-        if 0 <= age < COOLDOWN_DAYS:
+        if 0 <= age < window:
             name = row.get("candidate")
             if name and (name not in out or age < out[name]):
                 out[name] = age
@@ -588,7 +841,8 @@ def recent_picks(log, today):
 def choose(ctx, log, force=None):
     cooled = recent_picks(log, ctx["today"])
     scored = []   # waehlbar
-    benched = []  # hart gesperrt, nur notnagel
+    spare = []    # nur standardsperre, darf im notfall einspringen
+    locked = []   # eigene MIN_GAP, kommt heute unter keinen umstaenden dran
     for name, fn in CANDIDATES:
         try:
             res = fn(ctx)
@@ -603,29 +857,40 @@ def choose(ctx, log, force=None):
         gap = MIN_GAP.get(name, HARD_BLOCK_DAYS)
         if age is not None and name != "cut_today":
             if age <= gap:
-                # harte sperre statt abwertung: was gestern oder heute
-                # schon lief, darf heute nicht nochmal gewinnen, egal wie
-                # hoch sein score ist. auf die bank, nicht in die auswahl.
-                benched.append((score, name, res["payload"],
-                                " (gesperrt bis tag %d, vor %d tagen dran)"
-                                % (gap + 1, age)))
+                row = (score, name, res["payload"],
+                       " (gesperrt bis tag %d, vor %d tagen dran)"
+                       % (gap + 1, age))
+                # der unterschied, der die 96er zahl sieben tage lang
+                # durchgelassen hat. wer eine eigene sperrfrist hat, bewegt
+                # sich zu langsam fuer eine wiederholung und bleibt heute
+                # draussen, auch wenn sonst gar nichts da ist. wer nur unter
+                # der standardsperre steht, aendert sich taeglich und darf
+                # zur not einspringen.
+                (locked if gap > HARD_BLOCK_DAYS else spare).append(row)
                 continue
-            score *= COOLDOWN_FACTOR
-            note = " (abgewertet, vor %d tagen dran)" % age
+            if age < COOLDOWN_DAYS:
+                score *= COOLDOWN_FACTOR
+                note = " (abgewertet, vor %d tagen dran)" % age
         scored.append((score, name, res["payload"], note))
 
-    pool = scored if scored else benched
-    if not pool:
-        raise Stop("kein kandidat hat zahlen geliefert")
+    for bucket in (scored, spare, locked):
+        bucket.sort(key=lambda x: (-x[0], x[1]))
+    shown = scored + spare + locked
 
-    pool.sort(key=lambda x: (-x[0], x[1]))
-    benched.sort(key=lambda x: (-x[0], x[1]))
-    shown = pool if pool is not scored else scored + benched
     if force:
-        for s, name, payload, note in scored + benched:
+        for s, name, payload, note in shown:
             if name == force:
                 return name, payload, shown
         raise Stop("kandidat %s hat heute keine zahlen" % force)
+
+    pool = scored or spare
+    if not pool:
+        if locked:
+            raise Skip("alle kandidaten mit zahlen stehen noch in ihrer "
+                       "sperrfrist (%s). heute faellt der post aus, das ist "
+                       "besser als dieselbe zahl zweimal"
+                       % ", ".join(n for _, n, _, _ in locked))
+        raise Stop("kein kandidat hat zahlen geliefert")
     return pool[0][1], pool[0][2], shown
 
 
@@ -648,18 +913,46 @@ def build_context(now_ts=None, live=None, history=None):
     return ctx
 
 
-def write_out(path, payload, name, log):
-    walk_and_check(payload)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
-        f.write("\n")
+LOG_READINGS = ["hashrate", "tvl_total", "mined_pct", "price_kas", "whale_kas"]
 
+
+def append_log(log, name, ctx=None):
+    """
+    Schreibt die auswahl fort und legt die tagesmesswerte daneben.
+
+    die messwerte braucht heute noch niemand. sie bauen die taegliche reihe
+    auf, gegen die die vergleichskandidaten spaeter messen koennen, ohne auf
+    die woechentliche historie angewiesen zu sein. genau die luecke hat den
+    kandidatenpool im august auf einen einzigen eintrag schrumpfen lassen.
+    """
     entry = {"date": str(dt.datetime.now(dt.timezone.utc).date()),
              "candidate": name}
+    for key in LOG_READINGS:
+        val = (ctx or {}).get(key)
+        if val is not None:
+            entry[key] = round(float(val), 6)
     log = (log or []) + [entry]
     with open(LOG_PATH, "w", encoding="utf-8") as f:
         json.dump(log[-LOG_KEEP:], f, ensure_ascii=False, indent=2)
         f.write("\n")
+    return log
+
+
+def write_out(path, payload, name, log, ctx=None):
+    walk_and_check(payload)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    append_log(log, name, ctx)
+
+
+def set_output(key, value):
+    """Sagt dem workflow bescheid, ob heute etwas zu rendern ist."""
+    path = os.environ.get("GITHUB_OUTPUT")
+    if not path:
+        return
+    with open(path, "a", encoding="utf-8") as f:
+        f.write("%s=%s\n" % (key, value))
 
 
 def main():
@@ -670,9 +963,30 @@ def main():
                     help="nur zeigen, welcher kandidat gewinnt")
     args = ap.parse_args()
 
-    ctx = build_context()
     log = load_json(LOG_PATH, [])
-    name, payload, scored = choose(ctx, log, force=args.force)
+
+    # der nachzuegler um 09.42 utc laeuft, wenn github den ersten start
+    # verschluckt hat. hat sich der erste lauf heute bewusst zurueckgehalten,
+    # soll der zweite nicht dieselbe pruefung nochmal fahren. den erfolgsfall
+    # faengt die png-sperre im workflow ab.
+    today = str(dt.datetime.now(dt.timezone.utc).date())
+    if any(r.get("date") == today and r.get("candidate") == "none"
+           for r in log or []):
+        print("heute wurde schon entschieden, kein post. nichts zu tun")
+        set_output("picked", "0")
+        return 0
+
+    ctx = build_context()
+    try:
+        name, payload, scored = choose(ctx, log, force=args.force)
+    except Skip as exc:
+        print("kein post heute. " + str(exc))
+        set_output("picked", "0")
+        if not args.dry_run:
+            # der leerlauf wird trotzdem vermerkt, sonst sieht man spaeter
+            # nicht, dass der bot lief und sich bewusst zurueckgehalten hat.
+            append_log(log, "none", ctx)
+        return 0
 
     print("kandidaten heute")
     for s, n, _, note in scored:
@@ -685,7 +999,8 @@ def main():
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
 
-    write_out(args.out, payload, name, log)
+    write_out(args.out, payload, name, log, ctx)
+    set_output("picked", "1")
     print("")
     print("geschrieben %s (%s)" % (args.out, name))
     return 0
@@ -701,6 +1016,25 @@ FAKE_LIVE = {
     "tvl_kasplex": 342947.0,
     "tvl_igra": 1490000.0,
     "tvl_total": 1832947.0,
+    "price_kas": 0.0264,
+    "price_btc": 118000.0,
+    "whale_kas": 1437000000.0,
+}
+
+# nur das, was api.kaspa.org auch bei ausfall aller kuerquellen liefert.
+# damit laesst sich der schlimmste fall pruefen, ein pool aus lauter
+# langsamen kandidaten.
+FAKE_LIVE_BARE = {
+    "circ": 27616143000.0,
+    "max": 28704026601.0,
+    "mined_pct": 96.21,
+    "hashrate": 342.5,
+    "tvl_kasplex": None,
+    "tvl_igra": None,
+    "tvl_total": None,
+    "price_kas": None,
+    "price_btc": None,
+    "whale_kas": None,
 }
 
 FAKE_HISTORY = [
@@ -800,13 +1134,67 @@ def run_selftest():
        name_gap != "mined_left", name_gap)
     gap_log8 = [{"date": str(far["today"] - dt.timedelta(days=8)),
                  "candidate": "mined_left"}]
-    cooled8 = recent_picks(gap_log8, far["today"])
-    ok("nach 8 tagen ist sie wieder frei", "mined_left" not in cooled8)
+    others_out = [{"date": str(far["today"]), "candidate": n}
+                  for n, _ in CANDIDATES if n != "mined_left"]
+    name_free, _, _ = choose(far, gap_log8 + others_out)
+    ok("nach 8 tagen ist die langsame kennzahl wieder waehlbar",
+       name_free == "mined_left", name_free)
+    ok("das rueckblickfenster ist laenger als die laengste sperre",
+       LOOKBACK_DAYS > max(MIN_GAP.values()), LOOKBACK_DAYS)
     all_blocked = [{"date": str(far["today"]), "candidate": n}
                    for n, _ in CANDIDATES]
     name2c, _, _ = choose(far, all_blocked)
-    ok("sind alle gesperrt, laeuft trotzdem einer als notnagel",
+    ok("sind alle gesperrt, springt eine taegliche kennzahl ein",
        bool(name2c), name2c)
+    ok("der notnagel ist nie eine langsame kennzahl",
+       name2c not in MIN_GAP, name2c)
+
+    print("die regel, an der die 96er zahl gescheitert ist")
+    # nur langsame kandidaten haben zahlen, und alle stehen in ihrer sperre.
+    # frueher lief dann der gesperrte trotzdem. jetzt faellt der post aus.
+    bare = build_context(now_ts=ANCHOR_TS + 3 * DAY,
+                         live=FAKE_LIVE_BARE, history=[])
+    bare_names = [n for n, fn in CANDIDATES if fn(bare)]
+    ok("im magerfall bleiben nur langsame kandidaten uebrig",
+       bare_names and all(n in MIN_GAP for n in bare_names), bare_names)
+    bare_log = [{"date": str(bare["today"]), "candidate": n}
+                for n in bare_names]
+    skipped = False
+    try:
+        choose(bare, bare_log)
+    except Skip as exc:
+        skipped = True
+        print("  ok   der post faellt aus statt sich zu wiederholen (%s)"
+              % str(exc)[:52])
+    except Stop as exc:
+        print("  FEHL falscher abbruchtyp %s" % exc)
+    ok("gesperrte langsame kennzahl kommt nicht mehr durch", skipped)
+    # und einen tag nach ablauf der sperre ist sie wieder da
+    freed = [{"date": str(bare["today"] - dt.timedelta(days=8)),
+              "candidate": n} for n in bare_names]
+    name_freed, _, _ = choose(bare, freed)
+    ok("nach ablauf der sperrfrist laeuft sie wieder",
+       name_freed == "mined_left", name_freed)
+
+    print("neue kandidaten")
+    for n in ("whale_weight", "emission_vs_btc", "blocks_per_day"):
+        fn = dict(CANDIDATES)[n]
+        r = fn(far)
+        ok("%s liefert zahlen" % n, r is not None)
+        if r:
+            walk_and_check(r["payload"])
+    ok("ohne preise schweigt der bitcoin vergleich",
+       cand_emission_vs_btc(bare) is None)
+    ok("ohne adressbestand schweigt die walzahl",
+       cand_whale_weight(bare) is None)
+    w = cand_whale_weight(far)
+    if w:
+        ok("die walzahl nennt den anteil",
+           w["payload"]["value"].endswith("%"), w["payload"]["value"])
+    e = cand_emission_vs_btc(far)
+    if e:
+        ok("der bitcoin vergleich nennt einen tageswert",
+           e["payload"]["value"].startswith("$"), e["payload"]["value"])
     cut_ctx = build_context(now_ts=ANCHOR_TS + STEP - 3600,
                             live=FAKE_LIVE, history=FAKE_HISTORY)
     name3, _, _ = choose(cut_ctx, [{"date": str(cut_ctx["today"]),
