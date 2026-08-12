@@ -2,6 +2,7 @@
 """
 kaspa pulse - weekly numbers bot
 --------------------------------
+
 Baut den Montags-Post fuer #weekly-numbers.
 
 Was der Bot SELBST holt (8 Zeilen):
@@ -32,6 +33,9 @@ import sys
 import time
 import urllib.error
 import urllib.request
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import telegram_post  # noqa: E402
 
 UA = "kaspa-pulse-weekly/1.0 (+https://kaspapulse.com)"
 TIMEOUT = 20
@@ -501,6 +505,10 @@ def post_discord(msg, dry=False):
             raise Stop("discord antwortet %s" % r.status)
     print("gepostet")
 
+    # spiegel nach telegram. faellt er aus, bleibt discord unberuehrt,
+    # siehe telegram_post.py. der dry-run kommt hier gar nicht erst an.
+    telegram_post.send_text(msg)
+
 
 # -------------------------------------------------------------------- lauf --
 
@@ -590,12 +598,11 @@ def main():
         return 0
 
     inp = read_input()
-
     now_ts = time.time()
     v = collect_auto(now_ts, inp["override"])
     v.update(inp["manual"])
-
     prev = previous_entry(history, inp["week"])
+
     check_plausible({k: v.get(k) for k in PLAUSIBLE if k in v})
     check_jumps(v, prev, force=force)
 
@@ -604,9 +611,9 @@ def main():
     msg = build_message(v, prev, issue, inp["date"], inp["read"],
                         price=price, show_usd=show_usd)
     assert_punctuation(msg)
-
     print(msg)
     print("---- %d zeichen ----" % len(msg))
+
     post_discord(msg, dry=dry)
 
     if not dry:
@@ -827,15 +834,12 @@ def run_selftest():
     got = read_input(write_input(good))
     ok("eingabedatei wird gelesen", got["week"] == "2026-08-10"
        and got["manual"]["tps"] == 0.95)
-
     bad = json.loads(json.dumps(good))
     del bad["manual"]["holders"]
     raises("fehlende handzahl stoppt", lambda: read_input(write_input(bad)))
-
     bad2 = json.loads(json.dumps(good))
     bad2["read"] = "kurz"
     raises("fehlender read stoppt", lambda: read_input(write_input(bad2)))
-
     bad3 = json.loads(json.dumps(good))
     bad3["week"] = "10.08.2026"
     raises("falsches datumsformat stoppt", lambda: read_input(write_input(bad3)))
@@ -849,6 +853,11 @@ def run_selftest():
        [l for l in usd.split("\n") if "exchange" in l])
     assert_punctuation(usd)
     ok("usd version bleibt unter dem limit", len(usd) < 1990, len(usd))
+
+    # 14 telegram-spiegel ist verdrahtet und faellt weich aus
+    ok("telegram modul ist eingebunden", hasattr(telegram_post, "send_text"))
+    ok("ohne secrets meldet telegram sauber False",
+       telegram_post.send_text("selbsttest") is False)
 
     print("")
     if fails:
