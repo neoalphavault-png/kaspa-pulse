@@ -161,6 +161,7 @@
     <a href="/kaspa-mining.html">mining</a>
     <a href="/kaspa-tvl.html">tvl</a>
     <a href="/kaspa-smart-contracts.html">smart contracts</a>
+    <a href="/kaspa-token-standard.html">token standards</a>
     <a href="/kron.html">kron</a>
     <a href="/entity-x.html">entity x</a>
     <a href="/merged-mining.html">merged mining</a>
@@ -185,25 +186,25 @@
 
   <section class="panel">
     <div class="sec"><div class="t"><span class="snum">01</span>Usage. <span>is anyone actually using it?</span></div><div class="tag wk" id="weeklyTag"><i></i><span>weekly</span></div></div>
-    <div class="read"><span class="rl">the read</span>l2 traffic is <b><span id="rdIgraShare">98%</span> igra</b>: <span id="rdIgraTx">49,237</span> of <span id="rdL2Tx">50,307</span> daily transactions run there, while kasplex carries the rest. we also changed how we count covenant activity this week — we had been counting <i>events</i>, we now count <i>creating transactions</i>, so that series restarts at <b><span id="rdCov">3,517</span> a day</b> and the old numbers are not comparable. usage is still small in absolute terms. what matters this early is that <b>activity keeps growing while price doesn't</b>.</div>
+    <div class="read"><span class="rl">the read</span>throughput tripled this week, from 0.91 to <b>2.67 transactions per second</b> &mdash; while the addresses transacting per day roughly halved and covenant activity fell to <b><span id="rdCov">1,060</span> a day</b>. more traffic, from fewer addresses, doing fewer contract calls. <b>we do not yet know what is driving that</b> and we are not going to guess in the meantime. the l2 split is blank this week because the per-chain transaction counts were not available at reading time.</div>
     <div class="grid four" id="usageCards"></div>
   </section>
 
   <section class="panel">
     <div class="sec"><div class="t"><span class="snum">02</span>DEX volume. <span>where KAS actually trades</span></div><div class="tag wk"><i></i><span>weekly</span></div></div>
-    <div class="read"><span class="rl">the read</span>about <b><span id="rdDex">$109K</span> a day</b> changes hands on kaspa DEXs, and the split is the interesting part: <b><span id="rdKasplexDex">$99K</span> of it sits on kasplex</b> while igra, which carries 98% of all transactions, trades only <b><span id="rdIgraDex">$10K</span></b>. everything happens on igra, trading happens on kasplex. a third venue went live this weekend, <b>KRON, the first native L1 DEX</b>, doing about <b>$25K a day</b> across its 3 graduated tokens — that's its own reporting, not defillama's, so it stays out of the numbers above until it's independently trackable. the rails work, the volume hasn't arrived yet.</div>
+    <div class="read"><span class="rl">the read</span>about <b><span id="rdDex">$112K</span> a day</b> changes hands on kaspa DEXs, roughly flat on the week. the split is what moved: <b>kasplex <span id="rdKasplexDex">$91K</span></b> slipped again, while <b>igra <span id="rdIgraDex">$22K</span></b> more than doubled off a small base. kasplex remains about four times the larger venue. the rails work, the volume still hasn't arrived.</div>
     <div class="grid four" id="dexCards"></div>
   </section>
 
   <section class="panel">
     <div class="sec"><div class="t"><span class="snum">03</span>Supply. <span>the tightening story</span></div><div class="tag wk"><i></i><span>weekly</span></div></div>
-    <div class="read"><span class="rl">the read</span>96% of all KAS is already mined and the next reward cut lands <b>wednesday, august 5</b>, taking the block reward from 2.450 to 2.312 KAS. the one to watch is exchanges — the addresses we track sent out <b>85.2M KAS more than they took in</b> over the past seven days, fewer coins sitting where they can be sold. <a href="/kaspa-halving.html" style="color:var(--teal); text-decoration:none;">how the monthly halving works →</a></div>
+    <div class="read"><span class="rl">the read</span>96% of all KAS is already mined, and the cut on <b>august 5</b> took the block reward from 2.450 to <b>2.31 KAS</b>. the next one lands <b>september 4</b>; annual issuance now runs near <b>2.6%</b>. the number that moved the wrong way is exchanges &mdash; the addresses we track took in <b>38.3M KAS more than they sent out</b> this week, reversing last week's outflow. more coins sitting where they can be sold. <a href="/kaspa-halving.html" style="color:var(--teal); text-decoration:none;">how the monthly halving works &rarr;</a></div>
     <div class="grid four" id="supplyCards"></div>
   </section>
 
   <section class="panel">
     <div class="sec"><div class="t"><span class="snum">04</span>Holders &amp; Security. <span>who is still here</span></div><div class="tag wk"><i></i><span>weekly</span></div></div>
-    <div class="read"><span class="rl">the read</span><b>over half of all KAS hasn't moved in a year</b> and holder addresses grew again — this time right through a <b>+31% hashrate week</b>, which reverses last week's drop. more machines competing for the same emission means less per machine: at today's price that's about <b>$161 per PH per day</b>, and wednesday's cut takes it to roughly <b>$152</b>. holders are calm, miners are getting squeezed from both sides at once. <a href="/merged-mining.html" style="color:var(--teal); text-decoration:none;">does merged mining take hashrate? →</a></div>
+    <div class="read"><span class="rl">the read</span><b>over half of all KAS still hasn't moved in a year</b>, 50.68% and edging up. mining power went the other way, down <b>15% to 290 PH/s</b> &mdash; which sounds like bad news and isn't. the reward cut removed only <b>5.6%</b> of the coins in that same week, so every machine still running now earns about <b>11% more per unit of hashrate</b> than it did before the cut, roughly $180 per PH per day at today's price. fewer machines, a bigger slice each. note the holder-address count restarts here at 788,730: it comes from a different source than the earlier readings, so it does not compare backwards. <a href="/merged-mining.html" style="color:var(--teal); text-decoration:none;">does merged mining take hashrate? &rarr;</a></div>
     <div class="grid four" id="baseCards"></div>
   </section>
 
@@ -575,7 +576,7 @@ $("supplyCards").innerHTML = `
 $("usageCards").innerHTML = `
   <div class="card"><div class="name">Real network usage</div><div class="expl">* transactions per second, spam filtered out</div>
     <div class="val">${cur.tps!=null?cur.tps+" TPS":"—"}</div><div class="trends">${trendBlock("tps")}</div></div>
-  <div class="card"><div class="name">Smart-contract activity</div><div class="expl">* covenant transactions per day (live since June)</div>
+  <div class="card"><div class="name">Smart-contract activity</div><div class="expl">* covenant transactions per day (live since June) &middot; <a href="/kaspa-token-standard.html" style="color:var(--teal); text-decoration:none;">token standards, explained &rarr;</a></div>
     <div class="val">${fmtN(cur.covenant_tx)}/day</div><div class="trends">${trendBlock("covenant_tx")}</div></div>
   <div class="card"><div class="name">Active addresses</div><div class="expl">* unique addresses transacting per day (kaspalytics) — the honest count, not the inflated one</div>
     <div class="val">${fmtN(cur.active_addr)}</div><div class="trends">${trendBlock("active_addr")}</div></div>
