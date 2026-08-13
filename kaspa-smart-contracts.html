@@ -120,6 +120,7 @@
     <a href="/kaspa-mining.html">mining</a>
     <a href="/kaspa-tvl.html">tvl</a>
     <a href="/kaspa-smart-contracts.html" class="on">smart contracts</a>
+    <a href="/kaspa-token-standard.html">token standards</a>
     <a href="/kron.html">kron</a>
     <a href="/entity-x.html">entity x</a>
     <a href="/merged-mining.html">merged mining</a>
@@ -154,6 +155,7 @@
 
   <h3>Layer 1: covenants — contracts that live inside coins</h3>
   <p>Kaspa's base layer is a UTXO chain, like Bitcoin. A covenant is a <b>programmable spending rule attached to a UTXO</b>: the coin itself carries code plus a piece of state, committed on chain as a hash. Whoever wants to spend that coin must reveal the code and state, and the network verifies that the spend follows the rules. There is no global computer executing everyone's programs — <b>each contract is a small, self-contained state machine partitioned across UTXOs</b>, which is why covenant apps inherit layer 1's speed and parallelism instead of competing for one shared engine.</p>
+  <p>What covenants do not yet come with is an agreed way to build tokens on top of them. That work is happening in a separate set of proposals, and as of August 2026 none of them is finished &mdash; we track where that stands on <a href="/kaspa-token-standard.html">Kaspa's token standards</a>.</p>
 
   <h3>Argent: the language that makes covenants writable</h3>
   <p>Raw covenant scripting is unforgiving — one wrong byte and funds are stuck. <b>Argent</b> is the high-level language built to fix that: developers define <b>actors</b> (a contract plus the state it owns), entries (the operations you can call), and transition rules, and the compiler generates the underlying script. Two design choices matter for non-developers too. Every app is a <b>closed system under one covenant ID</b> — outside code cannot inject itself into an app's state machine. And the compiler is only needed at build time; creating transactions afterwards needs only a lightweight runtime, <b>so tooling in other languages can drive the same apps</b>. Core developer Michael Sutton documents the whole workflow in public live-coding sessions on the Kaspa Native channel — episode one builds a working ticketing app from scratch.</p>
@@ -226,7 +228,7 @@
   </div>
 
   <footer>
-    <div>not financial advice · further reading: <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>not financial advice · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
   </footer>
 </div>
 
