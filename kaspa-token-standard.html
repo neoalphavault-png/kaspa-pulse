@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What Is KCC1? Kaspa's Token Standards, Explained (KCC-0001, KCC-0020) — Kaspa Pulse</title>
+<meta name="description" content="KCC1 is not Kaspa's token standard — it is the shared vocabulary for covenants. The fungible token standard is KCC-0020, and as of August 2026 both are open pull requests with no approving review. What each one defines, why a UTXO token standard is harder than ERC-20, and what already runs on chain.">
+<link rel="canonical" href="https://kaspapulse.com/kaspa-token-standard.html">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --amber:#E3B96A; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
+         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
+  .wrap { max-width:780px; margin:0 auto; padding:8px 18px 56px; }
+
+  /* nav */
+  .nav { position:sticky; top:0; z-index:60; background:rgba(5,6,8,0.88); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
+  .nav .nt { max-width:820px; margin:0 auto; padding:13px 18px 9px; display:flex; justify-content:space-between; align-items:center; }
+  .nav .nlogo { font-size:13px; letter-spacing:4px; font-weight:700; }
+  .nav .nlogo a { color:var(--txt); text-decoration:none; }
+  .nav .nlogo span { color:var(--teal); }
+  .nav-cta { font-size:10px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color:var(--teal); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:5px 12px; text-decoration:none; background:rgba(73,234,203,0.07); white-space:nowrap; }
+  .nright { display:flex; align-items:center; gap:8px; }
+  .nburger { display:none; background:none; border:1px solid var(--line); color:var(--txt); border-radius:10px; padding:8px 14px; font-size:19px; line-height:1.2; cursor:pointer; font-family:inherit; }
+  .nav .nc { max-width:820px; margin:0 auto; padding:0 10px 10px; display:flex; flex-wrap:wrap; gap:2px; row-gap:3px; }
+  .nav .nc::-webkit-scrollbar { display:none; }
+  .nav .nc a { font-size:12px; color:var(--dim); text-decoration:none; padding:5px 8px; border-radius:999px; white-space:nowrap; border:1px solid transparent; }
+  .nav .nc a:hover { color:var(--txt); }
+  .nav .nc a.on { color:var(--teal); background:rgba(73,234,203,0.08); border-color:rgba(73,234,203,0.25); }
+  @media (max-width:640px){
+    .nburger { display:block; }
+    .nav .nc { display:none; }
+    .nav .nc.open { display:flex; flex-direction:column; gap:4px; padding:8px 18px 14px; border-top:1px solid var(--line); }
+    .nav .nc.open a { font-size:15px; padding:11px 12px; }
+    .nav .nlogo { font-size:12px; letter-spacing:3px; }
+  }
+
+  h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
+  h1 b { color:var(--teal); }
+  .sub { font-size:16px; color:var(--dim); line-height:24px; }
+  h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin:60px 0 14px; }
+  h2::before { content:""; display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--teal); margin-right:11px; vertical-align:5px; }
+  h3 { font-size:16px; font-weight:700; margin:26px 0 7px; color:var(--txt); }
+  p { font-size:15px; line-height:24px; color:var(--dim); margin:0 0 14px; }
+  p b, li b { color:var(--txt); font-weight:600; }
+  ul { margin:0 0 14px 20px; }
+  li { font-size:15px; line-height:24px; color:var(--dim); margin-bottom:8px; }
+  .answer { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:24px 26px; margin:34px 0; }
+  .answer .lbl { font-size:12px; letter-spacing:3px; color:var(--teal); text-transform:uppercase; font-weight:700; margin-bottom:10px; }
+  .answer p { margin:0; font-size:16px; line-height:25px; color:var(--txt); }
+
+  .live { background:var(--card); border:1px solid #15181C; border-radius:18px; padding:26px 26px 22px; margin:30px 0 8px; }
+  .live .lbl { font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700; }
+  .live .lbl i { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--amber); margin-right:7px; vertical-align:1px; }
+  .live .big { font-size:44px; font-weight:700; letter-spacing:-1.5px; color:var(--amber); line-height:1.1; margin:10px 0 4px; }
+  .live .cap { font-size:13px; color:var(--dimmer); line-height:19px; }
+  .split { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; border-top:1px solid #15181C; padding-top:18px; }
+  .split div .v { font-size:19px; font-weight:700; }
+  .split div .k { font-size:11.5px; color:var(--dimmer); margin-top:4px; line-height:16px; }
+
+  table { width:100%; border-collapse:collapse; margin:20px 0 8px; }
+  th { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--dimmer); text-align:left; font-weight:700; padding:0 0 10px; border-bottom:1px solid var(--line); }
+  td { font-size:14.5px; color:var(--dim); padding:12px 10px 12px 0; border-bottom:1px solid #101317; vertical-align:top; }
+  td.n { color:var(--txt); font-weight:600; white-space:nowrap; padding-right:14px; }
+  td.hl { color:var(--teal); font-weight:600; }
+  td.am { color:var(--amber); font-weight:600; }
+  .tblwrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tblwrap table { min-width:560px; }
+
+  .facts { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:24px 0 8px; }
+  .fact { background:var(--card); border:1px solid #15181C; border-radius:14px; padding:18px; }
+  .fact .v { font-size:22px; font-weight:700; }
+  .fact .v.teal { color:var(--teal); } .fact .v.red { color:var(--red); } .fact .v.am { color:var(--amber); }
+  .fact .l { font-size:12.5px; color:var(--dimmer); margin-top:6px; line-height:17px; }
+  .note { font-size:13px; color:var(--dimmer); font-style:italic; border-left:3px solid var(--teal); padding:4px 0 4px 14px; margin:20px 0; line-height:20px; }
+  .quote { background:var(--card); border:1px solid #15181C; border-left:3px solid var(--teal); border-radius:0 14px 14px 0; padding:18px 20px; margin:22px 0; }
+  .quote p { font-size:15px; line-height:24px; color:var(--txt); margin:0; }
+  .quote .src { font-size:12px; color:var(--dimmer); margin-top:10px; font-style:normal; }
+  code { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:13.5px; color:var(--teal); background:rgba(73,234,203,0.07); border-radius:5px; padding:1px 5px; }
+  a { color:var(--teal); }
+  @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} .live .big{font-size:32px;} .split{grid-template-columns:1fr; gap:14px;} td,th{font-size:13px;} td.n{white-space:normal;} }
+
+  .band { background:linear-gradient(180deg, #0B0E14, #090C10); border-top:1px solid #181C23; border-bottom:1px solid #181C23; box-shadow:inset 0 1px 0 rgba(255,255,255,0.02); }
+  .band .fact, .band .note, .band .quote { background:#0F1218; }
+  .wrap2 { max-width:780px; margin:0 auto; padding:10px 18px 40px; }
+  .wrap2 h2:first-child { margin-top:40px; }
+
+  .rv { opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
+  .rv.vis { opacity:1; transform:none; }
+  @media (prefers-reduced-motion: reduce){ .rv { opacity:1; transform:none; transition:none; } }
+
+  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
+  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
+  .subscribe .st { font-size:18px; font-weight:700; }
+  .subscribe .st b { color:var(--teal); }
+  .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
+  .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
+  .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
+  .subscribe input::placeholder { color:var(--dimmer); }
+  .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .subscribe .msg { display:none; font-size:13px; font-weight:600; margin-top:14px; padding:10px 14px; border-radius:8px; }
+  .subscribe .msg.ok { display:block; color:var(--teal); background:rgba(73,234,203,0.08); border:1px solid rgba(73,234,203,0.35); }
+  .subscribe .msg.err { display:block; color:var(--red); background:rgba(227,106,106,0.08); border:1px solid rgba(227,106,106,0.35); }
+  .subscribe .fine { font-size:11px; color:var(--dimmer); margin-top:10px; }
+  @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
+  footer { border-top:1px solid var(--line); margin-top:48px; padding-top:16px; text-align:center; font-size:11px; color:var(--dimmer); }
+  footer a { color:var(--dim); text-decoration:none; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nt">
+    <div class="nlogo"><a href="/">ALPHA<span>VAULT</span> · KASPA PULSE</a></div>
+    <div class="nright"><a class="nav-cta" href="#subForm">free cheat sheet</a><button class="nburger" aria-label="menu">☰</button></div>
+  </div>
+  <div class="nc">
+    <a href="/">dashboard</a>
+    <a href="/kaspa-supply.html">supply</a>
+    <a href="/kaspa-halving.html">halving</a>
+    <a href="/kaspa-staking.html">staking</a>
+    <a href="/kaspa-wallets.html">wallets</a>
+    <a href="/kaspa-hashrate.html">hashrate</a>
+    <a href="/kaspa-mining.html">mining</a>
+    <a href="/kaspa-tvl.html">tvl</a>
+    <a href="/kaspa-smart-contracts.html">smart contracts</a>
+    <a href="/kaspa-token-standard.html" class="on">token standards</a>
+    <a href="/kron.html">kron</a>
+    <a href="/entity-x.html">entity x</a>
+    <a href="/merged-mining.html">merged mining</a>
+  </div>
+</nav>
+<div class="wrap">
+
+  <h1>What is KCC1? <b>It is not Kaspa's token standard — and the token standard is not finished.</b></h1>
+  <div class="sub">Tokens are already launching on Kaspa's layer 1 and calling themselves "canonical KCC1". The specification behind that word is an open pull request that nobody has approved yet. Here is what each proposal actually defines, what the current status is, and why a token standard on a UTXO chain is genuinely harder than ERC-20.</div>
+
+  <div class="answer">
+    <div class="lbl">The short answer</div>
+    <p><b>KCC1 is the vocabulary, not the token.</b> KCC-0001 defines shared terminology, byte layouts and calling conventions for covenants on Kaspa. It contains no token logic at all. The fungible token standard is a <b>separate proposal, KCC-0020</b>. Both live as open pull requests in the <code>kaspanet/kccs</code> repository, both still require at least one approving review from a maintainer, and neither has been merged.</p>
+  </div>
+
+  <div class="live">
+    <div class="lbl"><i></i>Status of the token standard · checked 14 august 2026</div>
+    <div class="big">not ratified</div>
+    <div class="cap">both the base specification and the fungible token specification are open pull requests awaiting review</div>
+    <div class="split">
+      <div><div class="v">KCC-0001</div><div class="k">the covenant vocabulary · open, no approving review</div></div>
+      <div><div class="v">KCC-0020</div><div class="k">fungible tokens · open, review requested from two maintainers</div></div>
+      <div><div class="v">at least 3</div><div class="k">competing or overlapping token proposals in play</div></div>
+    </div>
+  </div>
+  <div class="note">This page reads the public specification repository and the review discussions on it. Everything below can be checked in the same place — we link the sources at the end, and we date the status because it will change.</div>
+</div>
+
+<div class="band"><div class="wrap2">
+  <h2>What KCC-0001 actually defines</h2>
+  <p>In the author's own words, the specification "defines common terminology, byte layouts, and application binary interface conventions for covenants on Kaspa." Concretely, it covers:</p>
+  <ul>
+    <li>the canonical state and argument codecs</li>
+    <li>entrypoints, arguments, and dispatch tags</li>
+    <li>the P2SH envelope of a covenant program</li>
+    <li>covenant state and templates</li>
+    <li>Covenant ID lineage across stateful continuations</li>
+    <li>leader and delegator roles in multi-input transitions</li>
+    <li>virtual elements</li>
+  </ul>
+  <p>Two sentences from the proposal matter more than the list. <b>"KCC1 is independent of any source language, compiler, framework, or artifact format."</b> And: <b>"It does not change consensus rules."</b> This is not a protocol upgrade and it is not a token. It is an agreement on what words and byte layouts mean, so that later specifications can use them without redefining them.</p>
+
+  <h3>Why that agreement is the hard part</h3>
+  <p>An ERC-20 token works because every Ethereum contract is a global object with a stable interface. You call <code>transfer</code> and the contract handles the rest internally. On a UTXO chain there is no global object. A covenant is a rule attached to a coin, and every state transition has to be constructed and proven inside the transaction itself. Before anyone can write "the token standard," the ecosystem first has to agree on how a covenant's state is laid out in bytes, how you address a piece of it, and how you identify the same contract across two spends. That agreement is KCC-0001.</p>
+</div></div>
+
+<div class="wrap2">
+  <h2>The proposals in play</h2>
+  <p>This is the part almost nobody sees, and it is the reason "is my token compatible?" currently has no clean answer:</p>
+  <div class="tblwrap"><table>
+    <thead><tr><th>Proposal</th><th>What it covers</th><th>Status as of 14 aug 2026</th></tr></thead>
+    <tbody>
+      <tr><td class="n">KCC-0001</td><td>covenant terminology, byte layouts, ABI. the base everything else builds on</td><td class="am">open, review required, no approving review</td></tr>
+      <tr><td class="n">KCC-0020</td><td>fungible token covenants. the actual token standard</td><td class="am">open, review requested from two maintainers</td></tr>
+      <tr><td class="n">KCC-0008</td><td>a multi-token standard covering fungible, non-fungible and mixed profiles</td><td class="am">submitted, its author is asking to converge with KCC-0020</td></tr>
+      <tr><td class="n">KCC20V2</td><td>an implementation already shipped by KaspaCom</td><td class="am">compatibility with the drafts is an open question in its own tracker</td></tr>
+    </tbody>
+  </table></div>
+  <p>One reviewer on KCC-0008 puts the stakes plainly: the goal is "a single unified standard that prevents the fragmentation other ecosystems experienced." That fragmentation is not hypothetical here. There are currently at least three overlapping token proposals plus one shipped implementation, and the base vocabulary they all depend on is itself unmerged.</p>
+
+  <div class="quote">
+    <p>"I think this should be reviewed once KCC-0001 is merged, or at least in light of it."</p>
+    <div class="src">Michael Sutton, Kaspa core contributor, on the fungible token proposal</div>
+  </div>
+</div>
+
+<div class="band"><div class="wrap2">
+  <h2>Why this is taking so long</h2>
+  <p>The most common complaint in Kaspa communities right now is that the token standard is slow. The review discussion contains the real answer, and it is more interesting than "developers are slow."</p>
+
+  <h3>Kaspa is verification-focused, not execution-focused</h3>
+  <p>On Ethereum, a contract lives on chain as a global object with persistent state. It can hide its implementation behind a stable callable interface, so a wallet building a transaction needs to know almost nothing about the contract's internals. Kaspa's layer 1 does not work that way. As Michael Sutton describes it in the review, the entire transition and verification logic must be supplied in each transaction — which means <b>the transaction builder has to know every detail of how that specific token works</b>.</p>
+
+  <h3>The reader and writer problem</h3>
+  <p>This produces a very concrete failure mode, raised by an implementer during review. A specification that describes state layout and template bytes is enough for a <b>reader</b>: an explorer or a wallet can look at a UTXO and correctly recognise "this is a token, this is the balance." It is not enough for a <b>writer</b>. An independent wallet that wants to construct a transfer also needs the witness framing, the entrypoint selectors, the input and output ordering, the compatibility rules and the practical mass limits. Without an exact recipe, a wallet can display your token but cannot safely spend it.</p>
+  <p>That gap is the difference between "a token exists on chain" and "every wallet supports it," and it is why the standard cannot simply be declared finished.</p>
+
+  <h3>Two design questions still genuinely open</h3>
+  <p>Reviewers flagged issues that will affect anyone using these tokens, not just the people writing them. There is currently <b>no canonical type for a script public key</b>, which means every protocol invents its own encoding for something as basic as a pinned destination address — one reviewer notes that cross-covenant interoperability "dies at the first pinned address" if this is not fixed. And the default hash function was changed <b>from blake2b to blake3</b> during the review, after conformance vectors had already been tested against the earlier revision. This is a draft that is still moving.</p>
+</div></div>
+
+<div class="wrap2">
+  <h2>What already runs on chain</h2>
+  <p>None of the above means the work is theoretical. Two independent implementers reported production measurements during review, and the numbers are worth knowing:</p>
+  <div class="facts">
+    <div class="fact"><div class="v teal">2,561</div><div class="l">hash-verified KCC20 token reveals processed by one independent indexer, with zero mismatches against the draft's splice-and-hash pattern</div></div>
+    <div class="fact"><div class="v teal">since early july 2026</div><div class="l">hand-written covenants running on mainnet in a live tipping application, including time-locked escrow and keyless refund paths</div></div>
+    <div class="fact"><div class="v am">867,456</div><div class="l">spent covenant signature scripts scanned on testnet-10 looking for the draft's proposed dispatch tag shape</div></div>
+    <div class="fact"><div class="v red">zero</div><div class="l">matches found. nothing on chain currently uses the tag format the specification proposes, so there is no legacy shape to preserve</div></div>
+  </div>
+  <p>Read together, those four figures say something precise. The encoding works — thousands of real reveals verify against it without a single mismatch. But the conventions the specification proposes are not yet what the chain actually does. The standard is describing where the ecosystem is going, not where it already is.</p>
+
+  <h3>One practical constraint worth knowing</h3>
+  <p>Kaspa's storage mass rules put a practical value floor of roughly <b>0.1 KAS on a standard output</b>. Every covenant state transition creates an output, so that floor applies to every transition and sets a hard minimum on how small a token instance can be. An implementer flagged this as becoming acute for token covenants specifically, "where many small instances are the natural shape." If you ever wonder why dust-sized on-chain token positions behave strangely, this is why.</p>
+</div>
+
+<div class="band"><div class="wrap2">
+  <h2>Three traps in reading "KCC1 token"</h2>
+
+  <h3>1. KCC1 is not the token standard</h3>
+  <p>It is the byte-layout and vocabulary specification underneath one. If a project describes its token as "KCC1", that describes the encoding conventions it follows, not a ratified token standard. The token standard it is presumably aiming at is KCC-0020, and that is a different document with a different author.</p>
+
+  <h3>2. "Canonical" does not mean "final"</h3>
+  <p>The word appears in launch announcements and reads like a stamp of approval. In the repository it means conforming to a proposed layout in an unmerged draft that has changed during review. That is not an accusation against anyone — building against a draft is completely normal in open protocol development, and early implementers are exactly who produce the production feedback that improves a specification. It does mean the word carries less weight than it sounds like it does.</p>
+
+  <h3>3. A specification is not an implementation</h3>
+  <p>Reading KCC-0001 tells you how bytes are meant to be arranged. It tells you nothing about whether any particular contract is correct, whether its author can change the rules later, or whether the pool you are trading against is honest. Those are separate questions and they are not answered anywhere in the repository.</p>
+</div></div>
+
+<div class="wrap2">
+  <h2>What we watch from here</h2>
+  <div class="facts">
+    <div class="fact"><div class="v teal">First approving review</div><div class="l">KCC-0001 needs one review from a maintainer with write access before it can merge. that is the gate everything else waits behind</div></div>
+    <div class="fact"><div class="v teal">Convergence or fragmentation</div><div class="l">whether KCC-0008 and KCC-0020 merge into one standard, or the ecosystem ends up with several</div></div>
+    <div class="fact"><div class="v teal">A writer recipe</div><div class="l">whether the final descriptor carries enough for an independent wallet to construct a transfer, not merely recognise one</div></div>
+    <div class="fact"><div class="v am">Wallet adoption</div><div class="l">the honest test. a standard is ratified when wallets you did not write can spend a token you did not issue</div></div>
+  </div>
+
+  <div class="note">Sources, all public: the base specification is pull request 3 and the fungible token specification is pull request 2, both in the <code>kaspanet/kccs</code> repository on GitHub, together with their review threads. Status figures on this page were read on 14 august 2026 and will change — check the repository before relying on them. We report what the documents say, never what we think the people behind them intend.</div>
+
+  <div class="note">Related reading on this site: <a href="/kaspa-smart-contracts.html">how smart contracts actually work on Kaspa</a>, which explains covenants and the Argent language, and the weekly on-chain numbers on the <a href="/">Kaspa Pulse dashboard</a>.</div>
+
+  <div class="subscribe">
+    <div class="badge">free · instant</div>
+    <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
+    <div class="ss">the 8 numbers that actually matter and how to read each one · plus the weekly pulse every monday, including what moved in the covenant and token stack</div>
+    <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="you@email.com" required>
+      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="locale" value="en">
+      <input type="hidden" name="html_type" value="simple">
+      <button type="submit" id="subBtn">get it</button>
+    </form>
+    <div class="msg" id="subMsg"></div>
+    <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
+  </div>
+
+  <div class="discordbox" style="background:linear-gradient(160deg, rgba(88,101,242,0.13), rgba(88,101,242,0.03)); border:1px solid rgba(88,101,242,0.45); border-radius:16px; padding:30px 24px; margin:18px 0 0; text-align:center;">
+    <div style="display:inline-block; font-size:10px; letter-spacing:2px; color:#9BA6F8; background:rgba(88,101,242,0.14); border:1px solid rgba(88,101,242,0.45); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700;">free · live alerts</div>
+    <div style="font-size:18px; font-weight:700; letter-spacing:-0.3px;">the chain, <span style="color:#9BA6F8;">watched for you</span></div>
+    <div style="font-size:12px; color:#7A828C; margin-top:6px; line-height:17px; max-width:460px; margin-left:auto; margin-right:auto;">a bot checks the entity x wallet around the clock. the moment the whale moves, the alert fires. plus the monday numbers and a place to request the data you're missing.</div>
+    <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener" style="display:inline-block; background:#5865F2; color:#FFFFFF; border-radius:8px; padding:11px 22px; font-size:14px; font-weight:700; text-decoration:none; margin-top:16px;">join the kaspa pulse discord</a>
+    <div style="font-size:11px; color:#7A828C; margin-top:10px;">one click, no email · alerts land in #alerts the second they fire</div>
+  </div>
+
+  <footer>
+    <div>not financial advice · further reading: <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+  </footer>
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is KCC1 on Kaspa?",
+      "acceptedAnswer": { "@type": "Answer", "text": "KCC1, formally KCC-0001, is a proposed specification that defines common terminology, byte layouts and application binary interface conventions for covenants on Kaspa. It defines canonical state and argument codecs, entrypoints and dispatch tags, the P2SH envelope of a covenant program, covenant state and templates, Covenant ID lineage, leader and delegator roles, and virtual elements. It is independent of any source language or compiler and does not change consensus rules. It is not a token standard." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is KCC1 the Kaspa token standard?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. KCC-0001 is the shared vocabulary and byte layout specification that token standards build on. The fungible token standard is a separate proposal, KCC-0020. A token described as canonical KCC1 is following the encoding conventions of KCC-0001, not a ratified token standard." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is the Kaspa token standard finished?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not as of 14 August 2026. Both KCC-0001 and the fungible token specification KCC-0020 exist as open pull requests in the kaspanet/kccs repository. Both still require at least one approving review from a maintainer with write access before they can be merged, and the drafts have changed during review, including a switch of the default hash function from blake2b to blake3." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why is a token standard harder on Kaspa than on Ethereum?",
+      "acceptedAnswer": { "@type": "Answer", "text": "On Ethereum a contract is a global object with persistent state and a stable callable interface, so a wallet building a transaction needs to know little about its internals. Kaspa's layer 1 is UTXO based and verification focused, so the full state transition and verification logic must be supplied inside every transaction. That means the transaction builder needs to know the specific details of each token implementation, which is why the specification also needs an exact writer recipe and not only a state layout." }
+    },
+    {
+      "@type": "Question",
+      "name": "How many Kaspa token proposals are there?",
+      "acceptedAnswer": { "@type": "Answer", "text": "As of August 2026 there are at least three overlapping proposals plus one shipped implementation. KCC-0020 covers fungible token covenants, KCC-0008 proposes a unified multi-token standard covering fungible, non-fungible and mixed profiles, and KaspaCom has an implementation called KCC20V2 whose compatibility with the drafts is being clarified in its own tracker. All of them depend on the base specification KCC-0001, which is itself unmerged." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can any wallet support a KCC20 token?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not automatically. A specification describing state layout and template bytes is enough for a reader, so an explorer or wallet can recognise a token and display a balance. Constructing a transfer additionally requires witness framing, entrypoint selectors, input and output ordering, compatibility rules and practical mass limits. Without that exact recipe an independent wallet can display a token but cannot safely spend it." }
+    }
+  ]
+}
+</script>
+
+<script>
+(function(){
+  if(!("IntersectionObserver" in window)) return;
+  const els = document.querySelectorAll(".answer,.live,.fact,h2,h3,table,.note,.quote,.subscribe");
+  const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("vis"); io.unobserve(e.target); } }),{threshold:0.1});
+  els.forEach(el=>{ el.classList.add("rv"); io.observe(el); });
+})();
+</script>
+
+<script>
+(function(){
+  const b = document.querySelector(".nburger"), c = document.querySelector(".nav .nc");
+  if(b && c) b.addEventListener("click", function(){ c.classList.toggle("open"); b.textContent = c.classList.contains("open") ? "✕" : "☰"; });
+})();
+</script>
+
+<script>
+(function(){
+  const form = document.getElementById("subForm"), btn = document.getElementById("subBtn"), msg = document.getElementById("subMsg");
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    btn.disabled = true; const old = btn.textContent; btn.textContent = "…";
+    msg.className = "msg";
+    try {
+      const res = await fetch(form.action, { method:"POST", body:new FormData(form) });
+      const j = await res.json();
+      if (j.success) { msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
+      else { msg.textContent = j.message || "something went wrong — please try again"; msg.className = "msg err"; }
+    } catch(_) { form.submit(); }
+    btn.disabled = false; btn.textContent = old;
+  });
+})();
+</script>
+<script src="/capture.js" defer></script>
+</body>
+</html>
