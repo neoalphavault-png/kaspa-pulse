@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>What Is KCC1? Kaspa's Token Standards, Explained (KCC-0001, KCC-0020) — Kaspa Pulse</title>
-<meta name="description" content="KCC1 is not Kaspa's token standard — it is the shared vocabulary for covenants. The fungible token standard is KCC-0020, and as of August 2026 both are open pull requests with no approving review. What each one defines, why a UTXO token standard is harder than ERC-20, and what already runs on chain.">
+<meta name="description" content="Two different proposals are called KCC1 right now. In the kaspanet/kccs repository it is the shared vocabulary for covenants, not a token standard, and the fungible token spec is KCC-0020. Both are open pull requests with no approving review, and the KCC1 token work runs on testnet-10 only. What each one defines and why a UTXO token standard is harder than ERC-20.">
 <link rel="canonical" href="https://kaspapulse.com/kaspa-token-standard.html">
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
@@ -134,11 +134,11 @@
 <div class="wrap">
 
   <h1>What is KCC1? <b>It is not Kaspa's token standard — and the token standard is not finished.</b></h1>
-  <div class="sub">Tokens are already launching on Kaspa's layer 1 and calling themselves "canonical KCC1". The specification behind that word is an open pull request that nobody has approved yet. Here is what each proposal actually defines, what the current status is, and why a token standard on a UTXO chain is genuinely harder than ERC-20.</div>
+  <div class="sub">Coins are already being minted against something called KCC1, so far on testnet only. The trouble is that two different proposals are using that name for two different things, and neither of them is merged. Here is what each one actually defines, where each stands, and why a token standard on a UTXO chain is genuinely harder than ERC-20.</div>
 
   <div class="answer">
     <div class="lbl">The short answer</div>
-    <p><b>KCC1 is the vocabulary, not the token.</b> KCC-0001 defines shared terminology, byte layouts and calling conventions for covenants on Kaspa. It contains no token logic at all. The fungible token standard is a <b>separate proposal, KCC-0020</b>. Both live as open pull requests in the <code>kaspanet/kccs</code> repository, both still require at least one approving review from a maintainer, and neither has been merged.</p>
+    <p><b>In the specification repository, KCC1 is the vocabulary, not the token.</b> KCC-0001 defines shared terminology, byte layouts and calling conventions for covenants on Kaspa, and contains no token logic at all. The fungible token standard is a <b>separate proposal, KCC-0020</b>. Both live as open pull requests in the <code>kaspanet/kccs</code> repository, both still need at least one approving review, and neither has been merged. <b>Separately, at least one project uses the name KCC1 for its own proposed token standard</b>, which is a different thing again. That collision is covered below.</p>
   </div>
 
   <div class="live">
@@ -193,6 +193,18 @@
 </div>
 
 <div class="band"><div class="wrap2">
+  <h2>The name collision</h2>
+  <p>There is a second kind of fragmentation running underneath the first one, and it has nothing to do with code.</p>
+  <p>In the specification repository, <b>KCC-0001 is explicitly not a token standard</b>. Its own text states that it is "independent of any source language, compiler, framework, or artifact format" and that it "does not change consensus rules." The authors abbreviate it KCC1 throughout.</p>
+  <p>In August 2026, the team behind KaspaKaha described their work in the official Kaspa Telegram as <b>"KCC1 is our proposed token standard for Kaspa"</b>. In the same thread they were clear about its status, calling it "a proposal, not a launch", running on <b>testnet-10 only</b>, with no mainnet deployment yet.</p>
+  <p>So the same four characters currently point at two different things. A byte-layout and vocabulary specification on one side, a proposed token standard on the other. Nobody involved is hiding anything, and both efforts are open about what they are. But if you have been trying to work out what KCC1 means and getting contradictory answers, that is the reason.</p>
+
+  <h3>Why a name is not a small problem</h3>
+  <p>The same thread contained the substantive version of this argument. One community member asked whether a proposal should not first go to the shared forum, have its trade-offs debated and converge on a common standard before a new one appears, warning that the ecosystem risks repeating an earlier episode where several competing standards fragmented it instead of converging. The reply was that a working reference on testnet, with tools that actually run, is easier to converge around than a specification on paper.</p>
+  <p>Both positions are reasonable and both argue for the same outcome, which is one standard rather than four. A naming collision works directly against that outcome, because two groups can agree on every technical point and still spend months talking past each other about which document they mean.</p>
+</div></div>
+
+<div class="band"><div class="wrap2">
   <h2>Why this is taking so long</h2>
   <p>The most common complaint in Kaspa communities right now is that the token standard is slow. The review discussion contains the real answer, and it is more interesting than "developers are slow."</p>
 
@@ -229,7 +241,7 @@
   <p>It is the byte-layout and vocabulary specification underneath one. If a project describes its token as "KCC1", that describes the encoding conventions it follows, not a ratified token standard. The token standard it is presumably aiming at is KCC-0020, and that is a different document with a different author.</p>
 
   <h3>2. "Canonical" does not mean "final"</h3>
-  <p>The word appears in launch announcements and reads like a stamp of approval. In the repository it means conforming to a proposed layout in an unmerged draft that has changed during review. That is not an accusation against anyone — building against a draft is completely normal in open protocol development, and early implementers are exactly who produce the production feedback that improves a specification. It does mean the word carries less weight than it sounds like it does.</p>
+  <p>The word appears in announcements and reads like a stamp of approval. In practice it means conforming to a proposed layout in an unmerged draft that has changed during review. That is not an accusation against anyone. Building against a draft is completely normal in open protocol development, and early implementers are exactly the people who produce the production feedback that improves a specification. It does mean the word carries less weight than it sounds like it does. It is also worth checking <b>which network</b> an announcement refers to, because at the time of writing the KCC1 token work runs on testnet-10 and not on mainnet.</p>
 
   <h3>3. A specification is not an implementation</h3>
   <p>Reading KCC-0001 tells you how bytes are meant to be arranged. It tells you nothing about whether any particular contract is correct, whether its author can change the rules later, or whether the pool you are trading against is honest. Those are separate questions and they are not answered anywhere in the repository.</p>
@@ -289,7 +301,7 @@
     {
       "@type": "Question",
       "name": "Is KCC1 the Kaspa token standard?",
-      "acceptedAnswer": { "@type": "Answer", "text": "No. KCC-0001 is the shared vocabulary and byte layout specification that token standards build on. The fungible token standard is a separate proposal, KCC-0020. A token described as canonical KCC1 is following the encoding conventions of KCC-0001, not a ratified token standard." }
+      "acceptedAnswer": { "@type": "Answer", "text": "In the kaspanet/kccs specification repository, no. KCC-0001 is the shared vocabulary and byte layout specification that token standards build on, and the fungible token standard there is a separate proposal called KCC-0020. Confusingly, at least one project uses the name KCC1 for its own proposed token standard, which is a different document. The same abbreviation currently points at two different things." }
     },
     {
       "@type": "Question",
@@ -305,6 +317,11 @@
       "@type": "Question",
       "name": "How many Kaspa token proposals are there?",
       "acceptedAnswer": { "@type": "Answer", "text": "As of August 2026 there are at least three overlapping proposals plus one shipped implementation. KCC-0020 covers fungible token covenants, KCC-0008 proposes a unified multi-token standard covering fungible, non-fungible and mixed profiles, and KaspaCom has an implementation called KCC20V2 whose compatibility with the drafts is being clarified in its own tracker. All of them depend on the base specification KCC-0001, which is itself unmerged." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is KCC1 live on Kaspa mainnet?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not as of August 2026. The team behind the KCC1 token work stated in the official Kaspa Telegram that it is a proposal rather than a launch, running on testnet-10 only, with no mainnet deployment yet. The underlying specifications in the kaspanet/kccs repository are also still open pull requests without an approving review." }
     },
     {
       "@type": "Question",
