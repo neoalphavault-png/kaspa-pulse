@@ -42,5 +42,14 @@
   {
     "date": "2026-08-12",
     "candidate": "mined_left"
+  },
+  {
+    "date": "2026-08-13",
+    "candidate": "whale_weight",
+    "hashrate": 304.095928,
+    "tvl_total": 1709988.93684,
+    "mined_pct": 96.281787,
+    "price_kas": 0.02551,
+    "whale_kas": 1509681512.977727
   }
 ]

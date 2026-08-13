@@ -1,45 +1,45 @@
 {
-  "issue": "KASPA PULSE · AUG 12 2026",
+  "issue": "KASPA PULSE · AUG 13 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "96.27%",
-  "value_label": "of every KAS that will ever exist is already mined",
-  "headline": "the supply story is *almost over*.\nthe rest takes longer than the start.",
+  "value": "5.46%",
+  "value_label": "of every kaspa in circulation sits in one address",
+  "headline": "one address holds *756 days*\nof the entire network output.",
   "panes": [
     {
       "kind": "compare",
-      "title": "SUPPLY ALREADY ISSUED",
-      "sub": "share of the maximum, measured today",
+      "title": "THE LARGEST KNOWN ADDRESS",
+      "sub": "balance against everything else in circulation",
       "rows": [
         {
-          "label": "mined",
-          "sub": "in circulation",
-          "value": "96.27%",
-          "pct": 100.0,
+          "label": "one address",
+          "sub": "",
+          "value": "1.51B KAS",
+          "pct": 5.7782258499438965,
           "tone": "teal"
         },
         {
-          "label": "left",
-          "sub": "still to come",
-          "value": "3.73%",
-          "pct": 3.869317303415825,
+          "label": "everyone else",
+          "sub": "",
+          "value": "26.13B KAS",
+          "pct": 100.0,
           "tone": "grey"
         }
       ]
     },
     {
       "kind": "anchor",
-      "title": "WHAT IS LEFT",
+      "title": "HOW LONG THAT TAKES TO MINE",
       "lines": [
-        "1,069,276,515 KAS are still unmined. that is *3.73 percent* of the maximum.",
-        "at the current schedule 99 percent is reached in june 2028. what comes after keeps halving every twelve months."
+        "at today's emission the whole network needs *756 days* to produce that many coins.",
+        "the address has never been named and we will not guess. we report *what it does*, never who it is."
       ]
     }
   ],
-  "note": "emission halves every twelve months, so the remaining amount is a shrinking series and never quite reaches the maximum.",
+  "note": "an address is not a person. one owner can hold many addresses and an exchange can hold coins for thousands.",
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "96.27 percent of every KAS that will ever exist is already mined. 1,069,276,515 KAS are still to come, and 99 percent is reached in june 2028 at the current schedule. what comes after keeps halving every twelve months.",
-    "reply": "the full emission schedule is on kaspapulse.com/kaspa-halving.html"
+    "x": "one address holds 5.46 percent of every kaspa in circulation, about 1.51B KAS. at the current emission rate the entire network needs 756 days to mine that much. it has never been named. we report what it does, never who it is.",
+    "reply": "every move that wallet makes is on kaspapulse.com/entity-x.html"
   }
 }
