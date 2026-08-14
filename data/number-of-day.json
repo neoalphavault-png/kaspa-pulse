@@ -1,26 +1,26 @@
 {
-  "issue": "KASPA PULSE · AUG 13 2026",
+  "issue": "KASPA PULSE · AUG 14 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "5.46%",
-  "value_label": "of every kaspa in circulation sits in one address",
-  "headline": "one address holds *756 days*\nof the entire network output.",
+  "value": "$50.3K",
+  "value_label": "of brand new kaspa supply is created every day",
+  "headline": "bitcoin prints *562 times* more\nnew supply every single day.",
   "panes": [
     {
       "kind": "compare",
-      "title": "THE LARGEST KNOWN ADDRESS",
-      "sub": "balance against everything else in circulation",
+      "title": "NEW SUPPLY PER DAY",
+      "sub": "issuance valued at today's spot price",
       "rows": [
         {
-          "label": "one address",
-          "sub": "",
-          "value": "1.51B KAS",
-          "pct": 5.7782258499438965,
+          "label": "kaspa",
+          "sub": "2.00 million KAS",
+          "value": "$50.3K",
+          "pct": 0.17789866148674763,
           "tone": "teal"
         },
         {
-          "label": "everyone else",
-          "sub": "",
-          "value": "26.13B KAS",
+          "label": "bitcoin",
+          "sub": "450 BTC",
+          "value": "$28.27M",
           "pct": 100.0,
           "tone": "grey"
         }
@@ -28,18 +28,18 @@
     },
     {
       "kind": "anchor",
-      "title": "HOW LONG THAT TAKES TO MINE",
+      "title": "WHY THAT GAP CLOSES",
       "lines": [
-        "at today's emission the whole network needs *756 days* to produce that many coins.",
-        "the address has never been named and we will not guess. we report *what it does*, never who it is."
+        "kaspa cuts its reward *twelve times a year*. bitcoin cuts once every four years.",
+        "the dollar figure moves with the price, the coin figure does not. only one of the two is a decision."
       ]
     }
   ],
-  "note": "an address is not a person. one owner can hold many addresses and an exchange can hold coins for thousands.",
-  "sources": "api.kaspa.org",
+  "note": "bitcoin issuance is fixed at 3.125 coins per block and about 144 blocks a day until the next halving.",
+  "sources": "api.kaspa.org and coingecko.com",
   "site": "kaspapulse.com",
   "post": {
-    "x": "one address holds 5.46 percent of every kaspa in circulation, about 1.51B KAS. at the current emission rate the entire network needs 756 days to mine that much. it has never been named. we report what it does, never who it is.",
-    "reply": "every move that wallet makes is on kaspapulse.com/entity-x.html"
+    "x": "kaspa creates about $50.3K of new supply per day. bitcoin creates $28.27M, roughly 562 times more. kaspa cuts its reward twelve times a year and bitcoin once every four years, so that gap narrows every month without anyone voting on it.",
+    "reply": "the full emission schedule is on kaspapulse.com/kaspa-halving.html"
   }
 }

@@ -51,5 +51,14 @@
     "mined_pct": 96.281787,
     "price_kas": 0.02551,
     "whale_kas": 1509681512.977727
+  },
+  {
+    "date": "2026-08-14",
+    "candidate": "emission_vs_btc",
+    "hashrate": 324.771088,
+    "tvl_total": 1684739.589651,
+    "mined_pct": 96.288691,
+    "price_kas": 0.025173,
+    "whale_kas": 1509681512.977727
   }
 ]
