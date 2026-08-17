@@ -134,11 +134,11 @@
       "m": {
         "active_addr": 6960,
         "block_reward": 2.31,
-        "covenant_tx": null,
+        "covenant_tx": 450,
         "dex_vol": 107753,
         "entityx_kas": 1510873535,
         "exchange_kas": 3940000000,
-        "fees_day": null,
+        "fees_day": 220,
         "hashrate": 331.3,
         "holder_addr": 789980,
         "holders": 50.95,

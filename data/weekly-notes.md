@@ -73,3 +73,7 @@ Serienumstellung holder_addr ab 10.08.: Kaspalytics Address Count (Holding More 
 ## Woche 2026-08-17, handwerte
 
 tps aus dem accepted transaction count bei kaspalytics, 75.05K standard plus 127.44K coinbase am 16.08., geteilt durch 86400. active addresses, ruhender anteil und adresszahl ebenfalls kaspalytics, stand 16.08. boersenbestand aus known exchange holdings, 3.94 mrd. covenant und die beiden l2 transaktionszahlen bleiben diese woche leer, dafuer lag zur lesezeit keine quelle vor. lieber ein strich als eine geschaetzte zahl.
+
+## Woche 2026-08-17, handwerte
+
+tps aus dem accepted transaction count bei kaspalytics, 75.05K standard plus 127.44K coinbase am 16.08., geteilt durch 86400. active addresses, ruhender anteil, adresszahl und covenant transactions ebenfalls kaspalytics, stand 16.08. boersenbestand aus known exchange holdings, 3.94 mrd. gebuehren aus defillama chain fees 24h, igra 211 plus kasplex 9.03. die beiden l2 transaktionszahlen bleiben leer, defillama zeigt keine transaktionszahlen und kcc20 war nicht erreichbar.
