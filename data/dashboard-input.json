@@ -1,17 +1,14 @@
 {
   "row": {
-    "tps": 2.67,
-    "covenant_tx": 1060,
-    "holders": 50.68,
-    "active_addr": 7240,
-    "holder_addr": 788730,
-    "exchange_kas": 3893074788,
-    "fees_day": 244,
-    "hashrate": 289.5
+    "tps": 2.34,
+    "covenant_tx": null,
+    "igra_tx": null,
+    "kasplex_tx": null,
+    "holders": 50.95,
+    "active_addr": 6960,
+    "holder_addr": 789980,
+    "exchange_kas": 3940000000,
+    "fees_day": null
   },
-  "top": {
-    "hashrate_windows": { "d7": -15.5, "d30": -9.5, "d90": -25.8 },
-    "holder_baselines": { "m3": { "n": null }, "y1": { "n": null } }
-  },
-  "note": "Serienumstellung holder_addr ab 10.08.: Kaspalytics Address Count (Holding More than a Dust Balance), eine einzige Zahl statt Summe der Distribution-Table-Buckets. Der neue Wert 788.730 liegt 41.127 ueber der alten Reihe (747.603 am 03.08.), bei einem normalen Wochenwachstum von rund 1.500. Andere Metrik, kein Wachstum. Alte Werte und Baselines auf null, Reihe startet neu. holders 50,68 kommt ab jetzt direkt aus Supply Not Moved in Over 1 Year statt aus der Bucket-Summe; Gegenprobe: die Bucket-Rechnung ergab am 03.08. 50,60, der Chartwert schliesst nahtlos an, also kein Bruch sondern eine Vereinfachung. covenant_tx 1.060 am 09.08. gegen 3.517 in der Vorwoche; die Reihe ist extrem volatil (Spitzen bis 9.800 im Juli), ein Tageswert ist kein Trend. hashrate 289,5 PH/s live abgelesen, Anker aus dem Kaspalytics-Chart: 09.07. = 320 PH/s, 09.05. = 390 PH/s. exchange_kas erneut FORTGESCHRIEBEN: Nettofluss aus den 7-Tage-Spalten der neun boersenmarkierten Top-10-Adressen ist plus 38.275.446 KAS, angewendet auf 3.854.799.342. Vorschlag: naechste Woche auf Kaspalytics Exchange Holdings umstellen, eine einzige Zahl aus derselben Quellfamilie. fees_day 244 = Igra 235 plus Kasplex 9,03. igra_tx und kasplex_tx fehlen diese Woche, Quelle ungeklaert."
+  "note": "tps aus dem accepted transaction count bei kaspalytics, 75.05K standard plus 127.44K coinbase am 16.08., geteilt durch 86400. active addresses, ruhender anteil und adresszahl ebenfalls kaspalytics, stand 16.08. boersenbestand aus known exchange holdings, 3.94 mrd. covenant und die beiden l2 transaktionszahlen bleiben diese woche leer, dafuer lag zur lesezeit keine quelle vor. lieber ein strich als eine geschaetzte zahl."
 }
