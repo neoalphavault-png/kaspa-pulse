@@ -57,3 +57,10 @@ jobs:
           git commit -m "weekly numbers, woche fortgeschrieben"
           git pull --rebase origin main
           git push
+
+      # prueft, ob die vier lesetexte noch zu den frischen zahlen passen.
+      # laeuft bewusst am ende, damit der bot seine zahlen auf jeden fall
+      # schreibt. ein roter lauf heisst dann nicht kaputt, sondern die
+      # texte sind dran.
+      - name: lesetexte pruefen
+        run: python3 scripts/check_reads.py index.html
