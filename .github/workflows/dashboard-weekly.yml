@@ -42,14 +42,30 @@ jobs:
 
       - name: selbsttest
         if: steps.guard.outputs.done != '1'
-        run: python3 scripts/dashboard_weekly.py --selftest
+        run: |
+          python3 scripts/dashboard_weekly.py --selftest
+          python3 scripts/kaspalytics.py --selftest
 
       - name: autofill (cron und manueller start)
         if: steps.guard.outputs.done != '1' && github.event_name != 'push'
         run: python3 scripts/dashboard_weekly.py --autofill
 
-      - name: handwerte einmischen (push von dashboard-input.json)
-        if: steps.guard.outputs.done != '1' && github.event_name == 'push'
+      # NEU 18.08. Die sechs zahlen, die bis gestern von hand aus diagrammen
+      # abgelesen wurden, holt sich der bot jetzt selbst. Kaspalytics laedt
+      # seine charts per JSON, oeffentlich und ohne anmeldung. Der holer
+      # schreibt in dieselbe eingabedatei, die Ben sonst von hand gefuellt
+      # hat, und der schritt darunter mischt sie ein wie immer.
+      # Bricht der holer ab, laeuft der lauf trotzdem weiter, dann stehen
+      # auf der seite striche statt zahlen. Ein strich ist ehrlich.
+      - name: handzahlen bei kaspalytics holen
+        if: steps.guard.outputs.done != '1' && github.event_name != 'push'
+        continue-on-error: true
+        run: |
+          python3 scripts/kaspalytics.py --json > data/dashboard-input.json
+          cat data/dashboard-input.json
+
+      - name: handwerte einmischen (bot oder push von dashboard-input.json)
+        if: steps.guard.outputs.done != '1'
         run: python3 scripts/dashboard_weekly.py --apply-input
 
       - name: commit
@@ -57,7 +73,7 @@ jobs:
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
-          git add index.html data/weekly.json data/weekly-notes.md
+          git add index.html data/weekly.json data/weekly-notes.md data/dashboard-input.json
           if git diff --staged --quiet; then
             echo "nothing changed"
           else
