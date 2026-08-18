@@ -18,13 +18,18 @@ Jede Antwort hat dieselbe Form.
 
 Regeln, die hier drinstecken und nicht verhandelbar sind.
 
-  1. Wir lesen IMMER den letzten VOLLEN tag, also nie den laufenden.
-     Der laufende Tag ist angebrochen und war schon zweimal die Ursache
-     fuer einen Sprung, den es nie gab (siehe Serien-Entscheidung 2).
-  2. Jede Zahl faellt durch ein Plausibilitaetsfenster. Lieber ein Feld
+  1. Bezugspunkt ist der MONTAG dieser woche, nicht heute. Die wochenzeile
+     im dashboard traegt immer das montagsdatum, also gehoert in sie der
+     letzte volle tag VOR diesem montag, also der sonntag. Wer stattdessen
+     ab heute rechnet, schreibt am dienstag dienstagszahlen in die
+     montagszeile, und die seite widerspricht dem post, der schon raus ist.
+     Genau das ist am 18.08. passiert, einmal.
+  2. Wir lesen nie den laufenden tag. Der ist angebrochen und war schon
+     zweimal die ursache fuer einen sprung, den es nie gab.
+  3. Jede Zahl faellt durch ein Plausibilitaetsfenster. Lieber ein Feld
      leer als ein falsches. Ein leeres Feld zeigt auf der Seite einen
      Strich, und ein Strich ist ehrlich.
-  3. Faellt eine Quelle aus, bleiben die anderen fuenf trotzdem stehen.
+  4. Faellt eine Quelle aus, bleiben die anderen fuenf trotzdem stehen.
 
     python3 scripts/kaspalytics.py            # zahlen holen und drucken
     python3 scripts/kaspalytics.py --json     # nur der block fuer die eingabedatei
@@ -143,9 +148,20 @@ def plausibel(feld, wert):
     return lo <= wert <= hi
 
 
+def wochenanker(tag):
+    """
+    Der montag dieser woche. Die wochenzeile im dashboard traegt immer
+    dieses datum, und alles was in sie hineingeschrieben wird, muss sich
+    darauf beziehen. Dadurch liefert der holer am montag, am dienstag und
+    am freitag dieselben zahlen fuer dieselbe zeile.
+    """
+    return tag - dt.timedelta(days=tag.weekday())
+
+
 def sammle(heute=None, holer=None):
     """alle sechs felder. gibt werte, tage und probleme zurueck."""
     heute = heute or dt.datetime.now(dt.timezone.utc).date()
+    heute = wochenanker(heute)
     holer = holer or hole
     werte, tage, probleme = {}, {}, []
     for feld, (pfad, namen, art) in QUELLEN.items():
@@ -169,29 +185,33 @@ def sammle(heute=None, holer=None):
 # ------------------------------------------------------------------ selftest
 
 def _stub(pfad):
-    heute = "2026-08-18T00:00:00.000Z"
-    gestern = "2026-08-17T00:00:00.000Z"
-    vor = "2026-08-16T00:00:00.000Z"
-    labels = [vor, gestern, heute]
+    """vier tage, damit auch der ruecksprung auf den vortag pruefbar ist."""
+    labels = ["2026-08-15T00:00:00.000Z", "2026-08-16T00:00:00.000Z",
+              "2026-08-17T00:00:00.000Z", "2026-08-18T00:00:00.000Z"]
 
     def bau(paare):
         return {"labels": labels,
                 "datasets": [{"label": k, "data": v} for k, v in paare]}
 
     if pfad.startswith("transactions/accepted/addresses"):
-        return bau([("Addresses", [7100, 6960, 3200]), ("Price", [1, 1, 1])])
+        return bau([("Addresses", [7050, 7100, 6960, 3200]),
+                    ("Price", [1, 1, 1, 1])])
     if pfad.startswith("transactions/accepted/count"):
-        return bau([("Standard", [70000, 75050, 30000]),
-                    ("Coinbase", [120000, 127440, 50000]),
-                    ("Price", [1, 1, 1])])
+        return bau([("Standard", [69000, 70000, 75050, 30000]),
+                    ("Coinbase", [118000, 120000, 127440, 50000]),
+                    ("Price", [1, 1, 1, 1])])
     if pfad.startswith("address/count"):
-        return bau([("Price", [1, 1, 1]), ("Addresses", [789500, 789980, 790100])])
+        return bau([("Price", [1, 1, 1, 1]),
+                    ("Addresses", [789200, 789500, 789980, 790100])])
     if pfad.startswith("supply/inactive"):
-        return bau([("Price", [1, 1, 1]), ("CSPERCENT", [50.9, 50.95, 50.96])])
+        return bau([("Price", [1, 1, 1, 1]),
+                    ("CSPERCENT", [50.88, 50.9, 50.95, 50.96])])
     if pfad.startswith("supply/exchange-holdings"):
-        return bau([("Balance", [3.93e9, 3.94e9, 3.94e9]), ("Price", [1, 1, 1])])
+        return bau([("Balance", [3.92e9, 3.93e9, 3.94e9, 3.94e9]),
+                    ("Price", [1, 1, 1, 1])])
     if pfad.startswith("covenants/transactions"):
-        return bau([("Transactions", [454, 450, 1133]), ("Price", [1, 1, 1])])
+        return bau([("Transactions", [1200, 454, 450, 1133]),
+                    ("Price", [1, 1, 1, 1])])
     raise RuntimeError("unbekannter pfad im stub")
 
 
@@ -202,28 +222,38 @@ def run_selftest():
         if got != want:
             fails.append("%s\n    ist  %r\n    soll %r" % (name, got, want))
 
-    heute = dt.date(2026, 8, 18)
-    werte, tage, probleme = sammle(heute=heute, holer=_stub)
-
-    # der laufende tag wird ignoriert, gelesen wird der 17.
-    check("active addresses", werte["active_addr"], 6960)
-    check("holder adressen", werte["holder_addr"], 789980)
-    check("ruhender anteil", werte["holders"], 50.95)
-    check("boersenbestand", werte["exchange_kas"], 3940000000)
-    check("covenants", werte["covenant_tx"], 450)
-    check("tps aus zwei reihen", werte["tps"], round(202490 / 86400, 2))
-    check("gelesener tag", tage["active_addr"], "2026-08-17")
+    # dienstag. der bezugspunkt ist trotzdem montag der 17., gelesen wird
+    # der letzte volle tag davor, also sonntag der 16.
+    werte, tage, probleme = sammle(heute=dt.date(2026, 8, 18), holer=_stub)
+    check("active addresses", werte["active_addr"], 7100)
+    check("holder adressen", werte["holder_addr"], 789500)
+    check("ruhender anteil", werte["holders"], 50.9)
+    check("boersenbestand", werte["exchange_kas"], 3930000000)
+    check("covenants", werte["covenant_tx"], 454)
+    check("tps aus zwei reihen", werte["tps"], round(190000 / 86400, 2))
+    check("gelesener tag", tage["active_addr"], "2026-08-16")
     check("keine probleme", probleme, [])
 
-    # ein loch in der reihe darf den tag ueberspringen, nicht abbrechen
+    # derselbe wochentag-test. montag, mittwoch und freitag muessen
+    # dieselbe zahl fuer dieselbe zeile liefern, sonst widerspricht die
+    # seite mitten in der woche dem post, der schon raus ist.
+    for tag, name in [(dt.date(2026, 8, 17), "montag"),
+                      (dt.date(2026, 8, 19), "mittwoch"),
+                      (dt.date(2026, 8, 21), "freitag")]:
+        w, t, _ = sammle(heute=tag, holer=_stub)
+        check("%s liest denselben tag" % name, t["active_addr"], "2026-08-16")
+        check("%s liest denselben wert" % name, w["active_addr"], 7100)
+    check("wochenanker", str(wochenanker(dt.date(2026, 8, 21))), "2026-08-17")
+
+    # ein loch in der reihe faellt auf den vortag zurueck statt abzubrechen
     def loch(pfad):
         d = _stub(pfad)
         if pfad.startswith("covenants"):
             d["datasets"][0]["data"][1] = None
         return d
-    w2, t2, _ = sammle(heute=heute, holer=loch)
-    check("luecke faellt auf den vortag zurueck", w2["covenant_tx"], 454)
-    check("und nennt den richtigen tag", t2["covenant_tx"], "2026-08-16")
+    w2, t2, _ = sammle(heute=dt.date(2026, 8, 18), holer=loch)
+    check("luecke faellt auf den vortag", w2["covenant_tx"], 1200)
+    check("und nennt den richtigen tag", t2["covenant_tx"], "2026-08-15")
 
     # unplausibler wert wird verworfen, nicht gemeldet
     def kaputt(pfad):
@@ -231,7 +261,7 @@ def run_selftest():
         if pfad.startswith("supply/inactive"):
             d["datasets"][1]["data"][1] = 4200.0
         return d
-    w3, _, p3 = sammle(heute=heute, holer=kaputt)
+    w3, _, p3 = sammle(heute=dt.date(2026, 8, 18), holer=kaputt)
     check("unplausibel wird verworfen", w3["holders"], None)
     check("und steht als problem drin", len(p3), 1)
 
@@ -240,9 +270,9 @@ def run_selftest():
         if pfad.startswith("supply/exchange-holdings"):
             raise RuntimeError("503")
         return _stub(pfad)
-    w4, _, p4 = sammle(heute=heute, holer=tot)
+    w4, _, p4 = sammle(heute=dt.date(2026, 8, 18), holer=tot)
     check("tote quelle, feld leer", w4["exchange_kas"], None)
-    check("tote quelle, rest steht", w4["active_addr"], 6960)
+    check("tote quelle, rest steht", w4["active_addr"], 7100)
     check("tote quelle, ein problem", len(p4), 1)
 
     if fails:
@@ -250,7 +280,7 @@ def run_selftest():
         for f in fails:
             print("  " + f)
         return 1
-    print("selftest ok, 14 faelle")
+    print("selftest ok, 22 faelle")
     return 0
 
 
