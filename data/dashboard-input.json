@@ -1,10 +1,10 @@
 {
   "row": {
-    "active_addr": 8699,
-    "holder_addr": 790087,
+    "active_addr": 6965,
+    "holder_addr": 789984,
     "holders": 50.95,
-    "exchange_kas": 3936785426,
-    "covenant_tx": 1133,
-    "tps": 2.37
+    "exchange_kas": 3937574081,
+    "covenant_tx": 450,
+    "tps": 2.34
   }
 }
