@@ -145,7 +145,7 @@ def plausibel(feld, wert):
 
 def sammle(heute=None, holer=None):
     """alle sechs felder. gibt werte, tage und probleme zurueck."""
-    heute = heute or dt.datetime.utcnow().date()
+    heute = heute or dt.datetime.now(dt.timezone.utc).date()
     holer = holer or hole
     werte, tage, probleme = {}, {}, []
     for feld, (pfad, namen, art) in QUELLEN.items():
@@ -261,7 +261,8 @@ def main(argv):
     if "--json" in argv:
         print(json.dumps({"row": werte}, indent=2))
         return 0
-    print("kaspalytics, gelesen am %s UTC\n" % dt.datetime.utcnow().isoformat(timespec="seconds"))
+    print("kaspalytics, gelesen am %s UTC\n"
+          % dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"))
     for feld in QUELLEN:
         print("  %-13s %-14s  tag %s" % (feld, werte.get(feld), tage.get(feld, "keiner")))
     if probleme:
