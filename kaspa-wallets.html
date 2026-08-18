@@ -29,13 +29,11 @@
   .answer .lbl { font-size:12px; letter-spacing:3px; color:var(--teal); text-transform:uppercase; font-weight:700; margin-bottom:10px; }
   .answer p { margin:0 0 12px; font-size:16px; line-height:25px; color:var(--txt); }
   .answer p:last-child { margin:0; }
-
   table { width:100%; border-collapse:collapse; margin:20px 0 8px; }
   th { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--dimmer); text-align:left; font-weight:700; padding:0 10px 10px 0; border-bottom:1px solid var(--line); }
   td { font-size:14px; color:var(--dim); padding:12px 10px 12px 0; border-bottom:1px solid #101317; vertical-align:top; line-height:20px; }
   td.n { color:var(--txt); font-weight:600; white-space:nowrap; }
   td.n span { display:block; font-size:11.5px; color:var(--dimmer); font-weight:400; margin-top:3px; }
-
   .warn { background:rgba(227,106,106,0.06); border:1px solid rgba(227,106,106,0.35); border-radius:14px; padding:20px 22px; margin:24px 0; }
   .warn .wl { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--red); font-weight:700; margin-bottom:8px; }
   .warn p { margin:0 0 10px; color:var(--dim); font-size:14.5px; line-height:23px; }
@@ -48,7 +46,6 @@
   .fact .l { font-size:12.5px; color:var(--dimmer); margin-top:6px; line-height:17px; }
   a { color:var(--teal); }
   @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} td,th{font-size:13px;} }
-
   .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
   .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
   .subscribe .st { font-size:18px; font-weight:700; }
@@ -121,22 +118,17 @@
   </div>
 </nav>
 <div class="wrap">
-
   <h1>Which Kaspa wallet is safe? <b>The list with zero affiliate links on it.</b></h1>
   <div class="sub">Search "best Kaspa wallet" and every list on page one earns a commission from its own ranking. This page earns nothing from your choice. Here is what the Kaspa community actually maintains, the two deprecated wallets still being recommended elsewhere, why your address keeps changing, and the five rules that keep your coins yours.</div>
-
   <div class="answer">
     <div class="lbl">The short answer</div>
-    <p><b>On mobile, Kaspium. On desktop, Kaspa NG. In cold storage, Tangem natively or a Ledger via KasVault, with Cool Wallet, OneKey and SafePal as further options the wiki lists.</b> For KRC-20 tokens in the browser, Kasware. All of them are listed by the community's own directory, and all except the hardware devices are free.</p>
+    <p><b>On mobile, Kaspium. On desktop, Kaspa NG. In cold storage, Tangem or Ledger, both inside their own apps, with Cool Wallet, OneKey and SafePal as further options the wiki lists.</b> For KRC-20 tokens in the browser, Kasware. All of them are listed by the community's own directory, and all except the hardware devices are free.</p>
     <p>Just as important: <b>two wallets you will still find recommended in old guides are deprecated</b> — KDX and the old web wallet at wallet.kaspanet.io. And the only safe places to start a download are <a href="https://kaspa.org/hodl" target="_blank" rel="noopener">kaspa.org/hodl</a> and the community wiki's <a href="https://wiki.kaspa.org/en/wallet" target="_blank" rel="noopener">wallet list</a> — never a search result.</p>
   </div>
-
 </div>
-
 <div class="band"><div class="wrap2">
   <h2>The wallets that are actually maintained</h2>
   <p>This table is deliberately short. It contains the wallets that are open about their code, visibly maintained in 2026, and listed in the community's own directory — not the twenty-entry lists that affiliate pages need to fit every referral partner in.</p>
-
   <div class="tblwrap"><table>
     <thead><tr><th>Wallet</th><th>Where it runs</th><th>Code</th><th>What to know</th></tr></thead>
     <tbody>
@@ -159,10 +151,10 @@
         <td>Supports Kaspa natively in the Tangem app, including KRC-20 token management. The simplest cold-storage route today.</td>
       </tr>
       <tr>
-        <td class="n">Ledger<span>hardware · via KasVault</span></td>
+        <td class="n">Ledger<span>hardware · in Ledger Live</span></td>
         <td>keys on the device</td>
         <td><a href="https://github.com/coderofstuff/app-kaspa" target="_blank" rel="noopener">device app open source</a></td>
-        <td>Works, but not inside Ledger Live yet — you install the Kaspa app on the device and use the KasVault web interface (Chrome or Edge). Native Ledger Live support is in development, not shipped.</td>
+        <td>Works inside Ledger Live. You install the Kaspa app from My Ledger, add a Kaspa account, and send and receive in the same window. KasVault still works and was the only way for a long time, which is why many guides still describe it as the only option.</td>
       </tr>
       <tr>
         <td class="n">OneKey<span>hardware · Classic</span></td>
@@ -196,11 +188,8 @@
       </tr>
     </tbody>
   </table></div>
-
   <div class="note">What you will not find here: exchange accounts sold as "wallets", and yield platforms. An exchange balance is an IOU, not a wallet — and what "Kaspa staking" platforms actually are, we covered <a href="/kaspa-staking.html">on its own page</a>.</div>
-
 </div></div>
-
 <div class="wrap2">
   <h2>Deprecated, and still being recommended elsewhere</h2>
   <p>This is where outdated guides actively hurt people. Two wallets that appear in years-old "best of" lists are officially retired by their own developers:</p>
@@ -208,10 +197,8 @@
     <li><b>KDX</b> — its developer states it plainly: KDX is replaced by Kaspa NG, is no longer maintained, and <b>will cease to function</b> as the network upgrades. Do not start anything new on it.</li>
     <li><b>The old web wallet (wallet.kaspanet.io)</b> — marked "no longer maintained" in the community wiki, superseded by Kaspa NG. If your coins still sit there, they are not lost: your seed phrase is what owns the coins, not the app. Restore it in a maintained wallet and move on.</li>
   </ul>
-  <p>The general rule this teaches: <b>a wallet recommendation has a shelf life.</b> Check the project's last release date before trusting any list, including this one — this page was last verified on 7 August 2026 against the community wiki.</p>
-
+  <p>The general rule this teaches: <b>a wallet recommendation has a shelf life.</b> Check the project's last release date before trusting any list, including this one — this page was last verified on 18 August 2026 against the community wiki and, for the Ledger entry, against a screenshot from the running application.</p>
 </div>
-
 <div class="band"><div class="wrap2">
   <h2>Why your address keeps changing</h2>
   <p>The question every Kaspa newcomer asks, usually in mild panic: <i>"my wallet shows a different receive address than yesterday — did something break?"</i></p>
@@ -224,9 +211,7 @@
     <div class="wl">One real caveat</div>
     <p>Seed phrases are <b>not guaranteed to be compatible between different Kaspa wallets</b> — the wiki maintains a dedicated compatibility chart. Before you wipe wallet A after importing its seed into wallet B, confirm the full balance actually shows up in B.</p>
   </div>
-
 </div></div>
-
 <div class="wrap2">
   <h2>The five rules that keep your coins</h2>
   <ol>
@@ -236,16 +221,13 @@
     <li><b>Test with a small amount first.</b> kaspa.org's own advice: send a small test transaction, verify it arrives, then move the rest. And check the first and last characters of every address before confirming — malware that swaps addresses in your clipboard is a real category.</li>
     <li><b>Match the wallet to the amount.</b> Pocket money can live in a hot wallet. Anything that would hurt to lose belongs on hardware, where the keys never touch an internet-connected device.</li>
   </ol>
-
   <div class="facts">
     <div class="fact"><div class="v teal">0</div><div class="l">affiliate links on this page. Nobody paid to be listed, nobody could.</div></div>
     <div class="fact"><div class="v amber">2</div><div class="l">deprecated wallets, KDX and the old web wallet, still circulating in outdated guides.</div></div>
     <div class="fact"><div class="v teal">forever</div><div class="l">how long an old receive address stays valid. The changing address is privacy, not breakage.</div></div>
     <div class="fact"><div class="v red">DMs</div><div class="l">where coins actually get lost. The wallet software is rarely the weak point, the inbox is.</div></div>
   </div>
-
   <div class="note">We hold KAS ourselves, self-custodied, using wallets from this list. That is the entire disclosure — no referral codes, no sponsored placements, and if that ever changes, it will say so here.</div>
-
   <div class="subscribe">
     <div class="badge">free · instant</div>
     <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
@@ -260,7 +242,6 @@
     <div class="msg" id="subMsg"></div>
     <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
   </div>
-
   <div class="discordbox" style="background:linear-gradient(160deg, rgba(88,101,242,0.13), rgba(88,101,242,0.03)); border:1px solid rgba(88,101,242,0.45); border-radius:16px; padding:30px 24px; margin:18px 0 0; text-align:center;">
     <div style="display:inline-block; font-size:10px; letter-spacing:2px; color:#9BA6F8; background:rgba(88,101,242,0.14); border:1px solid rgba(88,101,242,0.45); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700;">free · live alerts</div>
     <div style="font-size:18px; font-weight:700; letter-spacing:-0.3px;">the chain, <span style="color:#9BA6F8;">watched for you</span></div>
@@ -268,12 +249,10 @@
     <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener" style="display:inline-block; background:#5865F2; color:#FFFFFF; border-radius:8px; padding:11px 22px; font-size:14px; font-weight:700; text-decoration:none; margin-top:16px;">join the kaspa pulse discord</a>
     <div style="font-size:11px; color:#7A828C; margin-top:10px;">one click, no email · alerts land in #alerts the second they fire</div>
   </div>
-
   <footer>
-    <div>not financial advice · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-halving.html">the kaspa halving countdown</a> · <a href="/kaspa-mining.html">kaspa mining, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/">kaspapulse.com</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>not financial advice · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-halving.html">the kaspa halving countdown</a> · <a href="/kaspa-mining.html">kaspa mining, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">youtube</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
   </footer>
 </div>
-
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -282,7 +261,7 @@
     {
       "@type": "Question",
       "name": "Which Kaspa wallet is the safest?",
-      "acceptedAnswer": { "@type": "Answer", "text": "For meaningful amounts, a hardware wallet: Tangem supports Kaspa natively including KRC-20 tokens, and Ledger works through the KasVault web interface with an open-source device app. For everyday use, Kaspium on mobile and Kaspa NG on desktop are the community-maintained open-source choices. Safety depends less on the brand than on downloading from the official directories at kaspa.org/hodl or the community wiki, and on never exposing your seed phrase." }
+      "acceptedAnswer": { "@type": "Answer", "text": "For meaningful amounts, a hardware wallet: Tangem supports Kaspa natively including KRC-20 tokens, and Ledger manages Kaspa inside Ledger Live with an open-source device app. For everyday use, Kaspium on mobile and Kaspa NG on desktop are the community-maintained open-source choices. Safety depends less on the brand than on downloading from the official directories at kaspa.org/hodl or the community wiki, and on never exposing your seed phrase." }
     },
     {
       "@type": "Question",
@@ -292,7 +271,7 @@
     {
       "@type": "Question",
       "name": "Does Ledger support Kaspa?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes, but not inside Ledger Live yet, as of August 2026. You install the community-built Kaspa app on the Ledger device and manage coins through the KasVault web interface in Chrome or Edge. Native Ledger Live integration is in development but has not shipped. Tangem and OneKey Classic support Kaspa natively in their own apps, and the community wiki also lists Cool Wallet and the SafePal X1." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. You install the Kaspa app from My Ledger inside Ledger Live, add a Kaspa account, and send and receive there. KasVault, the separate web interface for Chrome and Edge, still works and was the only way for a long time, which is why many guides and even some manufacturer pages still describe it as the only option. Tangem and OneKey Classic support Kaspa natively in their own apps, and the community wiki also lists Cool Wallet and the SafePal X1." }
     },
     {
       "@type": "Question",
@@ -307,7 +286,6 @@
   ]
 }
 </script>
-
 <script>
 (function(){
   const form = document.getElementById("subForm"), btn = document.getElementById("subBtn"), msg = document.getElementById("subMsg");
