@@ -1,18 +1,33 @@
 /* kaspa pulse capture layer
    ein script fuer alle seiten: sticky button + exit intent / timer modal.
    posts gehen an dasselbe brevo formular wie die subscribe box unten.
-   verhalten: nach abo nie wieder, nach wegklicken 7 tage ruhe. */
+   verhalten: nach abo nie wieder, nach wegklicken 7 tage ruhe.
+
+   AENDERUNG 18.08.2026, zwei punkte.
+
+   1. Auf schmalen bildschirmen ist es kein fenster mehr, das die seite
+      zudeckt, sondern ein schmales band am unteren rand. Google stuft
+      aufdringliche einblendungen auf mobilgeraeten ab, ein band am rand
+      faellt ausdruecklich nicht darunter. Unsere seiten leben von der
+      suche, das risiko gehen wir nicht ein. Die flaeche daneben ist
+      durchklickbar, das band faengt keine tipps mehr ab.
+   2. Zusaetzlicher ausloeser ueber die scrolltiefe. Wer 55 prozent einer
+      seite gelesen hat, hat sein interesse gezeigt, und darauf zu warten
+      ist besser als auf eine feste sekundenzahl. Der zeitgeber bleibt als
+      rueckfall bestehen.
+
+   Wer es selbst sehen will, muss ein privates fenster benutzen. Nach einer
+   anmeldung setzt das script eine markierung im browser und blendet danach
+   gar nichts mehr ein, auch den knopf nicht. */
 (function () {
   "use strict";
   var ACTION = "https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==";
   var KEY = "kp_capture";
   var WEEK = 7 * 24 * 3600 * 1000;
-
   var state = {};
   try { state = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
   if (state.done) return;
-
   var css = ""
     + "#kpcBtn{position:fixed;right:16px;bottom:16px;z-index:9000;background:#0E141A;"
     + "border:1px solid rgba(73,234,203,0.5);color:#49EACB;font-family:'Helvetica Neue',Arial,sans-serif;"
@@ -42,11 +57,22 @@
     + "#kpcMsg{font-size:12px;margin-top:10px;min-height:14px;}"
     + "#kpcMsg.ok{color:#49EACB;}#kpcMsg.err{color:#E36A6A;}"
     + "#kpcCard .f{font-size:10.5px;color:#7A828C;margin-top:10px;}"
+    // schmaler bildschirm: band statt fenster. der hintergrund bleibt frei
+    // und durchklickbar, nur die karte selbst faengt tipps ab.
+    + "@media(max-width:759px){"
+    + "#kpcOv{background:none;backdrop-filter:none;align-items:flex-end;padding:8px;pointer-events:none;}"
+    + "#kpcCard{pointer-events:auto;max-width:none;text-align:left;border-radius:14px;"
+    + "padding:16px 16px 14px;box-shadow:0 -8px 34px rgba(0,0,0,0.6);}"
+    + "#kpcCard .b{margin-bottom:8px;}"
+    + "#kpcCard .h{font-size:16px;}"
+    + "#kpcCard .s{font-size:12px;margin-top:5px;}"
+    + "#kpcForm{flex-direction:column;margin-top:11px;}"
+    + "#kpcX{top:8px;right:10px;}"
+    + "}"
     + "@media(max-width:480px){#kpcBtn{right:10px;bottom:10px;padding:10px 14px;font-size:11px;}}";
   var st = document.createElement("style");
   st.textContent = css;
   document.head.appendChild(st);
-
   var wrap = document.createElement("div");
   wrap.innerHTML = ""
     + "<button id='kpcBtn' type='button'>free cheat sheet</button>"
@@ -67,11 +93,9 @@
     + "<div class='f'>free &middot; unsubscribe anytime &middot; delivered after email confirmation</div>"
     + "</div></div>";
   document.body.appendChild(wrap);
-
   var ov = document.getElementById("kpcOv");
   var msg = document.getElementById("kpcMsg");
   var opened = false;
-
   function open() {
     if (state.done) return;
     ov.classList.add("on");
@@ -82,11 +106,12 @@
     state.snooze = Date.now();
     save();
   }
-
   document.getElementById("kpcBtn").addEventListener("click", open);
   document.getElementById("kpcX").addEventListener("click", close);
   ov.addEventListener("click", function (e) { if (e.target === ov) close(); });
-
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && ov.classList.contains("on")) close();
+  });
   document.getElementById("kpcForm").addEventListener("submit", function (e) {
     e.preventDefault();
     var f = e.target, btn = f.querySelector("button[type=submit]");
@@ -114,19 +139,32 @@
         btn.disabled = false; btn.textContent = "get the sheet";
       });
   });
-
-  // automatik: exit intent am desktop, timer am touch geraet.
+  // automatik: exit intent am desktop, scrolltiefe und zeitgeber ueberall.
   // nach wegklicken 7 tage ruhe, der button bleibt trotzdem da.
   var quiet = state.snooze && (Date.now() - state.snooze < WEEK);
   if (!quiet) {
-    var fired = false;
+    var fired = false, start = Date.now();
     function autoOpen() {
       if (fired || opened) return;
+      // wer den anmeldekasten gerade im blick hat, braucht keine einblendung
+      var box = document.querySelector(".subscribe");
+      if (box) {
+        var r = box.getBoundingClientRect();
+        if (r.top < window.innerHeight && r.bottom > 0) return;
+      }
       fired = true;
       open();
     }
+    // scrolltiefe, fruehestens nach zwoelf sekunden
+    function onScroll() {
+      if (fired || Date.now() - start < 12000) return;
+      var h = document.documentElement;
+      var tief = (h.scrollTop + window.innerHeight) / Math.max(h.scrollHeight, 1);
+      if (tief >= 0.55) { window.removeEventListener("scroll", onScroll); autoOpen(); }
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
     if (window.matchMedia && window.matchMedia("(hover:none)").matches) {
-      setTimeout(autoOpen, 12000);
+      setTimeout(autoOpen, 25000);
     } else {
       document.addEventListener("mouseout", function (e) {
         if (!e.relatedTarget && e.clientY <= 8) autoOpen();
