@@ -1,0 +1,24 @@
+name: kaspalytics probe
+
+# Nur von Hand. Der lauf holt die sechs handzahlen bei kaspalytics und
+# druckt sie ins log. Sobald der lauf einmal sauber durchgelaufen ist,
+# wandert derselbe code in den montags-bot und die screenshots entfallen.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: selbsttest
+        run: python3 scripts/kaspalytics.py --selftest
+
+      - name: zahlen holen
+        run: python3 scripts/kaspalytics.py
