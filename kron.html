@@ -118,23 +118,23 @@
   </div>
 </nav>
 <div class="wrap">
-  <h1>KRON, explained. <b>Kaspa's first native launchpad — and the one number to check before you buy anything on it.</b></h1>
+  <h1>Kron on Kaspa, explained. <b>The first native launchpad, the model behind it, and the three numbers to check before you buy.</b></h1>
   <div class="sub">A new kind of token has started trading on Kaspa, launched directly on layer 1 instead of as a side-chain asset. Here's how the model works, where it fits in the stack, and the honest read on what's live so far.</div>
   <div class="answer">
     <div class="lbl">The short answer</div>
     <p><b>KRON is a decentralized exchange and token launchpad built directly on Kaspa's layer 1</b> — not an EVM layer 2 like Kasplex or Igra. New tokens launch on a bonding curve (an automatic, algorithmic price curve with no presale and no team allocation to dump), and once a token hits a market cap threshold it "graduates" into a permanently-locked liquidity pool that trades against KAS. The platform describes itself as non-custodial: KRON never takes custody of user funds, the contract logic does.</p>
   </div>
   <div class="live">
-    <div class="lbl"><i></i>KRON token · dated snapshot, not live</div>
-    <div class="big" id="kronUsd">—</div>
-    <div class="cap" id="kronCap">converting the snapshot market cap at the live KAS price…</div>
+    <div class="lbl"><i></i>before you buy anything launched on Kron</div>
+    <div class="big">3 numbers</div>
+    <div class="cap">None of them is the price. All three take under a minute to pull, and together they are the difference between a token you understand and a chart you are guessing at.</div>
     <div class="split">
-      <div><div class="v" id="vHolders">295</div><div class="k">holders</div></div>
-      <div><div class="v">0.02434 KAS</div><div class="k">price per token</div></div>
-      <div><div class="v">3.25M KAS</div><div class="k">24h volume</div></div>
+      <div><div class="v">Holders</div><div class="k">how many wallets hold it and how much the largest few own. a few hundred holders means a handful of wallets still set the price</div></div>
+      <div><div class="v">Graduated</div><div class="k">has it passed the threshold and locked its liquidity, or is it still climbing the curve with nothing locked yet</div></div>
+      <div><div class="v">Age</div><div class="k">how long ago it launched. on every chain that has run this model, most bonding curve tokens are dead within weeks</div></div>
     </div>
   </div>
-  <div class="note">Snapshot taken August 1, 2026. KRON doesn't publish a public price feed we can pull live, so unlike the rest of this site these three numbers are fixed at that moment — only the USD conversion above updates, using the live KAS price. For the current number, check <a href="https://kron.technology" target="_blank" rel="noopener">kron.technology</a> directly.</div>
+  <div class="note">Kron publishes no public price feed we can pull, so this page carries no live token price and no rolling volume figure. Those you read at <a href="https://kron.technology" target="_blank" rel="noopener">kron.technology</a> in the moment you need them. What this page explains is the machine underneath, and that does not change from week to week.</div>
 </div>
 <div class="band"><div class="wrap2">
   <h2>How a bonding-curve launchpad works</h2>
@@ -158,15 +158,19 @@
   <p>KRC-20 tokens are the older standard — inscriptions that carry metadata but no executable logic. Kasplex and Igra tokens are standard EVM assets, identical in kind to any Ethereum token, just settling to Kaspa. KRON's launches are the newest category: tokens whose supply, curve and locked liquidity are enforced by layer-1 logic itself, with no separate side chain involved.</p>
 </div></div>
 <div class="wrap2">
+  <h2>Is Kron legit, and is it safe to use?</h2>
+  <p>Those are two different questions and they deserve two different answers. <b>The platform</b> is what it says it is: a launchpad and exchange whose logic runs in layer-1 covenant code rather than in a company's database, which means it does not hold user funds and cannot walk off with them. That is a real structural property, not a promise, and it is verifiable in the code.</p>
+  <p><b>The tokens launched on it are a separate matter entirely, and most of them will go to zero.</b> That is not a criticism of Kron, it is what this launch model produces everywhere it has ever run. Anyone can create a token in a minute with no funding, no team and no purpose, and the overwhelming majority of them are exactly that. A launchpad being sound says nothing about what people launch on it, in the same way a functioning stock exchange says nothing about the worst company listed on it.</p>
+  <p>So the honest read is this. Treat the platform as young infrastructure, meaning unaudited contract code that has not yet been through a full market cycle. Treat every individual token on it as a bet you should be able to lose entirely. And check the three numbers above before the chart, every single time.</p>
   <h2>The one number that matters more than the chart</h2>
   <p>Every token launched this way produces the same seductive chart shape — flat, then a spike. The chart tells you what happened. It does not tell you who owns it. That's the number worth checking before anything else:</p>
   <div class="facts">
-    <div class="fact"><div class="v red">295 holders</div><div class="l">at the August 1, 2026 snapshot, against a 10.22M KAS market cap — a small handful of wallets can still move this token's price sharply in either direction</div></div>
+    <div class="fact"><div class="v red">295 holders</div><div class="l">the KRON token itself when we first counted it, on 1 August 2026, against a market cap of 10.22M KAS. we keep that reading as a marker of how early this all still is</div></div>
     <div class="fact"><div class="v teal">Locked liquidity ≠ safe token</div><div class="l">graduation removes the classic "pull the liquidity" rug — it says nothing about concentration, team allocation history, or whether the token has any use beyond trading</div></div>
     <div class="fact"><div class="v teal">Launch ≠ audit</div><div class="l">a bonding curve launching without a presale is a fairer starting mechanism, not a security review — the underlying covenant code carries the same young-contract risk as anything else on Kaspa's new L1 stack</div></div>
-    <div class="fact"><div class="v teal">Graduation rate over time</div><div class="l">the more useful long-run signal isn't any single token's price, it's what share of everything launched on KRON actually reaches graduation — we track this weekly</div></div>
+    <div class="fact"><div class="v teal">Graduation rate over time</div><div class="l">the more useful long-run signal is not any single token's price, it is what share of everything launched on Kron ever reaches graduation. that is a number to judge over a year, not over a week</div></div>
   </div>
-  <div class="note">We publish the holder count, graduation activity and what changed on <a href="/">the Kaspa Pulse dashboard</a> every Monday. Related reading: <a href="/kaspa-smart-contracts.html">how Kaspa's covenants and L2s work</a> and <a href="/kaspa-tvl.html">what TVL on Kaspa actually means</a>.</div>
+  <div class="note">Every Monday we publish what actually moved on Kaspa, counted from the chain, on <a href="/">the Kaspa Pulse dashboard</a>. Related reading: <a href="/kaspa-smart-contracts.html">how Kaspa's covenants and L2s work</a> and <a href="/kaspa-tvl.html">what TVL on Kaspa actually means</a>.</div>
   <div class="subscribe">
     <div class="badge">free · instant</div>
     <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
@@ -189,7 +193,7 @@
     <div style="font-size:11px; color:#7A828C; margin-top:10px;">one click, no email · alerts land in #alerts the second they fire</div>
   </div>
   <footer>
-    <div>not financial advice · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">youtube</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>page last reviewed 22 August 2026 · not financial advice · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">youtube</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
   </footer>
 </div>
 <script type="application/ld+json">
@@ -219,26 +223,21 @@
     },
     {
       "@type": "Question",
+      "name": "Is Kron on Kaspa legit and safe?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The platform and the tokens on it are two separate questions. Kron itself is non-custodial, meaning its logic runs in Kaspa layer-1 covenant code and it never holds user funds, which is a structural property rather than a promise. The tokens launched on it carry ordinary launchpad risk: anyone can create one in a minute with no funding and no purpose, and on every chain that has run this model most of them go to zero. Treat the platform as young, unaudited infrastructure and every individual token as a bet you can lose in full." }
+    },
+    {
+      "@type": "Question",
+      "name": "How many holders does the KRON token have?",
+      "acceptedAnswer": { "@type": "Answer", "text": "When we first counted, on 1 August 2026, the KRON token had 295 holders against a market cap of about 10.22 million KAS. Kron publishes no public holder or price feed that can be read automatically, so the current figure has to be checked at kron.technology directly. The scale is the point either way: at a few hundred holders, a small number of wallets can still move the price sharply in either direction." }
+    },
+    {
+      "@type": "Question",
       "name": "What should I check before buying a token launched on KRON?",
       "acceptedAnswer": { "@type": "Answer", "text": "Holder count and concentration matter more than the price chart. A small number of holders means a small number of wallets can move the price sharply in either direction, regardless of whether liquidity is locked. Treat any individual token launched this way as carrying real, unaudited contract risk." }
     }
   ]
 }
-</script>
-<script>
-(function(){
-  const KAS_FALLBACK = 0.0291;
-  const KRON_MCAP_KAS = 10220000; // snapshot Aug 1 2026, kron.technology
-  const fmtUsd = n => n >= 1e6 ? "$"+(n/1e6).toFixed(2)+"M" : n >= 1e3 ? "$"+(n/1e3).toFixed(0)+"K" : "$"+n.toFixed(0);
-  function render(price, live){
-    const usd = KRON_MCAP_KAS * price;
-    document.getElementById("kronUsd").textContent = fmtUsd(usd);
-    document.getElementById("kronCap").innerHTML = "≈ market cap in USD · 10.22M KAS × " + (live ? "<b style='color:#49EACB'>live</b> KAS price ($" + price.toFixed(4) + ")" : "last known KAS price ($" + price.toFixed(4) + ")");
-  }
-  render(KAS_FALLBACK, false);
-  fetch("https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd")
-    .then(r=>r.json()).then(d=>{ if(d.kaspa && d.kaspa.usd) render(d.kaspa.usd, true); }).catch(()=>{});
-})();
 </script>
 <script>
 (function(){
