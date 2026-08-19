@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>What Is Entity X? Kaspa's Biggest Whale Wallet, Tracked Live — Kaspa Pulse</title>
-<meta name="description" content="Entity X is the largest single Kaspa address — a whale wallet holding around 5% of all circulating KAS. Live balance, the weekly buying pattern on-chain, who might be behind it, and what it means — explained.">
+<title>Entity X Kaspa, The Biggest Wallet on the Chain</title>
+<meta name="description" content="Entity X is the largest single Kaspa address. What it holds, what it paid on average, and every coin that ever left it, counted one by one.">
 <link rel="canonical" href="https://kaspapulse.com/entity-x.html">
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
@@ -142,32 +142,25 @@
   </div>
 </nav>
 <div class="wrap">
-
   <h1>What is <b>Entity X</b>? Kaspa's biggest wallet, explained.</h1>
   <div class="sub">One single address holds more $KAS than any exchange on earth — and it buys more every week. Here is everything that's actually verifiable about it, and nothing that isn't.</div>
-
   <div class="live">
     <div class="lbl"><span class="live-dot"></span>Entity X balance right now</div>
     <div class="bal" id="bal">—</div>
     <div class="usd" id="usd">fetching live balance…</div>
     <div class="upd">fetched live from the kaspa network · weekly context updated every monday on the <a href="/">dashboard</a></div>
   </div>
-
 </div>
-
 <div class="band"><div class="wrap2">
   <h2>The short answer</h2>
   <p><b>Entity X is the largest single Kaspa address.</b> The name is just a label that block explorers like <a href="https://kaspa.stream" target="_blank" rel="noopener">kaspa.stream</a> gave it — nobody knows who controls it. Its exact balance is shown above, fetched live from the Kaspa network as you read this — a share of circulating supply so large that in July 2026 it exceeded a third of what all known exchanges held combined.</p>
-
   <div class="facts">
     <div class="fact"><div class="v teal" id="factBal">live ↑</div><div class="l">current balance — one address, verifiable on any explorer, shown live above</div></div>
     <div class="fact"><div class="v teal" id="factPct">live ↑</div><div class="l">share of all circulating KAS held in this single wallet — computed live from supply</div></div>
     <div class="fact"><div class="v red">&gt; ⅓</div><div class="l">of all known exchange holdings combined (3.94B KAS) — as measured July 2026</div></div>
     <div class="fact"><div class="v teal" id="factCost">$0.0881</div><div class="l">average price this wallet paid per KAS — our own calculation from every deposit on chain</div></div>
   </div>
-
 </div></div>
-
 <div class="wrap2">
   <h2>What the on-chain record shows</h2>
   <ul>
@@ -176,14 +169,11 @@
     <li><b>It reached this size fast.</b> Between April and July 2026 alone the balance grew from about 1.41 billion to just under 1.5 billion KAS — and it kept going.</li>
     <li><b>First activity:</b> March 2024. A few hundred transactions total — large, deliberate withdrawals, not trading.</li>
   </ul>
-
 </div>
-
 <div class="band"><div class="wrap2">
   <h2 id="costbasis">What Entity X actually paid</h2>
   <p>Everyone quotes this wallet's balance. Almost nobody has worked out what it cost. So we did it ourselves, from the raw chain data, and we publish the method along with the number.</p>
   <p>We pull <b>every transaction</b> this address has ever been part of, keep only the true net inflows, and value each one at the <b>volume weighted average price of the day it landed</b> — not the daily close. Nobody buys at midnight. That single choice is why our number will differ slightly from anyone using closing prices, and it is the more honest of the two.</p>
-
   <div class="cb" id="cbBox">
     <div class="cbt">Average entry price</div>
     <div class="cbv" id="cbAvg">$0.0881</div>
@@ -195,16 +185,12 @@
     </div>
   </div>
   <div class="note">Read that bottom row again. This wallet is roughly <b>70% underwater</b> on a nine figure position and it kept buying right through it, with its most recent deposit landing days ago. Whatever it is, it is not trading.</div>
-
   <p style="font-size:13px;">Method, in full: net inflows only, so change from a wallet's own spending is never miscounted as a purchase. Daily prices from KuCoin, with MEXC and Bybit filling any gaps. If more than 2% of the coins land on days we cannot price, the number is marked unreliable and this box disappears rather than showing you something half true. Recomputed automatically every Monday.</p>
-
 </div></div>
-
 <div class="wrap2">
   <h2 id="outflows">Every coin that has left this wallet</h2>
   <p>The claim you will read almost everywhere is that Entity X has never sent a single coin out. <b>That is not correct.</b> Since March 2024, <b><span id="oSum">39,038,233</span> KAS</b> have left the address across <b><span id="oCnt">20</span> transfers</b>. Here is every one of them, with the transaction you can open on any explorer.</p>
   <p>Keep the scale in mind before anyone turns this into a headline. It is <b><span id="oShare">2.54%</span> of everything the wallet ever bought</b>. The other <span id="oRest">97.46%</span> is still there, and the most recent purchase was days ago. And crucially, <b>the chain does not tell us whether these coins were sold</b>. Sent to an exchange and sold, or moved to a second address the same owner controls, look identical from here. Anyone who tells you which it was is guessing.</p>
-
   <div class="tblwrap">
     <table id="outTbl">
       <thead><tr><th>Date</th><th style="text-align:right">KAS out</th><th>Transaction</th></tr></thead>
@@ -233,14 +219,10 @@
     </table>
   </div>
   <p style="font-size:13px; margin-top:14px;">The <span id="oDustN">7</span> greyed rows are dust, a few coins each, almost certainly test transactions or someone else's spam. The <span id="oRealN">13</span> real transfers total <span id="oRealSum">39,036,480</span> KAS. The pattern is worth noting: nothing meaningful for the first eighteen months, then roughly one transfer every four to seven weeks from May 2025 onward, averaging 3M KAS. Nothing has left since <b id="outLast">18 Jun 2026</b>.</p>
-
 </div>
-
-
 <div class="band"><div class="wrap2">
   <h2 id="inflows">Where do the coins come from?</h2>
   <p>The other half of the ledger. In August 2026 we traced the origin of <b>every inflow this wallet has ever received</b>: 296 transfers, 1,548,084,255 KAS, from just <b>131 distinct senders</b>. Every sender was classified by public exchange labels and on-chain behaviour. The result is unambiguous:</p>
-
   <div style="background:var(--card); border:1px solid #15181C; border-radius:18px; padding:24px 26px 20px; margin:22px 0 8px;">
     <div style="font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700;">origin of all 1.55B KAS ever received &middot; traced 6 aug 2026</div>
     <div style="display:flex; height:30px; border-radius:999px; overflow:hidden; margin:16px 0 12px;">
@@ -256,32 +238,23 @@
   </div>
   <p style="margin-top:14px;">Two more facts fall out of the trace. <b>Zero coins ever arrived from mining.</b> Not one block reward has ever been paid to this address, which retires the popular "early miner stash" theory in its direct form. And the sender list is short: <b>131 addresses, most of the volume from four of them</b> — not the swarm of hundreds of small wallets that consolidation stories require.</p>
   <div class="note">The honest limit of this method: <b>the chain goes dark inside an exchange.</b> A deposit and a withdrawal cannot be linked from outside, so where the coins entered gate.io or bybit from is visible only to their compliance teams. An inflow from an exchange wallet is a withdrawal, not a proven buy. We report the movement, never the motive — and the raw result, every address and every verdict, is public in <a href="/data/entity-x-inflows.json" target="_blank" rel="noopener">this JSON file</a>.</div>
-
 </div></div>
-
 <div class="band"><div class="wrap2">
   <h2>Who is behind it?</h2>
   <p>Honestly: <b>nobody knows, and anyone who claims to is guessing.</b> But the inflow trace above narrows the field. Direct early-miner consolidation is effectively ruled out (zero coinbase, no wallet swarm), and no exchange fills its own cold storage from four competitors. What remains is the profile of <b>one very large, very patient buyer withdrawing from exchange accounts</b> — accounts on at least four venues, weekly withdrawals for years, straight through the drawdown. Who that is lives in the KYC files of those exchanges, and nowhere else.</p>
-
 </div></div>
-
 <div class="wrap2">
   <h2>Why it matters</h2>
   <p>Two reasons. First, <b>concentration</b>: one unknown party holding 5.4% of supply is a real risk factor — if this wallet ever moved toward an exchange, it would matter, fast. Second, <b>signal</b>: someone with tens of millions of dollars keeps choosing to take KAS off exchanges week after week — straight through the 2025–2026 drawdown. You don't have to copy them. But it's one of the few on-chain facts in crypto you can verify yourself in 30 seconds.</p>
-
 </div>
-
 <div class="band"><div class="wrap2">
   <h2>Verify it yourself</h2>
   <p>Don't trust us — check the address on any explorer:</p>
   <div class="addr">kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a</div>
   <p>Look it up on <a href="https://kaspa.stream" target="_blank" rel="noopener">kaspa.stream</a> (labeled "Entity X", rank #1) or query the public API directly: <span style="font-family:monospace; font-size:12px;">api.kaspa.org/addresses/&lt;address&gt;/balance</span></p>
-
 </div></div>
-
 <div class="wrap2">
   <div class="note">We track Entity X's balance live and publish the weekly delta every Monday on the <a href="/">Kaspa Pulse dashboard</a> — the day this wallet moves toward an exchange, you’ll read it there first. Want the alert the moment it happens? A bot watches this address around the clock and pings the <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">free Kaspa Pulse Discord</a> the instant the balance moves.</div>
-
   <div class="subscribe">
     <div class="badge">free · instant</div>
     <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
@@ -296,7 +269,6 @@
     <div class="msg" id="subMsg"></div>
     <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
   </div>
-
   <div class="discordbox" style="background:linear-gradient(160deg, rgba(88,101,242,0.13), rgba(88,101,242,0.03)); border:1px solid rgba(88,101,242,0.45); border-radius:16px; padding:30px 24px; margin:18px 0 0; text-align:center;">
     <div style="display:inline-block; font-size:10px; letter-spacing:2px; color:#9BA6F8; background:rgba(88,101,242,0.14); border:1px solid rgba(88,101,242,0.45); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700;">free · live alerts</div>
     <div style="font-size:18px; font-weight:700; letter-spacing:-0.3px;">the chain, <span style="color:#9BA6F8;">watched for you</span></div>
@@ -304,12 +276,10 @@
     <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener" style="display:inline-block; background:#5865F2; color:#FFFFFF; border-radius:8px; padding:11px 22px; font-size:14px; font-weight:700; text-decoration:none; margin-top:16px;">join the kaspa pulse discord</a>
     <div style="font-size:11px; color:#7A828C; margin-top:10px;">one click, no email · alerts land in #alerts the second they fire</div>
   </div>
-
   <footer>
-    <div>not financial advice · data: kaspa.stream, kaspalytics, api.kaspa.org · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/merged-mining.html">kaspa merged mining, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>not financial advice · data: kaspa.stream, kaspalytics, api.kaspa.org · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/merged-mining.html">kaspa merged mining, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">youtube</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
   </footer>
 </div>
-
 <script>
 // live balance + live share of circulating supply
 const EX_ADDR = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a";
@@ -321,7 +291,6 @@ fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).t
   window.__exBal = kas;
   document.getElementById("bal").textContent = (kas/1e9).toFixed(3)+"B KAS";
   document.getElementById("factBal").textContent = (kas/1e9).toFixed(2)+"B KAS";
-
   // share of circulating supply — both sides live
   fetch("https://api.kaspa.org/info/coinsupply").then(r=>r.json()).then(s=>{
     const circ = s && s.circulatingSupply ? parseFloat(s.circulatingSupply)/1e8 : 0;
@@ -348,7 +317,6 @@ fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).t
   const usd = n => { const v = Math.abs(n);
     return (n<0?"−":"")+"$"+(v>=1e9?(v/1e9).toFixed(2)+"B":v>=1e6?(v/1e6).toFixed(1)+"M":(v/1e3).toFixed(0)+"K"); };
   const el = id => document.getElementById(id);
-
   fetch("/data/entity-x-costbasis.json", {cache:"no-store"}).then(r=>r.json()).then(cb=>{
     if(!(cb && cb.reliable && cb.avg_cost_usd)){
       const box = el("cbBox"); if(box) box.style.display = "none";
@@ -360,7 +328,6 @@ fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).t
     el("cbSub").textContent = "across "+cb.deposits+" deposits between "
       + dstr(cb.first_deposit)+" and "+dstr(cb.last_deposit);
     el("cbInv").textContent = usd(cb.usd_invested);
-
     // Wert und Verlust gegen den Live-Kurs, nicht gegen den vom Montag.
     const paint = (price, held) => {
       const p = price || cb.price_now, h = held || cb.balance_kas;
@@ -378,7 +345,6 @@ fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).t
     // Bestand und Kurs kommen aus zwei unabhaengigen Abrufen. Wer zuerst da
     // ist, weiss keiner. Also einmal nachrechnen, wenn beide Zeit hatten.
     setTimeout(() => paint(window.__exPx || null, window.__exBal || null), 3000);
-
     // Abflusszahlen im Fliesstext. Der Bot laeuft jede Woche, die Saetze
     // duerfen nicht auf dem Stand von heute stehen bleiben.
     const set = (id, v) => { const e = el(id); if(e) e.textContent = v; };
@@ -390,7 +356,6 @@ fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).t
       set("oShare", share.toFixed(2)+"%");   set("bShare", share.toFixed(2)+"%");
       set("oRest", (100-share).toFixed(2)+"%"); set("bRest", (100-share).toFixed(2)+"%");
     }
-
     // Abflusstabelle nur ersetzen, wenn die Datei sie wirklich mitbringt.
     if(Array.isArray(cb.outflows) && cb.outflows.length){
       const dust = cb.outflows.filter(o => o.kas < 100000);
@@ -437,7 +402,7 @@ fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).t
 <script>
 (function(){
   const b = document.querySelector(".nburger"), c = document.querySelector(".nav .nc");
-  if(b && c) b.addEventListener("click", function(){ c.classList.toggle("open"); b.textContent = c.classList.contains("open") ? "\u2715" : "\u2630"; });
+  if(b && c) b.addEventListener("click", function(){ c.classList.toggle("open"); b.textContent = c.classList.contains("open") ? "✕" : "☰"; });
 })();
 </script>
 <script type="application/ld+json">
