@@ -1,3 +1,125 @@
+/* kaspa pulse navigation
+   EIN block fuer alle seiten, geladen ueber capture.js, das ohnehin
+   auf jeder seite haengt. Grund: das menue war eine einzige reihe aus
+   inzwischen vierzehn pillen. Auf dem telefon steckt es hinter dem
+   burger und funktioniert, auf dem desktop lief es ueber zwei zeilen und
+   hat den kopf der seite zugestellt. Ab jetzt vier gruppen mit
+   aufklappmenue, mobil bleiben alle gruppen im burger untereinander
+   aufgeklappt stehen, das ist ein tipp weniger.
+
+   Die vorhandene, statische liste in jeder seite bleibt im quelltext
+   stehen und wird hier nur neu sortiert. Google sieht die links also
+   weiter direkt im html. Eine neue seite eintragen heisst kuenftig:
+   eine zeile in MENUE hier, sonst nichts. */
+(function () {
+  "use strict";
+  var MENUE = [
+    { t: "dashboard", h: "/" },
+    { t: "network", k: [
+      ["hashrate", "/kaspa-hashrate.html"],
+      ["mining", "/kaspa-mining.html"],
+      ["merged mining", "/merged-mining.html"],
+      ["the halving", "/kaspa-halving.html"]
+    ]},
+    { t: "supply", k: [
+      ["supply", "/kaspa-supply.html"],
+      ["entity x", "/entity-x.html"],
+      ["staking", "/kaspa-staking.html"]
+    ]},
+    { t: "tokens", k: [
+      ["token standards", "/kaspa-token-standard.html"],
+      ["smart contracts", "/kaspa-smart-contracts.html"],
+      ["kron", "/kron.html"],
+      ["tvl", "/kaspa-tvl.html"]
+    ]},
+    { t: "tools", k: [
+      ["wallets", "/kaspa-wallets.html"],
+      ["data sources", "/kaspa-data-sources.html"]
+    ]}
+  ];
+  var nc = document.querySelector(".nav .nc");
+  if (!nc) return;
+  var hier = location.pathname.replace(/\/index\.html$/, "/");
+  var css = ""
+    + ".nav .nc{justify-content:center;gap:2px;padding:0 10px 9px;}"
+    + ".nav .ngrp{position:relative;padding-bottom:6px;margin-bottom:-6px;}"
+    + ".nav .ntop{background:none;border:1px solid transparent;color:#9BA3AB;font-family:inherit;"
+    + "font-size:12px;padding:5px 8px;border-radius:999px;cursor:pointer;white-space:nowrap;}"
+    + ".nav .ntop:hover{color:#FFFFFF;}"
+    + ".nav .ntop i{font-style:normal;font-size:9px;margin-left:5px;opacity:0.6;vertical-align:1px;}"
+    + ".nav .ngrp.on .ntop{color:#49EACB;background:rgba(73,234,203,0.08);border-color:rgba(73,234,203,0.25);}"
+    + ".nav .ndrop{position:absolute;top:100%;left:50%;transform:translateX(-50%);display:none;"
+    + "min-width:196px;background:#0B0E12;border:1px solid #1A1D21;border-radius:14px;padding:6px;"
+    + "box-shadow:0 18px 44px rgba(0,0,0,0.6);z-index:70;}"
+    + ".nav .ngrp:hover .ndrop,.nav .ngrp.open .ndrop{display:block;}"
+    + ".nav .ndrop a{display:block;padding:9px 12px;border-radius:9px;font-size:13px;color:#9BA3AB;"
+    + "text-decoration:none;white-space:nowrap;border:none;}"
+    + ".nav .ndrop a:hover{color:#FFFFFF;background:rgba(255,255,255,0.05);}"
+    + ".nav .ndrop a.cur{color:#49EACB;}"
+    + "@media(max-width:640px){"
+    + ".nav .nc.open{gap:2px;padding:6px 14px 14px;}"
+    + ".nav .ngrp{width:100%;padding-bottom:0;margin-bottom:0;}"
+    + ".nav .nc.open .ntop{width:100%;text-align:left;font-size:11px;letter-spacing:2px;"
+    + "text-transform:uppercase;color:#7A828C;padding:14px 12px 4px;cursor:default;}"
+    + ".nav .nc.open .ntop i{display:none;}"
+    + ".nav .ngrp.on .ntop{background:none;border-color:transparent;}"
+    + ".nav .nc.open .ndrop{position:static;display:block;transform:none;background:none;"
+    + "border:none;box-shadow:none;padding:0;min-width:0;}"
+    + ".nav .nc.open .ndrop a{font-size:15px;padding:10px 12px;}"
+    + "}";
+  var st = document.createElement("style");
+  st.textContent = css;
+  document.head.appendChild(st);
+  function link(t, h, klasse) {
+    var a = document.createElement("a");
+    a.href = h; a.textContent = t;
+    if (h === hier) a.className = klasse;
+    return a;
+  }
+  nc.innerHTML = "";
+  MENUE.forEach(function (e) {
+    if (!e.k) { nc.appendChild(link(e.t, e.h, "on")); return; }
+    var g = document.createElement("div");
+    g.className = "ngrp";
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "ntop";
+    b.innerHTML = e.t + "<i>&#9662;</i>";
+    b.setAttribute("aria-expanded", "false");
+    var d = document.createElement("div");
+    d.className = "ndrop";
+    e.k.forEach(function (p) {
+      var a = link(p[0], p[1], "cur");
+      if (p[1] === hier) g.classList.add("on");
+      d.appendChild(a);
+    });
+    // tippen oeffnet, ein zweites tippen schliesst. auf dem desktop
+    // uebernimmt zusaetzlich hover, damit sich nichts hakelig anfuehlt.
+    b.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      var offen = g.classList.contains("open");
+      Array.prototype.forEach.call(nc.querySelectorAll(".ngrp.open"), function (x) {
+        x.classList.remove("open");
+        var t = x.querySelector(".ntop");
+        if (t) t.setAttribute("aria-expanded", "false");
+      });
+      if (!offen) { g.classList.add("open"); b.setAttribute("aria-expanded", "true"); }
+    });
+    g.appendChild(b); g.appendChild(d); nc.appendChild(g);
+  });
+  document.addEventListener("click", function () {
+    Array.prototype.forEach.call(nc.querySelectorAll(".ngrp.open"), function (x) {
+      x.classList.remove("open");
+    });
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    Array.prototype.forEach.call(nc.querySelectorAll(".ngrp.open"), function (x) {
+      x.classList.remove("open");
+    });
+  });
+})();
+
 /* kaspa pulse capture layer
    ein script fuer alle seiten: sticky button + exit intent / timer modal.
    posts gehen an dasselbe brevo formular wie die subscribe box unten.
