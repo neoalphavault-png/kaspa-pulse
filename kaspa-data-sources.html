@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaspalytics and Every Other Kaspa Data Source, Compared</title>
+<meta name="description" content="Kaspalytics, kaspa.stream, kas.fyi, the Kaspa API and the rest. What each one is best at, and why two of them can show a different TPS.">
+<link rel="canonical" href="https://kaspapulse.com/kaspa-data-sources.html">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
+         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
+  .wrap { max-width:780px; margin:0 auto; padding:8px 18px 56px; }
+  .nav { position:sticky; top:0; z-index:60; background:rgba(5,6,8,0.88); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
+  .nav .nt { max-width:820px; margin:0 auto; padding:13px 18px 9px; display:flex; justify-content:space-between; align-items:center; }
+  .nav .nlogo { font-size:13px; letter-spacing:4px; font-weight:700; }
+  .nav .nlogo a { color:var(--txt); text-decoration:none; }
+  .nav .nlogo span { color:var(--teal); }
+  .nav-cta { font-size:10px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color:var(--teal); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:5px 12px; text-decoration:none; background:rgba(73,234,203,0.07); white-space:nowrap; }
+  .nright { display:flex; align-items:center; gap:8px; }
+  .nburger { display:none; background:none; border:1px solid var(--line); color:var(--txt); border-radius:10px; padding:8px 14px; font-size:19px; line-height:1.2; cursor:pointer; font-family:inherit; }
+  .nav .nc { max-width:820px; margin:0 auto; padding:0 10px 10px; display:flex; flex-wrap:wrap; gap:2px; row-gap:3px; }
+  .nav .nc::-webkit-scrollbar { display:none; }
+  .nav .nc a { font-size:12px; color:var(--dim); text-decoration:none; padding:5px 8px; border-radius:999px; white-space:nowrap; border:1px solid transparent; }
+  .nav .nc a:hover { color:var(--txt); }
+  .nav .nc a.on { color:var(--teal); background:rgba(73,234,203,0.08); border-color:rgba(73,234,203,0.25); }
+  @media (max-width:640px){
+    .nburger { display:block; }
+    .nav .nc { display:none; }
+    .nav .nc.open { display:flex; flex-direction:column; gap:4px; padding:8px 18px 14px; border-top:1px solid var(--line); }
+    .nav .nc.open a { font-size:15px; padding:11px 12px; }
+    .nav .nlogo { font-size:12px; letter-spacing:3px; }
+  }
+  h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
+  h1 b { color:var(--teal); }
+  .sub { font-size:16px; color:var(--dim); line-height:24px; }
+  h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin:60px 0 14px; }
+  h2::before { content:""; display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--teal); margin-right:11px; vertical-align:5px; }
+  h3 { font-size:16px; font-weight:700; margin:26px 0 7px; color:var(--txt); }
+  p { font-size:15px; line-height:24px; color:var(--dim); margin:0 0 14px; }
+  p b, li b { color:var(--txt); font-weight:600; }
+  ul { margin:0 0 14px 20px; }
+  li { font-size:15px; line-height:24px; color:var(--dim); margin-bottom:8px; }
+  .answer { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:24px 26px; margin:34px 0; }
+  .answer .lbl { font-size:12px; letter-spacing:3px; color:var(--teal); text-transform:uppercase; font-weight:700; margin-bottom:10px; }
+  .answer p { margin:0; font-size:16px; line-height:25px; color:var(--txt); }
+  .live { background:var(--card); border:1px solid #15181C; border-radius:18px; padding:26px 26px 22px; margin:30px 0 8px; }
+  .live .lbl { font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700; }
+  .live .lbl i { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--teal); margin-right:7px; vertical-align:1px; }
+  .live .big { font-size:52px; font-weight:700; letter-spacing:-2px; color:var(--teal); line-height:1.05; margin:10px 0 4px; }
+  .live .cap { font-size:13px; color:var(--dimmer); line-height:19px; }
+  .split { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; border-top:1px solid #15181C; padding-top:18px; }
+  .split div .v { font-size:19px; font-weight:700; }
+  .split div .k { font-size:11.5px; color:var(--dimmer); margin-top:4px; line-height:16px; }
+  table { width:100%; border-collapse:collapse; margin:20px 0 8px; }
+  th { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--dimmer); text-align:left; font-weight:700; padding:0 0 10px; border-bottom:1px solid var(--line); }
+  td { font-size:14.5px; color:var(--dim); padding:12px 10px 12px 0; border-bottom:1px solid #101317; vertical-align:top; }
+  td.n { color:var(--txt); font-weight:600; white-space:nowrap; padding-right:14px; }
+  td.hl { color:var(--teal); font-weight:600; }
+  .tblwrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tblwrap table { min-width:600px; }
+  .facts { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:24px 0 8px; }
+  .fact { background:var(--card); border:1px solid #15181C; border-radius:14px; padding:18px; }
+  .fact .v { font-size:22px; font-weight:700; }
+  .fact .v.teal { color:var(--teal); } .fact .v.red { color:var(--red); }
+  .fact .l { font-size:12.5px; color:var(--dimmer); margin-top:6px; line-height:17px; }
+  .note { font-size:13px; color:var(--dimmer); font-style:italic; border-left:3px solid var(--teal); padding:4px 0 4px 14px; margin:20px 0; line-height:20px; }
+  a { color:var(--teal); }
+  @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} .live .big{font-size:40px;} .split{grid-template-columns:1fr; gap:14px;} td,th{font-size:13px;} td.n{white-space:normal;} }
+  .band { background:linear-gradient(180deg, #0B0E14, #090C10); border-top:1px solid #181C23; border-bottom:1px solid #181C23; box-shadow:inset 0 1px 0 rgba(255,255,255,0.02); }
+  .band .fact, .band .note { background:#0F1218; }
+  .wrap2 { max-width:780px; margin:0 auto; padding:10px 18px 40px; }
+  .wrap2 h2:first-child { margin-top:40px; }
+  .rv { opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
+  .rv.vis { opacity:1; transform:none; }
+  @media (prefers-reduced-motion: reduce){ .rv { opacity:1; transform:none; transition:none; } }
+  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
+  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
+  .subscribe .st { font-size:18px; font-weight:700; }
+  .subscribe .st b { color:var(--teal); }
+  .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
+  .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
+  .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
+  .subscribe input::placeholder { color:var(--dimmer); }
+  .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .subscribe .msg { display:none; font-size:13px; font-weight:600; margin-top:14px; padding:10px 14px; border-radius:8px; }
+  .subscribe .msg.ok { display:block; color:var(--teal); background:rgba(73,234,203,0.08); border:1px solid rgba(73,234,203,0.35); }
+  .subscribe .msg.err { display:block; color:var(--red); background:rgba(227,106,106,0.08); border:1px solid rgba(227,106,106,0.35); }
+  .subscribe .fine { font-size:11px; color:var(--dimmer); margin-top:10px; }
+  @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
+  footer { border-top:1px solid var(--line); margin-top:48px; padding-top:16px; text-align:center; font-size:11px; color:var(--dimmer); }
+  footer a { color:var(--dim); text-decoration:none; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nt">
+    <div class="nlogo"><a href="/">ALPHA<span>VAULT</span> · KASPA PULSE</a></div>
+    <div class="nright"><a class="nav-cta" href="#subForm">free cheat sheet</a><button class="nburger" aria-label="menu">☰</button></div>
+  </div>
+  <div class="nc">
+    <a href="/">dashboard</a>
+    <a href="/kaspa-supply.html">supply</a>
+    <a href="/kaspa-halving.html">halving</a>
+    <a href="/kaspa-staking.html">staking</a>
+    <a href="/kaspa-wallets.html">wallets</a>
+    <a href="/kaspa-hashrate.html">hashrate</a>
+    <a href="/kaspa-mining.html">mining</a>
+    <a href="/kaspa-tvl.html">tvl</a>
+    <a href="/kaspa-smart-contracts.html">smart contracts</a>
+    <a href="/kaspa-token-standard.html">token standards</a>
+    <a href="/kron.html">kron</a>
+    <a href="/entity-x.html">entity x</a>
+    <a href="/merged-mining.html">merged mining</a>
+    <a href="/kaspa-data-sources.html" class="on">data sources</a>
+  </div>
+</nav>
+<div class="wrap">
+  <h1>Kaspa data sources, compared. <b>Which one to open for which question, and why two of them can show you a different number for the same thing.</b></h1>
+  <div class="sub">There is no single place that answers everything about Kaspa, and the sites that come closest are each built around a different idea of what a transaction is. That is the whole reason their numbers disagree. Here is what each one is genuinely best at, and how to read all of them without getting fooled.</div>
+  <div class="answer">
+    <div class="lbl">The short answer</div>
+    <p><b>Use Kaspalytics for on-chain history and supply structure, an explorer for a single transaction or address, and a market site for price.</b> Kaspalytics is the deepest free chart set on Kaspa, covering supply aging, exchange holdings, address buckets and covenant activity. For one specific transaction, address or block, use <a href="https://explorer.kaspa.org" target="_blank" rel="noopener">explorer.kaspa.org</a> or the open REST API behind it. For KRC-20 tokens use kas.fyi. For price, volume and exchange data, any market site will do. Nobody is wrong when the numbers differ, they are usually answering different questions.</p>
+  </div>
+  <div class="live">
+    <div class="lbl"><i></i>before you trust any number on any of them</div>
+    <div class="big">3 questions</div>
+    <div class="cap">Ask these three of any chart on any site, including ours. Nearly every argument about Kaspa numbers dissolves once all three are answered.</div>
+    <div class="split">
+      <div><div class="v">What counts?</div><div class="k">does a transaction mean every one in every block, or each one once after the DAG has accepted it. this single choice can move a number by 5x</div></div>
+      <div><div class="v">Over what window?</div><div class="k">a live per-second ticker and a 24 hour average of the same thing are different numbers, and neither is a mistake</div></div>
+      <div><div class="v">How fresh?</div><div class="k">network views refresh in seconds, supply and address aging usually once a day. a flat line can just mean today has not been written yet</div></div>
+    </div>
+  </div>
+</div>
+<div class="band"><div class="wrap2">
+  <h2>The sources, and what each is actually for</h2>
+  <div class="tblwrap"><table>
+    <thead><tr><th>Source</th><th>Best for</th><th>Refresh</th><th>Access</th></tr></thead>
+    <tbody>
+      <tr><td class="n">Kaspalytics</td><td class="hl">on-chain history and supply structure: hash rate, difficulty, active addresses, fees, supply aging and HODL waves, exchange holdings, address balance buckets, script types and covenant activity</td><td>network and fee views in seconds, supply and address aging about once a day around 00:00 UTC</td><td>free, no account</td></tr>
+      <tr><td class="n">kaspa.stream</td><td>watching the chain move in real time: blocks and transactions as they land, top addresses, miner and node metrics</td><td>live</td><td>free, no account</td></tr>
+      <tr><td class="n">explorer.kaspa.org</td><td class="hl">one specific transaction, address or block, with the same explorer available for the testnets</td><td>live</td><td>free, no account</td></tr>
+      <tr><td class="n">api.kaspa.org</td><td class="hl">pulling that same data yourself in code, documented as an OpenAPI page you can click through</td><td>live</td><td>free, no key</td></tr>
+      <tr><td class="n">kas.fyi</td><td>KRC-20 tokens, with a page per token</td><td>live</td><td>site free, the developer platform at docs.kas.fyi uses API keys and paid plans</td></tr>
+      <tr><td class="n">KasLens</td><td>the market side: price across exchanges, volume, order book heatmap, a KRC-20 dashboard</td><td>live</td><td>free, no account</td></tr>
+      <tr><td class="n">KASLIVE</td><td>a live monitoring terminal, including large address movement, a mining calculator and an attack cost estimate</td><td>live</td><td>free, no account</td></tr>
+      <tr><td class="n">DeFiLlama</td><td>money inside the layer 2s, meaning TVL and volume for Kasplex and Igra and the apps on them</td><td>live</td><td>free, no account</td></tr>
+      <tr><td class="n">Kaspa Pulse</td><td>one weekly reading of the numbers that carry weight, with the definition printed next to each one</td><td>every Monday</td><td>free, no account</td></tr>
+    </tbody>
+  </table></div>
+  <p>Two things are worth saying plainly. First, almost all of this is free and made by people in this community for nothing, which is not normal for a chain this size. Second, none of these tools is trying to mislead anyone. When two of them disagree, the cause is nearly always a definition, not an error.</p>
+</div></div>
+<div class="wrap2">
+  <h2>Why two sites show a different transactions per second</h2>
+  <p>This is the one that catches people out most often, so it is worth walking through with the real numbers rather than in the abstract. In August 2026 a live counter on one site was showing somewhere around <b>11 transactions per second</b> while our own dashboard was publishing <b>2.34</b> for the same week. Both figures are defensible. They count different things.</p>
+  <h3>What we count, exactly</h3>
+  <p>We take the <b>accepted</b> transactions for a full day, standard transactions plus coinbase transactions, and divide by the 86,400 seconds in that day. Accepted matters: Kaspa produces around ten blocks a second in parallel, so the same transaction can appear in more than one block before the DAG settles which of them counts. Counting accepted transactions counts each one once, after that has been decided. Dividing by a whole day means we publish an average across quiet nights and busy afternoons alike, not a moment.</p>
+  <h3>What a live ticker counts</h3>
+  <p>A real-time counter is built to show flow, so it counts what is streaming past right now, which includes the coinbase transaction that every one of those ten blocks a second carries with it. We cannot see anyone else's code and we do not claim to know exactly how another site counts. What we can say is that a per-second live reading and a per-day accepted average are different measurements, and that the gap between them on Kaspa is structural, not a bug in either.</p>
+  <div class="note">The practical rule: a transactions per second figure means nothing without the word before it. Ask whether it is accepted or raw, whether coinbase transactions are included, and whether it is an average or a live reading. Every number on <a href="/">our dashboard</a> carries its definition for exactly this reason.</div>
+  <h2>Which source answers which question</h2>
+  <div class="facts">
+    <div class="fact"><div class="v teal">How much KAS has not moved?</div><div class="l">supply aging and HODL waves on Kaspalytics. we publish the share untouched for a year every Monday, and it has been sitting above half of all coins</div></div>
+    <div class="fact"><div class="v teal">Did this wallet move?</div><div class="l">explorer.kaspa.org for the human view, api.kaspa.org if you want to walk the full transaction list yourself. that is how our <a href="/entity-x.html">entity x page</a> was counted</div></div>
+    <div class="fact"><div class="v teal">Is this token real?</div><div class="l">kas.fyi for KRC-20 holders and supply, and <a href="/kron.html">our kron page</a> for what to check on a launchpad token before the chart tempts you</div></div>
+    <div class="fact"><div class="v teal">Is mining still profitable?</div><div class="l">hash rate and difficulty on Kaspalytics, earnings per petahash on <a href="/kaspa-mining.html">our mining page</a>, which is the number that actually decides it</div></div>
+    <div class="fact"><div class="v teal">How much money sits in Kaspa DeFi?</div><div class="l">DeFiLlama for Kasplex and Igra, plus <a href="/kaspa-tvl.html">what TVL on Kaspa actually means</a>, because the headline figure hides how little of it moves</div></div>
+    <div class="fact"><div class="v teal">What is the price doing?</div><div class="l">any market site. this is the one question that is genuinely well served everywhere, and the one that tells you least about the chain</div></div>
+  </div>
+  <h2>Where our own numbers come from</h2>
+  <p>We are a source on this list, so the same standard applies to us. The weekly figures on the dashboard come from Kaspalytics for supply aging, exchange holdings, active addresses and accepted transaction counts, from api.kaspa.org where we count something ourselves transaction by transaction, and from DeFiLlama for layer 2 value. Hash rate and difficulty are cross-checked against more than one source before they go out.</p>
+  <p><b>Where we cannot verify a number, we print a dash instead of a guess.</b> That is why the dashboard occasionally shows blanks while other sites show a figure for the same tile. A dash means we could not stand behind it that week, and we would rather be visibly incomplete than quietly wrong. When we do make a claim about what a wallet did, we counted every transaction ourselves and we report the movement, never the motive.</p>
+  <div class="note">The weekly reading lands every Monday on <a href="/">the Kaspa Pulse dashboard</a>, with the definition printed next to each number. Related reading: <a href="/kaspa-supply.html">Kaspa's supply, explained</a> and <a href="/kaspa-hashrate.html">what hash rate actually tells you</a>.</div>
+  <div class="subscribe">
+    <div class="badge">free · instant</div>
+    <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
+    <div class="ss">the 8 numbers that actually matter and how to read each one · plus the weekly pulse every monday</div>
+    <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="you@email.com" required>
+      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="locale" value="en">
+      <input type="hidden" name="html_type" value="simple">
+      <button type="submit" id="subBtn">get it</button>
+    </form>
+    <div class="msg" id="subMsg"></div>
+    <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
+  </div>
+  <div class="discordbox" style="background:linear-gradient(160deg, rgba(88,101,242,0.13), rgba(88,101,242,0.03)); border:1px solid rgba(88,101,242,0.45); border-radius:16px; padding:30px 24px; margin:18px 0 0; text-align:center;">
+    <div style="display:inline-block; font-size:10px; letter-spacing:2px; color:#9BA6F8; background:rgba(88,101,242,0.14); border:1px solid rgba(88,101,242,0.45); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700;">free · live alerts</div>
+    <div style="font-size:18px; font-weight:700; letter-spacing:-0.3px;">the chain, <span style="color:#9BA6F8;">watched for you</span></div>
+    <div style="font-size:12px; color:#7A828C; margin-top:6px; line-height:17px; max-width:460px; margin-left:auto; margin-right:auto;">a bot checks the entity x wallet every 30 minutes, around the clock. the moment the whale moves, the alert fires. plus the monday numbers and a place to request the data you're missing.</div>
+    <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener" style="display:inline-block; background:#5865F2; color:#FFFFFF; border-radius:8px; padding:11px 22px; font-size:14px; font-weight:700; text-decoration:none; margin-top:16px;">join the kaspa pulse discord</a>
+    <div style="font-size:11px; color:#7A828C; margin-top:10px;">one click, no email · alerts land in #alerts the second they fire</div>
+  </div>
+  <footer>
+    <div>page last reviewed 19 August 2026 · not financial advice · further reading: <a href="/kaspa-supply.html">kaspa's supply, explained</a> &middot; <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/kron.html">kron, explained</a> · <a href="/kaspa-wallets.html">kaspa wallets</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">youtube</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+  </footer>
+</div>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Kaspalytics?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Kaspalytics is a free on-chain analytics site for Kaspa. It publishes chart sets for mining, meaning hash rate and difficulty, for transactions, meaning counts, active addresses, fees, script types and covenant activity, and for supply, meaning exchange holdings, supply aging and HODL waves, address balance buckets and realized price. It needs no account. Network and fee views refresh within seconds, while supply aging and address balance views update about once a day around 00:00 UTC." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is there a free Kaspa API?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. The REST API behind the public Kaspa explorer is available at api.kaspa.org with a documentation page you can click through, and it needs no key. Equivalent endpoints exist for the testnets. Separately, kas.fyi runs a developer platform at docs.kas.fyi that uses API keys and paid plans for higher volume access." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why do two Kaspa sites show a different transactions per second?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Because they measure different things. Kaspa produces roughly ten blocks per second in parallel, and every block carries a coinbase transaction, so a live counter showing raw flow will read far higher than a figure built from accepted transactions. Kaspa Pulse divides the accepted transactions of a full day, standard plus coinbase, by 86,400 seconds, which counts each transaction once and averages across the whole day. A live per second reading and a per day accepted average are both valid, and neither is an error." }
+    },
+    {
+      "@type": "Question",
+      "name": "Which Kaspa explorer should I use?",
+      "acceptedAnswer": { "@type": "Answer", "text": "For a single transaction, address or block, explorer.kaspa.org is the straightforward choice and covers the testnets too. For watching blocks and transactions arrive in real time, along with miner and node metrics, kaspa.stream is built for that view. For KRC-20 tokens, kas.fyi has a page per token." }
+    },
+    {
+      "@type": "Question",
+      "name": "Where does Kaspa Pulse get its data?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Supply aging, exchange holdings, active addresses and accepted transaction counts come from Kaspalytics. Anything counted transaction by transaction, such as the movement out of the largest wallet on the chain, is counted from api.kaspa.org directly. Layer 2 value comes from DeFiLlama. Hash rate and difficulty are cross checked against more than one source. Where a number cannot be verified, the dashboard prints a dash instead of an estimate." }
+    },
+    {
+      "@type": "Question",
+      "name": "Where can I see how much Kaspa sits on exchanges?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Kaspalytics publishes an exchange holdings chart, which sums the balances of addresses identified as belonging to exchanges. Read it as a movement signal rather than a certainty: address labelling is inference, a deposit to an exchange is not proof of a sale, and a withdrawal from one is not proof of a purchase." }
+    }
+  ]
+}
+</script>
+<script>
+(function(){
+  if(!("IntersectionObserver" in window)) return;
+  const els = document.querySelectorAll(".answer,.live,.fact,h2,h3,table,.note,.subscribe");
+  const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("vis"); io.unobserve(e.target); } }),{threshold:0.1});
+  els.forEach(el=>{ el.classList.add("rv"); io.observe(el); });
+})();
+</script>
+<script>
+(function(){
+  const b = document.querySelector(".nburger"), c = document.querySelector(".nav .nc");
+  if(b && c) b.addEventListener("click", function(){ c.classList.toggle("open"); b.textContent = c.classList.contains("open") ? "✕" : "☰"; });
+})();
+</script>
+<script>
+(function(){
+  const form = document.getElementById("subForm"), btn = document.getElementById("subBtn"), msg = document.getElementById("subMsg");
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    btn.disabled = true; const old = btn.textContent; btn.textContent = "…";
+    msg.className = "msg";
+    try {
+      const res = await fetch(form.action, { method:"POST", body:new FormData(form) });
+      const j = await res.json();
+      if (j.success) { msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
+      else { msg.textContent = j.message || "something went wrong — please try again"; msg.className = "msg err"; }
+    } catch(_) { form.submit(); }
+    btn.disabled = false; btn.textContent = old;
+  });
+})();
+</script>
+<script src="/capture.js" defer></script>
+</body>
+</html>
