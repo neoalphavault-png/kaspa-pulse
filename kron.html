@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>What Is KRON on Kaspa? The Native Launchpad, Explained — Kaspa Pulse</title>
-<meta name="description" content="KRON is a token launchpad and DEX built directly on Kaspa's layer 1, not an EVM side chain — tokens launch on a bonding curve and graduate to a locked AMM. How the model works, where it sits in the Kaspa stack, and the one number to check before buying anything on it.">
+<title>Kron Kaspa, What It Is and What the Numbers Actually Say</title>
+<meta name="description" content="Kron is a token launchpad on Kaspa. What it does, how many of its tokens have graduated, and how its volume compares to the rest of Kaspa DeFi.">
 <link rel="canonical" href="https://kaspapulse.com/kron.html">
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
@@ -14,7 +14,6 @@
   body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
          background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
   .wrap { max-width:780px; margin:0 auto; padding:8px 18px 56px; }
-
   .nav { position:sticky; top:0; z-index:60; background:rgba(5,6,8,0.88); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
   .nav .nt { max-width:820px; margin:0 auto; padding:13px 18px 9px; display:flex; justify-content:space-between; align-items:center; }
   .nav .nlogo { font-size:13px; letter-spacing:4px; font-weight:700; }
@@ -35,7 +34,6 @@
     .nav .nc.open a { font-size:15px; padding:11px 12px; }
     .nav .nlogo { font-size:12px; letter-spacing:3px; }
   }
-
   h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
   h1 b { color:var(--teal); }
   .sub { font-size:16px; color:var(--dim); line-height:24px; }
@@ -49,7 +47,6 @@
   .answer { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:24px 26px; margin:34px 0; }
   .answer .lbl { font-size:12px; letter-spacing:3px; color:var(--teal); text-transform:uppercase; font-weight:700; margin-bottom:10px; }
   .answer p { margin:0; font-size:16px; line-height:25px; color:var(--txt); }
-
   .live { background:var(--card); border:1px solid #15181C; border-radius:18px; padding:26px 26px 22px; margin:30px 0 8px; }
   .live .lbl { font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700; }
   .live .lbl i { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--teal); margin-right:7px; vertical-align:1px; }
@@ -58,7 +55,6 @@
   .split { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; border-top:1px solid #15181C; padding-top:18px; }
   .split div .v { font-size:19px; font-weight:700; }
   .split div .k { font-size:11.5px; color:var(--dimmer); margin-top:4px; line-height:16px; }
-
   table { width:100%; border-collapse:collapse; margin:20px 0 8px; }
   th { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--dimmer); text-align:left; font-weight:700; padding:0 0 10px; border-bottom:1px solid var(--line); }
   td { font-size:14.5px; color:var(--dim); padding:12px 10px 12px 0; border-bottom:1px solid #101317; vertical-align:top; }
@@ -66,7 +62,6 @@
   td.hl { color:var(--teal); font-weight:600; }
   .tblwrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
   .tblwrap table { min-width:540px; }
-
   .facts { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:24px 0 8px; }
   .fact { background:var(--card); border:1px solid #15181C; border-radius:14px; padding:18px; }
   .fact .v { font-size:22px; font-weight:700; }
@@ -75,16 +70,13 @@
   .note { font-size:13px; color:var(--dimmer); font-style:italic; border-left:3px solid var(--teal); padding:4px 0 4px 14px; margin:20px 0; line-height:20px; }
   a { color:var(--teal); }
   @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} .live .big{font-size:40px;} .split{grid-template-columns:1fr; gap:14px;} td,th{font-size:13px;} td.n{white-space:normal;} }
-
   .band { background:linear-gradient(180deg, #0B0E14, #090C10); border-top:1px solid #181C23; border-bottom:1px solid #181C23; box-shadow:inset 0 1px 0 rgba(255,255,255,0.02); }
   .band .fact, .band .note { background:#0F1218; }
   .wrap2 { max-width:780px; margin:0 auto; padding:10px 18px 40px; }
   .wrap2 h2:first-child { margin-top:40px; }
-
   .rv { opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
   .rv.vis { opacity:1; transform:none; }
   @media (prefers-reduced-motion: reduce){ .rv { opacity:1; transform:none; transition:none; } }
-
   .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
   .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
   .subscribe .st { font-size:18px; font-weight:700; }
@@ -126,15 +118,12 @@
   </div>
 </nav>
 <div class="wrap">
-
   <h1>KRON, explained. <b>Kaspa's first native launchpad — and the one number to check before you buy anything on it.</b></h1>
   <div class="sub">A new kind of token has started trading on Kaspa, launched directly on layer 1 instead of as a side-chain asset. Here's how the model works, where it fits in the stack, and the honest read on what's live so far.</div>
-
   <div class="answer">
     <div class="lbl">The short answer</div>
     <p><b>KRON is a decentralized exchange and token launchpad built directly on Kaspa's layer 1</b> — not an EVM layer 2 like Kasplex or Igra. New tokens launch on a bonding curve (an automatic, algorithmic price curve with no presale and no team allocation to dump), and once a token hits a market cap threshold it "graduates" into a permanently-locked liquidity pool that trades against KAS. The platform describes itself as non-custodial: KRON never takes custody of user funds, the contract logic does.</p>
   </div>
-
   <div class="live">
     <div class="lbl"><i></i>KRON token · dated snapshot, not live</div>
     <div class="big" id="kronUsd">—</div>
@@ -147,17 +136,13 @@
   </div>
   <div class="note">Snapshot taken August 1, 2026. KRON doesn't publish a public price feed we can pull live, so unlike the rest of this site these three numbers are fixed at that moment — only the USD conversion above updates, using the live KAS price. For the current number, check <a href="https://kron.technology" target="_blank" rel="noopener">kron.technology</a> directly.</div>
 </div>
-
 <div class="band"><div class="wrap2">
   <h2>How a bonding-curve launchpad works</h2>
   <p>The model KRON runs isn't unique to Kaspa — the same pattern (popularized by launchpads like pump.fun on Solana) has spread to most chains that support programmable tokens. It's worth understanding once, because the mechanics explain both why it's harder to rug than a typical presale, and why most tokens launched this way still go to zero.</p>
-
   <h3>Step one: launch on the curve</h3>
   <p>Anyone can create a token with no coding and no fundraise. The token's price isn't set by a team — it's set by a formula: the more people buy, the higher the price climbs along a predefined curve, and the more people sell, the more it falls back down. There's no presale allocation to unlock and dump, because there was never a presale.</p>
-
   <h3>Step two: graduation</h3>
   <p>Once enough buying pushes the token's market cap past a threshold, it "graduates" — the accumulated KAS backing it gets deposited into an automated market maker pool, and that liquidity is <b>permanently locked</b>. This is the specific claim worth understanding: locked liquidity means the token's trading pool can't be pulled out from under holders later, which is the single most common way small-cap launches turn into an outright rug. It does not mean the token's price can't fall to near zero through ordinary selling — it only removes one specific failure mode, not all of them.</p>
-
   <h3>Where this sits versus the rest of Kaspa's token stack</h3>
   <p>Kaspa now has three distinct ways to hold a token, and they are not interchangeable:</p>
   <div class="tblwrap"><table>
@@ -172,20 +157,16 @@
   </table></div>
   <p>KRC-20 tokens are the older standard — inscriptions that carry metadata but no executable logic. Kasplex and Igra tokens are standard EVM assets, identical in kind to any Ethereum token, just settling to Kaspa. KRON's launches are the newest category: tokens whose supply, curve and locked liquidity are enforced by layer-1 logic itself, with no separate side chain involved.</p>
 </div></div>
-
 <div class="wrap2">
   <h2>The one number that matters more than the chart</h2>
   <p>Every token launched this way produces the same seductive chart shape — flat, then a spike. The chart tells you what happened. It does not tell you who owns it. That's the number worth checking before anything else:</p>
-
   <div class="facts">
     <div class="fact"><div class="v red">295 holders</div><div class="l">at the August 1, 2026 snapshot, against a 10.22M KAS market cap — a small handful of wallets can still move this token's price sharply in either direction</div></div>
     <div class="fact"><div class="v teal">Locked liquidity ≠ safe token</div><div class="l">graduation removes the classic "pull the liquidity" rug — it says nothing about concentration, team allocation history, or whether the token has any use beyond trading</div></div>
     <div class="fact"><div class="v teal">Launch ≠ audit</div><div class="l">a bonding curve launching without a presale is a fairer starting mechanism, not a security review — the underlying covenant code carries the same young-contract risk as anything else on Kaspa's new L1 stack</div></div>
     <div class="fact"><div class="v teal">Graduation rate over time</div><div class="l">the more useful long-run signal isn't any single token's price, it's what share of everything launched on KRON actually reaches graduation — we track this weekly</div></div>
   </div>
-
   <div class="note">We publish the holder count, graduation activity and what changed on <a href="/">the Kaspa Pulse dashboard</a> every Monday. Related reading: <a href="/kaspa-smart-contracts.html">how Kaspa's covenants and L2s work</a> and <a href="/kaspa-tvl.html">what TVL on Kaspa actually means</a>.</div>
-
   <div class="subscribe">
     <div class="badge">free · instant</div>
     <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
@@ -200,7 +181,6 @@
     <div class="msg" id="subMsg"></div>
     <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
   </div>
-
   <div class="discordbox" style="background:linear-gradient(160deg, rgba(88,101,242,0.13), rgba(88,101,242,0.03)); border:1px solid rgba(88,101,242,0.45); border-radius:16px; padding:30px 24px; margin:18px 0 0; text-align:center;">
     <div style="display:inline-block; font-size:10px; letter-spacing:2px; color:#9BA6F8; background:rgba(88,101,242,0.14); border:1px solid rgba(88,101,242,0.45); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700;">free · live alerts</div>
     <div style="font-size:18px; font-weight:700; letter-spacing:-0.3px;">the chain, <span style="color:#9BA6F8;">watched for you</span></div>
@@ -208,12 +188,10 @@
     <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener" style="display:inline-block; background:#5865F2; color:#FFFFFF; border-radius:8px; padding:11px 22px; font-size:14px; font-weight:700; text-decoration:none; margin-top:16px;">join the kaspa pulse discord</a>
     <div style="font-size:11px; color:#7A828C; margin-top:10px;">one click, no email · alerts land in #alerts the second they fire</div>
   </div>
-
   <footer>
-    <div>not financial advice · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>not financial advice · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">youtube</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
   </footer>
 </div>
-
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -247,7 +225,6 @@
   ]
 }
 </script>
-
 <script>
 (function(){
   const KAS_FALLBACK = 0.0291;
@@ -263,7 +240,6 @@
     .then(r=>r.json()).then(d=>{ if(d.kaspa && d.kaspa.usd) render(d.kaspa.usd, true); }).catch(()=>{});
 })();
 </script>
-
 <script>
 (function(){
   if(!("IntersectionObserver" in window)) return;
@@ -272,14 +248,12 @@
   els.forEach(el=>{ el.classList.add("rv"); io.observe(el); });
 })();
 </script>
-
 <script>
 (function(){
   const b = document.querySelector(".nburger"), c = document.querySelector(".nav .nc");
   if(b && c) b.addEventListener("click", function(){ c.classList.toggle("open"); b.textContent = c.classList.contains("open") ? "✕" : "☰"; });
 })();
 </script>
-
 <script>
 (function(){
   const form = document.getElementById("subForm"), btn = document.getElementById("subBtn"), msg = document.getElementById("subMsg");
