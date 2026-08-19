@@ -19,7 +19,8 @@
       ["hashrate", "/kaspa-hashrate.html"],
       ["mining", "/kaspa-mining.html"],
       ["merged mining", "/merged-mining.html"],
-      ["the halving", "/kaspa-halving.html"]
+      ["the halving", "/kaspa-halving.html"],
+      ["toccata", "/kaspa-toccata.html"]
     ]},
     { t: "supply", k: [
       ["supply", "/kaspa-supply.html"],
