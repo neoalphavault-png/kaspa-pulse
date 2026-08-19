@@ -57,15 +57,31 @@
     + ".nav .ndrop a:hover{color:#FFFFFF;background:rgba(255,255,255,0.05);}"
     + ".nav .ndrop a.cur{color:#49EACB;}"
     + "@media(max-width:640px){"
-    + ".nav .nc.open{gap:2px;padding:6px 14px 14px;}"
+    // das aufgeklappte menue ist hoeher als ein telefonbildschirm. es
+    // bekommt deshalb einen eigenen scrollbereich statt die seite darunter
+    // zu schieben. overscroll-behavior sorgt dafuer, dass der wisch im
+    // menue bleibt und nicht auf die seite ueberspringt.
+    + ".nav .nc.open{gap:0;padding:4px 14px 16px;max-height:calc(100vh - 58px);"
+    + "max-height:calc(100dvh - 58px);overflow-y:auto;overscroll-behavior:contain;"
+    + "-webkit-overflow-scrolling:touch;scrollbar-width:none;}"
     + ".nav .ngrp{width:100%;padding-bottom:0;margin-bottom:0;}"
-    + ".nav .nc.open .ntop{width:100%;text-align:left;font-size:11px;letter-spacing:2px;"
-    + "text-transform:uppercase;color:#7A828C;padding:14px 12px 4px;cursor:default;}"
+    + ".nav .nc.open > a{font-size:15px;padding:11px 12px;}"
+    + ".nav .nc.open .ntop{width:100%;text-align:left;font-size:10px;letter-spacing:2px;"
+    + "text-transform:uppercase;color:#6E757E;padding:13px 12px 3px;cursor:default;}"
     + ".nav .nc.open .ntop i{display:none;}"
     + ".nav .ngrp.on .ntop{background:none;border-color:transparent;}"
-    + ".nav .nc.open .ndrop{position:static;display:block;transform:none;background:none;"
-    + "border:none;box-shadow:none;padding:0;min-width:0;}"
-    + ".nav .nc.open .ndrop a{font-size:15px;padding:10px 12px;}"
+    // zwei spalten je gruppe. damit passt das ganze menue auf einen
+    // telefonbildschirm und niemand muss ueberhaupt scrollen.
+    + ".nav .nc.open .ndrop{position:static;display:grid;grid-template-columns:1fr 1fr;"
+    + "gap:0 6px;transform:none;background:none;border:none;box-shadow:none;padding:0;min-width:0;}"
+    + ".nav .nc.open .ndrop a{font-size:15px;padding:9px 12px;}"
+    // der schwebende knopf verdeckt sonst den letzten menuepunkt
+    + "body:has(.nav .nc.open) #kpcBtn{display:none;}"
+    + "}"
+    // auf schmalen geraeten brach der schriftzug oben auf drei zeilen um
+    + "@media(max-width:400px){"
+    + ".nav .nlogo{font-size:10.5px;letter-spacing:1.5px;}"
+    + ".nav-cta{font-size:9px;padding:5px 9px;letter-spacing:1.5px;}"
     + "}";
   var st = document.createElement("style");
   st.textContent = css;
