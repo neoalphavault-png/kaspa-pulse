@@ -16,9 +16,16 @@ messbar ist. Er prueft nicht, ob die grafik gut ist.
 WAS ER FAENGT
   zu kleine schrift, gemessen an der gerenderten schriftgroesse
   ueberlauf ueber die bildhoehe hinaus
+  abgeschnittene elemente innerhalb der seite
   fehlende marke oder domain im bild
   verbotene zeichen im sichtbaren text
   falsches seitenverhaeltnis
+
+Der dritte punkt kam am 20.08.2026 dazu. Eine FOLLOW THE MONEY fassung kam
+durch, obwohl die grosse zahl mittendrin abgeschnitten war. Grund war
+flexbox. Der kasten mit der zahl wurde gestaucht statt ueberzulaufen, die
+seitenhoehe blieb deshalb korrekt und die alte pruefung sah nichts. Wer nur
+die gesamthoehe misst, faengt genau die haelfte der ueberlauffehler.
 
 WAS ER NICHT FAENGT
   ob die grafik genau eine aussage macht
@@ -78,8 +85,26 @@ def messen(html_pfad, breite, hoehe):
         out.push({txt: t.slice(0, 60), px: parseFloat(s.fontSize),
                   klein: klein.has(e)});
       });
+      // gestauchte kaesten. flexbox schrumpft ein kind, statt die seite
+      // wachsen zu lassen, der inhalt wird dabei abgeschnitten. das ist an
+      // der gesamthoehe nicht zu sehen, nur am einzelnen element.
+      const schnitt = [];
+      document.querySelectorAll("body *").forEach(e => {
+        const s = getComputedStyle(e);
+        if (s.display === "none") return;
+        // nur wo wirklich abgeschnitten wird. bei overflow visible ragt der
+        // inhalt heraus und bleibt sichtbar, das ist kein fehler. ein paar
+        // pixel unterschied entstehen bei grossen schriften durch
+        // unterlaengen, deshalb die schwelle.
+        if (s.overflowY === "visible") return;
+        const fehl = e.scrollHeight - e.clientHeight;
+        if (fehl > 6 && e.clientHeight > 0) {
+          schnitt.push({txt: (e.textContent || "").trim().slice(0, 40),
+                        tag: e.className || e.tagName, fehl: fehl});
+        }
+      });
       return {texte: out, hoehe: document.body.scrollHeight,
-              sicht: document.body.innerText};
+              schnitt: schnitt, sicht: document.body.innerText};
     }"""
     js = js.replace("KLEIN", repr(KLEIN_ERLAUBT))
     with sync_playwright() as pw:
@@ -128,6 +153,9 @@ def pruefen(daten, breite, hoehe):
     if daten["hoehe"] > hoehe + 1:
         fehler.append("ueberlauf, inhalt ist %d px hoch, bild nur %d"
                       % (daten["hoehe"], hoehe))
+    for s in daten.get("schnitt") or []:
+        fehler.append("abgeschnitten, %r fehlen %d px, inhalt %r"
+                      % (s["tag"], s["fehl"], s["txt"]))
     sicht = (daten.get("sicht") or "").lower()
     if not any(m in sicht for m in MARKEN):
         fehler.append("keine marke und keine domain im bild gefunden")
@@ -181,12 +209,26 @@ ZEICHEN = GUT.replace("same chain, two answers", "same chain \u2014 two answers"
 UEBERLAUF = GUT.replace("height:1350px", "height:1350px").replace(
     '<div class="h">', '<div class="h" style="margin-top:1300px">')
 
+# der fall vom 20.08.2026. die seite ist genau 1350 hoch, aber flexbox
+# staucht den kasten, und die zahl darin wird abgeschnitten.
+GESTAUCHT = """<html><head><style>
+body{width:1080px;height:1350px;margin:0;background:#080B0F;color:#fff;
+font-family:Arial;padding:40px;box-sizing:border-box;display:flex;
+flex-direction:column}
+.hero{overflow:hidden;padding:20px}
+.hero .v{font-size:186px;font-weight:700}
+.rest{height:1100px;font-size:46px}
+.foot{font-size:32px}</style></head><body>
+<div class="hero"><div class="v">+$4.1B</div></div>
+<div class="rest">viel inhalt darunter, der den kasten zusammendrueckt</div>
+<div class="foot">pulsehawk.io</div></body></html>"""
+
 
 def selbsttest():
     import tempfile
     faelle = [("gut", GUT, 0), ("zu klein", KLEIN, 1),
               ("ohne marke", OHNE_MARKE, 1), ("gedankenstrich", ZEICHEN, 1),
-              ("ueberlauf", UEBERLAUF, 1)]
+              ("ueberlauf", UEBERLAUF, 1), ("gestaucht", GESTAUCHT, 1)]
     schlecht = 0
     for name, html, erwartet in faelle:
         with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False,
