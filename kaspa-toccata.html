@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Toccata Kaspa, What the Hard Fork Actually Changed</title>
-<meta name="description" content="Kaspa's Toccata hard fork activated 30 June 2026. What it added, what it explicitly does not do, and what actually runs on it seven weeks later.">
+<meta name="description" content="Kaspa's Toccata hard fork activated 30 June 2026. What it added, what it explicitly does not do, and what actually runs on it eight weeks later.">
 <link rel="canonical" href="https://kaspapulse.com/kaspa-toccata.html">
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
@@ -132,7 +132,7 @@
     <div class="cap">the DAA score at which Toccata activated. the chain has been running on the new consensus rules ever since, on Rusty Kaspa v2.0.0 and later.</div>
     <div class="split">
       <div><div class="v">6</div><div class="k">consensus additions, listed in the official developer guide</div></div>
-      <div><div class="v">~450</div><div class="k">covenant transactions a day, from our own weekly count</div></div>
+      <div><div class="v">403</div><div class="k">covenant transactions a day, our own count in the week of 24 August 2026</div></div>
       <div><div class="v">0</div><div class="k">mentions of native token issuance in that guide</div></div>
     </div>
   </div>
@@ -160,10 +160,10 @@
   <p><b>The official developer guide lists six additions, and native token issuance is not among them.</b> The core developer's own outlook written before activation does not mention native tokens either. We are not saying the feature is impossible or unplanned, and we are not correcting anyone's roadmap. We are saying that if you read that Toccata introduced native tokens, that claim does not come from the documentation.</p>
   <p>The guide is equally direct about the bigger framing. It states plainly that <b>Toccata does not turn Kaspa into an account chain smart contract system</b>. Kaspa stays a UTXO chain, in which coins carry their own rules, rather than becoming a chain of accounts and balances with contracts sitting above them like Ethereum. That distinction is not pedantry. It decides what can be built, how it has to be written, and why tooling from other chains does not simply carry over.</p>
   <div class="note">This is the part worth taking away if you take away nothing else. Toccata is a programmability upgrade to a UTXO chain, not a port of the Ethereum model onto Kaspa.</div>
-  <h2>Seven weeks in, what actually runs on it</h2>
+  <h2>Eight weeks in, what actually runs on it</h2>
   <p>Consensus features being active and an ecosystem using them are two different things, and the guide says so itself, noting that developer tooling is younger than the consensus it targets. So here is the honest state of it, counted rather than claimed.</p>
   <div class="facts">
-    <div class="fact"><div class="v teal">~450 a day</div><div class="l">covenant transactions on mainnet in the week of 17 August 2026, from our own weekly count. small in absolute terms, and not zero, which is the point seven weeks after activation</div></div>
+    <div class="fact"><div class="v teal">403 a day</div><div class="l">covenant transactions on mainnet in the week of 24 August 2026, from our own weekly count, against about 450 the week before. small in absolute terms, and not zero, which is the point eight weeks after activation</div></div>
     <div class="fact"><div class="v teal">Kron</div><div class="l">the first launchpad built on the new capability, launching tokens on a bonding curve whose locked liquidity is enforced by layer 1 logic. <a href="/kron.html">what it is and what to check</a></div></div>
     <div class="fact"><div class="v">Tooling is young</div><div class="l">the consensus rules are live, the libraries, wallets and explorers that expose them are still catching up. expect rough edges rather than finished products</div></div>
     <div class="fact"><div class="v">Not the same as the L2s</div><div class="l">Kasplex and Igra remain EVM layer 2s and are unaffected by this. Toccata is about what layer 1 itself can do. <a href="/kaspa-smart-contracts.html">how the two compare</a></div></div>
@@ -191,7 +191,7 @@
     <div style="font-size:11px; color:#7A828C; margin-top:10px;">one click, no email · alerts land in #alerts the second they fire</div>
   </div>
   <footer>
-    <div>page last reviewed 19 August 2026 · not financial advice · further reading: <a href="/kron.html">kron, explained</a> &middot; <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> · <a href="/kaspa-data-sources.html">where kaspa numbers come from</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">youtube</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>page last reviewed 24 August 2026 · not financial advice · further reading: <a href="/kron.html">kron, explained</a> &middot; <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> · <a href="/kaspa-data-sources.html">where kaspa numbers come from</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">youtube</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
   </footer>
 </div>
 <script type="application/ld+json">
@@ -227,7 +227,7 @@
     {
       "@type": "Question",
       "name": "Is anything actually being built on Toccata yet?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes, though it is early. In the week of 17 August 2026 we counted around 450 covenant transactions a day on mainnet. Kron, a token launchpad whose locked liquidity is enforced by layer 1 logic, is the most visible application built on the new capability. The developer guide itself notes that tooling is younger than the consensus features, so libraries, wallets and explorers are still catching up." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes, though it is early. In the week of 24 August 2026 we counted 403 covenant transactions a day on mainnet, against about 450 the week before. Kron, a token launchpad whose locked liquidity is enforced by layer 1 logic, is the most visible application built on the new capability. The developer guide itself notes that tooling is younger than the consensus features, so libraries, wallets and explorers are still catching up." }
     }
   ]
 }
