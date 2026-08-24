@@ -1,26 +1,26 @@
 {
-  "issue": "KASPA PULSE · AUG 22 2026",
+  "issue": "KASPA PULSE · AUG 24 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "$58.9K",
-  "value_label": "of brand new kaspa supply is created every day",
-  "headline": "bitcoin prints *590 times* more\nnew supply every single day.",
+  "value": "11",
+  "value_label": "days until the next kaspa reward cut",
+  "headline": "bitcoin waits *601 days*.\nkaspa cuts 19 times before then.",
   "panes": [
     {
       "kind": "compare",
-      "title": "NEW SUPPLY PER DAY",
-      "sub": "issuance valued at today's spot price",
+      "title": "TIME TO THE NEXT REDUCTION",
+      "sub": "counted from today, in days",
       "rows": [
         {
           "label": "kaspa",
-          "sub": "2.00 million KAS",
-          "value": "$58.9K",
-          "pct": 0.16957884139052706,
+          "sub": "monthly",
+          "value": "11",
+          "pct": 1.883700093771332,
           "tone": "teal"
         },
         {
           "label": "bitcoin",
-          "sub": "450 BTC",
-          "value": "$34.74M",
+          "sub": "estimated",
+          "value": "601",
           "pct": 100.0,
           "tone": "grey"
         }
@@ -28,18 +28,18 @@
     },
     {
       "kind": "anchor",
-      "title": "WHY THAT GAP CLOSES",
+      "title": "WHAT CHANGES",
       "lines": [
-        "kaspa cuts its reward *twelve times a year*. bitcoin cuts once every four years.",
-        "the dollar figure moves with the price, the coin figure does not. only one of the two is a decision."
+        "daily emission goes from 2.00 million to *1.89 million KAS*.",
+        "the block reward drops from 2.3125 to 2.1827 KAS. same arithmetic every month, no vote, no announcement."
       ]
     }
   ],
-  "note": "bitcoin issuance is fixed at 3.125 coins per block and about 144 blocks a day until the next halving.",
-  "sources": "api.kaspa.org and coingecko.com",
+  "note": "the kaspa date is arithmetic, the bitcoin date is an estimate because it depends on how fast blocks are found.",
+  "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "kaspa creates about $58.9K of new supply per day. bitcoin creates $34.74M, roughly 590 times more. kaspa cuts its reward twelve times a year and bitcoin once every four years, so that gap narrows every month without anyone voting on it.",
-    "reply": "the full emission schedule is on kaspapulse.com/kaspa-halving.html"
+    "x": "the next kaspa reward cut lands in 11 days. bitcoin waits about 601 days for its next one, and kaspa cuts 19 more times before that date. daily emission drops from 2.00 million to 1.89 million KAS.",
+    "reply": "the countdown runs live on kaspapulse.com/kaspa-halving.html"
   }
 }
