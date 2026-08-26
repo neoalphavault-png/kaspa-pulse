@@ -1,26 +1,26 @@
 {
-  "issue": "KASPA PULSE · AUG 25 2026",
+  "issue": "KASPA PULSE · AUG 26 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "305 PH",
-  "value_label": "petahash per second securing the network right now",
-  "headline": "hashrate is *down 11 percent*\nagainst 3 weeks ago.",
+  "value": "$1.36M",
+  "value_label": "locked across kasplex and igra",
+  "headline": "layer 2 tvl is *down 26 percent*\nagainst 3 weeks ago.",
   "panes": [
     {
       "kind": "compare",
-      "title": "NETWORK HASHRATE",
+      "title": "TOTAL VALUE LOCKED",
       "sub": "same measurement, two dates",
       "rows": [
         {
           "label": "today",
           "sub": "",
-          "value": "305 PH",
-          "pct": 89.1880107691481,
+          "value": "$1.36M",
+          "pct": 74.13779129991158,
           "tone": "red"
         },
         {
           "label": "3 weeks ago",
           "sub": "",
-          "value": "342 PH",
+          "value": "$1.83M",
           "pct": 100.0,
           "tone": "grey"
         }
@@ -30,17 +30,17 @@
       "kind": "anchor",
       "title": "WHAT THE NUMBER IS",
       "lines": [
-        "the difference between the two readings is *37 PH*.",
-        "both values come from the same source, read the same way, 22 days apart.",
+        "the difference between the two readings is *$474K*.",
+        "both values come from the same source, read the same way, 23 days apart.",
         "we report the movement, *never the motive*."
       ]
     }
   ],
   "note": "the anchor is the weekly reading we archived, not a chart high. that is why the comparison holds.",
-  "sources": "api.kaspa.org",
+  "sources": "defillama.com",
   "site": "kaspapulse.com",
   "post": {
-    "x": "hashrate on kaspa is down 11 percent against 3 weeks ago. 305 PH today, 342 PH then, both read from the same source 22 days apart. we report the movement, never the motive.",
+    "x": "layer 2 tvl on kaspa is down 26 percent against 3 weeks ago. $1.36M today, $1.83M then, both read from the same source 23 days apart. we report the movement, never the motive.",
     "reply": "the weekly readings behind that are on kaspapulse.com"
   }
 }
