@@ -1,0 +1,28 @@
+# kaspa pulse - kursdaten fuer KASPA WEEKLY
+# laeuft sonntags um 00:40 utc, direkt nach unserem wochenschluss
+# (woche endet sonntag 00:00 utc, definition steht in scripts/kas_candles.py).
+# der zusaetzliche handstart ist fuer den allerersten lauf und fuer notfaelle.
+name: kas candles
+on:
+  schedule:
+    - cron: "40 0 * * 0"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: fetch candles
+        run: python3 scripts/kas_candles.py --out data/kas-candles.json
+      - name: commit
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/kas-candles.json
+          git diff --cached --quiet || git commit -m "kas candles $(date -u +%F)"
+          git push
