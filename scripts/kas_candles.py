@@ -10,6 +10,13 @@ die preise benutzt und der aus github actions erreichbar ist. tageskerzen
 seit handelsbeginn november 2021, fuer kaspa preis und volumen, fuer bitcoin
 nur der preis, den brauchen wir fuer das kas gegen btc verhaeltnis.
 
+nachtrag nach dem ersten fehllauf am 27.08.: der parameter interval=daily
+ist bei coingecko zahlenden kunden vorbehalten und flog raus, die freie api
+liefert bei days=max von selbst tageswerte. zusaetzlich gibt es jetzt einen
+zweiten datenweg ueber kraken, falls coingecko nicht liefert. kraken reicht
+nur bis zum dortigen listing mitte 2023 zurueck, die datei sagt dann selbst,
+welche quelle und welches fenster sie traegt.
+
 unsere wochendefinition, und sie steht bewusst hier im code: eine woche endet
 sonntag 00:00 utc. das ist unsere eigene festlegung, damit die sonntagabend
 eingesprochene folge auf abgeschlossenen zahlen sitzt. die definition wird
@@ -35,7 +42,8 @@ import sys
 UA = "kaspa-pulse-candles/1.0 (+https://kaspapulse.com)"
 TIMEOUT = 30
 RETRIES = 3
-CG = "https://api.coingecko.com/api/v3/coins/%s/market_chart?vs_currency=usd&days=max&interval=daily"
+CG = "https://api.coingecko.com/api/v3/coins/%s/market_chart?vs_currency=usd&days=max"
+KRAKEN = "https://api.kraken.com/0/public/OHLC?pair=%s&interval=1440"
 # handelsbeginn. alles davor waere ein datenfehler der quelle.
 KAS_FIRST = dt.date(2021, 11, 1)
 # plausibilitaetsfenster, dieselben grenzen wie im number-of-day generator.
@@ -70,6 +78,8 @@ def daily_series(coin, price_window, want_volume):
     fliegt raus, wir speichern nur abgeschlossene tage.
     """
     d = http_json(CG % coin)
+    if isinstance(d, dict) and d.get("status"):
+        raise Stop("%s antwortet mit fehler %s" % (coin, d.get("status")))
     prices = d.get("prices") or []
     vols = {int(ts): v for ts, v in (d.get("total_volumes") or [])}
     if len(prices) < 300:
@@ -126,19 +136,62 @@ def weekly_close(rows):
     return out
 
 
+def kraken_daily(pair, price_window, want_volume):
+    """
+    Zweiter datenweg. kraken liefert hoechstens 720 tageskerzen und reicht
+    nur bis zum kas listing mitte 2023 zurueck. der schluss der utc-tageskerze
+    ist unser tageswert, das volumen kommt in kas und wird mit dem schluss
+    in dollar umgerechnet.
+    """
+    d = http_json(KRAKEN % pair)
+    if d.get("error"):
+        raise Stop("kraken meldet %s" % d["error"])
+    result = d.get("result") or {}
+    rows = None
+    for k, v in result.items():
+        if k != "last":
+            rows = v
+    if not rows or len(rows) < 200:
+        raise Stop("kraken liefert nur %s kerzen fuer %s"
+                   % (len(rows or []), pair))
+    lo, hi = price_window
+    out = []
+    for c in rows[:-1]:  # letzte kerze ist der laufende tag
+        day = dt.datetime.fromtimestamp(int(c[0]), dt.timezone.utc).date()
+        close = float(c[4])
+        if not (lo <= close <= hi):
+            raise Stop("%s preis %s am %s ausserhalb des fensters"
+                       % (pair, close, day))
+        row = [str(day), round(close, 8 if close < 1 else 2)]
+        if want_volume:
+            row.append(round(float(c[6]) * close, 0))
+        out.append(row)
+    return out
+
+
 def build():
-    kas = daily_series("kaspa", KAS_WINDOW, want_volume=True)
-    btc = daily_series("bitcoin", BTC_WINDOW, want_volume=False)
+    try:
+        kas = daily_series("kaspa", KAS_WINDOW, want_volume=True)
+        btc = daily_series("bitcoin", BTC_WINDOW, want_volume=False)
+        source = "coingecko daily series, closed days only"
+        min_weeks = 150
+    except Stop as exc:
+        print("coingecko faellt aus (%s), zweiter weg ueber kraken" % exc)
+        kas = kraken_daily("KASUSD", KAS_WINDOW, want_volume=True)
+        btc = kraken_daily("XBTUSD", BTC_WINDOW, want_volume=False)
+        source = "kraken daily candles, utc close. history starts at the kraken listing, not at trading start"
+        min_weeks = 80
     first = dt.date.fromisoformat(kas[0][0])
-    if first > KAS_FIRST + dt.timedelta(days=120):
+    if source.startswith("coingecko") and first > KAS_FIRST + dt.timedelta(days=120):
         raise Stop("kaspa historie beginnt erst am %s, erwartet wird "
                    "spaetestens anfang 2022" % first)
     kas_w = weekly_close(kas)
-    if len(kas_w) < 150:
+    if len(kas_w) < min_weeks:
         raise Stop("nur %d volle kaspa wochen, das reicht nicht" % len(kas_w))
     return {
         "updated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M utc"),
-        "source": "coingecko daily series, closed days only",
+        "source": source,
+        "history_from": kas[0][0],
         "week_rule": "a week ends sunday 00:00 utc, the close is saturday's reading",
         "kas_daily": kas,      # [datum, schluss, volumen usd]
         "btc_daily": btc,      # [datum, schluss]
@@ -189,6 +242,9 @@ def run_selftest():
     dup = rows + [rows[5]]
     ok("doppelte tage werden bereinigt",
        len(weekly_close(sorted(dup))) == 3)
+    # kraken antwortformat, ein winziges fixture
+    ok("kraken url traegt keinen interval=daily parameter",
+       "interval=daily" not in CG)
     print("")
     if fails:
         print("%d fehlgeschlagen %s" % (len(fails), fails))
