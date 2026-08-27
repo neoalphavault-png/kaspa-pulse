@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 """
 kaspa pulse - number of the day, datenteil
-
 schreibt data/number-of-day.json aus den zahlen, die die bots ohnehin rechnen.
 das rendern macht danach scripts/number_of_day.py, unveraendert.
-
 grundsatz, uebernommen aus dem renderer:
     die vergleichszahl ist der held, nicht die zahl.
 jeder kandidat hier muss deshalb einen anker mitliefern. eine zahl ohne anker
 wird gar nicht erst gebaut.
-
 auswahl:
     jeder kandidat berechnet sich selbst und gibt eine punktzahl zurueck.
     der hoechste gewinnt. ein reward cut am selben tag schlaegt alles.
@@ -21,7 +18,6 @@ auswahl:
     was in den letzten COOLDOWN_DAYS tagen davor
     dran war, wird abgewertet, damit nicht dreimal die woche dieselbe
     grafik erscheint.
-
     nachtrag 12.08.: der notnagel hat die sperre ausgehebelt. lief an einem
     tag kein anderer kandidat, kam der gesperrte trotzdem durch, und die
     96er zahl stand sieben tage hintereinander im kanal. ab jetzt gilt die
@@ -30,32 +26,31 @@ auswahl:
     wer unter der standardsperre steht, also eine zahl die sich taeglich
     bewegt. ist auch das leer, faellt der post an diesem tag aus. ein
     wiederholter post ist schlimmer als kein post.
-
+    nachtrag 27.08.: die grafiktexte sind gekuerzt. der renderer traegt seit
+    heute groessere schriften, kalibriert an der telegram-feedgroesse, und
+    bricht bei ueberlauf ab statt leise abzuschneiden. deshalb gilt hier ab
+    jetzt, jede ankerkachel hoechstens zwei kurze zeilen, jede note ein satz.
+    was rausfiel, steckt im posttext, der hat volle groesse im feed.
 lokal:
     python3 scripts/number_of_day_data.py --dry-run
     python3 scripts/number_of_day_data.py --selftest
 in github actions:
     python3 scripts/number_of_day_data.py --out data/number-of-day.json
 """
-
 import argparse
 import datetime as dt
 import json
 import math
 import os
 import sys
-
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
-
 # der renderer haelt die interpunktionsregel. wir pruefen mit derselben
 # funktion, damit die grafik nie an etwas scheitert, das hier entsteht.
 from number_of_day import walk_and_check  # noqa: E402
-
 # ---------------------------------------------------------------- konstanten
-
 # reward anker, identisch zu weekly_numbers und reward_cut_alert v3.
 # wird unten gegen weekly_numbers geprueft, falls importierbar.
 ANCHOR_TS = 1783280744
@@ -64,27 +59,21 @@ STEP = (365.25 / 12) * 86400
 R = 0.5 ** (1 / 12)
 BPS = 10
 DAY = 86400
-
 # geschaetzt, block 1.050.000. steht so auch in der note, damit die schaetzung
 # im bild sichtbar ist und nicht als messwert durchgeht.
 BTC_HALVING_EST = dt.date(2028, 4, 16)
-
 # bitcoin, feste protokollwerte bis zum naechsten halving.
 BTC_BLOCKS_PER_DAY = 144
 BTC_REWARD = 3.125
-
 # groesste bekannte adresse, dieselbe die der alert bot beobachtet.
 WHALE_ADDRESS = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a"
 BALANCE_API = "https://api.kaspa.org/addresses/%s/balance"
 SOMPI = 100000000
-
 HISTORY_PATH = os.path.join(ROOT, "data", "weekly-history.json")
 LOG_PATH = os.path.join(ROOT, "data", "number-of-day-log.json")
 OUT_PATH = os.path.join(ROOT, "data", "number-of-day.json")
-
 COOLDOWN_DAYS = 8
 HARD_BLOCK_DAYS = 1   # standard-sperrfrist in tagen fuer alle kandidaten
-
 # einzelne kandidaten duerfen seltener dran sein als andere. der anteil der
 # geschuerften menge bewegt sich um 0.01 prozentpunkte pro tag, als taegliche
 # meldung ist er deshalb wertlos und wirkt wie eine wiederholung. eine woche
@@ -99,36 +88,25 @@ MIN_GAP = {
 COOLDOWN_FACTOR = 0.15
 MIN_ANCHOR_AGE_DAYS = 21
 LOG_KEEP = 60
-
 # wie weit die auswahl ueberhaupt zurueckschaut. muss laenger sein als die
 # laengste sperrfrist, sonst laeuft ein kandidat mit MIN_GAP 21 nach acht
 # tagen wieder los, weil ihn davor niemand mehr im log findet. genau das ist
 # in der simulation aufgefallen. abgewertet wird trotzdem nur innerhalb von
 # COOLDOWN_DAYS, damit eine taegliche kennzahl nicht wochenlang gedrueckt wird.
 LOOKBACK_DAYS = max([COOLDOWN_DAYS] + list(MIN_GAP.values())) + 1
-
 MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
           "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
-
 UA = "kaspa-pulse-notd/1.0 (+https://kaspapulse.com)"
 TIMEOUT = 20
 RETRIES = 3
-
-
 class Stop(Exception):
     """Abbruch mit Klartext. Lieber keine Grafik als eine falsche."""
-
-
 class Skip(Exception):
     """Heute ist nichts frei. Kein Fehler, nur kein Post."""
-
-
 # ---------------------------------------------------------------- netzwerk
-
 def http_json(url, tries=RETRIES):
     import time
     import urllib.request
-
     last = None
     for i in range(tries):
         try:
@@ -141,8 +119,6 @@ def http_json(url, tries=RETRIES):
             if i + 1 < tries:
                 time.sleep(2 * (i + 1))
     raise Stop("abruf fehlgeschlagen %s (%s)" % (url, last))
-
-
 def fetch_optional(what, fn):
     """Holt eine Kuer. Faellt sie aus, faellt nur ein kandidat weg."""
     try:
@@ -151,8 +127,6 @@ def fetch_optional(what, fn):
         print("%s nicht erreichbar (%s), der kandidat faellt heute weg"
               % (what, exc))
         return None
-
-
 def fetch_prices():
     d = http_json("https://api.coingecko.com/api/v3/simple/price"
                   "?ids=kaspa,bitcoin&vs_currencies=usd", tries=2)
@@ -161,16 +135,12 @@ def fetch_prices():
     if not (0.0001 <= kas <= 100.0) or not (1000.0 <= btc <= 10000000.0):
         raise Stop("preis ausserhalb des fensters, kas %s btc %s" % (kas, btc))
     return kas, btc
-
-
 def fetch_whale():
     d = http_json(BALANCE_API % WHALE_ADDRESS, tries=2)
     bal = int(d["balance"]) / SOMPI
     if bal <= 0:
         raise Stop("adressbestand ist null")
     return bal
-
-
 def fetch_live():
     """Alles, was ein Kandidat brauchen kann, in einem Rutsch."""
     sup = http_json("https://api.kaspa.org/info/coinsupply")
@@ -178,10 +148,8 @@ def fetch_live():
     mx = float(sup["maxSupply"]) / 1e8
     if mx <= 0:
         raise Stop("coinsupply liefert maxSupply 0")
-
     hr = http_json("https://api.kaspa.org/info/hashrate?stringOnly=false")
     hashrate = float(hr["hashrate"]) / 1000.0  # TH/s in PH/s
-
     tvl = {}
     try:
         for row in http_json("https://api.llama.fi/v2/chains", tries=2):
@@ -192,10 +160,8 @@ def fetch_live():
                 tvl.setdefault("igra", float(row.get("tvl") or 0.0))
     except Stop:
         tvl = {}
-
     prices = fetch_optional("coingecko", fetch_prices)
     whale = fetch_optional("adressbestand", fetch_whale)
-
     return {
         "circ": circ,
         "max": mx,
@@ -208,26 +174,18 @@ def fetch_live():
         "price_btc": prices[1] if prices else None,
         "whale_kas": whale,
     }
-
-
 # ---------------------------------------------------------------- rechnen
-
 def reward_state(now_ts):
     """Aktueller Reward, naechster Reward, Zeitpunkt des naechsten Schnitts."""
     n = math.floor((now_ts - ANCHOR_TS) / STEP)
     cur = ANCHOR_REWARD * (R ** n)
     nxt_ts = ANCHOR_TS + (n + 1) * STEP
     return cur, cur * R, nxt_ts
-
-
 def emission_per_day(reward):
     return reward * BPS * DAY
-
-
 def months_to_share(circ, mx, reward, share):
     """
     Wie viele Monate bis `share` (z. B. 0.99) der Maximalmenge gemint ist.
-
     Die Emission ist eine geometrische Reihe. Pro Monat faellt sie um denselben
     Faktor R, also ist die kumulierte Menge nach n Monaten M*(1-R^n)/(1-R).
     Gibt None zurueck, wenn das Ziel nie erreicht wird.
@@ -243,16 +201,10 @@ def months_to_share(circ, mx, reward, share):
         return None
     ratio = 1.0 - need * (1.0 - R) / m
     return math.log(ratio) / math.log(R)
-
-
 def fmt_int(n):
     return "{:,}".format(int(round(float(n))))
-
-
 def fmt_millions(v):
     return "%.2f million" % (float(v) / 1e6)
-
-
 def fmt_kas(v):
     v = float(v)
     if v >= 1e9:
@@ -260,8 +212,6 @@ def fmt_kas(v):
     if v >= 1e6:
         return "%.1fM KAS" % (v / 1e6)
     return "%s KAS" % fmt_int(v)
-
-
 def fmt_money(v):
     v = float(v)
     if v >= 1e9:
@@ -273,29 +223,22 @@ def fmt_money(v):
     if v >= 1e3:
         return "$%.1fK" % (v / 1e3)
     return "$%.0f" % v
-
-
 def issue_line(day):
-    return "KASPA PULSE · %s %d %d" % (MONTHS[day.month - 1], day.day, day.year)
-
-
+    # seit dem 27.08. traegt der renderer die marke selbst im kopf. hier
+    # steht nur noch das datum, sonst stuende kaspa pulse doppelt da.
+    return "%s %d %d" % (MONTHS[day.month - 1], day.day, day.year)
 def bar_pair(a, b):
     """Zwei Balkenbreiten, der groessere immer 100."""
     a, b = abs(float(a)), abs(float(b))
     hi = max(a, b, 1e-9)
     return 100.0 * a / hi, 100.0 * b / hi
-
-
 # ---------------------------------------------------------------- historie
-
 def load_json(path, default=None):
     try:
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     except (OSError, ValueError):
         return default
-
-
 def anchor_entry(history, today, key):
     """
     Aeltester Eintrag, der mindestens MIN_ANCHOR_AGE_DAYS zurueckliegt und den
@@ -315,26 +258,19 @@ def anchor_entry(history, today, key):
         if best is None or age < best[0]:
             best = (age, d, row)
     return best  # (age_days, date, row) oder None
-
-
 def age_phrase(days):
     if days >= 330:
         return "a year ago"
     if days >= 60:
         return "%d months ago" % int(round(days / 30.44))
     return "%d weeks ago" % int(round(days / 7.0))
-
-
 # ---------------------------------------------------------------- posttext
-
 # hausstil auf X: klein geschrieben, unter sechzig woertern, keine hashtags,
 # hoechstens ein $KAS, kein kursziel, kein link im ersten post. der link steht
 # in der selbstantwort, deshalb sind es hier immer zwei felder.
 MAX_POST_WORDS = 60
 HALVING_URL = "kaspapulse.com/kaspa-halving.html"
 SITE_URL = "kaspapulse.com"
-
-
 def post_block(text, reply):
     """Baut den X Text und prueft die eigene Laengenregel sofort."""
     text = " ".join(str(text).split())
@@ -343,10 +279,11 @@ def post_block(text, reply):
         raise ValueError("posttext hat %d woerter, erlaubt sind %d"
                          % (words, MAX_POST_WORDS))
     return {"x": text, "reply": " ".join(str(reply).split())}
-
-
 # ---------------------------------------------------------------- kandidaten
-
+# textregel seit dem 27.08., wegen der grossen schriften im renderer.
+# ankerkacheln hoechstens zwei kurze zeilen, note genau ein satz. was mehr
+# zu sagen ist, gehoert in den posttext. der renderer bricht bei ueberlauf
+# ab, gekuerzt wird also hier und nicht dort.
 def cand_cut_today(ctx):
     """Der Schnitt landet heute. Schlaegt alles andere."""
     nxt_ts = ctx["next_cut_ts"]
@@ -354,48 +291,40 @@ def cand_cut_today(ctx):
     prev_ts = nxt_ts - STEP
     prev_day = dt.datetime.fromtimestamp(prev_ts, dt.timezone.utc).date()
     today = ctx["today"]
-
     if today == prev_day:
         landed, when = True, "this morning"
     elif today == cut_day:
         landed, when = False, "this morning"
     else:
         return None
-
     if landed:
         before = ctx["reward"] / R
         after = ctx["reward"]
     else:
         before = ctx["reward"]
         after = ctx["next_reward"]
-
     e_before = emission_per_day(before)
     e_after = emission_per_day(after)
     gone = e_before - e_after
     pct = 100.0 * (1.0 - R)
-
     verb = "fell" if landed else "falls"
-    tail = ("from now on the network mints %s fewer KAS every day. "
-            "emission dropped from %s to %s."
-            % (fmt_int(gone), fmt_millions(e_before), fmt_millions(e_after)))
-    if not landed:
-        tail = ("today the network stops minting %s KAS per day. "
-                "emission goes from %s to %s."
-                % (fmt_int(gone), fmt_millions(e_before), fmt_millions(e_after)))
-
+    if landed:
+        tail = "*%s fewer KAS* minted every day from now on." % fmt_int(gone)
+    else:
+        tail = "*%s KAS* per day stop being minted today." % fmt_int(gone)
     return {
         "score": 1000.0,
         "payload": {
             "issue": issue_line(today),
             "eyebrow": "NUMBER OF THE DAY",
             "value": "%.2f%%" % pct,
-            "value_label": "how much the kaspa block reward %s %s" % (verb, when),
+            "value_label": "kaspa block reward, %s %s" % (verb, when),
             "headline": "bitcoin cuts once every *four years*.\nkaspa cuts every month.",
             "panes": [
                 {
                     "kind": "compare",
                     "title": "SIZE OF ONE CUT",
-                    "sub": "how much new supply disappears in a single reduction",
+                    "sub": "how much new supply disappears at once",
                     "rows": [
                         {"label": "kaspa", "sub": "every month",
                          "value": "%.2f%%" % pct, "pct": 2.0 * pct, "tone": "teal"},
@@ -407,27 +336,25 @@ def cand_cut_today(ctx):
                     "kind": "anchor",
                     "title": "WHAT THAT MEANS",
                     "lines": [
-                        "twelve of those small steps land on the *same 50 percent* "
-                        "bitcoin does in one. a staircase instead of a cliff.",
+                        "twelve small steps, the *same 50 percent*.",
                         tail,
                     ],
                 },
             ],
-            "note": ("the amount is fixed arithmetic and cannot move. the moment "
-                     "lands on a block score, not on a clock, so the minute drifts."),
             "sources": "api.kaspa.org",
             "site": "kaspapulse.com",
             "post": post_block(
                 "the kaspa block reward %s %.2f percent %s. bitcoin does 50 "
                 "percent once every four years. kaspa does one small step every "
                 "month, and twelve of them land on the same 50 percent. the "
-                "network now mints %s fewer KAS per day."
-                % (verb, pct, when, fmt_int(gone)),
-                "the live emission numbers are on " + HALVING_URL),
+                "network now mints %s fewer KAS per day, emission went from %s "
+                "to %s."
+                % (verb, pct, when, fmt_int(gone),
+                   fmt_millions(e_before), fmt_millions(e_after)),
+                "the live emission numbers are on " + HALVING_URL + ". the exact "
+                "minute drifts, the cut lands on a block score, not a clock."),
         },
     }
-
-
 def cand_cut_countdown(ctx):
     """Naechster Schnitt in Sichtweite, verglichen mit dem naechsten Halving."""
     days = (ctx["next_cut_ts"] - ctx["now_ts"]) / DAY
@@ -436,13 +363,11 @@ def cand_cut_countdown(ctx):
     btc_days = (BTC_HALVING_EST - ctx["today"]).days
     if btc_days <= 0:
         return None
-
     e_now = emission_per_day(ctx["reward"])
     e_next = emission_per_day(ctx["next_reward"])
     a, b = bar_pair(days, btc_days)
     d = int(round(days))
     word = "day" if d == 1 else "days"
-
     return {
         "score": 60.0 + (12.0 - days) * 3.0,
         "payload": {
@@ -468,29 +393,26 @@ def cand_cut_countdown(ctx):
                     "kind": "anchor",
                     "title": "WHAT CHANGES",
                     "lines": [
-                        "daily emission goes from %s to *%s KAS*."
+                        "daily emission drops from %s to *%s KAS*. "
+                        "no vote, no announcement."
                         % (fmt_millions(e_now), fmt_millions(e_next)),
-                        "the block reward drops from %.4f to %.4f KAS. "
-                        "same arithmetic every month, no vote, no announcement."
-                        % (ctx["reward"], ctx["next_reward"]),
                     ],
                 },
             ],
-            "note": ("the kaspa date is arithmetic, the bitcoin date is an estimate "
-                     "because it depends on how fast blocks are found."),
             "sources": "api.kaspa.org",
             "site": "kaspapulse.com",
             "post": post_block(
                 "the next kaspa reward cut lands in %d %s. bitcoin waits about "
                 "%s days for its next one, and kaspa cuts %d more times before "
-                "that date. daily emission drops from %s to %s KAS."
+                "that date. daily emission drops from %s to %s KAS, the block "
+                "reward from %.4f to %.4f."
                 % (d, word, fmt_int(btc_days), int(btc_days / (STEP / DAY)),
-                   fmt_millions(e_now), fmt_millions(e_next)),
-                "the countdown runs live on " + HALVING_URL),
+                   fmt_millions(e_now), fmt_millions(e_next),
+                   ctx["reward"], ctx["next_reward"]),
+                "the countdown runs live on " + HALVING_URL + ". the kaspa date "
+                "is arithmetic, the bitcoin date is an estimate."),
         },
     }
-
-
 def cand_mined_left(ctx):
     """Wie viel schon gemint ist und wie lange der Rest braucht."""
     circ, mx = ctx["circ"], ctx["max"]
@@ -501,7 +423,6 @@ def cand_mined_left(ctx):
     when99 = ctx["today"] + dt.timedelta(days=n99 * STEP / DAY)
     left = mx - circ
     a, b = bar_pair(pct, 100.0 - pct)
-
     return {
         "score": 40.0,
         "payload": {
@@ -509,7 +430,7 @@ def cand_mined_left(ctx):
             "eyebrow": "NUMBER OF THE DAY",
             "value": "%.2f%%" % pct,
             "value_label": "of every KAS that will ever exist is already mined",
-            "headline": "the supply story is *almost over*.\nthe rest takes longer than the start.",
+            "headline": "the supply story is *almost over*.",
             "panes": [
                 {
                     "kind": "compare",
@@ -527,16 +448,12 @@ def cand_mined_left(ctx):
                     "kind": "anchor",
                     "title": "WHAT IS LEFT",
                     "lines": [
-                        "%s KAS are still unmined. that is *%.2f percent* of the maximum."
-                        % (fmt_int(left), 100.0 - pct),
-                        "at the current schedule 99 percent is reached in %s. "
-                        "what comes after keeps halving every twelve months."
+                        "*%s KAS* are still to come." % fmt_int(left),
+                        "99 percent is reached in %s."
                         % when99.strftime("%B %Y").lower(),
                     ],
                 },
             ],
-            "note": ("emission halves every twelve months, so the remaining amount "
-                     "is a shrinking series and never quite reaches the maximum."),
             "sources": "api.kaspa.org",
             "site": "kaspapulse.com",
             "post": post_block(
@@ -545,11 +462,10 @@ def cand_mined_left(ctx):
                 "current schedule. what comes after keeps halving every twelve "
                 "months."
                 % (pct, fmt_int(left), when99.strftime("%B %Y").lower()),
-                "the full emission schedule is on " + HALVING_URL),
+                "the full emission schedule is on " + HALVING_URL + ". the "
+                "remaining amount shrinks and never quite reaches the maximum."),
         },
     }
-
-
 def _move_candidate(ctx, key, title, unit_fmt, label, headline_word,
                     base_score, sources):
     """Gemeinsame Form fuer alle Kandidaten, die gegen die Historie messen."""
@@ -561,13 +477,11 @@ def _move_candidate(ctx, key, title, unit_fmt, label, headline_word,
     then = float(row[key])
     if then <= 0:
         return None
-
     change = 100.0 * (now - then) / then
     if abs(change) < 5.0:
         return None
     a, b = bar_pair(now, then)
     direction = "up" if change > 0 else "down"
-
     return {
         "score": base_score + min(40.0, abs(change)),
         "payload": {
@@ -594,16 +508,12 @@ def _move_candidate(ctx, key, title, unit_fmt, label, headline_word,
                     "kind": "anchor",
                     "title": "WHAT THE NUMBER IS",
                     "lines": [
-                        "the difference between the two readings is *%s*."
-                        % unit_fmt(abs(now - then)),
-                        "both values come from the same source, read the same way, "
-                        "%d days apart." % age,
-                        "we report the movement, *never the motive*.",
+                        "the difference is *%s*." % unit_fmt(abs(now - then)),
+                        "same source, %d days apart. movement, "
+                        "*never the motive*." % age,
                     ],
                 },
             ],
-            "note": ("the anchor is the weekly reading we archived, not a chart "
-                     "high. that is why the comparison holds."),
             "sources": sources,
             "site": "kaspapulse.com",
             "post": post_block(
@@ -612,33 +522,27 @@ def _move_candidate(ctx, key, title, unit_fmt, label, headline_word,
                 "movement, never the motive."
                 % (headline_word, direction, abs(change), age_phrase(age),
                    unit_fmt(now), unit_fmt(then), age),
-                "the weekly readings behind that are on " + SITE_URL),
+                "the weekly readings behind that are on " + SITE_URL + ". the "
+                "anchor is the weekly reading we archived, not a chart high."),
         },
     }
-
-
 def cand_hashrate_move(ctx):
     return _move_candidate(
         ctx, "hashrate", "NETWORK HASHRATE",
         lambda v: "%.0f PH" % float(v),
         "petahash per second securing the network right now",
         "hashrate", 30.0, "api.kaspa.org")
-
-
 def cand_tvl_move(ctx):
     return _move_candidate(
         ctx, "tvl_total", "TOTAL VALUE LOCKED",
         fmt_money,
         "locked across kasplex and igra",
         "layer 2 tvl", 28.0, "defillama.com")
-
-
 def cand_emission_vs_btc(ctx):
     """Wie viel neues geld beide netze pro tag drucken, in dollar."""
     pk, pb = ctx.get("price_kas"), ctx.get("price_btc")
     if not pk or not pb:
         return None
-
     kas_day = emission_per_day(ctx["reward"])
     btc_day = BTC_REWARD * BTC_BLOCKS_PER_DAY
     usd_kas = kas_day * pk
@@ -647,7 +551,6 @@ def cand_emission_vs_btc(ctx):
         return None
     times = usd_btc / usd_kas
     a, b = bar_pair(usd_kas, usd_btc)
-
     return {
         "score": 42.0,
         "payload": {
@@ -672,15 +575,11 @@ def cand_emission_vs_btc(ctx):
                     "kind": "anchor",
                     "title": "WHY THAT GAP CLOSES",
                     "lines": [
-                        "kaspa cuts its reward *twelve times a year*. bitcoin "
-                        "cuts once every four years.",
-                        "the dollar figure moves with the price, the coin "
-                        "figure does not. only one of the two is a decision.",
+                        "kaspa cuts *twelve times a year*. "
+                        "bitcoin once every four years.",
                     ],
                 },
             ],
-            "note": ("bitcoin issuance is fixed at 3.125 coins per block and "
-                     "about 144 blocks a day until the next halving."),
             "sources": "api.kaspa.org and coingecko.com",
             "site": "kaspapulse.com",
             "post": post_block(
@@ -689,24 +588,21 @@ def cand_emission_vs_btc(ctx):
                 "times a year and bitcoin once every four years, so that gap "
                 "narrows every month without anyone voting on it."
                 % (fmt_money(usd_kas), fmt_money(usd_btc), times),
-                "the full emission schedule is on " + HALVING_URL),
+                "the full emission schedule is on " + HALVING_URL + ". bitcoin "
+                "issuance is 3.125 coins per block, about 144 blocks a day."),
         },
     }
-
-
 def cand_whale_weight(ctx):
     """Die groesste bekannte adresse, gemessen in tagen netzwerkleistung."""
     whale = ctx.get("whale_kas")
     circ = ctx.get("circ")
     if not whale or not circ:
         return None
-
     share = 100.0 * whale / circ
     per_day = emission_per_day(ctx["reward"])
     days = whale / per_day
     rest = circ - whale
     a, b = bar_pair(whale, rest)
-
     return {
         "score": 44.0,
         "payload": {
@@ -730,17 +626,13 @@ def cand_whale_weight(ctx):
                 },
                 {
                     "kind": "anchor",
-                    "title": "HOW LONG THAT TAKES TO MINE",
+                    "title": "WHO IT IS",
                     "lines": [
-                        "at today's emission the whole network needs *%d days* "
-                        "to produce that many coins." % round(days),
-                        "the address has never been named and we will not "
-                        "guess. we report *what it does*, never who it is.",
+                        "never named, and we do not guess. "
+                        "*what it does*, never who it is.",
                     ],
                 },
             ],
-            "note": ("an address is not a person. one owner can hold many "
-                     "addresses and an exchange can hold coins for thousands."),
             "sources": "api.kaspa.org",
             "site": "kaspapulse.com",
             "post": post_block(
@@ -749,17 +641,15 @@ def cand_whale_weight(ctx):
                 "needs %d days to mine that much. it has never been named. we "
                 "report what it does, never who it is."
                 % (share, fmt_kas(whale), round(days)),
-                "every move that wallet makes is on kaspapulse.com/entity-x.html"),
+                "every move that wallet makes is on kaspapulse.com/entity-x.html. "
+                "an address is not a person, one owner can hold many."),
         },
     }
-
-
 def cand_blocks_per_day(ctx):
     """Der evergreen. Selten, weil er sich nie aendert."""
     kas_blocks = BPS * DAY
     times = kas_blocks / float(BTC_BLOCKS_PER_DAY)
     a, b = bar_pair(kas_blocks, BTC_BLOCKS_PER_DAY)
-
     return {
         "score": 20.0,
         "payload": {
@@ -785,16 +675,11 @@ def cand_blocks_per_day(ctx):
                     "kind": "anchor",
                     "title": "WHY IT DOES NOT COLLAPSE",
                     "lines": [
-                        "that is *%s times* more blocks in the same day."
-                        % fmt_int(times),
-                        "blocks found at the same moment are not thrown away. "
-                        "they are *ordered and kept*, which is the part most "
-                        "comparisons leave out.",
+                        "parallel blocks are not thrown away. "
+                        "they are *ordered and kept*.",
                     ],
                 },
             ],
-            "note": ("the block rate is a protocol constant. the number of "
-                     "coins per block is what shrinks, not the number of blocks."),
             "sources": "api.kaspa.org",
             "site": "kaspapulse.com",
             "post": post_block(
@@ -803,11 +688,10 @@ def cand_blocks_per_day(ctx):
                 "at the same moment are not discarded, they are ordered and "
                 "kept, and that is the part most comparisons leave out."
                 % fmt_int(kas_blocks),
-                "how that ordering works is explained on " + SITE_URL),
+                "how that ordering works is explained on " + SITE_URL + ". the "
+                "coins per block shrink, the number of blocks does not."),
         },
     }
-
-
 CANDIDATES = [
     ("cut_today", cand_cut_today),
     ("cut_countdown", cand_cut_countdown),
@@ -818,10 +702,7 @@ CANDIDATES = [
     ("tvl_move", cand_tvl_move),
     ("blocks_per_day", cand_blocks_per_day),
 ]
-
-
 # ---------------------------------------------------------------- auswahl
-
 def recent_picks(log, today, window=None):
     window = LOOKBACK_DAYS if window is None else window
     out = {}
@@ -836,8 +717,6 @@ def recent_picks(log, today, window=None):
             if name and (name not in out or age < out[name]):
                 out[name] = age
     return out
-
-
 def choose(ctx, log, force=None):
     cooled = recent_picks(log, ctx["today"])
     scored = []   # waehlbar
@@ -872,17 +751,14 @@ def choose(ctx, log, force=None):
                 score *= COOLDOWN_FACTOR
                 note = " (abgewertet, vor %d tagen dran)" % age
         scored.append((score, name, res["payload"], note))
-
     for bucket in (scored, spare, locked):
         bucket.sort(key=lambda x: (-x[0], x[1]))
     shown = scored + spare + locked
-
     if force:
         for s, name, payload, note in shown:
             if name == force:
                 return name, payload, shown
         raise Stop("kandidat %s hat heute keine zahlen" % force)
-
     pool = scored or spare
     if not pool:
         if locked:
@@ -892,10 +768,7 @@ def choose(ctx, log, force=None):
                        % ", ".join(n for _, n, _, _ in locked))
         raise Stop("kein kandidat hat zahlen geliefert")
     return pool[0][1], pool[0][2], shown
-
-
 # ---------------------------------------------------------------- hauptlauf
-
 def build_context(now_ts=None, live=None, history=None):
     now_ts = now_ts if now_ts is not None else dt.datetime.now(dt.timezone.utc).timestamp()
     today = dt.datetime.fromtimestamp(now_ts, dt.timezone.utc).date()
@@ -911,15 +784,10 @@ def build_context(now_ts=None, live=None, history=None):
     }
     ctx.update(live)
     return ctx
-
-
 LOG_READINGS = ["hashrate", "tvl_total", "mined_pct", "price_kas", "whale_kas"]
-
-
 def append_log(log, name, ctx=None):
     """
     Schreibt die auswahl fort und legt die tagesmesswerte daneben.
-
     die messwerte braucht heute noch niemand. sie bauen die taegliche reihe
     auf, gegen die die vergleichskandidaten spaeter messen koennen, ohne auf
     die woechentliche historie angewiesen zu sein. genau die luecke hat den
@@ -936,16 +804,12 @@ def append_log(log, name, ctx=None):
         json.dump(log[-LOG_KEEP:], f, ensure_ascii=False, indent=2)
         f.write("\n")
     return log
-
-
 def write_out(path, payload, name, log, ctx=None):
     walk_and_check(payload)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
         f.write("\n")
     append_log(log, name, ctx)
-
-
 def set_output(key, value):
     """Sagt dem workflow bescheid, ob heute etwas zu rendern ist."""
     path = os.environ.get("GITHUB_OUTPUT")
@@ -953,8 +817,6 @@ def set_output(key, value):
         return
     with open(path, "a", encoding="utf-8") as f:
         f.write("%s=%s\n" % (key, value))
-
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=OUT_PATH)
@@ -962,9 +824,7 @@ def main():
     ap.add_argument("--dry-run", action="store_true",
                     help="nur zeigen, welcher kandidat gewinnt")
     args = ap.parse_args()
-
     log = load_json(LOG_PATH, [])
-
     # der nachzuegler um 09.42 utc laeuft, wenn github den ersten start
     # verschluckt hat. hat sich der erste lauf heute bewusst zurueckgehalten,
     # soll der zweite nicht dieselbe pruefung nochmal fahren. den erfolgsfall
@@ -975,7 +835,6 @@ def main():
         print("heute wurde schon entschieden, kein post. nichts zu tun")
         set_output("picked", "0")
         return 0
-
     ctx = build_context()
     try:
         name, payload, scored = choose(ctx, log, force=args.force)
@@ -987,27 +846,21 @@ def main():
             # nicht, dass der bot lief und sich bewusst zurueckgehalten hat.
             append_log(log, "none", ctx)
         return 0
-
     print("kandidaten heute")
     for s, n, _, note in scored:
         mark = "-> " if n == name else "   "
         print("%s%-16s %6.1f%s" % (mark, n, s, note))
-
     if args.dry_run:
         walk_and_check(payload)
         print("")
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
-
     write_out(args.out, payload, name, log, ctx)
     set_output("picked", "1")
     print("")
     print("geschrieben %s (%s)" % (args.out, name))
     return 0
-
-
 # ---------------------------------------------------------------- selbsttest
-
 FAKE_LIVE = {
     "circ": 27616143000.0,
     "max": 28704026601.0,
@@ -1020,7 +873,6 @@ FAKE_LIVE = {
     "price_btc": 118000.0,
     "whale_kas": 1437000000.0,
 }
-
 # nur das, was api.kaspa.org auch bei ausfall aller kuerquellen liefert.
 # damit laesst sich der schlimmste fall pruefen, ein pool aus lauter
 # langsamen kandidaten.
@@ -1036,23 +888,18 @@ FAKE_LIVE_BARE = {
     "price_btc": None,
     "whale_kas": None,
 }
-
 FAKE_HISTORY = [
     {"week": "2026-06-01", "hashrate": 250.0, "tvl_total": 900000.0},
     {"week": "2026-08-03", "hashrate": 342.5, "tvl_total": 1832947.0},
 ]
-
-
 def run_selftest():
     fails = []
-
     def ok(what, cond, extra=""):
         if cond:
             print("  ok   %s" % what)
         else:
             fails.append(what)
             print("  FEHL %s %s" % (what, extra))
-
     print("reward arithmetik")
     r, nxt, nxt_ts = reward_state(ANCHOR_TS + 10)
     ok("anker liefert den ankerreward", abs(r - ANCHOR_REWARD) < 1e-9, r)
@@ -1063,7 +910,6 @@ def run_selftest():
        emission_per_day(ANCHOR_REWARD))
     gone = emission_per_day(ANCHOR_REWARD) - emission_per_day(ANCHOR_REWARD * R)
     ok("wegfallende tagesmenge ist 118.805", abs(gone - 118805) < 2.0, gone)
-
     print("kandidat am schnitttag")
     ctx = build_context(now_ts=ANCHOR_TS + STEP - 3600,
                         live=FAKE_LIVE, history=FAKE_HISTORY)
@@ -1074,7 +920,6 @@ def run_selftest():
         ok("wert ist die schnittgroesse", res["payload"]["value"] == "5.61%",
            res["payload"]["value"])
         ok("schnitttag schlaegt alles", res["score"] >= 1000)
-
     print("kandidat countdown")
     ctx = build_context(now_ts=ANCHOR_TS + STEP - 5 * DAY,
                         live=FAKE_LIVE, history=FAKE_HISTORY)
@@ -1087,7 +932,6 @@ def run_selftest():
     far = build_context(now_ts=ANCHOR_TS + 3 * DAY,
                         live=FAKE_LIVE, history=FAKE_HISTORY)
     ok("countdown schweigt weit vorher", cand_cut_countdown(far) is None)
-
     print("kandidat restmenge")
     res = cand_mined_left(far)
     ok("restmenge feuert", res is not None)
@@ -1095,7 +939,6 @@ def run_selftest():
         walk_and_check(res["payload"])
         ok("restmenge nennt den messwert", res["payload"]["value"] == "96.21%",
            res["payload"]["value"])
-
     print("kandidaten gegen die historie")
     res = cand_hashrate_move(far)
     ok("hashrate vergleicht gegen den alten anker", res is not None)
@@ -1111,7 +954,6 @@ def run_selftest():
     young = build_context(now_ts=ANCHOR_TS + 3 * DAY, live=FAKE_LIVE,
                           history=[{"week": "2026-08-03", "hashrate": 100.0}])
     ok("zu junger anker feuert nicht", cand_hashrate_move(young) is None)
-
     print("auswahl und cooldown")
     name, payload, scored = choose(far, [])
     # im fixture verdoppelt sich der tvl, die hashrate steigt um 37 prozent.
@@ -1148,7 +990,6 @@ def run_selftest():
        bool(name2c), name2c)
     ok("der notnagel ist nie eine langsame kennzahl",
        name2c not in MIN_GAP, name2c)
-
     print("die regel, an der die 96er zahl gescheitert ist")
     # nur langsame kandidaten haben zahlen, und alle stehen in ihrer sperre.
     # frueher lief dann der gesperrte trotzdem. jetzt faellt der post aus.
@@ -1175,7 +1016,6 @@ def run_selftest():
     name_freed, _, _ = choose(bare, freed)
     ok("nach ablauf der sperrfrist laeuft sie wieder",
        name_freed == "mined_left", name_freed)
-
     print("neue kandidaten")
     for n in ("whale_weight", "emission_vs_btc", "blocks_per_day"):
         fn = dict(CANDIDATES)[n]
@@ -1200,7 +1040,6 @@ def run_selftest():
     name3, _, _ = choose(cut_ctx, [{"date": str(cut_ctx["today"]),
                                     "candidate": "cut_today"}])
     ok("der schnitttag ignoriert den cooldown", name3 == "cut_today", name3)
-
     print("interpunktion")
     for n, fn in CANDIDATES:
         for c in (far, cut_ctx):
@@ -1213,7 +1052,27 @@ def run_selftest():
                     print("  FEHL interpunktion %s %s" % (n, exc))
     ok("alle kandidaten halten die zeichenregel",
        not [f for f in fails if f.startswith("interpunktion")])
-
+    print("textlaengen fuer die grosse schrift, neu am 27.08.")
+    # der renderer bricht bei ueberlauf ab. damit das nie im livelauf
+    # passiert, halten die kandidaten selbst ein wortbudget ein. die grenzen
+    # kommen aus dem gemessenen platz bei den neuen schriftgroessen.
+    long_lines = []
+    for n, fn in CANDIDATES:
+        for c in (far, cut_ctx):
+            r = fn(c)
+            if not r:
+                continue
+            p = r["payload"]
+            anchor_words = sum(
+                len(" ".join(str(l) for l in pane.get("lines", [])).split())
+                for pane in p.get("panes", []) if pane.get("kind") == "anchor")
+            if anchor_words > 22:
+                long_lines.append("%s ankerkachel %d woerter" % (n, anchor_words))
+            if p.get("note"):
+                long_lines.append("%s hat noch eine note im bild" % n)
+            if len(str(p.get("headline", "")).split()) > 12:
+                long_lines.append("%s headline zu lang" % n)
+    ok("alle texte passen in die grosse schrift", not long_lines, long_lines)
     print("posttexte")
     seen_posts = 0
     bad = []
@@ -1244,15 +1103,12 @@ def run_selftest():
                 bad.append("%s hat keinen link in der antwort" % n)
     ok("jeder kandidat liefert einen posttext", seen_posts >= len(CANDIDATES))
     ok("posttexte halten den hausstil", not bad, bad)
-
     print("")
     if fails:
         print("%d fehlgeschlagen %s" % (len(fails), fails))
         return 1
     print("alle testfaelle bestanden")
     return 0
-
-
 if __name__ == "__main__":
     if "--selftest" in sys.argv:
         sys.exit(run_selftest())
