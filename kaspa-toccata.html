@@ -136,7 +136,7 @@
       <div><div class="v">0</div><div class="k">mentions of native token issuance in that guide</div></div>
     </div>
   </div>
-  <div class="note">Everything on this page that describes what Toccata does comes from the official Kaspa developer guide and from the core developer's own pre-activation outlook. Where we count something ourselves, we say so.</div>
+  <div class="note">Everything on this page that describes what Toccata does comes from the official Kaspa developer guide and from the core developer's own pre-activation outlook. Where we count something ourselves, we say so. Since 2 July 2026 there is also a draft standard that builds on what Toccata added, <a href="https://kas-smiths.org/t/fungible-token-covenant-specification-kcc20/8" target="_blank" rel="noopener">KCC20, a fungible token covenant specification</a>. In its own words, "a KCC20 token is a covenant instance that implements a minimal fungible-token interface". It is a draft and feedback is open, and it is token logic on top of covenants, not token issuance at consensus level.</div>
 </div>
 <div class="band"><div class="wrap2">
   <h2>What actually activated, in plain language</h2>
@@ -159,7 +159,7 @@
   <p>If you followed the coverage in June you will have read that Toccata brought Kaspa native tokens, or native KRC-20 issuance, or simply "smart contracts". Those claims travelled a long way. They are worth checking against the source rather than against each other.</p>
   <p><b>The official developer guide lists six additions, and native token issuance is not among them.</b> The core developer's own outlook written before activation does not mention native tokens either. We are not saying the feature is impossible or unplanned, and we are not correcting anyone's roadmap. We are saying that if you read that Toccata introduced native tokens, that claim does not come from the documentation.</p>
   <p>The guide is equally direct about the bigger framing. It states plainly that <b>Toccata does not turn Kaspa into an account chain smart contract system</b>. Kaspa stays a UTXO chain, in which coins carry their own rules, rather than becoming a chain of accounts and balances with contracts sitting above them like Ethereum. That distinction is not pedantry. It decides what can be built, how it has to be written, and why tooling from other chains does not simply carry over.</p>
-  <div class="note">This is the part worth taking away if you take away nothing else. Toccata is a programmability upgrade to a UTXO chain, not a port of the Ethereum model onto Kaspa.</div>
+  <div class="note">This is the part worth taking away if you take away nothing else. Toccata is a programmability upgrade to a UTXO chain, not a port of the Ethereum model onto Kaspa. And when tokens do arrive on this foundation, they arrive the covenant way: the KCC20 draft from 2 July 2026 defines a fungible token as a covenant instance, token logic on top of what Toccata added, not issuance at consensus level.</div>
   <h2>Eight weeks in, what actually runs on it</h2>
   <p>Consensus features being active and an ecosystem using them are two different things, and the guide says so itself, noting that developer tooling is younger than the consensus it targets. So here is the honest state of it, counted rather than claimed.</p>
   <div class="facts">
@@ -191,7 +191,7 @@
     <div style="font-size:11px; color:#7A828C; margin-top:10px;">one click, no email · alerts land in #alerts the second they fire</div>
   </div>
   <footer>
-    <div>page last reviewed 24 August 2026 · not financial advice · further reading: <a href="/kron.html">kron, explained</a> &middot; <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> · <a href="/kaspa-data-sources.html">where kaspa numbers come from</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">youtube</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>page last reviewed 30 August 2026 · not financial advice · further reading: <a href="/kron.html">kron, explained</a> &middot; <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> · <a href="/kaspa-data-sources.html">where kaspa numbers come from</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">youtube</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
   </footer>
 </div>
 <script type="application/ld+json">
@@ -207,7 +207,7 @@
     {
       "@type": "Question",
       "name": "Did Toccata give Kaspa native tokens?",
-      "acceptedAnswer": { "@type": "Answer", "text": "The official Kaspa developer guide lists six consensus additions in Toccata and native token issuance is not among them. The core developer's own pre-activation outlook does not mention native tokens either. Several news articles and widely shared posts described Toccata as introducing native token issuance, but that description does not come from the documentation." }
+      "acceptedAnswer": { "@type": "Answer", "text": "The official Kaspa developer guide lists six consensus additions in Toccata and native token issuance is not among them. The core developer's own pre-activation outlook does not mention native tokens either. Several news articles and widely shared posts described Toccata as introducing native token issuance, but that description does not come from the documentation. Since 2 July 2026 there is a draft community standard called KCC20 that defines fungible tokens as covenant instances built on top of what Toccata added, which is token logic above the consensus layer rather than native issuance at consensus level." }
     },
     {
       "@type": "Question",
@@ -228,6 +228,11 @@
       "@type": "Question",
       "name": "Is anything actually being built on Toccata yet?",
       "acceptedAnswer": { "@type": "Answer", "text": "Yes, though it is early. In the week of 24 August 2026 we counted 403 covenant transactions a day on mainnet, against about 450 the week before. Kron, a token launchpad whose locked liquidity is enforced by layer 1 logic, is the most visible application built on the new capability. The developer guide itself notes that tooling is younger than the consensus features, so libraries, wallets and explorers are still catching up." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is KCC20 on Kaspa?",
+      "acceptedAnswer": { "@type": "Answer", "text": "KCC20 is a draft community specification, published on 2 July 2026, for fungible tokens on Kaspa's layer 1. In the specification's own words, a KCC20 token is a covenant instance that implements a minimal fungible-token interface. It builds on the covenant capability that the Toccata hard fork added, which means it is token logic on top of covenants rather than native token issuance at consensus level. As of late August 2026 it is a draft and feedback is open." }
     }
   ]
 }
