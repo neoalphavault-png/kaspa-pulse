@@ -8,7 +8,7 @@
     "exchange_kas": 3907974930
   },
   "read": "the biggest wallet on the chain let coins go for the first time in this series, 3.0 million kas out in one move on 28 august, while it still holds 1.52 billion. covenant activity spiked to 16,214 a day, forty times last monday, a burst rather than a plateau. igra lost a third of its locked value and nearly doubled its trading in the same week.",
-  "override": {},
+  "override": { "chain_fees": 226, "hashrate": 313.1 },
   "issue": null,
   "_hinweise": {
     "week": "der tag an dem der post rausgeht, format JJJJ-MM-TT. steht die woche schon in der history, passiert nichts und der lauf bleibt gruen. das datum ist der schalter, erst wenn du es hochstellst geht ein post raus.",
