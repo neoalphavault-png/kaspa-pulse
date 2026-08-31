@@ -1,14 +1,14 @@
 {
-  "week": "2026-08-17",
+  "week": "2026-08-31",
   "manual": {
-    "active_addr": 6960,
-    "tps": 2.34,
-    "holders": 789980,
-    "dormant_pct": 50.95,
-    "exchange_kas": 3940000000
+    "active_addr": 22125,
+    "tps": 2.78,
+    "holders": 791545,
+    "dormant_pct": 50.76,
+    "exchange_kas": 3907974930
   },
-  "read": "more than half of all kas has not moved in over a year, and that share grew again this week. active addresses fell to 6,960 a day. the coins are sitting still, and fewer wallets are touching them.",
-  "override": {},
+  "read": "the biggest wallet on the chain let coins go for the first time in this series, 3.0 million kas out in one move on 28 august, while it still holds 1.52 billion. covenant activity spiked to 16,214 a day, forty times last monday, a burst rather than a plateau. igra lost a third of its locked value and nearly doubled its trading in the same week.",
+  "override": { "chain_fees": 226, "hashrate": 313.1 },
   "issue": null,
   "_hinweise": {
     "week": "der tag an dem der post rausgeht, format JJJJ-MM-TT. steht die woche schon in der history, passiert nichts und der lauf bleibt gruen. das datum ist der schalter, erst wenn du es hochstellst geht ein post raus.",
@@ -21,4 +21,4 @@
     "override": "nur im notfall. jedes automatische feld laesst sich hier festnageln, zum beispiel {\"tvl_kasplex\": 342947}. gueltige namen sind hashrate, block_reward, emission, mined_pct, tvl_kasplex, tvl_igra, tvl_total, dex_vol, chain_fees.",
     "issue": "leer lassen. die nummer wird aus dem datum gerechnet."
   }
-} 
+}
