@@ -1,20 +1,20 @@
 {
-  "generated_at": 1787543593,
+  "generated_at": 1788168106,
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "method": "volume weighted daily average price, kucoin with mexc and bybit gap fill",
   "reliable": true,
-  "deposits": 303,
-  "kas_received": 1560071654.61,
-  "kas_priced": 1560071654.61,
-  "usd_invested": 136083481.86,
+  "deposits": 307,
+  "kas_received": 1560071725.61,
+  "kas_priced": 1560071725.61,
+  "usd_invested": 136083483.88,
   "avg_cost_usd": 0.087229,
-  "outflow_kas": 41435155.45,
-  "outflow_count": 21,
-  "transactions_total": 518,
+  "outflow_kas": 44428124.73,
+  "outflow_count": 22,
+  "transactions_total": 523,
   "dust_transactions": 194,
   "dust_kas": 129.1136,
   "first_outflow": "2024-03-07",
-  "last_outflow": "2026-08-10",
+  "last_outflow": "2026-08-27",
   "outflows": [
     {
       "day": "2024-03-07",
@@ -120,21 +120,26 @@
       "day": "2026-08-10",
       "kas": 2396922.0,
       "tx": "b5dffd7a72781f2e4fba61d9674f2f38fe0f996dad79a469dd7d962b130835a8"
+    },
+    {
+      "day": "2026-08-27",
+      "kas": 2992969.28,
+      "tx": "59c797e2ac1ec03afae652e1499ed5fdf8cd179e25d0bd85b06e034d4de17486"
     }
   ],
-  "balance_kas": 1518636628.27,
+  "balance_kas": 1515643729.99,
   "first_deposit": "2024-03-06",
-  "last_deposit": "2026-08-23",
+  "last_deposit": "2026-08-31",
   "largest_deposit_kas": 90000000.0,
   "largest_deposit_day": "2024-03-11",
-  "price_now": 0.02851,
-  "value_now_usd": 43296330.27,
-  "unrealized_usd": -92787151.59,
-  "unrealized_pct": -68.18,
+  "price_now": 0.02742,
+  "value_now_usd": 41558951.08,
+  "unrealized_usd": -94524532.81,
+  "unrealized_pct": -69.46,
   "missing_price_days": [],
   "missing_share": 0.0,
   "price_source_days": {
-    "kucoin": 904,
+    "kucoin": 911,
     "mexc": 0,
     "bybit": 0
   },
@@ -315,8 +320,8 @@
     },
     {
       "month": "2026-08",
-      "kas": 25756022.49,
-      "usd": 700748.41,
+      "kas": 25756093.49,
+      "usd": 700750.43,
       "avg": 0.027207
     }
   ]
