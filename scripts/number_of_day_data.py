@@ -319,7 +319,7 @@ def cand_cut_today(ctx):
             "eyebrow": "NUMBER OF THE DAY",
             "value": "%.2f%%" % pct,
             "value_label": "kaspa block reward, %s %s" % (verb, when),
-            "headline": "bitcoin cuts once every *four years*.\nkaspa cuts every month.",
+            "headline": "*twelve cuts a year*,\nnot one every four.",
             "panes": [
                 {
                     "kind": "compare",
@@ -509,8 +509,7 @@ def _move_candidate(ctx, key, title, unit_fmt, label, headline_word,
                     "title": "WHAT THE NUMBER IS",
                     "lines": [
                         "the difference is *%s*." % unit_fmt(abs(now - then)),
-                        "same source, %d days apart. movement, "
-                        "*never the motive*." % age,
+                        "movement, *never the motive*.",
                     ],
                 },
             ],
@@ -558,7 +557,7 @@ def cand_emission_vs_btc(ctx):
             "eyebrow": "NUMBER OF THE DAY",
             "value": fmt_money(usd_kas),
             "value_label": "of brand new kaspa supply is created every day",
-            "headline": "bitcoin prints *%.0f times* more\nnew supply every single day." % times,
+            "headline": "bitcoin prints *%.0fx*\nmore supply each day." % times,
             "panes": [
                 {
                     "kind": "compare",
@@ -610,7 +609,7 @@ def cand_whale_weight(ctx):
             "eyebrow": "NUMBER OF THE DAY",
             "value": "%.2f%%" % share,
             "value_label": "of every kaspa in circulation sits in one address",
-            "headline": "one address holds *%d days*\nof the entire network output." % round(days),
+            "headline": "*%d days* of supply\nin one address." % round(days),
             "panes": [
                 {
                     "kind": "compare",
