@@ -20,6 +20,7 @@
       ["mining", "/kaspa-mining.html"],
       ["merged mining", "/merged-mining.html"],
       ["the halving", "/kaspa-halving.html"],
+      ["security budget", "/kaspa-security-budget.html"],
       ["toccata", "/kaspa-toccata.html"]
     ]},
     { t: "supply", k: [
