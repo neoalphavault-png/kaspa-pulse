@@ -1,44 +1,44 @@
 {
-  "issue": "SEP 3 2026",
+  "issue": "SEP 4 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "$1.36M",
-  "value_label": "locked across kasplex and igra",
-  "headline": "layer 2 tvl is *down 21 percent*\nagainst 3 weeks ago.",
+  "value": "5.61%",
+  "value_label": "kaspa block reward, falls this morning",
+  "headline": "*twelve cuts a year*,\nnot one every four.",
   "panes": [
     {
       "kind": "compare",
-      "title": "TOTAL VALUE LOCKED",
-      "sub": "same measurement, two dates",
+      "title": "SIZE OF ONE CUT",
+      "sub": "how much new supply disappears at once",
       "rows": [
         {
-          "label": "today",
-          "sub": "",
-          "value": "$1.36M",
-          "pct": 78.86588915074312,
-          "tone": "red"
+          "label": "kaspa",
+          "sub": "every month",
+          "value": "5.61%",
+          "pct": 11.225137463661294,
+          "tone": "teal"
         },
         {
-          "label": "3 weeks ago",
-          "sub": "",
-          "value": "$1.73M",
-          "pct": 100.0,
+          "label": "bitcoin",
+          "sub": "every four years",
+          "value": "50%",
+          "pct": 100,
           "tone": "grey"
         }
       ]
     },
     {
       "kind": "anchor",
-      "title": "WHAT THE NUMBER IS",
+      "title": "WHAT THAT MEANS",
       "lines": [
-        "the difference is *$365K*.",
-        "movement, *never the motive*."
+        "twelve small steps, the *same 50 percent*.",
+        "*112,137 KAS* per day stop being minted today."
       ]
     }
   ],
-  "sources": "defillama.com",
+  "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "layer 2 tvl on kaspa is down 21 percent against 3 weeks ago. $1.36M today, $1.73M then, both read from the same source 24 days apart. we report the movement, never the motive.",
-    "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
+    "x": "the kaspa block reward falls 5.61 percent this morning. bitcoin does 50 percent once every four years. kaspa does one small step every month, and twelve of them land on the same 50 percent. the network now mints 112,137 fewer KAS per day, emission went from 2.00 million to 1.89 million.",
+    "reply": "the live emission numbers are on kaspapulse.com/kaspa-halving.html. the exact minute drifts, the cut lands on a block score, not a clock."
   }
 }
