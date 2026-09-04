@@ -509,7 +509,7 @@ def _move_candidate(ctx, key, title, unit_fmt, label, headline_word,
                     "title": "WHAT THE NUMBER IS",
                     "lines": [
                         "the difference is *%s*." % unit_fmt(abs(now - then)),
-                        "movement, *never the motive*.",
+                        "*counted* from the same source.",
                     ],
                 },
             ],
@@ -517,8 +517,7 @@ def _move_candidate(ctx, key, title, unit_fmt, label, headline_word,
             "site": "kaspapulse.com",
             "post": post_block(
                 "%s on kaspa is %s %.0f percent against %s. %s today, %s then, "
-                "both read from the same source %d days apart. we report the "
-                "movement, never the motive."
+                "both read from the same source %d days apart."
                 % (headline_word, direction, abs(change), age_phrase(age),
                    unit_fmt(now), unit_fmt(then), age),
                 "the weekly readings behind that are on " + SITE_URL + ". the "
@@ -627,8 +626,7 @@ def cand_whale_weight(ctx):
                     "kind": "anchor",
                     "title": "WHO IT IS",
                     "lines": [
-                        "never named, and we do not guess. "
-                        "*what it does*, never who it is.",
+                        "one address. *what it does*, counted daily.",
                     ],
                 },
             ],
@@ -637,8 +635,7 @@ def cand_whale_weight(ctx):
             "post": post_block(
                 "one address holds %.2f percent of every kaspa in circulation, "
                 "about %s. at the current emission rate the entire network "
-                "needs %d days to mine that much. it has never been named. we "
-                "report what it does, never who it is."
+                "needs %d days to mine that much. it has never been named."
                 % (share, fmt_kas(whale), round(days)),
                 "every move that wallet makes is on kaspapulse.com/entity-x.html. "
                 "an address is not a person, one owner can hold many."),
