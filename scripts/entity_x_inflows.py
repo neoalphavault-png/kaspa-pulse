@@ -435,7 +435,7 @@ def main():
         "caveat": ("an inflow from an exchange wallet is a withdrawal, not "
                    "a proven buy. a fresh unlabeled sender is consistent "
                    "with consolidation, not proof of it. the chain shows "
-                   "the path, never the owner and never the motive."),
+                   "the path."),
         "senders": results,
         "inflows_head": flows[:50],
         "inflows_tail": flows[-50:],
