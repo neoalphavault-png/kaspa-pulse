@@ -141,8 +141,7 @@ def build_inflow(balance, diff):
         "**ENTITY X INFLOW DETECTED**\n"
         f"balance up **{fmt(diff)} KAS** since the last checkpoint\n"
         f"now {fmt(balance)} KAS\n"
-        "coins arriving are not proof of a purchase. we report the movement, "
-        "never the motive.\n"
+        "coins arriving are not proof of a purchase.\n"
         "check it yourself at <https://kaspapulse.com/entity-x.html>"
     )
 
