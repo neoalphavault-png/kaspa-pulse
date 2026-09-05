@@ -1,44 +1,44 @@
 {
-  "issue": "SEP 4 2026",
+  "issue": "SEP 5 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "5.61%",
-  "value_label": "kaspa block reward, falls this morning",
-  "headline": "*twelve cuts a year*,\nnot one every four.",
+  "value": "96.44%",
+  "value_label": "of every KAS that will ever exist is already mined",
+  "headline": "the supply story is *almost over*.",
   "panes": [
     {
       "kind": "compare",
-      "title": "SIZE OF ONE CUT",
-      "sub": "how much new supply disappears at once",
+      "title": "SUPPLY ALREADY ISSUED",
+      "sub": "share of the maximum, measured today",
       "rows": [
         {
-          "label": "kaspa",
-          "sub": "every month",
-          "value": "5.61%",
-          "pct": 11.225137463661294,
+          "label": "mined",
+          "sub": "in circulation",
+          "value": "96.44%",
+          "pct": 100.0,
           "tone": "teal"
         },
         {
-          "label": "bitcoin",
-          "sub": "every four years",
-          "value": "50%",
-          "pct": 100,
+          "label": "left",
+          "sub": "still to come",
+          "value": "3.56%",
+          "pct": 3.6890056813336636,
           "tone": "grey"
         }
       ]
     },
     {
       "kind": "anchor",
-      "title": "WHAT THAT MEANS",
+      "title": "WHAT IS LEFT",
       "lines": [
-        "twelve small steps, the *same 50 percent*.",
-        "*112,137 KAS* per day stop being minted today."
+        "*1,021,220,618 KAS* are still to come.",
+        "99 percent is reached in july 2028."
       ]
     }
   ],
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "the kaspa block reward falls 5.61 percent this morning. bitcoin does 50 percent once every four years. kaspa does one small step every month, and twelve of them land on the same 50 percent. the network now mints 112,137 fewer KAS per day, emission went from 2.00 million to 1.89 million.",
-    "reply": "the live emission numbers are on kaspapulse.com/kaspa-halving.html. the exact minute drifts, the cut lands on a block score, not a clock."
+    "x": "96.44 percent of every KAS that will ever exist is already mined. 1,021,220,618 KAS are still to come, and 99 percent is reached in july 2028 at the current schedule. what comes after keeps halving every twelve months.",
+    "reply": "the full emission schedule is on kaspapulse.com/kaspa-halving.html. the remaining amount shrinks and never quite reaches the maximum."
   }
 }
