@@ -1,44 +1,43 @@
 {
-  "issue": "SEP 5 2026",
+  "issue": "SEP 6 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "96.44%",
-  "value_label": "of every KAS that will ever exist is already mined",
-  "headline": "the supply story is *almost over*.",
+  "value": "864,000",
+  "value_label": "blocks the kaspa network produces every single day",
+  "headline": "bitcoin finds *144 blocks*.\nkaspa finds 864,000.",
   "panes": [
     {
       "kind": "compare",
-      "title": "SUPPLY ALREADY ISSUED",
-      "sub": "share of the maximum, measured today",
+      "title": "BLOCKS IN TWENTY FOUR HOURS",
+      "sub": "protocol target, not an average of a good day",
       "rows": [
         {
-          "label": "mined",
-          "sub": "in circulation",
-          "value": "96.44%",
+          "label": "kaspa",
+          "sub": "ten per second",
+          "value": "864,000",
           "pct": 100.0,
           "tone": "teal"
         },
         {
-          "label": "left",
-          "sub": "still to come",
-          "value": "3.56%",
-          "pct": 3.6890056813336636,
+          "label": "bitcoin",
+          "sub": "one per ten minutes",
+          "value": "144",
+          "pct": 2.0,
           "tone": "grey"
         }
       ]
     },
     {
       "kind": "anchor",
-      "title": "WHAT IS LEFT",
+      "title": "WHY IT DOES NOT COLLAPSE",
       "lines": [
-        "*1,021,220,618 KAS* are still to come.",
-        "99 percent is reached in july 2028."
+        "parallel blocks are not thrown away. they are *ordered and kept*."
       ]
     }
   ],
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "96.44 percent of every KAS that will ever exist is already mined. 1,021,220,618 KAS are still to come, and 99 percent is reached in july 2028 at the current schedule. what comes after keeps halving every twelve months.",
-    "reply": "the full emission schedule is on kaspapulse.com/kaspa-halving.html. the remaining amount shrinks and never quite reaches the maximum."
+    "x": "kaspa produces 864,000 blocks a day. bitcoin produces about 144. ten every second against one every ten minutes. blocks found at the same moment are not discarded, they are ordered and kept, and that is the part most comparisons leave out.",
+    "reply": "how that ordering works is explained on kaspapulse.com. the coins per block shrink, the number of blocks does not."
   }
 }
