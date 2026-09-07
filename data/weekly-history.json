@@ -87,5 +87,23 @@
     "holders": 791545.0,
     "dormant_pct": 50.76,
     "exchange_kas": 3907974930.0
+  },
+  {
+    "week": "2026-09-07",
+    "issue": 9,
+    "hashrate": 333.0,
+    "block_reward": 2.182676,
+    "emission": 1885832.453675,
+    "mined_pct": 96.454786,
+    "tvl_kasplex": 368321.930713,
+    "tvl_igra": 1017081.735861,
+    "tvl_total": 1385403.666574,
+    "dex_vol": 127555.0,
+    "chain_fees": 226.0,
+    "active_addr": 21170.0,
+    "tps": 2.83,
+    "holders": 792098.0,
+    "dormant_pct": 50.97,
+    "exchange_kas": 3883120966.0
   }
 ]
