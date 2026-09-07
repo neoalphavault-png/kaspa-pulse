@@ -15,6 +15,7 @@
   "use strict";
   var MENUE = [
     { t: "dashboard", h: "/" },
+    { t: "weekly", h: "/kaspa-weekly.html" },
     { t: "network", k: [
       ["hashrate", "/kaspa-hashrate.html"],
       ["mining", "/kaspa-mining.html"],
