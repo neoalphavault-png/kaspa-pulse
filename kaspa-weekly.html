@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaspa Weekly — Kaspa Price Analysis From the Weekly Close, Every Monday — Kaspa Pulse</title>
+<meta name="description" content="Kaspa technical analysis without targets. Where the weekly close sits against the 21 week and 50 week average, what one KAS buys in satoshis, and the price bands where Kaspa actually traded. Updated every Monday from Kraken daily candles.">
+<link rel="canonical" href="https://kaspapulse.com/kaspa-weekly.html">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --amber:#E8B04B; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
+         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
+  .wrap { max-width:780px; margin:0 auto; padding:28px 18px 56px; }
+  h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
+  h1 b { color:var(--teal); }
+  .sub { font-size:16px; color:var(--dim); line-height:24px; }
+  h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin:56px 0 14px; }
+  h2::before { content:""; display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--teal); margin-right:11px; vertical-align:5px; }
+  h3 { font-size:16px; font-weight:700; margin:26px 0 7px; color:var(--txt); }
+  p { font-size:15px; line-height:24px; color:var(--dim); margin:0 0 14px; }
+  p b, li b { color:var(--txt); font-weight:600; }
+  ul { margin:0 0 14px 20px; }
+  li { font-size:15px; line-height:24px; color:var(--dim); margin-bottom:8px; }
+  .answer { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:24px 26px; margin:34px 0; }
+  .answer .lbl { font-size:12px; letter-spacing:3px; color:var(--teal); text-transform:uppercase; font-weight:700; margin-bottom:10px; }
+  .answer p { margin:0; font-size:16px; line-height:25px; color:var(--txt); }
+
+  .live { background:var(--card); border:1px solid #15181C; border-radius:18px; padding:26px 26px 22px; margin:30px 0 8px; }
+  .live .lbl { font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700; }
+  .live .lbl i { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--teal); margin-right:7px; vertical-align:1px; }
+  .live .big { font-size:52px; font-weight:700; letter-spacing:-2px; color:var(--teal); line-height:1.05; margin:10px 0 4px; font-variant-numeric:tabular-nums; }
+  .live .cap { font-size:13px; color:var(--dimmer); line-height:19px; }
+  .split { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; border-top:1px solid #15181C; padding-top:18px; }
+  .split div .v { font-size:19px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .split div .k { font-size:11.5px; color:var(--dimmer); margin-top:4px; line-height:16px; }
+
+  .chart { background:var(--card); border:1px solid #15181C; border-radius:18px; padding:22px 22px 14px; margin:24px 0 8px; }
+  .chart .clbl { font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700; margin-bottom:14px; }
+  .chart svg { width:100%; height:auto; display:block; }
+  .lg { display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; font-size:12px; color:var(--dimmer); }
+  .lg i { display:inline-block; width:14px; height:3px; border-radius:2px; margin-right:6px; vertical-align:3px; }
+
+  table { width:100%; border-collapse:collapse; margin:20px 0 8px; }
+  th { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--dimmer); text-align:left; font-weight:700; padding:0 0 10px; border-bottom:1px solid var(--line); }
+  th.r, td.r { text-align:right; }
+  td.r { padding-right:16px; }
+  td { font-size:14.5px; color:var(--dim); padding:12px 0; border-bottom:1px solid #101317; font-variant-numeric:tabular-nums; }
+  td.n { color:var(--txt); font-weight:600; }
+  tr.me td { color:var(--teal); font-weight:700; }
+  .bar { height:8px; border-radius:999px; background:#15181C; overflow:hidden; min-width:70px; }
+  .bar i { display:block; height:100%; background:var(--dimmer); border-radius:999px; }
+  tr.me .bar i { background:var(--teal); }
+
+  .facts { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:24px 0 8px; }
+  .fact { background:var(--card); border:1px solid #15181C; border-radius:14px; padding:18px; }
+  .fact .v { font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .fact .v.teal { color:var(--teal); } .fact .v.red { color:var(--red); } .fact .v.amber { color:var(--amber); }
+  .fact .l { font-size:12.5px; color:var(--dimmer); margin-top:6px; line-height:17px; }
+  .note { font-size:13px; color:var(--dimmer); font-style:italic; border-left:3px solid var(--teal); padding:4px 0 4px 14px; margin:20px 0; line-height:20px; }
+  a { color:var(--teal); }
+
+  .eps { display:flex; flex-direction:column; gap:12px; margin:22px 0 8px; }
+  .ep { display:flex; gap:16px; align-items:flex-start; background:var(--card); border:1px solid #15181C; border-radius:14px; padding:18px 20px; text-decoration:none; }
+  .ep:hover { border-color:rgba(73,234,203,0.35); }
+  .ep .no { font-size:11px; letter-spacing:2px; color:var(--dimmer); font-weight:700; text-transform:uppercase; padding-top:3px; white-space:nowrap; }
+  .ep .t { font-size:16px; font-weight:700; color:var(--txt); line-height:22px; }
+  .ep .d { font-size:13px; color:var(--dimmer); margin-top:5px; line-height:19px; }
+  .next { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px dashed rgba(73,234,203,0.4); border-radius:14px; padding:18px 20px; }
+  .next .t { font-size:16px; font-weight:700; color:var(--teal); }
+  .next .d { font-size:13px; color:var(--dimmer); margin-top:5px; line-height:19px; }
+
+  @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} .live .big{font-size:40px;} .split{grid-template-columns:1fr; gap:14px;} td,th{font-size:13px;} .chart{padding:16px 8px 8px 8px;} .chart .clbl{padding-left:8px;} .ep{flex-direction:column; gap:6px;} }
+
+  .ytbox { background:linear-gradient(160deg, rgba(255,0,0,0.10), rgba(255,0,0,0.02)); border:1px solid rgba(255,60,60,0.40); border-radius:16px; padding:30px 24px; margin:26px 0 0; text-align:center; }
+  .ytbadge { display:inline-block; font-size:10px; letter-spacing:2px; color:#FF6B6B; background:rgba(255,0,0,0.10); border:1px solid rgba(255,60,60,0.40); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
+  .ytt { font-size:18px; font-weight:700; letter-spacing:-0.3px; }
+  .ytt span { color:#FF5C5C; }
+  .ytd { font-size:12px; color:var(--dimmer); margin-top:6px; line-height:17px; max-width:460px; margin-left:auto; margin-right:auto; }
+  .ytcta { display:inline-block; background:#FF0033; color:#FFFFFF; border-radius:8px; padding:11px 22px; font-size:14px; font-weight:700; text-decoration:none; margin-top:16px; }
+  .ytf { font-size:11px; color:var(--dimmer); margin-top:10px; }
+  .ytf a { color:var(--dim); }
+  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
+  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
+  .subscribe .st { font-size:18px; font-weight:700; }
+  .subscribe .st b { color:var(--teal); }
+  .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
+  .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
+  .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
+  .subscribe input::placeholder { color:var(--dimmer); }
+  .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .subscribe .msg { display:none; font-size:13px; font-weight:600; margin-top:14px; padding:10px 14px; border-radius:8px; }
+  .subscribe .msg.ok { display:block; color:var(--teal); background:rgba(73,234,203,0.08); border:1px solid rgba(73,234,203,0.35); }
+  .subscribe .msg.err { display:block; color:var(--red); background:rgba(227,106,106,0.08); border:1px solid rgba(227,106,106,0.35); }
+  .subscribe .fine { font-size:11px; color:var(--dimmer); margin-top:10px; }
+  @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
+  footer { border-top:1px solid var(--line); margin-top:48px; padding-top:16px; text-align:center; font-size:11px; color:var(--dimmer); }
+  footer a { color:var(--dim); text-decoration:none; }
+  html { scroll-behavior:smooth; }
+  .nav { position:sticky; top:0; z-index:60; background:rgba(5,6,8,0.88); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
+  .nav .nt { max-width:820px; margin:0 auto; padding:13px 18px 9px; display:flex; justify-content:space-between; align-items:center; }
+  .nav .nlogo { font-size:13px; letter-spacing:4px; font-weight:700; }
+  .nav .nlogo a { color:var(--txt); text-decoration:none; }
+  .nav .nlogo span { color:var(--teal); }
+  .nav-cta { font-size:10px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color:var(--teal); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:5px 12px; text-decoration:none; background:rgba(73,234,203,0.07); white-space:nowrap; }
+  .nav .nc { max-width:820px; margin:0 auto; padding:0 10px 10px; display:flex; flex-wrap:wrap; gap:2px; row-gap:3px; }
+  .nav .nc::-webkit-scrollbar { display:none; }
+  .nav .nc a { font-size:12px; color:var(--dim); text-decoration:none; padding:5px 8px; border-radius:999px; white-space:nowrap; border:1px solid transparent; }
+  .nav .nc a:hover { color:var(--txt); }
+  .nav .nc a.on { color:var(--teal); background:rgba(73,234,203,0.08); border-color:rgba(73,234,203,0.25); }
+  .rv { opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
+  .rv.vis { opacity:1; transform:none; }
+  @media (prefers-reduced-motion: reduce){ .rv { opacity:1; transform:none; transition:none; } }
+  .nright { display:flex; align-items:center; gap:8px; }
+  .nburger { display:none; background:none; border:1px solid var(--line); color:var(--txt); border-radius:10px; padding:8px 14px; font-size:19px; line-height:1.2; cursor:pointer; font-family:inherit; }
+  .tblwrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tblwrap table { min-width:540px; }
+  @media (max-width:640px){
+    .nburger { display:block; }
+    .nav .nc { display:none; }
+    .nav .nc.open { display:flex; flex-direction:column; gap:4px; padding:8px 18px 14px; border-top:1px solid var(--line); }
+    .nav .nc.open a { font-size:15px; padding:11px 12px; }
+    .nav .nlogo { font-size:12px; letter-spacing:3px; }
+  }
+  .band { background:linear-gradient(180deg, #0B0E14, #090C10); border-top:1px solid #181C23; border-bottom:1px solid #181C23; box-shadow:inset 0 1px 0 rgba(255,255,255,0.02); }
+  .band .fact, .band .note, .band .chart, .band .live { background:#0F1218; }
+  .wrap2 { max-width:780px; margin:0 auto; padding:10px 18px 40px; }
+  .wrap2 h2:first-child { margin-top:40px; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nt">
+    <div class="nlogo"><a href="/">PULSE<span>HAWK</span> · KASPA PULSE</a></div>
+    <div class="nright"><a class="nav-cta" href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">watch on youtube</a><button class="nburger" aria-label="menu">☰</button></div>
+  </div>
+    <div class="nc">
+    <a href="/">dashboard</a>
+    <a href="/kaspa-weekly.html" class="on">weekly</a>
+    <a href="/kaspa-supply.html">supply</a>
+    <a href="/kaspa-halving.html">halving</a>
+    <a href="/kaspa-staking.html">staking</a>
+    <a href="/kaspa-wallets.html">wallets</a>
+    <a href="/kaspa-hashrate.html">hashrate</a>
+    <a href="/kaspa-mining.html">mining</a>
+    <a href="/kaspa-tvl.html">tvl</a>
+    <a href="/kaspa-smart-contracts.html">smart contracts</a>
+    <a href="/kaspa-token-standard.html">token standards</a>
+    <a href="/kron.html">kron</a>
+    <a href="/entity-x.html">entity x</a>
+    <a href="/merged-mining.html">merged mining</a>
+    <a href="/kaspa-data-sources.html">data sources</a>
+    <a href="/kaspa-security-budget.html">security budget</a>
+    <a href="/kaspa-toccata.html">toccata</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <h1>Kaspa Weekly. <b>The chart, counted.</b></h1>
+  <p class="sub">One chart breakdown every Monday, four minutes, no targets, on <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">the Kaspa Pulse YouTube channel</a>. This page holds the numbers behind it and the definition of every line, updated from the same data the video uses. We describe what the chart did. We never say what it will do.</p>
+
+  <div class="live">
+    <div class="lbl"><i></i>the weekly close · <span id="wkDate">—</span></div>
+    <div class="big" id="wkClose">—</div>
+    <div class="cap">the last completed weekly candle. a week ends sunday 00:00 utc, so the close is saturday's reading. <span id="wkChg">—</span></div>
+    <div class="split">
+      <div><div class="v" id="v21">—</div><div class="k">21 week average · the close sits <span id="g21">—</span> it</div></div>
+      <div><div class="v" id="v50">—</div><div class="k">50 week average · the close sits <span id="g50">—</span> it</div></div>
+      <div><div class="v" id="vStreak">—</div><div class="k">weeks in a row closing below the 21 week average</div></div>
+    </div>
+  </div>
+  <p class="note">Every number on this page is computed in your browser from <a href="/kaspa-data-sources.html">our own candle file</a>, the same file the video is built from. Nothing here is typed in by hand, which is why it can never drift away from the video.</p>
+
+  <div class="answer">
+    <div class="lbl">what this format is</div>
+    <p>A weekly chart breakdown for Kaspa that never tells you where the price is going. We show where the close sits against two mechanical lines, what one KAS buys in bitcoin, and the price bands where trading actually happened. Then one sentence on what would change our read. Published every Monday at 16:00 CET, the same hour as the dashboard and the newsletter.</p>
+  </div>
+
+  <h2>The two lines</h2>
+  <p>Both lines are mechanical. Nothing is drawn by hand, because a line dragged with a cursor cannot be checked by anyone.</p>
+  <h3>The 21 week average</h3>
+  <p>The average of the last 21 weekly closes, weighted so recent weeks count more (an exponential average, seeded with the plain average of the first 21 weeks). It reacts within a few weeks, so it answers a short question: is this week trading above or below where the last few months traded? Right now the close sits <b><span id="g21b">—</span></b> it, and Kaspa has closed below this line <b><span id="streakB">—</span> weeks in a row</b>. The last weekly close above it was <b><span id="lastAbove">—</span></b>.</p>
+  <h3>The 50 week average</h3>
+  <p>The plain average of the last 50 weekly closes. Longer memory, slower to turn, so it answers the year-shaped question. The close sits <b><span id="g50b">—</span></b> it. In our data window, Kaspa has closed a week above that line <b><span id="above50">—</span></b>.</p>
+
+  <div class="chart">
+    <div class="clbl">weekly close against both averages · full window</div>
+    <svg id="svgMain" viewBox="0 0 720 300" preserveAspectRatio="none" role="img" aria-label="Kaspa weekly close with the 21 week and 50 week average"></svg>
+    <div class="lg"><span><i style="background:#E8B04B"></i>weekly close</span><span><i style="background:#49EACB"></i>21 week average</span><span><i style="background:#5C6672"></i>50 week average</span></div>
+  </div>
+
+  <h2>Kaspa priced in bitcoin</h2>
+  <p>The chart almost nobody shows, because the answer is often uncomfortable. A satoshi is the smallest piece of a bitcoin, one hundred millionth. Pricing KAS in sats answers the only question a bitcoin holder actually has: was holding Kaspa instead of bitcoin worth it?</p>
+  <div class="facts">
+    <div class="fact"><div class="v teal" id="satNow">—</div><div class="l">sats per KAS at the last weekly close</div></div>
+    <div class="fact"><div class="v" id="sat12">—</div><div class="l">twelve weeks ago</div></div>
+    <div class="fact"><div class="v" id="sat52">—</div><div class="l">a year ago</div></div>
+    <div class="fact"><div class="v red" id="satChg">—</div><div class="l">change against bitcoin over the year</div></div>
+  </div>
+  <p>Both charts can be true in the same week. The dollar chart can have a strong week while the bitcoin chart keeps falling, because the dollar chart measures the whole market and the bitcoin chart measures the race inside it.</p>
+
+  <h2>The shelf, where trading actually happened</h2>
+  <p>Our honest version of support and resistance. Instead of drawing a line where a chart looks pretty, we count. Every week of trading goes into a price band half a cent wide, and each band gets credited with that week's volume. The bands with the most volume are the prices where the most coins actually changed hands, so those are the prices where the most holders have something at stake.</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>price band</th><th class="r">share of all volume</th><th style="width:38%"></th></tr></thead>
+    <tbody id="shelfBody"><tr><td colspan="3">loading…</td></tr></tbody>
+  </table>
+  </div>
+  <p id="shelfNote">—</p>
+  <p class="note">A band is not a floor. Heavy volume tells you where positions were built, not where the price has to stop. We report the count, never a prediction from it.</p>
+
+  <h2>What would change our read</h2>
+  <div class="answer">
+    <div class="lbl">the one number</div>
+    <p id="changeRead">—</p>
+  </div>
+  <p>This is the part that makes the format checkable. Instead of a forecast, we name in advance the single observation that would force us to say something different next Monday. If it happens, we say so. If it does not, we say that too.</p>
+
+  <h2>The episodes</h2>
+  <div class="eps">
+    <a class="ep" href="https://youtu.be/QfI8a8xp-Sc" target="_blank" rel="noopener">
+      <div class="no">ep 2 · 7 sep 2026</div>
+      <div><div class="t">0.8 percent from the line</div><div class="d">The smallest gap to the 21 week average in 51 weeks, at week 56 below it. One KAS buys 38 sats, 46 percent fewer than a year ago. Plus what Friday's reward cut did to daily emission, 2.00 million KAS a day down to 1.89 million.</div></div>
+    </a>
+    <a class="ep" href="https://youtu.be/HstbKFAlJug" target="_blank" rel="noopener">
+      <div class="no">ep 1 · 31 aug 2026</div>
+      <div><div class="t">55 weeks below the line</div><div class="d">The first episode. The close 10.3 percent under the 21 week average for the 55th straight week, one KAS buying 35 sats after a 55 percent fall against bitcoin in a year, and the heaviest volume band in the whole window.</div></div>
+    </a>
+    <div class="next">
+      <div class="t">next episode · monday, 16:00 CET</div>
+      <div class="d">Built from the weekly close that lands the Saturday before. <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">Subscribe on YouTube</a> so you do not miss it, or take the email below and get the numbers before the video.</div>
+    </div>
+  </div>
+
+  <div class="ytbox">
+    <div class="ytbadge">free · every monday 16:00 CET</div>
+    <div class="ytt">watch <span>Kaspa Weekly</span> on YouTube</div>
+    <div class="ytd">every episode, plus a new Kaspa explainer every Thursday. the chart, the chain, and the definition of every number we say out loud.</div>
+    <a class="ytcta" href="https://www.youtube.com/@gokugalax3000?sub_confirmation=1" target="_blank" rel="noopener">subscribe to kaspa pulse</a>
+    <div class="ytf">no targets, ever · <a href="https://www.youtube.com/@gokugalax3000/videos" target="_blank" rel="noopener" id="ytPlaylist">all episodes on the channel</a></div>
+  </div>
+
+  <h2>How we count</h2>
+  <p><b>The data window.</b> Our candle file starts on <b><span id="winStart">—</span></b>, the first day of the exchange feed we log ourselves. It is not the start of Kaspa trading. Every "since" and every "in our window" on this page and in the videos means that window, and we say so rather than implying we have the full history.</p>
+  <p><b>The source.</b> Kraken daily candles, UTC close, logged by us into a file in the open. A week ends Sunday 00:00 UTC, which makes Saturday's reading the weekly close. Bitcoin comes from the same log, so the sats number is one file divided by another, not a figure copied from a third party.</p>
+  <p><b>What we refuse to do.</b> No price targets, no time frames, no "could" and no "should", in the video, in the comments and in replies. Every line is either mechanical or counted by us. If someone asks for a target, the answer is always the same one: we do not do targets, the levels are on this page, the chain numbers are counted, the call is yours.</p>
+  <p><b>Where the rest lives.</b> The chart is only half the format. The other half is the chain, the numbers a price chart cannot show, and each of those has its own page with its own definition: <a href="/kaspa-hashrate.html">hashrate</a>, <a href="/kaspa-halving.html">the monthly reward cut</a>, <a href="/kaspa-supply.html">supply</a>, <a href="/entity-x.html">the largest wallet</a>, <a href="/kaspa-tvl.html">layer two value</a>. The <a href="/">dashboard</a> carries all eight, refreshed every Monday morning.</p>
+
+  <div class="subscribe">
+    <div class="badge">free · instant</div>
+    <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
+    <div class="ss">the 8 numbers that actually matter and how to read each one · plus the weekly pulse every monday, before the video goes live</div>
+    <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="you@email.com" required>
+      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="locale" value="en">
+      <input type="hidden" name="html_type" value="simple">
+      <button type="submit" id="subBtn">get it</button>
+    </form>
+    <div class="msg" id="subMsg"></div>
+    <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
+  </div>
+
+  <div class="discordbox" style="background:linear-gradient(160deg, rgba(88,101,242,0.13), rgba(88,101,242,0.03)); border:1px solid rgba(88,101,242,0.45); border-radius:16px; padding:30px 24px; margin:18px 0 0; text-align:center;">
+    <div style="display:inline-block; font-size:10px; letter-spacing:2px; color:#9BA6F8; background:rgba(88,101,242,0.14); border:1px solid rgba(88,101,242,0.45); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700;">free · live alerts</div>
+    <div style="font-size:18px; font-weight:700; letter-spacing:-0.3px;">the chain, <span style="color:#9BA6F8;">watched for you</span></div>
+    <div style="font-size:12px; color:#7A828C; margin-top:6px; line-height:17px; max-width:460px; margin-left:auto; margin-right:auto;">a bot checks the entity x wallet every 30 minutes, around the clock. the moment the whale moves, the alert fires. plus the monday numbers and a place to request the data you're missing.</div>
+    <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener" style="display:inline-block; background:#5865F2; color:#FFFFFF; border-radius:8px; padding:11px 22px; font-size:14px; font-weight:700; text-decoration:none; margin-top:16px;">join the kaspa pulse discord</a>
+    <div style="font-size:11px; color:#7A828C; margin-top:10px;">one click, no email · alerts land in #alerts the second they fire</div>
+  </div>
+
+  <footer>
+    <div>not financial advice · we describe what the chart did, we never say what it will do · further reading: <a href="/kaspa-halving.html">the monthly halving</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/kaspa-supply.html">kaspa supply</a> · <a href="/">kaspapulse.com</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+  </footer>
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the Kaspa 21 week average and where does the price sit?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The 21 week average is the exponential average of the last 21 weekly closes, seeded with the plain average of the first 21 weeks in the window. It is mechanical, so anyone can rebuild it. This page shows the current value, how far the last weekly close sits from it, and how many weeks in a row Kaspa has closed below it, computed live from our own Kraken candle file." }
+    },
+    {
+      "@type": "Question",
+      "name": "How many satoshis does one KAS buy?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The page divides the Kaspa weekly close by the bitcoin close from the same log and shows the result in satoshis, alongside the readings from twelve weeks and one year earlier. Pricing Kaspa in bitcoin answers whether holding KAS instead of BTC has paid, which the dollar chart alone cannot answer." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Kaspa Pulse give Kaspa price predictions or targets?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. The format describes what the chart did and never says what it will do. There are no targets, no time frames and no recommendations, in the videos, the comments or the replies. Every line shown is either mechanically defined, such as a moving average with a named period, or counted by us from public data." }
+    },
+    {
+      "@type": "Question",
+      "name": "What are the Kaspa support and resistance levels?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Instead of drawing lines, we count volume into price bands half a cent wide across the whole data window. The bands with the largest share of traded volume are the prices where the most coins actually changed hands. This page lists the heaviest bands and marks the band the current close sits in. Heavy volume marks where positions were built, not where a price must stop." }
+    },
+    {
+      "@type": "Question",
+      "name": "When does a new Kaspa Weekly episode come out?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Every Monday at 16:00 CET on the Kaspa Pulse YouTube channel, built from the weekly close that lands the Saturday before. The dashboard and the newsletter are refreshed the same morning, so the video, the page and the email always carry the same numbers." }
+    }
+  ]
+}
+</script>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var fmtP = function(v){ return "$" + v.toFixed(5); };
+  var pct = function(v){ return (v>=0?"+":"−") + Math.abs(v).toFixed(1) + "%"; };
+  var MON = ["january","february","march","april","may","june","july","august","september","october","november","december"];
+  function nice(iso){ var p = iso.split("-"); return parseInt(p[2],10) + " " + MON[parseInt(p[1],10)-1] + " " + p[0]; }
+  function words(n){ var w = ["zero","once","twice"]; return n < 3 ? w[n] : n + " times"; }
+
+  function ema(v,n){ var out=new Array(v.length).fill(null); if(v.length<n) return out;
+    var s=0; for(var i=0;i<n;i++) s+=v[i]; s/=n; out[n-1]=s; var k=2/(n+1);
+    for(var j=n;j<v.length;j++){ s=(v[j]-s)*k+s; out[j]=s; } return out; }
+  function sma(v,n){ return v.map(function(_,i){ if(i<n-1) return null; var s=0; for(var j=i-n+1;j<=i;j++) s+=v[j]; return s/n; }); }
+
+  function draw(rows, e21, s50){
+    var svg = $("svgMain"); if(!svg) return;
+    var W=720,H=300,PL=8,PR=8,PT=14,PB=10;
+    var vals=[]; rows.forEach(function(r,i){ vals.push(r[1]); if(e21[i]) vals.push(e21[i]); if(s50[i]) vals.push(s50[i]); });
+    var lo=Math.min.apply(null,vals), hi=Math.max.apply(null,vals);
+    var ly=function(v){ return Math.log10(v); };
+    var y=function(v){ return PT + (H-PT-PB) * (ly(hi)-ly(v))/(ly(hi)-ly(lo)); };
+    var x=function(i){ return PL + (W-PL-PR) * i/(rows.length-1); };
+    function path(arr,acc){ var d="",started=false;
+      arr.forEach(function(r,i){ var v=acc(r,i); if(v==null){ return; }
+        d += (started?"L":"M") + x(i).toFixed(1) + " " + y(v).toFixed(1) + " "; started=true; });
+      return d; }
+    var grid="";
+    [0.03,0.05,0.10,0.15].forEach(function(v){ if(v>lo&&v<hi){
+      grid += '<line x1="'+PL+'" x2="'+(W-PR)+'" y1="'+y(v).toFixed(1)+'" y2="'+y(v).toFixed(1)+'" stroke="#1A1D21" stroke-width="1"/>'
+           +  '<text x="'+(W-PR)+'" y="'+(y(v)-5).toFixed(1)+'" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">$'+v.toFixed(2)+'</text>'; } });
+    svg.innerHTML = grid
+      + '<path d="'+path(rows,function(r){return r[1];})+'" fill="none" stroke="#E8B04B" stroke-width="2" stroke-linejoin="round"/>'
+      + '<path d="'+path(rows,function(_,i){return s50[i];})+'" fill="none" stroke="#5C6672" stroke-width="1.6"/>'
+      + '<path d="'+path(rows,function(_,i){return e21[i];})+'" fill="none" stroke="#49EACB" stroke-width="1.8"/>';
+  }
+
+  fetch("/data/kas-candles.json", {cache:"no-store"}).then(function(r){ return r.json(); }).then(function(d){
+    var W = d.kas_weekly, closes = W.map(function(r){ return r[1]; });
+    var e21 = ema(closes,21), s50 = sma(closes,50);
+    var i = closes.length-1, c = closes[i];
+    var btc = {}; d.btc_daily.forEach(function(r){ btc[r[0]] = r[1]; });
+
+    function satDay(idx){ var dt = new Date(W[idx][0] + "T00:00:00Z"); dt.setUTCDate(dt.getUTCDate()+6); return dt.toISOString().slice(0,10); }
+    $("wkDate").textContent = "week ending " + nice(satDay(i));
+    $("wkClose").textContent = fmtP(c);
+    var chg = (c/closes[i-1]-1)*100;
+    $("wkChg").textContent = "the week before closed at " + fmtP(closes[i-1]) + ", so this week is " + pct(chg) + ".";
+
+    var g21 = (c/e21[i]-1)*100, g50 = (c/s50[i]-1)*100;
+    $("v21").textContent = fmtP(e21[i]); $("v50").textContent = fmtP(s50[i]);
+    var side = function(g){ return Math.abs(g).toFixed(1) + "% " + (g<0 ? "below" : "above"); };
+    $("g21").textContent = side(g21); $("g50").textContent = side(g50);
+    $("g21b").textContent = side(g21); $("g50b").textContent = side(g50);
+
+    var streak = 0, below = c < e21[i];
+    for (var j=i; j>=0 && e21[j]!=null; j--){ if ((closes[j] < e21[j]) === below) streak++; else break; }
+    $("vStreak").textContent = streak; $("streakB").textContent = streak;
+    var la = "not in this window";
+    for (var k=i; k>=0; k--){ if (e21[k]!=null && closes[k] > e21[k]) { la = nice(satDay(k)) + ", at " + fmtP(closes[k]); break; } }
+    $("lastAbove").textContent = la;
+    var ab = 0; for (var m=0;m<closes.length;m++) if (s50[m]!=null && closes[m] > s50[m]) ab++;
+    $("above50").textContent = ab === 0 ? "not once" : words(ab);
+
+    function satsAt(idx){ var b = btc[satDay(idx)]; return b ? Math.round(closes[idx]/b*1e8) : null; }
+    var sN = satsAt(i), s12 = i>=12 ? satsAt(i-12) : null, s52 = i>=52 ? satsAt(i-52) : null;
+    $("satNow").textContent = sN ? sN + " sats" : "—";
+    $("sat12").textContent = s12 ? s12 + " sats" : "—";
+    $("sat52").textContent = s52 ? s52 + " sats" : "—";
+    if (sN && s52) { var sc = (sN/s52-1)*100; $("satChg").textContent = pct(sc);
+      $("satChg").className = "v " + (sc<0 ? "red" : "teal"); }
+
+    var bands = {}, tot = 0;
+    W.forEach(function(r){ var b = Math.floor(r[1]/0.005); bands[b] = (bands[b]||0) + r[2]; tot += r[2]; });
+    var cur = Math.floor(c/0.005);
+    var list = Object.keys(bands).map(function(b){ return [parseInt(b,10), bands[b]/tot*100]; })
+                     .sort(function(a,b){ return b[1]-a[1]; });
+    var top = list.slice(0,5);
+    if (!top.some(function(r){ return r[0]===cur; })) { var mine = list.filter(function(r){ return r[0]===cur; })[0]; if (mine) top.push(mine); }
+    var max = top[0][1], html = "";
+    top.forEach(function(r){
+      var lo = (r[0]*0.005), hi = lo+0.005, me = r[0]===cur;
+      html += '<tr class="'+(me?"me":"")+'"><td class="n">$'+lo.toFixed(3)+" – $"+hi.toFixed(3)+(me?" · the close sits here":"")+'</td>'
+           +  '<td class="r">'+r[1].toFixed(1)+'%</td>'
+           +  '<td><div class="bar"><i style="width:'+(r[1]/max*100).toFixed(0)+'%"></i></div></td></tr>';
+    });
+    $("shelfBody").innerHTML = html;
+    var mineRow = list.filter(function(r){ return r[0]===cur; })[0];
+    var rank = list.findIndex(function(r){ return r[0]===cur; }) + 1;
+    $("shelfNote").innerHTML = mineRow
+      ? "The close sits in the <b>$"+(cur*0.005).toFixed(3)+" to $"+((cur+1)*0.005).toFixed(3)+"</b> band, which carries <b>"+mineRow[1].toFixed(1)+"%</b> of all volume in the window and ranks <b>"+rank+"</b> of "+list.length+" bands. Counted across "+W.length+" weeks."
+      : "The close sits outside every band that carries meaningful volume.";
+
+    var trigger = e21[i];
+    $("changeRead").textContent = below
+      ? "A weekly close above " + fmtP(trigger) + ". That would be the first close above the 21 week average in " + (streak+1) + " weeks, and it would end the longest stretch below the line in our window."
+      : "A weekly close back below " + fmtP(trigger) + ". That would end the run above the 21 week average after " + streak + " weeks and put the close back under the line.";
+
+    $("winStart").textContent = nice(d.history_from);
+    draw(W, e21, s50);
+  }).catch(function(){
+    $("wkClose").textContent = "—";
+    $("wkChg").innerHTML = "the candle file is briefly unavailable · the weekly reading is always on the <a href='/'>dashboard</a>";
+  });
+})();
+</script>
+
+<script>
+(function(){
+  const form = document.getElementById("subForm"), btn = document.getElementById("subBtn"), msg = document.getElementById("subMsg");
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    btn.disabled = true; const old = btn.textContent; btn.textContent = "…";
+    msg.className = "msg";
+    try {
+      const res = await fetch(form.action, { method:"POST", body:new FormData(form) });
+      const j = await res.json();
+      if (j.success) { msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
+      else { msg.textContent = j.message || "something went wrong — please try again"; msg.className = "msg err"; }
+    } catch(_) { form.submit(); }
+    btn.disabled = false; btn.textContent = old;
+  });
+})();
+</script>
+<script>
+(function(){
+  if(!("IntersectionObserver" in window)) return;
+  const els = document.querySelectorAll(".answer,.live,.chart,.fact,h2,table,.note,.subscribe,.ep");
+  const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("vis"); io.unobserve(e.target); } }),{threshold:0.1});
+  els.forEach(el=>{ el.classList.add("rv"); io.observe(el); });
+})();
+</script>
+<script>
+(function(){
+  const b = document.querySelector(".nburger"), c = document.querySelector(".nav .nc");
+  if(b && c) b.addEventListener("click", function(){ c.classList.toggle("open"); b.textContent = c.classList.contains("open") ? "✕" : "☰"; });
+})();
+</script>
+<script src="/capture.js" defer></script>
+</body>
+</html>
