@@ -1,14 +1,17 @@
 {
-  "week": "2026-08-31",
+  "week": "2026-09-07",
   "manual": {
-    "active_addr": 22125,
-    "tps": 2.78,
-    "holders": 791545,
-    "dormant_pct": 50.76,
-    "exchange_kas": 3907974930
+    "active_addr": 21170,
+    "tps": 2.83,
+    "holders": 792098,
+    "dormant_pct": 50.97,
+    "exchange_kas": 3883120966
   },
-  "read": "the biggest wallet on the chain let coins go for the first time in this series, 3.0 million kas out in one move on 28 august, while it still holds 1.52 billion. covenant activity spiked to 16,214 a day, forty times last monday, a burst rather than a plateau. igra lost a third of its locked value and nearly doubled its trading in the same week.",
-  "override": { "chain_fees": 226, "hashrate": 313.1 },
+  "read": "last monday we said thousands again this week would make the covenant jump a level, not a wave. it reads 15,071 a day and active addresses held at 21,170, so it was a level. the block reward fell from 2.31 to 2.18 kas on friday, the monthly cut, and hashrate rose 6.4 percent to 333.0 ph per second anyway. the largest wallet went back to buying, 4.77 million kas in, after letting 3.0 million go the week before.",
+  "override": {
+    "chain_fees": 226,
+    "hashrate": 333.0
+  },
   "issue": null,
   "_hinweise": {
     "week": "der tag an dem der post rausgeht, format JJJJ-MM-TT. steht die woche schon in der history, passiert nichts und der lauf bleibt gruen. das datum ist der schalter, erst wenn du es hochstellst geht ein post raus.",
