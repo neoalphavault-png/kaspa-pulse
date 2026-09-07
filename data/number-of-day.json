@@ -1,43 +1,44 @@
 {
-  "issue": "SEP 6 2026",
+  "issue": "SEP 7 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "864,000",
-  "value_label": "blocks the kaspa network produces every single day",
-  "headline": "bitcoin finds *144 blocks*.\nkaspa finds 864,000.",
+  "value": "$1.39M",
+  "value_label": "locked across kasplex and igra",
+  "headline": "layer 2 tvl is *down 18 percent*\nagainst 3 weeks ago.",
   "panes": [
     {
       "kind": "compare",
-      "title": "BLOCKS IN TWENTY FOUR HOURS",
-      "sub": "protocol target, not an average of a good day",
+      "title": "TOTAL VALUE LOCKED",
+      "sub": "same measurement, two dates",
       "rows": [
         {
-          "label": "kaspa",
-          "sub": "ten per second",
-          "value": "864,000",
-          "pct": 100.0,
-          "tone": "teal"
+          "label": "today",
+          "sub": "",
+          "value": "$1.39M",
+          "pct": 81.7876252168933,
+          "tone": "red"
         },
         {
-          "label": "bitcoin",
-          "sub": "one per ten minutes",
-          "value": "144",
-          "pct": 2.0,
+          "label": "3 weeks ago",
+          "sub": "",
+          "value": "$1.69M",
+          "pct": 100.0,
           "tone": "grey"
         }
       ]
     },
     {
       "kind": "anchor",
-      "title": "WHY IT DOES NOT COLLAPSE",
+      "title": "WHAT THE NUMBER IS",
       "lines": [
-        "parallel blocks are not thrown away. they are *ordered and kept*."
+        "the difference is *$309K*.",
+        "*counted* from the same source."
       ]
     }
   ],
-  "sources": "api.kaspa.org",
+  "sources": "defillama.com",
   "site": "kaspapulse.com",
   "post": {
-    "x": "kaspa produces 864,000 blocks a day. bitcoin produces about 144. ten every second against one every ten minutes. blocks found at the same moment are not discarded, they are ordered and kept, and that is the part most comparisons leave out.",
-    "reply": "how that ordering works is explained on kaspapulse.com. the coins per block shrink, the number of blocks does not."
+    "x": "layer 2 tvl on kaspa is down 18 percent against 3 weeks ago. $1.39M today, $1.69M then, both read from the same source 21 days apart.",
+    "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
   }
 }
