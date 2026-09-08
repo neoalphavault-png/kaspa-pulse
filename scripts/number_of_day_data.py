@@ -71,6 +71,7 @@ BALANCE_API = "https://api.kaspa.org/addresses/%s/balance"
 SOMPI = 100000000
 HISTORY_PATH = os.path.join(ROOT, "data", "weekly-history.json")
 LOG_PATH = os.path.join(ROOT, "data", "number-of-day-log.json")
+CANDLES_PATH = os.path.join(ROOT, "data", "kas-candles.json")
 OUT_PATH = os.path.join(ROOT, "data", "number-of-day.json")
 COOLDOWN_DAYS = 8
 HARD_BLOCK_DAYS = 1   # standard-sperrfrist in tagen fuer alle kandidaten
@@ -84,6 +85,11 @@ MIN_GAP = {
     "whale_weight": 7,
     "emission_vs_btc": 2,
     "blocks_per_day": 21,
+    # die drei neuen. der wochenwert bewegt sich einmal die woche, die
+    # sats-zahl langsam, die hashrate-folge nur nach einem schnitt.
+    "weekly_line": 3,
+    "sats_divergence": 4,
+    "hashrate_consequence": 5,
 }
 COOLDOWN_FACTOR = 0.15
 MIN_ANCHOR_AGE_DAYS = 21
@@ -431,18 +437,15 @@ def cand_mined_left(ctx):
             "value": "%.2f%%" % pct,
             "value_label": "of every KAS that will ever exist is already mined",
             "headline": "the supply story is *almost over*.",
-            "panes": [
-                {
-                    "kind": "compare",
-                    "title": "SUPPLY ALREADY ISSUED",
-                    "sub": "share of the maximum, measured today",
-                    "rows": [
-                        {"label": "mined", "sub": "in circulation",
-                         "value": "%.2f%%" % pct, "pct": a, "tone": "teal"},
-                        {"label": "left", "sub": "still to come",
-                         "value": "%.2f%%" % (100.0 - pct), "pct": max(2.0, b),
-                         "tone": "grey"},
-                    ],
+            "panes": [                {
+                    # anteil am ganzen. hundert punkte, davon 96 hell. das
+                    # sieht man in einer sekunde und kann es nachzaehlen.
+                    "kind": "dots",
+                    "title": "EVERY KAS THAT WILL EVER EXIST",
+                    "sub": "one dot is one percent of the maximum",
+                    "total": 100, "lit": pct, "tone": "teal",
+                    "note": "*%.2f percent* mined, %.2f percent still to come."
+                            % (pct, 100.0 - pct),
                 },
                 {
                     "kind": "anchor",
@@ -609,18 +612,15 @@ def cand_whale_weight(ctx):
             "value": "%.2f%%" % share,
             "value_label": "of every kaspa in circulation sits in one address",
             "headline": "*%d days* of supply\nin one address." % round(days),
-            "panes": [
-                {
-                    "kind": "compare",
-                    "title": "THE LARGEST KNOWN ADDRESS",
-                    "sub": "balance against everything else in circulation",
-                    "rows": [
-                        {"label": "one address", "sub": "",
-                         "value": fmt_kas(whale), "pct": max(2.0, a),
-                         "tone": "teal"},
-                        {"label": "everyone else", "sub": "",
-                         "value": fmt_kas(rest), "pct": b, "tone": "grey"},
-                    ],
+            "panes": [                {
+                    # derselbe anteilsgedanke. sechs von hundert kaspa liegen
+                    # in einer einzigen adresse. das ist eine zaehlbare zahl,
+                    # kein balken.
+                    "kind": "dots",
+                    "title": "EVERY 100 KAS IN CIRCULATION",
+                    "sub": "one dot is one percent of the circulating supply",
+                    "total": 100, "lit": share, "tone": "teal",
+                    "note": "*%.1f of every 100* sit in one address." % share,
                 },
                 {
                     "kind": "anchor",
@@ -688,6 +688,256 @@ def cand_blocks_per_day(ctx):
                 "coins per block shrink, the number of blocks does not."),
         },
     }
+
+# ---------------------------------------------------------------- kerzen
+# quelle data/kas-candles.json, kraken tagesschluesse. kas_weekly traegt den
+# samstagsschluss je woche, kas_daily und btc_daily den tagesschluss. die drei
+# kandidaten unten rechnen ausschliesslich daraus, damit sie taeglich laufen
+# koennen, ohne auf die montaeglichen handzahlen zu warten.
+EMA_WEEKS = 21
+
+
+def _ema(vals, n):
+    """EMA mit SMA-Startwert, identisch zur rechnung auf kaspa-weekly.html."""
+    if len(vals) < n:
+        return None
+    k = 2.0 / (n + 1.0)
+    e = sum(vals[:n]) / float(n)
+    for v in vals[n:]:
+        e = v * k + e * (1.0 - k)
+    return e
+
+
+def _weekly(ctx):
+    rows = (ctx.get("candles") or {}).get("kas_weekly") or []
+    return [r for r in rows if len(r) >= 2 and r[1]]
+
+
+def _daily(ctx, key):
+    rows = (ctx.get("candles") or {}).get(key) or []
+    return [r for r in rows if len(r) >= 2 and r[1]]
+
+
+def _on_or_before(rows, iso):
+    prev = None
+    for r in rows:
+        if r[0] <= iso:
+            prev = r
+        else:
+            break
+    return prev
+
+
+def cand_weekly_line(ctx):
+    """Der Wochenschluss gegen den 21-Wochen-Schnitt. Die Chartlesung."""
+    w = _weekly(ctx)
+    if len(w) < EMA_WEEKS + 2:
+        return None
+    closes = [float(r[1]) for r in w]
+    line = _ema(closes, EMA_WEEKS)
+    if not line:
+        return None
+    close = closes[-1]
+    dist = 100.0 * (close - line) / line
+    # straehne: wie viele wochen in folge schloss kas unter der linie
+    streak = 0
+    for i in range(len(closes) - 1, EMA_WEEKS - 2, -1):
+        seg = _ema(closes[:i + 1], EMA_WEEKS)
+        if seg is None:
+            break
+        if (closes[i] < seg) == (close < line):
+            streak += 1
+        else:
+            break
+    below = close < line
+    # je naeher an der linie, desto mehr steht auf dem spiel
+    score = 30.0 + max(0.0, 10.0 - min(abs(dist), 10.0)) * 2.5
+    # zwei jahre fuer das bild, die linie an jedem punkt neu gerechnet
+    span = min(104, len(closes) - EMA_WEEKS)
+    ser = closes[-span:]
+    bas = [_ema(closes[:len(closes) - span + i + 1], EMA_WEEKS)
+           for i in range(span)]
+    if any(v is None for v in bas):
+        return None
+    return {
+        "score": score,
+        "payload": {
+            "issue": issue_line(ctx["today"]),
+            "eyebrow": "NUMBER OF THE DAY",
+            "value": "%.1f%%" % abs(dist),
+            "value_label": "%s the 21 week average of its own weekly closes"
+                           % ("below" if below else "above"),
+            "headline": "kas closed *%.1f percent*\n%s the weekly line."
+                        % (abs(dist), "below" if below else "above"),
+            "panes": [
+                {
+                    # die aussage IST das bild. man sieht die straehne, statt
+                    # sie zu lesen. zwei balkenzeilen koennen das nicht.
+                    "kind": "line",
+                    "title": "TWO YEARS OF WEEKLY CLOSES",
+                    "sub": "the close against its own 21 week average",
+                    "series": ser, "baseline": bas,
+                    "base_label": "21 week average",
+                    "end_label": "$%.5f" % close,
+                    "tone": "red" if below else "teal",
+                },
+                {
+                    "kind": "anchor",
+                    "title": "WHAT WOULD CHANGE IT",
+                    "lines": [
+                        "a weekly close %s *$%.5f*."
+                        % ("above" if below else "below", line),
+                        "the streak stands at *%d weeks*." % streak,
+                    ],
+                },
+            ],
+            "sources": "kraken daily closes, counted by us",
+            "site": "kaspapulse.com",
+            "post": post_block(
+                "kas closed the week at $%.5f. the 21 week average of its own "
+                "weekly closes sits at $%.5f, so the close is %.1f percent %s it. "
+                "that has now been true for %d weeks in a row. one weekly close "
+                "either way settles it."
+                % (close, line, abs(dist), "below" if below else "above", streak),
+                "the line and the streak are recomputed every monday from our own "
+                "candle file on " + SITE_URL + "/kaspa-weekly.html. the close that "
+                "counts is saturday's, not today's price."),
+        },
+    }
+
+
+def cand_sats_divergence(ctx):
+    """Kaspa in Bitcoin gerechnet. Dieselbe Woche, zwei Antworten."""
+    kd, bd = _daily(ctx, "kas_daily"), _daily(ctx, "btc_daily")
+    if len(kd) < 400 or len(bd) < 400:
+        return None
+    day = min(kd[-1][0], bd[-1][0])
+    k_now, b_now = _on_or_before(kd, day), _on_or_before(bd, day)
+    then_iso = (dt.date.fromisoformat(day) - dt.timedelta(days=365)).isoformat()
+    k_then, b_then = _on_or_before(kd, then_iso), _on_or_before(bd, then_iso)
+    if not all((k_now, b_now, k_then, b_then)):
+        return None
+    now = float(k_now[1]) / float(b_now[1]) * 1e8
+    then = float(k_then[1]) / float(b_then[1]) * 1e8
+    if then <= 0:
+        return None
+    change = 100.0 * (now - then) / then
+    if abs(change) < 15.0:
+        return None
+    bars = []
+    for m in range(11, -1, -1):
+        iso = (dt.date.fromisoformat(day) - dt.timedelta(days=30 * m)).isoformat()
+        k, b_ = _on_or_before(kd, iso), _on_or_before(bd, iso)
+        if not (k and b_):
+            return None
+        bars.append({"label": dt.date.fromisoformat(iso).strftime("%b").lower(),
+                     "value": float(k[1]) / float(b_[1]) * 1e8})
+    return {
+        "score": 28.0 + min(30.0, abs(change) / 2.0),
+        "payload": {
+            "issue": issue_line(ctx["today"]),
+            "eyebrow": "NUMBER OF THE DAY",
+            "value": "%.0f" % now,
+            "value_label": "satoshis buy one kas today, priced from daily closes",
+            "headline": "kas is *%s %.0f percent*\nagainst bitcoin this year."
+                        % ("up" if change > 0 else "down", abs(change)),
+            "panes": [
+                {
+                    # zwoelf monate nebeneinander. der weg ist die nachricht,
+                    # nicht die zwei endpunkte.
+                    "kind": "columns",
+                    "title": "ONE KAS IN SATOSHIS, BY MONTH",
+                    "sub": "twelve months, our own daily closes",
+                    "bars": bars, "highlight": len(bars) - 1,
+                    "tone": "teal" if change > 0 else "red",
+                },
+                {
+                    "kind": "anchor",
+                    "title": "WHY IT READS DIFFERENTLY",
+                    "lines": [
+                        "the dollar chart *can rise*",
+                        "while this one falls.",
+                    ],
+                },
+            ],
+            "sources": "kraken daily closes, counted by us",
+            "site": "kaspapulse.com",
+            "post": post_block(
+                "one kas buys %.0f satoshis today. a year ago it bought %.0f. "
+                "that is %s %.0f percent against bitcoin, on the same days the "
+                "dollar chart tells its own story. both are true at once, and "
+                "almost nobody posts the second one."
+                % (now, then, "up" if change > 0 else "down", abs(change)),
+                "priced from our own kraken daily closes, recounted every monday "
+                "on " + SITE_URL + "/kaspa-weekly.html."),
+        },
+    }
+
+
+def cand_hashrate_consequence(ctx):
+    """Mehr Maschinen bei kleinerem Reward. Die Folge, nicht nur die Bewegung."""
+    hist = anchor_entry(ctx["history"], ctx["today"], "hashrate")
+    now = ctx.get("hashrate")
+    if hist is None or not now:
+        return None
+    age, _, row = hist
+    then = float(row["hashrate"])
+    if then <= 0:
+        return None
+    change = 100.0 * (now - then) / then
+    if change < 3.0:
+        return None
+    reward_now = ctx["reward"]
+    reward_then = reward_state(ctx["now_ts"] - age * DAY)[0]
+    if reward_then <= reward_now:
+        return None
+    pay = 100.0 * (reward_then - reward_now) / reward_then
+    return {
+        "score": 34.0 + min(30.0, change),
+        "payload": {
+            "issue": issue_line(ctx["today"]),
+            "eyebrow": "NUMBER OF THE DAY",
+            "value": "%.0f PH" % now,
+            "value_label": "petahash per second securing the network right now",
+            "headline": "hashrate *up %.0f percent*.\nthe reward fell."
+                        % change,
+            "panes": [
+                {
+                    # zwei groessen, eine achse. beide auf 100 gesetzt am
+                    # ankertag, sonst waere es ein diagramm mit zwei skalen
+                    # und damit unlesbar.
+                    "kind": "line",
+                    "title": "BOTH SET TO 100 AT THE ANCHOR",
+                    "sub": "hashrate against what a block pays",
+                    "series": [100.0, 100.0 + change],
+                    "baseline": [100.0, 100.0 - pay],
+                    "base_label": "block reward",
+                    "end_label": "hashrate %.0f" % (100.0 + change),
+                    "tone": "teal",
+                },
+                {
+                    "kind": "anchor",
+                    "title": "WHAT MINERS ARE PAID",
+                    "lines": [
+                        "the block reward fell *%.2f percent*" % pay,
+                        "over the same days.",
+                    ],
+                },
+            ],
+            "sources": "api.kaspa.org, emission from the schedule",
+            "site": "kaspapulse.com",
+            "post": post_block(
+                "kaspa's hashrate is up %.0f percent against %s. over the same "
+                "days the block reward fell %.2f percent, as it does every month "
+                "by design. more machines securing the chain, less new supply "
+                "paying for them. that gap is the whole security question."
+                % (change, age_phrase(age), pay),
+                "the schedule behind the reward is on " + HALVING_URL + ". we "
+                "report the movement, never the motive."),
+        },
+    }
+
+
 CANDIDATES = [
     ("cut_today", cand_cut_today),
     ("cut_countdown", cand_cut_countdown),
@@ -697,6 +947,9 @@ CANDIDATES = [
     ("hashrate_move", cand_hashrate_move),
     ("tvl_move", cand_tvl_move),
     ("blocks_per_day", cand_blocks_per_day),
+    ("weekly_line", cand_weekly_line),
+    ("sats_divergence", cand_sats_divergence),
+    ("hashrate_consequence", cand_hashrate_consequence),
 ]
 # ---------------------------------------------------------------- auswahl
 def recent_picks(log, today, window=None):
@@ -765,7 +1018,7 @@ def choose(ctx, log, force=None):
         raise Stop("kein kandidat hat zahlen geliefert")
     return pool[0][1], pool[0][2], shown
 # ---------------------------------------------------------------- hauptlauf
-def build_context(now_ts=None, live=None, history=None):
+def build_context(now_ts=None, live=None, history=None, candles=None):
     now_ts = now_ts if now_ts is not None else dt.datetime.now(dt.timezone.utc).timestamp()
     today = dt.datetime.fromtimestamp(now_ts, dt.timezone.utc).date()
     reward, nxt, nxt_ts = reward_state(now_ts)
@@ -777,6 +1030,7 @@ def build_context(now_ts=None, live=None, history=None):
         "next_reward": nxt,
         "next_cut_ts": nxt_ts,
         "history": history if history is not None else load_json(HISTORY_PATH, []),
+        "candles": candles if candles is not None else load_json(CANDLES_PATH, {}),
     }
     ctx.update(live)
     return ctx
@@ -1010,8 +1264,59 @@ def run_selftest():
     freed = [{"date": str(bare["today"] - dt.timedelta(days=8)),
               "candidate": n} for n in bare_names]
     name_freed, _, _ = choose(bare, freed)
+    # geprueft wird die absicht, nicht ein name. seit weekly_line und
+    # sats_divergence aus der kerzendatei rechnen, haben sie auch im magerfall
+    # zahlen und gewinnen dort nach punkten. die regel lautet trotzdem
+    # unveraendert. nach ablauf der sperre ist ein vorher gesperrter kandidat
+    # wieder waehlbar.
     ok("nach ablauf der sperrfrist laeuft sie wieder",
-       name_freed == "mined_left", name_freed)
+       name_freed in bare_names, "%s nicht in %s" % (name_freed, bare_names))
+    print("kandidaten aus der kerzendatei")
+    # diese drei haengen nicht an einer api, sondern an data/kas-candles.json.
+    # deshalb tragen sie den tag auch dann, wenn api.kaspa.org nicht antwortet.
+    wl = cand_weekly_line(far)
+    ok("wochenlinie liefert zahlen", wl is not None)
+    if wl:
+        walk_and_check(wl["payload"])
+        pane = wl["payload"]["panes"][0]
+        ok("die wochenlinie zeigt ein diagramm", pane["kind"] == "line", pane["kind"])
+        ok("die reihe ist lang genug fuer eine aussage",
+           len(pane["series"]) >= 52, len(pane["series"]))
+        ok("die grundlinie hat dieselbe laenge wie die reihe",
+           len(pane["baseline"]) == len(pane["series"]))
+        ok("die straehne steht in der ankerkachel",
+           "weeks" in wl["payload"]["panes"][1]["lines"][1])
+    sd = cand_sats_divergence(far)
+    ok("sats vergleich liefert zahlen", sd is not None)
+    if sd:
+        walk_and_check(sd["payload"])
+        pane = sd["payload"]["panes"][0]
+        ok("der sats vergleich zeigt saeulen", pane["kind"] == "columns", pane["kind"])
+        ok("zwoelf monate stehen nebeneinander", len(pane["bars"]) == 12,
+           len(pane["bars"]))
+        ok("der letzte monat ist hervorgehoben",
+           pane["highlight"] == len(pane["bars"]) - 1)
+    leer = build_context(now_ts=ANCHOR_TS + 3 * DAY, live=FAKE_LIVE,
+                         history=FAKE_HISTORY, candles={})
+    ok("ohne kerzendatei schweigt die wochenlinie",
+       cand_weekly_line(leer) is None)
+    ok("ohne kerzendatei schweigt der sats vergleich",
+       cand_sats_divergence(leer) is None)
+    # die folge feuert nur, wenn die hashrate steigt UND der reward gefallen ist
+    hoch = build_context(now_ts=ANCHOR_TS + 3 * DAY,
+                         live=dict(FAKE_LIVE, hashrate=FAKE_LIVE["hashrate"] * 1.2),
+                         history=FAKE_HISTORY)
+    hc = cand_hashrate_consequence(hoch)
+    ok("hashrate folge feuert bei steigender hashrate", hc is not None)
+    if hc:
+        walk_and_check(hc["payload"])
+        ok("die folge nennt den gefallenen reward",
+           "block reward fell" in hc["payload"]["panes"][1]["lines"][0])
+    flach = build_context(now_ts=ANCHOR_TS + 3 * DAY,
+                          live=dict(FAKE_LIVE, hashrate=FAKE_HISTORY[0]["hashrate"]),
+                          history=FAKE_HISTORY)
+    ok("ohne bewegung schweigt die folge",
+       cand_hashrate_consequence(flach) is None)
     print("neue kandidaten")
     for n in ("whale_weight", "emission_vs_btc", "blocks_per_day"):
         fn = dict(CANDIDATES)[n]

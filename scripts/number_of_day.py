@@ -108,6 +108,36 @@ em{font-style:normal;color:var(--teal);font-weight:700}
 .rname{font-size:46px;font-weight:700}
 .rsub{font-size:34px;color:var(--dimmer);margin-left:12px;font-weight:400}
 .rval{font-size:52px;font-weight:700}
+
+/* diagrammkacheln, neu am 08.09. eine betonungsfarbe, alles andere grau.
+   keine zweite achse, kein raster ausser zwei stillen hilfslinien, und
+   beschriftet wird nur der endpunkt, nie jeder punkt. */
+.chart{width:100%;display:block}
+.chart .grid{stroke:#1C242D;stroke-width:2}
+.chart .ctx{fill:none;stroke:#7E8A94;stroke-width:5;stroke-dasharray:14 10;stroke-linejoin:round;stroke-linecap:round}
+.chart .ser{fill:none;stroke-width:6;stroke-linejoin:round;stroke-linecap:round}
+.chart .ser.teal{stroke:var(--teal)} .chart .ser.red{stroke:var(--red)}
+.chart .band{stroke:none}
+.chart .dot{stroke:var(--card);stroke-width:5}
+.chart .dot.teal{fill:var(--teal)} .chart .dot.red{fill:var(--red)}
+.chart text{font-family:inherit;font-weight:700}
+.chart .tag{font-size:34px;fill:#FFFFFF}
+.chart .tag.dim{fill:#8C97A2;font-weight:600}
+.bars{display:flex;align-items:flex-end;gap:8px;height:198px;margin-top:12px}
+.bars .b{flex:1;background:#2A3038;border-radius:8px 8px 0 0;min-height:6px}
+.bars .b.on{background:var(--teal)}
+.bars .b.on.red{background:var(--red)}
+.blabels{display:flex;gap:8px;margin-top:12px}
+.blabels div{flex:1;text-align:center;font-size:26px;color:#6E7883;font-weight:600}
+.blabels div.on{color:#FFFFFF;font-weight:700}
+/* punktraster fuer anteil am ganzen. hundert punkte, man kann sie zaehlen.
+   ein gestapelter balken sagt dasselbe, aber niemand teilt einen balken. */
+.dots{display:grid;grid-template-columns:repeat(20,1fr);gap:9px;margin-top:16px}
+.dots i{display:block;padding-bottom:100%;border-radius:50%;background:#232B33}
+.dots i.on{background:var(--teal)}
+.dots i.on.red{background:var(--red)}
+.dnote{margin-top:18px;font-size:34px;color:#8C97A2;font-weight:600}
+.dnote b{color:#FFFFFF;font-weight:700}
 .track{height:38px;background:#141A21;border-radius:9px;overflow:hidden}
 .fill{height:100%;border-radius:9px;background:var(--faint)}
 .fill.teal{background:var(--teal)}
@@ -175,7 +205,117 @@ def build_anchor_pane(block: dict) -> str:
         f'<div class="p grow"><div class="lbl">{esc(block["title"])}</div>{lbl2}'
         f'<div class="anchor">{lines}</div></div>'
     )
-BUILDERS = {"compare": build_compare_pane, "anchor": build_anchor_pane}
+
+
+# ---------------------------------------------------------------- diagramme
+# form nach aufgabe, nicht nach geschmack. eine reihe plus grundlinie ist eine
+# linie mit betonung. zwoelf perioden nebeneinander sind saeulen. beides traegt
+# genau eine farbe, der rest ist grau, und beschriftet wird nur, was die
+# aussage traegt.
+CH_W, CH_H, CH_PAD = 916, 250, 18
+
+
+def _pts(vals, lo, hi):
+    n = len(vals)
+    if n < 2 or hi <= lo:
+        return []
+    sx = (CH_W - 2 * CH_PAD) / float(n - 1)
+    sy = (CH_H - 2 * CH_PAD) / float(hi - lo)
+    return [(CH_PAD + i * sx, CH_H - CH_PAD - (v - lo) * sy)
+            for i, v in enumerate(vals)]
+
+
+def _path(pts):
+    return "M " + " L ".join("%.1f %.1f" % p for p in pts)
+
+
+def build_line_pane(block: dict) -> str:
+    ser = [float(v) for v in block.get("series", [])]
+    base = [float(v) for v in block.get("baseline", [])] or None
+    if len(ser) < 2:
+        raise ValueError("line pane braucht mindestens zwei werte")
+    allv = ser + (base or [])
+    lo, hi = min(allv), max(allv)
+    pad = (hi - lo) * 0.12 or (abs(hi) * 0.05 or 1.0)
+    lo, hi = lo - pad, hi + pad
+    tone = block.get("tone", "teal")
+    ps = _pts(ser, lo, hi)
+    parts = []
+    for f in (0.33, 0.66):
+        y = CH_PAD + f * (CH_H - 2 * CH_PAD)
+        parts.append('<line class="grid" x1="%d" y1="%.1f" x2="%d" y2="%.1f"/>'
+                     % (CH_PAD, y, CH_W - CH_PAD, y))
+    if base:
+        pb = _pts(base, lo, hi)
+        # die flaeche zwischen reihe und grundlinie. sie ist die aussage,
+        # nicht dekoration, deshalb faerbt sie sich nach der richtung.
+        band = _path(ps) + " L " + " L ".join(
+            "%.1f %.1f" % p for p in reversed(pb)) + " Z"
+        fill = "#E36A6A" if ser[-1] < base[-1] else "#49EACB"
+        parts.append('<path class="band" d="%s" fill="%s" fill-opacity="0.26"/>'
+                     % (band, fill))
+        parts.append('<path class="ctx" d="%s"/>' % _path(pb))
+        parts.append('<text class="tag dim" x="%d" y="%.1f">%s</text>'
+                     % (CH_PAD + 6, max(34, pb[0][1] - 26), esc(block.get("base_label", ""))))
+    parts.append('<path class="ser %s" d="%s"/>' % (tone, _path(ps)))
+    ex, ey = ps[-1]
+    parts.append('<circle class="dot %s" cx="%.1f" cy="%.1f" r="13"/>' % (tone, ex, ey))
+    end = esc(block.get("end_label", ""))
+    if end:
+        anchor = "end" if ex > CH_W * 0.6 else "start"
+        dx = -30 if anchor == "end" else 30
+        # oberhalb, wenn die reihe unten endet, sonst unterhalb. so liegt die
+        # zahl nie auf der linie, die sie beschriftet.
+        ey_txt = ey - 30 if ey > CH_H * 0.55 else ey + 46
+        parts.append('<text class="tag" x="%.1f" y="%.1f" text-anchor="%s">%s</text>'
+                     % (ex + dx, min(CH_H - 10, max(36, ey_txt)), anchor, end))
+    lbl2 = f'<div class="lbl2">{esc(block["sub"])}</div>' if block.get("sub") else ""
+    return (
+        f'<div class="p"><div class="lbl">{esc(block["title"])}</div>{lbl2}'
+        f'<svg class="chart" viewBox="0 0 {CH_W} {CH_H}">{"".join(parts)}</svg></div>'
+    )
+
+
+def build_dots_pane(block: dict) -> str:
+    """Hundert punkte, davon `lit` in der betonungsfarbe. anteil zum zaehlen."""
+    total = int(block.get("total", 100))
+    lit = max(0, min(total, int(round(float(block.get("lit", 0))))))
+    tone = block.get("tone", "teal")
+    cells = "".join('<i class="on %s"></i>' % tone if i < lit else "<i></i>"
+                    for i in range(total))
+    note = ('<div class="dnote">%s</div>' % emphasise(block["note"])
+            if block.get("note") else "")
+    lbl2 = f'<div class="lbl2">{esc(block["sub"])}</div>' if block.get("sub") else ""
+    return (
+        f'<div class="p"><div class="lbl">{esc(block["title"])}</div>{lbl2}'
+        f'<div class="dots">{cells}</div>{note}</div>'
+    )
+
+
+def build_columns_pane(block: dict) -> str:
+    bars = block.get("bars", [])
+    if not bars:
+        raise ValueError("columns pane braucht balken")
+    vals = [abs(float(b.get("value", 0))) for b in bars]
+    hi = max(vals) or 1.0
+    on = block.get("highlight", len(bars) - 1)
+    tone = block.get("tone", "teal")
+    cols = "".join(
+        '<div class="b%s" style="height:%.1f%%"></div>'
+        % ((" on " + tone) if i == on else "", max(2.5, 100.0 * v / hi))
+        for i, v in enumerate(vals))
+    labs = "".join(
+        '<div class="%s">%s</div>' % ("on" if i == on else "", esc(b.get("label", "")))
+        for i, b in enumerate(bars))
+    lbl2 = f'<div class="lbl2">{esc(block["sub"])}</div>' if block.get("sub") else ""
+    return (
+        f'<div class="p"><div class="lbl">{esc(block["title"])}</div>{lbl2}'
+        f'<div class="bars">{cols}</div><div class="blabels">{labs}</div></div>'
+    )
+
+BUILDERS = {"compare": build_compare_pane, "anchor": build_anchor_pane,
+            "line": build_line_pane, "columns": build_columns_pane,
+            "dots": build_dots_pane}
 def render_html(d: dict) -> str:
     panes = []
     for block in d.get("panes", []):
