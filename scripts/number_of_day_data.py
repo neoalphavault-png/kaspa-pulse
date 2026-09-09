@@ -147,15 +147,25 @@ def fetch_whale():
     if bal <= 0:
         raise Stop("adressbestand ist null")
     return bal
-def fetch_live():
-    """Alles, was ein Kandidat brauchen kann, in einem Rutsch."""
+def fetch_supply():
     sup = http_json("https://api.kaspa.org/info/coinsupply")
     circ = float(sup["circulatingSupply"]) / 1e8
     mx = float(sup["maxSupply"]) / 1e8
     if mx <= 0:
         raise Stop("coinsupply liefert maxSupply 0")
+    return circ, mx
+def fetch_hashrate():
     hr = http_json("https://api.kaspa.org/info/hashrate?stringOnly=false")
-    hashrate = float(hr["hashrate"]) / 1000.0  # TH/s in PH/s
+    return float(hr["hashrate"]) / 1000.0  # TH/s in PH/s
+def fetch_live():
+    """Alles, was ein Kandidat brauchen kann, in einem Rutsch.
+    seit 09.09. ist auch api.kaspa.org eine kuer: faellt sie aus, fallen die
+    kandidaten weg, die versorgung oder hashrate brauchen. wochenlinie und
+    sats-vergleich rechnen aus der kerzendatei im repo und tragen den tag
+    trotzdem. vorher hiess ein 403 von api.kaspa.org: kein post, fertig."""
+    supply = fetch_optional("api.kaspa.org coinsupply", fetch_supply)
+    circ, mx = supply if supply else (None, None)
+    hashrate = fetch_optional("api.kaspa.org hashrate", fetch_hashrate)
     tvl = {}
     try:
         for row in http_json("https://api.llama.fi/v2/chains", tries=2):
@@ -171,7 +181,7 @@ def fetch_live():
     return {
         "circ": circ,
         "max": mx,
-        "mined_pct": 100.0 * circ / mx,
+        "mined_pct": (100.0 * circ / mx) if supply else None,
         "hashrate": hashrate,
         "tvl_kasplex": tvl.get("kasplex"),
         "tvl_igra": tvl.get("igra"),
