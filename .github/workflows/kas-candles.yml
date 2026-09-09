@@ -1,11 +1,20 @@
-# kaspa pulse - kursdaten fuer KASPA WEEKLY
-# laeuft sonntags um 00:40 utc, direkt nach unserem wochenschluss
-# (woche endet sonntag 00:00 utc, definition steht in scripts/kas_candles.py).
-# der zusaetzliche handstart ist fuer den allerersten lauf und fuer notfaelle.
+# kaspa pulse - kursdaten fuer KASPA WEEKLY und den tages-lesewert
+#
+# bis 09.09. lief das nur sonntags um 00:40 utc, direkt nach unserem
+# wochenschluss (woche endet sonntag 00:00 utc, definition steht in
+# scripts/kas_candles.py). seit die number-of-the-day-automatik aus dieser
+# datei rechnet (weekly_line, sats_divergence), muss sie taeglich frisch sein:
+# der sats-vergleich stellt den heutigen tag gegen vor einem jahr, mit einer
+# vier tage alten datei zeigt er einen alten tag.
+#
+# zweiter lauf deshalb taeglich 07:25 utc, also vor dem tagespost um 08:12.
+# der sonntagslauf bleibt, damit der wochenschluss auf jeden fall drin ist,
+# auch wenn github den taeglichen start einmal verschluckt.
 name: kas candles
 on:
   schedule:
     - cron: "40 0 * * 0"
+    - cron: "25 7 * * *"
   workflow_dispatch:
 permissions:
   contents: write
