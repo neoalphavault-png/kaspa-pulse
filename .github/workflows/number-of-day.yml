@@ -1,6 +1,15 @@
 name: number of the day
 on:
   workflow_dispatch:
+    inputs:
+      x_test:
+        # stufe 3: testlauf fuer scripts/x_post.py. gesetzt = NUR der
+        # x-test-job laeuft (post + selbstantwort, beide sofort geloescht),
+        # der normale lauf wird uebersprungen. leer = normaler lauf.
+        description: "x-testtext (wird gepostet und sofort geloescht; leer = normaler lauf)"
+        required: false
+        default: ""
+        type: string
   schedule:
     # 08:12 UTC = 10:12 DE. bewusst nicht zur vollen stunde.
     - cron: "12 8 * * *"
@@ -11,7 +20,29 @@ on:
 permissions:
   contents: write
 jobs:
+  x-test:
+    if: github.event_name == 'workflow_dispatch' && inputs.x_test != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: x testpost, sofort geloescht
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          X_TEST: ${{ inputs.x_test }}
+        run: |
+          python scripts/x_post.py --selftest
+          python scripts/x_post.py --text "$X_TEST" --image graphics/number-of-day.png \
+            --reply "$X_TEST (reply)" --delete-after --log /tmp/x-test-log.json
+          cat /tmp/x-test-log.json
+
   render:
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.x_test != '') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -65,10 +96,27 @@ jobs:
           python scripts/post_number_of_day.py \
             --data data/number-of-day.json \
             --image graphics/number-of-day.png
-      # laeuft auch an tagen ohne post. sonst geht das gedaechtnis verloren,
-      # gegen das die sperrfristen rechnen.
+      # stufe 3: derselbe text auf x, bild dazu, selbstantwort nur mit link.
+      # sperre: data/x-post-log.json (key nod-<datum>), nie doppelt.
+      # faellt x aus, wird der lauf rot, aber archiv und log werden unten
+      # trotzdem committet (always), sonst rechnet die sperrfrist nicht weiter.
+      - name: post to x
+        if: steps.guard.outputs.done != '1' && steps.pick.outputs.picked == '1'
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+        run: |
+          python scripts/x_post.py \
+            --from-nod data/number-of-day.json \
+            --image graphics/number-of-day.png \
+            --log data/x-post-log.json
+      # laeuft auch an tagen ohne post und auch, wenn discord oder x rot
+      # waren. sonst geht das gedaechtnis verloren, gegen das die
+      # sperrfristen rechnen, und der x-post-log haette die id nicht.
       - name: commit
-        if: steps.guard.outputs.done != '1'
+        if: always() && steps.guard.outputs.done != '1'
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
