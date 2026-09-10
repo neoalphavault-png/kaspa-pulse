@@ -250,7 +250,7 @@ def run(args):
     if reply:
         reply = check_text(reply, "Selbstantwort")
     if args.delete_after:
-        key = key or "test-%s" % dt.datetime.utcnow().strftime("%Y%m%dT%H%M%S")
+        key = key or "test-%s" % dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%S")
     if not key:
         sys.exit("--key fehlt (Sperre gegen Doppelposts), z. B. nod-2026-09-11")
 
@@ -274,7 +274,7 @@ def run(args):
     if not entry or not entry.get("id"):
         media_id = upload_image(args.image, creds) if args.image else None
         pid = post(text, creds, media_id=media_id)
-        entry = {"key": key, "id": pid, "posted_at": dt.datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        entry = {"key": key, "id": pid, "posted_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
                  "text": text[:120], "image": os.path.basename(args.image) if args.image else None}
         log.append(entry)
         save_log(args.log, log)          # sofort merken, bevor irgendetwas anderes passiert
