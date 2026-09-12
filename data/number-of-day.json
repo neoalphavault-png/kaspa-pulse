@@ -1,31 +1,39 @@
 {
-  "issue": "SEP 11 2026",
+  "issue": "SEP 12 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "5.49%",
-  "value_label": "of every kaspa in circulation sits in one address",
-  "headline": "*806 days* of supply\nin one address.",
+  "value": "339 PH",
+  "value_label": "petahash per second securing the network right now",
+  "headline": "hashrate *up 3 percent*.\nthe reward fell.",
   "panes": [
     {
-      "kind": "dots",
-      "title": "EVERY 100 KAS IN CIRCULATION",
-      "sub": "one dot is one percent of the circulating supply",
-      "total": 100,
-      "lit": 5.490069647664105,
-      "tone": "teal",
-      "note": "*5.5 of every 100* sit in one address."
+      "kind": "line",
+      "title": "BOTH SET TO 100 AT THE ANCHOR",
+      "sub": "hashrate against what a block pays",
+      "series": [
+        100.0,
+        103.07823751634841
+      ],
+      "baseline": [
+        100.0,
+        94.38743126816935
+      ],
+      "base_label": "block reward",
+      "end_label": "hashrate 103",
+      "tone": "teal"
     },
     {
       "kind": "anchor",
-      "title": "WHO IT IS",
+      "title": "WHAT MINERS ARE PAID",
       "lines": [
-        "one address. *what it does*, counted daily."
+        "the block reward fell *5.61 percent*",
+        "over the same days."
       ]
     }
   ],
-  "sources": "api.kaspa.org",
+  "sources": "api.kaspa.org, emission from the schedule",
   "site": "kaspapulse.com",
   "post": {
-    "x": "one address holds 5.49 percent of every kaspa in circulation, about 1.52B KAS. at the current emission rate the entire network needs 806 days to mine that much. it has never been named.",
-    "reply": "every move that wallet makes is on kaspapulse.com/entity-x.html. an address is not a person, one owner can hold many."
+    "x": "kaspa's hashrate is up 3 percent against 4 weeks ago. over the same days the block reward fell 5.61 percent, as it does every month by design. more machines securing the chain, less new supply paying for them. that gap is the whole security question.",
+    "reply": "the schedule behind the reward is on kaspapulse.com/kaspa-halving.html. we report the movement, never the motive."
   }
 }
