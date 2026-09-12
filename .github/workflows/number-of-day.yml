@@ -28,6 +28,19 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      # TEMP 12.09.2026: storno-pfad gegen die testkampagne 28, wird gleich
+      # wieder entfernt (siehe Revert im selben Branch).
+      - name: A9.1b storno gegen die testkampagne
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+        run: |
+          echo '{"campaign_id": 28, "history": []}' > /tmp/q.json
+          python scripts/brevo_send.py --mode cancel --queue /tmp/q.json
+          cat /tmp/q.json
+          echo "--- storno ohne kampagne muss gruen bleiben ---"
+          echo '{"campaign_id": null, "history": []}' > /tmp/q2.json
+          python scripts/brevo_send.py --mode cancel --queue /tmp/q2.json
+
       - name: x testpost, sofort geloescht
         env:
           X_API_KEY: ${{ secrets.X_API_KEY }}
