@@ -11,16 +11,19 @@ Drei Modi, immer derselbe Kampagnen-Datensatz:
     --mode schedule  Genau diese Kampagne auf die Liste planen, scheduledAt =
                      --send-at. Brevo plant serverseitig; danach muss kein
                      Runner mehr um 16:05 laufen.
-    --mode cancel    Die Kampagne aus der Queue auf suspended setzen. Ist keine
-                     da, passiert nichts und der Lauf bleibt gruen (der
-                     Veto-Knopf darf nie rot werden, nur weil nichts geplant war).
+    --mode cancel    Die Kampagne aus der Queue auf suspended setzen. Storniert
+                     wird nur, was wirklich auf Abschuss steht (queued,
+                     inProcess). Entwurf, schon storniert, schon versendet oder
+                     gar keine Kampagne heisst: nichts anfassen, Lauf bleibt
+                     gruen. Der Veto-Knopf darf nie rot werden, nur weil nichts
+                     zu stoppen war.
 
 Absender wird NIE geraten: GET /v3/senders, und daraus der aktive Absender
 (oder der, dessen Adresse in BREVO_SENDER_EMAIL steht).
 
 Secret (Umgebung): BREVO_API_KEY. Wird nie gedruckt.
 
-    python3 scripts/brevo_send.py --mode test --html newsletter/2026-09-14-ausgabe-8.html \
+    python3 scripts/brevo_send.py --mode test --html newsletter/2026-09-14.html \
         --subject "TEST" --test-to ben@example.com
     python3 scripts/brevo_send.py --mode schedule --send-at 2026-09-14T16:05 --list-id 16
     python3 scripts/brevo_send.py --mode cancel
@@ -220,6 +223,26 @@ def mode_schedule(a, key, q):
     return 0
 
 
+# Brevo nimmt "suspended" nur fuer eine Kampagne, die wirklich auf Abschuss
+# steht. Ein Entwurf ist kein Abschuss, und der Aufruf antwortet mit
+# HTTP 400 "suspended is an invalid status for draft campaign" (gesehen im
+# Trockenlauf am 12.09.2026). Deshalb entscheidet diese Tabelle, ob ueberhaupt
+# storniert wird. Alles, was nicht rausgehen kann, ist bereits gestoppt und
+# haelt den Veto-Knopf gruen.
+def cancel_decision(status):
+    """('suspend', None) oder ('skip', grund)."""
+    s = (status or "").strip()
+    if s in ("queued", "inProcess", "in_process"):
+        return "suspend", None
+    if s == "sent":
+        return "skip", "kampagne ist schon raus, storno nicht mehr moeglich"
+    if s == "suspended":
+        return "skip", "kampagne ist schon storniert"
+    if s == "draft":
+        return "skip", "kampagne ist ein entwurf, sie kann nicht von selbst rausgehen"
+    return "skip", "unbekannter status %r, es wird nichts angefasst" % s
+
+
 def mode_cancel(a, key, q):
     cid = q.get("campaign_id")
     if not cid:
@@ -228,10 +251,15 @@ def mode_cancel(a, key, q):
         save_queue(a.queue, q)
         return 0
     state = call("GET", "/emailCampaigns/%s" % cid, key)
-    if state.get("status") == "sent":
-        print("WARNUNG: kampagne %s ist schon raus, storno nicht mehr moeglich" % cid)
-        note(q, "cancel", campaign_id=cid, result="war schon gesendet")
-        q["status"] = "sent"
+    what, why = cancel_decision(state.get("status"))
+    if what == "skip":
+        print("kampagne %s, status %r: %s" % (cid, state.get("status"), why))
+        if state.get("status") == "sent":
+            print("WARNUNG: %s" % why)
+        q["status"] = state.get("status")
+        if q["status"] != "sent":
+            q["scheduled_at"] = None
+        note(q, "cancel", campaign_id=cid, result=why)
         save_queue(a.queue, q)
         return 0
     call("PUT", "/emailCampaigns/%s/status" % cid, key, {"status": "suspended"})
@@ -261,6 +289,10 @@ def selftest():
             pass
         else:
             raise AssertionError("haette abbrechen muessen: %r" % bad)
+    assert cancel_decision("queued") == ("suspend", None)
+    assert cancel_decision("inProcess")[0] == "suspend"
+    for st in ("draft", "sent", "suspended", "archive", "", None):
+        assert cancel_decision(st)[0] == "skip", st
     tmp = os.path.join(tempfile.mkdtemp(), "q.json")
     q = load_queue(tmp)
     assert q["campaign_id"] is None
@@ -269,7 +301,8 @@ def selftest():
     save_queue(tmp, q)
     again = load_queue(tmp)
     assert again["campaign_id"] == 42 and again["history"][-1]["step"] == "test"
-    print("selftest ok: berliner zeiten stimmen, vergangenheit wird abgelehnt, queue haelt")
+    print("selftest ok: berliner zeiten stimmen, vergangenheit wird abgelehnt, "
+          "entwurf wird nicht storniert, queue haelt")
     return 0
 
 
