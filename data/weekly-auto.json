@@ -1,0 +1,8 @@
+{
+ "auto": false,
+ "_hinweise": {
+  "auto": "false heisst: die Montagsroutine legt die Kampagne an, schickt NUR die Testmail und plant nichts. Den Versand loest Ben mit weekly-send.yml aus. true heisst: weekly-guard.yml plant den Versand nach dem Video selbst auf 16:05 Berlin, Liste 16.",
+  "wer liest das": "weekly-guard.yml (plant oder plant nicht) und weekly-send.yml (Bens Knopf, laeuft unabhaengig von diesem Schalter).",
+  "umstellen": "Wert auf true setzen, committen. Vorher mindestens einen Montag mit false gesehen haben."
+ }
+}

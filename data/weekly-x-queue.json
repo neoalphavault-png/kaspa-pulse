@@ -1,0 +1,19 @@
+{
+ "date": "2026-09-14",
+ "main": "kaspa closed a week above its 21 week average for the first time since august 2025. fifty six weeks in a row the weekly close sat below that line. this one sits fifteen percent above it. we describe what the chart did. we never say what it does next.",
+ "image": "pulse-week5.png",
+ "reply_video": "the whole close in six minutes, the line, the streak and what one kas buys in bitcoin {video_url}",
+ "reply_newsletter": "the same numbers land by email every monday at 16:05 berlin, before the video is anywhere else https://kaspapulse.com/#subscribe",
+ "video_url": "",
+ "_hinweise": {
+  "wer fuellt das": "Die Sonntagsroutine schreibt date, main, image, reply_video und reply_newsletter. weekly-guard.yml traegt montags 15:55 Berlin video_url ein, sobald die Folge oeffentlich ist. weekly-afternoon.yml postet um 16:20.",
+  "date": "Der Tag, an dem der Faden rausgeht, JJJJ-MM-TT. Steht hier nicht das heutige Datum, postet x_post.py --weekly nichts und der Lauf bleibt gruen. Das Datum ist der Schalter.",
+  "main": "Hauptpost, NIE mit Link. Ein Link im Hauptpost kostet 0,20 $ statt 0,015 $, und das Skript bricht deshalb ab.",
+  "image": "Wochengrafik im Format 4:5 (1080x1350). x_post.py warnt, wenn das Verhaeltnis nicht stimmt. pulse-week5.png ist der aktuelle Platzhalter, die Sonntagsroutine legt die frische Grafik ab und traegt den Pfad hier ein.",
+  "reply_video": "Erste Selbstantwort. {video_url} wird ersetzt; steht kein Platzhalter drin, wird der Link hinten angehaengt.",
+  "reply_newsletter": "Zweite Selbstantwort, haengt an der ersten und muss den Anmeldelink tragen, sonst bricht das Skript ab.",
+  "video_url": "Leer heisst: kein Video bestaetigt, also kein Faden. Nur weekly-guard.yml traegt hier ein.",
+  "kosten": "Hauptpost 0,015 $, zwei Antworten mit Link je 0,20 $, zusammen rund 0,42 $ je Montag. Mit Number of the Day (0,215 $/Tag) bleibt der Monat bei rund 8 $ von 15 $ Spend Cap.",
+  "stand der zahlen": "main und reply_video sind am 12.09. aus dem Stand vom Freitag 11.09. geschrieben (Schluss 0,03598, 21-Wochen-Linie 0,031287, 15,0 Prozent darueber). Der endgueltige Wochenschluss faellt Samstag 12.09. 24:00 UTC. Die Sonntagsroutine prueft beide Saetze gegen den fertigen Schluss und schreibt sie noetigenfalls neu. Kippt der Samstag unter 0,030818, stimmt der Befund nicht mehr und der Text muss ausgetauscht werden."
+ }
+}

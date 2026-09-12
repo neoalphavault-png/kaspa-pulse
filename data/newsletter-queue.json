@@ -1,0 +1,16 @@
+{
+ "campaign_id": null,
+ "subject": null,
+ "html_path": null,
+ "list_id": 16,
+ "sender": null,
+ "status": null,
+ "scheduled_at": null,
+ "created_at": null,
+ "history": [],
+ "_hinweise": {
+  "wozu": "Merkzettel zwischen den drei Modi von brevo-send.yml. mode test schreibt die frische Kampagnen-ID hierher, mode schedule plant genau diese ID auf Liste 16, mode cancel setzt genau diese ID auf suspended.",
+  "campaign_id": "null heisst: nichts angelegt. Dann ist ein Storno ein Nichts und bleibt gruen.",
+  "history": "die letzten 40 Schritte mit Zeitstempel, damit am Montagabend nachlesbar ist, was wann passiert ist."
+ }
+}

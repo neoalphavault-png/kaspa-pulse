@@ -1,0 +1,205 @@
+# weekly-afternoon.yml - der Nachmittag des Montags, nach dem Newsletter.
+#
+# Montags 14:20 UTC = 16:20 Berlin (Sommerzeit).
+# AB ENDE OKTOBER (letzter Sonntag im Oktober, 2026 der 25.10.) faellt Berlin
+# auf UTC+1 zurueck. Dann muss der cron unten auf "20 15 * * 1" stehen.
+# Gleiches gilt fuer weekly-guard.yml (dort 13:55 UTC, im Winter 14:55 UTC).
+#
+# Reihenfolge ist Pflicht und steht hier fest verdrahtet:
+#   1. Abonnenten zuerst. Der Newsletter ist um 16:05 raus (Brevo plant das
+#      serverseitig), dieser Lauf startet 15 Minuten spaeter.
+#   2. X-Faden: Hauptpost mit der Wochengrafik 4:5, zwei Selbstantworten.
+#   3. Danach Discord und Telegram ueber data/week-input.json.
+#
+# WICHTIG, der Grund fuer Schritt 3: ein Push mit GITHUB_TOKEN loest KEINE
+# on-push-Workflows aus (GitHubs Schleifenschutz). weeklynumbers.yml haengt
+# aber an push auf data/week-input.json. Wenn automerge-claude.yml den Branch
+# der Sonntagsroutine nach main bringt, laeuft weeklynumbers.yml also NICHT von
+# selbst. Deshalb stossen wir sie hier ausdruecklich per workflow_dispatch an.
+# Ein Dispatch mit GITHUB_TOKEN laeuft, das ist vom Schleifenschutz nicht
+# betroffen.
+name: weekly afternoon
+
+on:
+  workflow_dispatch:
+    inputs:
+      x_test:
+        description: "Trockenlauf: dieser Text wird als EIN Post mit der Wochengrafik gepostet und sofort geloescht. Leer = normaler Lauf."
+        required: false
+        default: ""
+        type: string
+  schedule:
+    # 14:20 UTC = 16:20 Berlin (Sommerzeit). Im Winter: 20 15 * * 1
+    - cron: "20 14 * * 1"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: weekly-monday
+  cancel-in-progress: false
+
+jobs:
+  # Trockenlauf. Postet genau einen Post mit der 4:5-Grafik und loescht ihn
+  # sofort wieder; die beiden Selbstantworten werden nur gedruckt, nicht
+  # gepostet. Bens Vorgabe: keine echten Posts ausser dem einen Testpost.
+  x-test:
+    if: github.event_name == 'workflow_dispatch' && inputs.x_test != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: selbsttest
+        run: python3 scripts/x_post.py --selftest
+      - name: der montagsfaden, nur gedruckt
+        run: |
+          python3 scripts/x_post.py --weekly --dry-run --force-date \
+            --queue data/weekly-x-queue.json || true
+      - name: ein testpost mit der wochengrafik, sofort geloescht
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          X_TEST: ${{ inputs.x_test }}
+        run: |
+          set -e
+          IMAGE=$(python3 -c "import json;print(json.load(open('data/weekly-x-queue.json'))['image'])")
+          echo "bild: $IMAGE"
+          python3 scripts/x_post.py --text "$X_TEST" --image "$IMAGE" \
+            --delete-after --log /tmp/x-test-log.json
+          cat /tmp/x-test-log.json
+
+  monday:
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.x_test != '') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Zwei Gruende, hier auszusteigen, beide gruen und beide laut:
+      # das Veto von weekly-guard.yml, und eine Queue, die nicht heute meint.
+      - name: sperren pruefen
+        id: guard
+        run: |
+          set -e
+          TODAY=$(TZ=Europe/Berlin date +%F)
+          STOP=""
+          if [ -f data/weekly-veto ]; then
+            STOP="data/weekly-veto liegt vor: $(cat data/weekly-veto)"
+          fi
+          QDATE=$(python3 -c "import json;print(json.load(open('data/weekly-x-queue.json')).get('date',''))")
+          if [ "$QDATE" != "$TODAY" ]; then
+            STOP="${STOP}${STOP:+ | }weekly-x-queue.json traegt '$QDATE', heute ist '$TODAY'"
+          fi
+          if [ -n "$STOP" ]; then
+            echo "stop=1" >> "$GITHUB_OUTPUT"
+            echo "::warning::montagsnachmittag abgebrochen: $STOP"
+            { echo "### abgebrochen"; echo ""; echo "$STOP"; } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "stop=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: x faden posten
+        if: steps.guard.outputs.stop != '1'
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+        run: |
+          python3 scripts/x_post.py --weekly \
+            --queue data/weekly-x-queue.json \
+            --log data/x-post-log.json
+
+      # laeuft auch, wenn X rot war: sonst verliert die Sperre gegen
+      # Doppelposts ihr Gedaechtnis (gleiche Regel wie in number-of-day.yml).
+      - name: x-log zurueckschreiben
+        if: always() && steps.guard.outputs.stop != '1'
+        run: |
+          set -e
+          if git diff --quiet -- data/x-post-log.json; then
+            echo "log unveraendert"
+            exit 0
+          fi
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/x-post-log.json
+          git commit -m "weekly x post $(TZ=Europe/Berlin date +%F)"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep $((i * 5))
+          done
+          echo "::error::x-log konnte nicht gepusht werden"; exit 1
+
+      # Die Sonntagsroutine legt data/week-input.json auf claude/week-input-<datum>.
+      # Fehlt der Branch, ist das kein Fehler: dann hat Ben die Zahlen schon
+      # selbst auf main gebracht.
+      - name: week-input branch nach main
+        id: merge
+        if: steps.guard.outputs.stop != '1'
+        run: |
+          set -e
+          TODAY=$(TZ=Europe/Berlin date +%F)
+          BRANCH="claude/week-input-$TODAY"
+          if ! git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            echo "kein branch $BRANCH, nichts zu mergen"
+            exit 0
+          fi
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git fetch origin "refs/heads/$BRANCH:refs/remotes/origin/$BRANCH"
+          BASE=$(git merge-base HEAD "origin/$BRANCH")
+          if [ -n "$(git diff --name-only "$BASE" "origin/$BRANCH" -- .github/workflows)" ]; then
+            echo "::error::$BRANCH aendert .github/workflows/. GITHUB_TOKEN darf das nicht pushen, Ben merged von Hand."
+            exit 1
+          fi
+          if git merge-base --is-ancestor "origin/$BRANCH" HEAD; then
+            echo "$BRANCH steckt schon in main"
+          else
+            git merge --no-edit -m "merge $BRANCH [weekly]" "origin/$BRANCH" || {
+              echo "::error::Konflikt beim Merge von $BRANCH"
+              git merge --abort || true
+              exit 1
+            }
+            git pull --rebase=false --no-edit origin main
+            git push origin HEAD:main
+            git push origin --delete "$BRANCH" || true
+            echo "$BRANCH nach main gebracht"
+          fi
+
+      # Der ausdrueckliche Anstoss. Ohne ihn passiert nichts, siehe Kopf.
+      - name: discord und telegram anstossen
+        if: steps.guard.outputs.stop != '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          gh workflow run weeklynumbers.yml --ref main \
+            -f dry_run=false -f force=false -f show_usd=false
+          echo "weeklynumbers.yml angestossen (workflow_dispatch, ref main)"
+          sleep 20
+          gh run list --workflow weeklynumbers.yml --limit 3 \
+            --json databaseId,status,conclusion,event,createdAt || true
+
+      - name: zusammenfassung
+        if: always()
+        run: |
+          {
+            echo "### montagsnachmittag"
+            echo ""
+            echo "- gesperrt: ${{ steps.guard.outputs.stop == '1' }}"
+            echo "- x faden: siehe schritt oben"
+            echo "- discord und telegram: weeklynumbers.yml per dispatch"
+          } >> "$GITHUB_STEP_SUMMARY"

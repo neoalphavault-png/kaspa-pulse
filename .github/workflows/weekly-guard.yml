@@ -1,0 +1,238 @@
+# weekly-guard.yml - die Sperre vor dem Newsletter.
+#
+# Bens Regel: der Newsletter darf NIE vor dem YouTube-Video und nie ohne es
+# rausgehen. Diese Datei ist die einzige Stelle, die das entscheidet, und sie
+# entscheidet ohne Ben am Rechner.
+#
+# Montags 13:55 UTC = 15:55 Berlin (Sommerzeit).
+# AB ENDE OKTOBER (letzter Sonntag im Oktober, 2026 der 25.10.) faellt Berlin
+# auf UTC+1 zurueck. Dann muss der cron unten auf "55 14 * * 1" stehen, sonst
+# laeuft die Sperre eine Stunde zu frueh. Gleiches gilt fuer
+# weekly-afternoon.yml (dort 14:20 UTC, im Winter 15:20 UTC).
+#
+# Kein Video heute:  brevo-send.yml mode cancel, data/weekly-veto anlegen,
+#                    im Job-Summary steht "kein Video live, Newsletter abgebrochen".
+# Video ist live:    video_url in data/weekly-x-queue.json eintragen, Kampagne
+#                    aus dem Wochen-HTML anlegen und die Testmail schicken.
+#                    Steht in data/weekly-auto.json auto = true, wird der
+#                    Versand zusaetzlich auf 16:05 Berlin geplant; bei false
+#                    wartet alles auf Bens weekly-send.yml.
+name: weekly guard
+
+on:
+  workflow_dispatch:
+    inputs:
+      pretend_no_video:
+        description: "Trockenlauf: so tun, als waere kein Video live (Veto und Storno pruefen)"
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    # 13:55 UTC = 15:55 Berlin (Sommerzeit). Im Winter: 55 14 * * 1
+    - cron: "55 13 * * 1"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-monday
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      live: ${{ steps.yt.outputs.live }}
+      video_url: ${{ steps.yt.outputs.video_url }}
+      auto: ${{ steps.auto.outputs.auto }}
+      html_ok: ${{ steps.auto.outputs.html_ok }}
+      html_path: ${{ steps.auto.outputs.html_path }}
+      subject: ${{ steps.auto.outputs.subject }}
+      send_at: ${{ steps.auto.outputs.send_at }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: selbsttests
+        run: |
+          python3 scripts/yt_live_check.py --selftest
+          python3 scripts/x_post.py --selftest
+
+      - name: altes veto der vorwoche wegraeumen
+        run: |
+          set -e
+          TODAY=$(TZ=Europe/Berlin date +%F)
+          if [ -f data/weekly-veto ] && ! grep -q "$TODAY" data/weekly-veto; then
+            echo "veto aus einer frueheren woche gefunden, wird entfernt:"
+            cat data/weekly-veto
+            rm -f data/weekly-veto
+            git config user.name "kaspa-pulse-bot"
+            git config user.email "bot@kaspapulse.com"
+            git add -A data/weekly-veto
+            git commit -m "weekly veto der vorwoche entfernt"
+            git pull --rebase origin main && git push origin HEAD:main
+          fi
+
+      - name: ist die montagsfolge live
+        id: yt
+        env:
+          YT_CHANNEL_ID: ${{ vars.YT_CHANNEL_ID }}
+        run: |
+          set -e
+          if [ "${{ inputs.pretend_no_video }}" = "true" ]; then
+            echo '{"live_today": false, "error": "trockenlauf, pretend_no_video"}' > /tmp/yt.json
+          else
+            python3 scripts/yt_live_check.py --channel-id "$YT_CHANNEL_ID" > /tmp/yt.json
+          fi
+          cat /tmp/yt.json
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          d = json.load(open("/tmp/yt.json"))
+          print("live=%s" % ("true" if d.get("live_today") else "false"))
+          print("video_url=%s" % (d.get("video_url") or ""))
+          PY
+          {
+            echo "### youtube"
+            echo ""
+            echo '```json'
+            cat /tmp/yt.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: videolink in die x-queue eintragen
+        if: steps.yt.outputs.live == 'true'
+        env:
+          VIDEO_URL: ${{ steps.yt.outputs.video_url }}
+        run: |
+          set -e
+          python3 - <<'PY'
+          import json, os, datetime as dt
+          p = "data/weekly-x-queue.json"
+          q = json.load(open(p))
+          q["video_url"] = os.environ["VIDEO_URL"]
+          json.dump(q, open(p, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
+          open(p, "a", encoding="utf-8").write("\n")
+          print("video_url eingetragen:", q["video_url"], "fuer", q.get("date"))
+          PY
+          if git diff --quiet -- data/weekly-x-queue.json; then
+            echo "queue unveraendert"
+          else
+            git config user.name "kaspa-pulse-bot"
+            git config user.email "bot@kaspapulse.com"
+            git add data/weekly-x-queue.json
+            git commit -m "weekly x queue: videolink der montagsfolge"
+            for i in 1 2 3; do
+              git pull --rebase origin main && git push origin HEAD:main && break
+              sleep $((i * 5))
+            done
+          fi
+
+      - name: schalter und newsletter-datei lesen
+        id: auto
+        if: steps.yt.outputs.live == 'true'
+        run: |
+          set -e
+          AUTO=$(python3 -c "import json;print('true' if json.load(open('data/weekly-auto.json')).get('auto') else 'false')")
+          TODAY=$(TZ=Europe/Berlin date +%F)
+          HTML="newsletter/$TODAY.html"
+          if [ -f "$HTML" ]; then HTML_OK=true; else HTML_OK=false; fi
+          echo "auto=$AUTO" >> "$GITHUB_OUTPUT"
+          echo "html_ok=$HTML_OK" >> "$GITHUB_OUTPUT"
+          echo "html_path=$HTML" >> "$GITHUB_OUTPUT"
+          echo "subject=$(python3 scripts/newsletter_subject.py "$HTML")" >> "$GITHUB_OUTPUT"
+          echo "send_at=${TODAY}T16:05" >> "$GITHUB_OUTPUT"
+          {
+            echo "### newsletter"
+            echo ""
+            echo "- auto: $AUTO"
+            echo "- html: $HTML (vorhanden: $HTML_OK)"
+            echo "- geplanter versand: ${TODAY}T16:05 berlin"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$HTML_OK" != "true" ]; then
+            echo "::warning::$HTML fehlt. Ohne Newsletter-HTML wird keine Kampagne angelegt."
+          fi
+
+  # kein video: erst stornieren, dann das veto setzen. Die Reihenfolge zaehlt,
+  # weil weekly-afternoon.yml am veto haengt.
+  cancel:
+    needs: check
+    if: needs.check.outputs.live != 'true'
+    uses: ./.github/workflows/brevo-send.yml
+    secrets: inherit
+    with:
+      mode: cancel
+
+  veto:
+    needs: [check, cancel]
+    if: always() && needs.check.outputs.live != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: veto setzen
+        run: |
+          set -e
+          TODAY=$(TZ=Europe/Berlin date +%F)
+          printf 'kein video live am %s, newsletter abgebrochen (weekly-guard.yml, lauf %s)\n' \
+            "$TODAY" "${{ github.run_id }}" > data/weekly-veto
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/weekly-veto
+          if git diff --staged --quiet; then
+            echo "veto stand schon"
+          else
+            git commit -m "weekly veto $TODAY: kein video live"
+            for i in 1 2 3; do
+              git pull --rebase origin main && git push origin HEAD:main && break
+              sleep $((i * 5))
+            done
+          fi
+          echo "kein Video live, Newsletter abgebrochen" >> "$GITHUB_STEP_SUMMARY"
+          echo "::warning::kein Video live, Newsletter abgebrochen"
+
+  # video ist live: kampagne anlegen und testmail schicken (immer),
+  # planen nur wenn data/weekly-auto.json auto = true traegt.
+  newsletter_test:
+    needs: check
+    if: needs.check.outputs.live == 'true' && needs.check.outputs.html_ok == 'true'
+    uses: ./.github/workflows/brevo-send.yml
+    secrets: inherit
+    with:
+      mode: test
+      html_path: ${{ needs.check.outputs.html_path }}
+      subject: ${{ needs.check.outputs.subject }}
+
+  newsletter_schedule:
+    needs: [check, newsletter_test]
+    if: needs.check.outputs.live == 'true' && needs.check.outputs.auto == 'true'
+    uses: ./.github/workflows/brevo-send.yml
+    secrets: inherit
+    with:
+      mode: schedule
+      send_at: ${{ needs.check.outputs.send_at }}
+
+  hinweis:
+    needs: [check, newsletter_test]
+    if: always() && needs.check.outputs.live == 'true' && needs.check.outputs.auto != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: was jetzt noch fehlt
+        run: |
+          {
+            echo "### handbetrieb"
+            echo ""
+            echo "auto steht auf false. Die Kampagne ist angelegt und die Testmail ist raus."
+            echo "Den Versand an Liste 16 loest Ben mit weekly-send.yml aus."
+          } >> "$GITHUB_STEP_SUMMARY"

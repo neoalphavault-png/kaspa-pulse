@@ -1,0 +1,59 @@
+# weekly-cancel.yml - Bens Veto-Knopf.
+#
+# Ein Klick, keine Eingaben, jederzeit. Er legt data/weekly-veto an und setzt
+# die Kampagne aus data/newsletter-queue.json auf suspended.
+#
+# Was danach nicht mehr passiert:
+#   - Brevo verschickt den geplanten Newsletter nicht (Kampagne suspended).
+#   - weekly-afternoon.yml bricht ab, solange das Veto liegt, also kein X-Faden
+#     und kein Discord- oder Telegram-Post.
+#
+# Das Veto raeumt weekly-guard.yml am naechsten Montag selbst weg. Wer es
+# frueher los sein will, loescht data/weekly-veto auf main.
+name: weekly cancel
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-monday
+  cancel-in-progress: false
+
+jobs:
+  veto:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: veto setzen
+        run: |
+          set -e
+          TODAY=$(TZ=Europe/Berlin date +%F)
+          printf 'veto von hand am %s (weekly-cancel.yml, lauf %s, ausgeloest von %s)\n' \
+            "$TODAY" "${{ github.run_id }}" "${{ github.actor }}" > data/weekly-veto
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/weekly-veto
+          if git diff --staged --quiet; then
+            echo "veto stand schon"
+          else
+            git commit -m "weekly veto $TODAY: von hand"
+            for i in 1 2 3; do
+              git pull --rebase origin main && git push origin HEAD:main && break
+              sleep $((i * 5))
+            done
+          fi
+          { echo "### veto"; echo ""; cat data/weekly-veto; } >> "$GITHUB_STEP_SUMMARY"
+
+  cancel:
+    needs: veto
+    uses: ./.github/workflows/brevo-send.yml
+    secrets: inherit
+    with:
+      mode: cancel
