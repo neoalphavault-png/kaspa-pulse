@@ -1,0 +1,81 @@
+# weekly-send.yml - Bens Startknopf fuer den Versand.
+#
+# Ein Klick, keine Eingaben. Plant die Kampagne aus data/newsletter-queue.json
+# auf HEUTE 16:05 Berliner Zeit, Liste 16. Brevo plant serverseitig; danach
+# darf der Rechner aus sein.
+#
+# Gedacht fuer data/weekly-auto.json auto = false. Dann legt weekly-guard.yml
+# um 15:55 nur die Kampagne an und schickt die Testmail, und dieser Knopf ist
+# die bewusste Freigabe. Steht auto auf true, plant der Guard selbst und
+# dieser Knopf ist nur noch der Nachzuegler.
+#
+# Die Sperre bleibt auch hier: liegt data/weekly-veto, passiert nichts.
+# Damit kann der Newsletter auch von Hand nicht vor dem Video rausgehen.
+name: weekly send
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: weekly-monday
+  cancel-in-progress: false
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      send_at: ${{ steps.plan.outputs.send_at }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: veto und video pruefen
+        id: plan
+        env:
+          YT_CHANNEL_ID: ${{ vars.YT_CHANNEL_ID }}
+        run: |
+          set -e
+          if [ -f data/weekly-veto ]; then
+            echo "::error::data/weekly-veto liegt vor: $(cat data/weekly-veto). Erst das Veto raeumen."
+            exit 1
+          fi
+          python3 scripts/yt_live_check.py --channel-id "$YT_CHANNEL_ID" > /tmp/yt.json
+          cat /tmp/yt.json
+          LIVE=$(python3 -c "import json;print(json.load(open('/tmp/yt.json'))['live_today'])")
+          if [ "$LIVE" != "True" ]; then
+            echo "::error::heute ist kein video live. Der Newsletter geht nie vor dem Video raus."
+            exit 1
+          fi
+          # 16:05 heute, aber nie in der Vergangenheit: wer den Knopf um 16:30
+          # drueckt, meint "jetzt", nicht "gestern". Dann fuenf Minuten Vorlauf.
+          SEND_AT=$(TZ=Europe/Berlin python3 - <<'PY'
+          import datetime as dt
+          now = dt.datetime.now()
+          plan = now.replace(hour=16, minute=5, second=0, microsecond=0)
+          if plan <= now + dt.timedelta(minutes=2):
+              plan = (now + dt.timedelta(minutes=5)).replace(second=0, microsecond=0)
+          print(plan.strftime("%Y-%m-%dT%H:%M"))
+          PY
+          )
+          echo "send_at=$SEND_AT" >> "$GITHUB_OUTPUT"
+          {
+            echo "### freigabe"
+            echo ""
+            echo "- video ist live"
+            echo "- geplanter versand: $SEND_AT berlin, liste 16"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  schedule:
+    needs: pruefen
+    uses: ./.github/workflows/brevo-send.yml
+    secrets: inherit
+    with:
+      mode: schedule
+      send_at: ${{ needs.pruefen.outputs.send_at }}

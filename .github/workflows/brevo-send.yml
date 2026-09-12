@@ -1,0 +1,145 @@
+# brevo-send.yml - der Newsletter-Versand, drei Modi, eine Kampagne.
+#
+# mode test      Kampagne aus dem HTML anlegen (Entwurf) und eine Testmail an
+#                vars.NEWSLETTER_TEST_TO schicken. An die Liste geht nichts.
+# mode schedule  Genau diese Kampagne auf Liste 16 planen, scheduledAt =
+#                send_at. Brevo plant serverseitig, also muss um 16:05 kein
+#                Runner mehr laufen und kein Rechner an sein.
+# mode cancel    Genau diese Kampagne auf suspended setzen (Bens Veto).
+#
+# Die Kampagnen-ID steht in data/newsletter-queue.json. Sie ist das Band
+# zwischen den drei Modi und wird nach jedem Lauf auf main zurueckgeschrieben.
+#
+# Aufrufbar von Hand (workflow_dispatch) und aus anderen Workflows
+# (workflow_call, mit secrets: inherit). weekly-guard.yml, weekly-send.yml und
+# weekly-cancel.yml rufen genau diese Datei auf, damit es nur einen Weg zu
+# Brevo gibt.
+name: brevo send
+
+on:
+  workflow_dispatch:
+    inputs:
+      html_path:
+        description: "Pfad zum Newsletter-HTML, z. B. newsletter/2026-09-14.html (nur mode test)"
+        required: false
+        default: ""
+        type: string
+      subject:
+        description: "Betreff (nur mode test)"
+        required: false
+        default: ""
+        type: string
+      mode:
+        description: "test, schedule oder cancel"
+        required: true
+        default: "test"
+        type: choice
+        options: [test, schedule, cancel]
+      send_at:
+        description: "ISO in Berliner Zeit, z. B. 2026-09-14T16:05 (nur mode schedule)"
+        required: false
+        default: ""
+        type: string
+  workflow_call:
+    inputs:
+      html_path:
+        required: false
+        default: ""
+        type: string
+      subject:
+        required: false
+        default: ""
+        type: string
+      mode:
+        required: true
+        type: string
+      send_at:
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  # nie zwei Brevo-Laeufe gleichzeitig, sonst ueberholt ein Storno eine Planung
+  group: brevo-send
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: selbsttest
+        run: python3 scripts/brevo_send.py --selftest
+
+      - name: brevo
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          BREVO_SENDER_EMAIL: ${{ vars.BREVO_SENDER_EMAIL }}
+          NEWSLETTER_TEST_TO: ${{ vars.NEWSLETTER_TEST_TO }}
+          NEWSLETTER_LIST_ID: ${{ vars.NEWSLETTER_LIST_ID }}
+          MODE: ${{ inputs.mode }}
+          HTML_PATH: ${{ inputs.html_path }}
+          SUBJECT: ${{ inputs.subject }}
+          SEND_AT: ${{ inputs.send_at }}
+        run: |
+          set -e
+          case "$MODE" in
+            test)
+              python3 scripts/brevo_send.py --mode test \
+                --html "$HTML_PATH" --subject "$SUBJECT"
+              ;;
+            schedule)
+              python3 scripts/brevo_send.py --mode schedule --send-at "$SEND_AT"
+              ;;
+            cancel)
+              python3 scripts/brevo_send.py --mode cancel
+              ;;
+            *)
+              echo "::error::unbekannter mode: $MODE"; exit 1 ;;
+          esac
+
+      # laeuft auch, wenn der Aufruf oben rot war: die ID muss ins Repo,
+      # sonst weiss der naechste Lauf nicht, was er stornieren soll.
+      - name: queue zurueckschreiben
+        if: always()
+        run: |
+          set -e
+          if git diff --quiet -- data/newsletter-queue.json; then
+            echo "queue unveraendert"
+            exit 0
+          fi
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/newsletter-queue.json
+          git commit -m "newsletter queue ${{ inputs.mode }} $(date -u +%Y-%m-%d)"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep $((i * 5))
+          done
+          echo "::error::queue konnte nicht gepusht werden"; exit 1
+
+      - name: zusammenfassung
+        if: always()
+        run: |
+          {
+            echo "### brevo ${{ inputs.mode }}"
+            echo ""
+            python3 - <<'PY'
+          import json
+          q = json.load(open("data/newsletter-queue.json"))
+          for k in ("campaign_id", "subject", "list_id", "status", "scheduled_at", "sender"):
+              print("- %s: %s" % (k, q.get(k)))
+          PY
+          } >> "$GITHUB_STEP_SUMMARY"
