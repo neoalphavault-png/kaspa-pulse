@@ -42,6 +42,7 @@ jobs:
           python scripts/brevo_send.py --mode cancel --queue /tmp/q2.json
 
       - name: x testpost, sofort geloescht
+        if: false   # TEMP: dieser lauf prueft nur den storno, kein zweiter echter post
         env:
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
