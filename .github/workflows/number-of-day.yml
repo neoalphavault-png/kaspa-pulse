@@ -28,51 +28,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      # TROCKENLAUF MONTAGSROUTINE, 12.09.2026, wird nach dem Lauf wieder
-      # entfernt. Grund: neue Workflow-Dateien sind erst dispatchbar, wenn sie
-      # auf main liegen; dieser Job liegt auf main und laeuft mit dem Stand des
-      # Branches, den man beim Start als ref angibt.
-      - name: selbsttests
-        run: |
-          python scripts/x_post.py --selftest
-          python scripts/yt_live_check.py --selftest
-          python scripts/brevo_send.py --selftest
-
-      - name: A9.2 laeuft heute ein video
-        env:
-          YT_CHANNEL_ID: ${{ vars.YT_CHANNEL_ID }}
-        run: |
-          echo "YT_CHANNEL_ID gesetzt: ${YT_CHANNEL_ID:+ja}${YT_CHANNEL_ID:-nein}"
-          python scripts/yt_live_check.py --channel-id "$YT_CHANNEL_ID" | tee /tmp/yt.json
-          echo "--- gegen montag geprueft ---"
-          python scripts/yt_live_check.py --channel-id "$YT_CHANNEL_ID" --date 2026-09-14
-
-      - name: A9.1 brevo testmail
-        env:
-          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
-          BREVO_SENDER_EMAIL: ${{ vars.BREVO_SENDER_EMAIL }}
-          NEWSLETTER_TEST_TO: ${{ vars.NEWSLETTER_TEST_TO }}
-        run: |
-          echo "NEWSLETTER_TEST_TO gesetzt: ${NEWSLETTER_TEST_TO:+ja}${NEWSLETTER_TEST_TO:-nein}"
-          python scripts/brevo_send.py --mode test \
-            --html newsletter/2026-09-14.html --subject "TEST" \
-            --queue /tmp/newsletter-queue.json
-          cat /tmp/newsletter-queue.json
-
-      - name: A9.3 montagsfaden, nur gedruckt
-        run: |
-          python scripts/x_post.py --weekly --dry-run --force-date \
-            --queue data/weekly-x-queue.json || echo "abbruch wie erwartet, video_url ist leer"
-          python - <<'EOP'
-          import json
-          q = json.load(open("data/weekly-x-queue.json"))
-          q["video_url"] = "https://www.youtube.com/watch?v=TESTTESTTES"
-          json.dump(q, open("/tmp/weekly-x-queue.json", "w"), indent=1, ensure_ascii=False)
-          EOP
-          python scripts/x_post.py --weekly --dry-run --force-date \
-            --queue /tmp/weekly-x-queue.json
-
-      - name: A9.3 ein testpost mit der wochengrafik, sofort geloescht
+      - name: x testpost, sofort geloescht
         env:
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
@@ -80,10 +36,9 @@ jobs:
           X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
           X_TEST: ${{ inputs.x_test }}
         run: |
-          IMAGE=$(python -c "import json;print(json.load(open('data/weekly-x-queue.json'))['image'])")
-          echo "wochengrafik: $IMAGE"
-          python scripts/x_post.py --text "$X_TEST" --image "$IMAGE" \
-            --delete-after --log /tmp/x-test-log.json
+          python scripts/x_post.py --selftest
+          python scripts/x_post.py --text "$X_TEST" --image graphics/number-of-day.png \
+            --reply "$X_TEST (reply)" --delete-after --log /tmp/x-test-log.json
           cat /tmp/x-test-log.json
 
   render:
