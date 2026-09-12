@@ -142,11 +142,20 @@ jobs:
           AUTO=$(python3 -c "import json;print('true' if json.load(open('data/weekly-auto.json')).get('auto') else 'false')")
           TODAY=$(TZ=Europe/Berlin date +%F)
           HTML="newsletter/$TODAY.html"
-          if [ -f "$HTML" ]; then HTML_OK=true; else HTML_OK=false; fi
+          # Ein fehlendes Newsletter-HTML ist kein roter Lauf. Der Guard hat
+          # dann trotzdem seine Arbeit getan (Video geprueft, Videolink
+          # eingetragen), es gibt nur nichts zu verschicken.
+          if [ -f "$HTML" ]; then
+            HTML_OK=true
+            SUBJECT=$(python3 scripts/newsletter_subject.py "$HTML")
+          else
+            HTML_OK=false
+            SUBJECT=""
+          fi
           echo "auto=$AUTO" >> "$GITHUB_OUTPUT"
           echo "html_ok=$HTML_OK" >> "$GITHUB_OUTPUT"
           echo "html_path=$HTML" >> "$GITHUB_OUTPUT"
-          echo "subject=$(python3 scripts/newsletter_subject.py "$HTML")" >> "$GITHUB_OUTPUT"
+          echo "subject=$SUBJECT" >> "$GITHUB_OUTPUT"
           echo "send_at=${TODAY}T16:05" >> "$GITHUB_OUTPUT"
           {
             echo "### newsletter"
