@@ -1,39 +1,32 @@
 {
-  "issue": "SEP 12 2026",
+  "issue": "SEP 13 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "339 PH",
-  "value_label": "petahash per second securing the network right now",
-  "headline": "hashrate *up 3 percent*.\nthe reward fell.",
+  "value": "96.49%",
+  "value_label": "of every KAS that will ever exist is already mined",
+  "headline": "the supply story is *almost over*.",
   "panes": [
     {
-      "kind": "line",
-      "title": "BOTH SET TO 100 AT THE ANCHOR",
-      "sub": "hashrate against what a block pays",
-      "series": [
-        100.0,
-        103.07823751634841
-      ],
-      "baseline": [
-        100.0,
-        94.38743126816935
-      ],
-      "base_label": "block reward",
-      "end_label": "hashrate 103",
-      "tone": "teal"
+      "kind": "dots",
+      "title": "EVERY KAS THAT WILL EVER EXIST",
+      "sub": "one dot is one percent of the maximum",
+      "total": 100,
+      "lit": 96.49394512153326,
+      "tone": "teal",
+      "note": "*96.49 percent* mined, 3.51 percent still to come."
     },
     {
       "kind": "anchor",
-      "title": "WHAT MINERS ARE PAID",
+      "title": "WHAT IS LEFT",
       "lines": [
-        "the block reward fell *5.61 percent*",
-        "over the same days."
+        "*1,006,379,241 KAS* are still to come.",
+        "99 percent is reached in june 2028."
       ]
     }
   ],
-  "sources": "api.kaspa.org, emission from the schedule",
+  "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "kaspa's hashrate is up 3 percent against 4 weeks ago. over the same days the block reward fell 5.61 percent, as it does every month by design. more machines securing the chain, less new supply paying for them. that gap is the whole security question.",
-    "reply": "the schedule behind the reward is on kaspapulse.com/kaspa-halving.html. we report the movement, never the motive."
+    "x": "96.49 percent of every KAS that will ever exist is already mined. 1,006,379,241 KAS are still to come, and 99 percent is reached in june 2028 at the current schedule. what comes after keeps halving every twelve months.",
+    "reply": "the full emission schedule is on kaspapulse.com/kaspa-halving.html. the remaining amount shrinks and never quite reaches the maximum."
   }
 }
