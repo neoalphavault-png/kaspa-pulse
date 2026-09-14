@@ -1,32 +1,44 @@
 {
-  "issue": "SEP 13 2026",
+  "issue": "SEP 14 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "96.49%",
-  "value_label": "of every KAS that will ever exist is already mined",
-  "headline": "the supply story is *almost over*.",
+  "value": "328 PH",
+  "value_label": "petahash per second securing the network right now",
+  "headline": "hashrate is *up 8 percent*\nagainst 3 weeks ago.",
   "panes": [
     {
-      "kind": "dots",
-      "title": "EVERY KAS THAT WILL EVER EXIST",
-      "sub": "one dot is one percent of the maximum",
-      "total": 100,
-      "lit": 96.49394512153326,
-      "tone": "teal",
-      "note": "*96.49 percent* mined, 3.51 percent still to come."
+      "kind": "compare",
+      "title": "NETWORK HASHRATE",
+      "sub": "same measurement, two dates",
+      "rows": [
+        {
+          "label": "today",
+          "sub": "",
+          "value": "328 PH",
+          "pct": 100.0,
+          "tone": "teal"
+        },
+        {
+          "label": "3 weeks ago",
+          "sub": "",
+          "value": "302 PH",
+          "pct": 92.17078483402722,
+          "tone": "grey"
+        }
+      ]
     },
     {
       "kind": "anchor",
-      "title": "WHAT IS LEFT",
+      "title": "WHAT THE NUMBER IS",
       "lines": [
-        "*1,006,379,241 KAS* are still to come.",
-        "99 percent is reached in june 2028."
+        "the difference is *26 PH*.",
+        "*counted* from the same source."
       ]
     }
   ],
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "96.49 percent of every KAS that will ever exist is already mined. 1,006,379,241 KAS are still to come, and 99 percent is reached in june 2028 at the current schedule. what comes after keeps halving every twelve months.",
-    "reply": "the full emission schedule is on kaspapulse.com/kaspa-halving.html. the remaining amount shrinks and never quite reaches the maximum."
+    "x": "hashrate on kaspa is up 8 percent against 3 weeks ago. 328 PH today, 302 PH then, both read from the same source 21 days apart.",
+    "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
   }
 }
