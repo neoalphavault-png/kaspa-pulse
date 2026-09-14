@@ -1,24 +1,33 @@
 <!doctype html>
 <!--
-  KASPA PULSE, Newsletter Ausgabe 8, Montag 14.09.2026, 16:05 Berlin.
+  KASPA PULSE, Newsletter Ausgabe 10, Montag 14.09.2026, 16:05 Berlin.
 
   Dateiname ist Absicht: newsletter/<JJJJ-MM-TT>.html. weekly-guard.yml sucht
   montags genau diesen Pfad. Die Ausgabennummer steht im Text, nicht im Namen.
   Der Betreff steht in <meta name="x-subject">, scripts/newsletter_subject.py
   liest ihn heraus, damit er nur an einer Stelle gepflegt wird.
 
-  ZAHLEN VORLAEUFIG (Stand Freitag 11.09.2026, Schluss 0,03598). Der
-  endgueltige Wochenschluss faellt Samstag 12.09. 24:00 UTC. Die
-  Sonntagsroutine schreibt diese Datei mit dem fertigen Schluss neu, bevor sie
-  montags verschickt wird. Kippt der Samstag unter 0,030818, traegt die
-  Ausgabe den falschen Befund und muss neu geschrieben werden.
+  ZAHLEN ENDGUELTIG, gegen den fertigen Wochenschluss vom Samstag 12.09.2026
+  nachgerechnet (siehe pulse-studio/docs/weekly/2026-09-14.md). Quelle fuer
+  alles hier: kaspa-pulse/data/kas-candles.json (Kraken Tagesschluss UTC),
+  weekly.json, week-input.json, number-of-day-log.json.
+
+  VIDEO_URL ist ein Platzhalter. Das Sprechvideo dieser Folge ist um
+  16:00 Berlin noch nicht veroeffentlicht, die Sonntagsdatei trug keinen
+  Link. weekly-guard.yml traegt ihn montags 15:55 Berlin in die X-Queue ein,
+  sobald die Folge live ist; dieser Platz hier muss von Hand nachgezogen
+  werden, bevor die Kampagne an die Liste geht.
+
+  Keine Wochengrafik eingebettet: es gibt im Repo keinen Erzeuger fuer ein
+  600x3-PNG (nur die Zahlen-Tabelle unten, kein Bild-Platzhalter aus einer
+  alten Woche).
 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="x-subject" content="kaspa closed above the 21 week line for the first time in 57 weeks">
-<title>Kaspa Pulse Weekly, issue 8</title>
+<meta name="x-subject" content="the close that ended 57 weeks below the line">
+<title>Kaspa Pulse Weekly, issue 10</title>
 </head>
 <body style="margin:0; padding:0; background:#050608;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#050608;">
@@ -28,111 +37,111 @@
 
   <tr><td style="padding:26px 28px 6px 28px; border-bottom:1px solid #1A1D21;">
     <div style="font-size:12px; letter-spacing:5px; font-weight:700; color:#FFFFFF;">KASPA PULSE</div>
-    <div style="font-size:12px; color:#7A828C; padding:8px 0 18px 0;">weekly numbers &middot; issue 8 &middot; monday 14 september 2026</div>
+    <div style="font-size:12px; color:#7A828C; padding:8px 0 18px 0;">weekly numbers &middot; issue 10 &middot; monday 14 september 2026</div>
   </td></tr>
 
-  <tr><td style="padding:26px 28px 4px 28px;">
-    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">the finding</div>
-    <div style="font-size:22px; line-height:31px; color:#FFFFFF; font-weight:700; padding-top:10px;">
-      kaspa closed the week above its 21 week average for the first time since august 2025.
-    </div>
-    <div style="font-size:15px; line-height:24px; color:#9BA3AB; padding-top:12px;">
-      fifty six weeks in a row the weekly close sat below that line. this one sits fifteen percent above it,
-      the widest gap in either direction this year. we describe what the chart did. we never say what it does next.
-    </div>
+  <tr><td style="padding:30px 28px 6px 28px; text-align:center;">
+    <div style="font-size:64px; line-height:64px; color:#49EACB; font-weight:700;">57</div>
+    <div style="font-size:13px; letter-spacing:1px; color:#9BA3AB; text-transform:uppercase; padding-top:10px;">weeks. that is how long it took kaspa to close a week above its 21 week average again</div>
   </td></tr>
 
-  <tr><td style="padding:24px 28px 0 28px;">
-    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase; padding-bottom:10px;">the close</div>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px; color:#FFFFFF;">
+  <tr><td style="padding:18px 28px 4px 28px;">
+    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">the numbers</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px; color:#FFFFFF; margin-top:10px;">
       <tr>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">weekly close</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">$0.03598</td>
-      </tr>
-      <tr>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">21 week average</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">$0.03129</td>
-      </tr>
-      <tr>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">close against the line</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">15.0 percent above</td>
-      </tr>
-      <tr>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">weeks below the line, now ended</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">56</td>
-      </tr>
-      <tr>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">last weekly close above it</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">9 august 2025, $0.09498</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">weekly close, saturday 12 sep</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">$0.03523</td>
       </tr>
       <tr>
         <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">week against the week before</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">up 17.7 percent</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">up 15.24 percent</td>
       </tr>
       <tr>
-        <td style="padding:9px 0; color:#9BA3AB;">weekly volume</td>
-        <td style="padding:9px 0; text-align:right;">$12.9M, 2.9 times the week before</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">21 week average</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">$0.031219</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">close against the line</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">12.85 percent above, the widest gap in 94 weeks</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">50 week average</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">$0.037659, close sits 6.45 percent below it</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">weekly volume</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">13.48M units, 3.00 times the week before</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; color:#9BA3AB;">one kas in satoshis</td>
+        <td style="padding:9px 0; text-align:right;">45.60, up from 38.29 a week earlier</td>
       </tr>
     </table>
   </td></tr>
 
-  <tr><td style="padding:24px 28px 0 28px;">
-    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase; padding-bottom:10px;">priced in bitcoin</div>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px; color:#FFFFFF;">
-      <tr>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">one kas buys</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">46.6 sats</td>
-      </tr>
-      <tr>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">a week earlier</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">38.3 sats</td>
-      </tr>
-      <tr>
-        <td style="padding:9px 0; color:#9BA3AB;">a year earlier</td>
-        <td style="padding:9px 0; text-align:right;">74.8 sats</td>
-      </tr>
-    </table>
-    <div style="font-size:13px; line-height:21px; color:#7A828C; padding-top:12px;">
-      a satoshi is one hundred millionth of a bitcoin. the week gained twenty two percent against bitcoin
-      and still buys thirty eight percent less than it did twelve months ago. both are true at once.
+  <tr><td style="padding:22px 28px 4px 28px;">
+    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">the take</div>
+    <div style="font-size:15px; line-height:24px; color:#9BA3AB; padding-top:10px;">
+      fifty six weeks in a row the weekly close sat below the 21 week average. this saturday broke it, and not by a little,
+      the close sits 12.85 percent above the line, the widest gap either direction has shown in the whole 94 week window.
+      the block reward took its monthly cut on september 4, down to 2.1827 kas, and hashrate still set a fresh high in the
+      same week. the chain kept mining harder into a smaller reward, and the chart kept climbing above its own average.
+      both happened at once.
     </div>
   </td></tr>
 
-  <tr><td style="padding:24px 28px 0 28px;">
-    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase; padding-bottom:10px;">the chain</div>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px; color:#FFFFFF;">
+  <tr><td style="padding:22px 28px 4px 28px;">
+    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">worth watching</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px; color:#FFFFFF; margin-top:10px;">
       <tr>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">block reward</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">2.18 kas</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">next block reward cut</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">monday 5 oct, reward to 2.0602 kas</td>
       </tr>
       <tr>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">daily emission</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">1.88M kas</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">threshold to hold the line next week</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">a close above $0.031219</td>
       </tr>
       <tr>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">next monthly reduction</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">5 october 2026</td>
-      </tr>
-      <tr>
-        <td style="padding:9px 0; color:#9BA3AB;">hashrate, 7 day change</td>
-        <td style="padding:9px 0; text-align:right; color:#49EACB;">up 6.4 percent</td>
+        <td style="padding:9px 0; color:#9BA3AB;">hashrate, 7 / 30 day change</td>
+        <td style="padding:9px 0; text-align:right; color:#49EACB;">up 6.4 percent / up 14.7 percent</td>
       </tr>
     </table>
-    <div style="font-size:13px; line-height:21px; color:#7A828C; padding-top:12px;">
-      kaspa cuts its block reward a little every month instead of halving every four years.
-      the reward is down five point six percent since the start of august and the hashrate rose anyway.
+  </td></tr>
+
+  <tr><td style="padding:22px 28px 4px 28px;">
+    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">how we count</div>
+    <div style="font-size:13px; line-height:21px; color:#7A828C; padding-top:10px;">
+      price, the close and the two moving averages come from kraken's daily candles, weekly marks every sunday 00:00 utc,
+      94 full weeks checked for gaps. the 21 and 50 week averages are our own rolling calculation, seeded from the first
+      weeks of the window. block reward, emission and mined percent come from our own chain reader against kaspa's fixed
+      anchor and monthly step. transactions per second and the fee share are still on the last count from monday 7 sep,
+      no fresh reading landed for the week to 12 sep, so both stay marked open rather than guessed.
     </div>
   </td></tr>
 
   <tr><td style="padding:26px 28px 6px 28px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0F1319; border:1px solid #1A1D21; border-radius:10px;">
       <tr><td style="padding:18px 20px;">
-        <div style="font-size:15px; color:#FFFFFF; font-weight:700;">the chart breakdown is live</div>
+        <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">new on youtube</div>
+        <div style="font-size:15px; color:#FFFFFF; font-weight:700; padding-top:10px;">Kaspa Analysis: 57 Weeks Under The Line, And One Close Ended It</div>
         <div style="font-size:13px; line-height:21px; color:#9BA3AB; padding:8px 0 14px 0;">
-          six minutes on this close, the line, the streak and what one kas buys in bitcoin.
-          new chart breakdown every monday.
+          the whole close in one sitting, the line, the streak and what one kas buys in bitcoin.
+          new chart breakdown every monday, subscribe so you don't miss it.
         </div>
-        <a href="https://www.youtube.com/@gokugalax3000" style="display:inline-block; background:#49EACB; color:#050608; font-size:14px; font-weight:700; text-decoration:none; padding:11px 20px; border-radius:8px;">watch this week's episode</a>
+        <a href="VIDEO_URL" style="display:inline-block; background:#49EACB; color:#050608; font-size:14px; font-weight:700; text-decoration:none; padding:11px 20px; border-radius:8px;">watch this week's episode</a>
+      </td></tr>
+    </table>
+  </td></tr>
+
+  <tr><td style="padding:22px 28px 4px 28px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0F1319; border:1px solid #1A1D21; border-radius:10px;">
+      <tr><td style="padding:18px 20px;">
+        <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">live alerts</div>
+        <div style="font-size:13px; line-height:21px; color:#9BA3AB; padding-top:10px;">
+          reward cuts and the chain's largest wallet moving get posted the moment we count them, not once a week.
+          join <a href="https://discord.gg/h33JBhrPP7" style="color:#49EACB; text-decoration:none;">discord.gg/h33JBhrPP7</a>
+          or <a href="https://t.me/kaspapulse" style="color:#49EACB; text-decoration:none;">t.me/kaspapulse</a>.
+        </div>
       </td></tr>
     </table>
   </td></tr>
