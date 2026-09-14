@@ -1,5 +1,5 @@
 {
-  "week": "2026-09-07",
+  "week": "2026-09-14",
   "manual": {
     "active_addr": 21170,
     "tps": 2.83,
@@ -7,10 +7,10 @@
     "dormant_pct": 50.97,
     "exchange_kas": 3883120966
   },
-  "read": "last monday we said thousands again this week would make the covenant jump a level, not a wave. it reads 15,071 a day and active addresses held at 21,170, so it was a level. the block reward fell from 2.31 to 2.18 kas on friday, the monthly cut, and hashrate rose 6.4 percent to 333.0 ph per second anyway. the largest wallet went back to buying, 4.77 million kas in, after letting 3.0 million go the week before.",
+  "read": "the close broke a fifty six week streak below the 21 week average, ending 12.85 percent above the line, the widest gap in the whole 94 week window. the reward cut on september 4 took the block reward to 2.1827 kas and hashrate set a fresh high the same week, 339.08 ph per second. active addresses and the covenant count have no fresher reading than last monday, so both numbers above carry over unchanged.",
   "override": {
     "chain_fees": 226,
-    "hashrate": 333.0
+    "hashrate": 339.08
   },
   "issue": null,
   "_hinweise": {
