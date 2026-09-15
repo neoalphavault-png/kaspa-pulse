@@ -312,5 +312,14 @@
     "mined_pct": 96.500508,
     "price_kas": 0.033564,
     "whale_kas": 1520413797.44481
+  },
+  {
+    "date": "2026-09-15",
+    "candidate": "tvl_move",
+    "hashrate": 328.087934,
+    "tvl_total": 1547546.605836,
+    "mined_pct": 96.507081,
+    "price_kas": 0.033817,
+    "whale_kas": 1517266554.441645
   }
 ]
