@@ -5,6 +5,41 @@ Seit dem Umbau wird der Block maschinell aus `data/weekly.json` erzeugt,
 Kommentare dort wuerden ueberschrieben. Neue Herkunftsnotizen kommen hier rein,
 pro Woche ein Abschnitt (Regel 42, eine Zahl ohne Quelle existiert nicht).
 
+## Korrektur 16.09.2026, tps
+
+Bens Frage: woher kommt 2,83 am Zaehltag, wenn Kaspalytics 1,38 im
+Wochenschnitt meldet. Antwort: aus derselben Reihe, nur anders gezaehlt.
+
+Unsere Zahl kam aus kaspalytics.com/api/charts/transactions/accepted/count,
+Reihen "Standard" UND "Coinbase", EIN Tag (der letzte volle Tag vor dem
+Wochenanker, hier Sonntag 06.09.), geteilt durch 86400. Kaspalytics meldet
+Standard, im Wochenmittel.
+
+Die Groessenordnung stimmt damit ueberein. Am 16.08., dem einzigen Tag, fuer
+den wir die Aufteilung notiert haben, standen 75.050 Standard gegen 127.440
+Coinbase, also 0,87 gegen 1,48 je Sekunde. Zieht man diese 1,48 von 2,83 ab,
+bleiben rund 1,35, und das ist Kaspalytics 1,38 im Rahmen der Rundung.
+
+Coinbase ist die Auszahlung, die jeder akzeptierte Block an sich selbst
+schreibt. Sie misst, wie schnell die Kette laeuft, nicht wie sehr sie benutzt
+wird. Ueber der Kachel steht "real network usage" und "spam filtered out"; mit
+der Kettenauszahlung darin widersprach die Zahl ihrer eigenen Beschriftung.
+Zweitens war es ein Tageswert, der als Wochenzahl gelesen wurde.
+
+Beides ist ab dem 16.09. korrigiert (scripts/kaspalytics.py): tps ist das
+MITTEL der sieben vollen Tage vor dem Wochenanker, nur Standard. Der hoechste
+Tag im Fenster steht als tps_peak mit Datum daneben, damit ein Spitzentag
+kuenftig als Spitzentag erkennbar ist. Die Kachelbeschriftung auf index.html
+sagt jetzt "standard transactions per second, 7 day average, coinbase
+excluded".
+
+SERIENBRUCH, BEWUSST. Die alten Werte der Reihe (0,74 bis 2,83) sind auf der
+alten Grundlage gemessen und mit den neuen nicht vergleichbar. Sie werden
+NICHT umgerechnet: die Tagesaufteilung frueherer Wochen ist nirgends
+gespeichert, und eine gerechnete Zahl als gemessene auszugeben ist genau das,
+was wir sonst verhindern. Die neue Reihe beginnt mit der Woche 21.09. Der
+Lesetext auf index.html nennt die alte Grundlage, solange er steht.
+
 ## Serien-Definitionen (fortlaufend gueltig)
 
 - **circ_supply**: kaspa.stream druckt nur "27.62B", keine exakte Ziffernfolge.

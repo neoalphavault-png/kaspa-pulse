@@ -190,7 +190,7 @@
   <div class="modeline"><div class="mi"><span class="lvw">live</span> <b>numbers above refresh on every visit</b> · the panels below are the <b>fixed monday reading</b>, kept still all week so the trends compare like with like · <b id="modeDate"></b></div></div>
   <section class="panel">
     <div class="sec"><div class="t"><span class="snum">01</span>Usage. <span>is anyone actually using it?</span></div><div class="tag wk" id="weeklyTag"><i></i><span>weekly</span></div></div>
-    <div class="read"><span class="rl">the read</span>throughput rose to <b>2.83 transactions per second</b> from 2.78, the fourth rise in a row and the highest reading in this series. last monday we called the forty fold jump in covenant activity a spike we count, not a plateau we can promise, and said that thousands again this monday would make it a level. it reads <b><span id="rdCov">15,071</span> a day</b>. active addresses held at <b>21,170</b> against 22,125, three times the 7,351 of two mondays ago. it was a level. the l2 split stays blank, the per-chain transaction counts still have no working source.</div>
+    <div class="read"><span class="rl">the read</span>throughput rose to <b>2.83 accepted transactions per second</b> from 2.78, the fourth rise in a row and the highest reading in this series. that count includes the coinbase payout every accepted block writes to itself, which on the one day we split it ran at 1.48 a second on its own; on standard transactions alone the same reading is about 1.35, and standard only is the basis we report from the week of 21 september on. last monday we called the forty fold jump in covenant activity a spike we count, not a plateau we can promise, and said that thousands again this monday would make it a level. it reads <b><span id="rdCov">15,071</span> a day</b>. active addresses held at <b>21,170</b> against 22,125, three times the 7,351 of two mondays ago. it was a level. the l2 split stays blank, the per-chain transaction counts still have no working source.</div>
     <div class="grid four" id="usageCards"></div>
   </section>
   <section class="panel">
@@ -227,6 +227,9 @@
     <div class="ss">the 8 numbers whales watch and how to read them · plus the weekly pulse every monday · no hype, no spam</div>
     <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
       <input type="email" name="EMAIL" placeholder="you@email.com" required>
+      <input type="hidden" name="UTM_SOURCE" id="utmSource" value="direct">
+      <input type="hidden" name="UTM_MEDIUM" id="utmMedium" value="none">
+      <input type="hidden" name="UTM_CAMPAIGN" id="utmCampaign" value="">
       <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
       <input type="hidden" name="locale" value="en">
       <input type="hidden" name="html_type" value="simple">
@@ -672,7 +675,7 @@ $("supplyCards").innerHTML = `
     </div></div>`;
 // --- weekly cards ---
 $("usageCards").innerHTML = `
-  <div class="card"><div class="name">Real network usage</div><div class="expl">* transactions per second, spam filtered out</div>
+  <div class="card"><div class="name">Real network usage</div><div class="expl">* standard transactions per second, 7 day average, coinbase excluded</div>
     <div class="val">${cur.tps!=null?cur.tps+" TPS":"—"}</div><div class="trends">${trendBlock("tps")}</div></div>
   <div class="card"><div class="name">Smart-contract activity</div><div class="expl">* covenant transactions per day (live since June) &middot; <a href="/kaspa-token-standard.html" style="color:var(--teal); text-decoration:none;">token standards, explained &rarr;</a></div>
     <div class="val">${fmtN(cur.covenant_tx)}/day</div><div class="trends">${trendBlock("covenant_tx")}</div></div>
@@ -853,5 +856,6 @@ $("chart").innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" width="100%">
 })();
 </script>
 <script src="/capture.js" defer></script>
+<script src="/utm.js" defer></script>
 </body>
 </html>

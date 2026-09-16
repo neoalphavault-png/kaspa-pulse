@@ -30,6 +30,37 @@ Regeln, die hier drinstecken und nicht verhandelbar sind.
      leer als ein falsches. Ein leeres Feld zeigt auf der Seite einen
      Strich, und ein Strich ist ehrlich.
   4. Faellt eine Quelle aus, bleiben die anderen fuenf trotzdem stehen.
+  5. tps zaehlt NUR Standardtransaktionen und NUR als Wochenmittel.
+     Korrektur vom 16.09.2026, siehe unten.
+
+DIE TPS-KORREKTUR VOM 16.09.2026
+Bis zum 14.09. war tps die Summe aus "Standard" UND "Coinbase" eines
+EINZELNEN Tages, geteilt durch 86400. Am Zaehltag 06.09. ergab das 2,83.
+Kaspalytics selbst meldet fuer dieselbe Woche 1,38. Beides stimmt, gezaehlt
+wird nur nicht dasselbe:
+
+  Coinbase ist die Auszahlung, die JEDER akzeptierte Block an sich selbst
+  schreibt. Am 16.08. waren das 127.440 Stueck an einem Tag, also rund
+  1,48 je Sekunde, gegen 75.050 Standardtransaktionen, also 0,87. Die
+  Coinbase-Zahl misst, wie schnell die Kette laeuft, nicht wie sehr sie
+  benutzt wird. Auf unserer eigenen Seite steht ueber der Kachel "real
+  network usage" und "spam filtered out" - mit der Kettenauszahlung darin
+  widerspricht die Zahl ihrer eigenen Beschriftung.
+
+  Dazu war es EIN Tag, kein Wochenmittel. Ein Spitzentag liest hoch, und
+  niemand sah ihm an, dass er ein Spitzentag war.
+
+Ab dem 16.09. gilt deshalb: tps ist das MITTEL der sieben vollen Tage vor
+dem Wochenanker, nur "Standard". Der hoechste Einzeltag im Fenster wird als
+tps_peak mit Datum mitgeliefert; damit steht der Spitzentag kuenftig dabei,
+statt sich als Wochenzahl auszugeben.
+
+Die alten Werte der Reihe (0,74 bis 2,83) sind auf der alten Grundlage
+gemessen und mit den neuen NICHT vergleichbar. Sie werden nicht
+umgerechnet: wir haben die Tagesaufteilung frueherer Wochen nicht
+gespeichert, und eine gerechnete Zahl als gemessene auszugeben ist genau
+das, was diese Datei sonst verhindert. Der Bruch steht in
+data/weekly-notes.md.
 
     python3 scripts/kaspalytics.py            # zahlen holen und drucken
     python3 scripts/kaspalytics.py --json     # nur der block fuer die eingabedatei
@@ -54,11 +85,12 @@ QUELLEN = {
     "holders":      ("supply/inactive?minAge=1year", ["CSPERCENT"], "pct"),
     "exchange_kas": ("supply/exchange-holdings", ["Balance"], "int"),
     "covenant_tx":  ("covenants/transactions", ["Transactions"], "int"),
-    # tps ist die einzige rechnung. akzeptierte transaktionen am tag,
-    # standard plus coinbase, geteilt durch die sekunden eines tages.
-    # NICHT die tps-kachel auf kaspa.stream, die zaehlt die bloecke mit
-    # und steht deshalb bei elf statt bei zwei.
-    "tps":          ("transactions/accepted/count", ["Standard", "Coinbase"], "tps"),
+    # tps ist die einzige rechnung: akzeptierte STANDARD-transaktionen je
+    # sekunde, gemittelt ueber die sieben vollen tage vor dem wochenanker.
+    # Coinbase bleibt draussen (siehe Kopf), und die tps-kachel auf
+    # kaspa.stream bleibt es auch, die zaehlt die bloecke mit und steht
+    # deshalb bei elf statt bei eins.
+    "tps":          ("transactions/accepted/count", ["Standard"], "tps"),
 }
 
 # Bot-Regel 10, um jeden fremdwert ein fenster
@@ -72,6 +104,7 @@ FENSTER = {
 }
 
 SEKUNDEN_TAG = 86400
+FENSTER_TAGE = 7        # wochenmittel, dasselbe fenster, das kaspalytics zeigt
 
 
 def hole(pfad):
@@ -135,6 +168,35 @@ def letzter_voller(daten, namen, heute):
     return best_tag, [float(r[best_i]) for r in reihen]
 
 
+def fenster(daten, namen, heute, n=FENSTER_TAGE):
+    """Die letzten n vollen Tage VOR heute, als Liste (tag, werte).
+    Fehlende Tage werden uebersprungen, nicht geraten; gibt es weniger als
+    die Haelfte, ist das Fenster unbrauchbar und die Funktion scheitert."""
+    labels = daten.get("labels") or []
+    reihen = [reihe(daten, x) for x in namen]
+    treffer = []
+    for i, lab in enumerate(labels):
+        try:
+            tag = tag_von(lab)
+        except ValueError:
+            continue
+        if tag >= heute or (heute - tag).days > n:
+            continue
+        w = []
+        for r in reihen:
+            if i >= len(r) or r[i] is None:
+                w = None
+                break
+            w.append(float(r[i]))
+        if w is not None:
+            treffer.append((tag, w))
+    treffer.sort(key=lambda x: x[0])
+    if len(treffer) * 2 < n:
+        raise RuntimeError("nur %d von %d tagen vor %s vollstaendig"
+                           % (len(treffer), n, heute))
+    return treffer
+
+
 def rechne(art, werte):
     if art == "tps":
         return round(sum(werte) / SEKUNDEN_TAG, 2)
@@ -167,8 +229,21 @@ def sammle(heute=None, holer=None):
     for feld, (pfad, namen, art) in QUELLEN.items():
         try:
             daten = holer(pfad)
-            tag, roh = letzter_voller(daten, namen, heute)
-            v = rechne(art, roh)
+            if art == "tps":
+                # Wochenmittel statt Einzeltag (Korrektur 16.09.2026, Kopf).
+                # Der Spitzentag faellt dabei nicht unter den Tisch, er wird
+                # benannt.
+                tage_werte = fenster(daten, namen, heute)
+                tps = [(t, sum(w) / SEKUNDEN_TAG) for t, w in tage_werte]
+                v = round(sum(x for _, x in tps) / len(tps), 2)
+                hoch_tag, hoch = max(tps, key=lambda x: x[1])
+                werte["tps_peak"] = round(hoch, 2)
+                werte["tps_peak_date"] = str(hoch_tag)
+                werte["tps_days"] = len(tps)
+                tag = "%s..%s" % (tps[0][0], tps[-1][0])
+            else:
+                tag, roh = letzter_voller(daten, namen, heute)
+                v = rechne(art, roh)
             if not plausibel(feld, v):
                 probleme.append("%s = %s liegt ausserhalb des fensters, verworfen"
                                 % (feld, v))
@@ -185,34 +260,49 @@ def sammle(heute=None, holer=None):
 # ------------------------------------------------------------------ selftest
 
 def _stub(pfad):
-    """vier tage, damit auch der ruecksprung auf den vortag pruefbar ist."""
-    labels = ["2026-08-15T00:00:00.000Z", "2026-08-16T00:00:00.000Z",
-              "2026-08-17T00:00:00.000Z", "2026-08-18T00:00:00.000Z"]
+    """zehn tage. sieben davon (10.08. bis 16.08.) sind das tps-fenster vor
+    dem wochenanker montag 17.08.; die letzten zwei tage liegen dahinter und
+    duerfen nie mitgezaehlt werden."""
+    labels = ["2026-08-%02dT00:00:00.000Z" % d for d in range(9, 19)]
 
     def bau(paare):
         return {"labels": labels,
                 "datasets": [{"label": k, "data": v} for k, v in paare]}
 
+    # index          9      10     11     12     13     14     15     16     17     18
     if pfad.startswith("transactions/accepted/addresses"):
-        return bau([("Addresses", [7050, 7100, 6960, 3200]),
-                    ("Price", [1, 1, 1, 1])])
+        return bau([("Addresses", [6800, 6850, 6900, 6950, 7000, 7020, 7050, 7100, 6960, 3200]),
+                    ("Price", [1] * 10)])
     if pfad.startswith("transactions/accepted/count"):
-        return bau([("Standard", [69000, 70000, 75050, 30000]),
-                    ("Coinbase", [118000, 120000, 127440, 50000]),
-                    ("Price", [1, 1, 1, 1])])
+        # das fenster 10.08. bis 16.08. mittelt auf 60480 standard am tag,
+        # also genau 0,70 je sekunde; der 16.08. ist mit 75050 der spitzentag.
+        return bau([("Standard", [50000, 52000, 54000, 56000, 58000, 60000, 68310, 75050,
+                                  30000, 30000]),
+                    ("Coinbase", [118000, 119000, 120000, 121000, 122000, 123000, 125000,
+                                  127440, 50000, 50000]),
+                    ("Price", [1] * 10)])
     if pfad.startswith("address/count"):
-        return bau([("Price", [1, 1, 1, 1]),
-                    ("Addresses", [789200, 789500, 789980, 790100])])
+        return bau([("Price", [1] * 10),
+                    ("Addresses", [788000, 788200, 788400, 788600, 788800, 789000,
+                                   789200, 789500, 789980, 790100])])
     if pfad.startswith("supply/inactive"):
-        return bau([("Price", [1, 1, 1, 1]),
-                    ("CSPERCENT", [50.88, 50.9, 50.95, 50.96])])
+        return bau([("Price", [1] * 10),
+                    ("CSPERCENT", [50.7, 50.72, 50.75, 50.78, 50.8, 50.84, 50.88, 50.9,
+                                   50.95, 50.96])])
     if pfad.startswith("supply/exchange-holdings"):
-        return bau([("Balance", [3.92e9, 3.93e9, 3.94e9, 3.94e9]),
-                    ("Price", [1, 1, 1, 1])])
+        return bau([("Balance", [3.88e9, 3.89e9, 3.90e9, 3.90e9, 3.91e9, 3.91e9,
+                                 3.92e9, 3.93e9, 3.94e9, 3.94e9]),
+                    ("Price", [1] * 10)])
     if pfad.startswith("covenants/transactions"):
-        return bau([("Transactions", [1200, 454, 450, 1133]),
-                    ("Price", [1, 1, 1, 1])])
+        return bau([("Transactions", [900, 950, 980, 1000, 1050, 1100, 1200, 454, 450, 1133]),
+                    ("Price", [1] * 10)])
     raise RuntimeError("unbekannter pfad im stub")
+
+
+def _i(daten, tag):
+    """index eines tages im stub. die tests zeigen auf den TAG, nicht auf
+    eine position; sonst zerlegt jede laengere reihe die testfaelle."""
+    return [str(tag_von(x)) for x in daten["labels"]].index(tag)
 
 
 def run_selftest():
@@ -230,7 +320,18 @@ def run_selftest():
     check("ruhender anteil", werte["holders"], 50.9)
     check("boersenbestand", werte["exchange_kas"], 3930000000)
     check("covenants", werte["covenant_tx"], 454)
-    check("tps aus zwei reihen", werte["tps"], round(190000 / 86400, 2))
+    # NUR "Standard", und als mittel der sieben tage 10.08. bis 16.08.
+    fenster_std = [52000, 54000, 56000, 58000, 60000, 68310, 75050]
+    check("tps ist das wochenmittel der standardreihe", werte["tps"],
+          round(sum(fenster_std) / len(fenster_std) / 86400, 2))
+    check("sieben tage im fenster", werte["tps_days"], 7)
+    check("spitzentag steht dabei", werte["tps_peak"], round(75050 / 86400, 2))
+    check("spitzentag mit datum", werte["tps_peak_date"], "2026-08-16")
+    check("das fenster steht als spanne im tagesfeld", tage["tps"], "2026-08-10..2026-08-16")
+    # der spitzentag liegt ueber dem mittel, und genau deshalb steht er dabei
+    check("spitzentag ueber dem mittel", werte["tps_peak"] > werte["tps"], True)
+    # die coinbase-reihe darf die zahl nicht mehr anheben
+    check("coinbase zaehlt nicht mehr mit", werte["tps"] < 1.0, True)
     check("gelesener tag", tage["active_addr"], "2026-08-16")
     check("keine probleme", probleme, [])
 
@@ -249,7 +350,7 @@ def run_selftest():
     def loch(pfad):
         d = _stub(pfad)
         if pfad.startswith("covenants"):
-            d["datasets"][0]["data"][1] = None
+            d["datasets"][0]["data"][_i(d, "2026-08-16")] = None
         return d
     w2, t2, _ = sammle(heute=dt.date(2026, 8, 18), holer=loch)
     check("luecke faellt auf den vortag", w2["covenant_tx"], 1200)
@@ -259,7 +360,7 @@ def run_selftest():
     def kaputt(pfad):
         d = _stub(pfad)
         if pfad.startswith("supply/inactive"):
-            d["datasets"][1]["data"][1] = 4200.0
+            d["datasets"][1]["data"][_i(d, "2026-08-16")] = 4200.0
         return d
     w3, _, p3 = sammle(heute=dt.date(2026, 8, 18), holer=kaputt)
     check("unplausibel wird verworfen", w3["holders"], None)
@@ -280,7 +381,7 @@ def run_selftest():
         for f in fails:
             print("  " + f)
         return 1
-    print("selftest ok, 22 faelle")
+    print("selftest ok, 29 faelle")
     return 0
 
 

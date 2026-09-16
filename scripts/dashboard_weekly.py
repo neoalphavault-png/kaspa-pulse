@@ -58,7 +58,12 @@ UA = {"User-Agent": "kaspa-pulse-bot/1.0 (+https://kaspapulse.com)"}
 TIMEOUT = 30
 
 # felder, die nur per hand kommen. autofill fasst sie nie an.
-MANUAL_FIELDS = ("tps", "covenant_tx", "igra_tx", "kasplex_tx", "holders",
+# tps_peak und tps_peak_date gehoeren seit dem 16.09.2026 dazu: tps ist das
+# wochenmittel der standardtransaktionen, und wenn ein einzelner tag deutlich
+# darueber lag, steht er ab jetzt daneben statt sich als wochenzahl auszugeben
+# (scripts/kaspalytics.py, abschnitt "die tps-korrektur").
+MANUAL_FIELDS = ("tps", "tps_peak", "tps_peak_date", "tps_days",
+                 "covenant_tx", "igra_tx", "kasplex_tx", "holders",
                  "active_addr", "holder_addr", "exchange_kas", "fees_day")
 
 

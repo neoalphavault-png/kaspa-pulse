@@ -3,7 +3,7 @@
  "main": "kaspa just closed a week above its 21 week average for the first time in 57 weeks, 12.85 percent above the line, the widest gap in the whole 94 week window. what finally breaks a line like that?",
  "image": "",
  "reply_video": "the whole close in one sitting, the line, the streak and what one kas buys in bitcoin {video_url}",
- "reply_newsletter": "the same numbers land by email every monday at 16:05 berlin, before the video is anywhere else https://kaspapulse.com/#subscribe",
+ "reply_newsletter": "the same numbers land by email every monday at 16:05 berlin, before the video is anywhere else https://kaspapulse.com/?utm_source=x&utm_medium=post&utm_campaign=weekly-numbers#subscribe",
  "video_url": "",
  "_hinweise": {
   "wer fuellt das": "Die Sonntagsroutine schreibt date, main, image, reply_video und reply_newsletter. weekly-guard.yml traegt montags 15:55 Berlin video_url ein, sobald die Folge oeffentlich ist. weekly-afternoon.yml postet um 16:20.",
@@ -11,7 +11,7 @@
   "main": "Hauptpost, NIE mit Link. Ein Link im Hauptpost kostet 0,20 $ statt 0,015 $, und das Skript bricht deshalb ab.",
   "image": "Wochengrafik im Format 4:5 (1080x1350). x_post.py warnt, wenn das Verhaeltnis nicht stimmt. Leer seit 14.09.: es gibt im Repo keinen Erzeuger fuer diese Grafik, ein Platzhalter aus einer alten Woche (z.B. pulse-week5.png) wird bewusst nicht wiederverwendet, bis der Erzeuger existiert.",
   "reply_video": "Erste Selbstantwort. {video_url} wird ersetzt; steht kein Platzhalter drin, wird der Link hinten angehaengt.",
-  "reply_newsletter": "Zweite Selbstantwort, haengt an der ersten und muss den Anmeldelink tragen, sonst bricht das Skript ab.",
+  "reply_newsletter": "Zweite Selbstantwort, haengt an der ersten und muss den Anmeldelink tragen, sonst bricht das Skript ab. Der Link traegt seit dem 16.09.2026 utm_source=x (scripts/utm.py), sonst weiss niemand, ob X die Liste fuellt.",
   "video_url": "Leer heisst: kein Video bestaetigt, also kein Faden. Nur weekly-guard.yml traegt hier ein.",
   "kosten": "Hauptpost 0,015 $, zwei Antworten mit Link je 0,20 $, zusammen rund 0,42 $ je Montag. Mit Number of the Day (0,215 $/Tag) bleibt der Monat bei rund 8 $ von 15 $ Spend Cap.",
   "stand der zahlen": "main und reply_video sind am 14.09. gegen den fertigen Wochenschluss vom Samstag 12.09. geschrieben (Schluss 0,03523, 21-Wochen-Linie 0,031219, 12,85 Prozent darueber, siehe pulse-studio/docs/weekly/2026-09-14.md)."

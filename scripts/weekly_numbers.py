@@ -29,6 +29,7 @@ import datetime as dt
 import json
 import math
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -36,6 +37,7 @@ import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import telegram_post  # noqa: E402
+import utm  # noqa: E402
 
 UA = "kaspa-pulse-weekly/1.0 (+https://kaspapulse.com)"
 TIMEOUT = 20
@@ -325,7 +327,8 @@ def cut_phrase(nxt, nxt_ts, now_ts):
     return "cut to %.3f on %s, %02d.%02d utc" % (nxt, when, d.hour, d.minute)
 
 
-def build_message(v, prev, issue, week_date, read, price=None, show_usd=False):
+def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
+                  quelle="discord"):
     prev = prev or {}
     out = []
     out.append("\U0001f4ca **kaspa pulse, week %d numbers**" % issue)
@@ -390,11 +393,26 @@ def build_message(v, prev, issue, week_date, read, price=None, show_usd=False):
     out.append(read.strip())
     out.append("")
     out.append("\U0001f517 full dashboard kaspapulse.com")
+    # Der Anmeldelink traegt seine Quelle. Discord und Telegram bekommen
+    # denselben Text, aber NICHT denselben Link: sonst steht in der
+    # Auswertung ein Topf fuer zwei Kanaele (scripts/utm.py).
+    out.append("\U0001f4e9 the same numbers by email every monday "
+               + utm.link(quelle, campaign="weekly-numbers"))
     return "\n".join(out)
 
 
+URL_IM_TEXT = re.compile(r"https?://\S+")
+
+
 def assert_punctuation(text):
-    """Schreibregel mechanisch statt aus dem Gedaechtnis."""
+    """Schreibregel mechanisch statt aus dem Gedaechtnis.
+
+    Links sind davon ausgenommen. Die Regel ("keine Gedankenstriche, keine
+    Doppelpunkte, keine Pfeile") ist eine Regel fuer PROSA; ein Doppelpunkt
+    in https:// ist keine Interpunktion, sondern Teil einer Adresse. Ohne
+    diese Ausnahme koennte kein Post einen Link tragen, und der Anmeldelink
+    mit seiner Quelle muss unter jeden Wochenpost."""
+    text = URL_IM_TEXT.sub("", text)
     hits = [c for c in FORBIDDEN if c in text]
     if hits:
         raise Stop("schreibregel verletzt, gefunden %r. keine gedankenstriche, "
@@ -484,7 +502,7 @@ def previous_entry(history, week):
 
 # ------------------------------------------------------------------ posten --
 
-def post_discord(msg, dry=False):
+def post_discord(msg, dry=False, msg_tg=None):
     hook = (os.environ.get("DISCORD_WEBHOOK_WEEKLY")
             or os.environ.get("DISCORD_WEBHOOK"))
     if len(msg) > 1990:
@@ -507,7 +525,8 @@ def post_discord(msg, dry=False):
 
     # spiegel nach telegram. faellt er aus, bleibt discord unberuehrt,
     # siehe telegram_post.py. der dry-run kommt hier gar nicht erst an.
-    telegram_post.send_text(msg)
+    # msg_tg traegt denselben Text mit utm_source=tg statt discord.
+    telegram_post.send_text(msg_tg or msg)
 
 
 # -------------------------------------------------------------------- lauf --
@@ -609,12 +628,15 @@ def main():
     price = fetch_price() if show_usd else None  # Regel 8, nur bei bedarf
     issue = issue_number(inp["date"], inp["issue"])
     msg = build_message(v, prev, issue, inp["date"], inp["read"],
-                        price=price, show_usd=show_usd)
+                        price=price, show_usd=show_usd, quelle="discord")
+    msg_tg = build_message(v, prev, issue, inp["date"], inp["read"],
+                           price=price, show_usd=show_usd, quelle="tg")
     assert_punctuation(msg)
+    assert_punctuation(msg_tg)
     print(msg)
     print("---- %d zeichen ----" % len(msg))
 
-    post_discord(msg, dry=dry)
+    post_discord(msg, dry=dry, msg_tg=msg_tg)
 
     if not dry:
         entry = {"week": inp["week"], "issue": issue}
@@ -700,6 +722,9 @@ GOLD_MSG = "\n".join([
     GOLD_READ,
     "",
     "\U0001f517 full dashboard kaspapulse.com",
+    "\U0001f4e9 the same numbers by email every monday "
+    "https://kaspapulse.com/?utm_source=discord&utm_medium=chat"
+    "&utm_campaign=weekly-numbers#subscribe",
 ])
 
 
