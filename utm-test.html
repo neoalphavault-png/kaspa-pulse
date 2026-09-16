@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>UTM test page (not public)</title>
+<!--
+  utm-test.html, Testkopie des Anmeldeformulars. NICHT im Menue, NICHT in der
+  sitemap.xml, noindex. Wer sie nicht kennt, findet sie nicht.
+
+  WOFUER
+  Das Live-Formular steht auf siebzehn Seiten und bleibt unangetastet. Diese
+  Seite ist die Kopie, an der geprueft wird, ob Brevo die drei UTM-Felder
+  wirklich annimmt. Sie postet an dasselbe Brevo-Formular; eine Anmeldung von
+  hier ist ein echter Kontakt und wird nach dem Test wieder geloescht.
+
+  SO WIRD GETESTET
+  1. Seite mit Parametern aufrufen, zum Beispiel
+     kaspapulse.com/utm-test.html?utm_source=yt-pinned&utm_medium=shorts&utm_campaign=week-in-30
+  2. Oben stehen die drei Werte, die utm.js gelesen hat. Stehen sie da, ist
+     die Seitenhaelfte in Ordnung.
+  3. Mit einer Testadresse absenden.
+  4. In Brevo den Kontakt oeffnen. Stehen UTM_SOURCE, UTM_MEDIUM und
+     UTM_CAMPAIGN am Kontakt, nimmt Brevo die Felder an.
+  5. Stehen sie NICHT da, fehlen die drei Felder im Brevo-Formular selbst.
+     Die Anleitung dafuer steht in pulse-studio/docs/projekt/utm-regel.md.
+
+  Ohne Parameter steht "direct" und "none" da. Das ist kein Fehler, das ist
+  der Normalfall fuer jemanden, der die Seite direkt aufruft.
+-->
+<style>
+  :root{--bg:#0B0F14;--card:#121821;--line:#1E2733;--txt:#E8EDF2;--dim:#93A1B0;--teal:#49EACB}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+       font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+  .wrap{max-width:640px;margin:0 auto;padding:40px 20px 80px}
+  h1{font-size:22px;margin:0 0 6px}
+  .warn{display:inline-block;font-size:11px;letter-spacing:2px;text-transform:uppercase;
+        font-weight:700;color:#0B0F14;background:var(--teal);border-radius:999px;padding:4px 12px}
+  p{color:var(--dim)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+        padding:20px 22px;margin:22px 0}
+  .card h2{font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);
+           margin:0 0 14px;font-weight:700}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:7px 0;border-bottom:1px solid var(--line);font-size:15px}
+  th{color:var(--dim);font-weight:600;width:42%}
+  td{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--teal)}
+  td.leer{color:#65727F}
+  form{display:flex;gap:10px;flex-wrap:wrap}
+  input[type=email]{flex:1 1 240px;background:#0B0F14;border:1px solid var(--line);
+        border-radius:10px;padding:12px 14px;color:var(--txt);font-size:15px}
+  button{background:var(--teal);color:#08121A;border:0;border-radius:10px;
+         padding:12px 22px;font-weight:700;font-size:15px;cursor:pointer}
+  ol{color:var(--dim);padding-left:20px}
+  code{background:#0B0F14;border:1px solid var(--line);border-radius:6px;padding:1px 6px;
+       font-size:13px;color:var(--txt)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="warn">test page, not linked</span>
+  <h1>UTM test page</h1>
+  <p>Copy of the sign up form. The live form on every other page is untouched.
+     A sign up from here creates a real contact in Brevo; delete it afterwards.</p>
+
+  <div class="card">
+    <h2>What utm.js read from the address</h2>
+    <table>
+      <tr><th>utm_source</th><td id="showSource" class="leer">…</td></tr>
+      <tr><th>utm_medium</th><td id="showMedium" class="leer">…</td></tr>
+      <tr><th>utm_campaign</th><td id="showCampaign" class="leer">…</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>The form, exactly as it is on the site</h2>
+    <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="you@email.com" required>
+      <input type="hidden" name="UTM_SOURCE" id="utmSource" value="direct">
+      <input type="hidden" name="UTM_MEDIUM" id="utmMedium" value="none">
+      <input type="hidden" name="UTM_CAMPAIGN" id="utmCampaign" value="">
+      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="locale" value="en">
+      <input type="hidden" name="html_type" value="simple">
+      <button type="submit" id="subBtn">send test</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>How to read the result</h2>
+    <ol>
+      <li>Open this page with parameters, for example
+        <code>?utm_source=yt-pinned&amp;utm_medium=shorts&amp;utm_campaign=week-in-30</code>.</li>
+      <li>The three values above must show what you put in the address.</li>
+      <li>Send with a test address, then open that contact in Brevo.</li>
+      <li>If the three attributes are filled at the contact, Brevo accepts the fields
+        and the live form is already sending them too.</li>
+      <li>If they are empty, the three fields are missing inside the Brevo form.
+        Five clicks fix that, see <code>utm-regel.md</code> in pulse-studio.</li>
+    </ol>
+  </div>
+</div>
+
+<script src="/utm.js" defer></script>
+<script>
+  /* Nur fuer diese Testseite: zeigt an, was utm.js in die versteckten Felder
+     geschrieben hat. Auf der echten Seite gibt es diese Anzeige nicht. */
+  window.addEventListener('load', function () {
+    [['utmSource', 'showSource'], ['utmMedium', 'showMedium'],
+     ['utmCampaign', 'showCampaign']].forEach(function (paar) {
+      var feld = document.getElementById(paar[0]);
+      var anzeige = document.getElementById(paar[1]);
+      if (!feld || !anzeige) return;
+      anzeige.textContent = feld.value || '(empty)';
+      anzeige.className = feld.value ? '' : 'leer';
+    });
+  });
+</script>
+</body>
+</html>
