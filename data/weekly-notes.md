@@ -112,3 +112,31 @@ tps aus dem accepted transaction count bei kaspalytics, 75.05K standard plus 127
 ## Woche 2026-08-17, handwerte
 
 tps aus dem accepted transaction count bei kaspalytics, 75.05K standard plus 127.44K coinbase am 16.08., geteilt durch 86400. active addresses, ruhender anteil, adresszahl und covenant transactions ebenfalls kaspalytics, stand 16.08. boersenbestand aus known exchange holdings, 3.94 mrd. gebuehren aus defillama chain fees 24h, igra 211 plus kasplex 9.03. die beiden l2 transaktionszahlen bleiben leer, defillama zeigt keine transaktionszahlen und kcc20 war nicht erreichbar.
+
+## Neu 19.09.2026, Zeitstempel fuer Supply-Werte
+
+Anlass: der Wert 27.696.515.267 KAS (96,49 Prozent gemintet) steht in mehreren
+unserer Dokumente ohne Datum. Beim Tracker-Abgleich fiel auf, dass er unter dem
+gemessenen Stand vom 14.09. liegt — gemintete Menge kann nicht schrumpfen, die
+Zahl war also aelter, als sie aussah.
+
+Rueckgerechnet aus dem Anker 27.699.388.458 KAS (14.09.2026 06:45:36 UTC) und
+1.885.832 KAS Emission pro Tag gehoert sie zu etwa **12.09.2026, 19:10 UTC**.
+Die Rueckrechnung ist sauber, weil der Block Reward seit dem 04.09. bei
+2,18 KAS steht und im ganzen Fenster konstant war.
+
+Konsequenz, ab jetzt verdrahtet:
+
+- `data/weekly.json` fuehrt `circ_supply_as_of`, `context_fallback.mined_pct_as_of`
+  fuehrt denselben Zeitstempel.
+- `scripts/dashboard_weekly.py` schreibt beide bei jedem Abruf von
+  `api.kaspa.org/info/coinsupply` automatisch mit.
+- Der jetzt eingetragene Zeitstempel 2026-09-14T06:45:36Z ist die Commit-Zeit
+  des schreibenden Laufs; der Abruf lag wenige Sekunden davor.
+
+Warum ueberhaupt: die gemintete Menge waechst rund 1,9 Mio. KAS am Tag. Ein
+Bestand als "Anteil am Geminteten" verschiebt sich dadurch in der vierten
+Nachkommastelle pro Tag. Solange danebensteht, wann der Nenner galt, ist das
+nachvollziehbar. Ohne Datum ist es eine Behauptung. Regel 42 sinngemaess
+erweitert: eine Zahl ohne Quelle existiert nicht, eine Supply-Zahl ohne Datum
+auch nicht.

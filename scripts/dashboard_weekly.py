@@ -81,7 +81,12 @@ def fetch_auto():
     out = {"tvl_kasplex": None, "tvl_igra": None, "kasplex_dex": None,
            "igra_dex": None, "price_usd": None, "mcap_usd": None,
            "circ_supply": None, "mined_pct": None, "hashrate": None,
-           "block_reward": None, "entityx_kas": None}
+           "block_reward": None, "entityx_kas": None,
+           # Ab wann gilt der Supply-Wert. Gemintete Menge waechst jede
+           # Sekunde weiter, rund 1,9 Mio. KAS am Tag. Ohne Zeitstempel
+           # laesst sich spaeter nicht mehr sagen, worauf sich ein Anteil
+           # bezieht. Regel: eine Zahl ohne Datum ist keine Zahl.
+           "circ_supply_as_of": None}
     problems = []
 
     try:
@@ -123,6 +128,8 @@ def fetch_auto():
         mx = float(j["maxSupply"]) / 1e8
         out["circ_supply"] = round(circ)
         out["mined_pct"] = round(100.0 * circ / mx, 2)
+        out["circ_supply_as_of"] = dt.datetime.now(
+            dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     except Exception as exc:  # noqa: BLE001
         problems.append("coinsupply: %s" % exc)
 
@@ -194,6 +201,9 @@ def apply_context(data, auto):
     wochenwert, darf also an jedem wochentag aufgefrischt werden."""
     if auto["circ_supply"] is not None:
         data["circ_supply"] = auto["circ_supply"]
+        # Zeitstempel immer mitschreiben, sonst steht der Wert spaeter
+        # datumslos im Repo und niemand weiss, welcher Tag gemeint war.
+        data["circ_supply_as_of"] = auto.get("circ_supply_as_of")
     cf = data.setdefault("context_fallback", {})
     if auto["price_usd"] is not None:
         cf["price_usd"] = auto["price_usd"]
@@ -201,6 +211,7 @@ def apply_context(data, auto):
         cf["mcap_usd"] = auto["mcap_usd"]
     if auto["mined_pct"] is not None:
         cf["mined_pct"] = auto["mined_pct"]
+        cf["mined_pct_as_of"] = auto.get("circ_supply_as_of")
     if auto["block_reward"] is not None:
         data.setdefault("emission", {})["block_reward"] = auto["block_reward"]
 

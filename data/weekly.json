@@ -4,9 +4,11 @@
   "context_fallback": {
     "price_usd": 0.033839,
     "mcap_usd": 936947731,
-    "mined_pct": 96.5
+    "mined_pct": 96.5,
+    "mined_pct_as_of": "2026-09-14T06:45:36Z"
   },
   "circ_supply": 27699388458,
+  "circ_supply_as_of": "2026-09-14T06:45:36Z",
   "emission": {
     "block_reward": 2.18,
     "next_reduction_at": "2026-09-04T16:45:44Z",
