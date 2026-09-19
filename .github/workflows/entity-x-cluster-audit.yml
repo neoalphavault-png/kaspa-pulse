@@ -1,0 +1,63 @@
+# Kaspa Pulse - Entity X Cluster Audit
+#
+# Liegt bewusst NUR auf dem Branch audit/entity-x-cluster. Nicht gemerged.
+# Ben entscheidet nach dem Lauf, ob die Datei dauerhaft ins Repo soll.
+#
+# Warum push statt nur workflow_dispatch: ein per API angestossener
+# workflow_dispatch findet nur Workflows, die auf dem Default-Branch
+# liegen. Ein push-Trigger laeuft dagegen aus dem Branch heraus, in den er
+# gepusht wurde. So braucht dieser Lauf main nicht anzufassen.
+#
+# Der Job schreibt ausschliesslich auf diesen Branch und postet nichts.
+
+name: entity x cluster audit
+
+on:
+  push:
+    branches:
+      - audit/entity-x-cluster
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: entity-x-cluster-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: cluster audit
+        run: |
+          set -o pipefail
+          python3 scripts/entity_x_tracker_audit.py 2>&1 | tee audit.log
+
+      - name: ergebnis auf diesen branch schreiben, nicht nach main
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/entity-x-tracker-audit.json
+          if git diff --staged --quiet; then
+            echo "unveraendert, kein commit"
+          else
+            git commit -m "entity x tracker audit $(date -u +%Y-%m-%dT%H:%M:%SZ) [bot]"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
+
+      - name: zum herunterladen ablegen
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: entity-x-tracker-audit
+          path: |
+            data/entity-x-tracker-audit.json
+            audit.log

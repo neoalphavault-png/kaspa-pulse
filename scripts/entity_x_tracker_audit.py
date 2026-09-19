@@ -81,6 +81,17 @@ KNOWN = {
 PROFILE_TOP = 60
 HOP_TOP = 25
 
+# Clusterbildung. Runden, bis nichts Neues mehr kommt, mit Notbremse.
+CLUSTER_ROUNDS = 5
+CLUSTER_MAX = 200
+CLUSTER_PAGES = 20
+
+# Der konkrete Verdachtsfall aus dem Pruefauftrag: diese Adresse hat
+# 109.541.081,40 KAS an Entity X gesendet, und das Zufluss-Skript notiert
+# als Herkunft dahinter die Entity-X-Adresse selbst.
+WATCH_ADDRESS = ("kaspa:qr4znetsvjehrrfn75rra5zej50nsgx7v3zlkk54ljsddsry"
+                 "6sa6y3zs6s2sz")
+
 
 def get_json(url, timeout=30, tries=3):
     last = None
@@ -476,70 +487,229 @@ def main():
 
     # -------------------------------------------------------------- 4
     print("\n[4] cluster")
-    # Regel A, common input ownership: wer in derselben transaktion
-    # gemeinsam mit uns als input signiert, kontrolliert denselben
-    # schluessel. Das ist die enge, belastbare regel.
-    coinput = defaultdict(lambda: {"txs": 0, "kas": 0.0, "first": None, "last": None})
-    for t in txs:
-        ins = []
-        mine = False
-        for i in t.get("inputs") or []:
-            a = i.get("previous_outpoint_address")
-            amt = i.get("previous_outpoint_amount")
-            if a is None or amt is None:
-                continue
-            if a == ADDRESS:
-                mine = True
-            else:
-                ins.append((a, float(amt) / SOMPI))
-        if not mine:
-            continue
-        bt = t.get("block_time") or 0
-        for a, kas in ins:
-            c = coinput[a]
-            c["txs"] += 1
-            c["kas"] += kas
-            if c["first"] is None or bt < c["first"]:
-                c["first"] = bt
-            if c["last"] is None or bt > c["last"]:
-                c["last"] = bt
-    print(f"  regel A, gemeinsamer input: {len(coinput)} weitere adressen")
+    #
+    # REGEL A, common input ownership, ausformuliert:
+    #
+    #   Zwei Adressen gehoeren demselben Eigentuemer, wenn sie in derselben
+    #   Transaktion gemeinsam als Input auftreten. Begruendung: jeder Input
+    #   wird einzeln signiert, und die Transaktion ist nur gueltig, wenn
+    #   jede einzelne Signatur stimmt. Wer sie also absetzen konnte, hielt
+    #   in diesem Moment die privaten Schluessel zu allen ihren Inputs.
+    #
+    #   Die Regel ist transitiv: gehoert B zu A und C zu B, gehoert C zu A.
+    #   Deshalb wird in Runden expandiert, bis nichts Neues mehr kommt.
+    #
+    #   Grenzen, damit niemand die Regel ueberdehnt:
+    #   - Sammeltransaktionen mehrerer Parteien (CoinJoin und Verwandte)
+    #     brechen sie. Auf Kaspa sind sie nicht verbreitet, ausschliessen
+    #     laesst sich das nicht.
+    #   - Eine Boerse, die Einzahlungen einsammelt, signiert ebenfalls
+    #     gemeinsam. Jedes Mitglied wird deshalb profiliert. Eine Adresse
+    #     mit zehntausenden Transaktionen ist kein privates Wallet; sie
+    #     wird markiert und nicht weiter expandiert, statt stillschweigend
+    #     einsortiert zu werden.
+    #   - Die Regel sagt "derselbe Schluesselhalter", nicht "dieselbe
+    #     Person". Wer die Schluessel haelt, sagt die Kette nie.
+    #
+    # Regeln B und C sind schwaecher. Sie werden getrennt ausgewiesen und
+    # NIE in den Cluster gemischt.
 
-    # Regel B, rundlauf: adressen, die von uns bekommen UND an uns gesendet
-    # haben. Schwaecheres signal, aber bei dieser adresse relevant.
-    sent_to, got_from = set(), set()
-    for f in outflows:
-        for o in f["raw"].get("outputs") or []:
-            a = out_addr(o)
-            if a and a != ADDRESS:
-                sent_to.add(a)
+    def coinputs_of(address, tx_list):
+        """Adressen, die mit `address` gemeinsam als Input signiert haben."""
+        found = {}
+        for t in tx_list:
+            ins, mine = [], False
+            for i in t.get("inputs") or []:
+                a = i.get("previous_outpoint_address")
+                amt = i.get("previous_outpoint_amount")
+                if a is None or amt is None:
+                    continue
+                if a == address:
+                    mine = True
+                else:
+                    ins.append((a, float(amt) / SOMPI))
+            if not mine or not ins:
+                continue
+            bt = t.get("block_time") or 0
+            for a, kas in ins:
+                c = found.setdefault(a, {
+                    "txs": 0, "kas": 0.0, "first": None, "last": None,
+                    "via": address, "example_tx": t.get("transaction_id", "")})
+                c["txs"] += 1
+                c["kas"] += kas
+                if c["first"] is None or bt < c["first"]:
+                    c["first"] = bt
+                if c["last"] is None or bt > c["last"]:
+                    c["last"] = bt
+        return found
+
+    cluster = {ADDRESS}
+    cluster_evidence = {}
+    frontier = [(ADDRESS, txs)]
+    for runde in range(CLUSTER_ROUNDS):
+        neu = []
+        for addr, tx_list in frontier:
+            for a, ev in coinputs_of(addr, tx_list).items():
+                if a in cluster:
+                    continue
+                cluster.add(a)
+                cluster_evidence[a] = ev
+                neu.append(a)
+        print(f"  runde {runde + 1}: {len(neu)} neue adressen, "
+              f"cluster jetzt {len(cluster)} inklusive entity x")
+        if not neu or len(cluster) > CLUSTER_MAX:
+            break
+        frontier = []
+        for a in neu:
+            p = profile(a)
+            if (p.get("tx_count") or 0) >= BUSY_TX:
+                cluster_evidence[a]["expansion_stopped"] = (
+                    f"{p['tx_count']:,} transaktionen, nicht weiter expandiert")
+                continue
+            frontier.append(
+                (a, fetch_transactions(a, max_pages=CLUSTER_PAGES, quiet=True)))
+        if not frontier:
+            break
+
+    members = sorted(cluster - {ADDRESS})
+    print(f"  REGEL A findet {len(members)} adressen neben der entity-x-adresse")
+
+    cluster_detail = []
+    for a in members:
+        p = profile(a)
+        ev = cluster_evidence.get(a, {})
+        cluster_detail.append({
+            "address": a,
+            "rule": "gemeinsamer input",
+            "coinput_txs": ev.get("txs"),
+            "coinput_kas": round(ev.get("kas", 0.0), 8),
+            "first_day": day(ev["first"]) if ev.get("first") else None,
+            "last_day": day(ev["last"]) if ev.get("last") else None,
+            "via": ev.get("via"),
+            "example_tx": ev.get("example_tx"),
+            "expansion_stopped": ev.get("expansion_stopped"),
+            "balance_kas": p.get("balance_kas"),
+            "tx_count": p.get("tx_count"),
+            "label": KNOWN.get(a),
+        })
+        print(f"    {a}")
+        print(f"      {ev.get('txs')} gemeinsame tx, bestand "
+              f"{p.get('balance_kas')}, {p.get('tx_count')} tx gesamt"
+              f"{', LABEL ' + KNOWN[a] if a in KNOWN else ''}")
+        if ev.get("expansion_stopped"):
+            print(f"      ACHTUNG {ev['expansion_stopped']}")
+
+    cluster_member_balance = sum((c["balance_kas"] or 0) for c in cluster_detail)
+    print(f"  bestand der mitglieder zusammen: {cluster_member_balance:,.8f} KAS")
+
+    # Wie viel der Bruttoakkumulation ist internes Umschichten? Pro Zufluss
+    # der Anteil, der aus einer Clusteradresse kam, pro rata auf den Netto-
+    # zufluss gerechnet. Gleiche Zurechnung wie im Zuflussledger unten.
+    def cluster_share_of_inflows(member_set):
+        total, hits = 0.0, 0
+        per_addr = defaultdict(float)
+        for f in inflows:
+            gross_in = defaultdict(float)
+            for i in f["raw"].get("inputs") or []:
+                a = i.get("previous_outpoint_address")
+                amt = i.get("previous_outpoint_amount")
+                if a is None or amt is None or a == ADDRESS:
+                    continue
+                gross_in[a] += float(amt) / SOMPI
+            tot = sum(gross_in.values())
+            if tot <= 0:
+                continue
+            part = 0.0
+            for a, kas in gross_in.items():
+                if a in member_set:
+                    share = f["kas"] * (kas / tot)
+                    part += share
+                    per_addr[a] += share
+            if part > 0:
+                total += part
+                hits += 1
+        return total, hits, per_addr
+
+    internal_kas, internal_tx, internal_per = cluster_share_of_inflows(set(members))
+    print(f"  davon internes umschichten (regel A): {internal_kas:,.2f} KAS "
+          f"aus {internal_tx} zufluessen = "
+          f"{internal_kas / gross * 100 if gross else 0:.4f} prozent des brutto")
+
+    # Regel B, rundlauf. Adressen, die von der entity-x-adresse bezahlt
+    # wurden UND an sie gesendet haben. Bewusst ueber ALLE transaktionen,
+    # in denen entity x als input steht, nicht nur ueber die netto-
+    # abfluesse. Sonst faellt genau der fall durch, in dem entity x in
+    # derselben transaktion sendet und fast alles als wechselgeld
+    # zurueckbekommt.
+    paid_by_x, sent_to_x = set(), set()
+    for t in txs:
+        mine = any((i.get("previous_outpoint_address") == ADDRESS)
+                   for i in (t.get("inputs") or []))
+        if mine:
+            for o in t.get("outputs") or []:
+                a = out_addr(o)
+                if a and a != ADDRESS:
+                    paid_by_x.add(a)
     for f in inflows:
         for i in f["raw"].get("inputs") or []:
             a = i.get("previous_outpoint_address")
             if a and a != ADDRESS:
-                got_from.add(a)
-    roundtrip = sorted(sent_to & got_from)
-    print(f"  regel B, rundlauf: {len(roundtrip)} adressen bekamen von uns "
-          f"und sendeten an uns")
-
-    cluster_detail = []
-    for a in sorted(set(list(coinput) + roundtrip)):
+                sent_to_x.add(a)
+    roundtrip = sorted(paid_by_x & sent_to_x)
+    rt_kas, rt_tx, rt_per = cluster_share_of_inflows(set(roundtrip))
+    print(f"  REGEL B, rundlauf: {len(roundtrip)} adressen wurden von entity x "
+          f"bezahlt und haben an entity x gesendet")
+    print(f"    sie stehen fuer {rt_kas:,.2f} KAS zufluss = "
+          f"{rt_kas / gross * 100 if gross else 0:.4f} prozent des brutto")
+    roundtrip_detail = []
+    for a in sorted(roundtrip, key=lambda x: -rt_per.get(x, 0)):
         p = profile(a)
-        cluster_detail.append({
-            "address": a,
-            "rule": ("gemeinsamer input" if a in coinput else "") +
-                    ("+rundlauf" if a in roundtrip and a in coinput else
-                     ("rundlauf" if a in roundtrip else "")),
-            "coinput_txs": coinput[a]["txs"] if a in coinput else 0,
-            "coinput_kas": round(coinput[a]["kas"], 8) if a in coinput else 0,
-            "balance_kas": p.get("balance_kas"),
-            "tx_count": p.get("tx_count"),
+        roundtrip_detail.append({
+            "address": a, "kas_to_x": round(rt_per.get(a, 0.0), 8),
+            "balance_kas": p.get("balance_kas"), "tx_count": p.get("tx_count"),
+            "in_rule_a": a in cluster, "label": KNOWN.get(a),
         })
-        print(f"    {a[:30]}...  regel={cluster_detail[-1]['rule']:<24} "
-              f"bestand={p.get('balance_kas')}  tx={p.get('tx_count')}")
-    cluster_extra_balance = sum((c["balance_kas"] or 0) for c in cluster_detail)
-    print(f"  zusaetzlicher bestand in diesen adressen: "
-          f"{cluster_extra_balance:,.8f} KAS")
+        print(f"    {a}")
+        print(f"      zufluss an entity x {rt_per.get(a, 0.0):,.2f} KAS, "
+              f"bestand {p.get('balance_kas')}, {p.get('tx_count')} tx, "
+              f"regel A: {'ja' if a in cluster else 'nein'}")
+
+    # Regel C, der konkrete verdachtsfall aus dem pruefauftrag.
+    print(f"  REGEL C, einzelpruefung {WATCH_ADDRESS[:24]}...")
+    watch = {
+        "address": WATCH_ADDRESS,
+        "in_rule_a": WATCH_ADDRESS in cluster,
+        "in_rule_b": WATCH_ADDRESS in set(roundtrip),
+        "paid_by_entity_x": WATCH_ADDRESS in paid_by_x,
+        "sent_to_entity_x": WATCH_ADDRESS in sent_to_x,
+        "kas_to_entity_x": round(rt_per.get(WATCH_ADDRESS, 0.0), 8),
+        "profile": profile(WATCH_ADDRESS),
+        "coinput_evidence": cluster_evidence.get(WATCH_ADDRESS),
+    }
+    # Woher kam das geld, das entity x an diese adresse geschickt hat
+    paid_detail = []
+    for t in txs:
+        mine = any((i.get("previous_outpoint_address") == ADDRESS)
+                   for i in (t.get("inputs") or []))
+        if not mine:
+            continue
+        got = sum(float(o.get("amount", 0)) / SOMPI
+                  for o in (t.get("outputs") or [])
+                  if out_addr(o) == WATCH_ADDRESS)
+        if got > DUST_KAS:
+            bt = t.get("block_time") or 0
+            paid_detail.append({"day": day(bt), "utc": stamp(bt),
+                                "kas": round(got, 8),
+                                "tx": t.get("transaction_id", "")})
+    watch["received_from_entity_x"] = paid_detail
+    watch["received_from_entity_x_kas"] = round(
+        sum(x["kas"] for x in paid_detail), 8)
+    for k, v in watch.items():
+        if k not in ("received_from_entity_x",):
+            print(f"    {k}: {v}")
+    for x in paid_detail:
+        print(f"    entity x -> watch  {x['utc']}  {x['kas']:,.2f} KAS  {x['tx']}")
+
 
     # -------------------------------------------------------------- 6
     print("\n[6] zuflussledger, anteil aus benannten boersen-wallets")
@@ -650,7 +820,8 @@ def main():
     readings = {
         "brutto": gross,
         "netto": ledger_net,
-        "netto_plus_cluster": ledger_net + cluster_extra_balance,
+        "netto_cluster": ledger_net + cluster_member_balance,
+        "brutto_ohne_internes": gross - internal_kas,
     }
     tracker_rows = []
     # Brandenburger nennt nur einen prozentsatz. Der implizierte bestand
@@ -744,10 +915,27 @@ def main():
                           "kas": round(f["kas"], 8), "tx": f["tx"]}
                          for f in outflows],
         "cluster": {
-            "rule_a_coinput_addresses": len(coinput),
-            "rule_b_roundtrip_addresses": len(roundtrip),
-            "members": cluster_detail,
-            "extra_balance_kas": round(cluster_extra_balance, 8),
+            "rule_a": ("zwei adressen gehoeren demselben schluesselhalter, "
+                       "wenn sie in derselben transaktion gemeinsam als "
+                       "input auftreten. transitiv angewandt, in runden, "
+                       "bis nichts neues mehr kommt."),
+            "rule_a_member_count": len(members),
+            "rule_a_members": cluster_detail,
+            "rule_a_member_balance_kas": round(cluster_member_balance, 8),
+            "rule_a_internal_recycling_kas": round(internal_kas, 8),
+            "rule_a_internal_recycling_inflows": internal_tx,
+            "rule_a_internal_recycling_share_of_gross": (
+                round(internal_kas / gross, 6) if gross else None),
+            "rule_b": ("adresse wurde von entity x bezahlt UND hat an "
+                       "entity x gesendet. schwaecher als regel A, nicht "
+                       "in den cluster gemischt."),
+            "rule_b_roundtrip_count": len(roundtrip),
+            "rule_b_roundtrip": roundtrip_detail,
+            "rule_b_kas_to_x": round(rt_kas, 8),
+            "rule_b_share_of_gross": round(rt_kas / gross, 6) if gross else None,
+            "rule_c_watch_address": watch,
+            "holdings_one_address_kas": round(ledger_net, 8),
+            "holdings_cluster_kas": round(ledger_net + cluster_member_balance, 8),
         },
         "inflow_ledger": {
             "deposits": len(inflows),
