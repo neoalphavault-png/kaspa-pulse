@@ -1,80 +1,31 @@
 {
-  "issue": "SEP 18 2026",
+  "issue": "SEP 19 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "43",
-  "value_label": "satoshis buy one kas today, priced from daily closes",
-  "headline": "kas is *down 42 percent*\nagainst bitcoin this year.",
+  "value": "5.50%",
+  "value_label": "of every kaspa in circulation sits in one address",
+  "headline": "*808 days* of supply\nin one address.",
   "panes": [
     {
-      "kind": "columns",
-      "title": "ONE KAS IN SATOSHIS, BY MONTH",
-      "sub": "twelve months, our own daily closes",
-      "bars": [
-        {
-          "label": "oct",
-          "value": 47.6725940698909
-        },
-        {
-          "label": "nov",
-          "value": 46.25273111915193
-        },
-        {
-          "label": "dec",
-          "value": 50.861406346751856
-        },
-        {
-          "label": "jan",
-          "value": 46.1065518415067
-        },
-        {
-          "label": "feb",
-          "value": 46.728901614887015
-        },
-        {
-          "label": "mar",
-          "value": 54.0164162256295
-        },
-        {
-          "label": "apr",
-          "value": 46.337684009774115
-        },
-        {
-          "label": "may",
-          "value": 43.8270213650215
-        },
-        {
-          "label": "jun",
-          "value": 48.34175073466739
-        },
-        {
-          "label": "jul",
-          "value": 42.88798657956347
-        },
-        {
-          "label": "aug",
-          "value": 39.80040855134889
-        },
-        {
-          "label": "sep",
-          "value": 43.21954768530496
-        }
-      ],
-      "highlight": 11,
-      "tone": "red"
+      "kind": "dots",
+      "title": "EVERY 100 KAS IN CIRCULATION",
+      "sub": "one dot is one percent of the circulating supply",
+      "total": 100,
+      "lit": 5.4997176479065715,
+      "tone": "teal",
+      "note": "*5.5 of every 100* sit in one address."
     },
     {
       "kind": "anchor",
-      "title": "WHY IT READS DIFFERENTLY",
+      "title": "WHO IT IS",
       "lines": [
-        "the dollar chart *can rise*",
-        "while this one falls."
+        "one address. *what it does*, counted daily."
       ]
     }
   ],
-  "sources": "kraken daily closes, counted by us",
+  "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "one kas buys 43 satoshis today. a year ago it bought 74. that is down 42 percent against bitcoin, on the same days the dollar chart tells its own story. both are true at once, and almost nobody posts the second one.",
-    "reply": "priced from our own kraken daily closes, recounted every monday on kaspapulse.com/kaspa-weekly.html."
+    "x": "one address holds 5.50 percent of every kaspa in circulation, about 1.52B KAS. at the current emission rate the entire network needs 808 days to mine that much. it has never been named.",
+    "reply": "every move that wallet makes is on kaspapulse.com/entity-x.html. an address is not a person, one owner can hold many."
   }
 }
