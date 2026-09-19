@@ -1,5 +1,5 @@
 {
-  "generated_at": 1786030033,
+  "generated_at": 1789815815,
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "question": "where do entity x inflows come from. exchange hot wallets would look like withdrawals, fresh unlabeled clusters would fit a consolidation story, coinbase would be mining directly.",
   "method": "inputs per inflow transaction, self-inputs removed, net inflow attributed to senders pro rata, senders aggregated across all inflows, top senders profiled by balance and transaction count, one hop traced backwards",
@@ -8,12 +8,12 @@
   "hop_top": 25,
   "known_labels": 4,
   "known_label_source": "kaspa.stream address labels, geprueft am 2026-08-03",
-  "transactions_total": 507,
-  "inflow_count": 296,
-  "inflow_kas": 1548084255.35,
+  "transactions_total": 532,
+  "inflow_count": 313,
+  "inflow_kas": 1577117540.72,
   "coinbase_inflows": 0,
   "coinbase_kas": 0,
-  "distinct_senders": 131,
+  "distinct_senders": 136,
   "verdict_counts": {
     "boerse": 4,
     "frisches wallet": 26,
@@ -21,20 +21,20 @@
     "boerse ueber zwischenadresse": 3,
     "boerse ueber zwischenadresse wahrscheinlich": 4,
     "unklar": 18,
-    "nicht einzeln profiliert": 71
+    "nicht einzeln profiliert": 76
   },
   "kas_by_verdict": {
-    "boerse": 1352419910.86,
+    "boerse": 1381452686.22,
     "frisches wallet": 145476139.32,
     "boerse wahrscheinlich": 20841797.38,
     "boerse ueber zwischenadresse": 7408669.89,
     "boerse ueber zwischenadresse wahrscheinlich": 7925795.91,
     "unklar": 11304428.95,
-    "nicht einzeln profiliert": 2707513.01
+    "nicht einzeln profiliert": 2708023.01
   },
   "by_exchange": {
     "gate.io": {
-      "kas": 951319951.4,
+      "kas": 958633498.88,
       "senders": 4
     },
     "bybit": {
@@ -42,7 +42,7 @@
       "senders": 1
     },
     "bitget": {
-      "kas": 111136525.28,
+      "kas": 132855753.16,
       "senders": 1
     },
     "bitvavo": {
@@ -50,35 +50,35 @@
       "senders": 1
     }
   },
-  "named_exchange_kas": 1359828580.75,
-  "named_exchange_share": 0.8784,
-  "caveat": "an inflow from an exchange wallet is a withdrawal, not a proven buy. a fresh unlabeled sender is consistent with consolidation, not proof of it. the chain shows the path, never the owner and never the motive.",
+  "named_exchange_kas": 1388861356.12,
+  "named_exchange_share": 0.8806,
+  "caveat": "an inflow from an exchange wallet is a withdrawal, not a proven buy. a fresh unlabeled sender is consistent with consolidation, not proof of it. the chain shows the path.",
   "senders": [
     {
       "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-      "kas": 943911281.5122349,
-      "transfers": 161,
+      "kas": 951224828.9949751,
+      "transfers": 164,
       "first_day": "2024-03-06",
-      "last_day": "2026-08-04",
+      "last_day": "2026-09-17",
       "profile": {
-        "balance_kas": 766824318.6284827,
-        "tx_count": 140217,
+        "balance_kas": 720196189.2179382,
+        "tx_count": 142928,
         "tx_count_source": "api"
       },
       "verdict": "boerse",
       "reason": "absender ist auf kaspa.stream als gate.io beschriftet",
       "exchange": "gate.io",
       "prev_hop": {
-        "ts": 1785811326650,
-        "day": "2026-08-04",
-        "tx": "0ec8fa1fcfb21d9b90c4930d951bf03e1e32e715779a143fdcda67f9d162a77d",
+        "ts": 1789613058325,
+        "day": "2026-09-17",
+        "tx": "8c76bc8119456e9e692bfff3d71ed7a26c9c6252660df2d128b6fc80af12feab",
         "frm": {
-          "address": "kaspa:qpymp8dncclcpwcddtdkdg49qxkf2d8epqfeams2yl5cgvptwd8fuc2ereueq",
-          "kas": 2.287568
+          "address": "kaspa:qzfwmtcms7d7feuz7688qyngw2k9zcqxd97aetz33dy644l8en9z6gly5hzmm",
+          "kas": 0.19692
         },
         "frm_profile": {
           "balance_kas": 0.0,
-          "tx_count": 1616,
+          "tx_count": 15,
           "tx_count_source": "api"
         }
       }
@@ -90,53 +90,40 @@
       "first_day": "2024-10-03",
       "last_day": "2026-07-30",
       "profile": {
-        "balance_kas": 776508209.5508686,
-        "tx_count": 128034,
+        "balance_kas": 765983614.4240421,
+        "tx_count": 130961,
         "tx_count_source": "api"
       },
       "verdict": "boerse",
       "reason": "absender ist auf kaspa.stream als bybit beschriftet",
       "exchange": "bybit",
-      "prev_hop": {
-        "ts": 1785415043404,
-        "day": "2026-07-30",
-        "tx": "e89c0a17002a695970b5c8165d7c2a4c79a13779cce204c76913a14f01b85757",
-        "frm": {
-          "address": "kaspa:qz8js8jv6qxrlysexu3satu00xu5afpjve8m9p7fzlg2y584j89tjqqwyr5ka",
-          "kas": 723325.0
-        },
-        "frm_profile": {
-          "balance_kas": 0.0,
-          "tx_count": 20,
-          "tx_count_source": "api"
-        }
-      }
+      "prev_hop": null
     },
     {
       "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
-      "kas": 111136525.27507798,
-      "transfers": 17,
+      "kas": 132855753.16011497,
+      "transfers": 23,
       "first_day": "2026-01-13",
-      "last_day": "2026-08-05",
+      "last_day": "2026-09-18",
       "profile": {
-        "balance_kas": 211733893.79654944,
-        "tx_count": 112576,
+        "balance_kas": 208853801.67902848,
+        "tx_count": 120150,
         "tx_count_source": "api"
       },
       "verdict": "boerse",
       "reason": "absender ist auf kaspa.stream als bitget beschriftet",
       "exchange": "bitget",
       "prev_hop": {
-        "ts": 1785901683549,
-        "day": "2026-08-05",
-        "tx": "134c6e21a9661e2233efd2138f2be7b1c07a1f5cd10c968bca653d90780538f3",
+        "ts": 1789642172733,
+        "day": "2026-09-17",
+        "tx": "15150e7d55f796aa1a22712e5fa26bc276c7c56baf27744c4acd472d2cd22282",
         "frm": {
-          "address": "kaspa:qq8lje4emu2j8p6kwpz90clsflynkeefj3mtrzytg5yaxq3d4q5egtav6zkke",
-          "kas": 1133511.250875
+          "address": "kaspa:qrhwj4ersdj6kjf7xeqwr2cj2p6wdn3dnw0e48n2gjm0vutpe39d5wwsfv347",
+          "kas": 392796.04309669
         },
         "frm_profile": {
           "balance_kas": 0.0,
-          "tx_count": 71,
+          "tx_count": 55,
           "tx_count_source": "api"
         }
       }
@@ -164,8 +151,8 @@
           "kas": 89999999.99989875
         },
         "frm_profile": {
-          "balance_kas": 1509046148.021352,
-          "tx_count": 507,
+          "balance_kas": 1523915192.0896342,
+          "tx_count": 532,
           "tx_count_source": "api"
         }
       }
@@ -177,27 +164,14 @@
       "first_day": "2026-01-12",
       "last_day": "2026-07-28",
       "profile": {
-        "balance_kas": 16072816.61005571,
-        "tx_count": 24572,
+        "balance_kas": 22009626.87350361,
+        "tx_count": 25472,
         "tx_count_source": "api"
       },
       "verdict": "boerse",
       "reason": "absender ist auf kaspa.stream als bitvavo beschriftet",
       "exchange": "bitvavo",
-      "prev_hop": {
-        "ts": 1784812511509,
-        "day": "2026-07-23",
-        "tx": "6a7a747ffcb20b752fc19d9dc3f3e85c7b18b5cce997876f47b4eb95195e06d4",
-        "frm": {
-          "address": "kaspa:qqfxn597v5c23td4asz99ky52sha8l2ypq8kmrsqxcu7skhdunncjgup0hdys",
-          "kas": 247148617.92655015
-        },
-        "frm_profile": {
-          "balance_kas": 520858797.48496497,
-          "tx_count": 88,
-          "tx_count_source": "api"
-        }
-      }
+      "prev_hop": null
     },
     {
       "address": "kaspa:qr9fqcxp9xjprsm9sv7apy6qc0ja2p676m9gf9fkcww2qmaw4npxzllh7lrw0",
@@ -296,8 +270,8 @@
           "kas": 10549804.49279105
         },
         "frm_profile": {
-          "balance_kas": 766824318.6284827,
-          "tx_count": 140217,
+          "balance_kas": 720196189.2179382,
+          "tx_count": 142928,
           "tx_count_source": "api"
         }
       }
@@ -343,7 +317,7 @@
         "tx_count_source": "api"
       },
       "verdict": "boerse ueber zwischenadresse wahrscheinlich",
-      "reason": "absender wurde am 2025-07-30 von einer adresse mit 1,966,881 transaktionen befuellt",
+      "reason": "absender wurde am 2025-07-30 von einer adresse mit 1,984,436 transaktionen befuellt",
       "exchange": null,
       "prev_hop": {
         "ts": 1753852676390,
@@ -354,8 +328,8 @@
           "kas": 494245.6985
         },
         "frm_profile": {
-          "balance_kas": 5231217.54984025,
-          "tx_count": 1966881,
+          "balance_kas": 26745414.74406845,
+          "tx_count": 1984436,
           "tx_count_source": "api"
         }
       }
@@ -367,12 +341,12 @@
       "first_day": "2024-11-18",
       "last_day": "2025-07-31",
       "profile": {
-        "balance_kas": 0.0,
-        "tx_count": 6914,
+        "balance_kas": 2559327.0317,
+        "tx_count": 6992,
         "tx_count_source": "api"
       },
       "verdict": "boerse wahrscheinlich",
-      "reason": "absender hat 6,914 transaktionen, das ist kein privates wallet",
+      "reason": "absender hat 6,992 transaktionen, das ist kein privates wallet",
       "exchange": null,
       "prev_hop": null
     },
@@ -412,8 +386,8 @@
       "first_day": "2026-01-12",
       "last_day": "2026-02-23",
       "profile": {
-        "balance_kas": 2383750.846,
-        "tx_count": 2222,
+        "balance_kas": 3659152.566,
+        "tx_count": 2232,
         "tx_count_source": "api"
       },
       "verdict": "unklar",
@@ -429,7 +403,7 @@
         },
         "frm_profile": {
           "balance_kas": 0.0,
-          "tx_count": 108,
+          "tx_count": 116,
           "tx_count_source": "api"
         }
       }
@@ -470,12 +444,12 @@
       "first_day": "2024-03-13",
       "last_day": "2024-03-13",
       "profile": {
-        "balance_kas": 5231217.54984025,
-        "tx_count": 1966881,
+        "balance_kas": 26745414.74406845,
+        "tx_count": 1984436,
         "tx_count_source": "api"
       },
       "verdict": "boerse wahrscheinlich",
-      "reason": "absender hat 1,966,881 transaktionen, das ist kein privates wallet",
+      "reason": "absender hat 1,984,436 transaktionen, das ist kein privates wallet",
       "exchange": null,
       "prev_hop": null
     },
@@ -486,12 +460,12 @@
       "first_day": "2025-05-06",
       "last_day": "2026-07-18",
       "profile": {
-        "balance_kas": 0.0,
-        "tx_count": 955,
+        "balance_kas": 613000.48,
+        "tx_count": 1306,
         "tx_count_source": "api"
       },
       "verdict": "boerse ueber zwischenadresse wahrscheinlich",
-      "reason": "absender wurde am 2026-07-17 von einer adresse mit 654,362 transaktionen befuellt",
+      "reason": "absender wurde am 2026-07-17 von einer adresse mit 665,437 transaktionen befuellt",
       "exchange": null,
       "prev_hop": {
         "ts": 1784295065042,
@@ -502,8 +476,8 @@
           "kas": 805001.64
         },
         "frm_profile": {
-          "balance_kas": 911087929.1085268,
-          "tx_count": 654362,
+          "balance_kas": 845788933.4282198,
+          "tx_count": 665437,
           "tx_count_source": "api"
         }
       }
@@ -515,8 +489,8 @@
       "first_day": "2025-05-06",
       "last_day": "2025-06-22",
       "profile": {
-        "balance_kas": 1395012.0,
-        "tx_count": 1417,
+        "balance_kas": 5676547.5625,
+        "tx_count": 1429,
         "tx_count_source": "api"
       },
       "verdict": "boerse ueber zwischenadresse",
@@ -531,8 +505,8 @@
           "kas": 14959888.0070468
         },
         "frm_profile": {
-          "balance_kas": 766824318.6284827,
-          "tx_count": 140217,
+          "balance_kas": 720196189.2179382,
+          "tx_count": 142928,
           "tx_count_source": "api"
         }
       }
@@ -545,11 +519,11 @@
       "last_day": "2025-08-06",
       "profile": {
         "balance_kas": 1337602.0,
-        "tx_count": 2924,
+        "tx_count": 2958,
         "tx_count_source": "api"
       },
       "verdict": "boerse ueber zwischenadresse wahrscheinlich",
-      "reason": "absender wurde am 2025-08-06 von einer adresse mit 127,779 transaktionen befuellt",
+      "reason": "absender wurde am 2025-08-06 von einer adresse mit 128,384 transaktionen befuellt",
       "exchange": null,
       "prev_hop": {
         "ts": 1754499580767,
@@ -560,8 +534,8 @@
           "kas": 1035847.26934001
         },
         "frm_profile": {
-          "balance_kas": 18201.61864469,
-          "tx_count": 127779,
+          "balance_kas": 0.0,
+          "tx_count": 128384,
           "tx_count_source": "api"
         }
       }
@@ -573,12 +547,12 @@
       "first_day": "2026-03-11",
       "last_day": "2026-03-11",
       "profile": {
-        "balance_kas": 274257784.7077207,
-        "tx_count": 29416,
+        "balance_kas": 282182679.00816727,
+        "tx_count": 37905,
         "tx_count_source": "api"
       },
       "verdict": "boerse wahrscheinlich",
-      "reason": "absender hat 29,416 transaktionen, das ist kein privates wallet",
+      "reason": "absender hat 37,905 transaktionen, das ist kein privates wallet",
       "exchange": null,
       "prev_hop": null
     },
@@ -621,8 +595,8 @@
           "kas": 829862.20602781
         },
         "frm_profile": {
-          "balance_kas": 480468.24325707,
-          "tx_count": 11,
+          "balance_kas": 624972.59834707,
+          "tx_count": 13,
           "tx_count_source": "api"
         }
       }
@@ -679,8 +653,8 @@
           "kas": 38425703.94318058
         },
         "frm_profile": {
-          "balance_kas": 766824318.6284827,
-          "tx_count": 140217,
+          "balance_kas": 720196189.2179382,
+          "tx_count": 142928,
           "tx_count_source": "api"
         }
       }
@@ -693,7 +667,7 @@
       "last_day": "2025-05-06",
       "profile": {
         "balance_kas": 0.0,
-        "tx_count": 170,
+        "tx_count": 174,
         "tx_count_source": "api"
       },
       "verdict": "unklar",
@@ -721,8 +695,8 @@
       "first_day": "2024-10-03",
       "last_day": "2024-11-18",
       "profile": {
-        "balance_kas": 9999625.1,
-        "tx_count": 1476,
+        "balance_kas": 26926639.05,
+        "tx_count": 1486,
         "tx_count_source": "api"
       },
       "verdict": "unklar",
@@ -898,11 +872,11 @@
       "last_day": "2025-01-20",
       "profile": {
         "balance_kas": 0.0,
-        "tx_count": 22,
+        "tx_count": 32,
         "tx_count_source": "api"
       },
       "verdict": "frisches wallet",
-      "reason": "absender hat nur 22 transaktionen und kein label, herkunft dahinter nicht gefunden",
+      "reason": "absender hat nur 32 transaktionen und kein label, herkunft dahinter nicht gefunden",
       "exchange": null,
       "prev_hop": null
     },
@@ -1089,12 +1063,12 @@
       "first_day": "2026-01-12",
       "last_day": "2026-01-12",
       "profile": {
-        "balance_kas": 0.0,
-        "tx_count": 10,
+        "balance_kas": 300000.0,
+        "tx_count": 11,
         "tx_count_source": "api"
       },
       "verdict": "frisches wallet",
-      "reason": "absender hat nur 10 transaktionen und kein label, herkunft dahinter nicht gefunden",
+      "reason": "absender hat nur 11 transaktionen und kein label, herkunft dahinter nicht gefunden",
       "exchange": null,
       "prev_hop": null
     },
@@ -1153,12 +1127,12 @@
       "first_day": "2024-03-13",
       "last_day": "2024-03-13",
       "profile": {
-        "balance_kas": 80146065.10672782,
-        "tx_count": 305935,
+        "balance_kas": 49532581.85387651,
+        "tx_count": 309373,
         "tx_count_source": "api"
       },
       "verdict": "boerse wahrscheinlich",
-      "reason": "absender hat 305,935 transaktionen, das ist kein privates wallet",
+      "reason": "absender hat 309,373 transaktionen, das ist kein privates wallet",
       "exchange": null,
       "prev_hop": null
     },
@@ -1585,6 +1559,26 @@
       "exchange": null
     },
     {
+      "address": "kaspa:qrzljklmuyrr6m0a6kvu0u3q9ygfju3cs0ead77pccy46mreqfhvshfxys687",
+      "kas": 287.0,
+      "transfers": 1,
+      "first_day": "2026-08-23",
+      "last_day": "2026-08-23",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qqva2dduvga6tclq8ecmh88wvv5vw7qncwgdnfqvtyr5l564cy3lw0sx5kvdr",
+      "kas": 137.0,
+      "transfers": 1,
+      "first_day": "2026-09-14",
+      "last_day": "2026-09-14",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
       "address": "kaspa:qrpel4uku8u8gg2mwu3cyw8q7sk5sptr5wm340e6ztt72uk7yqrmk0wq8m2hj",
       "kas": 100.0,
       "transfers": 1,
@@ -1620,6 +1614,26 @@
       "transfers": 1,
       "first_day": "2024-03-11",
       "last_day": "2024-03-11",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qz38h8smmdfuxcvfecy88aezc77kjqhjh6wqyee6cw3w4lg5czzm70py8ecws",
+      "kas": 45.0,
+      "transfers": 1,
+      "first_day": "2026-08-24",
+      "last_day": "2026-08-24",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qypxrksxt05uhvd2a6axs3eel80z4qwhzu3exrf53pm7m7py47sy8agfdwgunar",
+      "kas": 35.0,
+      "transfers": 4,
+      "first_day": "2026-08-30",
+      "last_day": "2026-09-04",
       "verdict": "nicht einzeln profiliert",
       "reason": "unter den kleineren absendern, nur aggregiert",
       "exchange": null
@@ -1740,6 +1754,16 @@
       "transfers": 3,
       "first_day": "2025-12-28",
       "last_day": "2026-07-11",
+      "verdict": "nicht einzeln profiliert",
+      "reason": "unter den kleineren absendern, nur aggregiert",
+      "exchange": null
+    },
+    {
+      "address": "kaspa:qpserf7c9jh9p97hxg295xlhxpynd5g99yergt9xwtydq85zhkfxjx9qk3hfk",
+      "kas": 6.0,
+      "transfers": 1,
+      "first_day": "2026-08-30",
+      "last_day": "2026-08-30",
       "verdict": "nicht einzeln profiliert",
       "reason": "unter den kleineren absendern, nur aggregiert",
       "exchange": null
@@ -2683,227 +2707,6 @@
   ],
   "inflows_tail": [
     {
-      "ts": 1773234112367,
-      "day": "2026-03-11",
-      "tx": "b0fa8ec5ea727362709c96a00c16a2e4aa8842bfa4c6f26f38579ba36eb4ae52",
-      "net_in_kas": 1158514.23949,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qphfy7yfwyj7uqw2q6v924q6xcsstfhdz70cdm7ewnzqt98r2x6jydujg6gle",
-          "kas": 1158514.23949
-        }
-      ]
-    },
-    {
-      "ts": 1773637990353,
-      "day": "2026-03-16",
-      "tx": "d47cea16347ddacbb625d17a53b25182bc99f1338553031abb2070f3f5c71107",
-      "net_in_kas": 5110117.96134756,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 5110117.96134756
-        }
-      ]
-    },
-    {
-      "ts": 1773638164135,
-      "day": "2026-03-16",
-      "tx": "d3b8faab878fe2f46a5ffaa31b5422355e49ae8b5b0434caa25d85c1a42a2c79",
-      "net_in_kas": 7861888.50835,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
-          "kas": 7861888.50835
-        }
-      ]
-    },
-    {
-      "ts": 1776036376857,
-      "day": "2026-04-12",
-      "tx": "648b3c65a2b195866773eb17860c9635c1e67f28f513483ce796f4783efc152e",
-      "net_in_kas": 12196708.934438,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 12196708.934438
-        }
-      ]
-    },
-    {
-      "ts": 1776404468352,
-      "day": "2026-04-17",
-      "tx": "97001abb1e9e88409d2c3c115e4201ad714a5bc3b10783fb4e1c5695cb443f5b",
-      "net_in_kas": 1910824.280296,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 1910824.280296
-        }
-      ]
-    },
-    {
-      "ts": 1776621209491,
-      "day": "2026-04-19",
-      "tx": "0b468d0be032cffb988f13e849ed13bae38f5c94f3b4a37eafddf4e224181e5d",
-      "net_in_kas": 10.0,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qqpmhgq39uescwa4gfdgaythxaz9k2md6gcpfuerjv6ujxxjaa77slyvvjend",
-          "kas": 10.0
-        }
-      ]
-    },
-    {
-      "ts": 1777464776529,
-      "day": "2026-04-29",
-      "tx": "ccf15c53761c1072fd20397833ddbb31925a92c92833baa839eaba42d93acb7d",
-      "net_in_kas": 2.0,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qqgzeynp2mfcufgrkys3ntsppxr6fzyl7h0dqvu0mrvv2umymn0gcd0see86m",
-          "kas": 2.0
-        }
-      ]
-    },
-    {
-      "ts": 1777464793259,
-      "day": "2026-04-29",
-      "tx": "b8ea5ce47130e5d4465063cb11f93b6e8a4b4845b8639e312d0babd80545c67e",
-      "net_in_kas": 3.0,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qrmjj8hu5ufs6dtezfxrw27zpaam2n2shn5ch6wx8qgs6qycmw7nyrh5dalv2",
-          "kas": 3.0
-        }
-      ]
-    },
-    {
-      "ts": 1779051646125,
-      "day": "2026-05-17",
-      "tx": "18d16c45590fbac6cb74ca59903ef05f8ee984c7e06f8c2391933be66d7eb36e",
-      "net_in_kas": 2.0,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qqpzpn5e7enn2ylfdxvlwtm3829gn6j9z9dnnmcsw5arkgnurktty6ulgzkfk",
-          "kas": 2.0
-        }
-      ]
-    },
-    {
-      "ts": 1779140058274,
-      "day": "2026-05-18",
-      "tx": "8f72b0670d989343b48df83162dcbb31e3ec2a57832fb0a41850fcd08ebba2d8",
-      "net_in_kas": 2.0,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qzlrs3ssuv7ttaqwa4uaehaj4znlkay5mtjsdwsprtwx4kzqdt5fkj3t6hxed",
-          "kas": 2.0
-        }
-      ]
-    },
-    {
-      "ts": 1779723919132,
-      "day": "2026-05-25",
-      "tx": "fb026fd3aa316ce956923b0f707b784da70c6dd06a68fcead2cd77f83fea55db",
-      "net_in_kas": 1.01001,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qz4uw2pzgdyk90vnwveuk2j7x9pcjn5q8pgrrty6y5h64425g0pyxeu9rrjg9",
-          "kas": 1.01001
-        }
-      ]
-    },
-    {
-      "ts": 1779847725381,
-      "day": "2026-05-27",
-      "tx": "868944d7cb4bf2990681c3400d2da1a14d658eebcd32df1594475e6cf577b776",
-      "net_in_kas": 29.51324295,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qpqzqph8le966txvsvjvehh5tv4pwlguhcac5age00wz0yyjud2zuk7jvznvd",
-          "kas": 29.51324295
-        }
-      ]
-    },
-    {
-      "ts": 1780448270178,
-      "day": "2026-06-03",
-      "tx": "9afdf0dd3f09b6a538002ba460e77f28a76f8584d233df9ede19205059b8eb75",
-      "net_in_kas": 5413769.71507,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 5413769.71507
-        }
-      ]
-    },
-    {
-      "ts": 1780586580170,
-      "day": "2026-06-04",
-      "tx": "16414c7081e49b00a062061c101d364db446906758b643d8fa651e0a09eb3915",
-      "net_in_kas": 100.0,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qpdgx7r32r5w54vlpkvvgfn4qfj2lhldduwrskzllasf56ppdv9cgxkgy457e",
-          "kas": 100.0
-        }
-      ]
-    },
-    {
-      "ts": 1780673027833,
-      "day": "2026-06-05",
-      "tx": "6bfa3b4d49eeb3e8ce8b0d7ba651c65ecd7d6fbe81a76879efd56b679c8af815",
-      "net_in_kas": 5.5,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qzcwdava96e5ad99th548gjp7xukraxsqld0rmren6a7aeexshh4c8njzd0yz",
-          "kas": 5.5
-        }
-      ]
-    },
-    {
-      "ts": 1780751225321,
-      "day": "2026-06-06",
-      "tx": "4e83603b520f48dcc42f4103ecda30c408a46cc7934fe22b1f07293599f22fa1",
-      "net_in_kas": 3600095.373739,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qrvum29vk365g0zcd5gx3c7h829etfq2ytdmscjzw4zw04fjfnprcg9c3tges",
-          "kas": 3600095.373739
-        }
-      ]
-    },
-    {
-      "ts": 1781523555599,
-      "day": "2026-06-15",
-      "tx": "49182fbf8da73d48460e471bbd55d5b06db2c56cd9a56800f02cfc19b3527c75",
-      "net_in_kas": 27999998.33,
-      "coinbase": false,
-      "sources": [
-        {
-          "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-          "kas": 27999998.33
-        }
-      ]
-    },
-    {
       "ts": 1781524007234,
       "day": "2026-06-15",
       "tx": "5efe92638b4bfa8cff53b4137d918d058f92d332f1d29fda4efb68b195b87f58",
@@ -3333,6 +3136,227 @@
         {
           "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
           "kas": 2575462.2105
+        }
+      ]
+    },
+    {
+      "ts": 1786032333548,
+      "day": "2026-08-06",
+      "tx": "ea7d5b772aac29706c9afcf23623db8aef000b313b010473ab92bc47947b59b2",
+      "net_in_kas": 896085.4116,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
+          "kas": 896085.4116
+        }
+      ]
+    },
+    {
+      "ts": 1786095253895,
+      "day": "2026-08-07",
+      "tx": "7098d6cce2ffcf7b956b0932221baebdf84e9374d33fc149469d59600c3c5b50",
+      "net_in_kas": 897849.6655402,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
+          "kas": 897849.6655402
+        }
+      ]
+    },
+    {
+      "ts": 1786523057686,
+      "day": "2026-08-12",
+      "tx": "fea56d5cbe8321f65e23f94121365e1729fe3d8dd8edc43302cbbc406f97b5c8",
+      "net_in_kas": 1238349.8924,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
+          "kas": 1238349.8924
+        }
+      ]
+    },
+    {
+      "ts": 1786734496296,
+      "day": "2026-08-14",
+      "tx": "d0eb260954334aaf9e7d1c7e5702c3ce75cc0ce02145503185d54abdfda0379b",
+      "net_in_kas": 1192022.498557,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
+          "kas": 1192022.498557
+        }
+      ]
+    },
+    {
+      "ts": 1787295783143,
+      "day": "2026-08-21",
+      "tx": "d8c1cf071d37c6678ccdb3953741a430cd10f07c506f649b7d6c927368d70b19",
+      "net_in_kas": 3633310.7172,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
+          "kas": 3633310.7172
+        }
+      ]
+    },
+    {
+      "ts": 1787440508625,
+      "day": "2026-08-22",
+      "tx": "282a8b002032f90ea7026f5f066a60c5a4337921a67d9506d98afa9b0dc02724",
+      "net_in_kas": 4129494.0778978,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
+          "kas": 4129494.0778978
+        }
+      ]
+    },
+    {
+      "ts": 1787493355691,
+      "day": "2026-08-23",
+      "tx": "eca16e95a5167b4044294522d82153b595729fe50826018901062946d95ef43d",
+      "net_in_kas": 287.0,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qrzljklmuyrr6m0a6kvu0u3q9ygfju3cs0ead77pccy46mreqfhvshfxys687",
+          "kas": 287.0
+        }
+      ]
+    },
+    {
+      "ts": 1787597354022,
+      "day": "2026-08-24",
+      "tx": "818552f94bfc7c8e137384150d8242188942441aaf8455b1166fc7ad18e76424",
+      "net_in_kas": 45.0,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qz38h8smmdfuxcvfecy88aezc77kjqhjh6wqyee6cw3w4lg5czzm70py8ecws",
+          "kas": 45.0
+        }
+      ]
+    },
+    {
+      "ts": 1788092152842,
+      "day": "2026-08-30",
+      "tx": "cf3b47e70267e5d71a1479e1e60c3a4e989cd7c7c09b56d0d7bce3f4ec40b9b8",
+      "net_in_kas": 6.0,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qpserf7c9jh9p97hxg295xlhxpynd5g99yergt9xwtydq85zhkfxjx9qk3hfk",
+          "kas": 6.0
+        }
+      ]
+    },
+    {
+      "ts": 1788095899082,
+      "day": "2026-08-30",
+      "tx": "d8305ee5593d3aecb6c2bfd26a7df1325dc1384bea32b0fc9e9ee2b1cdcf10f8",
+      "net_in_kas": 10.0,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qypxrksxt05uhvd2a6axs3eel80z4qwhzu3exrf53pm7m7py47sy8agfdwgunar",
+          "kas": 10.0
+        }
+      ]
+    },
+    {
+      "ts": 1788155822313,
+      "day": "2026-08-31",
+      "tx": "6f2f6f8062426d117d9bbb3bf4ef337bb997d93e2b447f060d863a5510ff70b9",
+      "net_in_kas": 10.0,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qypxrksxt05uhvd2a6axs3eel80z4qwhzu3exrf53pm7m7py47sy8agfdwgunar",
+          "kas": 10.0
+        }
+      ]
+    },
+    {
+      "ts": 1788390526794,
+      "day": "2026-09-02",
+      "tx": "43ac5fd3f950249e3580d06e55feca6a334c0e7cbd3f7ee5ac81d33653dd5b2f",
+      "net_in_kas": 4770051.453428,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
+          "kas": 4770051.453428
+        }
+      ]
+    },
+    {
+      "ts": 1788399712643,
+      "day": "2026-09-03",
+      "tx": "b8e46d08ce4fe98fee74f053d52ccf189620816db72aa0640f749c6d5b2a5a47",
+      "net_in_kas": 10.0,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qypxrksxt05uhvd2a6axs3eel80z4qwhzu3exrf53pm7m7py47sy8agfdwgunar",
+          "kas": 10.0
+        }
+      ]
+    },
+    {
+      "ts": 1788492342258,
+      "day": "2026-09-04",
+      "tx": "ed583e998997a5d4e0461e0ba2b843413ffc0abfa636b9893a547f99483dd969",
+      "net_in_kas": 5.0,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qypxrksxt05uhvd2a6axs3eel80z4qwhzu3exrf53pm7m7py47sy8agfdwgunar",
+          "kas": 5.0
+        }
+      ]
+    },
+    {
+      "ts": 1789424188527,
+      "day": "2026-09-14",
+      "tx": "c4676e6627337a6b177d1be5d3a88252cbce20dde7bfb1e458c69bfef69dc57e",
+      "net_in_kas": 137.0,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qqva2dduvga6tclq8ecmh88wvv5vw7qncwgdnfqvtyr5l564cy3lw0sx5kvdr",
+          "kas": 137.0
+        }
+      ]
+    },
+    {
+      "ts": 1789659936702,
+      "day": "2026-09-17",
+      "tx": "b02084925f271c76c111006abfb22ef05e0a69dac581a24f8057401ae85d5cc9",
+      "net_in_kas": 2286203.7393022,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
+          "kas": 2286203.7393022
+        }
+      ]
+    },
+    {
+      "ts": 1789720713536,
+      "day": "2026-09-18",
+      "tx": "5a7fdbf1861802cf587b4dc8c94971d96d9d3eea5bd300ee352234dcdc3e5510",
+      "net_in_kas": 9989407.911852,
+      "coinbase": false,
+      "sources": [
+        {
+          "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
+          "kas": 9989407.911852
         }
       ]
     }
