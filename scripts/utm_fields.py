@@ -36,7 +36,7 @@ MARKE = 'name="UTM_SOURCE"'
 FELDER = (
     '<input type="hidden" name="UTM_SOURCE" id="utmSource" value="direct">',
     '<input type="hidden" name="UTM_MEDIUM" id="utmMedium" value="none">',
-    '<input type="hidden" name="UTM_CAMPAIGN" id="utmCampaign" value="">',
+    '<input type="hidden" name="UTM_CAMPAIGN" id="utmCampaign" value="none">',
 )
 
 

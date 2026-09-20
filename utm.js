@@ -62,11 +62,15 @@
   if (utm) { gemerkt(utm); } else { utm = gelesen() || {}; }
 
   function setzen() {
-    var quelle = utm.utm_source || "direct";
+    /* Leer ist verboten. Ein leeres Feld laesst sich in Brevo nicht von einem
+       kaputten Feld unterscheiden; "none" sagt "kam ohne", und das ist eine
+       Aussage. Gilt fuer alle drei, auch wenn eine Quelle da ist: wer
+       ?utm_source=yt-description ohne Rest aufruft, ist
+       yt-description / none / none, nicht yt-description / / . */
     var werte = {
-      utm_source: quelle,
-      utm_medium: utm.utm_medium || (quelle === "direct" ? "none" : ""),
-      utm_campaign: utm.utm_campaign || ""
+      utm_source: utm.utm_source || "direct",
+      utm_medium: utm.utm_medium || "none",
+      utm_campaign: utm.utm_campaign || "none"
     };
     KEYS.forEach(function (k) {
       var el = document.getElementById(FELD[k]);
