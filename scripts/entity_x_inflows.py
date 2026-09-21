@@ -23,6 +23,7 @@ import json
 import os
 import sys
 import time
+import urllib.error
 import urllib.request
 
 ADDRESS = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a"
@@ -54,13 +55,35 @@ KNOWN = {
 }
 
 
-def get_json(url, timeout=30, tries=3):
+def get_json(url, timeout=30, tries=5):
+    """HTTP-GET mit Wiederholung. Behandelt 429 ausdruecklich.
+
+    api.kaspa.org drosselt, wenn mehrere Skripte kurz hintereinander durch
+    dieselben Adressen paginieren. Ein abgebrochener Abruf ist hier nicht
+    harmlos: eine fehlgeschlagene Herkunftssuche sieht sonst aus wie
+    "keine Herkunft gefunden" und faelscht das Urteil. Deshalb warten wir
+    die Drosselung ab, statt aufzugeben.
+    """
     last = None
     for i in range(tries):
         try:
             req = urllib.request.Request(url, headers=UA)
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return json.loads(r.read().decode())
+        except urllib.error.HTTPError as e:
+            last = e
+            if e.code == 429 and i < tries - 1:
+                warte = 0
+                try:
+                    warte = int(e.headers.get("Retry-After") or 0)
+                except (TypeError, ValueError):
+                    warte = 0
+                warte = min(warte or 5 * (i + 1), 30)
+                print(f"WARN 429 vom api, warte {warte}s", file=sys.stderr)
+                time.sleep(warte)
+                continue
+            if i < tries - 1:
+                time.sleep(2 * (i + 1))
         except Exception as e:
             last = e
             if i < tries - 1:
@@ -219,16 +242,44 @@ def get_balance(address):
         return None
 
 
+# Ein fehlgeschlagener Hop-Abruf ist KEIN "nichts gefunden". Bis zum
+# 21.09.2026 lieferte ein Abbruch (429, Timeout) hier still None, und das
+# Urteil lautete dann "frisches wallet, herkunft nicht gefunden" - eine
+# Behauptung ueber Daten, die wir gar nicht gesehen haben. Jetzt gibt es
+# dafuer eine eigene Antwort, und der Lauf meldet sich als nicht belastbar.
+HOP_FAILED = {"lookup_failed": True}
+
+
 def prev_hop(address, before_ts, min_kas):
     """Woher hatte der Absender die Coins vor unserem Zufluss.
 
     Wir suchen die letzte Transaktion VOR dem Zufluss, in der diese Adresse
     Empfaenger war, und nehmen den groessten fremden Absender daraus.
+
+    ACHTUNG, Feldbedeutung. Umbenannt am 21.09.2026, weil die alte
+    Beschriftung "kas" in einer Pruefung fast zu einem falschen Fund
+    gefuehrt haette:
+
+      frm.input_kas   Wie gross der Input DIESER Adresse in der
+                      Herkunftstransaktion war. Das ist NICHT der Betrag,
+                      der bei uns ankam und auch nicht der Betrag, den sie
+                      weitergeschickt hat. Eine Transaktion kann fast den
+                      ganzen Input als Wechselgeld an den Absender
+                      zurueckgeben. Beispiel: cd1fd92d... hat 90.000.000
+                      KAS als Input, ueberwiesen wurden 10 KAS.
+      received_kas    Was die profilierte Adresse in dieser Transaktion
+                      tatsaechlich bekommen hat. Das ist die Zahl, die man
+                      meint, wenn man fragt "wie viel kam von dort".
+
+    Bei einer Coinbase-Transaktion gibt es keine Inputs, dann ist
+    input_kas None und received_kas der Block Reward.
     """
     try:
         txs = fetch_transactions(address, max_pages=HOP_PAGES)
-    except Exception:
-        return None
+    except Exception as e:
+        print(f"WARN herkunft von {address[:24]} nicht abrufbar: {e}",
+              file=sys.stderr)
+        return dict(HOP_FAILED, error=str(e)[:160])
     cands = []
     for t in txs:
         bt = t.get("block_time") or 0
@@ -247,13 +298,14 @@ def prev_hop(address, before_ts, min_kas):
             if not a or a == address or amt is None:
                 continue
             amt = float(amt) / SOMPI
-            if best is None or amt > best["kas"]:
-                best = {"address": a, "kas": round(amt, 8)}
+            if best is None or amt > best["input_kas"]:
+                best = {"address": a, "input_kas": round(amt, 8)}
         if best is None and not (t.get("inputs") or []):
-            best = {"address": "coinbase", "kas": round(gain, 8)}
+            best = {"address": "coinbase", "input_kas": None}
         if best:
             cands.append({"ts": bt, "day": day(bt),
-                          "tx": t.get("transaction_id", ""), "frm": best})
+                          "tx": t.get("transaction_id", ""), "frm": best,
+                          "received_kas": round(gain, 8)})
     if not cands:
         return None
     cands.sort(key=lambda x: -x["ts"])
@@ -276,7 +328,8 @@ def classify_source(addr, profile, hop):
         return ("boerse", f"absender ist auf kaspa.stream als "
                 f"{KNOWN[addr]} beschriftet", KNOWN[addr])
 
-    hop_addr = hop["frm"]["address"] if hop else None
+    failed = bool(hop and hop.get("lookup_failed"))
+    hop_addr = hop["frm"]["address"] if (hop and not failed) else None
     if hop_addr and hop_addr in KNOWN:
         return ("boerse ueber zwischenadresse",
                 f"absender wurde am {hop['day']} von der auf kaspa.stream als "
@@ -288,7 +341,7 @@ def classify_source(addr, profile, hop):
                 f"absender hat {n:,} transaktionen, das ist kein privates "
                 f"wallet", None)
 
-    hop_n = (hop or {}).get("frm_profile", {}).get("tx_count")
+    hop_n = ((hop or {}).get("frm_profile") or {}).get("tx_count")
     if hop_n is not None and hop_n >= BUSY_TX:
         return ("boerse ueber zwischenadresse wahrscheinlich",
                 f"absender wurde am {hop['day']} von einer adresse mit "
@@ -298,6 +351,12 @@ def classify_source(addr, profile, hop):
         return ("mining ueber zwischenadresse",
                 f"absender wurde am {hop['day']} direkt aus einem block "
                 f"reward befuellt", None)
+
+    # Ab hier wuerden wir eine Aussage ueber die Herkunft treffen. Wenn der
+    # Abruf fehlgeschlagen ist, duerfen wir das nicht.
+    if failed:
+        return ("herkunft nicht pruefbar",
+                "abruf der herkunft fehlgeschlagen, kein urteil", None)
 
     if n is not None and n < 50:
         return ("frisches wallet",
@@ -363,7 +422,8 @@ def main():
             hop = None
             if idx < HOP_TOP:
                 hop = prev_hop(addr, rec["last_ts"], rec["min_kas"])
-                if hop and hop["frm"]["address"] not in ("coinbase",):
+                if hop and not hop.get("lookup_failed") \
+                        and hop["frm"]["address"] not in ("coinbase",):
                     hb = get_balance(hop["frm"]["address"])
                     hn, hhow = tx_count(hop["frm"]["address"])
                     hop["frm_profile"] = {"balance_kas": hb, "tx_count": hn,
@@ -430,7 +490,7 @@ def main():
         "kas_by_verdict": kas_by_verdict,
         "by_exchange": by_exchange,
         "named_exchange_kas": named_kas,
-        "named_exchange_share": (round(named_kas / total_in, 4)
+        "named_exchange_share": (round(named_kas / total_in, 6)
                                  if total_in else 0),
         "caveat": ("an inflow from an exchange wallet is a withdrawal, not "
                    "a proven buy. a fresh unlabeled sender is consistent "

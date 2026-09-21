@@ -32,6 +32,7 @@ import os
 import re
 import sys
 import time
+import urllib.error
 import urllib.request
 from collections import defaultdict
 
@@ -81,14 +82,47 @@ KNOWN = {
 PROFILE_TOP = 60
 HOP_TOP = 25
 
+# Clusterbildung. Runden, bis nichts Neues mehr kommt, mit Notbremse.
+CLUSTER_ROUNDS = 5
+CLUSTER_MAX = 200
+CLUSTER_PAGES = 20
 
-def get_json(url, timeout=30, tries=3):
+# Der konkrete Verdachtsfall aus dem Pruefauftrag: diese Adresse hat
+# 109.541.081,40 KAS an Entity X gesendet, und das Zufluss-Skript notiert
+# als Herkunft dahinter die Entity-X-Adresse selbst.
+WATCH_ADDRESS = ("kaspa:qr4znetsvjehrrfn75rra5zej50nsgx7v3zlkk54ljsddsry"
+                 "6sa6y3zs6s2sz")
+
+
+def get_json(url, timeout=30, tries=5):
+    """HTTP-GET mit Wiederholung. Behandelt 429 ausdruecklich.
+
+    api.kaspa.org drosselt, wenn mehrere Skripte kurz hintereinander durch
+    dieselben Adressen paginieren. Ein abgebrochener Abruf ist hier nicht
+    harmlos: eine fehlgeschlagene Herkunftssuche sieht sonst aus wie
+    "keine Herkunft gefunden" und faelscht das Urteil. Deshalb warten wir
+    die Drosselung ab, statt aufzugeben.
+    """
     last = None
     for i in range(tries):
         try:
             req = urllib.request.Request(url, headers=UA)
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return json.loads(r.read().decode())
+        except urllib.error.HTTPError as e:
+            last = e
+            if e.code == 429 and i < tries - 1:
+                warte = 0
+                try:
+                    warte = int(e.headers.get("Retry-After") or 0)
+                except (TypeError, ValueError):
+                    warte = 0
+                warte = min(warte or 5 * (i + 1), 30)
+                print(f"WARN 429 vom api, warte {warte}s", file=sys.stderr)
+                time.sleep(warte)
+                continue
+            if i < tries - 1:
+                time.sleep(2 * (i + 1))
         except Exception as e:
             last = e
             if i < tries - 1:
@@ -140,8 +174,17 @@ def fetch_transactions(address, max_pages=MAX_PAGES, quiet=False):
             batch = get_json(url)
         except Exception as e:
             if page == 0:
-                print(f"WARN seitenroute nicht verfuegbar ({e})", file=sys.stderr)
-                return []
+                # Ohne diesen Rueckfall liefert die Funktion bei einem
+                # Aussetzer der Seitenroute eine leere Liste, und ein
+                # leeres Ergebnis sieht aus wie "nichts gefunden" statt
+                # wie ein Fehler. Genau daran sind am 21.09.2026 drei
+                # Absender als "frisches wallet" durchgerutscht, die in
+                # Wahrheit eine beschriftete Herkunft haben. Die
+                # Produktivskripte hatten den Rueckfall von Anfang an.
+                print(f"WARN seitenroute fuer {address[:24]} nicht "
+                      f"verfuegbar ({e}), versuche offset-paging",
+                      file=sys.stderr)
+                return fetch_transactions_offset(address, max_pages)
             raise
         if not batch:
             break
@@ -162,6 +205,22 @@ def fetch_transactions(address, max_pages=MAX_PAGES, quiet=False):
         if len(batch) < PAGE_LIMIT or fresh == 0 or not oldest:
             break
         before = oldest
+    return txs
+
+
+def fetch_transactions_offset(address, max_pages=MAX_PAGES):
+    """Rueckfall, wortgleich zu entity_x_inflows.py."""
+    txs = []
+    for page in range(max_pages):
+        url = (f"{API}/addresses/{address}/full-transactions"
+               f"?limit={PAGE_LIMIT}&offset={page * PAGE_LIMIT}"
+               f"&resolve_previous_outpoints=light")
+        batch = get_json(url)
+        if not batch:
+            break
+        txs.extend(batch)
+        if len(batch) < PAGE_LIMIT:
+            break
     return txs
 
 
@@ -229,102 +288,203 @@ def profile(address):
         p["txcount_error"] = str(e)[:120]
     _profile_cache[address] = p
     return p
+# ---------------------------------------------------------------------------
+# Hops und Urteile. Wortgleich zu entity_x_inflows.py (Zufluss) und
+# entity_x_outflows.py (Abfluss). Angeglichen am 21.09.2026, nachdem die
+# beiden Implementierungen desselben Urteils 87,98 gegen 88,06 Prozent
+# geliefert hatten. Ursache war nicht die Reihenfolge im Urteil, sondern
+# die Auswahl des Hops: hier wurde der zuletzt eingegangene Betrag genommen,
+# dort der letzte Eingang VOR unserem Transfer und mindestens halb so gross.
+# Die zweite Definition ist die richtige, denn gesucht ist die Herkunft der
+# Coins, die zu uns kamen, nicht irgendein spaeterer Eingang.
+# ---------------------------------------------------------------------------
+# Ein fehlgeschlagener Hop-Abruf ist KEIN "nichts gefunden". Siehe
+# entity_x_inflows.py, gleiche Begruendung.
+HOP_FAILED = {"lookup_failed": True}
 
 
-def classify(address, prof, hop=None):
-    """Urteil ueber eine Adresse. Streng: 'boerse' nur mit Label."""
-    if address in KNOWN:
-        return ("boerse", KNOWN[address],
-                f"adresse ist auf kaspa.stream als {KNOWN[address]} beschriftet")
-    if hop and hop.get("frm"):
-        h = hop["frm"]["address"]
-        if h in KNOWN:
-            return ("boerse ueber zwischenadresse", KNOWN[h],
-                    f"zwischenadresse wurde am {hop['day']} von der auf "
-                    f"kaspa.stream als {KNOWN[h]} beschrifteten adresse befuellt")
-        hp = hop.get("frm_profile") or {}
-        if (hp.get("tx_count") or 0) >= BUSY_TX:
-            return ("boerse ueber zwischenadresse wahrscheinlich", None,
-                    f"zwischenadresse wurde am {hop['day']} von einer adresse "
-                    f"mit {hp['tx_count']:,} transaktionen befuellt")
-    n = prof.get("tx_count") or 0
-    if n >= BUSY_TX:
-        return ("boerse wahrscheinlich", None,
-                f"adresse hat {n:,} transaktionen, das ist kein privates wallet")
-    if n and n < 50:
-        return ("frisches wallet", None,
-                f"adresse hat nur {n} transaktionen und kein label")
-    return ("unklar", None, f"adresse hat {n:,} transaktionen und kein label")
+def prev_hop(address, before_ts, min_kas):
+    """Woher hatte der Absender die Coins vor unserem Zufluss.
 
-
-def prev_hop(address):
-    """Woher kam das Geld, das diese Adresse zuletzt bekommen hat."""
-    txs = fetch_transactions(address, max_pages=HOP_PAGES, quiet=True)
-    best = None
+    Feldbedeutung, siehe entity_x_inflows.py:
+      frm.input_kas  Groesse des Inputs DIESER Adresse in der
+                     Herkunftstransaktion. NICHT der ueberwiesene Betrag.
+      received_kas   Was die profilierte Adresse dort wirklich bekam.
+    """
+    try:
+        txs = fetch_transactions(address, max_pages=HOP_PAGES, quiet=True)
+    except Exception as e:
+        print(f"WARN herkunft von {address[:24]} nicht abrufbar: {e}",
+              file=sys.stderr)
+        return dict(HOP_FAILED, error=str(e)[:160])
+    cands = []
     for t in txs:
-        got = 0.0
+        bt = t.get("block_time") or 0
+        if bt >= before_ts:
+            continue
+        gain = 0.0
         for o in t.get("outputs") or []:
             if out_addr(o) == address:
-                got += float(o.get("amount", 0)) / SOMPI
-        if got <= DUST_KAS:
+                gain += float(o.get("amount", 0)) / SOMPI
+        if gain < min_kas * 0.5:
             continue
-        biggest = None
+        best = None
         for i in t.get("inputs") or []:
             a = i.get("previous_outpoint_address")
             amt = i.get("previous_outpoint_amount")
-            if a is None or amt is None or a == address:
+            if not a or a == address or amt is None:
                 continue
-            kas = float(amt) / SOMPI
-            if biggest is None or kas > biggest["kas"]:
-                biggest = {"address": a, "kas": kas}
-        if not biggest:
-            continue
-        bt = t.get("block_time") or 0
-        if best is None or bt > best["ts"]:
-            best = {"ts": bt, "day": day(bt), "tx": t.get("transaction_id", ""),
-                    "frm": biggest}
-    if best:
-        best["frm_profile"] = profile(best["frm"]["address"])
-    return best
+            amt = float(amt) / SOMPI
+            if best is None or amt > best["input_kas"]:
+                best = {"address": a, "input_kas": round(amt, 8)}
+        if best is None and not (t.get("inputs") or []):
+            best = {"address": "coinbase", "input_kas": None}
+        if best:
+            cands.append({"ts": bt, "day": day(bt),
+                          "tx": t.get("transaction_id", ""), "frm": best,
+                          "received_kas": round(gain, 8)})
+    if not cands:
+        return None
+    cands.sort(key=lambda x: -x["ts"])
+    hop = cands[0]
+    if hop["frm"]["address"] != "coinbase":
+        hop["frm_profile"] = profile(hop["frm"]["address"])
+    return hop
 
 
-def next_hop(address):
-    """Wohin hat diese Adresse weitergeschickt, nachdem sie bekam."""
-    txs = fetch_transactions(address, max_pages=HOP_PAGES, quiet=True)
-    best = None
+def next_hop(address, after_ts, min_kas):
+    """Wohin hat der Empfaenger das Geld danach weitergeschickt.
+
+    to.kas ist hier ein echter Ueberweisungsbetrag, naemlich der groesste
+    Output der Weiterleitung. Deshalb bleibt der Name so.
+    """
+    try:
+        txs = fetch_transactions(address, max_pages=HOP_PAGES, quiet=True)
+    except Exception as e:
+        print(f"WARN weiterleitung von {address[:24]} nicht abrufbar: {e}",
+              file=sys.stderr)
+        return dict(HOP_FAILED, error=str(e)[:160])
+    cands = []
     for t in txs:
-        spent = 0.0
-        for i in t.get("inputs") or []:
-            a = i.get("previous_outpoint_address")
-            amt = i.get("previous_outpoint_amount")
-            if a == address and amt is not None:
-                spent += float(amt) / SOMPI
-        if spent <= DUST_KAS:
+        bt = t.get("block_time") or 0
+        if bt <= after_ts:
             continue
-        biggest = None
+        spends = any(i.get("previous_outpoint_address") == address
+                     for i in (t.get("inputs") or []))
+        if not spends:
+            continue
+        best = None
         for o in t.get("outputs") or []:
             a = out_addr(o)
             if not a or a == address:
                 continue
-            kas = float(o.get("amount", 0)) / SOMPI
-            if biggest is None or kas > biggest["kas"]:
-                biggest = {"address": a, "kas": kas}
-        if not biggest:
-            continue
-        bt = t.get("block_time") or 0
-        if best is None or bt > best["ts"]:
-            best = {"ts": bt, "day": day(bt), "tx": t.get("transaction_id", ""),
-                    "to": biggest}
-    if best:
-        best["to_profile"] = profile(best["to"]["address"])
-        best["to_label"] = KNOWN.get(best["to"]["address"])
-    return best
+            amt = float(o.get("amount", 0)) / SOMPI
+            if best is None or amt > best["kas"]:
+                best = {"address": a, "kas": round(amt, 8)}
+        if best and best["kas"] >= min_kas * 0.5:
+            cands.append({"ts": bt, "day": day(bt),
+                          "tx": t.get("transaction_id", ""), "to": best})
+    if not cands:
+        return None
+    cands.sort(key=lambda x: x["ts"])
+    hop = cands[0]
+    hop["to_profile"] = profile(hop["to"]["address"])
+    return hop
 
 
-# ---------------------------------------------------------------------------
-# 1. Gegenprobe. Der Ledger rechnet Brutto minus Abfluss plus Staub. Die
-#    Knoten-API nennt den Kontostand direkt. Beide muessen sich treffen.
-# ---------------------------------------------------------------------------
+def classify_source(addr, prof, hop):
+    """Zufluss-Urteil. Reihenfolge wortgleich zu entity_x_inflows.py.
+
+    Rueckgabe (verdict, reason, exchange). Ein Boersenname kommt
+    ausschliesslich aus KNOWN, also aus einem fremden Label, nie aus
+    unserer eigenen Vermutung. Ein Eingang von einer Boersen-Hotwallet ist
+    eine Abhebung, kein belegter Kauf.
+    """
+    n = prof.get("tx_count")
+    if addr == "coinbase":
+        return ("mining direkt", "coinbase-transaktion, block reward", None)
+    if addr in KNOWN:
+        return ("boerse", f"absender ist auf kaspa.stream als "
+                f"{KNOWN[addr]} beschriftet", KNOWN[addr])
+    failed = bool(hop and hop.get("lookup_failed"))
+    hop_addr = hop["frm"]["address"] if (hop and not failed) else None
+    if hop_addr and hop_addr in KNOWN:
+        return ("boerse ueber zwischenadresse",
+                f"absender wurde am {hop['day']} von der auf kaspa.stream als "
+                f"{KNOWN[hop_addr]} beschrifteten adresse befuellt",
+                KNOWN[hop_addr])
+    if n is not None and n >= BUSY_TX:
+        return ("boerse wahrscheinlich",
+                f"absender hat {n:,} transaktionen, das ist kein privates "
+                f"wallet", None)
+    hop_n = ((hop or {}).get("frm_profile") or {}).get("tx_count")
+    if hop_n is not None and hop_n >= BUSY_TX:
+        return ("boerse ueber zwischenadresse wahrscheinlich",
+                f"absender wurde am {hop['day']} von einer adresse mit "
+                f"{hop_n:,} transaktionen befuellt", None)
+    if hop_addr == "coinbase":
+        return ("mining ueber zwischenadresse",
+                f"absender wurde am {hop['day']} direkt aus einem block "
+                f"reward befuellt", None)
+    if failed:
+        return ("herkunft nicht pruefbar",
+                "abruf der herkunft fehlgeschlagen, kein urteil", None)
+
+    if n is not None and n < 50:
+        return ("frisches wallet",
+                f"absender hat nur {n} transaktionen und kein label, "
+                f"herkunft dahinter " +
+                (f"ebenfalls unbeschriftet ({hop_addr[:24]})" if hop_addr
+                 else "nicht gefunden"), None)
+    return ("unklar", "kein label, kein eindeutiges profil", None)
+
+
+def classify_dest(addr, prof, hop, received_kas):
+    """Abfluss-Urteil. Reihenfolge wortgleich zu entity_x_outflows.py.
+
+    Auch ein sicher benannter Boersen-Eingang ist keine Aussage ueber einen
+    Verkauf. Er ist eine Einzahlung. Was danach passiert, sieht die Kette
+    nicht.
+    """
+    n = prof.get("tx_count")
+    bal = prof.get("balance_kas")
+    if addr in KNOWN:
+        return ("boerse", f"empfaenger ist auf kaspa.stream als "
+                f"{KNOWN[addr]} beschriftet", KNOWN[addr])
+    failed = bool(hop and hop.get("lookup_failed"))
+    hop_addr = hop["to"]["address"] if (hop and not failed) else None
+    if hop_addr and hop_addr in KNOWN:
+        return ("boerse ueber zwischenadresse",
+                f"am {hop['day']} weitergeleitet an die auf kaspa.stream als "
+                f"{KNOWN[hop_addr]} beschriftete adresse", KNOWN[hop_addr])
+    if n is not None and n >= BUSY_TX:
+        return ("boerse wahrscheinlich",
+                f"empfaenger hat {n:,} transaktionen, das ist kein privates "
+                f"wallet", None)
+    hop_n = ((hop or {}).get("to_profile") or {}).get("tx_count")
+    if hop_n is not None and hop_n >= BUSY_TX:
+        return ("boerse wahrscheinlich",
+                f"weitergeleitet am {hop['day']} an eine adresse mit "
+                f"{hop_n:,} transaktionen", None)
+    if failed:
+        return ("weiterleitung nicht pruefbar",
+                "abruf der weiterleitung fehlgeschlagen, kein urteil", None)
+
+    if hop:
+        return ("weitergeschickt, ziel unklar",
+                f"am {hop['day']} weiter an {hop_addr[:28]}", None)
+    if bal is not None and bal >= received_kas * 0.95:
+        return ("liegt noch da",
+                f"empfaenger haelt heute {bal:,.0f} KAS, hat also nichts "
+                f"bewegt", None)
+    if bal is not None:
+        return ("unklar",
+                f"empfaenger haelt heute {bal:,.0f} KAS von "
+                f"{received_kas:,.0f} erhaltenen, kein weiterer sprung "
+                f"gefunden", None)
+    return ("unklar", "empfaenger nicht profilierbar", None)
+
+
 def crosscheck_balances():
     out = {}
     try:
@@ -447,21 +607,8 @@ def main():
                  "kas": round(f["kas"], 8), "recipients": []}
         for a, kas in sorted(recips.items(), key=lambda x: -x[1]):
             prof = profile(a)
-            hop = next_hop(a) if kas > DUST_KAS else None
-            verdict, exch, reason = classify(a, prof, None)
-            # Fuer Ziele zaehlt der WEITERE hop, nicht der vorherige.
-            if exch is None and hop:
-                if hop.get("to_label"):
-                    verdict = "boerse ueber zwischenadresse"
-                    exch = hop["to_label"]
-                    reason = (f"empfaenger leitete am {hop['day']} weiter an die "
-                              f"auf kaspa.stream als {hop['to_label']} "
-                              f"beschriftete adresse")
-                elif ((hop.get("to_profile") or {}).get("tx_count") or 0) >= BUSY_TX:
-                    verdict = "boerse ueber zwischenadresse wahrscheinlich"
-                    reason = (f"empfaenger leitete am {hop['day']} weiter an eine "
-                              f"adresse mit {hop['to_profile']['tx_count']:,} "
-                              f"transaktionen")
+            hop = next_hop(a, f["ts"], kas) if kas > DUST_KAS else None
+            verdict, reason, exch = classify_dest(a, prof, hop, kas)
             entry["recipients"].append({
                 "address": a, "kas": round(kas, 8), "profile": prof,
                 "verdict": verdict, "exchange": exch, "reason": reason,
@@ -476,75 +623,238 @@ def main():
 
     # -------------------------------------------------------------- 4
     print("\n[4] cluster")
-    # Regel A, common input ownership: wer in derselben transaktion
-    # gemeinsam mit uns als input signiert, kontrolliert denselben
-    # schluessel. Das ist die enge, belastbare regel.
-    coinput = defaultdict(lambda: {"txs": 0, "kas": 0.0, "first": None, "last": None})
-    for t in txs:
-        ins = []
-        mine = False
-        for i in t.get("inputs") or []:
-            a = i.get("previous_outpoint_address")
-            amt = i.get("previous_outpoint_amount")
-            if a is None or amt is None:
-                continue
-            if a == ADDRESS:
-                mine = True
-            else:
-                ins.append((a, float(amt) / SOMPI))
-        if not mine:
-            continue
-        bt = t.get("block_time") or 0
-        for a, kas in ins:
-            c = coinput[a]
-            c["txs"] += 1
-            c["kas"] += kas
-            if c["first"] is None or bt < c["first"]:
-                c["first"] = bt
-            if c["last"] is None or bt > c["last"]:
-                c["last"] = bt
-    print(f"  regel A, gemeinsamer input: {len(coinput)} weitere adressen")
+    #
+    # REGEL A, common input ownership, ausformuliert:
+    #
+    #   Zwei Adressen gehoeren demselben Eigentuemer, wenn sie in derselben
+    #   Transaktion gemeinsam als Input auftreten. Begruendung: jeder Input
+    #   wird einzeln signiert, und die Transaktion ist nur gueltig, wenn
+    #   jede einzelne Signatur stimmt. Wer sie also absetzen konnte, hielt
+    #   in diesem Moment die privaten Schluessel zu allen ihren Inputs.
+    #
+    #   Die Regel ist transitiv: gehoert B zu A und C zu B, gehoert C zu A.
+    #   Deshalb wird in Runden expandiert, bis nichts Neues mehr kommt.
+    #
+    #   Grenzen, damit niemand die Regel ueberdehnt:
+    #   - Sammeltransaktionen mehrerer Parteien (CoinJoin und Verwandte)
+    #     brechen sie. Auf Kaspa sind sie nicht verbreitet, ausschliessen
+    #     laesst sich das nicht.
+    #   - Eine Boerse, die Einzahlungen einsammelt, signiert ebenfalls
+    #     gemeinsam. Jedes Mitglied wird deshalb profiliert. Eine Adresse
+    #     mit zehntausenden Transaktionen ist kein privates Wallet; sie
+    #     wird markiert und nicht weiter expandiert, statt stillschweigend
+    #     einsortiert zu werden.
+    #   - Die Regel sagt "derselbe Schluesselhalter", nicht "dieselbe
+    #     Person". Wer die Schluessel haelt, sagt die Kette nie.
+    #
+    # Regeln B und C sind schwaecher. Sie werden getrennt ausgewiesen und
+    # NIE in den Cluster gemischt.
 
-    # Regel B, rundlauf: adressen, die von uns bekommen UND an uns gesendet
-    # haben. Schwaecheres signal, aber bei dieser adresse relevant.
-    sent_to, got_from = set(), set()
-    for f in outflows:
-        for o in f["raw"].get("outputs") or []:
-            a = out_addr(o)
-            if a and a != ADDRESS:
-                sent_to.add(a)
+    def coinputs_of(address, tx_list):
+        """Adressen, die mit `address` gemeinsam als Input signiert haben."""
+        found = {}
+        for t in tx_list:
+            ins, mine = [], False
+            for i in t.get("inputs") or []:
+                a = i.get("previous_outpoint_address")
+                amt = i.get("previous_outpoint_amount")
+                if a is None or amt is None:
+                    continue
+                if a == address:
+                    mine = True
+                else:
+                    ins.append((a, float(amt) / SOMPI))
+            if not mine or not ins:
+                continue
+            bt = t.get("block_time") or 0
+            for a, kas in ins:
+                c = found.setdefault(a, {
+                    "txs": 0, "kas": 0.0, "first": None, "last": None,
+                    "via": address, "example_tx": t.get("transaction_id", "")})
+                c["txs"] += 1
+                c["kas"] += kas
+                if c["first"] is None or bt < c["first"]:
+                    c["first"] = bt
+                if c["last"] is None or bt > c["last"]:
+                    c["last"] = bt
+        return found
+
+    cluster = {ADDRESS}
+    cluster_evidence = {}
+    frontier = [(ADDRESS, txs)]
+    for runde in range(CLUSTER_ROUNDS):
+        neu = []
+        for addr, tx_list in frontier:
+            for a, ev in coinputs_of(addr, tx_list).items():
+                if a in cluster:
+                    continue
+                cluster.add(a)
+                cluster_evidence[a] = ev
+                neu.append(a)
+        print(f"  runde {runde + 1}: {len(neu)} neue adressen, "
+              f"cluster jetzt {len(cluster)} inklusive entity x")
+        if not neu or len(cluster) > CLUSTER_MAX:
+            break
+        frontier = []
+        for a in neu:
+            p = profile(a)
+            if (p.get("tx_count") or 0) >= BUSY_TX:
+                cluster_evidence[a]["expansion_stopped"] = (
+                    f"{p['tx_count']:,} transaktionen, nicht weiter expandiert")
+                continue
+            frontier.append(
+                (a, fetch_transactions(a, max_pages=CLUSTER_PAGES, quiet=True)))
+        if not frontier:
+            break
+
+    members = sorted(cluster - {ADDRESS})
+    print(f"  REGEL A findet {len(members)} adressen neben der entity-x-adresse")
+
+    cluster_detail = []
+    for a in members:
+        p = profile(a)
+        ev = cluster_evidence.get(a, {})
+        cluster_detail.append({
+            "address": a,
+            "rule": "gemeinsamer input",
+            "coinput_txs": ev.get("txs"),
+            "coinput_kas": round(ev.get("kas", 0.0), 8),
+            "first_day": day(ev["first"]) if ev.get("first") else None,
+            "last_day": day(ev["last"]) if ev.get("last") else None,
+            "via": ev.get("via"),
+            "example_tx": ev.get("example_tx"),
+            "expansion_stopped": ev.get("expansion_stopped"),
+            "balance_kas": p.get("balance_kas"),
+            "tx_count": p.get("tx_count"),
+            "label": KNOWN.get(a),
+        })
+        print(f"    {a}")
+        print(f"      {ev.get('txs')} gemeinsame tx, bestand "
+              f"{p.get('balance_kas')}, {p.get('tx_count')} tx gesamt"
+              f"{', LABEL ' + KNOWN[a] if a in KNOWN else ''}")
+        if ev.get("expansion_stopped"):
+            print(f"      ACHTUNG {ev['expansion_stopped']}")
+
+    cluster_member_balance = sum((c["balance_kas"] or 0) for c in cluster_detail)
+    print(f"  bestand der mitglieder zusammen: {cluster_member_balance:,.8f} KAS")
+
+    # Wie viel der Bruttoakkumulation ist internes Umschichten? Pro Zufluss
+    # der Anteil, der aus einer Clusteradresse kam, pro rata auf den Netto-
+    # zufluss gerechnet. Gleiche Zurechnung wie im Zuflussledger unten.
+    def cluster_share_of_inflows(member_set):
+        total, hits = 0.0, 0
+        per_addr = defaultdict(float)
+        for f in inflows:
+            gross_in = defaultdict(float)
+            for i in f["raw"].get("inputs") or []:
+                a = i.get("previous_outpoint_address")
+                amt = i.get("previous_outpoint_amount")
+                if a is None or amt is None or a == ADDRESS:
+                    continue
+                gross_in[a] += float(amt) / SOMPI
+            tot = sum(gross_in.values())
+            if tot <= 0:
+                continue
+            part = 0.0
+            for a, kas in gross_in.items():
+                if a in member_set:
+                    share = f["kas"] * (kas / tot)
+                    part += share
+                    per_addr[a] += share
+            if part > 0:
+                total += part
+                hits += 1
+        return total, hits, per_addr
+
+    internal_kas, internal_tx, internal_per = cluster_share_of_inflows(set(members))
+    print(f"  davon internes umschichten (regel A): {internal_kas:,.2f} KAS "
+          f"aus {internal_tx} zufluessen = "
+          f"{internal_kas / gross * 100 if gross else 0:.4f} prozent des brutto")
+
+    # Regel B, rundlauf. Adressen, die von der entity-x-adresse bezahlt
+    # wurden UND an sie gesendet haben. Bewusst ueber ALLE transaktionen,
+    # in denen entity x als input steht, nicht nur ueber die netto-
+    # abfluesse. Sonst faellt genau der fall durch, in dem entity x in
+    # derselben transaktion sendet und fast alles als wechselgeld
+    # zurueckbekommt.
+    paid_by_x, sent_to_x = set(), set()
+    for t in txs:
+        mine = any((i.get("previous_outpoint_address") == ADDRESS)
+                   for i in (t.get("inputs") or []))
+        if mine:
+            for o in t.get("outputs") or []:
+                a = out_addr(o)
+                if a and a != ADDRESS:
+                    paid_by_x.add(a)
     for f in inflows:
         for i in f["raw"].get("inputs") or []:
             a = i.get("previous_outpoint_address")
             if a and a != ADDRESS:
-                got_from.add(a)
-    roundtrip = sorted(sent_to & got_from)
-    print(f"  regel B, rundlauf: {len(roundtrip)} adressen bekamen von uns "
-          f"und sendeten an uns")
-
-    cluster_detail = []
-    for a in sorted(set(list(coinput) + roundtrip)):
+                sent_to_x.add(a)
+    roundtrip = sorted(paid_by_x & sent_to_x)
+    rt_kas, rt_tx, rt_per = cluster_share_of_inflows(set(roundtrip))
+    print(f"  REGEL B, rundlauf: {len(roundtrip)} adressen wurden von entity x "
+          f"bezahlt und haben an entity x gesendet")
+    print(f"    sie stehen fuer {rt_kas:,.2f} KAS zufluss = "
+          f"{rt_kas / gross * 100 if gross else 0:.4f} prozent des brutto")
+    roundtrip_detail = []
+    for a in sorted(roundtrip, key=lambda x: -rt_per.get(x, 0)):
         p = profile(a)
-        cluster_detail.append({
-            "address": a,
-            "rule": ("gemeinsamer input" if a in coinput else "") +
-                    ("+rundlauf" if a in roundtrip and a in coinput else
-                     ("rundlauf" if a in roundtrip else "")),
-            "coinput_txs": coinput[a]["txs"] if a in coinput else 0,
-            "coinput_kas": round(coinput[a]["kas"], 8) if a in coinput else 0,
-            "balance_kas": p.get("balance_kas"),
-            "tx_count": p.get("tx_count"),
+        roundtrip_detail.append({
+            "address": a, "kas_to_x": round(rt_per.get(a, 0.0), 8),
+            "balance_kas": p.get("balance_kas"), "tx_count": p.get("tx_count"),
+            "in_rule_a": a in cluster, "label": KNOWN.get(a),
         })
-        print(f"    {a[:30]}...  regel={cluster_detail[-1]['rule']:<24} "
-              f"bestand={p.get('balance_kas')}  tx={p.get('tx_count')}")
-    cluster_extra_balance = sum((c["balance_kas"] or 0) for c in cluster_detail)
-    print(f"  zusaetzlicher bestand in diesen adressen: "
-          f"{cluster_extra_balance:,.8f} KAS")
+        print(f"    {a}")
+        print(f"      zufluss an entity x {rt_per.get(a, 0.0):,.2f} KAS, "
+              f"bestand {p.get('balance_kas')}, {p.get('tx_count')} tx, "
+              f"regel A: {'ja' if a in cluster else 'nein'}")
+
+    # Regel C, der konkrete verdachtsfall aus dem pruefauftrag.
+    print(f"  REGEL C, einzelpruefung {WATCH_ADDRESS[:24]}...")
+    watch = {
+        "address": WATCH_ADDRESS,
+        "in_rule_a": WATCH_ADDRESS in cluster,
+        "in_rule_b": WATCH_ADDRESS in set(roundtrip),
+        "paid_by_entity_x": WATCH_ADDRESS in paid_by_x,
+        "sent_to_entity_x": WATCH_ADDRESS in sent_to_x,
+        "kas_to_entity_x": round(rt_per.get(WATCH_ADDRESS, 0.0), 8),
+        "profile": profile(WATCH_ADDRESS),
+        "coinput_evidence": cluster_evidence.get(WATCH_ADDRESS),
+    }
+    # Woher kam das geld, das entity x an diese adresse geschickt hat
+    paid_detail = []
+    for t in txs:
+        mine = any((i.get("previous_outpoint_address") == ADDRESS)
+                   for i in (t.get("inputs") or []))
+        if not mine:
+            continue
+        got = sum(float(o.get("amount", 0)) / SOMPI
+                  for o in (t.get("outputs") or [])
+                  if out_addr(o) == WATCH_ADDRESS)
+        if got > DUST_KAS:
+            bt = t.get("block_time") or 0
+            paid_detail.append({"day": day(bt), "utc": stamp(bt),
+                                "kas": round(got, 8),
+                                "tx": t.get("transaction_id", "")})
+    watch["received_from_entity_x"] = paid_detail
+    watch["received_from_entity_x_kas"] = round(
+        sum(x["kas"] for x in paid_detail), 8)
+    for k, v in watch.items():
+        if k not in ("received_from_entity_x",):
+            print(f"    {k}: {v}")
+    for x in paid_detail:
+        print(f"    entity x -> watch  {x['utc']}  {x['kas']:,.2f} KAS  {x['tx']}")
+
 
     # -------------------------------------------------------------- 6
     print("\n[6] zuflussledger, anteil aus benannten boersen-wallets")
+    # last_ts und min_kas werden fuer die Hop-Suche gebraucht: gesucht ist
+    # der letzte Eingang VOR unserem Transfer, mindestens halb so gross.
+    # Gleiche Definition wie in entity_x_inflows.py.
     senders = defaultdict(lambda: {"kas": 0.0, "transfers": 0,
-                                   "first": None, "last": None})
+                                   "first": None, "last": None,
+                                   "min_kas": None})
     for f in inflows:
         t = f["raw"]
         gross_in = defaultdict(float)
@@ -561,8 +871,11 @@ def main():
         # hotwallet mit und eine boerse landet bei 155 prozent.
         for a, kas in gross_in.items():
             s = senders[a]
-            s["kas"] += f["kas"] * (kas / tot)
+            anteil = f["kas"] * (kas / tot)
+            s["kas"] += anteil
             s["transfers"] += 1
+            if s["min_kas"] is None or anteil < s["min_kas"]:
+                s["min_kas"] = anteil
             if s["first"] is None or f["ts"] < s["first"]:
                 s["first"] = f["ts"]
             if s["last"] is None or f["ts"] > s["last"]:
@@ -571,6 +884,7 @@ def main():
     print(f"  {len(inflows)} einzahlungen von {len(ranked)} sendern")
 
     sender_detail = []
+    hop_failures = 0
     named_kas = 0.0
     by_exchange = defaultdict(lambda: {"kas": 0.0, "senders": 0})
     verdict_counts = defaultdict(int)
@@ -578,12 +892,15 @@ def main():
     for rank, (a, s) in enumerate(ranked):
         if rank < PROFILE_TOP:
             p = profile(a)
-            hop = prev_hop(a) if rank < HOP_TOP else None
-            verdict, exch, reason = classify(a, p, hop)
+            hop = (prev_hop(a, s["last"], s["min_kas"] or 0.0)
+                   if rank < HOP_TOP else None)
+            verdict, reason, exch = classify_source(a, p, hop)
         else:
             p, hop = {}, None
-            verdict, exch, reason = ("nicht einzeln profiliert", None,
-                                     "unterhalb der profilierungsgrenze")
+            verdict, reason, exch = ("nicht einzeln profiliert",
+                                     "unterhalb der profilierungsgrenze", None)
+        if hop and hop.get("lookup_failed"):
+            hop_failures += 1
         verdict_counts[verdict] += 1
         kas_by_verdict[verdict] += s["kas"]
         if exch:
@@ -650,7 +967,8 @@ def main():
     readings = {
         "brutto": gross,
         "netto": ledger_net,
-        "netto_plus_cluster": ledger_net + cluster_extra_balance,
+        "netto_cluster": ledger_net + cluster_member_balance,
+        "brutto_ohne_internes": gross - internal_kas,
     }
     tracker_rows = []
     # Brandenburger nennt nur einen prozentsatz. Der implizierte bestand
@@ -744,16 +1062,38 @@ def main():
                           "kas": round(f["kas"], 8), "tx": f["tx"]}
                          for f in outflows],
         "cluster": {
-            "rule_a_coinput_addresses": len(coinput),
-            "rule_b_roundtrip_addresses": len(roundtrip),
-            "members": cluster_detail,
-            "extra_balance_kas": round(cluster_extra_balance, 8),
+            "rule_a": ("zwei adressen gehoeren demselben schluesselhalter, "
+                       "wenn sie in derselben transaktion gemeinsam als "
+                       "input auftreten. transitiv angewandt, in runden, "
+                       "bis nichts neues mehr kommt."),
+            "rule_a_member_count": len(members),
+            "rule_a_members": cluster_detail,
+            "rule_a_member_balance_kas": round(cluster_member_balance, 8),
+            "rule_a_internal_recycling_kas": round(internal_kas, 8),
+            "rule_a_internal_recycling_inflows": internal_tx,
+            "rule_a_internal_recycling_share_of_gross": (
+                round(internal_kas / gross, 6) if gross else None),
+            "rule_b": ("adresse wurde von entity x bezahlt UND hat an "
+                       "entity x gesendet. schwaecher als regel A, nicht "
+                       "in den cluster gemischt."),
+            "rule_b_roundtrip_count": len(roundtrip),
+            "rule_b_roundtrip": roundtrip_detail,
+            "rule_b_kas_to_x": round(rt_kas, 8),
+            "rule_b_share_of_gross": round(rt_kas / gross, 6) if gross else None,
+            "rule_c_watch_address": watch,
+            "holdings_one_address_kas": round(ledger_net, 8),
+            "holdings_cluster_kas": round(ledger_net + cluster_member_balance, 8),
         },
         "inflow_ledger": {
             "deposits": len(inflows),
             "distinct_senders": len(ranked),
             "named_exchange_kas": round(named_kas, 8),
             "named_exchange_share": round(named_share, 6) if named_share else None,
+            "hop_lookup_failures": hop_failures,
+            # Wie im Cost-Basis-Skript: lieber keine Zahl als eine falsche.
+            # Ein fehlgeschlagener Hop kann einen benannten Boersenanteil
+            # zu niedrig ausweisen.
+            "reliable": hop_failures == 0,
             "by_exchange": {k: {"kas": round(v["kas"], 8),
                                 "senders": v["senders"]}
                             for k, v in by_exchange.items()},

@@ -1,5 +1,5 @@
 {
-  "generated_at": 1789981502,
+  "generated_at": 1789989152,
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "method": "outputs per outflow transaction, change to self removed, recipients profiled by balance and transaction count, one additional hop followed",
   "busy_tx_threshold": 5000,
@@ -55,7 +55,7 @@
     }
   },
   "named_exchange_kas": 44887226.45,
-  "named_exchange_share": 0.8437,
+  "named_exchange_share": 0.843706,
   "caveat": "a deposit to an exchange address is not a sale. the chain shows the transfer, not the intent.",
   "outflows": [
     {
@@ -240,8 +240,8 @@
               "kas": 1137496.34828279
             },
             "to_profile": {
-              "balance_kas": 764012238.5162705,
-              "tx_count": 131138,
+              "balance_kas": 762928023.7479467,
+              "tx_count": 131153,
               "tx_count_source": "api"
             }
           }
@@ -276,8 +276,8 @@
               "kas": 1137496.34828279
             },
             "to_profile": {
-              "balance_kas": 764012238.5162705,
-              "tx_count": 131138,
+              "balance_kas": 762928023.7479467,
+              "tx_count": 131153,
               "tx_count_source": "api"
             }
           }
@@ -312,8 +312,8 @@
               "kas": 3150995.88228152
             },
             "to_profile": {
-              "balance_kas": 764012238.5162705,
-              "tx_count": 131138,
+              "balance_kas": 762928023.7479467,
+              "tx_count": 131153,
               "tx_count_source": "api"
             }
           }
@@ -348,8 +348,8 @@
               "kas": 50532771.44843256
             },
             "to_profile": {
-              "balance_kas": 721746431.9692173,
-              "tx_count": 143091,
+              "balance_kas": 720529951.5491941,
+              "tx_count": 143098,
               "tx_count_source": "api"
             }
           }
@@ -384,8 +384,8 @@
               "kas": 1451687.99955
             },
             "to_profile": {
-              "balance_kas": 16282703.75421257,
-              "tx_count": 25519,
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522,
               "tx_count_source": "api"
             }
           }
@@ -420,8 +420,8 @@
               "kas": 5714286.5
             },
             "to_profile": {
-              "balance_kas": 207677766.45969695,
-              "tx_count": 120497,
+              "balance_kas": 207719875.71813464,
+              "tx_count": 120523,
               "tx_count_source": "api"
             }
           }
@@ -492,8 +492,8 @@
               "kas": 9963.3075697
             },
             "to_profile": {
-              "balance_kas": 721746431.9692173,
-              "tx_count": 143091,
+              "balance_kas": 720529951.5491941,
+              "tx_count": 143098,
               "tx_count_source": "api"
             }
           }
@@ -528,8 +528,8 @@
               "kas": 3394718.89220013
             },
             "to_profile": {
-              "balance_kas": 16282703.75421257,
-              "tx_count": 25519,
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522,
               "tx_count_source": "api"
             }
           }
@@ -564,8 +564,8 @@
               "kas": 2664544.90568019
             },
             "to_profile": {
-              "balance_kas": 16282703.75421257,
-              "tx_count": 25519,
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522,
               "tx_count_source": "api"
             }
           }
@@ -600,8 +600,8 @@
               "kas": 4078863.88626487
             },
             "to_profile": {
-              "balance_kas": 16282703.75421257,
-              "tx_count": 25519,
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522,
               "tx_count_source": "api"
             }
           }
@@ -672,8 +672,8 @@
               "kas": 3091522.94120709
             },
             "to_profile": {
-              "balance_kas": 16282703.75421257,
-              "tx_count": 25519,
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522,
               "tx_count_source": "api"
             }
           }
@@ -734,8 +734,8 @@
               "kas": 2121464.98936
             },
             "to_profile": {
-              "balance_kas": 764012238.5162705,
-              "tx_count": 131138,
+              "balance_kas": 762928023.7479467,
+              "tx_count": 131153,
               "tx_count_source": "api"
             }
           }
@@ -770,8 +770,8 @@
               "kas": 1579726.98936
             },
             "to_profile": {
-              "balance_kas": 764012238.5162705,
-              "tx_count": 131138,
+              "balance_kas": 762928023.7479467,
+              "tx_count": 131153,
               "tx_count_source": "api"
             }
           }
@@ -806,8 +806,8 @@
               "kas": 2118152.44033898
             },
             "to_profile": {
-              "balance_kas": 16282703.75421257,
-              "tx_count": 25519,
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522,
               "tx_count_source": "api"
             }
           }
@@ -826,7 +826,7 @@
           "address": "kaspa:qr005jya8ztzty40qfta94rzgl5yakghlkxamamuu44qpt58qpwrvj267f0td",
           "kas": 2992969.276835,
           "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2026-08-27 an eine adresse mit 38,357 transaktionen",
+          "reason": "weitergeleitet am 2026-08-27 an eine adresse mit 38,386 transaktionen",
           "exchange": null,
           "profile": {
             "balance_kas": 0.0,
@@ -842,8 +842,8 @@
               "kas": 3021495.586835
             },
             "to_profile": {
-              "balance_kas": 298358521.45944697,
-              "tx_count": 38357,
+              "balance_kas": 299485471.2462341,
+              "tx_count": 38386,
               "tx_count_source": "api"
             }
           }
@@ -878,8 +878,8 @@
               "kas": 2996060.36553868
             },
             "to_profile": {
-              "balance_kas": 16282703.75421257,
-              "tx_count": 25519,
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522,
               "tx_count_source": "api"
             }
           }
@@ -914,8 +914,8 @@
               "kas": 5626939.9955208
             },
             "to_profile": {
-              "balance_kas": 16282703.75421257,
-              "tx_count": 25519,
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522,
               "tx_count_source": "api"
             }
           }
