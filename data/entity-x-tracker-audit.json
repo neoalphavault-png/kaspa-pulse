@@ -1,7 +1,7 @@
 {
-  "generated_at": 1789988986,
-  "generated_at_utc": "2026-09-21 11:09:46 UTC",
-  "chain_fetched_at_utc": "2026-09-21 11:09:10 UTC",
+  "generated_at": 1789989253,
+  "generated_at_utc": "2026-09-21 11:14:13 UTC",
+  "chain_fetched_at_utc": "2026-09-21 11:13:33 UTC",
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "question": "zwei whale-tracker nennen fuer dieselbe adresse verschiedene bestaende. welche lesart entspricht welcher zahl.",
   "method": {
@@ -30,7 +30,7 @@
     "api.kaspa.org": {
       "kas": 1523915192.0896342,
       "raw_sompi": 152391519208963415,
-      "fetched_at": "2026-09-21 11:09:10 UTC"
+      "fetched_at": "2026-09-21 11:13:33 UTC"
     },
     "kaspa.stream/api": {
       "ok": true,
@@ -105,7 +105,7 @@
           },
           "verdict": "boerse wahrscheinlich",
           "exchange": null,
-          "reason": "weitergeleitet am 2026-08-27 an eine adresse mit 38,385 transaktionen",
+          "reason": "weitergeleitet am 2026-08-27 an eine adresse mit 38,387 transaktionen",
           "next_hop": {
             "ts": 1787832018137,
             "day": "2026-08-27",
@@ -115,8 +115,8 @@
               "kas": 3021495.586835
             },
             "to_profile": {
-              "balance_kas": 299489511.17960584,
-              "tx_count": 38385
+              "balance_kas": 299474471.24398243,
+              "tx_count": 38387
             }
           }
         }
@@ -447,8 +447,8 @@
         "first_day": "2024-03-06",
         "last_day": "2026-09-17",
         "profile": {
-          "balance_kas": 720561267.3422741,
-          "tx_count": 143097
+          "balance_kas": 720529951.5491941,
+          "tx_count": 143098
         },
         "verdict": "boerse",
         "exchange": "gate.io",
@@ -648,8 +648,8 @@
           },
           "received_kas": 4999996.1,
           "frm_profile": {
-            "balance_kas": 720561267.3422741,
-            "tx_count": 143097
+            "balance_kas": 720529951.5491941,
+            "tx_count": 143098
           }
         }
       },
@@ -693,7 +693,7 @@
         },
         "verdict": "boerse ueber zwischenadresse wahrscheinlich",
         "exchange": null,
-        "reason": "absender wurde am 2025-07-30 von einer adresse mit 1,985,360 transaktionen befuellt",
+        "reason": "absender wurde am 2025-07-30 von einer adresse mit 1,985,361 transaktionen befuellt",
         "prev_hop": {
           "ts": 1753852676390,
           "day": "2025-07-30",
@@ -704,8 +704,8 @@
           },
           "received_kas": 433051.6095,
           "frm_profile": {
-            "balance_kas": 31740309.82636825,
-            "tx_count": 1985360
+            "balance_kas": 31940309.82472625,
+            "tx_count": 1985361
           }
         }
       },
@@ -815,12 +815,12 @@
         "first_day": "2024-03-13",
         "last_day": "2024-03-13",
         "profile": {
-          "balance_kas": 31740309.82636825,
-          "tx_count": 1985360
+          "balance_kas": 31940309.82472625,
+          "tx_count": 1985361
         },
         "verdict": "boerse wahrscheinlich",
         "exchange": null,
-        "reason": "absender hat 1,985,360 transaktionen, das ist kein privates wallet",
+        "reason": "absender hat 1,985,361 transaktionen, das ist kein privates wallet",
         "prev_hop": null
       },
       {
@@ -835,7 +835,7 @@
         },
         "verdict": "boerse ueber zwischenadresse wahrscheinlich",
         "exchange": null,
-        "reason": "absender wurde am 2026-07-17 von einer adresse mit 666,215 transaktionen befuellt",
+        "reason": "absender wurde am 2026-07-17 von einer adresse mit 666,217 transaktionen befuellt",
         "prev_hop": {
           "ts": 1784295065042,
           "day": "2026-07-17",
@@ -846,8 +846,8 @@
           },
           "received_kas": 330000.31,
           "frm_profile": {
-            "balance_kas": 838805874.1807569,
-            "tx_count": 666215
+            "balance_kas": 838806725.3306642,
+            "tx_count": 666217
           }
         }
       },
@@ -874,8 +874,8 @@
           },
           "received_kas": 2284141.12,
           "frm_profile": {
-            "balance_kas": 720561267.3422741,
-            "tx_count": 143097
+            "balance_kas": 720529951.5491941,
+            "tx_count": 143098
           }
         }
       },
@@ -914,12 +914,12 @@
         "first_day": "2026-03-11",
         "last_day": "2026-03-11",
         "profile": {
-          "balance_kas": 299489511.17960584,
-          "tx_count": 38385
+          "balance_kas": 299474471.24398243,
+          "tx_count": 38387
         },
         "verdict": "boerse wahrscheinlich",
         "exchange": null,
-        "reason": "absender hat 38,385 transaktionen, das ist kein privates wallet",
+        "reason": "absender hat 38,387 transaktionen, das ist kein privates wallet",
         "prev_hop": null
       },
       {
@@ -1016,8 +1016,8 @@
           },
           "received_kas": 197452.78,
           "frm_profile": {
-            "balance_kas": 720561267.3422741,
-            "tx_count": 143097
+            "balance_kas": 720529951.5491941,
+            "tx_count": 143098
           }
         }
       },
@@ -1461,7 +1461,7 @@
         "first_day": "2024-03-13",
         "last_day": "2024-03-13",
         "profile": {
-          "balance_kas": 44783851.08059364,
+          "balance_kas": 44771745.72852264,
           "tx_count": 309604
         },
         "verdict": "boerse wahrscheinlich",
@@ -2490,16 +2490,16 @@
   },
   "supply": {
     "raw": {
-      "circulatingSupply": "2771293424825542352",
+      "circulatingSupply": "2771294012402525292",
       "maxSupply": "2870403560500000000"
     },
-    "circulating_kas": 27712934248.25542,
+    "circulating_kas": 27712940124.025253,
     "max_supply_kas": 28704035604.999996,
-    "fetched_at": "2026-09-21 11:09:46 UTC"
+    "fetched_at": "2026-09-21 11:14:13 UTC"
   },
   "denominators": {
     "max_supply_kas": 28704026601,
-    "minted_kas": 27712934248.25542
+    "minted_kas": 27712940124.025253
   },
   "readings": {
     "brutto": 1577117540.716117,
@@ -2510,19 +2510,19 @@
   "shares": {
     "brutto": {
       "of_max_supply_pct": 5.494412204387982,
-      "of_minted_pct": 5.690907814337268
+      "of_minted_pct": 5.690906607736154
     },
     "netto": {
       "of_max_supply_pct": 5.309064171632782,
-      "of_minted_pct": 5.498931215432618
+      "of_minted_pct": 5.4989300495348825
     },
     "netto_cluster": {
       "of_max_supply_pct": 5.309064171632782,
-      "of_minted_pct": 5.498931215432618
+      "of_minted_pct": 5.4989300495348825
     },
     "brutto_ohne_internes": {
       "of_max_supply_pct": 5.494412204387982,
-      "of_minted_pct": 5.690907814337268
+      "of_minted_pct": 5.690906607736154
     }
   },
   "trackers": [
@@ -2554,23 +2554,23 @@
       "tracker": "brandenburger 18.09.",
       "claim": "~5.5 % of the supply",
       "assumed_denominator": "geminted",
-      "implied_kas": 1524211383.6540482,
+      "implied_kas": 1524211706.821389,
       "fits": {
         "brutto": {
-          "delta_kas": 52906157.0620687,
-          "pct_of_reading": 3.3546109085848963
+          "delta_kas": 52905833.894727945,
+          "pct_of_reading": 3.3545904175731356
         },
         "netto": {
-          "delta_kas": -296191.56441402435,
-          "pct_of_reading": -0.019436223613459643
+          "delta_kas": -296514.7317547798,
+          "pct_of_reading": -0.019457429999643925
         },
         "netto_cluster": {
-          "delta_kas": -296191.56441402435,
-          "pct_of_reading": -0.019436223613459643
+          "delta_kas": -296514.7317547798,
+          "pct_of_reading": -0.019457429999643925
         },
         "brutto_ohne_internes": {
-          "delta_kas": 52906157.0620687,
-          "pct_of_reading": 3.3546109085848963
+          "delta_kas": 52905833.894727945,
+          "pct_of_reading": 3.3545904175731356
         }
       }
     },
@@ -2601,9 +2601,9 @@
     }
   ],
   "price_now": {
-    "price": 0.04143,
+    "price": 0.04152,
     "source": "kraken",
-    "fetched_at": "2026-09-21 11:09:46 UTC"
+    "fetched_at": "2026-09-21 11:14:13 UTC"
   },
-  "runtime_seconds": 37.5
+  "runtime_seconds": 41.4
 }

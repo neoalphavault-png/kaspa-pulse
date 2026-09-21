@@ -1,5 +1,5 @@
 {
-  "generated_at": 1789988820,
+  "generated_at": 1789989084,
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "question": "where do entity x inflows come from. exchange hot wallets would look like withdrawals, fresh unlabeled clusters would fit a consolidation story, coinbase would be mining directly.",
   "method": "inputs per inflow transaction, self-inputs removed, net inflow attributed to senders pro rata, senders aggregated across all inflows, top senders profiled by balance and transaction count, one hop traced backwards",
@@ -51,7 +51,7 @@
     }
   },
   "named_exchange_kas": 1388861356.12,
-  "named_exchange_share": 0.8806,
+  "named_exchange_share": 0.880633,
   "caveat": "an inflow from an exchange wallet is a withdrawal, not a proven buy. a fresh unlabeled sender is consistent with consolidation, not proof of it. the chain shows the path.",
   "senders": [
     {
@@ -91,8 +91,8 @@
       "first_day": "2024-10-03",
       "last_day": "2026-07-30",
       "profile": {
-        "balance_kas": 762929032.207354,
-        "tx_count": 131152,
+        "balance_kas": 762928023.7479467,
+        "tx_count": 131153,
         "tx_count_source": "api"
       },
       "verdict": "boerse",
@@ -476,7 +476,7 @@
         "tx_count_source": "api"
       },
       "verdict": "boerse ueber zwischenadresse wahrscheinlich",
-      "reason": "absender wurde am 2026-07-17 von einer adresse mit 666,214 transaktionen befuellt",
+      "reason": "absender wurde am 2026-07-17 von einer adresse mit 666,217 transaktionen befuellt",
       "exchange": null,
       "prev_hop": {
         "ts": 1784295065042,
@@ -488,8 +488,8 @@
         },
         "received_kas": 330000.31,
         "frm_profile": {
-          "balance_kas": 838815558.855029,
-          "tx_count": 666214,
+          "balance_kas": 838806725.3306642,
+          "tx_count": 666217,
           "tx_count_source": "api"
         }
       }
@@ -561,12 +561,12 @@
       "first_day": "2026-03-11",
       "last_day": "2026-03-11",
       "profile": {
-        "balance_kas": 299491911.3395775,
-        "tx_count": 38384,
+        "balance_kas": 299485471.2462341,
+        "tx_count": 38386,
         "tx_count_source": "api"
       },
       "verdict": "boerse wahrscheinlich",
-      "reason": "absender hat 38,384 transaktionen, das ist kein privates wallet",
+      "reason": "absender hat 38,386 transaktionen, das ist kein privates wallet",
       "exchange": null,
       "prev_hop": null
     },

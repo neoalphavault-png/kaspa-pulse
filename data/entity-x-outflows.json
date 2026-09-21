@@ -1,5 +1,5 @@
 {
-  "generated_at": 1789988889,
+  "generated_at": 1789989152,
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "method": "outputs per outflow transaction, change to self removed, recipients profiled by balance and transaction count, one additional hop followed",
   "busy_tx_threshold": 5000,
@@ -55,7 +55,7 @@
     }
   },
   "named_exchange_kas": 44887226.45,
-  "named_exchange_share": 0.8437,
+  "named_exchange_share": 0.843706,
   "caveat": "a deposit to an exchange address is not a sale. the chain shows the transfer, not the intent.",
   "outflows": [
     {
@@ -348,8 +348,8 @@
               "kas": 50532771.44843256
             },
             "to_profile": {
-              "balance_kas": 720561267.3422741,
-              "tx_count": 143097,
+              "balance_kas": 720529951.5491941,
+              "tx_count": 143098,
               "tx_count_source": "api"
             }
           }
@@ -492,8 +492,8 @@
               "kas": 9963.3075697
             },
             "to_profile": {
-              "balance_kas": 720561267.3422741,
-              "tx_count": 143097,
+              "balance_kas": 720529951.5491941,
+              "tx_count": 143098,
               "tx_count_source": "api"
             }
           }
@@ -826,7 +826,7 @@
           "address": "kaspa:qr005jya8ztzty40qfta94rzgl5yakghlkxamamuu44qpt58qpwrvj267f0td",
           "kas": 2992969.276835,
           "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2026-08-27 an eine adresse mit 38,385 transaktionen",
+          "reason": "weitergeleitet am 2026-08-27 an eine adresse mit 38,386 transaktionen",
           "exchange": null,
           "profile": {
             "balance_kas": 0.0,
@@ -842,8 +842,8 @@
               "kas": 3021495.586835
             },
             "to_profile": {
-              "balance_kas": 299489511.17960584,
-              "tx_count": 38385,
+              "balance_kas": 299485471.2462341,
+              "tx_count": 38386,
               "tx_count_source": "api"
             }
           }
