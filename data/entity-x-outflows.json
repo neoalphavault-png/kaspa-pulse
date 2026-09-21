@@ -1,5 +1,5 @@
 {
-  "generated_at": 1789988228,
+  "generated_at": 1789988550,
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "method": "outputs per outflow transaction, change to self removed, recipients profiled by balance and transaction count, one additional hop followed",
   "busy_tx_threshold": 5000,
@@ -348,8 +348,8 @@
               "kas": 50532771.44843256
             },
             "to_profile": {
-              "balance_kas": 721409643.135354,
-              "tx_count": 143096,
+              "balance_kas": 720561267.3422741,
+              "tx_count": 143097,
               "tx_count_source": "api"
             }
           }
@@ -492,8 +492,8 @@
               "kas": 9963.3075697
             },
             "to_profile": {
-              "balance_kas": 721409643.135354,
-              "tx_count": 143096,
+              "balance_kas": 720561267.3422741,
+              "tx_count": 143097,
               "tx_count_source": "api"
             }
           }
@@ -826,7 +826,7 @@
           "address": "kaspa:qr005jya8ztzty40qfta94rzgl5yakghlkxamamuu44qpt58qpwrvj267f0td",
           "kas": 2992969.276835,
           "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2026-08-27 an eine adresse mit 38,381 transaktionen",
+          "reason": "weitergeleitet am 2026-08-27 an eine adresse mit 38,383 transaktionen",
           "exchange": null,
           "profile": {
             "balance_kas": 0.0,
@@ -842,8 +842,8 @@
               "kas": 3021495.586835
             },
             "to_profile": {
-              "balance_kas": 299469535.7710589,
-              "tx_count": 38381,
+              "balance_kas": 299492041.34182924,
+              "tx_count": 38383,
               "tx_count_source": "api"
             }
           }

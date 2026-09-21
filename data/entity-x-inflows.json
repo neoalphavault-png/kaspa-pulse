@@ -1,5 +1,5 @@
 {
-  "generated_at": 1789988221,
+  "generated_at": 1789988544,
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "question": "where do entity x inflows come from. exchange hot wallets would look like withdrawals, fresh unlabeled clusters would fit a consolidation story, coinbase would be mining directly.",
   "method": "inputs per inflow transaction, self-inputs removed, net inflow attributed to senders pro rata, senders aggregated across all inflows, top senders profiled by balance and transaction count, one hop traced backwards",
@@ -61,8 +61,8 @@
       "first_day": "2024-03-06",
       "last_day": "2026-09-17",
       "profile": {
-        "balance_kas": 721409643.135354,
-        "tx_count": 143096,
+        "balance_kas": 720561267.3422741,
+        "tx_count": 143097,
         "tx_count_source": "api"
       },
       "verdict": "boerse",
@@ -276,8 +276,8 @@
         },
         "received_kas": 4999996.1,
         "frm_profile": {
-          "balance_kas": 721409643.135354,
-          "tx_count": 143096,
+          "balance_kas": 720561267.3422741,
+          "tx_count": 143097,
           "tx_count_source": "api"
         }
       }
@@ -324,7 +324,7 @@
         "tx_count_source": "api"
       },
       "verdict": "boerse ueber zwischenadresse wahrscheinlich",
-      "reason": "absender wurde am 2025-07-30 von einer adresse mit 1,985,355 transaktionen befuellt",
+      "reason": "absender wurde am 2025-07-30 von einer adresse mit 1,985,357 transaktionen befuellt",
       "exchange": null,
       "prev_hop": {
         "ts": 1753852676390,
@@ -336,8 +336,8 @@
         },
         "received_kas": 433051.6095,
         "frm_profile": {
-          "balance_kas": 31846558.00243842,
-          "tx_count": 1985355,
+          "balance_kas": 31740302.47350742,
+          "tx_count": 1985357,
           "tx_count_source": "api"
         }
       }
@@ -455,12 +455,12 @@
       "first_day": "2024-03-13",
       "last_day": "2024-03-13",
       "profile": {
-        "balance_kas": 31846558.00243842,
-        "tx_count": 1985355,
+        "balance_kas": 31740302.47350742,
+        "tx_count": 1985357,
         "tx_count_source": "api"
       },
       "verdict": "boerse wahrscheinlich",
-      "reason": "absender hat 1,985,355 transaktionen, das ist kein privates wallet",
+      "reason": "absender hat 1,985,357 transaktionen, das ist kein privates wallet",
       "exchange": null,
       "prev_hop": null
     },
@@ -476,7 +476,7 @@
         "tx_count_source": "api"
       },
       "verdict": "boerse ueber zwischenadresse wahrscheinlich",
-      "reason": "absender wurde am 2026-07-17 von einer adresse mit 666,210 transaktionen befuellt",
+      "reason": "absender wurde am 2026-07-17 von einer adresse mit 666,211 transaktionen befuellt",
       "exchange": null,
       "prev_hop": {
         "ts": 1784295065042,
@@ -488,8 +488,8 @@
         },
         "received_kas": 330000.31,
         "frm_profile": {
-          "balance_kas": 838809976.6626372,
-          "tx_count": 666210,
+          "balance_kas": 838818050.9519223,
+          "tx_count": 666211,
           "tx_count_source": "api"
         }
       }
@@ -518,8 +518,8 @@
         },
         "received_kas": 2284141.12,
         "frm_profile": {
-          "balance_kas": 721409643.135354,
-          "tx_count": 143096,
+          "balance_kas": 720561267.3422741,
+          "tx_count": 143097,
           "tx_count_source": "api"
         }
       }
@@ -561,12 +561,12 @@
       "first_day": "2026-03-11",
       "last_day": "2026-03-11",
       "profile": {
-        "balance_kas": 299470833.2197806,
-        "tx_count": 38380,
+        "balance_kas": 299492041.34182924,
+        "tx_count": 38383,
         "tx_count_source": "api"
       },
       "verdict": "boerse wahrscheinlich",
-      "reason": "absender hat 38,380 transaktionen, das ist kein privates wallet",
+      "reason": "absender hat 38,383 transaktionen, das ist kein privates wallet",
       "exchange": null,
       "prev_hop": null
     },
@@ -670,8 +670,8 @@
         },
         "received_kas": 197452.78,
         "frm_profile": {
-          "balance_kas": 721409643.135354,
-          "tx_count": 143096,
+          "balance_kas": 720561267.3422741,
+          "tx_count": 143097,
           "tx_count_source": "api"
         }
       }
@@ -1146,11 +1146,11 @@
       "last_day": "2024-03-13",
       "profile": {
         "balance_kas": 44783851.08059364,
-        "tx_count": 309602,
+        "tx_count": 309604,
         "tx_count_source": "api"
       },
       "verdict": "boerse wahrscheinlich",
-      "reason": "absender hat 309,602 transaktionen, das ist kein privates wallet",
+      "reason": "absender hat 309,604 transaktionen, das ist kein privates wallet",
       "exchange": null,
       "prev_hop": null
     },
