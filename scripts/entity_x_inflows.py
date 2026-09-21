@@ -490,7 +490,7 @@ def main():
         "kas_by_verdict": kas_by_verdict,
         "by_exchange": by_exchange,
         "named_exchange_kas": named_kas,
-        "named_exchange_share": (round(named_kas / total_in, 4)
+        "named_exchange_share": (round(named_kas / total_in, 6)
                                  if total_in else 0),
         "caveat": ("an inflow from an exchange wallet is a withdrawal, not "
                    "a proven buy. a fresh unlabeled sender is consistent "

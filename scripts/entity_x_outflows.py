@@ -451,7 +451,7 @@ def main():
         "kas_by_verdict": kas_by_verdict,
         "by_exchange": by_exchange,
         "named_exchange_kas": named_kas,
-        "named_exchange_share": (round(named_kas / total_out, 4)
+        "named_exchange_share": (round(named_kas / total_out, 6)
                                  if total_out else 0),
         "caveat": ("a deposit to an exchange address is not a sale. the chain "
                    "shows the transfer, not the intent."),
