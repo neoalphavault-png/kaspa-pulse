@@ -1,7 +1,7 @@
 {
-  "generated_at": 1789820289,
-  "generated_at_utc": "2026-09-19 12:18:09 UTC",
-  "chain_fetched_at_utc": "2026-09-19 12:17:28 UTC",
+  "generated_at": 1789988297,
+  "generated_at_utc": "2026-09-21 10:58:17 UTC",
+  "chain_fetched_at_utc": "2026-09-21 10:57:09 UTC",
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "question": "zwei whale-tracker nennen fuer dieselbe adresse verschiedene bestaende. welche lesart entspricht welcher zahl.",
   "method": {
@@ -30,7 +30,7 @@
     "api.kaspa.org": {
       "kas": 1523915192.0896342,
       "raw_sompi": 152391519208963415,
-      "fetched_at": "2026-09-19 12:17:28 UTC"
+      "fetched_at": "2026-09-21 10:57:09 UTC"
     },
     "kaspa.stream/api": {
       "ok": true,
@@ -73,20 +73,19 @@
           },
           "verdict": "boerse ueber zwischenadresse",
           "exchange": "bitvavo",
-          "reason": "empfaenger leitete am 2026-09-17 weiter an die auf kaspa.stream als bitvavo beschriftete adresse",
+          "reason": "am 2026-08-11 weitergeleitet an die auf kaspa.stream als bitvavo beschriftete adresse",
           "next_hop": {
-            "ts": 1789654880181,
-            "day": "2026-09-17",
-            "tx": "a7e28582aa948050d898f9ccacd7f0d4b1eaaa204e71257e77b82e408cfd9d8a",
+            "ts": 1786433837316,
+            "day": "2026-08-11",
+            "tx": "a6b4c2ac0eff7d402863641270aba91ab7a9f87ef5582b13700b84835c405c3d",
             "to": {
               "address": "kaspa:qzxs23g7txh3wq9d0t2z0hluhsflvzpf6d0yfum830ppumgtxa5d7zqca8r67",
-              "kas": 5626939.9955208
+              "kas": 2118152.44033898
             },
             "to_profile": {
-              "balance_kas": 22009626.87350361,
-              "tx_count": 25472
-            },
-            "to_label": "bitvavo"
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522
+            }
           }
         }
       ]
@@ -104,9 +103,9 @@
             "balance_kas": 0.0,
             "tx_count": 2
           },
-          "verdict": "boerse ueber zwischenadresse wahrscheinlich",
+          "verdict": "boerse wahrscheinlich",
           "exchange": null,
-          "reason": "empfaenger leitete am 2026-08-27 weiter an eine adresse mit 37,915 transaktionen",
+          "reason": "weitergeleitet am 2026-08-27 an eine adresse mit 38,381 transaktionen",
           "next_hop": {
             "ts": 1787832018137,
             "day": "2026-08-27",
@@ -116,10 +115,9 @@
               "kas": 3021495.586835
             },
             "to_profile": {
-              "balance_kas": 282290349.1695316,
-              "tx_count": 37915
-            },
-            "to_label": null
+              "balance_kas": 299469535.7710589,
+              "tx_count": 38381
+            }
           }
         }
       ]
@@ -139,20 +137,19 @@
           },
           "verdict": "boerse ueber zwischenadresse",
           "exchange": "bitvavo",
-          "reason": "empfaenger leitete am 2026-09-17 weiter an die auf kaspa.stream als bitvavo beschriftete adresse",
+          "reason": "am 2026-09-14 weitergeleitet an die auf kaspa.stream als bitvavo beschriftete adresse",
           "next_hop": {
-            "ts": 1789654880181,
-            "day": "2026-09-17",
-            "tx": "a7e28582aa948050d898f9ccacd7f0d4b1eaaa204e71257e77b82e408cfd9d8a",
+            "ts": 1789393509829,
+            "day": "2026-09-14",
+            "tx": "46d58ddcfb2c552b00e0a40f5b02375584a517feeb3dcd0a28d84c78905adce2",
             "to": {
               "address": "kaspa:qzxs23g7txh3wq9d0t2z0hluhsflvzpf6d0yfum830ppumgtxa5d7zqca8r67",
-              "kas": 5626939.9955208
+              "kas": 2996060.36553868
             },
             "to_profile": {
-              "balance_kas": 22009626.87350361,
-              "tx_count": 25472
-            },
-            "to_label": "bitvavo"
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522
+            }
           }
         }
       ]
@@ -172,7 +169,7 @@
           },
           "verdict": "boerse ueber zwischenadresse",
           "exchange": "bitvavo",
-          "reason": "empfaenger leitete am 2026-09-17 weiter an die auf kaspa.stream als bitvavo beschriftete adresse",
+          "reason": "am 2026-09-17 weitergeleitet an die auf kaspa.stream als bitvavo beschriftete adresse",
           "next_hop": {
             "ts": 1789654880181,
             "day": "2026-09-17",
@@ -182,10 +179,9 @@
               "kas": 5626939.9955208
             },
             "to_profile": {
-              "balance_kas": 22009626.87350361,
-              "tx_count": 25472
-            },
-            "to_label": "bitvavo"
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522
+            }
           }
         }
       ]
@@ -403,11 +399,11 @@
   "inflow_ledger": {
     "deposits": 313,
     "distinct_senders": 136,
-    "named_exchange_kas": 1387535852.34559,
-    "named_exchange_share": 0.879792,
+    "named_exchange_kas": 1383860150.018885,
+    "named_exchange_share": 0.877462,
     "by_exchange": {
       "gate.io": {
-        "kas": 957307995.113845,
+        "kas": 953632292.7871399,
         "senders": 3
       },
       "bybit": {
@@ -425,20 +421,20 @@
     },
     "verdict_counts": {
       "boerse": 4,
-      "frisches wallet": 26,
-      "boerse wahrscheinlich": 2,
+      "frisches wallet": 27,
+      "boerse wahrscheinlich": 5,
+      "boerse ueber zwischenadresse wahrscheinlich": 4,
+      "unklar": 18,
       "boerse ueber zwischenadresse": 2,
-      "boerse ueber zwischenadresse wahrscheinlich": 10,
-      "unklar": 16,
       "nicht einzeln profiliert": 76
     },
     "kas_by_verdict": {
       "boerse": 1381452686.22672,
-      "frisches wallet": 145476139.34620115,
-      "boerse wahrscheinlich": 14178058.52210557,
-      "boerse ueber zwischenadresse": 6083166.11886994,
-      "boerse ueber zwischenadresse wahrscheinlich": 18860235.33736484,
-      "unklar": 8359232.16439252,
+      "frisches wallet": 150477345.4459511,
+      "boerse wahrscheinlich": 20841797.3830776,
+      "boerse ueber zwischenadresse wahrscheinlich": 7925795.90579473,
+      "unklar": 11304428.96194573,
+      "boerse ueber zwischenadresse": 2407463.79216482,
       "nicht einzeln profiliert": 2708023.0004634
     },
     "senders": [
@@ -449,23 +445,24 @@
         "first_day": "2024-03-06",
         "last_day": "2026-09-17",
         "profile": {
-          "balance_kas": 720122492.1510452,
-          "tx_count": 142933
+          "balance_kas": 721409643.135354,
+          "tx_count": 143096
         },
         "verdict": "boerse",
         "exchange": "gate.io",
-        "reason": "adresse ist auf kaspa.stream als gate.io beschriftet",
+        "reason": "absender ist auf kaspa.stream als gate.io beschriftet",
         "prev_hop": {
-          "ts": 1789785815208,
-          "day": "2026-09-19",
-          "tx": "e0196a9978c58b46c9c6f998ffcd6d04d37dfec67bd4faaea925c98f2058422d",
+          "ts": 1789613058325,
+          "day": "2026-09-17",
+          "tx": "8c76bc8119456e9e692bfff3d71ed7a26c9c6252660df2d128b6fc80af12feab",
           "frm": {
-            "address": "kaspa:qq56fckanx24aphlzr3t920sg8k0zn88v5kjqd2k9vpqymmfjrj6unekxtynz",
-            "kas": 0.19692
+            "address": "kaspa:qzfwmtcms7d7feuz7688qyngw2k9zcqxd97aetz33dy644l8en9z6gly5hzmm",
+            "input_kas": 0.19692
           },
+          "received_kas": 1.17254,
           "frm_profile": {
             "balance_kas": 0.0,
-            "tx_count": 4
+            "tx_count": 15
           }
         }
       },
@@ -476,25 +473,13 @@
         "first_day": "2024-10-03",
         "last_day": "2026-07-30",
         "profile": {
-          "balance_kas": 765963860.328402,
-          "tx_count": 130962
+          "balance_kas": 762929032.207354,
+          "tx_count": 131152
         },
         "verdict": "boerse",
         "exchange": "bybit",
-        "reason": "adresse ist auf kaspa.stream als bybit beschriftet",
-        "prev_hop": {
-          "ts": 1789815572813,
-          "day": "2026-09-19",
-          "tx": "1db1c71c44edce241d774eba8a334cf9dc3d98834c3a763206f7207516f6fb0a",
-          "frm": {
-            "address": "kaspa:qqp76e08sqlptcfm7t57222207xg42v44eqsc7jgq2a9dz0dfd48cjzd4484r",
-            "kas": 2658328.804284
-          },
-          "frm_profile": {
-            "balance_kas": 0.0,
-            "tx_count": 174
-          }
-        }
+        "reason": "absender ist auf kaspa.stream als bybit beschriftet",
+        "prev_hop": null
       },
       {
         "address": "kaspa:qqywx2wszmnrsu0mzgav85rdwvzangfpdj9j3ady9jpr7hu4u8c2wl9wqgd6j",
@@ -503,23 +488,24 @@
         "first_day": "2026-01-13",
         "last_day": "2026-09-18",
         "profile": {
-          "balance_kas": 209058595.29032603,
-          "tx_count": 120163
+          "balance_kas": 207719852.85816512,
+          "tx_count": 120522
         },
         "verdict": "boerse",
         "exchange": "bitget",
-        "reason": "adresse ist auf kaspa.stream als bitget beschriftet",
+        "reason": "absender ist auf kaspa.stream als bitget beschriftet",
         "prev_hop": {
-          "ts": 1789819779106,
-          "day": "2026-09-19",
-          "tx": "4f288d061d14c672ddb15055ba237e726e86b09a24ec018c1f06e800b209b498",
+          "ts": 1789642172733,
+          "day": "2026-09-17",
+          "tx": "15150e7d55f796aa1a22712e5fa26bc276c7c56baf27744c4acd472d2cd22282",
           "frm": {
-            "address": "kaspa:qzaqylqzr560ahpevzwpy66sjesq8ac7wp6wuewq6daprnmeyx08jt9dvs7lk",
-            "kas": 22030.02
+            "address": "kaspa:qrhwj4ersdj6kjf7xeqwr2cj2p6wdn3dnw0e48n2gjm0vutpe39d5wwsfv347",
+            "input_kas": 392796.04309669
           },
+          "received_kas": 392795.97309669,
           "frm_profile": {
             "balance_kas": 0.0,
-            "tx_count": 7442
+            "tx_count": 55
           }
         }
       },
@@ -535,15 +521,16 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 20 transaktionen und kein label",
+        "reason": "absender hat nur 20 transaktionen und kein label, herkunft dahinter ebenfalls unbeschriftet (kaspa:qpz2vgvlxhmyhmt22h)",
         "prev_hop": {
           "ts": 1711714415077,
           "day": "2024-03-29",
           "tx": "cd1fd92d2fbc432c8b6a0e380eb7de3368c8e8cbf3c39a681643aa01f436c2e8",
           "frm": {
             "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
-            "kas": 89999999.99989875
+            "input_kas": 89999999.99989875
           },
+          "received_kas": 10.0,
           "frm_profile": {
             "balance_kas": 1523915192.0896342,
             "tx_count": 532
@@ -557,25 +544,13 @@
         "first_day": "2026-01-12",
         "last_day": "2026-07-28",
         "profile": {
-          "balance_kas": 22009626.87350361,
-          "tx_count": 25472
+          "balance_kas": 16175181.09992578,
+          "tx_count": 25522
         },
         "verdict": "boerse",
         "exchange": "bitvavo",
-        "reason": "adresse ist auf kaspa.stream als bitvavo beschriftet",
-        "prev_hop": {
-          "ts": 1789654880181,
-          "day": "2026-09-17",
-          "tx": "a7e28582aa948050d898f9ccacd7f0d4b1eaaa204e71257e77b82e408cfd9d8a",
-          "frm": {
-            "address": "kaspa:qzje8wvpf4k3m2j4tv2vh5nshrsm7dmfnu63fy79snhahzd7d58yxj55qymaw",
-            "kas": 5626974.0
-          },
-          "frm_profile": {
-            "balance_kas": 0.0,
-            "tx_count": 16
-          }
-        }
+        "reason": "absender ist auf kaspa.stream als bitvavo beschriftet",
+        "prev_hop": null
       },
       {
         "address": "kaspa:qr9fqcxp9xjprsm9sv7apy6qc0ja2p676m9gf9fkcww2qmaw4npxzllh7lrw0",
@@ -589,20 +564,8 @@
         },
         "verdict": "boerse wahrscheinlich",
         "exchange": null,
-        "reason": "adresse hat 77,234 transaktionen, das ist kein privates wallet",
-        "prev_hop": {
-          "ts": 1773180922879,
-          "day": "2026-03-10",
-          "tx": "d86286ca2f254e1cddcfd55325c94387f1799647d1cc307b161e18ce944f0492",
-          "frm": {
-            "address": "kaspa:qrzanek3d2ygux02q3urr3eyrn4arprllup5n4a6a2ewp0n8pcn37hwxsy2x7",
-            "kas": 3.8893016
-          },
-          "frm_profile": {
-            "balance_kas": 0.0,
-            "tx_count": 335
-          }
-        }
+        "reason": "absender hat 77,234 transaktionen, das ist kein privates wallet",
+        "prev_hop": null
       },
       {
         "address": "kaspa:qr7pk7qc83k0eeurlq9lw6hn9tcktqvz4tr9mh440cs0vsxrqsl3v05gye8nk",
@@ -616,20 +579,8 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 2 transaktionen und kein label",
-        "prev_hop": {
-          "ts": 1710146214547,
-          "day": "2024-03-11",
-          "tx": "2550bbe7eaa266ad204ccbd78010eb0c0f928cb418d1fed7fa1c8563333eb4bf",
-          "frm": {
-            "address": "kaspa:qr4znetsvjehrrfn75rra5zej50nsgx7v3zlkk54ljsddsry6sa6y3zs6s2sz",
-            "kas": 25000000.0
-          },
-          "frm_profile": {
-            "balance_kas": 0.0,
-            "tx_count": 20
-          }
-        }
+        "reason": "absender hat nur 2 transaktionen und kein label, herkunft dahinter nicht gefunden",
+        "prev_hop": null
       },
       {
         "address": "kaspa:qzawve4wfwalyszzgdykh9fw8stt89qvg6rf50dymzl35ld92wa2c0p0yvz25",
@@ -643,20 +594,8 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 2 transaktionen und kein label",
-        "prev_hop": {
-          "ts": 1710146303417,
-          "day": "2024-03-11",
-          "tx": "c1c87768343ac27044083e04c3fa52fdf55fa4ab2b06e4747f856ef8671e21b5",
-          "frm": {
-            "address": "kaspa:qr4znetsvjehrrfn75rra5zej50nsgx7v3zlkk54ljsddsry6sa6y3zs6s2sz",
-            "kas": 33000000.0
-          },
-          "frm_profile": {
-            "balance_kas": 0.0,
-            "tx_count": 20
-          }
-        }
+        "reason": "absender hat nur 2 transaktionen und kein label, herkunft dahinter nicht gefunden",
+        "prev_hop": null
       },
       {
         "address": "kaspa:qps6gt57lwckt9mn6prmgkrzufvm9e6vmwfhtgn9uhpdnyqh499jz5l80dcgm",
@@ -668,22 +607,10 @@
           "balance_kas": 0.0,
           "tx_count": 7
         },
-        "verdict": "boerse ueber zwischenadresse",
-        "exchange": "gate.io",
-        "reason": "zwischenadresse wurde am 2023-12-11 von der auf kaspa.stream als gate.io beschrifteten adresse befuellt",
-        "prev_hop": {
-          "ts": 1702257008423,
-          "day": "2023-12-11",
-          "tx": "90d3eedc1f2e7d951d7d7fe4050b1a50ae0027c0f5d8524d8b0e0afd4fe6e62b",
-          "frm": {
-            "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-            "kas": 10549804.49279105
-          },
-          "frm_profile": {
-            "balance_kas": 720122492.1510452,
-            "tx_count": 142933
-          }
-        }
+        "verdict": "frisches wallet",
+        "exchange": null,
+        "reason": "absender hat nur 7 transaktionen und kein label, herkunft dahinter nicht gefunden",
+        "prev_hop": null
       },
       {
         "address": "kaspa:qq3ded2akz05nzaumzzazyjtxl024scxfpv4ht4wrhckyhypnc4pz0hyuk52v",
@@ -697,15 +624,16 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 2 transaktionen und kein label",
+        "reason": "absender hat nur 2 transaktionen und kein label, herkunft dahinter ebenfalls unbeschriftet (kaspa:qps6gt57lwckt9mn6p)",
         "prev_hop": {
           "ts": 1710146591229,
           "day": "2024-03-11",
           "tx": "abe1780936298fd5a24302b34500e1c13238913b5e5b1c58e1de263a5669f064",
           "frm": {
             "address": "kaspa:qps6gt57lwckt9mn6prmgkrzufvm9e6vmwfhtgn9uhpdnyqh499jz5l80dcgm",
-            "kas": 5000000.0
+            "input_kas": 5000000.0
           },
+          "received_kas": 4999989.9999,
           "frm_profile": {
             "balance_kas": 0.0,
             "tx_count": 7
@@ -724,18 +652,19 @@
         },
         "verdict": "boerse ueber zwischenadresse wahrscheinlich",
         "exchange": null,
-        "reason": "zwischenadresse wurde am 2026-03-23 von einer adresse mit 37,915 transaktionen befuellt",
+        "reason": "absender wurde am 2025-07-30 von einer adresse mit 1,985,355 transaktionen befuellt",
         "prev_hop": {
-          "ts": 1774249848658,
-          "day": "2026-03-23",
-          "tx": "e5ea7af87ae50f3793c88e2afd970458f1631c363fc604683c4c0f3d001d69df",
+          "ts": 1753852676390,
+          "day": "2025-07-30",
+          "tx": "41d5e38d761fae0865dff4b981c348a7b4fd198274022cba0fbd3d881631046d",
           "frm": {
-            "address": "kaspa:qphfy7yfwyj7uqw2q6v924q6xcsstfhdz70cdm7ewnzqt98r2x6jydujg6gle",
-            "kas": 224947.72145292
+            "address": "kaspa:qq3k4du6wf2g26j7ds6fqmgtgavgm3zy676wntp2e52nsuns2n4s6xkndmx0y",
+            "input_kas": 494245.6985
           },
+          "received_kas": 433051.6095,
           "frm_profile": {
-            "balance_kas": 282290349.1695316,
-            "tx_count": 37915
+            "balance_kas": 31846558.00243842,
+            "tx_count": 1985355
           }
         }
       },
@@ -747,24 +676,12 @@
         "last_day": "2025-07-31",
         "profile": {
           "balance_kas": 2559327.0317,
-          "tx_count": 6992
+          "tx_count": 6994
         },
-        "verdict": "boerse ueber zwischenadresse wahrscheinlich",
+        "verdict": "boerse wahrscheinlich",
         "exchange": null,
-        "reason": "zwischenadresse wurde am 2026-09-10 von einer adresse mit 1,984,451 transaktionen befuellt",
-        "prev_hop": {
-          "ts": 1789040708006,
-          "day": "2026-09-10",
-          "tx": "9e19f36a054d41e5f3e4262bcad4ba9c33b17bca615f5cf0ebb59bf7241df5ac",
-          "frm": {
-            "address": "kaspa:qq3k4du6wf2g26j7ds6fqmgtgavgm3zy676wntp2e52nsuns2n4s6xkndmx0y",
-            "kas": 88815.998358
-          },
-          "frm_profile": {
-            "balance_kas": 26764045.17136313,
-            "tx_count": 1984451
-          }
-        }
+        "reason": "absender hat 6,994 transaktionen, das ist kein privates wallet",
+        "prev_hop": null
       },
       {
         "address": "kaspa:qpykj9tu7j78yaalfxytnuth2zkmaq6ltec3jm3w6es8s4jxguq2xlcsuu5xg",
@@ -778,15 +695,16 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 4 transaktionen und kein label",
+        "reason": "absender hat nur 4 transaktionen und kein label, herkunft dahinter ebenfalls unbeschriftet (kaspa:qr4znetsvjehrrfn75)",
         "prev_hop": {
           "ts": 1718032799683,
           "day": "2024-06-10",
           "tx": "2036464361343e3c872d4767fb8ce2a4b17971cc3a5b740dbd4d2e92519393aa",
           "frm": {
             "address": "kaspa:qr4znetsvjehrrfn75rra5zej50nsgx7v3zlkk54ljsddsry6sa6y3zs6s2sz",
-            "kas": 3628796.0328
+            "input_kas": 3628796.0328
           },
+          "received_kas": 3628696.03277931,
           "frm_profile": {
             "balance_kas": 0.0,
             "tx_count": 20
@@ -803,20 +721,21 @@
           "balance_kas": 3659152.566,
           "tx_count": 2232
         },
-        "verdict": "boerse ueber zwischenadresse wahrscheinlich",
+        "verdict": "unklar",
         "exchange": null,
-        "reason": "zwischenadresse wurde am 2026-09-15 von einer adresse mit 37,915 transaktionen befuellt",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": {
-          "ts": 1789509337404,
-          "day": "2026-09-15",
-          "tx": "93c3de4e37e9d813e1e442ab415a1c565a0e9b7d66b41b8167b26ecc67859b77",
+          "ts": 1770929324253,
+          "day": "2026-02-12",
+          "tx": "0a4e596cdb0524a1425afc97f3ad635e825a82abf6b05e291d2f4e916528a75c",
           "frm": {
-            "address": "kaspa:qphfy7yfwyj7uqw2q6v924q6xcsstfhdz70cdm7ewnzqt98r2x6jydujg6gle",
-            "kas": 120296.37780028
+            "address": "kaspa:qpyxfjtz86qlhn7jgh9mguyx3exve9p3gjuy9zm70cd8af88tpvag9frynn0z",
+            "input_kas": 450000.0
           },
+          "received_kas": 364507.0,
           "frm_profile": {
-            "balance_kas": 282290349.1695316,
-            "tx_count": 37915
+            "balance_kas": 0.0,
+            "tx_count": 116
           }
         }
       },
@@ -832,15 +751,16 @@
         },
         "verdict": "unklar",
         "exchange": null,
-        "reason": "adresse hat 137 transaktionen und kein label",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": {
-          "ts": 1764572434276,
-          "day": "2025-12-01",
-          "tx": "ead20fc5daac37e7a1cfb8cddccf9c0f935f47d4aa893fa866e5c8e5b086c1ed",
+          "ts": 1735219902838,
+          "day": "2024-12-26",
+          "tx": "eaee32e23ae3b0d2f1e64ab2364a1e05d031fd5a1e6f1e37dc573c4bec5965b4",
           "frm": {
             "address": "kaspa:qyprsh6x5jknvwundj5uny7d93h5jg7rpehrd0rp3xnpupq6le4perqym353hsg",
-            "kas": 2149999.99997952
+            "input_kas": 23000000.77677785
           },
+          "received_kas": 3000000.0,
           "frm_profile": {
             "balance_kas": 0.0,
             "tx_count": 118
@@ -854,25 +774,13 @@
         "first_day": "2024-03-13",
         "last_day": "2024-03-13",
         "profile": {
-          "balance_kas": 26764045.17136313,
-          "tx_count": 1984451
+          "balance_kas": 31846558.00243842,
+          "tx_count": 1985355
         },
-        "verdict": "boerse ueber zwischenadresse wahrscheinlich",
+        "verdict": "boerse wahrscheinlich",
         "exchange": null,
-        "reason": "zwischenadresse wurde am 2026-09-19 von einer adresse mit 309,375 transaktionen befuellt",
-        "prev_hop": {
-          "ts": 1789819448402,
-          "day": "2026-09-19",
-          "tx": "5c10fdd68497b51a1d8f135baa0fafbf8daf84f532a9b605e03ae60d00962f7a",
-          "frm": {
-            "address": "kaspa:qpq94ntnvy8p9q6wrdwtn37xtspgashrydc0kuu8ctpyxulmh0wlxh2807zdh",
-            "kas": 19843.67002747
-          },
-          "frm_profile": {
-            "balance_kas": 49532581.85387651,
-            "tx_count": 309375
-          }
-        }
+        "reason": "absender hat 1,985,355 transaktionen, das ist kein privates wallet",
+        "prev_hop": null
       },
       {
         "address": "kaspa:qrqlynq54v5f4clq22g9szlkxhg5798dm9zqp89t5m4vucy0a5rygtd850jvl",
@@ -881,23 +789,24 @@
         "first_day": "2025-05-06",
         "last_day": "2026-07-18",
         "profile": {
-          "balance_kas": 613000.48,
-          "tx_count": 1306
+          "balance_kas": 0.0,
+          "tx_count": 1325
         },
         "verdict": "boerse ueber zwischenadresse wahrscheinlich",
         "exchange": null,
-        "reason": "zwischenadresse wurde am 2026-09-19 von einer adresse mit 665,452 transaktionen befuellt",
+        "reason": "absender wurde am 2026-07-17 von einer adresse mit 666,211 transaktionen befuellt",
         "prev_hop": {
-          "ts": 1789794134805,
-          "day": "2026-09-19",
-          "tx": "5962101c40ce4c689e74d6454dd395dad6022d5a35659b35a82b5d7c558906e9",
+          "ts": 1784295065042,
+          "day": "2026-07-17",
+          "tx": "45e1057e127fd44942c842c11bd8e4277171d0803b280ec81ac3519b9039594f",
           "frm": {
             "address": "kaspa:qpzpfwcsqsxhxwup26r55fd0ghqlhyugz8cp6y3wxuddc02vcxtjg75pspnwz",
-            "kas": 651066.55591554
+            "input_kas": 805001.64
           },
+          "received_kas": 330000.31,
           "frm_profile": {
-            "balance_kas": 846339793.7261059,
-            "tx_count": 665452
+            "balance_kas": 838818050.9519223,
+            "tx_count": 666211
           }
         }
       },
@@ -911,20 +820,21 @@
           "balance_kas": 5676547.5625,
           "tx_count": 1429
         },
-        "verdict": "boerse ueber zwischenadresse wahrscheinlich",
-        "exchange": null,
-        "reason": "zwischenadresse wurde am 2026-09-07 von einer adresse mit 37,915 transaktionen befuellt",
+        "verdict": "boerse ueber zwischenadresse",
+        "exchange": "gate.io",
+        "reason": "absender wurde am 2025-06-22 von der auf kaspa.stream als gate.io beschrifteten adresse befuellt",
         "prev_hop": {
-          "ts": 1788800929283,
-          "day": "2026-09-07",
-          "tx": "3ab88b7fd358d87b66fec3777bd9506cadcabd45d405eebbc29b8b393500204f",
+          "ts": 1750627811966,
+          "day": "2025-06-22",
+          "tx": "89303798c2daad50c7c1b5a87eb2c872e39f56dbf81291cdce86f08812660d60",
           "frm": {
-            "address": "kaspa:qphfy7yfwyj7uqw2q6v924q6xcsstfhdz70cdm7ewnzqt98r2x6jydujg6gle",
-            "kas": 849723.18978799
+            "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
+            "input_kas": 14959888.0070468
           },
+          "received_kas": 2284141.12,
           "frm_profile": {
-            "balance_kas": 282290349.1695316,
-            "tx_count": 37915
+            "balance_kas": 721409643.135354,
+            "tx_count": 143096
           }
         }
       },
@@ -936,22 +846,23 @@
         "last_day": "2025-08-06",
         "profile": {
           "balance_kas": 1337602.0,
-          "tx_count": 2958
+          "tx_count": 2960
         },
-        "verdict": "unklar",
+        "verdict": "boerse ueber zwischenadresse wahrscheinlich",
         "exchange": null,
-        "reason": "adresse hat 2,958 transaktionen und kein label",
+        "reason": "absender wurde am 2025-08-06 von einer adresse mit 128,384 transaktionen befuellt",
         "prev_hop": {
-          "ts": 1789675909991,
-          "day": "2026-09-17",
-          "tx": "61feeabb1d6b7e0936733f162f4fc7f4a50a510ea4c6f50f2ea055bae00d83da",
+          "ts": 1754499580767,
+          "day": "2025-08-06",
+          "tx": "c05125d82f739d84d5718082af4850a237a3bed3cbdc6ceacf9c9713e860330e",
           "frm": {
-            "address": "kaspa:qr79tjpyx4ve7m4qe34xzezllgct7fx6qkcyep3w25s78g84kh5hjv0fg525u",
-            "kas": 49999.9978368
+            "address": "kaspa:qpf4gjshrv5xgd7s0l7uehvcczcgx3u5juw77pt4q95h0ax0k62hvsvme480f",
+            "input_kas": 1035847.26934001
           },
+          "received_kas": 319849.955255,
           "frm_profile": {
-            "balance_kas": 1516332.19571348,
-            "tx_count": 1358
+            "balance_kas": 0.0,
+            "tx_count": 128384
           }
         }
       },
@@ -962,25 +873,13 @@
         "first_day": "2026-03-11",
         "last_day": "2026-03-11",
         "profile": {
-          "balance_kas": 282290349.1695316,
-          "tx_count": 37915
+          "balance_kas": 299469535.7710589,
+          "tx_count": 38381
         },
-        "verdict": "boerse ueber zwischenadresse wahrscheinlich",
+        "verdict": "boerse wahrscheinlich",
         "exchange": null,
-        "reason": "zwischenadresse wurde am 2026-09-19 von einer adresse mit 27,246 transaktionen befuellt",
-        "prev_hop": {
-          "ts": 1789820109314,
-          "day": "2026-09-19",
-          "tx": "f2be28632aca521a856f2f7d962c58b42dac9935583f80940982c0361181f936",
-          "frm": {
-            "address": "kaspa:qr6pqdkru9fgwlm8yyqzp7cww9vj7auuq5vratzy4ev3luzj79t5ycvp8euuf",
-            "kas": 22238.97
-          },
-          "frm_profile": {
-            "balance_kas": 0.0,
-            "tx_count": 27246
-          }
-        }
+        "reason": "absender hat 38,381 transaktionen, das ist kein privates wallet",
+        "prev_hop": null
       },
       {
         "address": "kaspa:qq2cz9zuxjs57y97lgntq6z96hay2rf858pkjeduee9t20q2tsu0jy7jm09tw",
@@ -992,22 +891,10 @@
           "balance_kas": 0.0,
           "tx_count": 141
         },
-        "verdict": "boerse ueber zwischenadresse",
-        "exchange": "gate.io",
-        "reason": "zwischenadresse wurde am 2025-12-10 von der auf kaspa.stream als gate.io beschrifteten adresse befuellt",
-        "prev_hop": {
-          "ts": 1765330299079,
-          "day": "2025-12-10",
-          "tx": "aac901058a312445ae0414f854612407c4dfcfeaad99d6e57bc35cf9ef32371f",
-          "frm": {
-            "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
-            "kas": 12958691.61375165
-          },
-          "frm_profile": {
-            "balance_kas": 720122492.1510452,
-            "tx_count": 142933
-          }
-        }
+        "verdict": "unklar",
+        "exchange": null,
+        "reason": "kein label, kein eindeutiges profil",
+        "prev_hop": null
       },
       {
         "address": "kaspa:qz7rh5j2djygjn7lprprtarvltucu9efajydyapr42eyae685z3p6us4ll2lk",
@@ -1021,15 +908,16 @@
         },
         "verdict": "unklar",
         "exchange": null,
-        "reason": "adresse hat 57 transaktionen und kein label",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": {
           "ts": 1733997896713,
           "day": "2024-12-12",
           "tx": "cbd83a6a08abd683c9a0e91d8a39ca45391d9f03fde9a2b0da7fd0982031c267",
           "frm": {
             "address": "kaspa:qypqqgf69dv5tf8t6elwrgxnagn5q4l5lhw8c47vd3h57xsz4chaucqnvzvgetp",
-            "kas": 829862.20602781
+            "input_kas": 829862.20602781
           },
+          "received_kas": 829862.20601157,
           "frm_profile": {
             "balance_kas": 624972.59834707,
             "tx_count": 13
@@ -1048,18 +936,19 @@
         },
         "verdict": "boerse ueber zwischenadresse wahrscheinlich",
         "exchange": null,
-        "reason": "zwischenadresse wurde am 2025-04-22 von einer adresse mit 665,452 transaktionen befuellt",
+        "reason": "absender wurde am 2024-07-02 von einer adresse mit 341,196 transaktionen befuellt",
         "prev_hop": {
-          "ts": 1745323096517,
-          "day": "2025-04-22",
-          "tx": "4c7391541a35035d945a7970cc7f3a96f2b7e67c846b8ff85521ae485f26ab5b",
+          "ts": 1719909542478,
+          "day": "2024-07-02",
+          "tx": "4f810fac2255a99eecf6a30cea5b929667977f6713b552f7084ad0fdb359e65b",
           "frm": {
-            "address": "kaspa:qpzpfwcsqsxhxwup26r55fd0ghqlhyugz8cp6y3wxuddc02vcxtjg75pspnwz",
-            "kas": 999994.26989899
+            "address": "kaspa:qqetp7ct8kqss99fxmymyz5t3fezppxp0t58wl6pawp27elqd46uudme00cl0",
+            "input_kas": 41239485.16118401
           },
+          "received_kas": 399999.0,
           "frm_profile": {
-            "balance_kas": 846339793.7261059,
-            "tx_count": 665452
+            "balance_kas": 0.98989898,
+            "tx_count": 341196
           }
         }
       },
@@ -1073,20 +962,21 @@
           "balance_kas": 0.0,
           "tx_count": 3164
         },
-        "verdict": "boerse ueber zwischenadresse wahrscheinlich",
-        "exchange": null,
-        "reason": "zwischenadresse wurde am 2026-01-06 von einer adresse mit 665,452 transaktionen befuellt",
+        "verdict": "boerse ueber zwischenadresse",
+        "exchange": "gate.io",
+        "reason": "absender wurde am 2025-05-12 von der auf kaspa.stream als gate.io beschrifteten adresse befuellt",
         "prev_hop": {
-          "ts": 1767687064171,
-          "day": "2026-01-06",
-          "tx": "e3609c92ae306a1b145b45abac0509f46fd6ad9f86a97bbaccc690e9833d9ba8",
+          "ts": 1747035520224,
+          "day": "2025-05-12",
+          "tx": "2d18341428f657688808dafd7f6333b1a196657e2c322dd89f84f31529f77e82",
           "frm": {
-            "address": "kaspa:qpzpfwcsqsxhxwup26r55fd0ghqlhyugz8cp6y3wxuddc02vcxtjg75pspnwz",
-            "kas": 714800.1051397
+            "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",
+            "input_kas": 38425703.94318058
           },
+          "received_kas": 197452.78,
           "frm_profile": {
-            "balance_kas": 846339793.7261059,
-            "tx_count": 665452
+            "balance_kas": 721409643.135354,
+            "tx_count": 143096
           }
         }
       },
@@ -1098,22 +988,23 @@
         "last_day": "2025-05-06",
         "profile": {
           "balance_kas": 0.0,
-          "tx_count": 174
+          "tx_count": 176
         },
-        "verdict": "boerse ueber zwischenadresse wahrscheinlich",
+        "verdict": "unklar",
         "exchange": null,
-        "reason": "zwischenadresse wurde am 2026-09-19 von einer adresse mit 665,452 transaktionen befuellt",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": {
-          "ts": 1789814043206,
-          "day": "2026-09-19",
-          "tx": "f73685038962b193c8e9482a1b997f398489359dffbe8e67819ab6b1dc361e5a",
+          "ts": 1746507977622,
+          "day": "2025-05-06",
+          "tx": "4e4d72b801cf3a5333333b1894eb46c26ecd2f6ac6c21ba30b083974c2c7f7a4",
           "frm": {
-            "address": "kaspa:qpzpfwcsqsxhxwup26r55fd0ghqlhyugz8cp6y3wxuddc02vcxtjg75pspnwz",
-            "kas": 2199999.995
+            "address": "kaspa:qzeh5p3as3zd8rrh09fup57g0g8ef4f3uxxyrssvdf7cmfmxcaggyr2f4zthq",
+            "input_kas": 1000000.0994
           },
+          "received_kas": 680000.0,
           "frm_profile": {
-            "balance_kas": 846339793.7261059,
-            "tx_count": 665452
+            "balance_kas": 0.0,
+            "tx_count": 2
           }
         }
       },
@@ -1129,7 +1020,7 @@
         },
         "verdict": "unklar",
         "exchange": null,
-        "reason": "adresse hat 1,486 transaktionen und kein label",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": null
       },
       {
@@ -1144,7 +1035,7 @@
         },
         "verdict": "unklar",
         "exchange": null,
-        "reason": "adresse hat 1,677 transaktionen und kein label",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": null
       },
       {
@@ -1159,7 +1050,7 @@
         },
         "verdict": "unklar",
         "exchange": null,
-        "reason": "adresse hat 855 transaktionen und kein label",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": null
       },
       {
@@ -1174,7 +1065,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 20 transaktionen und kein label",
+        "reason": "absender hat nur 20 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1189,7 +1080,7 @@
         },
         "verdict": "unklar",
         "exchange": null,
-        "reason": "adresse hat 805 transaktionen und kein label",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": null
       },
       {
@@ -1204,7 +1095,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 2 transaktionen und kein label",
+        "reason": "absender hat nur 2 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1219,7 +1110,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 6 transaktionen und kein label",
+        "reason": "absender hat nur 6 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1234,7 +1125,7 @@
         },
         "verdict": "unklar",
         "exchange": null,
-        "reason": "adresse hat 718 transaktionen und kein label",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": null
       },
       {
@@ -1249,7 +1140,7 @@
         },
         "verdict": "unklar",
         "exchange": null,
-        "reason": "adresse hat 61 transaktionen und kein label",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": null
       },
       {
@@ -1264,7 +1155,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 6 transaktionen und kein label",
+        "reason": "absender hat nur 6 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1279,7 +1170,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 2 transaktionen und kein label",
+        "reason": "absender hat nur 2 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1294,7 +1185,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 32 transaktionen und kein label",
+        "reason": "absender hat nur 32 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1309,7 +1200,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 2 transaktionen und kein label",
+        "reason": "absender hat nur 2 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1324,7 +1215,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 14 transaktionen und kein label",
+        "reason": "absender hat nur 14 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1339,7 +1230,7 @@
         },
         "verdict": "unklar",
         "exchange": null,
-        "reason": "adresse hat 129 transaktionen und kein label",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": null
       },
       {
@@ -1354,7 +1245,7 @@
         },
         "verdict": "unklar",
         "exchange": null,
-        "reason": "adresse hat 67 transaktionen und kein label",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": null
       },
       {
@@ -1369,7 +1260,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 12 transaktionen und kein label",
+        "reason": "absender hat nur 12 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1384,7 +1275,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 4 transaktionen und kein label",
+        "reason": "absender hat nur 4 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1399,7 +1290,7 @@
         },
         "verdict": "unklar",
         "exchange": null,
-        "reason": "adresse hat 56 transaktionen und kein label",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": null
       },
       {
@@ -1414,7 +1305,7 @@
         },
         "verdict": "unklar",
         "exchange": null,
-        "reason": "adresse hat 87 transaktionen und kein label",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": null
       },
       {
@@ -1429,7 +1320,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 10 transaktionen und kein label",
+        "reason": "absender hat nur 10 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1444,7 +1335,7 @@
         },
         "verdict": "unklar",
         "exchange": null,
-        "reason": "adresse hat 464 transaktionen und kein label",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": null
       },
       {
@@ -1459,7 +1350,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 4 transaktionen und kein label",
+        "reason": "absender hat nur 4 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1474,7 +1365,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 11 transaktionen und kein label",
+        "reason": "absender hat nur 11 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1489,7 +1380,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 19 transaktionen und kein label",
+        "reason": "absender hat nur 19 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1504,7 +1395,7 @@
         },
         "verdict": "unklar",
         "exchange": null,
-        "reason": "adresse hat 95 transaktionen und kein label",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": null
       },
       {
@@ -1519,7 +1410,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 41 transaktionen und kein label",
+        "reason": "absender hat nur 41 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1529,12 +1420,12 @@
         "first_day": "2024-03-13",
         "last_day": "2024-03-13",
         "profile": {
-          "balance_kas": 49532581.85387651,
-          "tx_count": 309375
+          "balance_kas": 44783987.77066664,
+          "tx_count": 309603
         },
         "verdict": "boerse wahrscheinlich",
         "exchange": null,
-        "reason": "adresse hat 309,375 transaktionen, das ist kein privates wallet",
+        "reason": "absender hat 309,603 transaktionen, das ist kein privates wallet",
         "prev_hop": null
       },
       {
@@ -1549,7 +1440,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 8 transaktionen und kein label",
+        "reason": "absender hat nur 8 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1564,7 +1455,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 4 transaktionen und kein label",
+        "reason": "absender hat nur 4 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1579,7 +1470,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 6 transaktionen und kein label",
+        "reason": "absender hat nur 6 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1594,7 +1485,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 2 transaktionen und kein label",
+        "reason": "absender hat nur 2 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1609,7 +1500,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 2 transaktionen und kein label",
+        "reason": "absender hat nur 2 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1624,7 +1515,7 @@
         },
         "verdict": "frisches wallet",
         "exchange": null,
-        "reason": "adresse hat nur 2 transaktionen und kein label",
+        "reason": "absender hat nur 2 transaktionen und kein label, herkunft dahinter nicht gefunden",
         "prev_hop": null
       },
       {
@@ -1639,7 +1530,7 @@
         },
         "verdict": "unklar",
         "exchange": null,
-        "reason": "adresse hat 53 transaktionen und kein label",
+        "reason": "kein label, kein eindeutiges profil",
         "prev_hop": null
       },
       {
@@ -2558,16 +2449,16 @@
   },
   "supply": {
     "raw": {
-      "circulatingSupply": "2770925484508819102",
+      "circulatingSupply": "2771291921835021482",
       "maxSupply": "2870403560500000000"
     },
-    "circulating_kas": 27709254845.08819,
+    "circulating_kas": 27712919218.350212,
     "max_supply_kas": 28704035604.999996,
-    "fetched_at": "2026-09-19 12:18:09 UTC"
+    "fetched_at": "2026-09-21 10:58:17 UTC"
   },
   "denominators": {
     "max_supply_kas": 28704026601,
-    "minted_kas": 27709254845.08819
+    "minted_kas": 27712919218.350212
   },
   "readings": {
     "brutto": 1577117540.716117,
@@ -2578,19 +2469,19 @@
   "shares": {
     "brutto": {
       "of_max_supply_pct": 5.494412204387982,
-      "of_minted_pct": 5.691663487644023
+      "of_minted_pct": 5.6909109007607634
     },
     "netto": {
       "of_max_supply_pct": 5.309064171632782,
-      "of_minted_pct": 5.499661396920485
+      "of_minted_pct": 5.498934197738967
     },
     "netto_cluster": {
       "of_max_supply_pct": 5.309064171632782,
-      "of_minted_pct": 5.499661396920485
+      "of_minted_pct": 5.498934197738967
     },
     "brutto_ohne_internes": {
       "of_max_supply_pct": 5.494412204387982,
-      "of_minted_pct": 5.691663487644023
+      "of_minted_pct": 5.6909109007607634
     }
   },
   "trackers": [
@@ -2622,23 +2513,23 @@
       "tracker": "brandenburger 18.09.",
       "claim": "~5.5 % of the supply",
       "assumed_denominator": "geminted",
-      "implied_kas": 1524009016.4798503,
+      "implied_kas": 1524210557.0092616,
       "fits": {
         "brutto": {
-          "delta_kas": 53108524.23626661,
-          "pct_of_reading": 3.3674423665437008
+          "delta_kas": 52906983.7068553,
+          "pct_of_reading": 3.3546633234978787
         },
         "netto": {
-          "delta_kas": -93824.39021611214,
-          "pct_of_reading": -0.006156798665905913
+          "delta_kas": -295364.91962742805,
+          "pct_of_reading": -0.01938197881093472
         },
         "netto_cluster": {
-          "delta_kas": -93824.39021611214,
-          "pct_of_reading": -0.006156798665905913
+          "delta_kas": -295364.91962742805,
+          "pct_of_reading": -0.01938197881093472
         },
         "brutto_ohne_internes": {
-          "delta_kas": 53108524.23626661,
-          "pct_of_reading": 3.3674423665437008
+          "delta_kas": 52906983.7068553,
+          "pct_of_reading": 3.3546633234978787
         }
       }
     },
@@ -2669,9 +2560,9 @@
     }
   ],
   "price_now": {
-    "price": 0.03824,
+    "price": 0.04137,
     "source": "kraken",
-    "fetched_at": "2026-09-19 12:18:09 UTC"
+    "fetched_at": "2026-09-21 10:58:17 UTC"
   },
-  "runtime_seconds": 42.3
+  "runtime_seconds": 68.5
 }

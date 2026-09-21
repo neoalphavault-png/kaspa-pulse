@@ -1,23 +1,23 @@
 {
-  "generated_at": 1789376607,
+  "generated_at": 1789988228,
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "method": "outputs per outflow transaction, change to self removed, recipients profiled by balance and transaction count, one additional hop followed",
   "busy_tx_threshold": 5000,
   "known_labels": 4,
   "known_label_source": "kaspa.stream address labels, geprueft am 2026-08-03",
-  "transactions_total": 527,
-  "outflow_count": 22,
-  "outflow_kas": 44428124.73,
+  "transactions_total": 532,
+  "outflow_count": 24,
+  "outflow_kas": 53202478.74,
   "verdict_counts": {
     "weitergeschickt, ziel unklar": 6,
     "liegt noch da": 2,
-    "boerse ueber zwischenadresse": 14,
+    "boerse ueber zwischenadresse": 16,
     "boerse wahrscheinlich": 1
   },
   "kas_by_verdict": {
     "weitergeschickt, ziel unklar": 5320972.0,
     "liegt noch da": 1311.0,
-    "boerse ueber zwischenadresse": 36112872.45,
+    "boerse ueber zwischenadresse": 44887226.45,
     "boerse wahrscheinlich": 2992969.28
   },
   "by_exchange": {
@@ -38,12 +38,12 @@
       "last_day": "2026-01-07"
     },
     "bitvavo": {
-      "kas": 17110981.65,
-      "transfers": 6,
+      "kas": 25885335.65,
+      "transfers": 8,
       "direct": 0,
-      "via_hop": 6,
+      "via_hop": 8,
       "first_day": "2025-10-27",
-      "last_day": "2026-08-10"
+      "last_day": "2026-09-17"
     },
     "bitget": {
       "kas": 5714289.0,
@@ -54,8 +54,8 @@
       "last_day": "2025-11-06"
     }
   },
-  "named_exchange_kas": 36112872.45,
-  "named_exchange_share": 0.8128,
+  "named_exchange_kas": 44887226.45,
+  "named_exchange_share": 0.8437,
   "caveat": "a deposit to an exchange address is not a sale. the chain shows the transfer, not the intent.",
   "outflows": [
     {
@@ -158,8 +158,8 @@
               "kas": 10.49989576
             },
             "to_profile": {
-              "balance_kas": 1520413797.44481,
-              "tx_count": 527,
+              "balance_kas": 1523915192.0896342,
+              "tx_count": 532,
               "tx_count_source": "api"
             }
           }
@@ -240,8 +240,8 @@
               "kas": 1137496.34828279
             },
             "to_profile": {
-              "balance_kas": 774516822.4637226,
-              "tx_count": 130546,
+              "balance_kas": 762929032.207354,
+              "tx_count": 131152,
               "tx_count_source": "api"
             }
           }
@@ -276,8 +276,8 @@
               "kas": 1137496.34828279
             },
             "to_profile": {
-              "balance_kas": 774516822.4637226,
-              "tx_count": 130546,
+              "balance_kas": 762929032.207354,
+              "tx_count": 131152,
               "tx_count_source": "api"
             }
           }
@@ -312,8 +312,8 @@
               "kas": 3150995.88228152
             },
             "to_profile": {
-              "balance_kas": 774516822.4637226,
-              "tx_count": 130546,
+              "balance_kas": 762929032.207354,
+              "tx_count": 131152,
               "tx_count_source": "api"
             }
           }
@@ -348,8 +348,8 @@
               "kas": 50532771.44843256
             },
             "to_profile": {
-              "balance_kas": 734797793.9525617,
-              "tx_count": 142533,
+              "balance_kas": 721409643.135354,
+              "tx_count": 143096,
               "tx_count_source": "api"
             }
           }
@@ -372,7 +372,7 @@
           "exchange": "bitvavo",
           "profile": {
             "balance_kas": 0.0,
-            "tx_count": 12,
+            "tx_count": 16,
             "tx_count_source": "api"
           },
           "next_hop": {
@@ -384,8 +384,8 @@
               "kas": 1451687.99955
             },
             "to_profile": {
-              "balance_kas": 9412384.74134942,
-              "tx_count": 25368,
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522,
               "tx_count_source": "api"
             }
           }
@@ -420,8 +420,8 @@
               "kas": 5714286.5
             },
             "to_profile": {
-              "balance_kas": 216277020.2870224,
-              "tx_count": 119104,
+              "balance_kas": 207719852.85816512,
+              "tx_count": 120522,
               "tx_count_source": "api"
             }
           }
@@ -457,7 +457,7 @@
             },
             "to_profile": {
               "balance_kas": 0.0,
-              "tx_count": 1434,
+              "tx_count": 1436,
               "tx_count_source": "api"
             }
           }
@@ -492,8 +492,8 @@
               "kas": 9963.3075697
             },
             "to_profile": {
-              "balance_kas": 734797793.9525617,
-              "tx_count": 142533,
+              "balance_kas": 721409643.135354,
+              "tx_count": 143096,
               "tx_count_source": "api"
             }
           }
@@ -516,7 +516,7 @@
           "exchange": "bitvavo",
           "profile": {
             "balance_kas": 0.0,
-            "tx_count": 12,
+            "tx_count": 16,
             "tx_count_source": "api"
           },
           "next_hop": {
@@ -528,8 +528,8 @@
               "kas": 3394718.89220013
             },
             "to_profile": {
-              "balance_kas": 9412384.74134942,
-              "tx_count": 25368,
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522,
               "tx_count_source": "api"
             }
           }
@@ -552,7 +552,7 @@
           "exchange": "bitvavo",
           "profile": {
             "balance_kas": 0.0,
-            "tx_count": 12,
+            "tx_count": 16,
             "tx_count_source": "api"
           },
           "next_hop": {
@@ -564,8 +564,8 @@
               "kas": 2664544.90568019
             },
             "to_profile": {
-              "balance_kas": 9412384.74134942,
-              "tx_count": 25368,
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522,
               "tx_count_source": "api"
             }
           }
@@ -588,7 +588,7 @@
           "exchange": "bitvavo",
           "profile": {
             "balance_kas": 0.0,
-            "tx_count": 12,
+            "tx_count": 16,
             "tx_count_source": "api"
           },
           "next_hop": {
@@ -600,8 +600,8 @@
               "kas": 4078863.88626487
             },
             "to_profile": {
-              "balance_kas": 9412384.74134942,
-              "tx_count": 25368,
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522,
               "tx_count_source": "api"
             }
           }
@@ -637,7 +637,7 @@
             },
             "to_profile": {
               "balance_kas": 0.0,
-              "tx_count": 1434,
+              "tx_count": 1436,
               "tx_count_source": "api"
             }
           }
@@ -660,7 +660,7 @@
           "exchange": "bitvavo",
           "profile": {
             "balance_kas": 0.0,
-            "tx_count": 12,
+            "tx_count": 16,
             "tx_count_source": "api"
           },
           "next_hop": {
@@ -672,8 +672,8 @@
               "kas": 3091522.94120709
             },
             "to_profile": {
-              "balance_kas": 9412384.74134942,
-              "tx_count": 25368,
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522,
               "tx_count_source": "api"
             }
           }
@@ -734,8 +734,8 @@
               "kas": 2121464.98936
             },
             "to_profile": {
-              "balance_kas": 774516822.4637226,
-              "tx_count": 130546,
+              "balance_kas": 762929032.207354,
+              "tx_count": 131152,
               "tx_count_source": "api"
             }
           }
@@ -770,8 +770,8 @@
               "kas": 1579726.98936
             },
             "to_profile": {
-              "balance_kas": 774516822.4637226,
-              "tx_count": 130546,
+              "balance_kas": 762929032.207354,
+              "tx_count": 131152,
               "tx_count_source": "api"
             }
           }
@@ -794,7 +794,7 @@
           "exchange": "bitvavo",
           "profile": {
             "balance_kas": 0.0,
-            "tx_count": 12,
+            "tx_count": 16,
             "tx_count_source": "api"
           },
           "next_hop": {
@@ -806,8 +806,8 @@
               "kas": 2118152.44033898
             },
             "to_profile": {
-              "balance_kas": 9412384.74134942,
-              "tx_count": 25368,
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522,
               "tx_count_source": "api"
             }
           }
@@ -826,7 +826,7 @@
           "address": "kaspa:qr005jya8ztzty40qfta94rzgl5yakghlkxamamuu44qpt58qpwrvj267f0td",
           "kas": 2992969.276835,
           "verdict": "boerse wahrscheinlich",
-          "reason": "weitergeleitet am 2026-08-27 an eine adresse mit 36,801 transaktionen",
+          "reason": "weitergeleitet am 2026-08-27 an eine adresse mit 38,381 transaktionen",
           "exchange": null,
           "profile": {
             "balance_kas": 0.0,
@@ -842,8 +842,80 @@
               "kas": 3021495.586835
             },
             "to_profile": {
-              "balance_kas": 277691815.3124299,
-              "tx_count": 36801,
+              "balance_kas": 299469535.7710589,
+              "tx_count": 38381,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1789390674091,
+      "day": "2026-09-14",
+      "tx": "fea10a7aebd3d4534c2f3dfceaf58d3cc13cd90cd89303c09665e3862b2e8a41",
+      "net_out_kas": 3147380.00316489,
+      "sent_gross_kas": 615521437.1550062,
+      "change_back_kas": 612374057.1518413,
+      "destinations": [
+        {
+          "address": "kaspa:qzje8wvpf4k3m2j4tv2vh5nshrsm7dmfnu63fy79snhahzd7d58yxj55qymaw",
+          "kas": 3147380.0,
+          "verdict": "boerse ueber zwischenadresse",
+          "reason": "am 2026-09-14 weitergeleitet an die auf kaspa.stream als bitvavo beschriftete adresse",
+          "exchange": "bitvavo",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 16,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1789393509829,
+            "day": "2026-09-14",
+            "tx": "46d58ddcfb2c552b00e0a40f5b02375584a517feeb3dcd0a28d84c78905adce2",
+            "to": {
+              "address": "kaspa:qzxs23g7txh3wq9d0t2z0hluhsflvzpf6d0yfum830ppumgtxa5d7zqca8r67",
+              "kas": 2996060.36553868
+            },
+            "to_profile": {
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522,
+              "tx_count_source": "api"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ts": 1789648180762,
+      "day": "2026-09-17",
+      "tx": "69d060840d25183c1a82b6033472b137c7eedf975b90e622306b450538e3e507",
+      "net_out_kas": 5626974.00316489,
+      "sent_gross_kas": 631568345.3102412,
+      "change_back_kas": 625941371.3070763,
+      "destinations": [
+        {
+          "address": "kaspa:qzje8wvpf4k3m2j4tv2vh5nshrsm7dmfnu63fy79snhahzd7d58yxj55qymaw",
+          "kas": 5626974.0,
+          "verdict": "boerse ueber zwischenadresse",
+          "reason": "am 2026-09-17 weitergeleitet an die auf kaspa.stream als bitvavo beschriftete adresse",
+          "exchange": "bitvavo",
+          "profile": {
+            "balance_kas": 0.0,
+            "tx_count": 16,
+            "tx_count_source": "api"
+          },
+          "next_hop": {
+            "ts": 1789654880181,
+            "day": "2026-09-17",
+            "tx": "a7e28582aa948050d898f9ccacd7f0d4b1eaaa204e71257e77b82e408cfd9d8a",
+            "to": {
+              "address": "kaspa:qzxs23g7txh3wq9d0t2z0hluhsflvzpf6d0yfum830ppumgtxa5d7zqca8r67",
+              "kas": 5626939.9955208
+            },
+            "to_profile": {
+              "balance_kas": 16175181.09992578,
+              "tx_count": 25522,
               "tx_count_source": "api"
             }
           }
