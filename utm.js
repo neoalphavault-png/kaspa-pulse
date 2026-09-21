@@ -17,7 +17,9 @@
  *    an die sich niemand erinnert.
  * 3. Nur was auf der Liste steht, kommt durch. Quelle und Gattung werden
  *    gegen QUELLEN und MEDIEN aus scripts/utm.py geprueft, die Kampagne
- *    gegen dieselbe Slug-Regel. Alles andere heisst "other". Ein Tippfehler
+ *    gegen dieselben zwei Formen: die datierte Short-Kampagne
+ *    short-JJJJ-MM-TT-<slug> und sonst die Slug-Regel. Alles andere
+ *    heisst "other". Ein Tippfehler
  *    in einer Videobeschreibung ("youtube-shorts") macht damit keine zweite
  *    Zeile in der Auswertung auf, sondern faellt in einen Topf, den man
  *    sieht. Der Selbsttest in scripts/utm.py vergleicht beide Listen.
@@ -44,9 +46,18 @@
   var MEDIEN = ["shorts", "video", "post", "chat", "mail", "site"];
 
   /* Fuer die Kampagne gibt es keine feste Liste, jede Folge bringt eine
-     neue. utm.py laesst jeden Slug zu, also laesst diese Zeile denselben
-     zu; eine Aufzaehlung wuerde jede kommende Kampagne zu "other" machen,
-     bis jemand diese Datei anfasst. */
+     neue. Also Formen statt Einzelwerten, und zwar zwei:
+
+     KURZ  die datierte Short-Kampagne, short-JJJJ-MM-TT-<slug>
+     SLUG  alles andere, dieselbe Regel wie in scripts/utm.py
+
+     Die datierte Form bindet: was mit "short-" anfaengt, MUSS sie
+     erfuellen. Sonst waere sie folgenlos, denn "short-2026-9-21-blocks"
+     (Null vergessen) ist auch ein gueltiger Slug und stuende still als
+     eigene Zeile neben den richtig datierten. Genau der Fall, den die
+     Liste verhindern soll. Alles ohne "short-" laeuft weiter ueber SLUG,
+     damit die naechste Folge nicht "other" heisst. */
+  var KURZ = /^short-(\d{4})-(\d{2})-(\d{2})-[a-z0-9][a-z0-9-]*$/;
   var SLUG = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
   /* Was wir selbst einsetzen, wenn nichts ankommt, und der Sammeltopf. */
@@ -62,6 +73,21 @@
     return String(v == null ? "" : v).trim().toLowerCase().slice(0, 128);
   }
 
+  function kampagne(v) {
+    /* Zuerst die datierte Form, weil sie bindet. Der Monat muss 01 bis 12
+       sein und der Tag 01 bis 31; ein "short-2026-13-45-x" ist ein
+       Vertipper, kein Datum. */
+    if (v.length > 64) { return ANDERE; }
+    if (v.indexOf("short-") === 0) {
+      var m = KURZ.exec(v);
+      if (!m) { return ANDERE; }
+      var monat = Number(m[2]), tag = Number(m[3]);
+      if (monat < 1 || monat > 12 || tag < 1 || tag > 31) { return ANDERE; }
+      return v;
+    }
+    return SLUG.test(v) ? v : ANDERE;
+  }
+
   function erlaubt(k, v) {
     /* Der Abgleich. Leer bleibt leer, damit setzen() den eigenen Wert
        einsetzt; alles Unbekannte wird "other". */
@@ -69,7 +95,7 @@
     if (v === EIGEN[k] || v === ANDERE) { return v; }
     if (k === "utm_source") { return QUELLEN.indexOf(v) < 0 ? ANDERE : v; }
     if (k === "utm_medium") { return MEDIEN.indexOf(v) < 0 ? ANDERE : v; }
-    return SLUG.test(v) ? v : ANDERE;
+    return kampagne(v);
   }
 
   function ausUrl() {

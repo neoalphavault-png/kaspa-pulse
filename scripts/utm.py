@@ -68,6 +68,26 @@ MEDIEN = ("shorts", "video", "post", "chat", "mail", "site")
 
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 
+# Die datierte Short-Kampagne. Eine Form, keine Aufzaehlung: jeder Short
+# bringt eine neue, und eine Liste waere am Tag nach dem naechsten Short
+# veraltet. Die Form bindet dafuer: was mit "short-" anfaengt, muss sie
+# erfuellen, sonst steht "short-2026-9-21-blocks" (Null vergessen) als
+# eigene Zeile neben dem richtig datierten Short.
+KURZ = re.compile(r"^short-(\d{4})-(\d{2})-(\d{2})-[a-z0-9][a-z0-9-]*$")
+
+
+def kampagne_ok(c):
+    """True, wenn der Kampagnen-Slug eine der beiden Formen erfuellt.
+    utm.js prueft wortgleich dasselbe; der Selbsttest vergleicht beide."""
+    if len(c) > 64:
+        return False
+    if c.startswith("short-"):
+        m = KURZ.match(c)
+        if not m:
+            return False
+        return 1 <= int(m.group(2)) <= 12 and 1 <= int(m.group(3)) <= 31
+    return bool(SLUG.match(c))
+
 # utm.js prueft die Adresse gegen eine wortgleiche Kopie von QUELLEN und
 # MEDIEN. Wer hier eine sechste Quelle eintraegt und dort nicht, bekommt
 # keinen Fehler, sondern still ein "other" am Kontakt: sauber gemessener
@@ -84,6 +104,12 @@ def js_liste(text, name):
     return [s.strip().strip('"') for s in m.group(1).split(",") if s.strip()]
 
 
+def js_muster(text, name):
+    """Die Quelle einer 'var NAME = /.../;'-Zeile aus utm.js, oder None."""
+    m = re.search(r"var %s = /(.*?)/;" % name, text)
+    return m.group(1) if m else None
+
+
 def link(source, medium=None, campaign=None):
     """Der Anmeldelink fuer eine Quelle. medium faellt auf die Gattung der
     Quelle zurueck, campaign ist Pflicht, sobald es eine Serie gibt."""
@@ -96,8 +122,10 @@ def link(source, medium=None, campaign=None):
                          % (medium, ", ".join(MEDIEN)))
     q = [("utm_source", source), ("utm_medium", medium)]
     if campaign:
-        if not SLUG.match(campaign):
-            raise ValueError("campaign muss ein slug sein (a-z, 0-9, minus): %r" % campaign)
+        if not kampagne_ok(campaign):
+            raise ValueError(
+                "campaign muss ein slug sein (a-z, 0-9, minus) oder ein "
+                "datierter short (short-JJJJ-MM-TT-<slug>): %r" % campaign)
         q.append(("utm_campaign", campaign))
     return BASIS + "?" + urllib.parse.urlencode(q) + ANKER
 
@@ -150,6 +178,23 @@ def selftest():
     pruefe("utm.js kennt dieselben quellen",
            js_liste(js, "QUELLEN"), list(QUELLEN))
     pruefe("utm.js kennt dieselben gattungen", js_liste(js, "MEDIEN"), list(MEDIEN))
+    pruefe("utm.js kennt dieselbe slug-regel", js_muster(js, "SLUG"), SLUG.pattern)
+    pruefe("utm.js kennt dasselbe short-muster", js_muster(js, "KURZ"), KURZ.pattern)
+
+    # die datierte Short-Kampagne
+    pruefe("datierter short geht", link("yt-description", "shorts", "short-2026-09-21-blocks"),
+           "https://kaspapulse.com/?utm_source=yt-description&utm_medium=shorts"
+           "&utm_campaign=short-2026-09-21-blocks#subscribe")
+    pruefe("shorts ist eine gattung", "shorts" in MEDIEN, True)
+    for schlecht_c in ("short-2026-9-21-blocks",      # Null vergessen
+                       "short-20260921-blocks",       # Bindestriche vergessen
+                       "short-2026-13-45-blocks",     # kein Datum
+                       "short-2026-09-21",            # ohne Titel
+                       "short-2026-09-21-"):          # Bindestrich ohne Titel
+        pruefe("krummer short faellt auf: %s" % schlecht_c, kampagne_ok(schlecht_c), False)
+    pruefe("normale kampagne bleibt erlaubt", kampagne_ok("week-in-30"), True)
+    pruefe("kampagne ohne short-praefix wird nicht datiert geprueft",
+           kampagne_ok("shorts-and-longs"), True)
 
     for falsch, was in ((("youtube-shorts",), "unbekannte quelle"),
                         (("yt-description", "reel"), "unbekannte gattung"),
@@ -161,7 +206,7 @@ def selftest():
         except ValueError:
             print("  ok   %s faellt auf" % was)
 
-    print("%d von 16 faellen falsch" % schlecht)
+    print("%d von 27 faellen falsch" % schlecht)
     return 1 if schlecht else 0
 
 
