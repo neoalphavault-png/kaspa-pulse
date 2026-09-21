@@ -1,19 +1,19 @@
 {
- "date": "2026-09-14",
- "main": "kaspa just closed a week above its 21 week average for the first time in 57 weeks, 12.85 percent above the line, the widest gap in the whole 94 week window. what finally breaks a line like that?",
+ "date": "2026-09-21",
+ "main": "kaspa's 50 week average has existed for 46 weeks. this saturday's close is the first one above it, 5.98 percent over the line. the 21 week gap widened to 22.5 percent, the widest we have measured. what closes the gap next week?",
  "image": "",
- "reply_video": "the whole close in one sitting, the line, the streak and what one kas buys in bitcoin {video_url}",
+ "reply_video": "the whole close in one sitting, the fifty week line, the twenty one week gap and what one kas buys in bitcoin {video_url}",
  "reply_newsletter": "the same numbers land by email every monday at 16:05 berlin, before the video is anywhere else https://kaspapulse.com/?utm_source=x&utm_medium=post&utm_campaign=weekly-numbers#subscribe",
  "video_url": "",
  "_hinweise": {
-  "wer fuellt das": "Die Sonntagsroutine schreibt date, main, image, reply_video und reply_newsletter. weekly-guard.yml traegt montags 15:55 Berlin video_url ein, sobald die Folge oeffentlich ist. weekly-afternoon.yml postet um 16:20.",
+  "wer fuellt das": "Die Sonntagsroutine schreibt date, main, image, reply_video und reply_newsletter. weekly-guard.yml traegt montags 15:55 Berlin video_url ein, sobald die Folge oeffentlich ist; weekly-guard.yml steht aktuell auf disabled_manually, also traegt Ben video_url von Hand ein. weekly-afternoon.yml (ebenfalls disabled_manually) postet sonst um 16:20.",
   "date": "Der Tag, an dem der Faden rausgeht, JJJJ-MM-TT. Steht hier nicht das heutige Datum, postet x_post.py --weekly nichts und der Lauf bleibt gruen. Das Datum ist der Schalter.",
   "main": "Hauptpost, NIE mit Link. Ein Link im Hauptpost kostet 0,20 $ statt 0,015 $, und das Skript bricht deshalb ab.",
   "image": "Wochengrafik im Format 4:5 (1080x1350). x_post.py warnt, wenn das Verhaeltnis nicht stimmt. Leer seit 14.09.: es gibt im Repo keinen Erzeuger fuer diese Grafik, ein Platzhalter aus einer alten Woche (z.B. pulse-week5.png) wird bewusst nicht wiederverwendet, bis der Erzeuger existiert.",
   "reply_video": "Erste Selbstantwort. {video_url} wird ersetzt; steht kein Platzhalter drin, wird der Link hinten angehaengt.",
   "reply_newsletter": "Zweite Selbstantwort, haengt an der ersten und muss den Anmeldelink tragen, sonst bricht das Skript ab. Der Link traegt seit dem 16.09.2026 utm_source=x (scripts/utm.py), sonst weiss niemand, ob X die Liste fuellt.",
-  "video_url": "Leer heisst: kein Video bestaetigt, also kein Faden. Nur weekly-guard.yml traegt hier ein.",
+  "video_url": "Leer heisst: kein Video bestaetigt, also kein Faden. Nur weekly-guard.yml traegt hier ein, aktuell also nur Ben von Hand.",
   "kosten": "Hauptpost 0,015 $, zwei Antworten mit Link je 0,20 $, zusammen rund 0,42 $ je Montag. Mit Number of the Day (0,215 $/Tag) bleibt der Monat bei rund 8 $ von 15 $ Spend Cap.",
-  "stand der zahlen": "main und reply_video sind am 14.09. gegen den fertigen Wochenschluss vom Samstag 12.09. geschrieben (Schluss 0,03523, 21-Wochen-Linie 0,031219, 12,85 Prozent darueber, siehe pulse-studio/docs/weekly/2026-09-14.md)."
+  "stand der zahlen": "main und reply_video sind am 21.09. gegen den fertigen Wochenschluss vom Samstag 19.09. geschrieben (Schluss 0,03912, 50-Wochen-Linie 0,036914, 5,98 Prozent darueber, 21-Wochen-Linie 0,031937, 22,49 Prozent darueber, siehe pulse-studio/docs/weekly/2026-09-21.md)."
  }
 }
