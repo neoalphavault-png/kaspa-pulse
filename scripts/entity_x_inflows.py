@@ -224,6 +224,24 @@ def prev_hop(address, before_ts, min_kas):
 
     Wir suchen die letzte Transaktion VOR dem Zufluss, in der diese Adresse
     Empfaenger war, und nehmen den groessten fremden Absender daraus.
+
+    ACHTUNG, Feldbedeutung. Umbenannt am 21.09.2026, weil die alte
+    Beschriftung "kas" in einer Pruefung fast zu einem falschen Fund
+    gefuehrt haette:
+
+      frm.input_kas   Wie gross der Input DIESER Adresse in der
+                      Herkunftstransaktion war. Das ist NICHT der Betrag,
+                      der bei uns ankam und auch nicht der Betrag, den sie
+                      weitergeschickt hat. Eine Transaktion kann fast den
+                      ganzen Input als Wechselgeld an den Absender
+                      zurueckgeben. Beispiel: cd1fd92d... hat 90.000.000
+                      KAS als Input, ueberwiesen wurden 10 KAS.
+      received_kas    Was die profilierte Adresse in dieser Transaktion
+                      tatsaechlich bekommen hat. Das ist die Zahl, die man
+                      meint, wenn man fragt "wie viel kam von dort".
+
+    Bei einer Coinbase-Transaktion gibt es keine Inputs, dann ist
+    input_kas None und received_kas der Block Reward.
     """
     try:
         txs = fetch_transactions(address, max_pages=HOP_PAGES)
@@ -247,13 +265,14 @@ def prev_hop(address, before_ts, min_kas):
             if not a or a == address or amt is None:
                 continue
             amt = float(amt) / SOMPI
-            if best is None or amt > best["kas"]:
-                best = {"address": a, "kas": round(amt, 8)}
+            if best is None or amt > best["input_kas"]:
+                best = {"address": a, "input_kas": round(amt, 8)}
         if best is None and not (t.get("inputs") or []):
-            best = {"address": "coinbase", "kas": round(gain, 8)}
+            best = {"address": "coinbase", "input_kas": None}
         if best:
             cands.append({"ts": bt, "day": day(bt),
-                          "tx": t.get("transaction_id", ""), "frm": best})
+                          "tx": t.get("transaction_id", ""), "frm": best,
+                          "received_kas": round(gain, 8)})
     if not cands:
         return None
     cands.sort(key=lambda x: -x["ts"])

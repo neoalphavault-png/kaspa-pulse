@@ -240,102 +240,178 @@ def profile(address):
         p["txcount_error"] = str(e)[:120]
     _profile_cache[address] = p
     return p
+# ---------------------------------------------------------------------------
+# Hops und Urteile. Wortgleich zu entity_x_inflows.py (Zufluss) und
+# entity_x_outflows.py (Abfluss). Angeglichen am 21.09.2026, nachdem die
+# beiden Implementierungen desselben Urteils 87,98 gegen 88,06 Prozent
+# geliefert hatten. Ursache war nicht die Reihenfolge im Urteil, sondern
+# die Auswahl des Hops: hier wurde der zuletzt eingegangene Betrag genommen,
+# dort der letzte Eingang VOR unserem Transfer und mindestens halb so gross.
+# Die zweite Definition ist die richtige, denn gesucht ist die Herkunft der
+# Coins, die zu uns kamen, nicht irgendein spaeterer Eingang.
+# ---------------------------------------------------------------------------
+def prev_hop(address, before_ts, min_kas):
+    """Woher hatte der Absender die Coins vor unserem Zufluss.
 
-
-def classify(address, prof, hop=None):
-    """Urteil ueber eine Adresse. Streng: 'boerse' nur mit Label."""
-    if address in KNOWN:
-        return ("boerse", KNOWN[address],
-                f"adresse ist auf kaspa.stream als {KNOWN[address]} beschriftet")
-    if hop and hop.get("frm"):
-        h = hop["frm"]["address"]
-        if h in KNOWN:
-            return ("boerse ueber zwischenadresse", KNOWN[h],
-                    f"zwischenadresse wurde am {hop['day']} von der auf "
-                    f"kaspa.stream als {KNOWN[h]} beschrifteten adresse befuellt")
-        hp = hop.get("frm_profile") or {}
-        if (hp.get("tx_count") or 0) >= BUSY_TX:
-            return ("boerse ueber zwischenadresse wahrscheinlich", None,
-                    f"zwischenadresse wurde am {hop['day']} von einer adresse "
-                    f"mit {hp['tx_count']:,} transaktionen befuellt")
-    n = prof.get("tx_count") or 0
-    if n >= BUSY_TX:
-        return ("boerse wahrscheinlich", None,
-                f"adresse hat {n:,} transaktionen, das ist kein privates wallet")
-    if n and n < 50:
-        return ("frisches wallet", None,
-                f"adresse hat nur {n} transaktionen und kein label")
-    return ("unklar", None, f"adresse hat {n:,} transaktionen und kein label")
-
-
-def prev_hop(address):
-    """Woher kam das Geld, das diese Adresse zuletzt bekommen hat."""
+    Feldbedeutung, siehe entity_x_inflows.py:
+      frm.input_kas  Groesse des Inputs DIESER Adresse in der
+                     Herkunftstransaktion. NICHT der ueberwiesene Betrag.
+      received_kas   Was die profilierte Adresse dort wirklich bekam.
+    """
     txs = fetch_transactions(address, max_pages=HOP_PAGES, quiet=True)
-    best = None
+    cands = []
     for t in txs:
-        got = 0.0
+        bt = t.get("block_time") or 0
+        if bt >= before_ts:
+            continue
+        gain = 0.0
         for o in t.get("outputs") or []:
             if out_addr(o) == address:
-                got += float(o.get("amount", 0)) / SOMPI
-        if got <= DUST_KAS:
+                gain += float(o.get("amount", 0)) / SOMPI
+        if gain < min_kas * 0.5:
             continue
-        biggest = None
+        best = None
         for i in t.get("inputs") or []:
             a = i.get("previous_outpoint_address")
             amt = i.get("previous_outpoint_amount")
-            if a is None or amt is None or a == address:
+            if not a or a == address or amt is None:
                 continue
-            kas = float(amt) / SOMPI
-            if biggest is None or kas > biggest["kas"]:
-                biggest = {"address": a, "kas": kas}
-        if not biggest:
-            continue
-        bt = t.get("block_time") or 0
-        if best is None or bt > best["ts"]:
-            best = {"ts": bt, "day": day(bt), "tx": t.get("transaction_id", ""),
-                    "frm": biggest}
-    if best:
-        best["frm_profile"] = profile(best["frm"]["address"])
-    return best
+            amt = float(amt) / SOMPI
+            if best is None or amt > best["input_kas"]:
+                best = {"address": a, "input_kas": round(amt, 8)}
+        if best is None and not (t.get("inputs") or []):
+            best = {"address": "coinbase", "input_kas": None}
+        if best:
+            cands.append({"ts": bt, "day": day(bt),
+                          "tx": t.get("transaction_id", ""), "frm": best,
+                          "received_kas": round(gain, 8)})
+    if not cands:
+        return None
+    cands.sort(key=lambda x: -x["ts"])
+    hop = cands[0]
+    if hop["frm"]["address"] != "coinbase":
+        hop["frm_profile"] = profile(hop["frm"]["address"])
+    return hop
 
 
-def next_hop(address):
-    """Wohin hat diese Adresse weitergeschickt, nachdem sie bekam."""
+def next_hop(address, after_ts, min_kas):
+    """Wohin hat der Empfaenger das Geld danach weitergeschickt.
+
+    to.kas ist hier ein echter Ueberweisungsbetrag, naemlich der groesste
+    Output der Weiterleitung. Deshalb bleibt der Name so.
+    """
     txs = fetch_transactions(address, max_pages=HOP_PAGES, quiet=True)
-    best = None
+    cands = []
     for t in txs:
-        spent = 0.0
-        for i in t.get("inputs") or []:
-            a = i.get("previous_outpoint_address")
-            amt = i.get("previous_outpoint_amount")
-            if a == address and amt is not None:
-                spent += float(amt) / SOMPI
-        if spent <= DUST_KAS:
+        bt = t.get("block_time") or 0
+        if bt <= after_ts:
             continue
-        biggest = None
+        spends = any(i.get("previous_outpoint_address") == address
+                     for i in (t.get("inputs") or []))
+        if not spends:
+            continue
+        best = None
         for o in t.get("outputs") or []:
             a = out_addr(o)
             if not a or a == address:
                 continue
-            kas = float(o.get("amount", 0)) / SOMPI
-            if biggest is None or kas > biggest["kas"]:
-                biggest = {"address": a, "kas": kas}
-        if not biggest:
-            continue
-        bt = t.get("block_time") or 0
-        if best is None or bt > best["ts"]:
-            best = {"ts": bt, "day": day(bt), "tx": t.get("transaction_id", ""),
-                    "to": biggest}
-    if best:
-        best["to_profile"] = profile(best["to"]["address"])
-        best["to_label"] = KNOWN.get(best["to"]["address"])
-    return best
+            amt = float(o.get("amount", 0)) / SOMPI
+            if best is None or amt > best["kas"]:
+                best = {"address": a, "kas": round(amt, 8)}
+        if best and best["kas"] >= min_kas * 0.5:
+            cands.append({"ts": bt, "day": day(bt),
+                          "tx": t.get("transaction_id", ""), "to": best})
+    if not cands:
+        return None
+    cands.sort(key=lambda x: x["ts"])
+    hop = cands[0]
+    hop["to_profile"] = profile(hop["to"]["address"])
+    return hop
 
 
-# ---------------------------------------------------------------------------
-# 1. Gegenprobe. Der Ledger rechnet Brutto minus Abfluss plus Staub. Die
-#    Knoten-API nennt den Kontostand direkt. Beide muessen sich treffen.
-# ---------------------------------------------------------------------------
+def classify_source(addr, prof, hop):
+    """Zufluss-Urteil. Reihenfolge wortgleich zu entity_x_inflows.py.
+
+    Rueckgabe (verdict, reason, exchange). Ein Boersenname kommt
+    ausschliesslich aus KNOWN, also aus einem fremden Label, nie aus
+    unserer eigenen Vermutung. Ein Eingang von einer Boersen-Hotwallet ist
+    eine Abhebung, kein belegter Kauf.
+    """
+    n = prof.get("tx_count")
+    if addr == "coinbase":
+        return ("mining direkt", "coinbase-transaktion, block reward", None)
+    if addr in KNOWN:
+        return ("boerse", f"absender ist auf kaspa.stream als "
+                f"{KNOWN[addr]} beschriftet", KNOWN[addr])
+    hop_addr = hop["frm"]["address"] if hop else None
+    if hop_addr and hop_addr in KNOWN:
+        return ("boerse ueber zwischenadresse",
+                f"absender wurde am {hop['day']} von der auf kaspa.stream als "
+                f"{KNOWN[hop_addr]} beschrifteten adresse befuellt",
+                KNOWN[hop_addr])
+    if n is not None and n >= BUSY_TX:
+        return ("boerse wahrscheinlich",
+                f"absender hat {n:,} transaktionen, das ist kein privates "
+                f"wallet", None)
+    hop_n = ((hop or {}).get("frm_profile") or {}).get("tx_count")
+    if hop_n is not None and hop_n >= BUSY_TX:
+        return ("boerse ueber zwischenadresse wahrscheinlich",
+                f"absender wurde am {hop['day']} von einer adresse mit "
+                f"{hop_n:,} transaktionen befuellt", None)
+    if hop_addr == "coinbase":
+        return ("mining ueber zwischenadresse",
+                f"absender wurde am {hop['day']} direkt aus einem block "
+                f"reward befuellt", None)
+    if n is not None and n < 50:
+        return ("frisches wallet",
+                f"absender hat nur {n} transaktionen und kein label, "
+                f"herkunft dahinter " +
+                (f"ebenfalls unbeschriftet ({hop_addr[:24]})" if hop_addr
+                 else "nicht gefunden"), None)
+    return ("unklar", "kein label, kein eindeutiges profil", None)
+
+
+def classify_dest(addr, prof, hop, received_kas):
+    """Abfluss-Urteil. Reihenfolge wortgleich zu entity_x_outflows.py.
+
+    Auch ein sicher benannter Boersen-Eingang ist keine Aussage ueber einen
+    Verkauf. Er ist eine Einzahlung. Was danach passiert, sieht die Kette
+    nicht.
+    """
+    n = prof.get("tx_count")
+    bal = prof.get("balance_kas")
+    if addr in KNOWN:
+        return ("boerse", f"empfaenger ist auf kaspa.stream als "
+                f"{KNOWN[addr]} beschriftet", KNOWN[addr])
+    hop_addr = hop["to"]["address"] if hop else None
+    if hop_addr and hop_addr in KNOWN:
+        return ("boerse ueber zwischenadresse",
+                f"am {hop['day']} weitergeleitet an die auf kaspa.stream als "
+                f"{KNOWN[hop_addr]} beschriftete adresse", KNOWN[hop_addr])
+    if n is not None and n >= BUSY_TX:
+        return ("boerse wahrscheinlich",
+                f"empfaenger hat {n:,} transaktionen, das ist kein privates "
+                f"wallet", None)
+    hop_n = ((hop or {}).get("to_profile") or {}).get("tx_count")
+    if hop_n is not None and hop_n >= BUSY_TX:
+        return ("boerse wahrscheinlich",
+                f"weitergeleitet am {hop['day']} an eine adresse mit "
+                f"{hop_n:,} transaktionen", None)
+    if hop:
+        return ("weitergeschickt, ziel unklar",
+                f"am {hop['day']} weiter an {hop_addr[:28]}", None)
+    if bal is not None and bal >= received_kas * 0.95:
+        return ("liegt noch da",
+                f"empfaenger haelt heute {bal:,.0f} KAS, hat also nichts "
+                f"bewegt", None)
+    if bal is not None:
+        return ("unklar",
+                f"empfaenger haelt heute {bal:,.0f} KAS von "
+                f"{received_kas:,.0f} erhaltenen, kein weiterer sprung "
+                f"gefunden", None)
+    return ("unklar", "empfaenger nicht profilierbar", None)
+
+
 def crosscheck_balances():
     out = {}
     try:
@@ -458,21 +534,8 @@ def main():
                  "kas": round(f["kas"], 8), "recipients": []}
         for a, kas in sorted(recips.items(), key=lambda x: -x[1]):
             prof = profile(a)
-            hop = next_hop(a) if kas > DUST_KAS else None
-            verdict, exch, reason = classify(a, prof, None)
-            # Fuer Ziele zaehlt der WEITERE hop, nicht der vorherige.
-            if exch is None and hop:
-                if hop.get("to_label"):
-                    verdict = "boerse ueber zwischenadresse"
-                    exch = hop["to_label"]
-                    reason = (f"empfaenger leitete am {hop['day']} weiter an die "
-                              f"auf kaspa.stream als {hop['to_label']} "
-                              f"beschriftete adresse")
-                elif ((hop.get("to_profile") or {}).get("tx_count") or 0) >= BUSY_TX:
-                    verdict = "boerse ueber zwischenadresse wahrscheinlich"
-                    reason = (f"empfaenger leitete am {hop['day']} weiter an eine "
-                              f"adresse mit {hop['to_profile']['tx_count']:,} "
-                              f"transaktionen")
+            hop = next_hop(a, f["ts"], kas) if kas > DUST_KAS else None
+            verdict, reason, exch = classify_dest(a, prof, hop, kas)
             entry["recipients"].append({
                 "address": a, "kas": round(kas, 8), "profile": prof,
                 "verdict": verdict, "exchange": exch, "reason": reason,
@@ -713,8 +776,12 @@ def main():
 
     # -------------------------------------------------------------- 6
     print("\n[6] zuflussledger, anteil aus benannten boersen-wallets")
+    # last_ts und min_kas werden fuer die Hop-Suche gebraucht: gesucht ist
+    # der letzte Eingang VOR unserem Transfer, mindestens halb so gross.
+    # Gleiche Definition wie in entity_x_inflows.py.
     senders = defaultdict(lambda: {"kas": 0.0, "transfers": 0,
-                                   "first": None, "last": None})
+                                   "first": None, "last": None,
+                                   "min_kas": None})
     for f in inflows:
         t = f["raw"]
         gross_in = defaultdict(float)
@@ -731,8 +798,11 @@ def main():
         # hotwallet mit und eine boerse landet bei 155 prozent.
         for a, kas in gross_in.items():
             s = senders[a]
-            s["kas"] += f["kas"] * (kas / tot)
+            anteil = f["kas"] * (kas / tot)
+            s["kas"] += anteil
             s["transfers"] += 1
+            if s["min_kas"] is None or anteil < s["min_kas"]:
+                s["min_kas"] = anteil
             if s["first"] is None or f["ts"] < s["first"]:
                 s["first"] = f["ts"]
             if s["last"] is None or f["ts"] > s["last"]:
@@ -748,12 +818,13 @@ def main():
     for rank, (a, s) in enumerate(ranked):
         if rank < PROFILE_TOP:
             p = profile(a)
-            hop = prev_hop(a) if rank < HOP_TOP else None
-            verdict, exch, reason = classify(a, p, hop)
+            hop = (prev_hop(a, s["last"], s["min_kas"] or 0.0)
+                   if rank < HOP_TOP else None)
+            verdict, reason, exch = classify_source(a, p, hop)
         else:
             p, hop = {}, None
-            verdict, exch, reason = ("nicht einzeln profiliert", None,
-                                     "unterhalb der profilierungsgrenze")
+            verdict, reason, exch = ("nicht einzeln profiliert",
+                                     "unterhalb der profilierungsgrenze", None)
         verdict_counts[verdict] += 1
         kas_by_verdict[verdict] += s["kas"]
         if exch:

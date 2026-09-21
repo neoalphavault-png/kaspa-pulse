@@ -1,12 +1,16 @@
 # Kaspa Pulse - Entity X Cluster Audit
 #
 # Liegt bewusst NUR auf dem Branch audit/entity-x-cluster. Nicht gemerged.
-# Ben entscheidet nach dem Lauf, ob die Datei dauerhaft ins Repo soll.
+# Ben entscheidet per PR von Hand, ob die Datei dauerhaft ins Repo soll.
 #
 # Warum push statt nur workflow_dispatch: ein per API angestossener
 # workflow_dispatch findet nur Workflows, die auf dem Default-Branch
 # liegen. Ein push-Trigger laeuft dagegen aus dem Branch heraus, in den er
 # gepusht wurde. So braucht dieser Lauf main nicht anzufassen.
+#
+# Der Job laeuft alle drei Entity-X-Skripte hintereinander gegen denselben
+# Kettenstand und vergleicht ihre Urteile. Genau dafuer ist er da: zwei
+# Implementierungen derselben Regel sollen dieselbe Zahl liefern.
 #
 # Der Job schreibt ausschliesslich auf diesen Branch und postet nichts.
 
@@ -36,20 +40,79 @@ jobs:
         with:
           python-version: "3.12"
 
+      # Reihenfolge wie im Wochenplan: erst Zufluss, dann Abfluss, dann das
+      # Audit. Nacheinander, damit sich die drei nicht gleichzeitig durch
+      # dieselbe Adresse paginieren.
+      - name: zufluss-ledger
+        run: |
+          set -o pipefail
+          python3 scripts/entity_x_inflows.py 2>&1 | tee inflows.log
+
+      - name: abfluss-spurensuche
+        run: |
+          set -o pipefail
+          python3 scripts/entity_x_outflows.py 2>&1 | tee outflows.log
+
       - name: cluster audit
         run: |
           set -o pipefail
           python3 scripts/entity_x_tracker_audit.py 2>&1 | tee audit.log
 
+      - name: klassifizierer vergleichen
+        run: |
+          python3 - <<'PY'
+          import json
+          inf = json.load(open("data/entity-x-inflows.json"))
+          out = json.load(open("data/entity-x-outflows.json"))
+          aud = json.load(open("data/entity-x-tracker-audit.json"))
+          al = aud["inflow_ledger"]
+          rows = [
+              ("zufluesse",        inf["inflow_count"],          al["deposits"]),
+              ("absender",         inf["distinct_senders"],      al["distinct_senders"]),
+              ("abfluesse",        out["outflow_count"],         aud["outflow_count"]),
+          ]
+          print(f"{'groesse':<22}{'produktiv':>16}{'audit':>16}{'':>6}")
+          bad = []
+          for name, a, b in rows:
+              same = (a == b)
+              print(f"{name:<22}{a:>16,}{b:>16,}{'  ok' if same else '  ABWEICHUNG':>6}")
+              if not same:
+                  bad.append(name)
+          for name, a, b in [
+              ("zufluss-KAS",  inf["inflow_kas"],          aud["gross_accumulation_kas"]),
+              ("abfluss-KAS",  out["outflow_kas"],         aud["outflow_total_kas"]),
+              ("boersenanteil", inf["named_exchange_share"], al["named_exchange_share"]),
+          ]:
+              same = abs(a - b) <= max(0.01, abs(a) * 1e-9)
+              print(f"{name:<22}{a:>16,.6f}{b:>16,.6f}{'  ok' if same else '  ABWEICHUNG':>6}")
+              if not same:
+                  bad.append(name)
+          print()
+          ie = inf["by_exchange"]
+          ae = al["by_exchange"]
+          for k in sorted(set(ie) | set(ae)):
+              a = (ie.get(k) or {}).get("kas", 0.0)
+              b = (ae.get(k) or {}).get("kas", 0.0)
+              same = abs(a - b) <= 0.01
+              print(f"  {k:<12}{a:>18,.2f}{b:>18,.2f}{'  ok' if same else '  ABWEICHUNG':>6}")
+              if not same:
+                  bad.append("boerse " + k)
+          if bad:
+              raise SystemExit("ABWEICHUNG in: " + ", ".join(bad))
+          print("\nbeide klassifizierer stimmen ueberein")
+          PY
+
       - name: ergebnis auf diesen branch schreiben, nicht nach main
+        if: always()
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
-          git add data/entity-x-tracker-audit.json
+          git add data/entity-x-tracker-audit.json data/entity-x-inflows.json \
+                  data/entity-x-outflows.json
           if git diff --staged --quiet; then
             echo "unveraendert, kein commit"
           else
-            git commit -m "entity x tracker audit $(date -u +%Y-%m-%dT%H:%M:%SZ) [bot]"
+            git commit -m "entity x audit $(date -u +%Y-%m-%dT%H:%M:%SZ) [bot]"
             git push origin HEAD:${GITHUB_REF_NAME}
           fi
 
@@ -60,4 +123,8 @@ jobs:
           name: entity-x-tracker-audit
           path: |
             data/entity-x-tracker-audit.json
+            data/entity-x-inflows.json
+            data/entity-x-outflows.json
             audit.log
+            inflows.log
+            outflows.log
