@@ -1,5 +1,5 @@
 {
-  "week": "2026-09-14",
+  "week": "2026-09-21",
   "manual": {
     "active_addr": 21170,
     "tps": 2.83,
@@ -7,10 +7,10 @@
     "dormant_pct": 50.97,
     "exchange_kas": 3883120966
   },
-  "read": "the close broke a fifty six week streak below the 21 week average, ending 12.85 percent above the line, the widest gap in the whole 94 week window. the reward cut on september 4 took the block reward to 2.1827 kas and hashrate set a fresh high the same week, 339.08 ph per second. active addresses and the covenant count have no fresher reading than last monday, so both numbers above carry over unchanged.",
+  "read": "the close broke above the fifty week average for the first time in the whole ninety five week window, sitting five point nine eight percent over it after an eleven percent weekly gain, while the gap to the twenty one week average widened to a new record twenty two point five percent and hashrate set a fresh high the same week. kaspalytics is unreachable from this container again, so active addresses, tps, holders, dormant percent and exchange holdings carry over unchanged from last monday.",
   "override": {
     "chain_fees": 226,
-    "hashrate": 339.08
+    "hashrate": 348.75
   },
   "issue": null,
   "_hinweise": {
