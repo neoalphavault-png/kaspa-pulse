@@ -1,0 +1,183 @@
+<!doctype html>
+<!--
+  KASPA PULSE, Newsletter Ausgabe 11, Montag 21.09.2026, 16:05 Berlin.
+
+  Dateiname ist Absicht: newsletter/<JJJJ-MM-TT>.html. weekly-guard.yml sucht
+  montags genau diesen Pfad (Guard ist aktuell disabled_manually, siehe unten).
+  Die Ausgabennummer steht im Text, nicht im Namen. Der Betreff steht in
+  <meta name="x-subject">, scripts/newsletter_subject.py liest ihn heraus.
+
+  ZAHLEN ENDGUELTIG, gegen den fertigen Wochenschluss vom Samstag 19.09.2026
+  nachgerechnet (siehe pulse-studio/docs/weekly/2026-09-21.md). Quelle fuer
+  alles hier: kaspa-pulse/data/kas-candles.json (Kraken Tagesschluss UTC),
+  weekly.json, week-input.json, number-of-day-log.json.
+
+  VIDEO_URL ist ein Platzhalter. Das Sprechvideo dieser Folge (KASPA WEEKLY
+  Folge 4) ist um 16:00 Berlin noch nicht veroeffentlicht, die Sonntagsdatei
+  trug keinen Link. Ben muss ihn nachliefern, sobald die Folge live ist.
+
+  Keine Wochengrafik eingebettet: es gibt im Repo weiterhin keinen Erzeuger
+  fuer ein 600x3-PNG (nur die Zahlen-Tabelle unten, kein Bild-Platzhalter aus
+  einer alten Woche).
+
+  UTM-Regel (docs/projekt/utm-regel.md, seit 16.09.): der Anmeldelink im
+  Footer traegt jetzt utm_source=newsletter, utm_medium=mail,
+  utm_campaign=weekly4 (scripts/utm.py link("newsletter", campaign="weekly4")).
+  Die Ausgabe vom 14.09. hatte noch den rohen Link, weil die Regel erst danach
+  kam.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-subject" content="the first close above a line 46 weeks old">
+<title>Kaspa Pulse Weekly, issue 11</title>
+</head>
+<body style="margin:0; padding:0; background:#050608;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#050608;">
+<tr><td align="center" style="padding:24px 12px 40px 12px;">
+
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:100%; background:#0B0E12; border:1px solid #1A1D21; border-radius:14px; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+
+  <tr><td style="padding:26px 28px 6px 28px; border-bottom:1px solid #1A1D21;">
+    <div style="font-size:12px; letter-spacing:5px; font-weight:700; color:#FFFFFF;">KASPA PULSE</div>
+    <div style="font-size:12px; color:#7A828C; padding:8px 0 18px 0;">weekly numbers &middot; issue 11 &middot; monday 21 september 2026</div>
+  </td></tr>
+
+  <tr><td style="padding:30px 28px 6px 28px; text-align:center;">
+    <div style="font-size:64px; line-height:64px; color:#49EACB; font-weight:700;">46</div>
+    <div style="font-size:13px; letter-spacing:1px; color:#9BA3AB; text-transform:uppercase; padding-top:10px;">weeks kaspa's 50 week average has existed. this saturday's close is the first one above it</div>
+  </td></tr>
+
+  <tr><td style="padding:18px 28px 4px 28px;">
+    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">the numbers</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px; color:#FFFFFF; margin-top:10px;">
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">weekly close, saturday 19 sep</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">$0.03912</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">week against the week before</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">up 11.04 percent</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">50 week average</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">$0.036914</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">close against the 50 week line</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">5.98 percent above, the first close above it in 46 weeks</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">21 week average</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">$0.031937</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">close against the 21 week line</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">22.49 percent above, the widest gap in 95 weeks</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">weekly volume</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">7.52M units, 0.56 times the week before</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; color:#9BA3AB;">one kas in satoshis</td>
+        <td style="padding:9px 0; text-align:right;">48.16, up from 45.60 a week earlier</td>
+      </tr>
+    </table>
+  </td></tr>
+
+  <tr><td style="padding:22px 28px 4px 28px;">
+    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">the take</div>
+    <div style="font-size:15px; line-height:24px; color:#9BA3AB; padding-top:10px;">
+      the 50 week average has existed for 46 weeks in the window we count. forty five of them closed below it. this
+      saturday's close broke that, 5.98 percent above the line, the first time it has happened. the same close sits
+      22.49 percent above the 21 week average, wider than any week we have measured, and the old record was set just
+      seven days earlier. hashrate set a fresh high the same week, 348.75 ph per second, while weekly volume came in
+      44 percent under the week before. the chart climbed above both of its own averages while fewer coins changed
+      hands doing it.
+    </div>
+  </td></tr>
+
+  <tr><td style="padding:22px 28px 4px 28px;">
+    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">worth watching</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px; color:#FFFFFF; margin-top:10px;">
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">next block reward cut</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">monday 5 oct, reward to 2.0602 kas</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">threshold to hold both lines next week</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">a close above $0.03650</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; color:#9BA3AB;">hashrate, saturday reading</td>
+        <td style="padding:9px 0; text-align:right; color:#49EACB;">348.75 ph/s, the highest of the 35 days we have logged</td>
+      </tr>
+    </table>
+  </td></tr>
+
+  <tr><td style="padding:22px 28px 4px 28px;">
+    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">how we count</div>
+    <div style="font-size:13px; line-height:21px; color:#7A828C; padding-top:10px;">
+      price, the close and the two moving averages come from kraken's daily candles, weekly marks every sunday 00:00 utc,
+      95 full weeks checked for gaps. the 21 and 50 week averages are our own rolling calculation, seeded from the first
+      weeks of the window. block reward, emission and mined percent come from our own chain reader against kaspa's fixed
+      anchor and monthly step. transactions per second and the fee share are still on the last count from monday 14 sep,
+      no fresh reading landed for the week to 19 sep, so both stay marked open rather than guessed.
+    </div>
+  </td></tr>
+
+  <tr><td style="padding:26px 28px 6px 28px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0F1319; border:1px solid #1A1D21; border-radius:10px;">
+      <tr><td style="padding:18px 20px;">
+        <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">new on youtube</div>
+        <div style="font-size:15px; color:#FFFFFF; font-weight:700; padding-top:10px;">Kaspa Analysis: The 50 Week Line Nobody Counts Just Broke</div>
+        <div style="font-size:13px; line-height:21px; color:#9BA3AB; padding:8px 0 14px 0;">
+          the whole close in one sitting, the fifty week line, the twenty one week gap and what one kas buys in bitcoin.
+          new chart breakdown every monday, subscribe so you don't miss it.
+        </div>
+        <a href="VIDEO_URL" style="display:inline-block; background:#49EACB; color:#050608; font-size:14px; font-weight:700; text-decoration:none; padding:11px 20px; border-radius:8px;">watch this week's episode</a>
+      </td></tr>
+    </table>
+  </td></tr>
+
+  <tr><td style="padding:22px 28px 4px 28px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0F1319; border:1px solid #1A1D21; border-radius:10px;">
+      <tr><td style="padding:18px 20px;">
+        <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">live alerts</div>
+        <div style="font-size:13px; line-height:21px; color:#9BA3AB; padding-top:10px;">
+          reward cuts and the chain's largest wallet moving get posted the moment we count them, not once a week.
+          join <a href="https://discord.gg/h33JBhrPP7" style="color:#49EACB; text-decoration:none;">discord.gg/h33JBhrPP7</a>
+          or <a href="https://t.me/kaspapulse" style="color:#49EACB; text-decoration:none;">t.me/kaspapulse</a>.
+        </div>
+      </td></tr>
+    </table>
+  </td></tr>
+
+  <tr><td style="padding:18px 28px 0 28px;">
+    <div style="font-size:13px; line-height:21px; color:#9BA3AB;">
+      every number here is counted by us from public data, kraken daily candles for price and volume,
+      our own chain reader for reward and emission. the definitions and the daily updates live at
+      <a href="https://kaspapulse.com/?utm_source=newsletter&amp;utm_medium=mail&amp;utm_campaign=weekly4#subscribe" style="color:#49EACB; text-decoration:none;">kaspapulse.com</a>,
+      the weekly page with the same chart is at
+      <a href="https://kaspapulse.com/kaspa-weekly.html" style="color:#49EACB; text-decoration:none;">kaspapulse.com/kaspa-weekly.html</a>.
+    </div>
+    <div style="font-size:13px; line-height:21px; color:#7A828C; padding-top:12px;">not financial advice.</div>
+  </td></tr>
+
+  <tr><td style="padding:22px 28px 26px 28px; border-top:1px solid #1A1D21; margin-top:20px;">
+    <div style="font-size:11px; line-height:18px; color:#7A828C;">
+      you are getting this because you asked for the kaspa on chain cheat sheet at kaspapulse.com and confirmed your address.<br>
+      Vizora Digital UG (haftungsbeschr&auml;nkt), Marc-Chagall-Stra&szlig;e 54, 40477 D&uuml;sseldorf, Germany<br>
+      <a href="{{ unsubscribe }}" style="color:#9BA3AB;">unsubscribe</a> &middot;
+      <a href="https://kaspapulse.com/datenschutz.html" style="color:#9BA3AB;">privacy</a> &middot;
+      <a href="https://kaspapulse.com/impressum.html" style="color:#9BA3AB;">legal notice</a>
+    </div>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
