@@ -32,6 +32,7 @@ import os
 import re
 import sys
 import time
+import urllib.error
 import urllib.request
 from collections import defaultdict
 
@@ -93,13 +94,35 @@ WATCH_ADDRESS = ("kaspa:qr4znetsvjehrrfn75rra5zej50nsgx7v3zlkk54ljsddsry"
                  "6sa6y3zs6s2sz")
 
 
-def get_json(url, timeout=30, tries=3):
+def get_json(url, timeout=30, tries=5):
+    """HTTP-GET mit Wiederholung. Behandelt 429 ausdruecklich.
+
+    api.kaspa.org drosselt, wenn mehrere Skripte kurz hintereinander durch
+    dieselben Adressen paginieren. Ein abgebrochener Abruf ist hier nicht
+    harmlos: eine fehlgeschlagene Herkunftssuche sieht sonst aus wie
+    "keine Herkunft gefunden" und faelscht das Urteil. Deshalb warten wir
+    die Drosselung ab, statt aufzugeben.
+    """
     last = None
     for i in range(tries):
         try:
             req = urllib.request.Request(url, headers=UA)
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return json.loads(r.read().decode())
+        except urllib.error.HTTPError as e:
+            last = e
+            if e.code == 429 and i < tries - 1:
+                warte = 0
+                try:
+                    warte = int(e.headers.get("Retry-After") or 0)
+                except (TypeError, ValueError):
+                    warte = 0
+                warte = min(warte or 5 * (i + 1), 30)
+                print(f"WARN 429 vom api, warte {warte}s", file=sys.stderr)
+                time.sleep(warte)
+                continue
+            if i < tries - 1:
+                time.sleep(2 * (i + 1))
         except Exception as e:
             last = e
             if i < tries - 1:
@@ -275,6 +298,11 @@ def profile(address):
 # Die zweite Definition ist die richtige, denn gesucht ist die Herkunft der
 # Coins, die zu uns kamen, nicht irgendein spaeterer Eingang.
 # ---------------------------------------------------------------------------
+# Ein fehlgeschlagener Hop-Abruf ist KEIN "nichts gefunden". Siehe
+# entity_x_inflows.py, gleiche Begruendung.
+HOP_FAILED = {"lookup_failed": True}
+
+
 def prev_hop(address, before_ts, min_kas):
     """Woher hatte der Absender die Coins vor unserem Zufluss.
 
@@ -283,7 +311,12 @@ def prev_hop(address, before_ts, min_kas):
                      Herkunftstransaktion. NICHT der ueberwiesene Betrag.
       received_kas   Was die profilierte Adresse dort wirklich bekam.
     """
-    txs = fetch_transactions(address, max_pages=HOP_PAGES, quiet=True)
+    try:
+        txs = fetch_transactions(address, max_pages=HOP_PAGES, quiet=True)
+    except Exception as e:
+        print(f"WARN herkunft von {address[:24]} nicht abrufbar: {e}",
+              file=sys.stderr)
+        return dict(HOP_FAILED, error=str(e)[:160])
     cands = []
     for t in txs:
         bt = t.get("block_time") or 0
@@ -325,7 +358,12 @@ def next_hop(address, after_ts, min_kas):
     to.kas ist hier ein echter Ueberweisungsbetrag, naemlich der groesste
     Output der Weiterleitung. Deshalb bleibt der Name so.
     """
-    txs = fetch_transactions(address, max_pages=HOP_PAGES, quiet=True)
+    try:
+        txs = fetch_transactions(address, max_pages=HOP_PAGES, quiet=True)
+    except Exception as e:
+        print(f"WARN weiterleitung von {address[:24]} nicht abrufbar: {e}",
+              file=sys.stderr)
+        return dict(HOP_FAILED, error=str(e)[:160])
     cands = []
     for t in txs:
         bt = t.get("block_time") or 0
@@ -368,7 +406,8 @@ def classify_source(addr, prof, hop):
     if addr in KNOWN:
         return ("boerse", f"absender ist auf kaspa.stream als "
                 f"{KNOWN[addr]} beschriftet", KNOWN[addr])
-    hop_addr = hop["frm"]["address"] if hop else None
+    failed = bool(hop and hop.get("lookup_failed"))
+    hop_addr = hop["frm"]["address"] if (hop and not failed) else None
     if hop_addr and hop_addr in KNOWN:
         return ("boerse ueber zwischenadresse",
                 f"absender wurde am {hop['day']} von der auf kaspa.stream als "
@@ -387,6 +426,10 @@ def classify_source(addr, prof, hop):
         return ("mining ueber zwischenadresse",
                 f"absender wurde am {hop['day']} direkt aus einem block "
                 f"reward befuellt", None)
+    if failed:
+        return ("herkunft nicht pruefbar",
+                "abruf der herkunft fehlgeschlagen, kein urteil", None)
+
     if n is not None and n < 50:
         return ("frisches wallet",
                 f"absender hat nur {n} transaktionen und kein label, "
@@ -408,7 +451,8 @@ def classify_dest(addr, prof, hop, received_kas):
     if addr in KNOWN:
         return ("boerse", f"empfaenger ist auf kaspa.stream als "
                 f"{KNOWN[addr]} beschriftet", KNOWN[addr])
-    hop_addr = hop["to"]["address"] if hop else None
+    failed = bool(hop and hop.get("lookup_failed"))
+    hop_addr = hop["to"]["address"] if (hop and not failed) else None
     if hop_addr and hop_addr in KNOWN:
         return ("boerse ueber zwischenadresse",
                 f"am {hop['day']} weitergeleitet an die auf kaspa.stream als "
@@ -422,6 +466,10 @@ def classify_dest(addr, prof, hop, received_kas):
         return ("boerse wahrscheinlich",
                 f"weitergeleitet am {hop['day']} an eine adresse mit "
                 f"{hop_n:,} transaktionen", None)
+    if failed:
+        return ("weiterleitung nicht pruefbar",
+                "abruf der weiterleitung fehlgeschlagen, kein urteil", None)
+
     if hop:
         return ("weitergeschickt, ziel unklar",
                 f"am {hop['day']} weiter an {hop_addr[:28]}", None)
@@ -836,6 +884,7 @@ def main():
     print(f"  {len(inflows)} einzahlungen von {len(ranked)} sendern")
 
     sender_detail = []
+    hop_failures = 0
     named_kas = 0.0
     by_exchange = defaultdict(lambda: {"kas": 0.0, "senders": 0})
     verdict_counts = defaultdict(int)
@@ -850,6 +899,8 @@ def main():
             p, hop = {}, None
             verdict, reason, exch = ("nicht einzeln profiliert",
                                      "unterhalb der profilierungsgrenze", None)
+        if hop and hop.get("lookup_failed"):
+            hop_failures += 1
         verdict_counts[verdict] += 1
         kas_by_verdict[verdict] += s["kas"]
         if exch:
@@ -1038,6 +1089,11 @@ def main():
             "distinct_senders": len(ranked),
             "named_exchange_kas": round(named_kas, 8),
             "named_exchange_share": round(named_share, 6) if named_share else None,
+            "hop_lookup_failures": hop_failures,
+            # Wie im Cost-Basis-Skript: lieber keine Zahl als eine falsche.
+            # Ein fehlgeschlagener Hop kann einen benannten Boersenanteil
+            # zu niedrig ausweisen.
+            "reliable": hop_failures == 0,
             "by_exchange": {k: {"kas": round(v["kas"], 8),
                                 "senders": v["senders"]}
                             for k, v in by_exchange.items()},

@@ -51,11 +51,13 @@ jobs:
       - name: abfluss-spurensuche
         run: |
           set -o pipefail
+          sleep 60
           python3 scripts/entity_x_outflows.py 2>&1 | tee outflows.log
 
       - name: cluster audit
         run: |
           set -o pipefail
+          sleep 60
           python3 scripts/entity_x_tracker_audit.py 2>&1 | tee audit.log
 
       - name: klassifizierer vergleichen
@@ -83,7 +85,9 @@ jobs:
               ("abfluss-KAS",  out["outflow_kas"],         aud["outflow_total_kas"]),
               ("boersenanteil", inf["named_exchange_share"], al["named_exchange_share"]),
           ]:
-              same = abs(a - b) <= max(0.01, abs(a) * 1e-9)
+              # Der Anteil ist ein Bruch: 0.01 waere ein ganzer Prozentpunkt.
+              tol = 1e-6 if name == "boersenanteil" else max(0.01, abs(a) * 1e-9)
+              same = abs(a - b) <= tol
               print(f"{name:<22}{a:>16,.6f}{b:>16,.6f}{'  ok' if same else '  ABWEICHUNG':>6}")
               if not same:
                   bad.append(name)
@@ -97,6 +101,14 @@ jobs:
               print(f"  {k:<12}{a:>18,.2f}{b:>18,.2f}{'  ok' if same else '  ABWEICHUNG':>6}")
               if not same:
                   bad.append("boerse " + k)
+          # Ein gedrosselter Abruf (429) macht jeden Vergleich wertlos:
+          # eine fehlgeschlagene Herkunftssuche senkt den Boersenanteil,
+          # ohne dass sich an der Kette etwas geaendert haette.
+          nf = al.get("hop_lookup_failures")
+          print(f"\nfehlgeschlagene hop-abrufe im audit: {nf}")
+          print(f"audit belastbar: {al.get('reliable')}")
+          if nf:
+              bad.append(f"{nf} hop-abrufe fehlgeschlagen")
           if bad:
               raise SystemExit("ABWEICHUNG in: " + ", ".join(bad))
           print("\nbeide klassifizierer stimmen ueberein")
