@@ -151,8 +151,17 @@ def fetch_transactions(address, max_pages=MAX_PAGES, quiet=False):
             batch = get_json(url)
         except Exception as e:
             if page == 0:
-                print(f"WARN seitenroute nicht verfuegbar ({e})", file=sys.stderr)
-                return []
+                # Ohne diesen Rueckfall liefert die Funktion bei einem
+                # Aussetzer der Seitenroute eine leere Liste, und ein
+                # leeres Ergebnis sieht aus wie "nichts gefunden" statt
+                # wie ein Fehler. Genau daran sind am 21.09.2026 drei
+                # Absender als "frisches wallet" durchgerutscht, die in
+                # Wahrheit eine beschriftete Herkunft haben. Die
+                # Produktivskripte hatten den Rueckfall von Anfang an.
+                print(f"WARN seitenroute fuer {address[:24]} nicht "
+                      f"verfuegbar ({e}), versuche offset-paging",
+                      file=sys.stderr)
+                return fetch_transactions_offset(address, max_pages)
             raise
         if not batch:
             break
@@ -173,6 +182,22 @@ def fetch_transactions(address, max_pages=MAX_PAGES, quiet=False):
         if len(batch) < PAGE_LIMIT or fresh == 0 or not oldest:
             break
         before = oldest
+    return txs
+
+
+def fetch_transactions_offset(address, max_pages=MAX_PAGES):
+    """Rueckfall, wortgleich zu entity_x_inflows.py."""
+    txs = []
+    for page in range(max_pages):
+        url = (f"{API}/addresses/{address}/full-transactions"
+               f"?limit={PAGE_LIMIT}&offset={page * PAGE_LIMIT}"
+               f"&resolve_previous_outpoints=light")
+        batch = get_json(url)
+        if not batch:
+            break
+        txs.extend(batch)
+        if len(batch) < PAGE_LIMIT:
+            break
     return txs
 
 
