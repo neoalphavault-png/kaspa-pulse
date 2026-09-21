@@ -32,6 +32,7 @@ zu verlieren.
     python3 scripts/utm.py --selftest
 """
 import argparse
+import os
 import re
 import sys
 import urllib.parse
@@ -66,6 +67,21 @@ QUELLEN = {
 MEDIEN = ("shorts", "video", "post", "chat", "mail", "site")
 
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
+
+# utm.js prueft die Adresse gegen eine wortgleiche Kopie von QUELLEN und
+# MEDIEN. Wer hier eine sechste Quelle eintraegt und dort nicht, bekommt
+# keinen Fehler, sondern still ein "other" am Kontakt: sauber gemessener
+# Datensalat. Der Selbsttest vergleicht deshalb beide Seiten.
+UTM_JS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                      "utm.js")
+
+
+def js_liste(text, name):
+    """Die Werte einer 'var NAME = [...]'-Zeile aus utm.js, oder None."""
+    m = re.search(r"var %s = \[(.*?)\];" % name, text, re.S)
+    if not m:
+        return None
+    return [s.strip().strip('"') for s in m.group(1).split(",") if s.strip()]
 
 
 def link(source, medium=None, campaign=None):
@@ -127,6 +143,13 @@ def selftest():
     pruefe("fuenf quellen aus dem auftrag",
            all(q in QUELLEN for q in ("yt-description", "yt-pinned", "x", "discord", "tg")),
            True)
+
+    # beide Seiten derselben Liste
+    with open(UTM_JS, encoding="utf-8") as fh:
+        js = fh.read()
+    pruefe("utm.js kennt dieselben quellen",
+           js_liste(js, "QUELLEN"), list(QUELLEN))
+    pruefe("utm.js kennt dieselben gattungen", js_liste(js, "MEDIEN"), list(MEDIEN))
 
     for falsch, was in ((("youtube-shorts",), "unbekannte quelle"),
                         (("yt-description", "reel"), "unbekannte gattung"),
