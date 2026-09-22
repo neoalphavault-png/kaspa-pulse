@@ -32,3 +32,5 @@ jobs:
         run: python3 scripts/quellen_probe3.py
       - name: runde 4, die offene holders-quelle aus week-input.json
         run: python3 scripts/holders_quelle.py
+      - name: runde 5, distributionstabelle und die zeitstempel der bestandsreihen
+        run: python3 scripts/quellen_probe4.py
