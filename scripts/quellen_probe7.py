@@ -21,6 +21,7 @@ import json
 import re
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 
 TIMEOUT = 30
@@ -29,7 +30,15 @@ BASIS = "https://www.kaspalytics.com"
 SEITE = "/app/supply/distribution-table/KAS"
 
 ATTR = re.compile(r'(?:src|href)\s*=\s*["\']([^"\']+)["\']')
-JSDATEI = re.compile(r'(/[A-Za-z0-9_\-./]+\.(?:js|mjs))')
+JSDATEI = re.compile(r'((?:\.\./|/)[A-Za-z0-9_\-./]+\.(?:js|mjs))')
+
+
+def absolut(pfad, basis=BASIS + SEITE):
+    """Die Seite bindet ihre Buendel relativ ein, mit ../../../_app/...
+    Wer daraus mit Abschneiden eine Adresse baut, bekommt 400 und haelt das
+    dann faelschlich fuer 'es gibt keine Buendel'. Genau das ist in Runde 8
+    passiert, deshalb rechnet hier urljoin und nicht ich."""
+    return urllib.parse.urljoin(basis, pfad)
 API = re.compile(r'["\'`](/api/[A-Za-z0-9_\-/{}$.:?=]*)["\'`]')
 
 
@@ -88,27 +97,32 @@ def main():
     for u in umfeld(html, r"immutable", 220, 6):
         print("   … %s" % kurz(u, 260))
 
-    js = sorted(set(JSDATEI.findall(html)))
-    print("\njs-dateien im quelltext (%d): %s" % (len(js), js[:20]))
+    js = sorted({absolut(x) for x in JSDATEI.findall(html)})
+    js = [u for u in js if u.startswith(BASIS)]
+    print("\njs-dateien im quelltext (%d):" % len(js))
+    for u in js[:20]:
+        print("   %s" % u)
 
     quelltexte = {}
     for d in js[:40]:
-        s, txt = hole(BASIS + d)
+        s, txt = hole(d)
         print("   %s  http %s, %d zeichen" % (d, s, len(txt)))
         if s == 200:
             quelltexte[d] = txt
 
-    # eine ebene tiefer
-    tiefer = set()
-    for txt in list(quelltexte.values()):
-        for c in JSDATEI.findall(txt):
-            tiefer.add(c)
-    tiefer -= set(quelltexte)
-    print("\n%d weitere js-dateien genannt, davon werden 40 gelesen" % len(tiefer))
-    for d in sorted(tiefer)[:40]:
-        s, txt = hole(BASIS + d)
-        if s == 200:
-            quelltexte[d] = txt
+    # zwei ebenen tiefer, die einstiegsbuendel nennen die eigentlichen
+    for runde in (1, 2):
+        tiefer = set()
+        for d, txt in list(quelltexte.items()):
+            for c in JSDATEI.findall(txt):
+                tiefer.add(absolut(c, d))
+        tiefer = {u for u in tiefer if u.startswith(BASIS)} - set(quelltexte)
+        print("\nebene %d: %d weitere js-dateien genannt, davon werden 60 gelesen"
+              % (runde, len(tiefer)))
+        for d in sorted(tiefer)[:60]:
+            s, txt = hole(d)
+            if s == 200:
+                quelltexte[d] = txt
     print("%d dateien gelesen, %d zeichen zusammen"
           % (len(quelltexte), sum(len(x) for x in quelltexte.values())))
 
