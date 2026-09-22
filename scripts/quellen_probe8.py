@@ -158,6 +158,33 @@ def main():
                           + urllib.parse.quote(schwelle, safe=""))
     treffer = probiere(list(dict.fromkeys(kandidaten)), "endpunkte der reihe nach:")
 
+    print("\n" + "=" * 78)
+    print("DIE LETZTEN STAENDE DER ANTWORTENDEN REIHEN")
+    print("=" * 78)
+    print("  (zum vergleich: Bens handablesung vom 22.09. 08:59 nannte")
+    print("   792.706 als summe aller stufen-counts auf kaspa.stream)\n")
+    for p in treffer:
+        if "%2B" in p:
+            continue                    # dieselbe reihe, nur anders geschrieben
+        st, txt = hole(BASIS + p)
+        if st != 200:
+            continue
+        d, _ = form(txt)
+        if not isinstance(d, dict):
+            continue
+        lab = d.get("labels") or []
+        reihe = None
+        for ds in d.get("datasets") or []:
+            if str(ds.get("label", "")).strip().lower() != "price":
+                reihe = ds
+        if reihe is None:
+            continue
+        werte = reihe.get("data") or []
+        print("  %s" % p)
+        print("     reihe '%s'" % reihe.get("label"))
+        for l, w in list(zip(lab, werte))[-3:]:
+            print("     %-30s %s" % (l, w))
+
     print()
     if treffer:
         print("ERGEBNIS: abrufbar. %d endpunkte antworten:" % len(treffer))
@@ -165,6 +192,9 @@ def main():
             print("   %s" % t)
     else:
         print("ERGEBNIS: keiner dieser endpunkte antwortet.")
+    print("\nNICHT abrufbar, und darum ging es eigentlich:")
+    print("   /api/charts/distribution/kas-bucket          404, die stufen")
+    print("   /api/charts/supply/distribution-table/KAS    404, die tabelle")
     return 0
 
 
