@@ -237,6 +237,22 @@ def bloecke(log):
     aus["txchart"] = balken(tx_t, "#E8B04B", "transactions")
     aus["utxochart"] = linie(utxo_t, "#49EACB")
 
+    # Die Reihe ist zweigipflig: ruhige Tage im dreistelligen Bereich, dazwischen
+    # Ausbrueche im fuenfstelligen. Auf einer linearen Achse verschwindet der
+    # ruhige Alltag dadurch fast. Das wird hier benannt statt weggerechnet: eine
+    # Logachse oder ein gekappter Ausreisser wuerde die Reihe lesbarer machen und
+    # dabei genau die Eigenschaft verstecken, um die es geht.
+    sortiert = sorted(x for _, x in tx_t)
+    mitte = (sortiert[len(sortiert) // 2] if len(sortiert) % 2
+             else round((sortiert[len(sortiert) // 2 - 1] + sortiert[len(sortiert) // 2]) / 2))
+    aus["skala"] = (
+        'The tallest bar is <b>%s</b> transactions on %s. On the median day the '
+        'count is <b>%s</b>, which at the same scale is a hairline. We leave it '
+        'that way. A log axis or a clipped outlier would make this chart easier '
+        'on the eye and would hide the one property the chart exists to show.'
+        % (v("tx_max2", zahl(laut)), v("tx_max_datum2", datum_lang(laut_tag)),
+           v("tx_median", zahl(mitte))))
+
     aus["summe"] = (
         '<p>Since Toccata activated on 30 June 2026, the log holds '
         '<b>%s</b> days. In that window the chain recorded '
@@ -311,8 +327,14 @@ def pruefe(html, log):
     utxo_t = seit_toccata(utxo)
     outp_t = seit_toccata(outp)
     sieben = [x for _, x in tx[-7:]]
+    sortiert = sorted(x for _, x in tx_t)
+    mitte = (sortiert[len(sortiert) // 2] if len(sortiert) % 2
+             else round((sortiert[len(sortiert) // 2 - 1] + sortiert[len(sortiert) // 2]) / 2))
 
     soll = {
+        "tx_median": mitte,
+        "tx_max2": max(x for _, x in tx_t),
+        "tx_max_datum2": datum_lang(max(tx_t, key=lambda p: p[1])[0]),
         "utxo_count": utxo[-1][1],
         "utxo_count2": utxo[-1][1],
         "utxo_datum": datum_lang(utxo[-1][0]),
@@ -382,6 +404,7 @@ def run_selftest():
            "<!--AUTO:kacheln--><!--/AUTO:kacheln-->"
            "<svg><!--AUTO:txchart--><!--/AUTO:txchart--></svg>"
            "<svg><!--AUTO:utxochart--><!--/AUTO:utxochart--></svg>"
+           "<!--AUTO:skala--><!--/AUTO:skala-->"
            "<!--AUTO:summe--><!--/AUTO:summe-->"
            "<table><!--AUTO:tabelle--><!--/AUTO:tabelle--></table>"
            "<!--AUTO:stand--><!--/AUTO:stand-->"
@@ -407,7 +430,7 @@ def run_selftest():
                            '<span data-v="utxo_count">9,900</span>')
     b = pruefe(verbogen, log)
     check("verbogene zahl faellt auf", len(b), 1)
-    check("und wird benannt", "utxo_count" in b[0], True)
+    check("und wird benannt", any("utxo_count" in x for x in b), True)
 
     # eine geloeschte zahl ebenso
     ohne = neu.replace('<span data-v="tx_max">', '<span data-x="tx_max">')
@@ -431,7 +454,7 @@ def run_selftest():
         for f in fails:
             print("  " + f)
         return 1
-    print("selftest ok, 12 faelle")
+    print("selftest ok, 13 faelle")
     return 0
 
 
