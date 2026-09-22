@@ -1,0 +1,21 @@
+name: quellen probe
+
+# Nur von Hand. Beantwortet die Machbarkeitsfrage fuer zwei neue Messreihen:
+# liefert kaspalytics die drei Covenant-Reihen als JSON, und liefert
+# kaspa.stream die Verteilungstabelle und die Top-Adressen? Der Lauf holt
+# nichts ins Repo, er druckt nur die Rohantworten ins Log. Die Arbeitsumgebung
+# selbst kommt an beide Quellen nicht heran, deshalb faellt die Antwort hier.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: quellen abfragen
+        run: python3 scripts/quellen_probe.py
