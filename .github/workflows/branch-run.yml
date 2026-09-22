@@ -107,6 +107,17 @@ jobs:
         if: steps.was.outputs.schritt == 'messreihe'
         run: python3 scripts/kaspalytics.py || true
 
+      # Der Arbeitscontainer kommt an den Artefaktspeicher nicht heran
+      # (derselbe Proxy, der auch kaspalytics blockt). Damit die Logdatei
+      # trotzdem von Hand ins Repo wandern kann, steht sie zusaetzlich im
+      # Joblog, zwischen zwei Markierungen.
+      - name: logdatei ins joblog
+        if: steps.was.outputs.schritt == 'messreihe'
+        run: |
+          echo "----BEGIN covenants-log----"
+          python3 -c "import json;print(json.dumps(json.load(open('data/covenants-log.json')),separators=(',',':')))"
+          echo "----END covenants-log----"
+
       - name: ergebnis zum herunterladen
         if: steps.was.outputs.schritt == 'messreihe'
         uses: actions/upload-artifact@v4
