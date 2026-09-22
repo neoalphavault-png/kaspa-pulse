@@ -3,10 +3,10 @@ name: branch run
 # ZEITWEILIG, NUR IN DIESEM BRANCH, NUR LESEND.
 #
 # GitHub laesst workflow_dispatch nur fuer Workflow-Dateien zu, die auf dem
-# Default-Branch liegen. Die neuen Dateien dieses Branches (quellen-probe.yml,
-# covenants-log.yml, distribution-log.yml) liegen dort noch nicht und sind
-# deshalb von Hand nicht ausloesbar, bis Ben sie merged. Ein push-Trigger
-# laeuft dagegen aus dem Branch heraus, in dem er steht.
+# Default-Branch liegen. Die neuen Dateien dieses Branches (covenants-log.yml,
+# quellen-probe.yml) liegen dort noch nicht und sind deshalb von Hand nicht
+# ausloesbar, bis Ben sie merged. Ein push-Trigger laeuft dagegen aus dem
+# Branch heraus, in dem er steht.
 #
 # Diese Datei ist das Vehikel fuer den Machbarkeits- und den Selbsttestlauf.
 # Sie haengt an genau einem Branchnamen, kann auf main also nichts ausloesen,
@@ -53,31 +53,65 @@ jobs:
         run: python3 scripts/quellen_probe3.py
 
       - name: selbsttests
-        if: steps.was.outputs.schritt == 'messreihen'
+        if: steps.was.outputs.schritt == 'messreihe'
         run: |
           python3 scripts/covenants_log.py --selftest
-          python3 scripts/distribution_log.py --selftest
+          python3 scripts/covenants_page.py --selftest
 
       - name: covenants holen
-        if: steps.was.outputs.schritt == 'messreihen'
+        if: steps.was.outputs.schritt == 'messreihe'
         run: python3 scripts/covenants_log.py
 
-      - name: distribution holen
-        if: steps.was.outputs.schritt == 'messreihen'
-        run: python3 scripts/distribution_log.py
+      - name: seite gegen das log rendern
+        if: steps.was.outputs.schritt == 'messreihe'
+        run: python3 scripts/covenants_page.py
 
-      - name: seite gegen das log rendern und vergleichen
-        if: steps.was.outputs.schritt == 'messreihen'
+      - name: angezeigte zahlen gegen das log pruefen
+        if: steps.was.outputs.schritt == 'messreihe'
+        run: python3 scripts/covenants_page.py --check
+
+      - name: kontrollwerte gegen die handzahlen vom 19.09.
+        if: steps.was.outputs.schritt == 'messreihe'
         run: |
-          python3 scripts/covenants_page.py
-          python3 scripts/covenants_page.py --check
+          python3 - <<'PY'
+          import json
+          log = json.load(open("data/covenants-log.json"))
+          nach = {e["datum"]: e for e in log["tage"]}
+          hand = {"utxo_count": 10780, "tx": 542}
+          tag = "2026-09-19"
+          e = nach.get(tag)
+          print("handablesung Ben, %s: utxo_count %s, transactions %s"
+                % (tag, hand["utxo_count"], hand["tx"]))
+          if e is None:
+              print("  der tag steht nicht im log")
+          else:
+              for k, soll in hand.items():
+                  ist = e.get(k)
+                  d = "" if ist is None else " (abweichung %+d)" % (ist - soll)
+                  print("  %-11s runner %-10s hand %-10s%s" % (k, ist, soll, d))
+          print("\nnachbartage, falls die ablesung einen tag daneben lag:")
+          for t in ("2026-09-17", "2026-09-18", "2026-09-19", "2026-09-20", "2026-09-21"):
+              x = nach.get(t, {})
+              print("  %s  tx %-8s outputs %-8s utxo %s"
+                    % (t, x.get("tx"), x.get("outputs"), x.get("utxo_count")))
+          print("\nspanne im log: %s bis %s, %d tage"
+                % (log["tage"][0]["datum"], log["tage"][-1]["datum"], len(log["tage"])))
+          PY
+
+      # Die holders-Zahl in data/week-input.json ist seit dem 21.09. ohne
+      # geklaerte Quelle. scripts/kaspalytics.py holt laengst ein Feld
+      # holder_addr aus /api/charts/address/count/meaningful-balance. Dieser
+      # Schritt druckt es, damit der Bericht die Vermutung mit einer Zahl
+      # belegen kann statt mit einem Gefuehl.
+      - name: holder_addr zur einordnung drucken
+        if: steps.was.outputs.schritt == 'messreihe'
+        run: python3 scripts/kaspalytics.py || true
 
       - name: ergebnis zum herunterladen
-        if: steps.was.outputs.schritt == 'messreihen'
+        if: steps.was.outputs.schritt == 'messreihe'
         uses: actions/upload-artifact@v4
         with:
-          name: messreihen
+          name: messreihe
           path: |
             data/covenants-log.json
-            data/distribution-log.json
             kaspa-covenants.html

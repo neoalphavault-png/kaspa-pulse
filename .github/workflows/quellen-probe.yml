@@ -1,10 +1,17 @@
 name: quellen probe
 
-# Nur von Hand. Beantwortet die Machbarkeitsfrage fuer zwei neue Messreihen:
+# Nur von Hand. Beantwortet die Machbarkeitsfrage fuer neue Messreihen:
 # liefert kaspalytics die drei Covenant-Reihen als JSON, und liefert
 # kaspa.stream die Verteilungstabelle und die Top-Adressen? Der Lauf holt
 # nichts ins Repo, er druckt nur die Rohantworten ins Log. Die Arbeitsumgebung
 # selbst kommt an beide Quellen nicht heran, deshalb faellt die Antwort hier.
+#
+# Die drei Runden bauen aufeinander auf und sind absichtlich alle drei
+# geblieben. Am 22.09.2026 hat Runde eins zwei von drei Kaspalytics-Reihen
+# gefunden, Runde zwei die dritte (sie liegt unter /utxo/, nicht unter
+# /covenants/), und Runde drei hat gezeigt, dass kaspa.stream gar keinen
+# HTTP-Endpunkt hat. Wer die Frage spaeter noch einmal stellt, soll nicht
+# bei null anfangen muessen.
 
 on:
   workflow_dispatch:
@@ -17,5 +24,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: quellen abfragen
+      - name: runde 1, welche endpunkte antworten
         run: python3 scripts/quellen_probe.py
+      - name: runde 2, was die seiten selbst aufrufen
+        run: python3 scripts/quellen_probe2.py
+      - name: runde 3, adressen aus den skriptbuendeln
+        run: python3 scripts/quellen_probe3.py

@@ -1,0 +1,58 @@
+name: covenants log
+
+# kaspa pulse - die tagesreihe der covenants
+#
+# Toccata ist am 30.06.2026 aktiv geworden, Kaspalytics zaehlt seitdem
+# taeglich drei dinge: covenant-transaktionen, covenant-outputs und den
+# bestand an covenant-gebundenen UTXOs. Das fenster der quelle reicht am
+# 22.09.2026 88 tage zurueck. Damit die reihe auch dann noch steht, wenn
+# dieses fenster weiterwandert, schreiben wir jeden tag mit.
+#
+# 06:40 UTC, also nach mitternacht der quelle und vor dem tagespost um
+# 08:12. gelesen wird immer nur bis einschliesslich gestern, der laufende
+# tag ist angebrochen und seine summe ist noch keine summe.
+#
+# die seite kaspa-covenants.html wird im selben lauf neu gerendert, damit
+# die zahlen im quelltext stehen und nicht erst per javascript nachkommen.
+
+on:
+  schedule:
+    - cron: "40 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: selbsttest
+        run: python3 scripts/covenants_log.py --selftest
+
+      - name: zahlen holen
+        run: python3 scripts/covenants_log.py
+
+      - name: seite rendern
+        run: python3 scripts/covenants_page.py
+
+      - name: seite gegen das log pruefen
+        run: python3 scripts/covenants_page.py --check
+
+      - name: commit
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/covenants-log.json kaspa-covenants.html
+          if git diff --staged --quiet; then
+            echo "nichts geaendert"
+          else
+            git commit -m "covenants log $(date -u +%F)"
+            git push
+          fi
