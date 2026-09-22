@@ -23,6 +23,20 @@ rekonstruieren, und sie wird hier auch nicht behauptet.
     1000+ gibt es nicht, die Quelle antwortet mit http 400. Nur die drei
     Schwellen aus dem Menue sind angelegt.
 
+VORSICHT BEI holders_all, DAS SIND KEINE HALTER
+non-zero-balance zaehlt JEDE Adresse mit irgendeinem Guthaben, auch die mit
+einem Bruchteil eines Sompi. Am 21.09.2026 waren das 54.876.372 gegen
+796.711 bei meaningful-balance, also das Neunundsechzigfache. Am 27.08.2023,
+dem ersten Tag der Reihe, standen sich 280.049 und 279.609 gegenueber, die
+beiden Reihen waren praktisch deckungsgleich. Dazwischen liegt eine
+Staubschwemme, keine Halterschaft. Wer holders_all als "Zahl der Halter"
+liest oder auf eine Seite schreibt, sagt etwas Falsches. Die Reihe steht
+trotzdem im Log, weil sie die Staubschwemme selbst messbar macht.
+
+Die Zahl, die Bens Handablesung auf kaspa.stream am naechsten kommt
+(792.706 als Summe aller Stufen), ist holders_mean mit 796.711. Andere
+Zaehler, andere Zahl; das ist kein Beweis, dass beide dasselbe messen.
+
 ALLE FUENF SIND MOMENTAUFNAHMEN
 Sie teilen sich ihre Zeitstempel mit holder_addr und exchange_kas, also
 Mitternacht mit Sekundenschlupf, davor bis Anfang 2026 gegen 09:00 UTC.
@@ -60,6 +74,8 @@ QUELLENNAME = "kaspalytics"
 # weil es hier keine tagessumme gibt; waere je eine dazuzukommen, gehoert
 # sie in dieses dict und nicht in eine sonderbehandlung.
 QUELLEN = {
+    # ACHTUNG: holders_all zaehlt auch staub, siehe Kopf. Das ist die
+    # groesste Zahl der fuenf und die am leichtesten misszuverstehende.
     "holders_all":    ("address/count/non-zero-balance", "Addresses"),
     "holders_mean":   ("address/count/meaningful-balance", "Addresses"),
     "holders_001kas": ("distribution/kas-threshold/0.01+", "Addresses"),
@@ -68,8 +84,9 @@ QUELLEN = {
 }
 
 # Bot-Regel 10, um jeden fremdwert ein fenster. Die Reihen zaehlen Adressen,
-# am 22.09.2026 zwischen 293.153 und 796.711. Die Grenzen sind weit genug
-# fuer Jahre und eng genug, um eine kaputte Antwort zu erwischen.
+# am 21.09.2026 zwischen 293.153 (ab 100 KAS) und 54.876.372 (mit staub).
+# Die obere Grenze muss die Staubreihe durchlassen, ohne eine kaputte
+# Antwort durchzuwinken, deshalb 5e8 und nicht enger.
 FENSTER = (1000, 5e8)
 
 
@@ -162,6 +179,10 @@ def verschmelze(log, roh, jetzt):
     log["hinweis"] = ("schwellen, keine stufen: jede reihe zaehlt alle "
                       "adressen AB einem betrag. die stufentabelle laesst "
                       "sich daraus nicht rekonstruieren.")
+    log["hinweis_holders_all"] = (
+        "holders_all zaehlt jede adresse mit irgendeinem guthaben, auch "
+        "staub. am 21.09.2026 waren das 54.876.372 gegen 796.711 bei "
+        "holders_mean. als 'zahl der halter' ist holders_all falsch.")
     log["aktualisiert_utc"] = jetzt
     return log, neu, geaendert
 
