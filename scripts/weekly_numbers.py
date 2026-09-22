@@ -9,10 +9,18 @@ Was der Bot SELBST holt (8 Zeilen):
   hashrate, block reward + naechster Cut, emission, tvl gesamt,
   kasplex/igra split, dex volume, chain fees, prozent gemined
 
-Was der Bot NICHT holen kann (5 Zahlen, kommen aus data/week-input.json):
-  active addresses, tps, holder-adressen  (Kaspalytics, keine API)
+Was der Bot NICHT holen kann (4 Zahlen, kommen aus data/week-input.json):
+  active addresses, tps                    (Kaspalytics, keine API)
   dormant >1J                              (Kaspalytics, plus Handkorrektur)
   exchange balances                        (kaspa.stream, keine API)
+
+holders kam bis zum 21.09.2026 auch von Hand und stand seitdem ohne
+geklaerte Quelle in der Eingabedatei: der Wert 792098 wurde Woche fuer
+Woche uebernommen. Am 22.09. war die Frage beantwortet. Die Zahl steht in
+der Kaspalytics-Reihe address/count/meaningful-balance, die
+scripts/kaspalytics.py ohnehin schon als holder_addr liest, und zwar
+exakt mit dem Stand vom 06.09. Seitdem holt der Bot sie selbst, siehe
+fetch_holders(). Von Hand nagelbar bleibt sie ueber override.
 
 Und "the read" bleibt von Hand geschrieben. Das ist Absicht, das ist der
 einzige Teil des Posts der uns von einem Datenfeed unterscheidet.
@@ -36,6 +44,7 @@ import urllib.error
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import kaspalytics  # noqa: E402
 import telegram_post  # noqa: E402
 import utm  # noqa: E402
 
@@ -130,10 +139,11 @@ MAX_JUMP = {
     "exchange_kas": 0.25,
 }
 
-MANUAL_KEYS = ["active_addr", "tps", "holders", "dormant_pct", "exchange_kas"]
+MANUAL_KEYS = ["active_addr", "tps", "dormant_pct", "exchange_kas"]
 AUTO_KEYS = [
     "hashrate", "block_reward", "emission", "mined_pct",
     "tvl_kasplex", "tvl_igra", "tvl_total", "dex_vol", "chain_fees",
+    "holders",
 ]
 
 MONTHS = ["january", "february", "march", "april", "may", "june", "july",
@@ -553,6 +563,25 @@ def _sum_overview(kind):
     return total
 
 
+def fetch_holders():
+    """Die Zahl der Adressen mit nennenswertem Guthaben, aus Kaspalytics.
+
+    Bis zum 21.09.2026 stand sie als Handwert in week-input.json, ohne
+    geklaerte Quelle, und wurde Woche fuer Woche uebernommen. Am 22.09.
+    wurde im Runner nachgesehen: der uebernommene Wert 792098 steht exakt
+    in der Reihe address/count/meaningful-balance, am 06.09. Damit ist die
+    Quelle dieselbe, die scripts/kaspalytics.py schon als holder_addr
+    liest, und der Bot holt die Zahl seitdem selbst.
+
+    Bezugspunkt ist wie ueberall der Montag dieser Woche, gelesen wird der
+    letzte volle Tag davor. Faellt Kaspalytics aus, scheitert das hier laut
+    und der Post geht nicht raus; per override laesst sich die Zahl dann
+    von Hand setzen, so wie jedes andere automatische Feld auch.
+    """
+    wert, _tag = kaspalytics.hole_feld("holder_addr")
+    return float(wert)
+
+
 def collect_auto(now_ts, override):
     """holt was zu holen ist. jedes feld laesst sich per override setzen."""
     v = {}
@@ -570,6 +599,7 @@ def collect_auto(now_ts, override):
 
     take("hashrate", fetch_hashrate)
     take("mined_pct", lambda: fetch_supply()["mined_pct"])
+    take("holders", fetch_holders)
 
     tvl = {}
     if override.get("tvl_kasplex") is None or override.get("tvl_igra") is None:
@@ -860,8 +890,64 @@ def run_selftest():
     ok("eingabedatei wird gelesen", got["week"] == "2026-08-10"
        and got["manual"]["tps"] == 0.95)
     bad = json.loads(json.dumps(good))
-    del bad["manual"]["holders"]
+    del bad["manual"]["dormant_pct"]
     raises("fehlende handzahl stoppt", lambda: read_input(write_input(bad)))
+
+    # holders ist seit dem 22.09.2026 kein handwert mehr. eine eingabedatei
+    # ohne holders muss durchlaufen, und ein holders, das noch drinsteht,
+    # darf nicht mehr in den post wandern: sonst haette die umstellung
+    # nichts geaendert und niemandem waere es aufgefallen.
+    ohne = json.loads(json.dumps(good))
+    del ohne["manual"]["holders"]
+    got2 = read_input(write_input(ohne))
+    ok("eingabedatei ohne holders laeuft durch", got2["week"] == "2026-08-10")
+    ok("holders steht nicht mehr in den handwerten",
+       "holders" not in got2["manual"])
+    ok("holders ist ein automatisches feld", "holders" in AUTO_KEYS
+       and "holders" not in MANUAL_KEYS)
+    mit = read_input(write_input(good))
+    ok("ein stehengebliebenes holders wird ignoriert",
+       "holders" not in mit["manual"])
+
+    # und der weg, auf dem die zahl jetzt kommt: collect_auto fragt
+    # kaspalytics, und der override nagelt sie fest wie jedes andere
+    # automatische feld auch.
+    echte_hole = kaspalytics.hole
+    try:
+        kaspalytics.hole = lambda pfad: {
+            "labels": ["2026-08-%02dT23:59:59.400Z" % d for d in range(9, 17)],
+            "datasets": [{"label": "Price", "data": [1] * 8},
+                         {"label": "Addresses",
+                          "data": [788000, 788200, 788400, 788600,
+                                   788800, 789000, 789200, 789500]}],
+        }
+        ok("fetch_holders liest die kaspalytics-reihe",
+           fetch_holders() == 789500.0)
+    finally:
+        kaspalytics.hole = echte_hole
+
+    def platzt():
+        raise RuntimeError("503")
+    echte_hole = kaspalytics.hole
+    try:
+        kaspalytics.hole = lambda pfad: platzt()
+        # der lauf muss stoppen UND holders beim namen nennen. ein blosses
+        # "irgendwas ging schief" wuerde im container auch dann gruen sein,
+        # wenn die neue quelle gar nicht abgefragt wird.
+        try:
+            collect_auto(time.time(), {"hashrate": 300.0, "mined_pct": 93.0,
+                                       "tvl_kasplex": 1.0, "tvl_igra": 1.0,
+                                       "dex_vol": 1.0, "chain_fees": 1.0})
+            ok("faellt kaspalytics aus, stoppt der lauf", False)
+        except Stop as exc:
+            ok("faellt kaspalytics aus, stoppt der lauf", "holders" in str(exc))
+        v_ov = collect_auto(time.time(), {"holders": 792098,
+                                          "hashrate": 300.0, "mined_pct": 93.0,
+                                          "tvl_kasplex": 1.0, "tvl_igra": 1.0,
+                                          "dex_vol": 1.0, "chain_fees": 1.0})
+        ok("override setzt holders von hand", v_ov["holders"] == 792098.0)
+    finally:
+        kaspalytics.hole = echte_hole
     bad2 = json.loads(json.dumps(good))
     bad2["read"] = "kurz"
     raises("fehlender read stoppt", lambda: read_input(write_input(bad2)))

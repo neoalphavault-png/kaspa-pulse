@@ -306,6 +306,31 @@ def wochenanker(tag):
     return tag - dt.timedelta(days=tag.weekday())
 
 
+def hole_feld(feld, heute=None, holer=None):
+    """EIN feld holen, mit denselben regeln wie sammle(): wochenanker,
+    nie der laufende tag, stichtag nach art, plausibilitaetsfenster.
+
+    Dafuer gibt es diesen weg: scripts/weekly_numbers.py braucht seit dem
+    22.09.2026 nur holder_addr und soll nicht sechs abfragen ausloesen, um
+    eine zahl zu bekommen. Gibt (wert, tag) zurueck und scheitert laut,
+    wenn der wert nicht zu holen oder nicht plausibel ist. Ein stiller
+    rueckfall waere hier falsch: der aufrufer hat einen override, und der
+    hilft ihm nur, wenn er von dem problem erfaehrt.
+    """
+    if feld not in QUELLEN:
+        raise RuntimeError("unbekanntes feld %s" % feld)
+    pfad, namen, rechenart, messart = QUELLEN[feld]
+    if rechenart == "tps":
+        raise RuntimeError("tps geht nur ueber sammle(), es ist ein wochenmittel")
+    heute = wochenanker(heute or dt.datetime.now(dt.timezone.utc).date())
+    daten = (holer or hole)(pfad)
+    tag, roh = letzter_voller(daten, namen, heute, art=messart)
+    wert = rechne(rechenart, roh)
+    if not plausibel(feld, wert):
+        raise RuntimeError("%s = %s liegt ausserhalb des fensters" % (feld, wert))
+    return wert, tag
+
+
 def sammle(heute=None, holer=None):
     """alle sechs felder. gibt werte, tage und probleme zurueck."""
     heute = heute or dt.datetime.now(dt.timezone.utc).date()
@@ -476,6 +501,31 @@ def run_selftest():
     check("tote quelle, rest steht", w4["active_addr"], 7100)
     check("tote quelle, ein problem", len(p4), 1)
 
+    # ------------------------------------------------ einzelabruf
+    # scripts/weekly_numbers.py holt sich holder_addr hierueber
+    w_e, t_e = hole_feld("holder_addr", heute=dt.date(2026, 8, 18), holer=_stub)
+    check("einzelabruf liefert den wert", w_e, 789500)
+    check("einzelabruf liefert den tag", str(t_e), "2026-08-16")
+    w_e2, _ = hole_feld("exchange_kas", heute=dt.date(2026, 8, 18), holer=_stub)
+    check("einzelabruf auch fuer den boersenbestand", w_e2, 3930000000)
+
+    # unplausibel scheitert laut, statt still etwas zurueckzugeben
+    def kaputt_einzel(pfad):
+        d = json.loads(json.dumps(_stub(pfad)))
+        if pfad.startswith("address/count"):
+            d["datasets"][1]["data"] = [9e9] * 10
+        return d
+    try:
+        hole_feld("holder_addr", heute=dt.date(2026, 8, 18), holer=kaputt_einzel)
+        check("einzelabruf scheitert bei unplausibel", True, False)
+    except RuntimeError:
+        check("einzelabruf scheitert bei unplausibel", True, True)
+    try:
+        hole_feld("tps", heute=dt.date(2026, 8, 18), holer=_stub)
+        check("tps geht nicht einzeln", True, False)
+    except RuntimeError:
+        check("tps geht nicht einzeln", True, True)
+
     # ------------------------------------------------ mitternachtsschlupf
     # Korrektur vom 22.09.2026. Die faelle hier sind keine erfundenen
     # beispiele: die marken stammen eins zu eins aus der holder-reihe,
@@ -537,7 +587,7 @@ def run_selftest():
         for f in fails:
             print("  " + f)
         return 1
-    print("selftest ok, 44 faelle")
+    print("selftest ok, 50 faelle")
     return 0
 
 

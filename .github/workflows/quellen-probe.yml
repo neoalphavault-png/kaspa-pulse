@@ -38,3 +38,5 @@ jobs:
         run: python3 scripts/quellen_probe5.py
       - name: runde 7, die buendel der tabellenseite
         run: python3 scripts/quellen_probe6.py
+      - name: runde 8, wie die tabellenseite ihre dateien einbindet
+        run: python3 scripts/quellen_probe7.py

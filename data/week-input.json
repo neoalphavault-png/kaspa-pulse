@@ -3,7 +3,6 @@
   "manual": {
     "active_addr": 7760,
     "tps": 2.76,
-    "holders": 792098,
     "dormant_pct": 50.54,
     "exchange_kas": 3790000000
   },
@@ -17,11 +16,11 @@
     "week": "der tag an dem der post rausgeht, format JJJJ-MM-TT. steht die woche schon in der history, passiert nichts und der lauf bleibt gruen. das datum ist der schalter, erst wenn du es hochstellst geht ein post raus.",
     "active_addr": "kaspalytics, active addresses, kurve ALL UNIQUE (nicht unique senders), letzter voller tag, ganze zahl",
     "tps": "kaspalytics, average tps, letzter voller tag, zwei nachkommastellen. NICHT die TPS kachel auf kaspa.stream, die zaehlt die bloecke mit.",
-    "holders": "quelle ungeklaert seit 21.09. der wert 792098 stammt aus der vorwoche; keine kaspalytics-seite im menue liefert diese zahl. bis die quelle steht, wird der wert uebernommen und im read genannt.",
+    "_holders": "holt der bot seit dem 22.09.2026 selbst, aus kaspalytics address/count/meaningful-balance. das feld gehoert nicht mehr unter manual. im notfall ueber override festnageln, siehe dort.",
     "dormant_pct": "kaspalytics, hodl waves, summe der zeilen ab 1y (1y-2y, 2y-3y, 3y-4y, 4y-5y) plus rest zu 100, in prozent, zwei nachkommastellen",
     "exchange_kas": "kaspalytics, known exchange holdings, ganze zahl ohne punkte. tooltip zeigt gerundet, exakte zahl ueber den csv-download am chart",
     "read": "mindestens 40 zeichen. keine gedankenstriche, keine doppelpunkte, keine pfeile.",
-    "override": "nur im notfall. jedes automatische feld laesst sich hier festnageln, zum beispiel {\"tvl_kasplex\": 342947}. gueltige namen sind hashrate, block_reward, emission, mined_pct, tvl_kasplex, tvl_igra, tvl_total, dex_vol, chain_fees.",
+    "override": "nur im notfall. jedes automatische feld laesst sich hier festnageln, zum beispiel {\"tvl_kasplex\": 342947}. gueltige namen sind holders, hashrate, block_reward, emission, mined_pct, tvl_kasplex, tvl_igra, tvl_total, dex_vol, chain_fees.",
     "issue": "leer lassen. die nummer wird aus dem datum gerechnet."
   }
 }
