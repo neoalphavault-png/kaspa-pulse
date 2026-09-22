@@ -3,6 +3,13 @@ name: kaspalytics probe
 # Nur von Hand. Der lauf holt die sechs handzahlen bei kaspalytics und
 # druckt sie ins log. Sobald der lauf einmal sauber durchgelaufen ist,
 # wandert derselbe code in den montags-bot und die screenshots entfallen.
+#
+# Seit dem 22.09.2026 prueft derselbe Lauf zwei Aenderungen nach, bevor die
+# Montagsroutine am 28.09. darauf laeuft:
+#   der Mitternachtsschlupf bei den drei Bestandsreihen, gegen die alte
+#   Lesart gestellt, damit der Unterschied als Zahl im Log steht
+#   holders, das der Bot seitdem selbst holt statt es aus week-input.json
+#   zu uebernehmen
 
 on:
   workflow_dispatch:
@@ -17,8 +24,87 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: selbsttest
+      - name: selbsttest kaspalytics
         run: python3 scripts/kaspalytics.py --selftest
+
+      - name: selbsttest weekly numbers
+        run: python3 scripts/weekly_numbers.py --selftest
 
       - name: zahlen holen
         run: python3 scripts/kaspalytics.py
+
+      - name: alte lesart gegen neue stellen
+        run: |
+          python3 - <<'PY'
+          import datetime as dt
+          import sys
+          sys.path.insert(0, "scripts")
+          import kaspalytics as k
+
+          heute = dt.datetime.now(dt.timezone.utc).date()
+          anker = k.wochenanker(heute)
+          print("wochenanker %s, gelesen wird der letzte volle tag davor\n" % anker)
+
+          neu, tage_neu, p_neu = k.sammle(heute=heute)
+
+          # die alte lesart: datum aus dem zeitstempel, ohne korrektur
+          echt = k.stichtag
+          k.stichtag = lambda label, art: k.tag_von(label)
+          try:
+              alt, tage_alt, p_alt = k.sammle(heute=heute)
+          finally:
+              k.stichtag = echt
+
+          print("%-14s %-16s %-12s %-16s %-12s %s"
+                % ("feld", "alt", "alt tag", "neu", "neu tag", "unterschied"))
+          anders = 0
+          for feld in k.QUELLEN:
+              if feld == "tps":
+                  continue
+              a, n = alt.get(feld), neu.get(feld)
+              ta, tn = tage_alt.get(feld, "-"), tage_neu.get(feld, "-")
+              if a == n and ta == tn:
+                  merk = "keiner"
+              else:
+                  merk = "JA"
+                  anders += 1
+              print("%-14s %-16s %-12s %-16s %-12s %s" % (feld, a, ta, n, tn, merk))
+          print("\n%d von %d feldern lesen sich anders als vorher"
+                % (anders, len(k.QUELLEN) - 1))
+          if p_neu:
+              print("probleme neu: %s" % p_neu)
+          if p_alt:
+              print("probleme alt: %s" % p_alt)
+          PY
+
+      - name: holders kommt jetzt von selbst
+        run: |
+          python3 - <<'PY'
+          import json
+          import sys
+          import time
+          sys.path.insert(0, "scripts")
+          import weekly_numbers as w
+
+          eingabe = json.load(open("data/week-input.json", encoding="utf-8"))
+          print("week-input.json, handwerte: %s" % sorted(eingabe["manual"]))
+          print("MANUAL_KEYS im bot:        %s" % w.MANUAL_KEYS)
+          print("holders in AUTO_KEYS:      %s" % ("holders" in w.AUTO_KEYS))
+          fehlt = [x for x in w.MANUAL_KEYS if eingabe["manual"].get(x) is None]
+          print("fehlende handwerte:        %s" % (fehlt or "keine"))
+
+          inp = w.read_input()
+          print("\nread_input laeuft durch, handwerte: %s" % sorted(inp["manual"]))
+          assert "holders" not in inp["manual"], "holders steht noch in den handwerten"
+
+          wert = w.fetch_holders()
+          print("fetch_holders() liefert:   %s" % wert)
+
+          v = w.collect_auto(time.time(), inp["override"])
+          v.update(inp["manual"])
+          print("holders im fertigen satz:  %s" % v.get("holders"))
+          fehlend = [x for x in w.AUTO_KEYS + w.MANUAL_KEYS if x not in v]
+          print("felder ohne wert:          %s" % (fehlend or "keine"))
+          assert v.get("holders"), "holders ist leer geblieben"
+          print("\nder montagslauf haette holders also nicht mehr von hand gebraucht.")
+          PY
