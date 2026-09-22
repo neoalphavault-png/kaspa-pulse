@@ -34,3 +34,5 @@ jobs:
         run: python3 scripts/holders_quelle.py
       - name: runde 5, distributionstabelle und die zeitstempel der bestandsreihen
         run: python3 scripts/quellen_probe4.py
+      - name: runde 6, die distributionstabelle gezielt
+        run: python3 scripts/quellen_probe5.py
