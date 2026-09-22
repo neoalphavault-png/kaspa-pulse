@@ -40,3 +40,5 @@ jobs:
         run: python3 scripts/quellen_probe6.py
       - name: runde 8, wie die tabellenseite ihre dateien einbindet
         run: python3 scripts/quellen_probe7.py
+      - name: runde 9, das routenverzeichnis und die verteilungsseiten
+        run: python3 scripts/quellen_probe8.py
