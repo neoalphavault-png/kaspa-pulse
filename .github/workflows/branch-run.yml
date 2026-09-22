@@ -1,0 +1,75 @@
+name: branch run
+
+# ZEITWEILIG, NUR IN DIESEM BRANCH, NUR LESEND.
+#
+# GitHub laesst workflow_dispatch nur fuer Workflow-Dateien zu, die auf dem
+# Default-Branch liegen. Die neuen Dateien dieses Branches (quellen-probe.yml,
+# covenants-log.yml, distribution-log.yml) liegen dort noch nicht und sind
+# deshalb von Hand nicht ausloesbar, bis Ben sie merged. Ein push-Trigger
+# laeuft dagegen aus dem Branch heraus, in dem er steht.
+#
+# Diese Datei ist das Vehikel fuer den Machbarkeits- und den Selbsttestlauf.
+# Sie haengt an genau einem Branchnamen, kann auf main also nichts ausloesen,
+# sie hat ausdruecklich NUR Leserechte und schreibt nichts ins Repo zurueck.
+# Ergebnisse gehen als Artefakt raus und werden von Hand committet. Die Datei
+# wird vor dem Abschluss des Branches wieder geloescht.
+
+on:
+  push:
+    branches:
+      - data/covenants-distribution-2026-09-22
+    paths:
+      - ".github/branch-run.txt"
+
+permissions:
+  contents: read
+
+jobs:
+  lauf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: was ansteht
+        id: was
+        run: |
+          echo "schritt=$(head -n 1 .github/branch-run.txt | tr -d '[:space:]')" >> "$GITHUB_OUTPUT"
+          cat .github/branch-run.txt
+
+      - name: quellen sondieren
+        if: steps.was.outputs.schritt == 'quellen'
+        run: python3 scripts/quellen_probe.py
+
+      - name: selbsttests
+        if: steps.was.outputs.schritt == 'messreihen'
+        run: |
+          python3 scripts/covenants_log.py --selftest
+          python3 scripts/distribution_log.py --selftest
+
+      - name: covenants holen
+        if: steps.was.outputs.schritt == 'messreihen'
+        run: python3 scripts/covenants_log.py
+
+      - name: distribution holen
+        if: steps.was.outputs.schritt == 'messreihen'
+        run: python3 scripts/distribution_log.py
+
+      - name: seite gegen das log rendern und vergleichen
+        if: steps.was.outputs.schritt == 'messreihen'
+        run: |
+          python3 scripts/covenants_page.py
+          python3 scripts/covenants_page.py --check
+
+      - name: ergebnis zum herunterladen
+        if: steps.was.outputs.schritt == 'messreihen'
+        uses: actions/upload-artifact@v4
+        with:
+          name: messreihen
+          path: |
+            data/covenants-log.json
+            data/distribution-log.json
+            kaspa-covenants.html
