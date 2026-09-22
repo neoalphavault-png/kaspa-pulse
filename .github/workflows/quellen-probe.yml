@@ -30,3 +30,5 @@ jobs:
         run: python3 scripts/quellen_probe2.py
       - name: runde 3, adressen aus den skriptbuendeln
         run: python3 scripts/quellen_probe3.py
+      - name: runde 4, die offene holders-quelle aus week-input.json
+        run: python3 scripts/holders_quelle.py
