@@ -140,3 +140,58 @@ Nachkommastelle pro Tag. Solange danebensteht, wann der Nenner galt, ist das
 nachvollziehbar. Ohne Datum ist es eine Behauptung. Regel 42 sinngemaess
 erweitert: eine Zahl ohne Quelle existiert nicht, eine Supply-Zahl ohne Datum
 auch nicht.
+
+## Umstellung 23.09.2026, die letzten Handwerte fallen weg
+
+Ab der Woche 2026-09-28 holt der Bot alle fuenf Zahlen selbst, die bis dahin
+von Hand aus Diagrammen abgelesen wurden. `data/week-input.json` traegt nur
+noch "the read". Jede Zahl wurde vorher im Runner gegen den Handwert derselben
+Woche gestellt (Lauf 35752265732, Woche 2026-09-21, gelesener Tag 20.09.):
+
+    active_addr    hand 7760           bot 7791            +0,40%
+    dormant_pct    hand 50,54          bot 50,59           +0,10%
+    exchange_kas   hand 3.790.000.000  bot 3.791.425.244   +0,04%
+    tps            hand 2,76           bot 1,47           -46,74%
+
+Bei den ersten dreien ist das dieselbe Zahl, einmal abgelesen und einmal
+gelesen. Bei exchange_kas ist die Botzahl genauer: der Handwert war der
+gerundete Tooltip, der Bot nimmt den exakten Wert. Fuer dormant_pct wurde
+zusaetzlich geprueft, ob die hodl-waves-Seite, die der alte Hinweis nannte,
+dasselbe misst wie supply/inactive?minAge=1year. Die Summe der Reihen ab 1y
+ergab 50,57 gegen 50,59, also dieselbe Zahl im Rahmen der Rundung.
+
+ZWEI SPRUENGE IN DER WOCHE VOM 28.09., BEIDE EINMALIG UND BEIDE ERKLAERT.
+
+Erstens, tps faellt um rund die Haelfte. Das ist kein neuer Messwert, das ist
+die Korrektur vom 16.09., die endlich sichtbar wird. Sie steckte seit dem
+16.09. im Bot (Wochenmittel, nur Standard), aber nicht im Post, weil der
+Handwert weiter nach der alten Definition eingetragen wurde. Wer die Reihe in
+`data/weekly-history.json` anschaut, sieht dort ab dem 28.09. einen Bruch:
+die Werte davor sind auf der alten Grundlage gemessen und mit den neuen NICHT
+vergleichbar. Sie werden nicht umgerechnet, aus demselben Grund wie am 16.09.
+
+Zweitens, die drei Bestandsfelder holder_addr, exchange_kas und dormant_pct
+lesen einen Tag frischer als bisher. Das ist die Korrektur des
+Mitternachtsschlupfs vom 22.09.: eine Momentaufnahme, die auf 00:00:0x faellt,
+ist der Stand vom Ende des Vortags und wird seitdem dort eingetragen. Vorher
+trug die Montagszeile unter dem Sonntagsdatum den Samstagsstand. Gemessen am
+22.09. betrug der Unterschied +0,07% bei holder_addr, +0,04% bei exchange_kas
+und +0,05 Prozentpunkte bei dormant_pct.
+
+DIE SPRUNGBREMSE SCHLAEGT BEI KEINEM DAVON AN, nachgerechnet gegen MAX_JUMP in
+scripts/weekly_numbers.py:
+
+    tps            -46,7%   grenze 150%
+    active_addr     +0,4%   grenze 150%
+    exchange_kas    +0,04%  grenze  25%
+    dormant_pct     +0,1%   grenze  10%
+    holders         +0,07%  grenze  20%
+
+Es braucht also kein FORCE=1 am 28.09. Sollte der Lauf trotzdem stoppen, ist
+das ein echter Fund und keine Nebenwirkung dieser Umstellung.
+
+Was NICHT passiert ist: die beiden Bedeutungen von "holders" stehen weiter
+nebeneinander. In scripts/kaspalytics.py ist holders der ruhende Anteil in
+Prozent, in scripts/weekly_numbers.py ist holders die Adresszahl und der
+ruhende Anteil heisst dormant_pct. Die Zuordnung in KL_FELDER ist deshalb
+ueber Kreuz. Umbenannt wird nach dem Montagslauf, nicht davor.
