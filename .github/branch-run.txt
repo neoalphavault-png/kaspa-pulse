@@ -1,2 +1,3 @@
 messreihe
-# lauf 2: dieselbe messreihe, diesmal mit der logdatei im joblog
+# lauf 3: reihe als schmale csv ins joblog, damit sie ohne
+# artefaktspeicher von hand ins repo wandern kann
