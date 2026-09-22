@@ -22,7 +22,8 @@
       ["merged mining", "/merged-mining.html"],
       ["the halving", "/kaspa-halving.html"],
       ["security budget", "/kaspa-security-budget.html"],
-      ["toccata", "/kaspa-toccata.html"]
+      ["toccata", "/kaspa-toccata.html"],
+      ["covenants", "/kaspa-covenants.html"]
     ]},
     { t: "supply", k: [
       ["supply", "/kaspa-supply.html"],

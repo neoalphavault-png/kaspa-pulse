@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Is Kaspa's Toccata Upgrade Being Used? The Covenant Count, Daily</title>
+<meta name="description" content="Toccata gave Kaspa covenants on 30 June 2026. This page counts what is actually running on them: covenant transactions per day and the covenant UTXO stock, logged daily from Kaspalytics.">
+<link rel="canonical" href="https://kaspapulse.com/kaspa-covenants.html">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --amber:#E8B04B; --red:#E36A6A; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
+         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
+  .wrap { max-width:780px; margin:0 auto; padding:28px 18px 56px; }
+  h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
+  h1 b { color:var(--teal); }
+  .sub { font-size:16px; color:var(--dim); line-height:24px; }
+  h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin:56px 0 14px; }
+  h2::before { content:""; display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--teal); margin-right:11px; vertical-align:5px; }
+  h3 { font-size:16px; font-weight:700; margin:26px 0 8px; }
+  p { font-size:15px; line-height:24px; color:var(--dim); margin:0 0 14px; }
+  p b, li b { color:var(--txt); font-weight:600; }
+  ul { margin:0 0 14px 20px; }
+  li { font-size:15px; line-height:24px; color:var(--dim); margin-bottom:8px; }
+  .live { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:28px 26px; margin:34px 0; text-align:center; }
+  .live .lbl { font-size:12px; letter-spacing:3px; color:var(--dim); text-transform:uppercase; }
+  .live .bal { font-size:52px; font-weight:700; color:var(--teal); margin:10px 0 4px; letter-spacing:-1px; }
+  .live .usd { font-size:14px; color:var(--dimmer); }
+  .live .upd { font-size:11px; color:var(--dimmer); margin-top:10px; }
+  .facts { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:24px 0 8px; }
+  @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} .live .bal{font-size:40px;} }
+  .fact { background:var(--card); border:1px solid #15181C; border-radius:14px; padding:18px; }
+  .fact .v { font-size:28px; font-weight:700; }
+  .fact .v.teal { color:var(--teal); } .fact .v.amber { color:var(--amber); }
+  .fact .l { font-size:12.5px; color:var(--dimmer); margin-top:6px; line-height:17px; }
+  .chart { background:var(--card); border:1px solid #15181C; border-radius:18px; padding:22px 22px 14px; margin:24px 0 8px; }
+  .chart .clbl { font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700; margin-bottom:14px; }
+  .chart svg { width:100%; height:auto; display:block; }
+  .chart .lg { font-size:11px; color:var(--dimmer); margin-top:10px; display:flex; gap:16px; flex-wrap:wrap; }
+  .chart .lg i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:0px; }
+  .note { font-size:13px; color:var(--dimmer); font-style:italic; border-left:3px solid var(--teal); padding:4px 0 4px 14px; margin:20px 0; line-height:20px; }
+  .read { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:24px 26px; margin:28px 0; }
+  .read .rl { font-size:11px; letter-spacing:3px; color:var(--dim); text-transform:uppercase; font-weight:700; }
+  .read .rt { font-size:24px; font-weight:700; letter-spacing:-0.4px; margin-top:10px; line-height:1.3; color:var(--txt); }
+  a { color:var(--teal); }
+  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
+  .subscribe .st { font-size:18px; font-weight:700; }
+  .subscribe .st b { color:var(--teal); font-weight:700; }
+  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
+  .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
+  .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
+  .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
+  .subscribe input::placeholder { color:var(--dimmer); }
+  .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .subscribe .msg { display:none; font-size:13px; font-weight:600; margin-top:14px; padding:10px 14px; border-radius:8px; }
+  .subscribe .msg.ok { display:block; color:var(--teal); background:rgba(73,234,203,0.08); border:1px solid rgba(73,234,203,0.35); }
+  .subscribe .msg.err { display:block; color:var(--red); background:rgba(227,106,106,0.08); border:1px solid rgba(227,106,106,0.35); }
+  .subscribe .fine { font-size:11px; color:var(--dimmer); margin-top:10px; }
+  @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
+  footer { border-top:1px solid var(--line); margin-top:48px; padding-top:16px; text-align:center; font-size:11px; color:var(--dimmer); }
+  footer a { color:var(--dim); text-decoration:none; }
+  html { scroll-behavior:smooth; }
+  .nav { position:sticky; top:0; z-index:60; background:rgba(5,6,8,0.88); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
+  .nav .nt { max-width:820px; margin:0 auto; padding:13px 18px 9px; display:flex; justify-content:space-between; align-items:center; }
+  .nav .nlogo { font-size:13px; letter-spacing:4px; font-weight:700; }
+  .nav .nlogo a { color:var(--txt); text-decoration:none; }
+  .nav .nlogo span { color:var(--teal); }
+  .nav-cta { font-size:10px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color:var(--teal); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:5px 12px; text-decoration:none; background:rgba(73,234,203,0.07); white-space:nowrap; }
+  .nav .nc { max-width:820px; margin:0 auto; padding:0 10px 10px; display:flex; flex-wrap:wrap; gap:2px; row-gap:3px; }
+  .nav .nc::-webkit-scrollbar { display:none; }
+  .nav .nc a { font-size:12px; color:var(--dim); text-decoration:none; padding:5px 8px; border-radius:999px; white-space:nowrap; border:1px solid transparent; }
+  .nav .nc a:hover { color:var(--txt); }
+  .nav .nc a.on { color:var(--teal); background:rgba(73,234,203,0.08); border-color:rgba(73,234,203,0.25); }
+  .rv { opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
+  .rv.vis { opacity:1; transform:none; }
+  @media (prefers-reduced-motion: reduce){ .rv { opacity:1; transform:none; transition:none; } }
+  .nright { display:flex; align-items:center; gap:8px; }
+  .nburger { display:none; background:none; border:1px solid var(--line); color:var(--txt); border-radius:10px; padding:8px 14px; font-size:19px; line-height:1.2; cursor:pointer; font-family:inherit; }
+  .tblwrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tblwrap table { min-width:460px; }
+  @media (max-width:640px){
+    .nburger { display:block; }
+    .nav .nc { display:none; }
+    .nav .nc.open { display:flex; flex-direction:column; gap:4px; padding:8px 18px 14px; border-top:1px solid var(--line); }
+    .nav .nc.open a { font-size:15px; padding:11px 12px; }
+    .nav .nlogo { font-size:12px; letter-spacing:3px; }
+  }
+  .band { background:linear-gradient(180deg, #0B0E14, #090C10); border-top:1px solid #181C23; border-bottom:1px solid #181C23; box-shadow:inset 0 1px 0 rgba(255,255,255,0.02); }
+  .band .fact, .band .note, .band .chart, .band .live, .band .read { background:#0F1218; }
+  .wrap2 { max-width:780px; margin:0 auto; padding:10px 18px 40px; }
+  .wrap2 h2:first-child { margin-top:40px; }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; }
+  th { text-align:left; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--dimmer);
+       font-weight:700; padding:0 12px 9px 0; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th.n { text-align:right; }
+  td { padding:10px 12px 10px 0; border-bottom:1px solid #101317; color:var(--dim); white-space:nowrap; }
+  td.n { text-align:right; color:var(--txt); font-variant-numeric:tabular-nums; font-weight:600; }
+  @media (max-width:520px){ .tblwrap table{min-width:0;} table{font-size:12px;} th,td{padding-right:6px;}
+    .chart{padding:16px 8px 8px 8px;} .chart .clbl{padding-left:8px;} .read .rt{font-size:19px;} }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nt">
+    <div class="nlogo"><a href="/">PULSE<span>HAWK</span> · KASPA PULSE</a></div>
+    <div class="nright"><a class="nav-cta" href="#subForm">free cheat sheet</a><button class="nburger" aria-label="menu">☰</button></div>
+  </div>
+    <div class="nc">
+    <a href="/">dashboard</a>
+    <a href="/kaspa-supply.html">supply</a>
+    <a href="/kaspa-halving.html">halving</a>
+    <a href="/kaspa-staking.html">staking</a>
+    <a href="/kaspa-wallets.html">wallets</a>
+    <a href="/kaspa-hashrate.html">hashrate</a>
+    <a href="/kaspa-mining.html">mining</a>
+    <a href="/kaspa-tvl.html">tvl</a>
+    <a href="/kaspa-smart-contracts.html">smart contracts</a>
+    <a href="/kaspa-token-standard.html">token standards</a>
+    <a href="/kron.html">kron</a>
+    <a href="/entity-x.html">entity x</a>
+    <a href="/merged-mining.html">merged mining</a>
+    <a href="/kaspa-data-sources.html">data sources</a>
+    <a href="/kaspa-security-budget.html">security budget</a>
+    <a href="/kaspa-toccata.html">toccata</a>
+    <a href="/kaspa-covenants.html" class="on">covenants</a>
+  </div>
+</nav>
+<div class="wrap">
+  <h1>Is Kaspa's <b>Toccata</b> upgrade being used?</h1>
+  <div class="sub">Toccata went live on 30 June 2026 and gave Kaspa covenants, a way to attach spending rules to an output. Whether anyone actually uses them is a counting question, not an opinion. So we count it, every day, and publish the whole series — the quiet days included.</div>
+  <div class="live">
+    <!--AUTO:kopf--><div class="lbl">covenant utxos on the kaspa network</div>
+    <div class="bal"><span data-v="utxo_count">11,585</span></div>
+    <div class="usd">unspent outputs bound to a covenant id, as of <span data-v="utxo_datum">21 sep 2026</span></div>
+    <div class="upd">counted by Kaspalytics, logged daily by Kaspa Pulse</div><!--/AUTO:kopf-->
+  </div>
+</div>
+<div class="band"><div class="wrap2">
+  <h2>What is being counted here</h2>
+  <p>A <b>covenant</b> is a rule that travels with a coin. A normal Kaspa output can be spent by whoever holds the key. A covenant-bound output carries a condition about <i>how</i> it may be spent next, and the network enforces that condition. Toccata is the consensus change that made this possible on mainnet, and <a href="/kaspa-toccata.html">our Toccata page</a> covers what else it changed.</p>
+  <p>That leaves a measurable question. Covenant-bound outputs either exist on the chain or they do not, and transactions either create them or they do not. Both are countable, both are counted by <a href="https://www.kaspalytics.com/app/covenants/transactions" target="_blank" rel="noopener">Kaspalytics</a>, and since 22 September 2026 a bot of ours writes the daily reading into a file in our repository so the series survives even if the source's own window moves on.</p>
+  <div class="facts">
+    <!--AUTO:kacheln--><div class="fact"><div class="v teal"><span data-v="tx_letzter">482</span></div><div class="l">covenant transactions on <span data-v="tx_datum">21 sep 2026</span>, the last full day in the log</div></div>
+    <div class="fact"><div class="v"><span data-v="tx_schnitt7">4,924</span></div><div class="l">average per day over the last seven full days</div></div>
+    <div class="fact"><div class="v"><span data-v="tx_max">33,461</span></div><div class="l">the busiest single day so far, <span data-v="tx_max_datum">7 sep 2026</span></div></div>
+    <div class="fact"><div class="v"><span data-v="tx_min">5</span></div><div class="l">the quietest single day so far, <span data-v="tx_min_datum">22 jul 2026</span></div></div><!--/AUTO:kacheln-->
+  </div>
+</div></div>
+<div class="wrap2">
+  <h2 id="traffic">Covenant transactions, one bar per day</h2>
+  <p>Every bar is one calendar day in UTC, exactly as the source reports it. Nothing is smoothed, nothing is averaged into a curve, nothing is rolled up into weeks. A seven day average would draw a much prettier line across this chart, and it would hide the single most obvious property of the data.</p>
+  <div class="chart">
+    <div class="clbl">covenant transactions per day · since toccata</div>
+    <svg viewBox="0 0 720 300" preserveAspectRatio="none" role="img" aria-label="Covenant transactions per day on Kaspa since the Toccata activation"><!--AUTO:txchart--><line x1="10" x2="710" y1="209.5" y2="209.5" stroke="#1A1D21" stroke-width="1"/><text x="710" y="205.5" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">8,365</text><line x1="10" x2="710" y1="145.0" y2="145.0" stroke="#1A1D21" stroke-width="1"/><text x="710" y="141.0" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">16,730</text><line x1="10" x2="710" y1="80.5" y2="80.5" stroke="#1A1D21" stroke-width="1"/><text x="710" y="76.5" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">25,096</text><line x1="10" x2="710" y1="16.0" y2="16.0" stroke="#1A1D21" stroke-width="1"/><text x="710" y="12.0" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">33,461</text><rect x="10.0" y="273.7" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>30 jun · 33 transactions</title></rect><rect x="18.3" y="268.2" width="7.3" height="5.8" fill="#E8B04B" rx="0.8"><title>1 jul · 757 transactions</title></rect><rect x="26.7" y="264.2" width="7.3" height="9.8" fill="#E8B04B" rx="0.8"><title>2 jul · 1,272 transactions</title></rect><rect x="35.0" y="273.0" width="7.3" height="1.0" fill="#E8B04B" rx="0.8"><title>3 jul · 125 transactions</title></rect><rect x="43.3" y="270.9" width="7.3" height="3.1" fill="#E8B04B" rx="0.8"><title>4 jul · 400 transactions</title></rect><rect x="51.7" y="273.0" width="7.3" height="1.0" fill="#E8B04B" rx="0.8"><title>5 jul · 136 transactions</title></rect><rect x="60.0" y="269.7" width="7.3" height="4.3" fill="#E8B04B" rx="0.8"><title>6 jul · 553 transactions</title></rect><rect x="68.3" y="273.3" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>7 jul · 94 transactions</title></rect><rect x="76.7" y="273.5" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>8 jul · 71 transactions</title></rect><rect x="85.0" y="273.9" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>9 jul · 13 transactions</title></rect><rect x="93.3" y="273.7" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>10 jul · 35 transactions</title></rect><rect x="101.7" y="273.8" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>11 jul · 26 transactions</title></rect><rect x="110.0" y="273.9" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>12 jul · 8 transactions</title></rect><rect x="118.3" y="273.8" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>13 jul · 22 transactions</title></rect><rect x="126.7" y="273.6" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>14 jul · 54 transactions</title></rect><rect x="135.0" y="273.9" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>15 jul · 14 transactions</title></rect><rect x="143.3" y="273.8" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>16 jul · 28 transactions</title></rect><rect x="151.7" y="273.7" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>17 jul · 40 transactions</title></rect><rect x="160.0" y="273.7" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>18 jul · 37 transactions</title></rect><rect x="168.3" y="273.9" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>19 jul · 18 transactions</title></rect><rect x="176.7" y="261.7" width="7.3" height="12.3" fill="#E8B04B" rx="0.8"><title>20 jul · 1,597 transactions</title></rect><rect x="185.0" y="273.9" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>21 jul · 19 transactions</title></rect><rect x="193.3" y="274.0" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>22 jul · 5 transactions</title></rect><rect x="201.7" y="273.7" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>23 jul · 39 transactions</title></rect><rect x="210.0" y="273.9" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>24 jul · 9 transactions</title></rect><rect x="218.3" y="273.8" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>25 jul · 20 transactions</title></rect><rect x="226.7" y="268.0" width="7.3" height="6.0" fill="#E8B04B" rx="0.8"><title>26 jul · 779 transactions</title></rect><rect x="235.0" y="265.3" width="7.3" height="8.7" fill="#E8B04B" rx="0.8"><title>27 jul · 1,132 transactions</title></rect><rect x="243.3" y="262.4" width="7.3" height="11.6" fill="#E8B04B" rx="0.8"><title>28 jul · 1,498 transactions</title></rect><rect x="251.7" y="267.0" width="7.3" height="7.0" fill="#E8B04B" rx="0.8"><title>29 jul · 903 transactions</title></rect><rect x="260.0" y="245.7" width="7.3" height="28.3" fill="#E8B04B" rx="0.8"><title>30 jul · 3,664 transactions</title></rect><rect x="268.3" y="253.8" width="7.3" height="20.2" fill="#E8B04B" rx="0.8"><title>31 jul · 2,616 transactions</title></rect><rect x="276.7" y="198.2" width="7.3" height="75.8" fill="#E8B04B" rx="0.8"><title>1 aug · 9,837 transactions</title></rect><rect x="285.0" y="225.9" width="7.3" height="48.1" fill="#E8B04B" rx="0.8"><title>2 aug · 6,240 transactions</title></rect><rect x="293.3" y="246.5" width="7.3" height="27.5" fill="#E8B04B" rx="0.8"><title>3 aug · 3,565 transactions</title></rect><rect x="301.7" y="217.9" width="7.3" height="56.1" fill="#E8B04B" rx="0.8"><title>4 aug · 7,273 transactions</title></rect><rect x="310.0" y="255.8" width="7.3" height="18.2" fill="#E8B04B" rx="0.8"><title>5 aug · 2,358 transactions</title></rect><rect x="318.3" y="262.3" width="7.3" height="11.7" fill="#E8B04B" rx="0.8"><title>6 aug · 1,518 transactions</title></rect><rect x="326.7" y="261.8" width="7.3" height="12.2" fill="#E8B04B" rx="0.8"><title>7 aug · 1,578 transactions</title></rect><rect x="335.0" y="265.4" width="7.3" height="8.6" fill="#E8B04B" rx="0.8"><title>8 aug · 1,116 transactions</title></rect><rect x="343.3" y="265.9" width="7.3" height="8.1" fill="#E8B04B" rx="0.8"><title>9 aug · 1,056 transactions</title></rect><rect x="351.7" y="269.2" width="7.3" height="4.8" fill="#E8B04B" rx="0.8"><title>10 aug · 628 transactions</title></rect><rect x="360.0" y="268.0" width="7.3" height="6.0" fill="#E8B04B" rx="0.8"><title>11 aug · 773 transactions</title></rect><rect x="368.3" y="268.4" width="7.3" height="5.6" fill="#E8B04B" rx="0.8"><title>12 aug · 728 transactions</title></rect><rect x="376.7" y="266.2" width="7.3" height="7.8" fill="#E8B04B" rx="0.8"><title>13 aug · 1,013 transactions</title></rect><rect x="385.0" y="269.8" width="7.3" height="4.2" fill="#E8B04B" rx="0.8"><title>14 aug · 549 transactions</title></rect><rect x="393.3" y="270.5" width="7.3" height="3.5" fill="#E8B04B" rx="0.8"><title>15 aug · 454 transactions</title></rect><rect x="401.7" y="270.5" width="7.3" height="3.5" fill="#E8B04B" rx="0.8"><title>16 aug · 450 transactions</title></rect><rect x="410.0" y="265.3" width="7.3" height="8.7" fill="#E8B04B" rx="0.8"><title>17 aug · 1,133 transactions</title></rect><rect x="418.3" y="270.1" width="7.3" height="3.9" fill="#E8B04B" rx="0.8"><title>18 aug · 512 transactions</title></rect><rect x="426.7" y="269.4" width="7.3" height="4.6" fill="#E8B04B" rx="0.8"><title>19 aug · 595 transactions</title></rect><rect x="435.0" y="265.5" width="7.3" height="8.5" fill="#E8B04B" rx="0.8"><title>20 aug · 1,102 transactions</title></rect><rect x="443.3" y="267.6" width="7.3" height="6.4" fill="#E8B04B" rx="0.8"><title>21 aug · 824 transactions</title></rect><rect x="451.7" y="270.9" width="7.3" height="3.1" fill="#E8B04B" rx="0.8"><title>22 aug · 403 transactions</title></rect><rect x="460.0" y="272.1" width="7.3" height="1.9" fill="#E8B04B" rx="0.8"><title>23 aug · 241 transactions</title></rect><rect x="468.3" y="271.2" width="7.3" height="2.8" fill="#E8B04B" rx="0.8"><title>24 aug · 369 transactions</title></rect><rect x="476.7" y="270.2" width="7.3" height="3.8" fill="#E8B04B" rx="0.8"><title>25 aug · 496 transactions</title></rect><rect x="485.0" y="272.6" width="7.3" height="1.4" fill="#E8B04B" rx="0.8"><title>26 aug · 186 transactions</title></rect><rect x="493.3" y="272.6" width="7.3" height="1.4" fill="#E8B04B" rx="0.8"><title>27 aug · 187 transactions</title></rect><rect x="501.7" y="194.7" width="7.3" height="79.3" fill="#E8B04B" rx="0.8"><title>28 aug · 10,288 transactions</title></rect><rect x="510.0" y="272.9" width="7.3" height="1.1" fill="#E8B04B" rx="0.8"><title>29 aug · 143 transactions</title></rect><rect x="518.3" y="149.0" width="7.3" height="125.0" fill="#E8B04B" rx="0.8"><title>30 aug · 16,214 transactions</title></rect><rect x="526.7" y="157.6" width="7.3" height="116.4" fill="#E8B04B" rx="0.8"><title>31 aug · 15,091 transactions</title></rect><rect x="535.0" y="43.5" width="7.3" height="230.5" fill="#E8B04B" rx="0.8"><title>1 sep · 29,898 transactions</title></rect><rect x="543.3" y="272.5" width="7.3" height="1.5" fill="#E8B04B" rx="0.8"><title>2 sep · 197 transactions</title></rect><rect x="551.7" y="157.9" width="7.3" height="116.1" fill="#E8B04B" rx="0.8"><title>3 sep · 15,059 transactions</title></rect><rect x="560.0" y="273.0" width="7.3" height="1.0" fill="#E8B04B" rx="0.8"><title>4 sep · 124 transactions</title></rect><rect x="568.3" y="273.6" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>5 sep · 47 transactions</title></rect><rect x="576.7" y="157.8" width="7.3" height="116.2" fill="#E8B04B" rx="0.8"><title>6 sep · 15,071 transactions</title></rect><rect x="585.0" y="16.0" width="7.3" height="258.0" fill="#E8B04B" rx="0.8"><title>7 sep · 33,461 transactions</title></rect><rect x="593.3" y="273.2" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>8 sep · 110 transactions</title></rect><rect x="601.7" y="273.2" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>9 sep · 106 transactions</title></rect><rect x="610.0" y="273.0" width="7.3" height="1.0" fill="#E8B04B" rx="0.8"><title>10 sep · 130 transactions</title></rect><rect x="618.3" y="273.5" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>11 sep · 65 transactions</title></rect><rect x="626.7" y="273.4" width="7.3" height="0.8" fill="#E8B04B" rx="0.8"><title>12 sep · 72 transactions</title></rect><rect x="635.0" y="271.5" width="7.3" height="2.5" fill="#E8B04B" rx="0.8"><title>13 sep · 328 transactions</title></rect><rect x="643.3" y="272.7" width="7.3" height="1.3" fill="#E8B04B" rx="0.8"><title>14 sep · 166 transactions</title></rect><rect x="651.7" y="254.0" width="7.3" height="20.0" fill="#E8B04B" rx="0.8"><title>15 sep · 2,591 transactions</title></rect><rect x="660.0" y="255.0" width="7.3" height="19.0" fill="#E8B04B" rx="0.8"><title>16 sep · 2,463 transactions</title></rect><rect x="668.3" y="67.6" width="7.3" height="206.4" fill="#E8B04B" rx="0.8"><title>17 sep · 26,774 transactions</title></rect><rect x="676.7" y="265.6" width="7.3" height="8.4" fill="#E8B04B" rx="0.8"><title>18 sep · 1,085 transactions</title></rect><rect x="685.0" y="269.8" width="7.3" height="4.2" fill="#E8B04B" rx="0.8"><title>19 sep · 542 transactions</title></rect><rect x="693.3" y="269.9" width="7.3" height="4.1" fill="#E8B04B" rx="0.8"><title>20 sep · 534 transactions</title></rect><rect x="701.7" y="270.3" width="7.3" height="3.7" fill="#E8B04B" rx="0.8"><title>21 sep · 482 transactions</title></rect><text x="18.0" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">jun</text><text x="18.4" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">jul</text><text x="279.9" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">aug</text><text x="541.3" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">sep</text><text x="710" y="294" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">21 sep</text><!--/AUTO:txchart--></svg>
+    <div class="lg"><span><i style="background:#E8B04B"></i>covenant transactions, one bar per day</span></div>
+  </div>
+  <p style="font-size:13px;"><!--AUTO:skala-->The tallest bar is <b><span data-v="tx_max2">33,461</span></b> transactions on <span data-v="tx_max_datum2">7 sep 2026</span>. On the median day the count is <b><span data-v="tx_median">504</span></b>, which at the same scale is a hairline. We leave it that way. A log axis or a clipped outlier would make this chart easier on the eye and would hide the one property the chart exists to show.<!--/AUTO:skala--></p>
+</div>
+<div class="band"><div class="wrap2">
+  <h2 id="stock">The covenant UTXO stock</h2>
+  <p>The other chart is a stock, not a flow. It is the number of unspent outputs bound to a covenant id that exist on the chain at the end of each day. A transaction can create several of them at once, and they leave the count again when they are spent, so this line is the running balance of the two.</p>
+  <div class="chart">
+    <div class="clbl">covenant utxos on chain · end of day · since toccata</div>
+    <svg viewBox="0 0 720 300" preserveAspectRatio="none" role="img" aria-label="Number of covenant bound unspent outputs on Kaspa at the end of each day since Toccata"><!--AUTO:utxochart--><line x1="10" x2="710" y1="209.5" y2="209.5" stroke="#1A1D21" stroke-width="1"/><text x="710" y="205.5" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">2,896</text><line x1="10" x2="710" y1="145.0" y2="145.0" stroke="#1A1D21" stroke-width="1"/><text x="710" y="141.0" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">5,792</text><line x1="10" x2="710" y1="80.5" y2="80.5" stroke="#1A1D21" stroke-width="1"/><text x="710" y="76.5" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">8,689</text><line x1="10" x2="710" y1="16.0" y2="16.0" stroke="#1A1D21" stroke-width="1"/><text x="710" y="12.0" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">11,585</text><path d="M10.0 273.6 L18.4 273.4 L26.9 273.2 L35.3 273.1 L43.7 272.7 L52.2 272.6 L60.6 272.6 L69.0 272.6 L77.5 272.5 L85.9 272.5 L94.3 272.4 L102.8 272.3 L111.2 272.3 L119.6 272.3 L128.1 272.0 L136.5 272.0 L144.9 272.0 L153.4 271.7 L161.8 271.5 L170.2 271.6 L178.7 271.4 L187.1 271.2 L195.5 271.2 L204.0 270.5 L212.4 270.4 L220.8 270.2 L229.3 263.0 L237.7 257.4 L246.1 250.1 L254.6 250.1 L263.0 245.0 L271.4 242.6 L279.9 236.8 L288.3 233.9 L296.7 230.1 L305.2 222.5 L313.6 220.5 L322.0 217.6 L330.5 217.0 L338.9 216.5 L347.3 215.9 L355.8 215.2 L364.2 214.3 L372.7 213.2 L381.1 211.8 L389.5 208.4 L398.0 206.2 L406.4 205.1 L414.8 202.0 L423.3 200.1 L431.7 197.9 L440.1 194.4 L448.6 192.7 L457.0 192.1 L465.4 191.9 L473.9 194.7 L482.3 190.8 L490.7 190.2 L499.2 190.2 L507.6 190.1 L516.0 189.5 L524.5 189.6 L532.9 189.1 L541.3 188.7 L549.8 188.3 L558.2 188.4 L566.6 188.4 L575.1 188.1 L583.5 188.2 L591.9 187.3 L600.4 187.3 L608.8 186.6 L617.2 188.2 L625.7 188.1 L634.1 187.7 L642.5 190.5 L651.0 189.9 L659.4 138.3 L667.8 87.1 L676.3 53.5 L684.7 34.0 L693.1 28.2 L701.6 23.1 L710.0 16.0 L710.0 274.0 L10.0 274.0 Z" fill="#49EACB" fill-opacity="0.12"/><path d="M10.0 273.6 L18.4 273.4 L26.9 273.2 L35.3 273.1 L43.7 272.7 L52.2 272.6 L60.6 272.6 L69.0 272.6 L77.5 272.5 L85.9 272.5 L94.3 272.4 L102.8 272.3 L111.2 272.3 L119.6 272.3 L128.1 272.0 L136.5 272.0 L144.9 272.0 L153.4 271.7 L161.8 271.5 L170.2 271.6 L178.7 271.4 L187.1 271.2 L195.5 271.2 L204.0 270.5 L212.4 270.4 L220.8 270.2 L229.3 263.0 L237.7 257.4 L246.1 250.1 L254.6 250.1 L263.0 245.0 L271.4 242.6 L279.9 236.8 L288.3 233.9 L296.7 230.1 L305.2 222.5 L313.6 220.5 L322.0 217.6 L330.5 217.0 L338.9 216.5 L347.3 215.9 L355.8 215.2 L364.2 214.3 L372.7 213.2 L381.1 211.8 L389.5 208.4 L398.0 206.2 L406.4 205.1 L414.8 202.0 L423.3 200.1 L431.7 197.9 L440.1 194.4 L448.6 192.7 L457.0 192.1 L465.4 191.9 L473.9 194.7 L482.3 190.8 L490.7 190.2 L499.2 190.2 L507.6 190.1 L516.0 189.5 L524.5 189.6 L532.9 189.1 L541.3 188.7 L549.8 188.3 L558.2 188.4 L566.6 188.4 L575.1 188.1 L583.5 188.2 L591.9 187.3 L600.4 187.3 L608.8 186.6 L617.2 188.2 L625.7 188.1 L634.1 187.7 L642.5 190.5 L651.0 189.9 L659.4 138.3 L667.8 87.1 L676.3 53.5 L684.7 34.0 L693.1 28.2 L701.6 23.1 L710.0 16.0" fill="none" stroke="#49EACB" stroke-width="2" stroke-linejoin="round"/><text x="18.0" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">jun</text><text x="18.4" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">jul</text><text x="279.9" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">aug</text><text x="541.3" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">sep</text><text x="710" y="294" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">21 sep</text><!--/AUTO:utxochart--></svg>
+    <div class="lg"><span><i style="background:#49EACB"></i>covenant utxos on chain at end of day</span></div>
+  </div>
+  <div class="read">
+    <div class="rl">how to read the two charts together</div>
+    <div class="rt">the stock grows steady. the traffic comes in waves.</div>
+  </div>
+  <!--AUTO:summe--><p>Since Toccata activated on 30 June 2026, the log holds <b><span data-v="tage_seit">84</span></b> days. In that window the chain recorded <b><span data-v="tx_summe">232,242</span> covenant transactions</b> and <b><span data-v="outputs_summe">281,198</span> covenant outputs</b>. The covenant UTXO count went from <b><span data-v="utxo_erster">19</span></b> on the first day after activation to <b><span data-v="utxo_count2">11,585</span></b> on <span data-v="utxo_datum2">21 sep 2026</span>.</p><!--/AUTO:summe-->
+</div></div>
+<div class="wrap2">
+  <h2>What this page does not say</h2>
+  <p>It does not say whether that is a lot or a little. There is no second chain running the same upgrade to compare it against, no target anyone published beforehand, and no threshold at which a feature becomes a success. Anyone who tells you these numbers prove Toccata worked, or that they prove it flopped, is adding something that is not in the data.</p>
+  <p>It also says nothing about the price. Covenant usage and the KAS chart are two different measurements, and putting them in the same sentence is how a count turns into a claim. <a href="/kaspa-weekly.html">The chart has its own page</a>, where we describe what it did and never say what it will do.</p>
+  <div class="note">What we will do is keep counting, publish the file, and let the series get long enough to be worth something. A feature that is three months old has three months of evidence, and no amount of framing makes that more.</div>
+  <h2 id="table">The last fourteen days, as logged</h2>
+  <p>Straight out of <a href="https://github.com/neoalphavault-png/kaspa-pulse/blob/main/data/covenants-log.json" target="_blank" rel="noopener">data/covenants-log.json</a>, the same file the charts above are built from. A dash means the source had no value for that day and we did not invent one.</p>
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Day</th><th class="n">Transactions</th><th class="n">Outputs created</th><th class="n">Covenant UTXOs</th></tr></thead>
+      <tbody>
+      <!--AUTO:tabelle--><tr><td>21 sep 2026</td><td class="n">482</td><td class="n">1,017</td><td class="n">11,585</td></tr>
+      <tr><td>20 sep 2026</td><td class="n">534</td><td class="n">1,230</td><td class="n">11,268</td></tr>
+      <tr><td>19 sep 2026</td><td class="n">542</td><td class="n">1,164</td><td class="n">11,038</td></tr>
+      <tr><td>18 sep 2026</td><td class="n">1,085</td><td class="n">2,139</td><td class="n">10,778</td></tr>
+      <tr><td>17 sep 2026</td><td class="n">26,774</td><td class="n">28,558</td><td class="n">9,903</td></tr>
+      <tr><td>16 sep 2026</td><td class="n">2,463</td><td class="n">4,896</td><td class="n">8,392</td></tr>
+      <tr><td>15 sep 2026</td><td class="n">2,591</td><td class="n">5,040</td><td class="n">6,093</td></tr>
+      <tr><td>14 sep 2026</td><td class="n">166</td><td class="n">304</td><td class="n">3,777</td></tr>
+      <tr><td>13 sep 2026</td><td class="n">328</td><td class="n">485</td><td class="n">3,749</td></tr>
+      <tr><td>12 sep 2026</td><td class="n">72</td><td class="n">187</td><td class="n">3,877</td></tr>
+      <tr><td>11 sep 2026</td><td class="n">65</td><td class="n">155</td><td class="n">3,858</td></tr>
+      <tr><td>10 sep 2026</td><td class="n">130</td><td class="n">307</td><td class="n">3,853</td></tr>
+      <tr><td>9 sep 2026</td><td class="n">106</td><td class="n">281</td><td class="n">3,923</td></tr>
+      <tr><td>8 sep 2026</td><td class="n">110</td><td class="n">268</td><td class="n">3,892</td></tr><!--/AUTO:tabelle-->
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="band"><div class="wrap2">
+  <h2>How this is counted</h2>
+  <h3>Where the numbers come from</h3>
+  <p>Three daily series from Kaspalytics, read as JSON from the same endpoints its own charts use: covenant transactions, covenant outputs created and spent, and the covenant UTXO count. Kaspalytics does the counting, we do the logging. The first reading in our file is 26 June 2026, four days before Toccata activated, because that is as far back as the source goes.</p>
+  <h3>The running day is never read</h3>
+  <p>A day that has not finished has no daily total yet. The bot reads up to and including yesterday, so a number on this page never changes shape between breakfast and dinner.</p>
+  <h3>Two kinds of number, two kinds of timestamp</h3>
+  <p>Transactions and outputs are daily sums, stamped at midnight of the day they count. The UTXO count is a snapshot taken at midnight with a few seconds of slack in either direction, so a reading stamped 00:00:02 belongs to the day that just ended. Reading that stamp naively puts half the series on the wrong day, which is the sort of error that never announces itself.</p>
+  <h3>Every number here is in the page source</h3>
+  <p>Not fetched by javascript after the fact. A bot renders the file, and a second pass reads the numbers back out of the finished page and compares each one against the log. If the page and the log disagree, the run fails and nothing ships. A page that can quietly contradict its own source is worse than no page.</p>
+  <div class="note"><!--AUTO:stand-->counted by Kaspalytics, logged daily by Kaspa Pulse · last reading <span data-v="stand_datum">21 sep 2026</span> · log written <span data-v="stand_abruf">2026-09-22</span><!--/AUTO:stand--></div>
+</div></div>
+<div class="wrap2">
+  <div class="subscribe">
+    <div class="badge">free · instant</div>
+    <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
+    <div class="ss">the 8 numbers that actually matter and how to read them · plus the weekly pulse every monday</div>
+    <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="you@email.com" required>
+      <input type="hidden" name="UTM_SOURCE" id="utmSource" value="direct">
+      <input type="hidden" name="UTM_MEDIUM" id="utmMedium" value="none">
+      <input type="hidden" name="UTM_CAMPAIGN" id="utmCampaign" value="none">
+      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="locale" value="en">
+      <input type="hidden" name="html_type" value="simple">
+      <button type="submit" id="subBtn">get it</button>
+    </form>
+    <div class="msg" id="subMsg"></div>
+    <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
+  </div>
+  <footer>
+    <div>not financial advice · data: kaspalytics · further reading: <a href="/kaspa-toccata.html">toccata, explained</a> · <a href="/kaspa-smart-contracts.html">kaspa smart contracts</a> · <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> · <a href="/kaspa-data-sources.html">where our numbers come from</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">youtube</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+  </footer>
+</div>
+<script>
+// newsletter ajax (same as dashboard)
+(function(){
+  const form = document.getElementById("subForm"), btn = document.getElementById("subBtn"), msg = document.getElementById("subMsg");
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    btn.disabled = true; const old = btn.textContent; btn.textContent = "…";
+    msg.className = "msg";
+    try {
+      const res = await fetch(form.action, { method:"POST", body:new FormData(form) });
+      const j = await res.json();
+      if (j.success) { msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
+      else { msg.textContent = j.message || "something went wrong — please try again"; msg.className = "msg err"; }
+    } catch(_) { form.submit(); }
+    btn.disabled = false; btn.textContent = old;
+  });
+})();
+</script>
+<script>
+(function(){
+  if(!("IntersectionObserver" in window)) return;
+  const els = document.querySelectorAll(".live,.fact,.chart,.read,h2,table,.note,.subscribe");
+  const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("vis"); io.unobserve(e.target); } }),{threshold:0.1});
+  els.forEach(el=>{ el.classList.add("rv"); io.observe(el); });
+})();
+</script>
+<script>
+(function(){
+  const b = document.querySelector(".nburger"), c = document.querySelector(".nav .nc");
+  if(b && c) b.addEventListener("click", function(){ c.classList.toggle("open"); b.textContent = c.classList.contains("open") ? "✕" : "☰"; });
+})();
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is Kaspa's Toccata upgrade actually being used?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Covenants have been in use since Toccata activated on 30 June 2026, and this page publishes the daily count: how many covenant transactions the chain recorded each day and how many covenant bound unspent outputs exist at the end of each day. We publish the full series, including the quiet days, and we do not say whether the level is high or low, because nothing was published beforehand to measure it against." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is a covenant on Kaspa?",
+      "acceptedAnswer": { "@type": "Answer", "text": "A covenant is a spending rule attached to an output. A normal output can be spent by whoever holds the key; a covenant bound output carries a condition about how it may be spent next, and the network enforces that condition. The Toccata consensus upgrade made covenants possible on Kaspa mainnet on 30 June 2026." }
+    },
+    {
+      "@type": "Question",
+      "name": "How many covenant UTXOs are there on Kaspa?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The current number is shown at the top of this page with the date it was read. It is the count of unspent transaction outputs bound to a covenant id, counted by Kaspalytics and written into our own daily log so the series survives even if the source's window moves on." }
+    },
+    {
+      "@type": "Question",
+      "name": "Where does the covenant data come from?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Three daily series from Kaspalytics, read as JSON from the same public endpoints its own charts use: covenant transactions, covenant outputs created and spent, and the covenant UTXO count. A bot reads them once a day, never reads the running day, and writes the result to data/covenants-log.json in our public repository. The numbers on this page are rendered into the page source from that file and checked back against it on every run." }
+    },
+    {
+      "@type": "Question",
+      "name": "Do the covenant numbers say anything about the Kaspa price?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Covenant usage and the KAS chart are separate measurements and this page makes no price statement of any kind. It counts what is running on the upgrade and stops there." }
+    }
+  ]
+}
+</script>
+<script src="/capture.js" defer></script>
+<script src="/utm.js" defer></script>
+</body>
+</html>

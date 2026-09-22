@@ -1,0 +1,892 @@
+{
+  "quelle": "kaspalytics",
+  "endpunkte": {
+    "tx": "https://www.kaspalytics.com/api/charts/covenants/transactions",
+    "outputs": "https://www.kaspalytics.com/api/charts/covenants/outputs",
+    "utxo_count": "https://www.kaspalytics.com/api/charts/utxo/covenant-count"
+  },
+  "tage": [
+    {
+      "datum": "2026-06-26",
+      "tx": 0,
+      "outputs": 0,
+      "outputs_created": 0,
+      "outputs_spent": 0,
+      "utxo_count": 0,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-06-27",
+      "tx": 0,
+      "outputs": 0,
+      "outputs_created": 0,
+      "outputs_spent": 0,
+      "utxo_count": 0,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-06-28",
+      "tx": 0,
+      "outputs": 0,
+      "outputs_created": 0,
+      "outputs_spent": 0,
+      "utxo_count": 0,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-06-29",
+      "tx": 0,
+      "outputs": 0,
+      "outputs_created": 0,
+      "outputs_spent": 0,
+      "utxo_count": 0,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-06-30",
+      "tx": 33,
+      "outputs": 46,
+      "outputs_created": 46,
+      "outputs_spent": 27,
+      "utxo_count": 19,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-01",
+      "tx": 757,
+      "outputs": 760,
+      "outputs_created": 760,
+      "outputs_spent": 744,
+      "utxo_count": 27,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-02",
+      "tx": 1272,
+      "outputs": 1276,
+      "outputs_created": 1276,
+      "outputs_spent": 1262,
+      "utxo_count": 35,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-03",
+      "tx": 125,
+      "outputs": 136,
+      "outputs_created": 136,
+      "outputs_spent": 129,
+      "utxo_count": 42,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-04",
+      "tx": 400,
+      "outputs": 400,
+      "outputs_created": 400,
+      "outputs_spent": 384,
+      "utxo_count": 58,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-05",
+      "tx": 136,
+      "outputs": 138,
+      "outputs_created": 138,
+      "outputs_spent": 134,
+      "utxo_count": 62,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-06",
+      "tx": 553,
+      "outputs": 553,
+      "outputs_created": 553,
+      "outputs_spent": 543,
+      "utxo_count": 64,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-07",
+      "tx": 94,
+      "outputs": 99,
+      "outputs_created": 99,
+      "outputs_spent": 99,
+      "utxo_count": 64,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-08",
+      "tx": 71,
+      "outputs": 74,
+      "outputs_created": 74,
+      "outputs_spent": 71,
+      "utxo_count": 67,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-09",
+      "tx": 13,
+      "outputs": 14,
+      "outputs_created": 14,
+      "outputs_spent": 13,
+      "utxo_count": 68,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-10",
+      "tx": 35,
+      "outputs": 35,
+      "outputs_created": 35,
+      "outputs_spent": 31,
+      "utxo_count": 72,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-11",
+      "tx": 26,
+      "outputs": 26,
+      "outputs_created": 26,
+      "outputs_spent": 23,
+      "utxo_count": 75,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-12",
+      "tx": 8,
+      "outputs": 8,
+      "outputs_created": 8,
+      "outputs_spent": 8,
+      "utxo_count": 75,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-13",
+      "tx": 22,
+      "outputs": 22,
+      "outputs_created": 22,
+      "outputs_spent": 22,
+      "utxo_count": 75,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-14",
+      "tx": 54,
+      "outputs": 55,
+      "outputs_created": 55,
+      "outputs_spent": 42,
+      "utxo_count": 88,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-15",
+      "tx": 14,
+      "outputs": 15,
+      "outputs_created": 15,
+      "outputs_spent": 14,
+      "utxo_count": 89,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-16",
+      "tx": 28,
+      "outputs": 28,
+      "outputs_created": 28,
+      "outputs_spent": 28,
+      "utxo_count": 89,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-17",
+      "tx": 40,
+      "outputs": 42,
+      "outputs_created": 42,
+      "outputs_spent": 28,
+      "utxo_count": 103,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-18",
+      "tx": 37,
+      "outputs": 53,
+      "outputs_created": 53,
+      "outputs_spent": 45,
+      "utxo_count": 111,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-19",
+      "tx": 18,
+      "outputs": 34,
+      "outputs_created": 34,
+      "outputs_spent": 35,
+      "utxo_count": 110,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-20",
+      "tx": 1597,
+      "outputs": 1608,
+      "outputs_created": 1608,
+      "outputs_spent": 1603,
+      "utxo_count": 115,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-21",
+      "tx": 19,
+      "outputs": 34,
+      "outputs_created": 34,
+      "outputs_spent": 22,
+      "utxo_count": 127,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-22",
+      "tx": 5,
+      "outputs": 5,
+      "outputs_created": 5,
+      "outputs_spent": 5,
+      "utxo_count": 127,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-23",
+      "tx": 39,
+      "outputs": 73,
+      "outputs_created": 73,
+      "outputs_spent": 45,
+      "utxo_count": 155,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-24",
+      "tx": 9,
+      "outputs": 15,
+      "outputs_created": 15,
+      "outputs_spent": 9,
+      "utxo_count": 161,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-25",
+      "tx": 20,
+      "outputs": 30,
+      "outputs_created": 30,
+      "outputs_spent": 21,
+      "utxo_count": 170,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-26",
+      "tx": 779,
+      "outputs": 2155,
+      "outputs_created": 2155,
+      "outputs_spent": 1832,
+      "utxo_count": 493,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-27",
+      "tx": 1132,
+      "outputs": 3187,
+      "outputs_created": 3187,
+      "outputs_spent": 2934,
+      "utxo_count": 746,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-28",
+      "tx": 1498,
+      "outputs": 4124,
+      "outputs_created": 4124,
+      "outputs_spent": 3799,
+      "utxo_count": 1071,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-29",
+      "tx": 903,
+      "outputs": 2086,
+      "outputs_created": 2086,
+      "outputs_spent": 2082,
+      "utxo_count": 1075,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-30",
+      "tx": 3664,
+      "outputs": 4864,
+      "outputs_created": 4864,
+      "outputs_spent": 4639,
+      "utxo_count": 1300,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-07-31",
+      "tx": 2616,
+      "outputs": 4159,
+      "outputs_created": 4159,
+      "outputs_spent": 4048,
+      "utxo_count": 1411,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-01",
+      "tx": 9837,
+      "outputs": 12983,
+      "outputs_created": 12983,
+      "outputs_spent": 12722,
+      "utxo_count": 1672,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-02",
+      "tx": 6240,
+      "outputs": 7792,
+      "outputs_created": 7792,
+      "outputs_spent": 7664,
+      "utxo_count": 1800,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-03",
+      "tx": 3565,
+      "outputs": 5978,
+      "outputs_created": 5978,
+      "outputs_spent": 5807,
+      "utxo_count": 1971,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-04",
+      "tx": 7273,
+      "outputs": 8779,
+      "outputs_created": 8779,
+      "outputs_spent": 8430,
+      "utxo_count": 2312,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-05",
+      "tx": 2358,
+      "outputs": 4005,
+      "outputs_created": 4005,
+      "outputs_spent": 3915,
+      "utxo_count": 2401,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-06",
+      "tx": 1518,
+      "outputs": 2884,
+      "outputs_created": 2884,
+      "outputs_spent": 2754,
+      "utxo_count": 2531,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-07",
+      "tx": 1578,
+      "outputs": 2816,
+      "outputs_created": 2816,
+      "outputs_spent": 2787,
+      "utxo_count": 2560,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-08",
+      "tx": 1116,
+      "outputs": 1605,
+      "outputs_created": 1605,
+      "outputs_spent": 1585,
+      "utxo_count": 2580,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-09",
+      "tx": 1056,
+      "outputs": 1544,
+      "outputs_created": 1544,
+      "outputs_spent": 1513,
+      "utxo_count": 2611,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-10",
+      "tx": 628,
+      "outputs": 1153,
+      "outputs_created": 1153,
+      "outputs_spent": 1121,
+      "utxo_count": 2642,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-11",
+      "tx": 773,
+      "outputs": 1567,
+      "outputs_created": 1567,
+      "outputs_spent": 1529,
+      "utxo_count": 2681,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-12",
+      "tx": 728,
+      "outputs": 1324,
+      "outputs_created": 1324,
+      "outputs_spent": 1275,
+      "utxo_count": 2730,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-13",
+      "tx": 1013,
+      "outputs": 2067,
+      "outputs_created": 2067,
+      "outputs_spent": 2005,
+      "utxo_count": 2792,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-14",
+      "tx": 549,
+      "outputs": 1233,
+      "outputs_created": 1233,
+      "outputs_spent": 1081,
+      "utxo_count": 2944,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-15",
+      "tx": 454,
+      "outputs": 1106,
+      "outputs_created": 1106,
+      "outputs_spent": 1005,
+      "utxo_count": 3045,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-16",
+      "tx": 450,
+      "outputs": 1049,
+      "outputs_created": 1049,
+      "outputs_spent": 999,
+      "utxo_count": 3095,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-17",
+      "tx": 1133,
+      "outputs": 2748,
+      "outputs_created": 2748,
+      "outputs_spent": 2612,
+      "utxo_count": 3231,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-18",
+      "tx": 512,
+      "outputs": 1184,
+      "outputs_created": 1184,
+      "outputs_spent": 1095,
+      "utxo_count": 3320,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-19",
+      "tx": 595,
+      "outputs": 1367,
+      "outputs_created": 1367,
+      "outputs_spent": 1272,
+      "utxo_count": 3416,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-20",
+      "tx": 1102,
+      "outputs": 2544,
+      "outputs_created": 2544,
+      "outputs_spent": 2383,
+      "utxo_count": 3576,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-21",
+      "tx": 824,
+      "outputs": 1767,
+      "outputs_created": 1767,
+      "outputs_spent": 1694,
+      "utxo_count": 3649,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-22",
+      "tx": 403,
+      "outputs": 905,
+      "outputs_created": 905,
+      "outputs_spent": 875,
+      "utxo_count": 3679,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-23",
+      "tx": 241,
+      "outputs": 578,
+      "outputs_created": 578,
+      "outputs_spent": 569,
+      "utxo_count": 3688,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-24",
+      "tx": 369,
+      "outputs": 898,
+      "outputs_created": 898,
+      "outputs_spent": 1026,
+      "utxo_count": 3559,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-25",
+      "tx": 496,
+      "outputs": 828,
+      "outputs_created": 828,
+      "outputs_spent": 650,
+      "utxo_count": 3738,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-26",
+      "tx": 186,
+      "outputs": 403,
+      "outputs_created": 403,
+      "outputs_spent": 377,
+      "utxo_count": 3764,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-27",
+      "tx": 187,
+      "outputs": 418,
+      "outputs_created": 418,
+      "outputs_spent": 421,
+      "utxo_count": 3761,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-28",
+      "tx": 10288,
+      "outputs": 10542,
+      "outputs_created": 10542,
+      "outputs_spent": 10537,
+      "utxo_count": 3766,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-29",
+      "tx": 143,
+      "outputs": 350,
+      "outputs_created": 350,
+      "outputs_spent": 322,
+      "utxo_count": 3794,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-30",
+      "tx": 16214,
+      "outputs": 16478,
+      "outputs_created": 16478,
+      "outputs_spent": 16482,
+      "utxo_count": 3790,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-08-31",
+      "tx": 15091,
+      "outputs": 15227,
+      "outputs_created": 15227,
+      "outputs_spent": 15205,
+      "utxo_count": 3812,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-01",
+      "tx": 29898,
+      "outputs": 29990,
+      "outputs_created": 29990,
+      "outputs_spent": 29974,
+      "utxo_count": 3828,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-02",
+      "tx": 197,
+      "outputs": 301,
+      "outputs_created": 301,
+      "outputs_spent": 281,
+      "utxo_count": 3848,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-03",
+      "tx": 15059,
+      "outputs": 15149,
+      "outputs_created": 15149,
+      "outputs_spent": 15154,
+      "utxo_count": 3843,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-04",
+      "tx": 124,
+      "outputs": 292,
+      "outputs_created": 292,
+      "outputs_spent": 291,
+      "utxo_count": 3844,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-05",
+      "tx": 47,
+      "outputs": 117,
+      "outputs_created": 117,
+      "outputs_spent": 104,
+      "utxo_count": 3857,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-06",
+      "tx": 15071,
+      "outputs": 15167,
+      "outputs_created": 15167,
+      "outputs_spent": 15172,
+      "utxo_count": 3852,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-07",
+      "tx": 33461,
+      "outputs": 33875,
+      "outputs_created": 33875,
+      "outputs_spent": 33835,
+      "utxo_count": 3892,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-08",
+      "tx": 110,
+      "outputs": 268,
+      "outputs_created": 268,
+      "outputs_spent": 268,
+      "utxo_count": 3892,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-09",
+      "tx": 106,
+      "outputs": 281,
+      "outputs_created": 281,
+      "outputs_spent": 250,
+      "utxo_count": 3923,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-10",
+      "tx": 130,
+      "outputs": 307,
+      "outputs_created": 307,
+      "outputs_spent": 377,
+      "utxo_count": 3853,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-11",
+      "tx": 65,
+      "outputs": 155,
+      "outputs_created": 155,
+      "outputs_spent": 150,
+      "utxo_count": 3858,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-12",
+      "tx": 72,
+      "outputs": 187,
+      "outputs_created": 187,
+      "outputs_spent": 168,
+      "utxo_count": 3877,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-13",
+      "tx": 328,
+      "outputs": 485,
+      "outputs_created": 485,
+      "outputs_spent": 613,
+      "utxo_count": 3749,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-14",
+      "tx": 166,
+      "outputs": 304,
+      "outputs_created": 304,
+      "outputs_spent": 276,
+      "utxo_count": 3777,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-15",
+      "tx": 2591,
+      "outputs": 5040,
+      "outputs_created": 5040,
+      "outputs_spent": 2724,
+      "utxo_count": 6093,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-16",
+      "tx": 2463,
+      "outputs": 4896,
+      "outputs_created": 4896,
+      "outputs_spent": 2597,
+      "utxo_count": 8392,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-17",
+      "tx": 26774,
+      "outputs": 28558,
+      "outputs_created": 28558,
+      "outputs_spent": 27047,
+      "utxo_count": 9903,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-18",
+      "tx": 1085,
+      "outputs": 2139,
+      "outputs_created": 2139,
+      "outputs_spent": 1264,
+      "utxo_count": 10778,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-19",
+      "tx": 542,
+      "outputs": 1164,
+      "outputs_created": 1164,
+      "outputs_spent": 904,
+      "utxo_count": 11038,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-20",
+      "tx": 534,
+      "outputs": 1230,
+      "outputs_created": 1230,
+      "outputs_spent": 1000,
+      "utxo_count": 11268,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    },
+    {
+      "datum": "2026-09-21",
+      "tx": 482,
+      "outputs": 1017,
+      "outputs_created": 1017,
+      "outputs_spent": 686,
+      "utxo_count": 11585,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-22T08:17:09+00:00"
+    }
+  ],
+  "toccata_aktiv_seit": "2026-06-30",
+  "aktualisiert_utc": "2026-09-22T08:17:09+00:00"
+}
