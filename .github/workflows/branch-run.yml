@@ -44,6 +44,10 @@ jobs:
         if: steps.was.outputs.schritt == 'quellen'
         run: python3 scripts/quellen_probe.py
 
+      - name: quellen sondieren, zweite runde
+        if: steps.was.outputs.schritt == 'quellen2'
+        run: python3 scripts/quellen_probe2.py
+
       - name: selbsttests
         if: steps.was.outputs.schritt == 'messreihen'
         run: |
