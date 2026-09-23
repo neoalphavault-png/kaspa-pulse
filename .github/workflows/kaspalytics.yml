@@ -77,6 +77,12 @@ jobs:
               print("probleme alt: %s" % p_alt)
           PY
 
+      - name: selbsttest adressschwellen
+        run: python3 scripts/address_thresholds_log.py --selftest
+
+      - name: alle handwerte gegen die botwerte
+        run: python3 scripts/quellen_probe.py handwerte
+
       - name: holders kommt jetzt von selbst
         run: |
           python3 - <<'PY'

@@ -1,20 +1,21 @@
 name: quellen probe
 
-# Nur von Hand. Beantwortet die Machbarkeitsfrage fuer neue Messreihen:
-# liefert kaspalytics die drei Covenant-Reihen als JSON, und liefert
-# kaspa.stream die Verteilungstabelle und die Top-Adressen? Der Lauf holt
-# nichts ins Repo, er druckt nur die Rohantworten ins Log. Die Arbeitsumgebung
-# selbst kommt an beide Quellen nicht heran, deshalb faellt die Antwort hier.
+# Nur von Hand. Fragt fremde Quellen ab und druckt die Rohantworten ins Log,
+# holt nichts ins Repo. Die Arbeitsumgebung selbst kommt an kaspalytics.com
+# und kaspa.stream nicht heran (Proxy antwortet 403 auf CONNECT), deshalb
+# faellt jede Antwort auf diese Fragen hier.
 #
-# Die drei Runden bauen aufeinander auf und sind absichtlich alle drei
-# geblieben. Am 22.09.2026 hat Runde eins zwei von drei Kaspalytics-Reihen
-# gefunden, Runde zwei die dritte (sie liegt unter /utxo/, nicht unter
-# /covenants/), und Runde drei hat gezeigt, dass kaspa.stream gar keinen
-# HTTP-Endpunkt hat. Wer die Frage spaeter noch einmal stellt, soll nicht
-# bei null anfangen muessen.
+# Bis zum 22.09.2026 lag je Frage eine eigene Datei im Repo, neun Stueck.
+# Seit dem 23.09. ist es eine Datei mit Unterbefehlen, und was bisher
+# herauskam, steht in ihrem Kopf.
 
 on:
   workflow_dispatch:
+    inputs:
+      befehl:
+        description: "welche frage (alle, kaspalytics, bestaende, stream, tabelle, routen, handwerte)"
+        required: false
+        default: "alle"
 
 jobs:
   probe:
@@ -24,21 +25,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: runde 1, welche endpunkte antworten
-        run: python3 scripts/quellen_probe.py
-      - name: runde 2, was die seiten selbst aufrufen
-        run: python3 scripts/quellen_probe2.py
-      - name: runde 3, adressen aus den skriptbuendeln
-        run: python3 scripts/quellen_probe3.py
-      - name: runde 4, die offene holders-quelle aus week-input.json
-        run: python3 scripts/holders_quelle.py
-      - name: runde 5, distributionstabelle und die zeitstempel der bestandsreihen
-        run: python3 scripts/quellen_probe4.py
-      - name: runde 6, die distributionstabelle gezielt
-        run: python3 scripts/quellen_probe5.py
-      - name: runde 7, die buendel der tabellenseite
-        run: python3 scripts/quellen_probe6.py
-      - name: runde 8, wie die tabellenseite ihre dateien einbindet
-        run: python3 scripts/quellen_probe7.py
-      - name: runde 9, das routenverzeichnis und die verteilungsseiten
-        run: python3 scripts/quellen_probe8.py
+      - name: sonde
+        run: python3 scripts/quellen_probe.py "${{ github.event.inputs.befehl || 'alle' }}"

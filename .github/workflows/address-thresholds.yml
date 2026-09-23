@@ -1,0 +1,86 @@
+name: address thresholds log
+
+# kaspa pulse - die wochenreihe der adressverteilung
+#
+# Die Stufentabelle (Aquaman bis Plankton) ist weder bei kaspa.stream noch
+# bei Kaspalytics von aussen zu holen, beides am 22.09.2026 durchgeprueft.
+# Was Kaspalytics hergibt, sind Schwellen: wie viele Adressen ab 0,01, ab 1
+# und ab 100 KAS halten, dazu die Zahl aller Adressen mit Guthaben und die
+# der "nennenswerten". Das sind keine Stufen, und die Datei sagt das auch.
+#
+# Montags 06:00 UTC, also vor der Montagsroutine. Die Reihen reichen bis zum
+# 27.08.2023 zurueck; der erste Lauf fuellt die Datei vollstaendig, jeder
+# weitere schreibt fort. Faellt ein Lauf aus, holt der naechste die fehlenden
+# Tage nach, weil immer die ganze Reihe verschmolzen wird.
+#
+# Noch keine Seite. Die kommt, wenn die Reihe etwas zu erzaehlen hat.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: selbsttest
+        run: python3 scripts/address_thresholds_log.py --selftest
+
+      - name: zahlen holen
+        run: python3 scripts/address_thresholds_log.py
+
+      - name: die reihe kurz nachrechnen
+        run: |
+          python3 - <<'PY'
+          import json
+          log = json.load(open("data/address-thresholds-log.json"))
+          tage = log["tage"]
+          print("%d tage, %s bis %s"
+                % (len(tage), tage[0]["datum"], tage[-1]["datum"]))
+          # die schwellen muessen der groesse nach fallen. tun sie das nicht,
+          # sind zwei reihen vertauscht, und das faellt sonst niemandem auf.
+          schief = []
+          for e in tage:
+              w = [e.get("holders_all"), e.get("holders_001kas"),
+                   e.get("holders_1kas"), e.get("holders_100kas")]
+              if any(x is None for x in w):
+                  continue
+              if not (w[0] >= w[1] >= w[2] >= w[3]):
+                  schief.append(e["datum"])
+          print("tage, an denen die schwellen nicht fallen: %d %s"
+                % (len(schief), schief[:5]))
+          luecken = []
+          import datetime as dt
+          vorher = None
+          for e in tage:
+              t = dt.date.fromisoformat(e["datum"])
+              if vorher and (t - vorher).days > 1:
+                  luecken.append("%s..%s" % (vorher, t))
+              vorher = t
+          print("luecken in der reihe: %d %s" % (len(luecken), luecken[:5]))
+          letzter = tage[-1]
+          print("letzter tag: %s" % json.dumps(letzter))
+          raise SystemExit(1 if schief else 0)
+          PY
+
+      - name: commit
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/address-thresholds-log.json
+          if git diff --staged --quiet; then
+            echo "nichts geaendert"
+          else
+            git commit -m "address thresholds $(date -u +%F)"
+            git push
+          fi

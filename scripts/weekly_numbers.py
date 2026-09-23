@@ -9,18 +9,36 @@ Was der Bot SELBST holt (8 Zeilen):
   hashrate, block reward + naechster Cut, emission, tvl gesamt,
   kasplex/igra split, dex volume, chain fees, prozent gemined
 
-Was der Bot NICHT holen kann (4 Zahlen, kommen aus data/week-input.json):
-  active addresses, tps                    (Kaspalytics, keine API)
-  dormant >1J                              (Kaspalytics, plus Handkorrektur)
-  exchange balances                        (kaspa.stream, keine API)
+Was von Hand kommt (eine Sache):
+  "the read" in data/week-input.json. Sonst nichts mehr.
 
-holders kam bis zum 21.09.2026 auch von Hand und stand seitdem ohne
-geklaerte Quelle in der Eingabedatei: der Wert 792098 wurde Woche fuer
-Woche uebernommen. Am 22.09. war die Frage beantwortet. Die Zahl steht in
-der Kaspalytics-Reihe address/count/meaningful-balance, die
-scripts/kaspalytics.py ohnehin schon als holder_addr liest, und zwar
-exakt mit dem Stand vom 06.09. Seitdem holt der Bot sie selbst, siehe
-fetch_holders(). Von Hand nagelbar bleibt sie ueber override.
+DER WEG DAHIN, 21. BIS 23.09.2026
+Bis zum 21.09. standen fuenf Zahlen von Hand in der Eingabedatei, jede aus
+einem Diagramm abgelesen und als Screenshot geschickt. Am 22.09. fiel
+holders weg: der uebernommene Wert 792098 stand exakt in der
+Kaspalytics-Reihe address/count/meaningful-balance, am 06.09. Am 23.09.
+fielen die restlichen vier, nachdem jede gegen den Handwert derselben
+Woche gestellt worden war (Lauf 35752265732):
+
+    active_addr    hand 7760          bot 7791          +0,40%
+    dormant_pct    hand 50,54         bot 50,59         +0,10%
+    exchange_kas   hand 3.790.000.000 bot 3.791.425.244 +0,04%
+    tps            hand 2,76          bot 1,47          -46,74%
+
+Die ersten drei sind dieselbe Zahl, einmal abgelesen und einmal gelesen.
+Bei exchange_kas ist die Botzahl sogar genauer, der Handwert war der
+gerundete Tooltip. Bei dormant_pct wurde zusaetzlich geprueft, ob die
+hodl-waves-Seite aus dem Hinweis dasselbe misst wie supply/inactive: die
+Summe der Reihen ab 1y ergab 50,57 gegen 50,59, also dieselbe Zahl im
+Rahmen der Rundung.
+
+tps ist der Ausreisser und kein Lesefehler. Die Korrektur vom 16.09.
+(Wochenmittel, nur Standard) steckte seitdem im Bot, aber nicht im Post,
+weil der Handwert weiter nach der alten Definition eingetragen wurde. Mit
+der Umstellung wird die Korrektur zum ersten Mal sichtbar, und die Zahl
+faellt einmalig um rund die Haelfte. Das steht in data/weekly-notes.md.
+
+Jedes dieser Felder bleibt ueber override von Hand setzbar.
 
 Und "the read" bleibt von Hand geschrieben. Das ist Absicht, das ist der
 einzige Teil des Posts der uns von einem Datenfeed unterscheidet.
@@ -139,11 +157,11 @@ MAX_JUMP = {
     "exchange_kas": 0.25,
 }
 
-MANUAL_KEYS = ["active_addr", "tps", "dormant_pct", "exchange_kas"]
+MANUAL_KEYS = []          # seit 23.09.2026 leer, siehe KL_FELDER
 AUTO_KEYS = [
     "hashrate", "block_reward", "emission", "mined_pct",
     "tvl_kasplex", "tvl_igra", "tvl_total", "dex_vol", "chain_fees",
-    "holders",
+    "holders", "active_addr", "dormant_pct", "exchange_kas", "tps",
 ]
 
 MONTHS = ["january", "february", "march", "april", "may", "june", "july",
@@ -563,23 +581,76 @@ def _sum_overview(kind):
     return total
 
 
+# ---------------------------------------------------------- kaspalytics --
+# Bis zum 21.09.2026 kamen fuenf Zahlen von Hand aus Diagrammen. Seit dem
+# 22.09. holt der Bot holders selbst, seit dem 23.09. auch die restlichen
+# vier. Damit bleibt in data/week-input.json nur noch "the read" von Hand,
+# und der Montag braucht keine Screenshots mehr.
+#
+# ACHTUNG, ZWEI BEDEUTUNGEN FUER EIN WORT. In scripts/kaspalytics.py heisst
+# das Feld "holders" der RUHENDE ANTEIL in Prozent, hier heisst "holders"
+# die ADRESSZAHL und der ruhende Anteil heisst "dormant_pct". Die Zuordnung
+# unten ist deshalb absichtlich ueber Kreuz und keine Schlamperei. Das
+# Umbenennen steht nach dem Montagslauf am 28.09. an.
+#
+# unser name -> name in kaspalytics.py
+KL_FELDER = {
+    "holders":      "holder_addr",    # adressen mit nennenswertem guthaben
+    "active_addr":  "active_addr",    # aktive adressen, kurve ALL UNIQUE
+    "dormant_pct":  "holders",        # ruhender anteil ab 1 jahr, in prozent
+    "exchange_kas": "exchange_kas",   # bekannte boersenbestaende
+    "tps":          "tps",            # wochenmittel, nur Standard, siehe 16.09.
+}
+
+_KL = {}
+
+
+def kaspalytics_reset():
+    """Den Zwischenspeicher leeren. Braucht nur der Selbsttest."""
+    _KL.clear()
+
+
+def kaspalytics_werte():
+    """sammle() genau einmal je Lauf.
+
+    Frueher holte jedes Feld einzeln, das waeren jetzt fuenf Laeufe ueber
+    dieselben Endpunkte. sammle() holt alles in einem Rutsch und faengt
+    dabei je Feld ab: faellt eine Reihe aus, stehen die anderen trotzdem.
+    """
+    if not _KL:
+        werte, tage, probleme = kaspalytics.sammle()
+        _KL["werte"], _KL["tage"], _KL["probleme"] = werte, tage, probleme
+        if probleme:
+            print("kaspalytics meldet %d probleme: %s"
+                  % (len(probleme), " | ".join(probleme)))
+    return _KL["werte"]
+
+
+def kl_feld(unser_name):
+    """Ein Kaspalytics-Feld holen. Fehlt es, scheitert das laut.
+
+    Ein stiller Rueckfall auf die Vorwoche waere hier das Schlimmste, was
+    passieren koennte: die Zeile stuende im Post, saehe richtig aus und
+    waere eine Woche alt. Stattdessen faengt collect_auto den Fehler,
+    nennt das Feld beim Namen und der Post geht nicht raus. Von Hand
+    setzbar bleibt jedes dieser Felder ueber override.
+    """
+    name = KL_FELDER[unser_name]
+    wert = kaspalytics_werte().get(name)
+    if wert is None:
+        raise RuntimeError("kaspalytics liefert %s nicht" % name)
+    return float(wert)
+
+
 def fetch_holders():
-    """Die Zahl der Adressen mit nennenswertem Guthaben, aus Kaspalytics.
+    """Die Zahl der Adressen mit nennenswertem Guthaben.
 
     Bis zum 21.09.2026 stand sie als Handwert in week-input.json, ohne
     geklaerte Quelle, und wurde Woche fuer Woche uebernommen. Am 22.09.
     wurde im Runner nachgesehen: der uebernommene Wert 792098 steht exakt
-    in der Reihe address/count/meaningful-balance, am 06.09. Damit ist die
-    Quelle dieselbe, die scripts/kaspalytics.py schon als holder_addr
-    liest, und der Bot holt die Zahl seitdem selbst.
-
-    Bezugspunkt ist wie ueberall der Montag dieser Woche, gelesen wird der
-    letzte volle Tag davor. Faellt Kaspalytics aus, scheitert das hier laut
-    und der Post geht nicht raus; per override laesst sich die Zahl dann
-    von Hand setzen, so wie jedes andere automatische Feld auch.
+    in der Reihe address/count/meaningful-balance, am 06.09.
     """
-    wert, _tag = kaspalytics.hole_feld("holder_addr")
-    return float(wert)
+    return kl_feld("holders")
 
 
 def collect_auto(now_ts, override):
@@ -600,6 +671,10 @@ def collect_auto(now_ts, override):
     take("hashrate", fetch_hashrate)
     take("mined_pct", lambda: fetch_supply()["mined_pct"])
     take("holders", fetch_holders)
+    take("active_addr", lambda: kl_feld("active_addr"))
+    take("dormant_pct", lambda: kl_feld("dormant_pct"))
+    take("exchange_kas", lambda: kl_feld("exchange_kas"))
+    take("tps", lambda: kl_feld("tps"))
 
     tvl = {}
     if override.get("tvl_kasplex") is None or override.get("tvl_igra") is None:
@@ -887,67 +962,149 @@ def run_selftest():
         "read": GOLD_READ,
     }
     got = read_input(write_input(good))
-    ok("eingabedatei wird gelesen", got["week"] == "2026-08-10"
-       and got["manual"]["tps"] == 0.95)
-    bad = json.loads(json.dumps(good))
-    del bad["manual"]["dormant_pct"]
-    raises("fehlende handzahl stoppt", lambda: read_input(write_input(bad)))
+    ok("eingabedatei wird gelesen", got["week"] == "2026-08-10")
+    # die pruefung "fehlende handzahl stoppt" ist am 23.09.2026 entfallen,
+    # weil es keine pflicht-handzahl mehr gibt. was den lauf jetzt noch
+    # stoppt, steht weiter unten: ein fehlender read und ein datum im
+    # falschen format.
 
-    # holders ist seit dem 22.09.2026 kein handwert mehr. eine eingabedatei
-    # ohne holders muss durchlaufen, und ein holders, das noch drinsteht,
-    # darf nicht mehr in den post wandern: sonst haette die umstellung
-    # nichts geaendert und niemandem waere es aufgefallen.
+    # seit dem 23.09.2026 ist KEIN feld mehr handwert. eine eingabedatei
+    # ohne manual-block muss durchlaufen, und was dort stehengeblieben
+    # ist, darf nicht mehr in den post wandern: sonst haette die
+    # umstellung nichts geaendert und niemandem waere es aufgefallen.
     ohne = json.loads(json.dumps(good))
-    del ohne["manual"]["holders"]
+    del ohne["manual"]
     got2 = read_input(write_input(ohne))
-    ok("eingabedatei ohne holders laeuft durch", got2["week"] == "2026-08-10")
-    ok("holders steht nicht mehr in den handwerten",
-       "holders" not in got2["manual"])
-    ok("holders ist ein automatisches feld", "holders" in AUTO_KEYS
-       and "holders" not in MANUAL_KEYS)
+    ok("eingabedatei ohne handwerte laeuft durch", got2["week"] == "2026-08-10")
+    ok("handwerte sind leer", got2["manual"] == {})
+    ok("MANUAL_KEYS ist leer", MANUAL_KEYS == [])
+    for feld in ("holders", "active_addr", "dormant_pct", "exchange_kas", "tps"):
+        ok("%s ist ein automatisches feld" % feld,
+           feld in AUTO_KEYS and feld not in MANUAL_KEYS)
     mit = read_input(write_input(good))
-    ok("ein stehengebliebenes holders wird ignoriert",
-       "holders" not in mit["manual"])
+    ok("stehengebliebene handwerte werden ignoriert", mit["manual"] == {})
 
-    # und der weg, auf dem die zahl jetzt kommt: collect_auto fragt
-    # kaspalytics, und der override nagelt sie fest wie jedes andere
-    # automatische feld auch.
+    # Ein Stub, der an der LAUFENDEN Woche haengt. Der feste Stub in
+    # kaspalytics.py liegt im August 2026; collect_auto rechnet aber gegen
+    # das heutige Datum, und dann faellt tps aus, weil sein Siebentagefenster
+    # leer bleibt. Ein Test, der aus dem falschen Grund rot wird, ist so
+    # wenig wert wie einer, der aus dem falschen Grund gruen wird.
+    def stub_diese_woche(pfad):
+        anker = kaspalytics.wochenanker(dt.datetime.now(dt.timezone.utc).date())
+        tage = [anker - dt.timedelta(days=n) for n in range(12, 0, -1)]
+        fluss = [t.strftime("%Y-%m-%dT00:00:00.000Z") for t in tage]
+        # bestaende mit echtem mitternachtsschlupf, abwechselnd
+        bestand = [(t.strftime("%Y-%m-%dT23:59:59.400Z") if i % 2 == 0
+                    else (t + dt.timedelta(days=1)).strftime("%Y-%m-%dT00:00:02.100Z"))
+                   for i, t in enumerate(tage)]
+        n = len(tage)
+        if pfad.startswith("transactions/accepted/addresses"):
+            return {"labels": fluss, "datasets": [
+                {"label": "Addresses", "data": [7000 + i for i in range(n)]}]}
+        if pfad.startswith("transactions/accepted/count"):
+            return {"labels": fluss, "datasets": [
+                {"label": "Standard", "data": [86400] * n},
+                {"label": "Coinbase", "data": [120000] * n}]}
+        if pfad.startswith("address/count"):
+            return {"labels": bestand, "datasets": [
+                {"label": "Addresses", "data": [790000 + i for i in range(n)]}]}
+        if pfad.startswith("supply/inactive"):
+            return {"labels": bestand, "datasets": [
+                {"label": "CSPERCENT", "data": [50.5 + i / 100.0 for i in range(n)]}]}
+        if pfad.startswith("supply/exchange-holdings"):
+            return {"labels": bestand, "datasets": [
+                {"label": "Balance", "data": [3.8e9 + i for i in range(n)]}]}
+        if pfad.startswith("covenants/transactions"):
+            return {"labels": fluss, "datasets": [
+                {"label": "Transactions", "data": [500 + i for i in range(n)]}]}
+        raise RuntimeError("unbekannter pfad im wochenstub, %s" % pfad)
+
+    # der weg, auf dem die fuenf zahlen jetzt kommen. gestubbt wird der
+    # echte stub aus kaspalytics.py, damit hier nicht eine zweite,
+    # abweichende vorstellung von den reihen entsteht.
     echte_hole = kaspalytics.hole
     try:
-        kaspalytics.hole = lambda pfad: {
-            "labels": ["2026-08-%02dT23:59:59.400Z" % d for d in range(9, 17)],
-            "datasets": [{"label": "Price", "data": [1] * 8},
-                         {"label": "Addresses",
-                          "data": [788000, 788200, 788400, 788600,
-                                   788800, 789000, 789200, 789500]}],
-        }
-        ok("fetch_holders liest die kaspalytics-reihe",
-           fetch_holders() == 789500.0)
+        kaspalytics.hole = kaspalytics._stub
+        kaspalytics_reset()
+        heute = dt.date(2026, 8, 18)
+        soll, _, _ = kaspalytics.sammle(heute=heute, holer=kaspalytics._stub)
+        kaspalytics_reset()
+        _KL["werte"], _KL["tage"], _KL["probleme"] = soll, {}, []
+        ok("holders kommt aus der adressreihe", fetch_holders() == 789500.0)
+        ok("active_addr kommt aus der eigenen reihe",
+           kl_feld("active_addr") == float(soll["active_addr"]))
+        ok("dormant_pct kommt aus dem ruhenden anteil",
+           kl_feld("dormant_pct") == float(soll["holders"]))
+        ok("exchange_kas kommt aus dem boersenbestand",
+           kl_feld("exchange_kas") == float(soll["exchange_kas"]))
+        ok("tps kommt aus dem wochenmittel", kl_feld("tps") == float(soll["tps"]))
+        # die kreuzung der beiden holders-bedeutungen ist der gefaehrliche
+        # teil. dormant_pct ist ein prozentwert, holders eine adresszahl;
+        # wer sie vertauscht, faellt hier auf.
+        ok("dormant_pct ist ein prozentwert", 0.0 < kl_feld("dormant_pct") < 100.0)
+        ok("holders ist eine adresszahl", kl_feld("holders") > 1000.0)
+        ok("die beiden sind nicht dieselbe zahl",
+           kl_feld("holders") != kl_feld("dormant_pct"))
     finally:
         kaspalytics.hole = echte_hole
+        kaspalytics_reset()
 
-    def platzt():
-        raise RuntimeError("503")
+    # faellt eine einzelne reihe aus, stoppt der lauf und nennt das feld.
+    # ein stiller rueckfall auf die vorwoche waere das schlimmste: die
+    # zeile stuende im post, saehe richtig aus und waere eine woche alt.
     echte_hole = kaspalytics.hole
     try:
-        kaspalytics.hole = lambda pfad: platzt()
-        # der lauf muss stoppen UND holders beim namen nennen. ein blosses
-        # "irgendwas ging schief" wuerde im container auch dann gruen sein,
-        # wenn die neue quelle gar nicht abgefragt wird.
+        def halb(pfad):
+            if pfad.startswith("supply/exchange-holdings"):
+                raise RuntimeError("503")
+            return stub_diese_woche(pfad)
+        kaspalytics.hole = halb
+        kaspalytics_reset()
+        rest = {"hashrate": 300.0, "mined_pct": 93.0, "tvl_kasplex": 1.0,
+                "tvl_igra": 1.0, "dex_vol": 1.0, "chain_fees": 1.0}
         try:
-            collect_auto(time.time(), {"hashrate": 300.0, "mined_pct": 93.0,
-                                       "tvl_kasplex": 1.0, "tvl_igra": 1.0,
-                                       "dex_vol": 1.0, "chain_fees": 1.0})
-            ok("faellt kaspalytics aus, stoppt der lauf", False)
+            collect_auto(time.time(), rest)
+            ok("faellt eine reihe aus, stoppt der lauf", False)
         except Stop as exc:
-            ok("faellt kaspalytics aus, stoppt der lauf", "holders" in str(exc))
-        v_ov = collect_auto(time.time(), {"holders": 792098,
-                                          "hashrate": 300.0, "mined_pct": 93.0,
-                                          "tvl_kasplex": 1.0, "tvl_igra": 1.0,
-                                          "dex_vol": 1.0, "chain_fees": 1.0})
-        ok("override setzt holders von hand", v_ov["holders"] == 792098.0)
+            ok("faellt eine reihe aus, stoppt der lauf", "exchange_kas" in str(exc))
+            ok("und nur dieses eine feld wird genannt",
+               all(x not in str(exc) for x in
+                   ("holders", "active_addr", "dormant_pct", "tps")))
+        # mit heiler quelle laeuft derselbe aufruf vollstaendig durch
+        kaspalytics.hole = stub_diese_woche
+        kaspalytics_reset()
+        v_ganz = collect_auto(time.time(), rest)
+        ok("mit heiler quelle sind alle fuenf felder da",
+           all(x in v_ganz for x in ("holders", "active_addr", "dormant_pct",
+                                     "exchange_kas", "tps")))
+        ok("tps ist das wochenmittel, nicht der tageswert", v_ganz["tps"] == 1.0)
     finally:
         kaspalytics.hole = echte_hole
+        kaspalytics_reset()
+
+    # jedes der fuenf felder bleibt per override von hand setzbar
+    echte_hole = kaspalytics.hole
+    try:
+        kaspalytics.hole = lambda pfad: (_ for _ in ()).throw(RuntimeError("503"))
+        kaspalytics_reset()
+        v_ov = collect_auto(time.time(), {
+            "holders": 792098, "active_addr": 7760, "dormant_pct": 50.54,
+            "exchange_kas": 3790000000, "tps": 2.76,
+            "hashrate": 300.0, "mined_pct": 93.0,
+            "tvl_kasplex": 1.0, "tvl_igra": 1.0,
+            "dex_vol": 1.0, "chain_fees": 1.0})
+        ok("override setzt holders", v_ov["holders"] == 792098.0)
+        ok("override setzt active_addr", v_ov["active_addr"] == 7760.0)
+        ok("override setzt dormant_pct", v_ov["dormant_pct"] == 50.54)
+        ok("override setzt exchange_kas", v_ov["exchange_kas"] == 3790000000.0)
+        ok("override setzt tps", v_ov["tps"] == 2.76)
+        ok("und dann kommt der lauf ganz ohne kaspalytics aus",
+           all(x in v_ov for x in ("holders", "active_addr", "dormant_pct",
+                                   "exchange_kas", "tps")))
+    finally:
+        kaspalytics.hole = echte_hole
+        kaspalytics_reset()
+
     bad2 = json.loads(json.dumps(good))
     bad2["read"] = "kurz"
     raises("fehlender read stoppt", lambda: read_input(write_input(bad2)))
