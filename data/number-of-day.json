@@ -1,27 +1,27 @@
 {
-  "issue": "SEP 22 2026",
+  "issue": "SEP 23 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "344 PH",
-  "value_label": "petahash per second securing the network right now",
-  "headline": "hashrate is *up 10 percent*\nagainst 3 weeks ago.",
+  "value": "$7.39M",
+  "value_label": "locked across kasplex and igra",
+  "headline": "layer 2 tvl is *up 485 percent*\nagainst 3 weeks ago.",
   "panes": [
     {
       "kind": "compare",
-      "title": "NETWORK HASHRATE",
+      "title": "TOTAL VALUE LOCKED",
       "sub": "same measurement, two dates",
       "rows": [
         {
           "label": "today",
           "sub": "",
-          "value": "344 PH",
-          "pct": 99.99999999999999,
+          "value": "$7.39M",
+          "pct": 100.0,
           "tone": "teal"
         },
         {
           "label": "3 weeks ago",
           "sub": "",
-          "value": "313 PH",
-          "pct": 90.90930713601088,
+          "value": "$1.26M",
+          "pct": 17.082564257546426,
           "tone": "grey"
         }
       ]
@@ -30,15 +30,15 @@
       "kind": "anchor",
       "title": "WHAT THE NUMBER IS",
       "lines": [
-        "the difference is *31 PH*.",
+        "the difference is *$6.13M*.",
         "*counted* from the same source."
       ]
     }
   ],
-  "sources": "api.kaspa.org",
+  "sources": "defillama.com",
   "site": "kaspapulse.com",
   "post": {
-    "x": "hashrate on kaspa is up 10 percent against 3 weeks ago. 344 PH today, 313 PH then, both read from the same source 22 days apart.",
+    "x": "layer 2 tvl on kaspa is up 485 percent against 3 weeks ago. $7.39M today, $1.26M then, both read from the same source 23 days apart.",
     "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
   }
 }
