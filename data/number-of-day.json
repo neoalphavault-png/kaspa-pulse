@@ -1,44 +1,43 @@
 {
-  "issue": "SEP 23 2026",
+  "issue": "SEP 24 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "$7.39M",
-  "value_label": "locked across kasplex and igra",
-  "headline": "layer 2 tvl is *up 485 percent*\nagainst 3 weeks ago.",
+  "value": "11",
+  "value_label": "days until the next kaspa reward cut",
+  "headline": "bitcoin waits *570 days*.\nkaspa cuts 18 times before then.",
   "panes": [
     {
       "kind": "compare",
-      "title": "TOTAL VALUE LOCKED",
-      "sub": "same measurement, two dates",
+      "title": "TIME TO THE NEXT REDUCTION",
+      "sub": "counted from today, in days",
       "rows": [
         {
-          "label": "today",
-          "sub": "",
-          "value": "$7.39M",
-          "pct": 100.0,
+          "label": "kaspa",
+          "sub": "monthly",
+          "value": "11",
+          "pct": 1.8901385593813222,
           "tone": "teal"
         },
         {
-          "label": "3 weeks ago",
-          "sub": "",
-          "value": "$1.26M",
-          "pct": 17.082564257546426,
+          "label": "bitcoin",
+          "sub": "estimated",
+          "value": "570",
+          "pct": 100.0,
           "tone": "grey"
         }
       ]
     },
     {
       "kind": "anchor",
-      "title": "WHAT THE NUMBER IS",
+      "title": "WHAT CHANGES",
       "lines": [
-        "the difference is *$6.13M*.",
-        "*counted* from the same source."
+        "daily emission drops from 1.89 million to *1.78 million KAS*. no vote, no announcement."
       ]
     }
   ],
-  "sources": "defillama.com",
+  "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "layer 2 tvl on kaspa is up 485 percent against 3 weeks ago. $7.39M today, $1.26M then, both read from the same source 23 days apart.",
-    "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
+    "x": "the next kaspa reward cut lands in 11 days. bitcoin waits about 570 days for its next one, and kaspa cuts 18 more times before that date. daily emission drops from 1.89 million to 1.78 million KAS, the block reward from 2.1827 to 2.0602.",
+    "reply": "the countdown runs live on kaspapulse.com/kaspa-halving.html. the kaspa date is arithmetic, the bitcoin date is an estimate."
   }
 }
