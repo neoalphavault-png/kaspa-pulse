@@ -16,6 +16,7 @@ stellt, soll nicht wieder bei null anfangen.
     python3 scripts/quellen_probe.py routen        das routenverzeichnis der app
     python3 scripts/quellen_probe.py handwerte     handwerte gegen botwerte
     python3 scripts/quellen_probe.py richlist      rangliste und labels, api.kaspa.org
+    python3 scripts/quellen_probe.py wochen        entity x, einzahlungen je woche
     python3 scripts/quellen_probe.py alle          alles nacheinander
 
 WAS BISHER HERAUSKAM, in Kurzform
@@ -480,6 +481,97 @@ def befehl_richlist():
     import richlist_log
     return richlist_log.main(["--trocken"])
 
+
+def _serien(wochen, erste, letzte):
+    """Zusammenhaengende Laeufe von Kalenderwochen mit mindestens einer
+    Einzahlung, dazu die Wochen ohne. Wochen sind ISO-Wochen, Montag bis
+    Sonntag, gezaehlt in UTC, so wie das Kostenskript die Tage zaehlt."""
+    laeufe, luecken = [], []
+    w = erste
+    lauf = None
+    while w <= letzte:
+        if w in wochen:
+            lauf = [lauf[0], w] if lauf else [w, w]
+        else:
+            luecken.append(w)
+            if lauf:
+                laeufe.append(tuple(lauf))
+            lauf = None
+        w += dt.timedelta(days=7)
+    if lauf:
+        laeufe.append(tuple(lauf))
+    return laeufe, luecken
+
+
+def befehl_wochen():
+    """Stimmt "buys every week" auf entity-x.html? Gezaehlt werden dieselben
+    Einzahlungen wie in data/entity-x-costbasis.json (netto ueber 1 KAS je
+    Transaktion, gleiche Funktion net_flows), je Kalenderwoche. Nur lesen,
+    nichts schreiben.
+
+    Zweimal gezaehlt: einmal alle Einzahlungen, einmal nur die ab 100.000
+    KAS. Die Grenze ist dieselbe, ab der die Seite einen Abfluss als echt
+    und nicht als Staub zeigt. Eine Woche, in der nur 5 KAS ankamen, ist
+    keine Woche, in der jemand gekauft hat."""
+    import entity_x_costbasis as cb
+    print("=" * 78)
+    print("ENTITY X, EINZAHLUNGEN JE KALENDERWOCHE")
+    print("=" * 78)
+    txs = cb.fetch_transactions()
+    zu, ab, _, _ = cb.net_flows(txs)
+    datei = json.load(open(os.path.join(REPO, "data", "entity-x-costbasis.json"),
+                           encoding="utf-8"))
+    print("transaktionen %d, einzahlungen %d (datei sagt %s), erste %s, letzte %s"
+          % (len(txs), len(zu), datei.get("deposits"),
+             zu[0]["day"] if zu else "-", zu[-1]["day"] if zu else "-"))
+    if not zu:
+        return 1
+
+    def montag(tag):
+        d = dt.date.fromisoformat(tag)
+        return d - dt.timedelta(days=d.weekday())
+
+    def kw(m):
+        j, n, _ = m.isocalendar()
+        return "%d-W%02d (%s)" % (j, n, m.isoformat())
+
+    for name, grenze in (("alle einzahlungen", 0), ("ab 100.000 KAS", 100000)):
+        auswahl = [e for e in zu if e["kas"] >= grenze]
+        wochen = {}
+        for e in auswahl:
+            wochen.setdefault(montag(e["day"]), []).append(e["kas"])
+        erste, letzte = montag(zu[0]["day"]), montag(zu[-1]["day"])
+        laeufe, luecken = _serien(set(wochen), erste, letzte)
+        gesamt = (letzte - erste).days // 7 + 1
+        print("\n--- %s: %d stueck in %d von %d kalenderwochen, %d ohne"
+              % (name, len(auswahl), len(wochen), gesamt, len(luecken)))
+        lang = sorted(laeufe, key=lambda l: ((l[1] - l[0]).days, l[1]), reverse=True)
+        print("  laengste laeufe ohne luecke (wochen, von, bis):")
+        for a, b in lang[:8]:
+            print("    %3d  %s  bis  %s" % ((b - a).days // 7 + 1, kw(a),
+                                            kw(b)))
+        if laeufe:
+            a, b = laeufe[-1]
+            print("  letzter lauf: %d wochen, %s bis %s"
+                  % ((b - a).days // 7 + 1, kw(a), kw(b)))
+        je_jahr = {}
+        for m in luecken:
+            je_jahr.setdefault(m.isocalendar()[0], []).append(m)
+        for j in sorted(je_jahr):
+            print("  wochen ohne, %d: %d stueck  %s"
+                  % (j, len(je_jahr[j]),
+                     " ".join("W%02d" % m.isocalendar()[1] for m in je_jahr[j])))
+        # die letzten zwanzig wochen einzeln, damit der lauf am ende sichtbar ist
+        print("  die letzten 20 wochen:")
+        w = letzte - dt.timedelta(days=7 * 19)
+        while w <= letzte:
+            b = wochen.get(w, [])
+            print("    %s  %2d einzahlungen  %14s KAS"
+                  % (kw(w), len(b), "{:,.0f}".format(sum(b))))
+            w += dt.timedelta(days=7)
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -488,6 +580,7 @@ BEFEHLE = {
     "routen": befehl_routen,
     "handwerte": befehl_handwerte,
     "richlist": befehl_richlist,
+    "wochen": befehl_wochen,
 }
 
 
