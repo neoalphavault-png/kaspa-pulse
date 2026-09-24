@@ -15,6 +15,7 @@ stellt, soll nicht wieder bei null anfangen.
     python3 scripts/quellen_probe.py tabelle       die distributionstabelle
     python3 scripts/quellen_probe.py routen        das routenverzeichnis der app
     python3 scripts/quellen_probe.py handwerte     handwerte gegen botwerte
+    python3 scripts/quellen_probe.py richlist      rangliste und labels, api.kaspa.org
     python3 scripts/quellen_probe.py alle          alles nacheinander
 
 WAS BISHER HERAUSKAM, in Kurzform
@@ -418,6 +419,67 @@ def befehl_handwerte():
     return 0
 
 
+# --------------------------------------------------------------- richlist
+
+KASPA_API = "https://api.kaspa.org"
+ENTITY_X = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a"
+
+
+def _form_tief(d, tiefe=0, name="antwort"):
+    """Die Form einer JSON-Antwort beschreiben, zwei Ebenen tief. Genau das
+    ist die Frage bei einem Endpunkt, der als EXPECT BREAKING CHANGES
+    markiert ist: nicht was drinsteht, sondern wie es drinsteht."""
+    pad = "    " + "  " * tiefe
+    if isinstance(d, dict):
+        print("%s%s: objekt, %d schluessel" % (pad, name, len(d)))
+        if tiefe < 2:
+            for k in list(d)[:12]:
+                v = d[k]
+                if isinstance(v, (dict, list)):
+                    _form_tief(v, tiefe + 1, k)
+                else:
+                    print("%s  %s: %s = %s" % (pad, k, type(v).__name__, kurz(v, 90)))
+    elif isinstance(d, list):
+        print("%s%s: liste, %d eintraege" % (pad, name, len(d)))
+        if d and tiefe < 2:
+            _form_tief(d[0], tiefe + 1, "[0]")
+    else:
+        print("%s%s: %s = %s" % (pad, name, type(d).__name__, kurz(d, 90)))
+
+
+def befehl_richlist():
+    """Die Rangliste und das Label-Verzeichnis auf api.kaspa.org.
+
+    Beide sind als EXPECT BREAKING CHANGES markiert und lassen sich per
+    Umgebungsvariable abschalten (dann http 503). Bevor ein Logger gegen
+    sie geschrieben wird, steht hier, welche Form die Antwort am Tag des
+    Baus hatte: welche Schluessel, welche Typen, und vor allem in welcher
+    Einheit die Betraege stehen. Die Einheit wird nicht angenommen, sie
+    wird gegen den Kontostand von Entity X gestellt, den wir ueber den
+    stabilen Endpunkt /addresses/{adresse}/balance kennen (in sompi)."""
+    print("=" * 78)
+    print("API.KASPA.ORG, RANGLISTE UND LABELS")
+    print("=" * 78)
+    daten = {}
+    for pfad in ("/addresses/top", "/addresses/names",
+                 "/addresses/%s/balance" % ENTITY_X, "/info/coinsupply"):
+        st, txt = hole(KASPA_API + pfad)
+        print("\n  %s  http %s, %d zeichen" % (pfad, st, len(txt)))
+        if st != 200:
+            print("    roh: %s" % kurz(txt, 400))
+            continue
+        d, f = form(txt)
+        print("    %s" % f)
+        _form_tief(d)
+        print("    roh: %s" % kurz(txt, 900))
+        daten[pfad] = d
+
+    # die einheitspruefung selbst steht nur an einer stelle, im logger.
+    # hier laeuft er trocken: holen, pruefen, drucken, nichts schreiben.
+    print("\n  --- der logger, trocken ---")
+    import richlist_log
+    return richlist_log.main(["--trocken"])
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -425,6 +487,7 @@ BEFEHLE = {
     "tabelle": befehl_tabelle,
     "routen": befehl_routen,
     "handwerte": befehl_handwerte,
+    "richlist": befehl_richlist,
 }
 
 
