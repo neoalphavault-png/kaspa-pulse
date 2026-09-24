@@ -418,6 +418,107 @@ def befehl_handwerte():
     return 0
 
 
+# ------------------------------------------------------- entity x, pruefung
+
+def befehl_entityx():
+    """Nur lesend. Pruefung vom 24.09.2026: scripts/entity_x_daily.json
+    stand am 23.09. um 2.477.624 KAS ueber dem 22.09. und am 24.09. um
+    2.000.015 KAS unter dem 23.09. Phantom oder Bewegung? Die Antwort
+    steht auf der Kette: alle Transaktionen von Entity X seit dem 21.09.,
+    netto je Transaktion, dazu der Kontostand zu jedem Heartbeat-Zeitpunkt,
+    rueckgerechnet vom Live-Stand. Die Netto-Rechnung ist dieselbe wie in
+    scripts/entity_x_outflows.py (Ausgaenge an uns minus Eingaenge von uns)."""
+    ex = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a"
+    ab = dt.datetime(2026, 9, 21, tzinfo=dt.timezone.utc)
+    ab_ms = int(ab.timestamp() * 1000)
+    print("=" * 78)
+    print("ENTITY X, ALLE BEWEGUNGEN SEIT 21.09.2026")
+    print("=" * 78)
+
+    st, txt = hole("https://api.kaspa.org/addresses/%s/balance" % ex)
+    jetzt = dt.datetime.now(dt.timezone.utc)
+    if st != 200:
+        print("  balance http %s" % st)
+        return 1
+    live = int(json.loads(txt)["balance"]) / 1e8
+    print("  live-kontostand %s: %.2f KAS" % (jetzt.isoformat(timespec="seconds"), live))
+
+    txs, before = [], 0
+    for _ in range(10):
+        url = ("https://api.kaspa.org/addresses/%s/full-transactions-page"
+               "?limit=100&resolve_previous_outpoints=light" % ex)
+        if before:
+            url += "&before=%d" % before
+        st, txt = hole(url)
+        if st != 200:
+            print("  full-transactions-page http %s: %s" % (st, kurz(txt, 200)))
+            return 1
+        seite = json.loads(txt)
+        if not seite:
+            break
+        txs += seite
+        aeltester = min(t.get("block_time") or 0 for t in seite)
+        if aeltester < ab_ms:
+            break
+        before = aeltester
+    print("  %d transaktionen geholt, aelteste %s" % (len(txs), dt.datetime.fromtimestamp(
+        min(t.get("block_time") or 0 for t in txs) / 1000, dt.timezone.utc).isoformat()))
+
+    gesehen, zeilen, offen = set(), [], 0
+    for t in txs:
+        tid = t.get("transaction_id")
+        bt = t.get("block_time") or 0
+        if tid in gesehen or bt < ab_ms:
+            continue
+        gesehen.add(tid)
+        gain = sum(float(o.get("amount", 0)) for o in t.get("outputs") or []
+                   if (o.get("script_public_key_address") or o.get("address")) == ex) / 1e8
+        spend, gegen = 0.0, {}
+        for i in t.get("inputs") or []:
+            a, amt = i.get("previous_outpoint_address"), i.get("previous_outpoint_amount")
+            if a is None or amt is None:
+                offen += 1
+                continue
+            if a == ex:
+                spend += float(amt) / 1e8
+            else:
+                gegen[a] = gegen.get(a, 0) + float(amt) / 1e8
+        ziele = {}
+        for o in t.get("outputs") or []:
+            a = o.get("script_public_key_address") or o.get("address") or ""
+            if a and a != ex:
+                ziele[a] = ziele.get(a, 0) + float(o.get("amount", 0)) / 1e8
+        zeilen.append((bt, tid, gain - spend, spend, gain, gegen, ziele,
+                       t.get("accepting_block_blue_score"), t.get("is_accepted")))
+    zeilen.sort()
+    print("  unaufgeloeste eingaenge: %d" % offen)
+    print("\n  %-20s %18s  %s" % ("zeit utc", "netto KAS", "transaktion"))
+    for bt, tid, netto, spend, gain, gegen, ziele, bs, acc in zeilen:
+        print("  %-20s %+18.2f  %s  accepted=%s" % (
+            dt.datetime.fromtimestamp(bt / 1000, dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+            netto, tid, acc))
+        if abs(netto) >= 100000:
+            print("      ausgegeben %.2f, zurueck %.2f" % (spend, gain))
+            for a, v in sorted(gegen.items(), key=lambda x: -x[1])[:3]:
+                print("      von  %s  %.2f" % (a, v))
+            for a, v in sorted(ziele.items(), key=lambda x: -x[1])[:3]:
+                print("      an   %s  %.2f" % (a, v))
+
+    # der kontostand zu jedem heartbeat, rueckgerechnet vom live-stand
+    print("\n  kontostand zu den heartbeat-zeitpunkten, rueckgerechnet:")
+    datei = [("2026-09-22T18:02:24", 1523915197.09),
+             ("2026-09-23T18:21:35", 1526392821.60),
+             ("2026-09-24T18:23:27", 1524392806.78)]
+    for stempel, wert in datei:
+        t = dt.datetime.fromisoformat(stempel).replace(tzinfo=dt.timezone.utc)
+        t_ms = int(t.timestamp() * 1000)
+        danach = sum(z[2] for z in zeilen if z[0] > t_ms)
+        kette = live - danach
+        print("    %s  kette %18.2f  datei %18.2f  differenz %+.2f"
+              % (stempel, kette, wert, wert - kette))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -425,6 +526,7 @@ BEFEHLE = {
     "tabelle": befehl_tabelle,
     "routen": befehl_routen,
     "handwerte": befehl_handwerte,
+    "entityx": befehl_entityx,
 }
 
 
