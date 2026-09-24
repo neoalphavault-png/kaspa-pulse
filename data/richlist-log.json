@@ -1,0 +1,44 @@
+{
+  "wochen": [
+    {
+      "woche": "2026-W39",
+      "datum": "2026-09-24",
+      "timestamp": 1790274312000,
+      "timestamp_utc": "2026-09-24T18:25:12+00:00",
+      "abgerufen_utc": "2026-09-24T19:10:08+00:00",
+      "adressen": 10000,
+      "mit_label": 40,
+      "labels_im_verzeichnis": 138,
+      "summe_rangliste_kas": 22620066038,
+      "circ_supply_kas": 27719223484,
+      "circ_supply_sompi": "2771922348421160237",
+      "anteil_rangliste_pct": 81.6043,
+      "einheit": "ganze KAS, abgeschnitten",
+      "einheitspruefung": {
+        "rang0_adresse": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
+        "rang0_betrag": 1524392806,
+        "referenz_kas": 1524392806.78,
+        "referenz_quelle": "live /addresses/{entity x}/balance",
+        "abweichung_kas": -0.78,
+        "abweichung_pct": 0.0,
+        "toleranz_pct": 1.0
+      },
+      "roh": {
+        "top": "data/richlist/2026-09-24.top.json.gz",
+        "names": "data/richlist/2026-09-24.names.json",
+        "top_bytes": 1113534,
+        "names_bytes": 14055,
+        "top_sha256": "d47be09b5c625394660e0b737a5c00cf374d06e6e40a76e352bd64cf696e1e82",
+        "names_sha256": "d03f06e34b05b16f755fd466957867ac5ecfe050a14258038806f08aba5517d5"
+      }
+    }
+  ],
+  "quelle": "api.kaspa.org, experimentell",
+  "endpunkte": {
+    "top": "https://api.kaspa.org/addresses/top",
+    "names": "https://api.kaspa.org/addresses/names",
+    "circ_supply": "https://api.kaspa.org/info/coinsupply",
+    "referenz_entity_x": "https://api.kaspa.org/addresses/kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a/balance"
+  },
+  "hinweis": "stufe 1, nur archiv. nichts davon ist veroeffentlicht. die rangliste nennt ganze KAS, abgeschnitten; der kontostand-endpunkt nennt sompi. rohdaten liegen je woche unter data/richlist/, byte fuer byte, sha256 in der zeile."
+}
