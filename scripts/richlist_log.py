@@ -306,7 +306,11 @@ def schnappschuss(holer=None, jetzt=None):
             "rang0_betrag": liste[0]["amount"],
             "referenz_kas": round(ref_kas, 2),
             "referenz_quelle": ref_quelle,
-            "abweichung_pct": round(abw * 100, 4),
+            # die abweichung in KAS ist lesbarer als in prozent: am 24.09.
+            # waren es -0,78 KAS, genau die nachkommastelle, die die
+            # rangliste abschneidet. in prozent waere das -0,00000005.
+            "abweichung_kas": round(liste[0]["amount"] - ref_kas, 2),
+            "abweichung_pct": round(abw * 100, 6) + 0.0 if abs(abw) >= 5e-9 else 0.0,
             "toleranz_pct": TOLERANZ_EINHEIT * 100,
         },
         "roh": {
@@ -420,7 +424,9 @@ def run_selftest():
     check("24.09., rang 0 gegen live /balance passt", zeile["einheitspruefung"]["rang0_betrag"],
           1524392806)
     check("die abweichung ist die abgeschnittene nachkommastelle",
-          abs(zeile["einheitspruefung"]["abweichung_pct"]) < 0.0001, True)
+          zeile["einheitspruefung"]["abweichung_kas"], -0.78)
+    check("und in prozent steht keine negative null",
+          str(zeile["einheitspruefung"]["abweichung_pct"]), "0.0")
     check("die einheit steht in der zeile", zeile["einheit"], "ganze KAS, abgeschnitten")
 
     # Bens zahl vom 21.09. als referenz: drei tage alt, 0,03 prozent weg,
@@ -542,7 +548,7 @@ def run_selftest():
         for f in fails:
             print("  " + f)
         return 1
-    print("selftest ok, 33 faelle")
+    print("selftest ok, 34 faelle")
     return 0
 
 
@@ -573,8 +579,8 @@ def main(argv=None):
     print("  rang 0           %s" % e["rang0_adresse"])
     print("                   %d KAS gegen %.2f KAS (%s)"
           % (e["rang0_betrag"], e["referenz_kas"], e["referenz_quelle"]))
-    print("                   abweichung %+.4f%%, erlaubt %.0f%%"
-          % (e["abweichung_pct"], e["toleranz_pct"]))
+    print("                   abweichung %+.2f KAS (%+.6f%%), erlaubt %.0f%%"
+          % (e["abweichung_kas"], e["abweichung_pct"], e["toleranz_pct"]))
     print("  rangliste haelt  %d KAS, %.2f%% des umlaufs (%d KAS)"
           % (zeile["summe_rangliste_kas"], zeile["anteil_rangliste_pct"],
              zeile["circ_supply_kas"]))
