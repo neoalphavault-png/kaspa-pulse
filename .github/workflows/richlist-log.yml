@@ -1,0 +1,51 @@
+name: richlist log
+
+# kaspa pulse - stufe 1, die uhr starten
+#
+# Jeden Sonntag ein Schnappschuss der Rangliste und des Label-Verzeichnisses
+# von api.kaspa.org, dazu circ_supply. Nur Archiv: kein Post, keine Seite,
+# kein Dashboard. Die Reihe soll erst lang werden, bevor jemand sie liest.
+#
+# Sonntag 03:15 UTC. Der einzige andere Sonntagslauf ist der Wochenschluss
+# der Kurse in kas-candles.yml um 00:40; zweieinhalb Stunden Abstand.
+#
+# Beide Endpunkte sind als EXPECT BREAKING CHANGES markiert und lassen sich
+# auf der Gegenseite abschalten (dann 503). Passt irgendetwas nicht, bricht
+# scripts/richlist_log.py ab und schreibt nichts, und dieser Lauf wird rot.
+# Eine Luecke im Log ist ehrlich, eine falsche Zeile nicht. Bot-Regel 10.
+
+on:
+  schedule:
+    - cron: "15 3 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: selbsttest
+        run: python3 scripts/richlist_log.py --selftest
+
+      - name: schnappschuss
+        run: python3 scripts/richlist_log.py
+
+      - name: commit
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add -A data/richlist-log.json data/richlist/
+          if git diff --staged --quiet; then
+            echo "nichts geaendert"
+          else
+            git commit -m "richlist $(date -u +%F)"
+            git push
+          fi

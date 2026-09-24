@@ -474,35 +474,11 @@ def befehl_richlist():
         print("    roh: %s" % kurz(txt, 900))
         daten[pfad] = d
 
-    top = daten.get("/addresses/top")
-    bal = daten.get("/addresses/%s/balance" % ENTITY_X)
-    if top is None or bal is None:
-        print("\n  einheitspruefung nicht moeglich, eine antwort fehlt")
-        return 0
-    print("\n  --- einheitspruefung, rang 0 gegen entity x ---")
-    ex_sompi = float(bal.get("balance"))
-    print("    entity x ueber /balance: %s sompi = %.0f KAS" % (bal.get("balance"), ex_sompi / 1e8))
-    # rang 0 finden, ohne die form vorauszusetzen: die erste liste, die in
-    # der antwort steckt, und darin der erste eintrag
-    liste = top if isinstance(top, list) else next(
-        (v for v in top.values() if isinstance(v, list)), None) if isinstance(top, dict) else None
-    if not liste:
-        print("    keine liste in der antwort gefunden")
-        return 0
-    erster = liste[0]
-    print("    rang 0 roh: %s" % kurz(json.dumps(erster), 400))
-    if isinstance(erster, dict):
-        for k, v in erster.items():
-            try:
-                x = float(v)
-            except (TypeError, ValueError):
-                continue
-            print("    feld %-14s %22s  als sompi -> %20.0f KAS  (%+.3f%% zu entity x)"
-                  "  als KAS -> %+.3f%%"
-                  % (k, v, x / 1e8, (x / ex_sompi - 1) * 100,
-                     (x / (ex_sompi / 1e8) - 1) * 100))
-    return 0
-
+    # die einheitspruefung selbst steht nur an einer stelle, im logger.
+    # hier laeuft er trocken: holen, pruefen, drucken, nichts schreiben.
+    print("\n  --- der logger, trocken ---")
+    import richlist_log
+    return richlist_log.main(["--trocken"])
 
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
