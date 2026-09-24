@@ -146,7 +146,7 @@
 </nav>
 <div class="wrap">
   <h1>What is <b>Entity X</b>? Kaspa's biggest wallet, explained.</h1>
-  <div class="sub">One single address holds more $KAS than any exchange on earth — and it buys more every week. Here is everything that's actually verifiable about it, and nothing that isn't.</div>
+  <div class="sub">One single address holds more $KAS than any exchange on earth. Here is everything that's actually verifiable about it, and nothing that isn't.</div>
   <div class="live">
     <div class="lbl"><span class="live-dot"></span>Entity X balance right now</div>
     <div class="bal" id="bal">—</div>
@@ -161,14 +161,14 @@
     <div class="fact"><div class="v teal" id="factBal">live ↑</div><div class="l">current balance — one address, verifiable on any explorer, shown live above</div></div>
     <div class="fact"><div class="v teal" id="factPct">live ↑</div><div class="l">share of all circulating KAS held in this single wallet — computed live from supply</div></div>
     <div class="fact"><div class="v red">&gt; ⅓</div><div class="l">of all known exchange holdings combined (3.94B KAS) — as measured July 2026</div></div>
-    <div class="fact"><div class="v teal" id="factCost">$0.0881</div><div class="l">average price this wallet paid per KAS — our own calculation from every deposit on chain</div></div>
+    <div class="fact"><div class="v teal" id="factCost">$0.0866</div><div class="l">average price this wallet paid per KAS — our own calculation from every deposit on chain</div></div>
   </div>
 </div></div>
 <div class="wrap2">
   <h2>What the on-chain record shows</h2>
   <ul>
-    <li><b>It buys every single week.</b> In the week ending July 27, 2026 it added ~17M KAS, withdrawn directly from Bitget and Gate.io. In the 90 days before that: ~84M KAS.</li>
-    <li><b>Coins have left it — <span id="bSum">39,038,233</span> KAS in <span id="bCnt">20</span> transfers since March 2024.</b> You will read almost everywhere that this wallet has never sent a coin out. That is simply not true, and we only know because we rebuilt the address from every transaction ourselves. It is still a small number: <span id="bShare">2.54%</span> of everything the wallet ever bought, against <span id="bRest">97.46%</span> still sitting there. <a href="#outflows">Every single transfer is listed below.</a></li>
+    <li><b>Deposits landed in every calendar week from 29 Jul to 22 Dec 2024,</b> 21 weeks in a row, the longest unbroken run between March 2024 and 23 Sep 2026. In the week ending July 27, 2026 it added ~17M KAS, withdrawn directly from Bitget and Gate.io. In the 90 days before that: ~84M KAS.</li>
+    <li><b>Coins have left it — <span id="bSum">55,202,494</span> KAS in <span id="bCnt">25</span> transfers since March 2024.</b> You will read almost everywhere that this wallet has never sent a coin out. That is simply not true, and we only know because we rebuilt the address from every transaction ourselves. It is still a small number: <span id="bShare">3.49%</span> of everything the wallet ever bought, against <span id="bRest">96.51%</span> still sitting there. <a href="#outflows">Every single transfer is listed below.</a></li>
     <li><b>It reached this size fast.</b> Between April and July 2026 alone the balance grew from about 1.41 billion to just under 1.5 billion KAS — and it kept going.</li>
     <li><b>First activity:</b> March 2024. A few hundred transactions total — large, deliberate withdrawals, not trading.</li>
   </ul>
@@ -179,21 +179,21 @@
   <p>We pull <b>every transaction</b> this address has ever been part of, keep only the true net inflows, and value each one at the <b>volume weighted average price of the day it landed</b> — not the daily close. Nobody buys at midnight. That single choice is why our number will differ slightly from anyone using closing prices, and it is the more honest of the two.</p>
   <div class="cb" id="cbBox">
     <div class="cbt">Average entry price</div>
-    <div class="cbv" id="cbAvg">$0.0881</div>
-    <div class="cbs" id="cbSub">across 292 deposits between 6 Mar 2024 and 1 Aug 2026</div>
+    <div class="cbv" id="cbAvg">$0.0866</div>
+    <div class="cbs" id="cbSub">across 315 deposits between 6 Mar 2024 and 23 Sep 2026</div>
     <div class="cbrow">
-      <div class="cbi"><div class="k teal" id="cbInv">$135.5M</div><div class="d">put into this wallet, in dollars, at the prices of the day</div></div>
-      <div class="cbi"><div class="k" id="cbVal">$40.5M</div><div class="d">what the same coins are worth right now</div></div>
-      <div class="cbi"><div class="k red" id="cbPnl">−$95.0M</div><div class="d">unrealized, and still buying every week</div></div>
+      <div class="cbi"><div class="k teal" id="cbInv">$136.8M</div><div class="d">put into this wallet, in dollars, at the prices of the day</div></div>
+      <div class="cbi"><div class="k" id="cbVal">$60.9M</div><div class="d">what the same coins are worth right now</div></div>
+      <div class="cbi"><div class="k red" id="cbPnl">−$75.8M (−55%)</div><div class="d">unrealized</div></div>
     </div>
   </div>
-  <div class="note">Read that bottom row again. This wallet is roughly <b>70% underwater</b> on a nine figure position and it kept buying right through it, with its most recent deposit landing days ago. Whatever it is, it is not trading.</div>
+  <div class="note">Read that bottom row again. This wallet put a nine figure sum into this position and kept depositing right through the drawdown. The latest deposit in our count landed on <b id="cbLastDep">23 Sep 2026</b>. Whatever it is, it is not trading.</div>
   <p style="font-size:13px;">Method, in full: net inflows only, so change from a wallet's own spending is never miscounted as a purchase. Daily prices from KuCoin, with MEXC and Bybit filling any gaps. If more than 2% of the coins land on days we cannot price, the number is marked unreliable and this box disappears rather than showing you something half true. Recomputed automatically every Monday.</p>
 </div></div>
 <div class="wrap2">
   <h2 id="outflows">Every coin that has left this wallet</h2>
-  <p>The claim you will read almost everywhere is that Entity X has never sent a single coin out. <b>That is not correct.</b> Since March 2024, <b><span id="oSum">39,038,233</span> KAS</b> have left the address across <b><span id="oCnt">20</span> transfers</b>. Here is every one of them, with the transaction you can open on any explorer.</p>
-  <p>Keep the scale in mind before anyone turns this into a headline. It is <b><span id="oShare">2.54%</span> of everything the wallet ever bought</b>. The other <span id="oRest">97.46%</span> is still there, and the most recent purchase was days ago. And crucially, <b>the chain does not tell us whether these coins were sold</b>. Sent to an exchange and sold, or moved to a second address the same owner controls, look identical from here. Anyone who tells you which it was is guessing.</p>
+  <p>The claim you will read almost everywhere is that Entity X has never sent a single coin out. <b>That is not correct.</b> Since March 2024, <b><span id="oSum">55,202,494</span> KAS</b> have left the address across <b><span id="oCnt">25</span> transfers</b>. Here is every one of them, with the transaction you can open on any explorer.</p>
+  <p>Keep the scale in mind before anyone turns this into a headline. It is <b><span id="oShare">3.49%</span> of everything the wallet ever bought</b>. The other <span id="oRest">96.51%</span> is still there, and the latest deposit in our count landed on <span id="oLastDep">23 Sep 2026</span>. And crucially, <b>the chain does not tell us whether these coins were sold</b>. Sent to an exchange and sold, or moved to a second address the same owner controls, look identical from here. Anyone who tells you which it was is guessing.</p>
   <div class="tblwrap">
     <table id="outTbl">
       <thead><tr><th>Date</th><th style="text-align:right">KAS out</th><th>Transaction</th></tr></thead>
@@ -218,10 +218,15 @@
       <tr><td>19 Mar 2026</td><td class="n">3,100,142</td><td class="tx"><a href="https://explorer.kaspa.org/txs/45518a5eeebd8c99dc9936c2c384c2494edf9e1e9000c79adb1121a19dddac33" target="_blank" rel="noopener" title="45518a5eeebd8c99dc9936c2c384c2494edf9e1e9000c79adb1121a19dddac33">45518a5eee…ddac33</a></td></tr>
       <tr><td>7 May 2026</td><td class="n">4,937,995</td><td class="tx"><a href="https://explorer.kaspa.org/txs/8671ec587a90113773fa279d33089c9349f17bb56ad8ce2f73351eedaf4c0385" target="_blank" rel="noopener" title="8671ec587a90113773fa279d33089c9349f17bb56ad8ce2f73351eedaf4c0385">8671ec587a…4c0385</a></td></tr>
       <tr><td>18 Jun 2026</td><td class="n">2,079,727</td><td class="tx"><a href="https://explorer.kaspa.org/txs/2ed0acf4676a4eca8abf491678fe8ab6095db6f59fa095cdf457ca91f4234c7d" target="_blank" rel="noopener" title="2ed0acf4676a4eca8abf491678fe8ab6095db6f59fa095cdf457ca91f4234c7d">2ed0acf467…234c7d</a></td></tr>
+      <tr><td>10 Aug 2026</td><td class="n">2,396,922</td><td class="tx"><a href="https://explorer.kaspa.org/txs/b5dffd7a72781f2e4fba61d9674f2f38fe0f996dad79a469dd7d962b130835a8" target="_blank" rel="noopener" title="b5dffd7a72781f2e4fba61d9674f2f38fe0f996dad79a469dd7d962b130835a8">b5dffd7a72…0835a8</a></td></tr>
+      <tr><td>27 Aug 2026</td><td class="n">2,992,969</td><td class="tx"><a href="https://explorer.kaspa.org/txs/59c797e2ac1ec03afae652e1499ed5fdf8cd179e25d0bd85b06e034d4de17486" target="_blank" rel="noopener" title="59c797e2ac1ec03afae652e1499ed5fdf8cd179e25d0bd85b06e034d4de17486">59c797e2ac…e17486</a></td></tr>
+      <tr><td>14 Sep 2026</td><td class="n">3,147,380</td><td class="tx"><a href="https://explorer.kaspa.org/txs/fea10a7aebd3d4534c2f3dfceaf58d3cc13cd90cd89303c09665e3862b2e8a41" target="_blank" rel="noopener" title="fea10a7aebd3d4534c2f3dfceaf58d3cc13cd90cd89303c09665e3862b2e8a41">fea10a7aeb…2e8a41</a></td></tr>
+      <tr><td>17 Sep 2026</td><td class="n">5,626,974</td><td class="tx"><a href="https://explorer.kaspa.org/txs/69d060840d25183c1a82b6033472b137c7eedf975b90e622306b450538e3e507" target="_blank" rel="noopener" title="69d060840d25183c1a82b6033472b137c7eedf975b90e622306b450538e3e507">69d060840d…e3e507</a></td></tr>
+      <tr><td>24 Sep 2026</td><td class="n">2,000,015</td><td class="tx"><a href="https://explorer.kaspa.org/txs/49ba8535c16603aa8da1ca9547bbc00cc41c6590925a9ddd108863f1a2c1954f" target="_blank" rel="noopener" title="49ba8535c16603aa8da1ca9547bbc00cc41c6590925a9ddd108863f1a2c1954f">49ba8535c1…c1954f</a></td></tr>
       </tbody>
     </table>
   </div>
-  <p style="font-size:13px; margin-top:14px;">The <span id="oDustN">7</span> greyed rows are dust, a few coins each, almost certainly test transactions or someone else's spam. The <span id="oRealN">13</span> real transfers total <span id="oRealSum">39,036,480</span> KAS. The pattern is worth noting: nothing meaningful for the first eighteen months, then roughly one transfer every four to seven weeks from May 2025 onward, averaging 3M KAS. Nothing has left since <b id="outLast">18 Jun 2026</b>.</p>
+  <p style="font-size:13px; margin-top:14px;">The <span id="oDustN">7</span> greyed rows are dust, a few coins each, almost certainly test transactions or someone else's spam. The <span id="oRealN">18</span> real transfers total <span id="oRealSum">55,200,740</span> KAS. Last outflow: <b id="outLast">24 Sep 2026</b>, <b id="outLastKas">2,000,015</b> KAS.</p>
 </div>
 <div class="band"><div class="wrap2">
   <h2 id="inflows">Where do the coins come from?</h2>
@@ -244,11 +249,11 @@
 </div></div>
 <div class="band"><div class="wrap2">
   <h2>Who is behind it?</h2>
-  <p>Honestly: <b>nobody knows, and anyone who claims to is guessing.</b> But the inflow trace above narrows the field. Direct early-miner consolidation is effectively ruled out (zero coinbase, no wallet swarm), and no exchange fills its own cold storage from four competitors. What remains is the profile of <b>one very large, very patient buyer withdrawing from exchange accounts</b> — accounts on at least four venues, weekly withdrawals for years, straight through the drawdown. Who that is lives in the KYC files of those exchanges, and nowhere else.</p>
+  <p>Honestly: <b>nobody knows, and anyone who claims to is guessing.</b> But the inflow trace above narrows the field. Direct early-miner consolidation is effectively ruled out (zero coinbase, no wallet swarm), and no exchange fills its own cold storage from four competitors. What remains is the profile of <b>one very large, very patient buyer withdrawing from exchange accounts</b> — accounts on at least four venues, withdrawals from March 2024 to September 2026, straight through the drawdown. Who that is lives in the KYC files of those exchanges, and nowhere else.</p>
 </div></div>
 <div class="wrap2">
   <h2>Why it matters</h2>
-  <p>Two reasons. First, <b>concentration</b>: one unknown party holding 5.4% of supply is a real risk factor — if this wallet ever moved toward an exchange, it would matter, fast. Second, <b>signal</b>: someone with tens of millions of dollars keeps choosing to take KAS off exchanges week after week — straight through the 2025–2026 drawdown. You don't have to copy them. But it's one of the few on-chain facts in crypto you can verify yourself in 30 seconds.</p>
+  <p>Two reasons. First, <b>concentration</b>: one unknown party holding the share of supply shown at the top of this page is a real risk factor — if this wallet ever moved toward an exchange, it would matter, fast. Second, <b>signal</b>: someone with tens of millions of dollars took KAS off exchanges from March 2024 to September 2026, straight through the 2025–2026 drawdown. You don't have to copy them. But it's one of the few on-chain facts in crypto you can verify yourself in 30 seconds.</p>
 </div>
 <div class="band"><div class="wrap2">
   <h2>Verify it yourself</h2>
@@ -323,38 +328,44 @@ fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).t
   const usd = n => { const v = Math.abs(n);
     return (n<0?"−":"")+"$"+(v>=1e9?(v/1e9).toFixed(2)+"B":v>=1e6?(v/1e6).toFixed(1)+"M":(v/1e3).toFixed(0)+"K"); };
   const el = id => document.getElementById(id);
+  // Dieselbe Rechnung steht in scripts/entity_x_page.py und wird nach jeder
+  // Neuberechnung in den Quelltext gestempelt. Wer hier etwas aendert, aendert
+  // es dort mit, sonst faellt der Abgleich im Kostenlauf durch.
   fetch("/data/entity-x-costbasis.json", {cache:"no-store"}).then(r=>r.json()).then(cb=>{
-    if(!(cb && cb.reliable && cb.avg_cost_usd)){
-      const box = el("cbBox"); if(box) box.style.display = "none";
-      const f = el("factCost"); if(f){ f.textContent = "—"; }
-      return;
-    }
-    el("cbAvg").textContent = "$"+cb.avg_cost_usd.toFixed(4);
-    el("factCost").textContent = "$"+cb.avg_cost_usd.toFixed(4);
-    el("cbSub").textContent = "across "+cb.deposits+" deposits between "
-      + dstr(cb.first_deposit)+" and "+dstr(cb.last_deposit);
-    el("cbInv").textContent = usd(cb.usd_invested);
-    // Wert und Verlust gegen den Live-Kurs, nicht gegen den vom Montag.
-    const paint = (price, held) => {
-      const p = price || cb.price_now, h = held || cb.balance_kas;
-      if(!(p && h)) return;
-      const val = h*p, pnl = val - cb.usd_invested;
-      el("cbVal").textContent = usd(val);
-      const pct = pnl/cb.usd_invested*100;
-      el("cbPnl").textContent = usd(pnl)+" ("+(pct<0?"−":"+")+Math.abs(pct).toFixed(0)+"%)";
-      el("cbPnl").className = "k " + (pnl<0 ? "red" : "teal");
-    };
-    paint(null, null);
-    fetch("https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd")
-      .then(r=>r.json()).then(d=>{ if(d && d.kaspa){ window.__exPx = d.kaspa.usd;
-        paint(d.kaspa.usd, window.__exBal || null); } }).catch(()=>{});
-    // Bestand und Kurs kommen aus zwei unabhaengigen Abrufen. Wer zuerst da
-    // ist, weiss keiner. Also einmal nachrechnen, wenn beide Zeit hatten.
-    setTimeout(() => paint(window.__exPx || null, window.__exBal || null), 3000);
-    // Abflusszahlen im Fliesstext. Der Bot laeuft jede Woche, die Saetze
-    // duerfen nicht auf dem Stand von heute stehen bleiben.
+    if(!cb) return;
     const set = (id, v) => { const e = el(id); if(e) e.textContent = v; };
     const num = n => Math.round(n).toLocaleString("en-US");
+    if(cb.last_deposit){ set("cbLastDep", dstr(cb.last_deposit)); set("oLastDep", dstr(cb.last_deposit)); }
+    if(!(cb.reliable && cb.avg_cost_usd)){
+      // Kostenbox aus, die Abfluesse unten gelten trotzdem.
+      const box = el("cbBox"); if(box) box.style.display = "none";
+      ["cbAvg","factCost","cbSub","cbInv","cbVal","cbPnl"].forEach(i => set(i, "—"));
+    } else {
+      el("cbAvg").textContent = "$"+cb.avg_cost_usd.toFixed(4);
+      el("factCost").textContent = "$"+cb.avg_cost_usd.toFixed(4);
+      el("cbSub").textContent = "across "+cb.deposits+" deposits between "
+        + dstr(cb.first_deposit)+" and "+dstr(cb.last_deposit);
+      el("cbInv").textContent = usd(cb.usd_invested);
+      // Wert und Verlust gegen den Live-Kurs, nicht gegen den vom Montag.
+      const paint = (price, held) => {
+        const p = price || cb.price_now, h = held || cb.balance_kas;
+        if(!(p && h)) return;
+        const val = h*p, pnl = val - cb.usd_invested;
+        el("cbVal").textContent = usd(val);
+        const pct = pnl/cb.usd_invested*100;
+        el("cbPnl").textContent = usd(pnl)+" ("+(pct<0?"−":"+")+Math.abs(pct).toFixed(0)+"%)";
+        el("cbPnl").className = "k " + (pnl<0 ? "red" : "teal");
+      };
+      paint(null, null);
+      fetch("https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd")
+        .then(r=>r.json()).then(d=>{ if(d && d.kaspa){ window.__exPx = d.kaspa.usd;
+          paint(d.kaspa.usd, window.__exBal || null); } }).catch(()=>{});
+      // Bestand und Kurs kommen aus zwei unabhaengigen Abrufen. Wer zuerst da
+      // ist, weiss keiner. Also einmal nachrechnen, wenn beide Zeit hatten.
+      setTimeout(() => paint(window.__exPx || null, window.__exBal || null), 3000);
+    }
+    // Abflusszahlen im Fliesstext. Der Bot laeuft jede Woche, die Saetze
+    // duerfen nicht auf dem Stand von heute stehen bleiben.
     if(cb.outflow_kas != null && cb.kas_received){
       const share = cb.outflow_kas / cb.kas_received * 100;
       set("oSum", num(cb.outflow_kas));  set("bSum", num(cb.outflow_kas));
@@ -376,7 +387,11 @@ fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).t
           + '<td class="n">'+Math.round(o.kas).toLocaleString("en-US")+'</td>'
           + '<td class="tx"><a href="https://explorer.kaspa.org/txs/'+o.tx+'" target="_blank" rel="noopener" title="'+o.tx+'">'+sh+'</a></td></tr>';
       }).join("");
-      if(cb.last_outflow) el("outLast").textContent = dstr(cb.last_outflow);
+      // Kein Satz ueber die Gegenwart ("nothing has left since"), sondern
+      // was war, mit Datum. Der Leser sieht am Datum, wie alt es ist.
+      const last = cb.outflows[cb.outflows.length-1];
+      set("outLast", dstr(last.day));
+      set("outLastKas", num(last.kas));
     }
   }).catch(()=>{});
 })();
@@ -419,12 +434,12 @@ fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).t
     {
       "@type": "Question",
       "name": "What is Entity X on Kaspa?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Entity X is the largest single Kaspa address — one whale wallet holding around 5% of all circulating KAS. Its live balance, accumulation pattern and full outflow history are tracked on this page, read directly from the public Kaspa API." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Entity X is the largest single Kaspa address, one whale wallet whose owner is unknown. Its live balance and share of circulating supply, its deposits and its full outflow history are tracked on this page, read directly from the public Kaspa API." }
     },
     {
       "@type": "Question",
       "name": "Who is the biggest Kaspa whale?",
-      "acceptedAnswer": { "@type": "Answer", "text": "The largest known single wallet is the address the community calls Entity X, holding roughly 5% of circulating supply. Its owner is unknown; this page documents the on-chain evidence and the main theories without claiming certainty." }
+      "acceptedAnswer": { "@type": "Answer", "text": "The largest known single wallet is the address the community calls Entity X. Its current share of circulating supply is shown live on this page. Its owner is unknown; this page documents the on-chain evidence and the main theories without claiming certainty." }
     },
     {
       "@type": "Question",
