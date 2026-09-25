@@ -63,6 +63,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 from html.parser import HTMLParser
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -419,28 +420,72 @@ def im_browser(html, cb, chrome, warte_ms=10000):
         th.start()
         try:
             url = "http://127.0.0.1:%d/entity-x.html" % srv.server_address[1]
-            with tempfile.TemporaryDirectory() as profil:
-                r = subprocess.run(
-                    [chrome, "--headless=new", "--no-sandbox", "--disable-gpu",
-                     "--no-first-run", "--user-data-dir=" + profil,
-                     # ohne proxy, sonst loest der proxy die namen auf und
-                     # die sperre darunter greift nicht
-                     "--no-proxy-server", "--disable-background-networking",
-                     "--disable-component-update",
-                     # alles ausser dem eigenen server ist gesperrt. sonst
-                     # kaeme der live-kurs dazwischen und cbVal/cbPnl waeren
-                     # nicht mehr aus der datei gerechnet.
-                     "--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1",
-                     "--virtual-time-budget=%d" % warte_ms,
-                     "--dump-dom", url],
-                    capture_output=True, text=True, timeout=120)
+            return dom_von(url, chrome, ("127.0.0.1",), warte_ms)
         finally:
             srv.shutdown()
             srv.server_close()
+
+
+def dom_von(url, chrome, erlaubt, warte_ms=10000):
+    """das dom nach dem seitenskript. nur die hosts in erlaubt sind
+    erreichbar, alle anderen gesperrt: sonst kaeme der live-kurs dazwischen
+    und cbVal/cbPnl waeren nicht mehr aus der datei gerechnet."""
+    regeln = "MAP * ~NOTFOUND" + "".join(", EXCLUDE " + h for h in erlaubt)
+    with tempfile.TemporaryDirectory() as profil:
+        r = subprocess.run(
+            [chrome, "--headless=new", "--no-sandbox", "--disable-gpu",
+             "--no-first-run", "--user-data-dir=" + profil,
+             # ohne proxy, sonst loest der proxy die namen auf und
+             # die sperre darunter greift nicht
+             "--no-proxy-server", "--disable-background-networking",
+             "--disable-component-update",
+             "--host-resolver-rules=" + regeln,
+             "--virtual-time-budget=%d" % warte_ms,
+             "--dump-dom", url],
+            capture_output=True, text=True, timeout=120)
     if r.returncode != 0 or "<body" not in r.stdout:
         raise RuntimeError("chromium lief nicht sauber, code %s: %s"
                            % (r.returncode, r.stderr[-600:]))
     return r.stdout
+
+
+def vergleiche(q, b, wer):
+    """jede gestempelte stelle aus q gegen dieselbe aus b."""
+    fehler = []
+    for i in ALLE_IDS:
+        if i not in q.fund or i not in b.fund:
+            fehler.append("%s fehlt im stempel oder %s" % (i, wer))
+            continue
+        if q.fund[i] != b.fund[i]:
+            n = next((k for k, (x, y) in enumerate(zip(q.fund[i], b.fund[i]))
+                      if x != y), min(len(q.fund[i]), len(b.fund[i])))
+            fehler.append("%s: ab stelle %d stempel %r, %s %r"
+                          % (i, n, q.fund[i][n:n + 2], wer, b.fund[i][n:n + 2]))
+    if q.klasse.get("cbPnl") != b.klasse.get("cbPnl"):
+        fehler.append("cbPnl: klasse im stempel %r, %s %r"
+                      % (q.klasse.get("cbPnl"), wer, b.klasse.get("cbPnl")))
+    return fehler
+
+
+def live_pruefung(url, gestempelt, chrome):
+    """Die veroeffentlichte Seite gegen den Stempel im Repo, zweimal:
+    ihr Quelltext, so wie er ausgeliefert wird, und das, was ein Browser
+    auf ihr rechnet, mit der veroeffentlichten Datei und ohne Live-Kurs.
+    Gibt (beanstandungen, zahl der verglichenen stellen) zurueck."""
+    import urllib.parse
+    import urllib.request
+    host = urllib.parse.urlparse(url).hostname
+    frisch = url + ("&" if "?" in url else "?") + "stempelprobe=%d" % int(time.time())
+    req = urllib.request.Request(frisch, headers={
+        "User-Agent": "kaspa-pulse-bot (+https://kaspapulse.com)",
+        "Cache-Control": "no-cache"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        quelltext = r.read().decode("utf-8")
+    q = sammle(gestempelt)
+    fehler = ["quelltext: " + x for x in vergleiche(q, sammle(quelltext), "live quelltext")]
+    dom = dom_von(frisch, chrome, (host,))
+    fehler += ["browser: " + x for x in vergleiche(q, sammle(dom), "live browser")]
+    return fehler, len(ALLE_IDS)
 
 
 def abgleich(gestempelt, cb, chrome):

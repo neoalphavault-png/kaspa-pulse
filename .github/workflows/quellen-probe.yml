@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
     inputs:
       befehl:
-        description: "welche frage (alle, kaspalytics, bestaende, stream, tabelle, routen, handwerte, richlist, wochen)"
+        description: "welche frage (alle, kaspalytics, bestaende, stream, tabelle, routen, handwerte, richlist, wochen, seite)"
         required: false
         default: "alle"
 

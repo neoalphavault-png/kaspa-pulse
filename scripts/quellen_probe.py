@@ -17,6 +17,7 @@ stellt, soll nicht wieder bei null anfangen.
     python3 scripts/quellen_probe.py handwerte     handwerte gegen botwerte
     python3 scripts/quellen_probe.py richlist      rangliste und labels, api.kaspa.org
     python3 scripts/quellen_probe.py wochen        entity x, einzahlungen je woche
+    python3 scripts/quellen_probe.py seite         entity-x.html live gegen stempel
     python3 scripts/quellen_probe.py alle          alles nacheinander
 
 WAS BISHER HERAUSKAM, in Kurzform
@@ -633,6 +634,41 @@ def _fenster(txs, zu, adresse):
                  "; ".join(teile) or "keine eingaenge aufgeloest"))
 
 
+
+def befehl_seite():
+    """Steht auf kaspapulse.com/entity-x.html, was der Stempel im Repo
+    geschrieben hat? Nur lesen. Holt die veroeffentlichte Seite und stellt
+    jede gestempelte Stelle zweimal gegen entity-x.html im Checkout: den
+    ausgelieferten Quelltext und das, was Chrome auf der Seite rechnet (mit
+    der veroeffentlichten Datei, externe Adressen gesperrt, also ohne
+    Live-Kurs). Die Arbeitsumgebung kommt an kaspapulse.com nicht heran,
+    deshalb laeuft das hier."""
+    import entity_x_page as ep
+    print("=" * 78)
+    print("ENTITY-X.HTML, VEROEFFENTLICHT GEGEN STEMPEL")
+    print("=" * 78)
+    chrome = ep.finde_browser()
+    if not chrome:
+        print("kein chrome gefunden")
+        return 1
+    with open(ep.SEITE, encoding="utf-8") as fh:
+        gestempelt = fh.read()
+    t = ep.sammle(gestempelt)
+    print("stempel im checkout: oCnt %s, outLast %s, outLastKas %s, cbPnl %s"
+          % tuple([x[1] for x in t.fund[i] if x[0] == "text"][0]
+                  for i in ("oCnt", "outLast", "outLastKas", "cbPnl")))
+    fehler, n = ep.live_pruefung("https://kaspapulse.com/entity-x.html",
+                                 gestempelt, chrome)
+    if fehler:
+        print("ABWEICHUNG, %d beanstandungen" % len(fehler))
+        for f in fehler:
+            print("  " + f)
+        return 1
+    print("zeichengleich: %d gestempelte stellen, im ausgelieferten quelltext "
+          "und im browser (%s)" % (n, chrome))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -642,6 +678,7 @@ BEFEHLE = {
     "handwerte": befehl_handwerte,
     "richlist": befehl_richlist,
     "wochen": befehl_wochen,
+    "seite": befehl_seite,
 }
 
 
