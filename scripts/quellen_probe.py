@@ -569,7 +569,68 @@ def befehl_wochen():
             print("    %s  %2d einzahlungen  %14s KAS"
                   % (kw(w), len(b), "{:,.0f}".format(sum(b))))
             w += dt.timedelta(days=7)
+
+    _fenster(txs, zu, cb.ADDRESS)
     return 0
+
+
+# Der Satz auf entity-x.html lautet "In the week ending July 27, 2026 it
+# added ~17M KAS, withdrawn directly from Bitget and Gate.io. In the 90 days
+# before that: ~84M KAS." Der 27.07.2026 ist ein Montag. Gedruckt wird
+# deshalb jedes Sieben-Tage-Fenster, das zwischen dem 20.07. und dem 03.08.
+# endet, mit den 90 Tagen davor, und jede Einzahlung vom 14.07. bis 03.08.
+# mit ihren Absendern und deren Einstufung aus data/entity-x-inflows.json.
+FENSTER_VON = dt.date(2026, 7, 14)
+FENSTER_BIS = dt.date(2026, 8, 3)
+
+
+def _fenster(txs, zu, adresse):
+    print("\n" + "=" * 78)
+    print("DER SATZ UEBER DIE WOCHE BIS ZUM 27.07.2026")
+    print("=" * 78)
+    tr = json.load(open(os.path.join(REPO, "data", "entity-x-inflows.json"),
+                        encoding="utf-8"))
+    stufe = {x["address"]: (x.get("exchange") or "-", x["verdict"])
+             for x in tr.get("senders", [])}
+    print("einstufung aus entity-x-inflows.json, erzeugt %s UTC"
+          % dt.datetime.fromtimestamp(tr["generated_at"], dt.timezone.utc)
+          .strftime("%Y-%m-%d %H:%M"))
+    tag = {}
+    for e in zu:
+        d = dt.date.fromisoformat(e["day"])
+        tag[d] = tag.get(d, 0.0) + e["kas"]
+
+    def summe(von, bis):
+        return sum(v for d, v in tag.items() if von <= d <= bis)
+
+    print("\n  sieben tage bis        wochentag   summe KAS      90 tage davor")
+    e = dt.date(2026, 7, 20)
+    while e <= FENSTER_BIS:
+        a = e - dt.timedelta(days=6)
+        print("  %s bis %s  %-9s %14s %16s"
+              % (a, e, e.strftime("%A"), "{:,.0f}".format(summe(a, e)),
+                 "{:,.0f}".format(summe(a - dt.timedelta(days=90),
+                                        a - dt.timedelta(days=1)))))
+        e += dt.timedelta(days=1)
+
+    nach_id = {t.get("transaction_id"): t for t in txs}
+    print("\n  einzahlungen %s bis %s, mit absendern:" % (FENSTER_VON, FENSTER_BIS))
+    for x in zu:
+        d = dt.date.fromisoformat(x["day"])
+        if not FENSTER_VON <= d <= FENSTER_BIS:
+            continue
+        t = nach_id.get(x["tx"]) or {}
+        von = {}
+        for i in t.get("inputs") or []:
+            ad = i.get("previous_outpoint_address")
+            if ad and ad != adresse:
+                von[ad] = von.get(ad, 0.0) + float(i.get("previous_outpoint_amount") or 0) / 1e8
+        teile = ["%s %s/%s" % (ad[-8:], *stufe.get(ad, ("-", "nicht im tracer")))
+                 for ad in sorted(von, key=von.get, reverse=True)[:3]]
+        print("    %s %s  %14s KAS  %s  %s"
+              % (x["day"], dt.datetime.fromtimestamp(x["ts"] / 1000, dt.timezone.utc)
+                 .strftime("%H:%M"), "{:,.2f}".format(x["kas"]), x["tx"][:10],
+                 "; ".join(teile) or "keine eingaenge aufgeloest"))
 
 
 BEFEHLE = {
