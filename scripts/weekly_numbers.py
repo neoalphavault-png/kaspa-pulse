@@ -426,9 +426,11 @@ def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
     out.append("dex volume **%s**%s" % (
         fmt_money(v["dex_vol"]),
         tail("dex_vol", v["dex_vol"], prev.get("dex_vol"), extra)))
-    out.append("chain fees **%s** for the day%s" % (
-        fmt_money(v["chain_fees"]),
-        tail("chain_fees", v["chain_fees"], prev.get("chain_fees"), extra)))
+    # ohne frischen wert keine zeile, siehe gebuehren_pruefen()
+    if v.get("chain_fees") is not None:
+        out.append("chain fees **%s** for the day%s" % (
+            fmt_money(v["chain_fees"]),
+            tail("chain_fees", v["chain_fees"], prev.get("chain_fees"), extra)))
     out.append("")
 
     out.append("\U0001fa99 **supply**")
@@ -468,8 +470,10 @@ def newsletter_zeile(quelle):
     Link."""
     link = utm.link(quelle, campaign="weekly-numbers")
     if quelle == "discord":
+        # spitze klammern: discord zeigt dann keine vorschaukarte mit der
+        # og:description der seite unter dem post
         return ("\U0001f4ec [free cheat sheet plus these numbers by email "
-                "every monday](%s)" % link)
+                "every monday](<%s>)" % link)
     return "\U0001f4e9 the same numbers by email every monday " + link
 
 
@@ -751,6 +755,51 @@ def collect_auto(now_ts, override):
     return v
 
 
+# Ein Handwert fuer die Gebuehren traegt sein Messdatum als override
+# "chain_fees_stand" (JJJJ-MM-TT). Ist er aelter als GEBUEHR_TAGE Tage oder
+# fehlt das Datum, faellt die Zeile weg. Bis zum 25.09.2026 stand dort der
+# Wert 226 vom 03.08. Woche fuer Woche mit "for the day" im Post.
+GEBUEHR_TAGE = 7
+
+
+def gebuehren_pruefen(v, override, woche):
+    """Entfernt chain_fees aus v, wenn der Wert ein Handwert ohne Datum
+    oder ein Handwert von vor GEBUEHR_TAGE Tagen oder mehr ist. Ein live
+    geholter Wert bleibt. Gibt den Grund zurueck oder None."""
+    if override.get("chain_fees") is None or "chain_fees" not in v:
+        return None
+    stand = str(override.get("chain_fees_stand") or "").strip()
+    try:
+        alter = (dt.date.fromisoformat(str(woche)) - dt.date.fromisoformat(stand)).days
+    except ValueError:
+        alter = None
+    if alter is not None and 0 <= alter < GEBUEHR_TAGE:
+        return None
+    del v["chain_fees"]
+    return ("chain fees faellt weg: handwert %s %s. ohne wert juenger als %d "
+            "tage steht keine gebuehrenzeile im post"
+            % (override.get("chain_fees"),
+               "ohne messdatum" if alter is None else "vom %s, %d tage alt" % (stand, alter),
+               GEBUEHR_TAGE))
+
+
+# Das Veto aus weekly-cancel.yml. Liegt data/weekly-veto und traegt es das
+# heutige Datum, postet kein automatischer Lauf. Ein Veto mit aelterem Datum
+# blockiert nichts: aufgeraeumt hat es bisher weekly-guard.yml, und das ist
+# seit dem 12.09.2026 abgeschaltet.
+VETO_PATH = os.environ.get("WN_VETO") or os.path.join(ROOT, "data", "weekly-veto")
+
+
+def veto_heute(pfad, heute):
+    """Der Inhalt des Vetos, wenn es heute gilt, sonst None."""
+    try:
+        with open(pfad, encoding="utf-8") as fh:
+            text = fh.read().strip()
+    except OSError:
+        return None
+    return text if str(heute) in text else None
+
+
 # Automatische Anstoesse. Weder ein Termin- noch ein Push-Lauf postet eine
 # Woche, die nicht heute ist. Der Start von Hand (workflow_dispatch) bleibt
 # frei, dafuer ist er da.
@@ -908,6 +957,12 @@ def main():
         print("%s-lauf um %s Berlin, vor %s. kein post, der montagstermin um "
               "18:40 Berlin postet" % (event, uhr, POST_AB))
         return 0
+    # das veto von heute gilt fuer termin und push
+    if event in AUTO_EVENTS:
+        veto = veto_heute(VETO_PATH, heute)
+        if veto:
+            print("%s-lauf, aber heute liegt ein veto, kein post. %s" % (event, veto))
+            return 0
     # der montagstermin prueft die woche VOR der dublettenpruefung. sonst
     # liefe er gruen durch, wenn die routine nicht geliefert hat und noch
     # die schon gepostete woche in der datei steht, und niemand merkt es.
@@ -928,6 +983,9 @@ def main():
     inp = read_input()
     now_ts = time.time()
     v = collect_auto(now_ts, inp["override"])
+    grund = gebuehren_pruefen(v, inp["override"], inp["week"])
+    if grund:
+        print(grund)
     v.update(inp["manual"])
     prev = previous_entry(history, inp["week"])
 
@@ -1031,8 +1089,8 @@ GOLD_MSG = "\n".join([
     # seit 25.09.2026 bewusst geaendert: die anmeldezeile in discord ist ein
     # maskierter link. der goldpost vom 03.08. trug noch die sichtbare url.
     "\U0001f4ec [free cheat sheet plus these numbers by email every monday]"
-    "(https://kaspapulse.com/?utm_source=discord&utm_medium=chat"
-    "&utm_campaign=weekly-numbers#subscribe)",
+    "(<https://kaspapulse.com/?utm_source=discord&utm_medium=chat"
+    "&utm_campaign=weekly-numbers#subscribe>)",
 ])
 
 
@@ -1413,10 +1471,37 @@ def run_selftest():
        "&utm_campaign=weekly-numbers#subscribe", tg.split("\n")[-1])
     ok("telegram hat keinen maskierten link", "](" not in tg)
     ok("discord zeile ist maskiert und zeigt auf #subscribe",
-       re.fullmatch(r"\U0001f4ec \[[^\]]+\]\(https://kaspapulse\.com/\?[^)]*#subscribe\)",
+       re.fullmatch(r"\U0001f4ec \[[^\]]+\]\(<https://kaspapulse\.com/\?[^)>]*#subscribe>\)",
                     newsletter_zeile("discord")) is not None, newsletter_zeile("discord"))
     assert_punctuation(tg)
     print("  ok   schreibregel in der telegram-fassung eingehalten")
+
+    # 17d gebuehren nur frisch (25.09.2026)
+    for name, ov, bleibt in (
+            ("handwert ohne datum faellt weg", {"chain_fees": 226}, False),
+            ("handwert vom 03.08. faellt weg",
+             {"chain_fees": 226, "chain_fees_stand": "2026-08-03"}, False),
+            ("handwert von vor 7 tagen faellt weg",
+             {"chain_fees": 226, "chain_fees_stand": "2026-09-21"}, False),
+            ("handwert von vor 2 tagen bleibt",
+             {"chain_fees": 240, "chain_fees_stand": "2026-09-26"}, True),
+            ("live geholter wert bleibt", {}, True)):
+        vv = {"chain_fees": float(ov.get("chain_fees", 250))}
+        gebuehren_pruefen(vv, ov, "2026-09-28")
+        ok(name, ("chain_fees" in vv) == bleibt, vv)
+    ohne = dict(v)
+    del ohne["chain_fees"]
+    m_ohne = build_message(ohne, GOLD_PREV, 4, dt.date(2026, 8, 3), GOLD_READ, tps_def=None)
+    ok("ohne gebuehrenwert keine gebuehrenzeile", "chain fees" not in m_ohne)
+    ok("und kein for the day", "for the day" not in m_ohne)
+
+    # 17e veto (25.09.2026)
+    vp = os.path.join(tmp, "weekly-veto")
+    ok("ohne vetodatei kein veto", veto_heute(vp, "2026-09-28") is None)
+    with open(vp, "w", encoding="utf-8") as fh:
+        fh.write("veto von hand am 2026-09-28 (weekly-cancel.yml, lauf 1, ausgeloest von ben)\n")
+    ok("veto von heute gilt", veto_heute(vp, "2026-09-28") is not None)
+    ok("veto von letzter woche blockiert nichts", veto_heute(vp, "2026-10-05") is None)
 
     # 18 ops-meldung
     ok("ops nimmt die abbruchzeile",

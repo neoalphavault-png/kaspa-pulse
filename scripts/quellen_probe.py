@@ -681,7 +681,9 @@ def befehl_montag():
       C  Termin 17:40, week = Montag      Winter-Erstlauf, kein Post, gruen
       D  Termin 18:40, week wie jetzt     Abbruch, alte Woche
       E  Push   18:40, week wie jetzt     Abbruch, alte Woche
-      F  Push   10:16, week = Montag      zu frueh, kein Post, gruen"""
+      F  Push   10:16, week = Montag      zu frueh, kein Post, gruen
+      G  Termin 18:40, Veto von heute     kein Post, gruen
+      H  Termin 18:40, Veto der Vorwoche  voller Posttext"""
     import subprocess
     import tempfile
     heute = dt.date.today()
@@ -695,27 +697,35 @@ def befehl_montag():
     print("week in data/week-input.json: %s" % jetzt)
     print("=" * 78)
     schlecht = 0
-    # name, anlass, uhr, week, exit, posttext erwartet
-    faelle = (("A", "schedule", "18:40", str(montag), 0, True),
-              ("B", "schedule", "16:20", str(montag), 0, False),
-              ("C", "schedule", "17:40", str(montag), 0, False),
-              ("D", "schedule", "18:40", jetzt, 1, False),
-              ("E", "push", "18:40", jetzt, 1, False),
-              ("F", "push", "10:16", str(montag), 0, False))
-    for name, event, uhr, week, soll, text in faelle:
+    # name, anlass, uhr, week, exit, posttext erwartet, veto-datum
+    vorwoche = montag - dt.timedelta(days=7)
+    faelle = (("A", "schedule", "18:40", str(montag), 0, True, None),
+              ("B", "schedule", "16:20", str(montag), 0, False, None),
+              ("C", "schedule", "17:40", str(montag), 0, False, None),
+              ("D", "schedule", "18:40", jetzt, 1, False, None),
+              ("E", "push", "18:40", jetzt, 1, False, None),
+              ("F", "push", "10:16", str(montag), 0, False, None),
+              ("G", "schedule", "18:40", str(montag), 0, False, montag),
+              ("H", "schedule", "18:40", str(montag), 0, True, vorwoche))
+    for name, event, uhr, week, soll, text, veto in faelle:
         d = tempfile.mkdtemp()
         pfad = os.path.join(d, "week-input.json")
         with open(pfad, "w", encoding="utf-8") as fh:
             json.dump(dict(eingabe, week=week), fh)
         env = {k: v for k, v in os.environ.items()
                if not k.startswith(("DISCORD", "TELEGRAM"))}
+        vpfad = os.path.join(d, "weekly-veto")
+        if veto:
+            with open(vpfad, "w", encoding="utf-8") as fh:
+                fh.write("veto von hand am %s (probe)\n" % veto)
         env.update({"DRY_RUN": "1", "FORCE": "", "SHOW_USD": "",
                     "GITHUB_EVENT_NAME": event, "WN_HEUTE": str(montag),
-                    "WN_UHR": uhr, "WN_INPUT": pfad})
+                    "WN_UHR": uhr, "WN_INPUT": pfad, "WN_VETO": vpfad})
         r = subprocess.run([sys.executable, os.path.join(HERE, "weekly_numbers.py")],
                            env=env, capture_output=True, text=True, timeout=300, cwd=REPO)
-        print("\n--- fall %s: %s um %s Berlin, week %s, erwartet exit %d, %s"
-              % (name, event, uhr, week, soll, "posttext" if text else "kein posttext"))
+        print("\n--- fall %s: %s um %s Berlin, week %s%s, erwartet exit %d, %s"
+              % (name, event, uhr, week, ", veto vom %s" % veto if veto else "",
+                 soll, "posttext" if text else "kein posttext"))
         print(r.stdout[-5000:].rstrip())
         if r.stderr.strip():
             print("stderr: " + r.stderr[-800:])
