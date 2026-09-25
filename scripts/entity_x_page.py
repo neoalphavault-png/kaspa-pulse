@@ -35,7 +35,10 @@ DREI WACHEN, alle in --check
      Abgleich faellt durch, statt still zu bestehen. Jeder gestempelte Wert
      muss zeichengleich zu dem sein, was der Browser rechnet. Dasselbe
      laeuft ein zweites Mal mit reliable=false, damit auch der Zweig
-     geprueft ist, der die Kostenbox ausblendet.
+     geprueft ist, der die Kostenbox ausblendet, und ein drittes Mal mit
+     lauter Werten, die genau auf .5 liegen (rundungsprobe). Dort runden
+     Javascript und Pythons round() verschieden; der Stempel rundet wie
+     Javascript, ueber js_round() und fixed(), nie ueber round().
 
     python3 scripts/entity_x_page.py             # stempeln
     python3 scripts/entity_x_page.py --check     # pruefen, nichts schreiben
@@ -472,6 +475,33 @@ def abgleich(gestempelt, cb, chrome):
     return fehler, b
 
 
+# ------------------------------------------------------------ rundungsprobe
+
+def rundungsprobe(cb):
+    """Die Datei, umgebaut auf lauter echte Gleichstaende: Werte, die als
+    Gleitkommazahl exakt auf .5 der letzten angezeigten Stelle liegen. Genau
+    dort runden Javascript (halb nach oben) und Pythons round() und "%.nf"
+    (halb zur geraden Zahl) verschieden. Der Stempel muss hier dasselbe
+    schreiben wie der Browser, sonst waere jeder Lauf mit so einem Wert rot.
+    Gibt (datei, liste der gleichstaende) zurueck."""
+    p = copy.deepcopy(cb)
+    p["outflows"][-1]["kas"] = 2000014.5      # Math.round -> 2,000,015
+    p["outflows"][0]["kas"] = 2.5             # staubzeile -> 3
+    p["outflow_kas"] = sum(o["kas"] for o in p["outflows"])
+    p["reliable"] = True
+    p["avg_cost_usd"] = 0.03125               # toFixed(4) -> 0.0313
+    p["usd_invested"] = 136250000.0           # /1e6 = 136.25, toFixed(1) -> 136.3
+    p.setdefault("price_now", 0.04)
+    p.setdefault("balance_kas", 1.5e9)
+    faelle = [
+        ("abfluss 2000014.5", num(2000014.5), "{:,}".format(round(2000014.5))),
+        ("staub 2.5", num(2.5), str(round(2.5))),
+        ("preis 0.03125", "$" + fixed(0.03125, 4), "$%.4f" % 0.03125),
+        ("einsatz 136.25M", usd(136250000.0), "$%.1fM" % 136.25),
+    ]
+    return p, faelle
+
+
 # ------------------------------------------------------------ selftest
 
 def _cb_stub():
@@ -513,6 +543,15 @@ def run_selftest():
     check("Math.round negativ halb", js_round(-2.5), -2)
     check("Math.round tausender", num(2000014.82), "2,000,015")
     check("Math.round knapp", num(2000014.49), "2,000,014")
+    check("gleichstand toFixed(1)", fixed(136.25, 1), "136.3")
+    check("gleichstand toFixed(4)", fixed(0.03125, 4), "0.0313")
+    check("gleichstand usd", usd(136250000.0), "$136.3M")
+    check("gleichstand staub", num(2.5), "3")
+    check("python rundet dort anders", round(2000014.5), 2000014)
+    rp, rf = rundungsprobe(_cb_stub())
+    check("rundungsprobe besteht die dateipruefung", pruefe_datei(rp), [])
+    check("rundungsprobe: jeder fall ist ein echter gleichstand",
+          all(js != py for _, js, py in rf), True)
     check("dstr ohne fuehrende null", dstr("2026-09-04"), "4 Sep 2026")
     check("dstr leer", dstr(None), "—")
     check("usd millionen negativ", usd(-75822665.71), "−$75.8M")
@@ -664,6 +703,10 @@ def main(argv=None):
         cb_aus["reliable"] = False
         f2, _ = abgleich(stempel(alt, cb_aus), cb_aus, chrome)
         schlecht += ["abgleich reliable=false: " + x for x in f2]
+        # und ein drittes mal mit lauter .5-werten, siehe rundungsprobe()
+        cb_rund, faelle = rundungsprobe(cb)
+        f3, _ = abgleich(stempel(alt, cb_rund), cb_rund, chrome)
+        schlecht += ["rundungsprobe: " + x for x in f3]
     if schlecht:
         print("pruefung FEHLGESCHLAGEN")
         for s in schlecht:
@@ -674,6 +717,10 @@ def main(argv=None):
     print("  browser      %s" % chrome)
     print("  abgleich     %d stellen und %d tabellenzeilen zeichengleich zum browser, "
           "beide zweige (reliable true und false)" % (len(TEXT_IDS), len(tabelle)))
+    print("  rundung      zeichengleich auch bei .5, javascript gegen stempel gegen python:")
+    for name, js, py in faelle:
+        print("                 %-18s browser und stempel %-12s python haette %s"
+              % (name, js, py))
     print("  kopf-wache   %d werte gesucht, keiner im kopf oder ld+json"
           % len(kopfwerte(cb, t, tabelle)))
     print("  stand:")
