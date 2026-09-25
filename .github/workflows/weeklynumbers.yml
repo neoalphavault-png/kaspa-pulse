@@ -28,6 +28,10 @@ on:
         description: 'dollarwerte an emission und boersenbestand haengen'
         type: boolean
         default: false
+      ops_test:
+        description: 'nur die meldung an ops testen. kein post, der lauf endet absichtlich rot'
+        type: boolean
+        default: false
 permissions:
   contents: write
 concurrency:
@@ -47,7 +51,15 @@ jobs:
         run: |
           set -o pipefail
           python3 scripts/weekly_numbers.py --selftest 2>&1 | tee -a "$RUNNER_TEMP/weekly.log"
+      # Probe fuer den Ops-Kanal: eine ABBRUCH-Zeile, dann absichtlich rot,
+      # damit der failure()-Schritt unten genau so laeuft wie im Ernstfall.
+      - name: ops-test
+        if: ${{ inputs.ops_test }}
+        run: |
+          echo "ABBRUCH testmeldung, von hand angestossen. kein post, nichts ist kaputt" | tee -a "$RUNNER_TEMP/weekly.log"
+          exit 1
       - name: rechnen und posten
+        if: ${{ !inputs.ops_test }}
         env:
           DISCORD_WEBHOOK_WEEKLY: ${{ secrets.DISCORD_WEBHOOK_WEEKLY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
