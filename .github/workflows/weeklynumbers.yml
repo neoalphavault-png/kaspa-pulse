@@ -1,19 +1,23 @@
 name: weekly numbers
 on:
-  # Montags 14:20 UTC = 16:20 Berlin (Sommerzeit), seit 28.09.2026. Nach dem
-  # Newsletter um 16:05 Berlin: Discord und Telegram gehen nie vor dem
-  # Newsletter raus. AB ENDE OKTOBER (2026 der 25.10.) faellt Berlin auf
-  # UTC+1 zurueck, dann muss hier "20 15 * * 1" stehen.
-  # Bis dahin lief der Post nur, wenn
-  # jemand data/week-input.json von Hand auf main schob: die Montagsroutine
-  # bringt die Datei ueber automerge-claude.yml nach main, und ein Push mit
-  # GITHUB_TOKEN loest keinen anderen Workflow aus. weekly-afternoon.yml,
-  # das den Lauf anstossen sollte, ist seit 12.09. abgeschaltet.
+  # Montags 18:40 Berlin, seit 28.09.2026. Reihenfolge am Montag: Video
+  # 16:00, Newsletter 18:00, X-Faden 18:15 von Hand, dann Discord und
+  # Telegram. Zwei Termine, damit die Uhrzeit die Zeitumstellung am 25.10.
+  # uebersteht: 16:40 UTC ist im Sommer 18:40 Berlin, 17:40 UTC im Winter.
+  # Das Skript postet aus einem automatischen Lauf nie vor 18:30 Berlin;
+  # der jeweils andere Termin endet gruen ohne Post (zu frueh, oder die
+  # Woche steht schon in der History).
+  # Bis dahin lief der Post nur, wenn jemand data/week-input.json von Hand
+  # auf main schob: die Montagsroutine bringt die Datei ueber
+  # automerge-claude.yml nach main, und ein Push mit GITHUB_TOKEN loest
+  # keinen anderen Workflow aus. weekly-afternoon.yml, das den Lauf
+  # anstossen sollte, ist seit 12.09. abgeschaltet.
   # Gepostet wird nur, wenn week in der Datei der heutige Tag ist (Berlin);
-  # sonst bricht der Lauf ab und meldet sich im Ops-Kanal. Dieselbe Sperre
-  # gilt fuer Push-Laeufe. workflow_dispatch bleibt frei.
+  # sonst bricht der Lauf ab und meldet sich im Ops-Kanal. Dieselben
+  # Sperren gelten fuer Push-Laeufe. workflow_dispatch bleibt frei.
   schedule:
-    - cron: "20 14 * * 1"
+    - cron: "40 16 * * 1"
+    - cron: "40 17 * * 1"
   push:
     branches: [main]
     paths:

@@ -71,9 +71,9 @@ TIMEOUT = 20
 RETRIES = 3
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# WN_INPUT und WN_HEUTE gibt es nur fuer Trockenlaeufe (quellen_probe.py
-# montag): eine andere Eingabedatei und ein simuliertes Datum. Im
-# Workflow ist keins von beiden gesetzt.
+# WN_INPUT, WN_HEUTE und WN_UHR gibt es nur fuer Trockenlaeufe
+# (quellen_probe.py montag): eine andere Eingabedatei, ein simuliertes Datum
+# und eine simulierte Uhrzeit in Berlin. Im Workflow ist keins davon gesetzt.
 INPUT_PATH = os.environ.get("WN_INPUT") or os.path.join(ROOT, "data", "week-input.json")
 HISTORY_PATH = os.path.join(ROOT, "data", "weekly-history.json")
 
@@ -742,6 +742,19 @@ def collect_auto(now_ts, override):
 # frei, dafuer ist er da.
 AUTO_EVENTS = ("push", "schedule")
 
+# Montags gilt: Video 16:00, Newsletter 18:00, X-Faden 18:15 von Hand, erst
+# danach Discord und Telegram. Ein automatischer Lauf postet deshalb nie vor
+# 18:30 Berlin. Der Termin steht zweimal im Workflow, 16:40 und 17:40 UTC;
+# in der Sommerzeit ist der erste 18:40 Berlin, in der Winterzeit der
+# zweite. Der jeweils andere endet gruen ohne Post, entweder weil es zu
+# frueh ist oder weil die Woche schon in der History steht.
+POST_AB = "18:30"
+
+
+def zu_frueh(event, uhr):
+    """True, wenn ein automatischer Lauf vor POST_AB (Berlin) kaeme."""
+    return event in AUTO_EVENTS and str(uhr) < POST_AB
+
 
 def falsche_woche(event, week, heute):
     """Gibt die Abbruchmeldung zurueck, wenn ein automatischer Lauf eine
@@ -750,7 +763,7 @@ def falsche_woche(event, week, heute):
     Push: am 22. und 23.09.2026 haben zwei PR-Merges die Datei beruehrt und
     je einen echten Lauf gestartet; ohne Sprungbremse waere der Montagspost
     an einem Dienstag mit den Zahlen vom Dienstag rausgegangen.
-    Termin: steht montags um 14:20 UTC noch die alte Woche in der Datei, hat
+    Termin: steht montags um 18:40 Berlin noch die alte Woche in der Datei, hat
     die Montagsroutine nicht (rechtzeitig) geliefert. Dann kein Post mit
     alter Woche, sondern ein roter Lauf, den man sieht."""
     if event not in AUTO_EVENTS:
@@ -764,14 +777,26 @@ def falsche_woche(event, week, heute):
             "starten" % (event, week or "leer", heute))
 
 
-def heute_berlin():
-    fest = os.environ.get("WN_HEUTE", "").strip()
-    if fest:
-        dt.date.fromisoformat(fest)
-        print("hinweis: datum simuliert, WN_HEUTE=%s" % fest)
-        return fest
+def jetzt_berlin():
+    """(datum, uhrzeit) in Berlin als ("JJJJ-MM-TT", "HH:MM")."""
     from zoneinfo import ZoneInfo
-    return dt.datetime.now(ZoneInfo("Europe/Berlin")).date().isoformat()
+    jetzt = dt.datetime.now(ZoneInfo("Europe/Berlin"))
+    tag, uhr = jetzt.date().isoformat(), jetzt.strftime("%H:%M")
+    fest_tag = os.environ.get("WN_HEUTE", "").strip()
+    fest_uhr = os.environ.get("WN_UHR", "").strip()
+    if fest_tag:
+        dt.date.fromisoformat(fest_tag)
+        tag = fest_tag
+    if fest_uhr:
+        dt.datetime.strptime(fest_uhr, "%H:%M")
+        uhr = fest_uhr
+    if fest_tag or fest_uhr:
+        print("hinweis: zeit simuliert, %s %s Berlin" % (tag, uhr))
+    return tag, uhr
+
+
+def heute_berlin():
+    return jetzt_berlin()[0]
 
 
 def ops_zeile(log):
@@ -838,7 +863,14 @@ def main():
     event = os.environ.get("GITHUB_EVENT_NAME", "")
     history = load_json(HISTORY_PATH, default=[])
     peek = str(load_json(INPUT_PATH).get("week", "")).strip()
-    heute = heute_berlin()
+    heute, uhr = jetzt_berlin()
+    # vor 18:30 Berlin postet kein automatischer lauf, siehe POST_AB. das ist
+    # kein fehler: im winter feuert der erste termin um 17:40 Berlin und
+    # endet hier gruen, der zweite um 18:40 postet.
+    if zu_frueh(event, uhr):
+        print("%s-lauf um %s Berlin, vor %s. kein post, der montagstermin um "
+              "18:40 Berlin postet" % (event, uhr, POST_AB))
+        return 0
     # der montagstermin prueft die woche VOR der dublettenpruefung. sonst
     # liefe er gruen durch, wenn die routine nicht geliefert hat und noch
     # die schon gepostete woche in der datei steht, und niemand merkt es.
@@ -1312,10 +1344,24 @@ def run_selftest():
     alt_heute = os.environ.get("WN_HEUTE")
     os.environ["WN_HEUTE"] = "2026-09-28"
     ok("WN_HEUTE simuliert das datum", heute_berlin() == "2026-09-28")
-    if alt_heute is None:
-        del os.environ["WN_HEUTE"]
-    else:
-        os.environ["WN_HEUTE"] = alt_heute
+    alt_uhr = os.environ.get("WN_UHR")
+    os.environ["WN_UHR"] = "18:40"
+    ok("WN_UHR simuliert die uhrzeit", jetzt_berlin() == ("2026-09-28", "18:40"))
+    for k, alt in (("WN_HEUTE", alt_heute), ("WN_UHR", alt_uhr)):
+        if alt is None:
+            os.environ.pop(k, None)
+        else:
+            os.environ[k] = alt
+
+    # 17b nie vor 18:30 Berlin (Video 16:00, Newsletter 18:00, X 18:15)
+    ok("termin 16:20 ist zu frueh", zu_frueh("schedule", "16:20") is True)
+    ok("termin 17:40 (winter, erster lauf) ist zu frueh",
+       zu_frueh("schedule", "17:40") is True)
+    ok("termin 18:40 postet", zu_frueh("schedule", "18:40") is False)
+    ok("termin 19:40 (sommer, zweiter lauf) ist nicht zu frueh",
+       zu_frueh("schedule", "19:40") is False)
+    ok("push am vormittag ist zu frueh", zu_frueh("push", "10:16") is True)
+    ok("von hand gilt keine uhrzeit", zu_frueh("workflow_dispatch", "10:16") is False)
 
     # 18 ops-meldung
     ok("ops nimmt die abbruchzeile",

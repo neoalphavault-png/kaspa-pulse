@@ -672,13 +672,16 @@ def befehl_seite():
 
 
 def befehl_montag():
-    """Der Montagstermin von weekly numbers, trocken und mit simuliertem
-    Datum. Nur lesen: DRY_RUN=1, keine Secrets, History bleibt, die
-    Eingabedatei wird als Kopie im Temp-Verzeichnis veraendert, nicht im
-    Repo. Drei Faelle, alle mit heute = naechster Montag:
-      A  Termin, week = naechster Montag     muss den vollen Posttext drucken
-      B  Termin, week wie in der Datei jetzt muss abbrechen
-      C  Push,   week wie in der Datei jetzt muss abbrechen"""
+    """Der Montagstermin von weekly numbers, trocken, mit simuliertem Datum
+    und simulierter Uhrzeit in Berlin. Nur lesen: DRY_RUN=1, keine Secrets,
+    History bleibt, die Eingabedatei wird als Kopie im Temp-Verzeichnis
+    veraendert, nicht im Repo. Alle Faelle mit heute = naechster Montag:
+      A  Termin 18:40, week = Montag      voller Posttext
+      B  Termin 16:20, week = Montag      zu frueh, kein Post, gruen
+      C  Termin 17:40, week = Montag      Winter-Erstlauf, kein Post, gruen
+      D  Termin 18:40, week wie jetzt     Abbruch, alte Woche
+      E  Push   18:40, week wie jetzt     Abbruch, alte Woche
+      F  Push   10:16, week = Montag      zu frueh, kein Post, gruen"""
     import subprocess
     import tempfile
     heute = dt.date.today()
@@ -692,10 +695,14 @@ def befehl_montag():
     print("week in data/week-input.json: %s" % jetzt)
     print("=" * 78)
     schlecht = 0
-    faelle = (("A", "schedule", str(montag), 0),
-              ("B", "schedule", jetzt, 1),
-              ("C", "push", jetzt, 1))
-    for name, event, week, soll in faelle:
+    # name, anlass, uhr, week, exit, posttext erwartet
+    faelle = (("A", "schedule", "18:40", str(montag), 0, True),
+              ("B", "schedule", "16:20", str(montag), 0, False),
+              ("C", "schedule", "17:40", str(montag), 0, False),
+              ("D", "schedule", "18:40", jetzt, 1, False),
+              ("E", "push", "18:40", jetzt, 1, False),
+              ("F", "push", "10:16", str(montag), 0, False))
+    for name, event, uhr, week, soll, text in faelle:
         d = tempfile.mkdtemp()
         pfad = os.path.join(d, "week-input.json")
         with open(pfad, "w", encoding="utf-8") as fh:
@@ -704,16 +711,18 @@ def befehl_montag():
                if not k.startswith(("DISCORD", "TELEGRAM"))}
         env.update({"DRY_RUN": "1", "FORCE": "", "SHOW_USD": "",
                     "GITHUB_EVENT_NAME": event, "WN_HEUTE": str(montag),
-                    "WN_INPUT": pfad})
+                    "WN_UHR": uhr, "WN_INPUT": pfad})
         r = subprocess.run([sys.executable, os.path.join(HERE, "weekly_numbers.py")],
                            env=env, capture_output=True, text=True, timeout=300, cwd=REPO)
-        print("\n--- fall %s: %s, week %s, erwartet %s"
-              % (name, event, week, "posttext" if soll == 0 else "abbruch"))
+        print("\n--- fall %s: %s um %s Berlin, week %s, erwartet exit %d, %s"
+              % (name, event, uhr, week, soll, "posttext" if text else "kein posttext"))
         print(r.stdout[-5000:].rstrip())
         if r.stderr.strip():
             print("stderr: " + r.stderr[-800:])
-        ok = r.returncode == soll
-        print("exit %s, %s" % (r.returncode, "wie erwartet" if ok else "NICHT WIE ERWARTET"))
+        hat_text = "kaspa pulse, week" in r.stdout
+        ok = r.returncode == soll and hat_text == text
+        print("exit %s, posttext %s, %s" % (r.returncode, "ja" if hat_text else "nein",
+                                           "wie erwartet" if ok else "NICHT WIE ERWARTET"))
         schlecht |= 0 if ok else 1
     return schlecht
 
