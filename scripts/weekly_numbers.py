@@ -86,6 +86,14 @@ DAY = 86400
 ISSUE_ANCHOR_WEEK = "2026-08-03"
 ISSUE_ANCHOR_NUM = 4
 
+# Welche Definition von tps in einer History-Zeile steckt. Seit dem
+# 16.09.2026 ist tps das Wochenmittel nur der Standard-Transaktionen, davor
+# war es ein einzelner Tag mit Coinbase (data/weekly-notes.md). Zeilen ohne
+# dieses Feld sind nach der alten Definition gemessen. Einen Vergleich gibt
+# es nur zwischen zwei Zeilen derselben Definition, sonst stuende im Post
+# "down 48 percent", obwohl nur die Zaehlweise gewechselt hat.
+TPS_DEF = "standard_7d"
+
 # Unter diesem Prozentwert heisst eine Veraenderung "unchanged"
 FLAT_PCT = 1.0
 
@@ -355,9 +363,28 @@ def cut_phrase(nxt, nxt_ts, now_ts):
     return "cut to %.3f on %s, %02d.%02d utc" % (nxt, when, d.hour, d.minute)
 
 
+def vergleich_seit(prev, week_date):
+    """Wie der Vergleich im Post heisst. Liegt die Vorwoche genau sieben
+    Tage zurueck, bleibt es beim gewohnten Text ("this week" bei der
+    Hashrate, sonst nur die Prozentzahl). Sonst steht an jedem Vergleich
+    "since <datum der vorwoche>", denn nach einer ausgefallenen Woche ist
+    der Abstand zwei oder drei Wochen, und "this week" waere falsch."""
+    try:
+        pw = dt.date.fromisoformat(str((prev or {}).get("week", "")))
+    except ValueError:
+        return None
+    if (week_date - pw).days == 7:
+        return None
+    return " since " + month_day(pw)
+
+
 def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
-                  quelle="discord"):
+                  quelle="discord", tps_def=TPS_DEF):
     prev = prev or {}
+    seit = vergleich_seit(prev, week_date)
+    extra = seit or ""
+    # tps nur gegen eine vorwoche derselben definition, siehe TPS_DEF
+    tps_prev = prev.get("tps") if prev.get("tps_def") == tps_def else None
     out = []
     out.append("\U0001f4ca **kaspa pulse, week %d numbers**" % issue)
     out.append(month_day(week_date))
@@ -366,7 +393,7 @@ def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
     out.append("⛏️ **mining**")
     out.append("hashrate **%s PH/s**%s" % (
         fmt_num(v["hashrate"]),
-        tail("hashrate", v["hashrate"], prev.get("hashrate"), " this week")))
+        tail("hashrate", v["hashrate"], prev.get("hashrate"), seit or " this week")))
     out.append("block reward **%.2f KAS** \U0001f53b %s" % (
         v["block_reward"], v["cut_phrase"]))
     line = "emission **%s KAS** per day" % fmt_int(v["emission"])
@@ -378,27 +405,27 @@ def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
     out.append("\U0001f310 **network**")
     out.append("active addresses **%s** per day%s" % (
         fmt_int(v["active_addr"]),
-        tail("active_addr", v["active_addr"], prev.get("active_addr"))))
+        tail("active_addr", v["active_addr"], prev.get("active_addr"), extra)))
     out.append("tps **%s**%s" % (
         fmt_num(v["tps"], 2),
-        tail("tps", v["tps"], prev.get("tps"))))
+        tail("tps", v["tps"], tps_prev, extra)))
     out.append("addresses holding a balance **%s**%s" % (
         fmt_int(v["holders"]),
-        tail("holders", v["holders"], prev.get("holders"))))
+        tail("holders", v["holders"], prev.get("holders"), extra)))
     out.append("")
 
     out.append("\U0001f9f1 **layer 2**")
     out.append("total tvl **%s**%s" % (
         fmt_money(v["tvl_total"]),
-        tail("tvl_total", v["tvl_total"], prev.get("tvl_total"))))
+        tail("tvl_total", v["tvl_total"], prev.get("tvl_total"), extra)))
     out.append("kasplex **%s** and igra **%s**" % (
         fmt_money(v["tvl_kasplex"]), fmt_money(v["tvl_igra"])))
     out.append("dex volume **%s**%s" % (
         fmt_money(v["dex_vol"]),
-        tail("dex_vol", v["dex_vol"], prev.get("dex_vol"))))
+        tail("dex_vol", v["dex_vol"], prev.get("dex_vol"), extra)))
     out.append("chain fees **%s** for the day%s" % (
         fmt_money(v["chain_fees"]),
-        tail("chain_fees", v["chain_fees"], prev.get("chain_fees"))))
+        tail("chain_fees", v["chain_fees"], prev.get("chain_fees"), extra)))
     out.append("")
 
     out.append("\U0001fa99 **supply**")
@@ -407,11 +434,11 @@ def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
     line = "**%s percent** has not moved in over a year" % fmt_num(v["dormant_pct"])
     dc, dtxt = delta("dormant_pct", v["dormant_pct"], prev.get("dormant_pct"))
     if SHOW_DELTA.get("dormant_pct") and dc:
-        line += " %s %s" % (dc, dtxt)
+        line += " %s %s%s" % (dc, dtxt, extra)
     out.append(line)
     line = "exchange balances **%s**%s" % (
         fmt_kas(v["exchange_kas"]),
-        tail("exchange_kas", v["exchange_kas"], prev.get("exchange_kas")))
+        tail("exchange_kas", v["exchange_kas"], prev.get("exchange_kas"), extra))
     if show_usd and price:
         line += " worth %s" % fmt_money(v["exchange_kas"] * price)
     out.append(line)
@@ -707,6 +734,33 @@ def collect_auto(now_ts, override):
     return v
 
 
+def push_nur_trocken(event, week, heute):
+    """Ein Push auf data/week-input.json startet diesen Lauf. Live gepostet
+    wird daraus nur, wenn week der heutige Tag ist. Am 22. und 23.09.2026
+    haben zwei PR-Merges die Datei beruehrt und je einen echten Lauf
+    gestartet; waere die Sprungbremse nicht gewesen, waere der Montagspost
+    an einem Dienstag mit den Zahlen vom Dienstag rausgegangen. Der Start
+    von Hand (workflow_dispatch) bleibt davon unberuehrt."""
+    return event == "push" and str(week).strip() != str(heute)
+
+
+def heute_berlin():
+    from zoneinfo import ZoneInfo
+    return dt.datetime.now(ZoneInfo("Europe/Berlin")).date().isoformat()
+
+
+def history_eintrag(week, issue, v, price=None):
+    entry = {"week": week, "issue": issue}
+    for k in AUTO_KEYS + MANUAL_KEYS:
+        if k in v:
+            entry[k] = round(float(v[k]), 6)
+    if "tps" in entry:
+        entry["tps_def"] = TPS_DEF
+    if price:
+        entry["price"] = price
+    return entry
+
+
 def main():
     dry = os.environ.get("DRY_RUN", "").strip() not in ("", "0", "false")
     force = os.environ.get("FORCE", "").strip() not in ("", "0", "false")
@@ -720,6 +774,13 @@ def main():
         print("woche %s steht schon in der history. nichts gepostet. "
               "mit FORCE=1 starten wenn das absicht ist" % peek)
         return 0
+    heute = heute_berlin()
+    if not dry and push_nur_trocken(os.environ.get("GITHUB_EVENT_NAME", ""),
+                                    peek, heute):
+        print("push-lauf, week %s ist nicht heute (%s). nur trocken, nichts "
+              "gepostet, history bleibt. live geht es von hand per "
+              "workflow_dispatch" % (peek, heute))
+        dry = True
 
     inp = read_input()
     now_ts = time.time()
@@ -744,12 +805,7 @@ def main():
     post_discord(msg, dry=dry, msg_tg=msg_tg)
 
     if not dry:
-        entry = {"week": inp["week"], "issue": issue}
-        for k in AUTO_KEYS + MANUAL_KEYS:
-            if k in v:
-                entry[k] = round(float(v[k]), 6)
-        if price:
-            entry["price"] = price
+        entry = history_eintrag(inp["week"], issue, v, price)
         history = [h for h in history if h.get("week") != inp["week"]]
         history.append(entry)
         history.sort(key=lambda h: h["week"])
@@ -897,7 +953,10 @@ def run_selftest():
     # 6 die harte probe, der post vom 03.08. zeichen fuer zeichen
     v = dict(GOLD_NOW)
     v["cut_phrase"] = cut_phrase(nxt, nxt_ts, ts)
-    msg = build_message(v, GOLD_PREV, 4, dt.date(2026, 8, 3), GOLD_READ)
+    # der goldpost vom 03.08. ist ganz nach der alten tps-definition
+    # gemessen, jetzt und vorwoche, also vergleicht er tps
+    msg = build_message(v, GOLD_PREV, 4, dt.date(2026, 8, 3), GOLD_READ,
+                        tps_def=None)
     if msg != GOLD_MSG:
         for a, b in zip(msg.split("\n"), GOLD_MSG.split("\n")):
             if a != b:
@@ -1126,6 +1185,50 @@ def run_selftest():
     ok("telegram modul ist eingebunden", hasattr(telegram_post, "send_text"))
     ok("ohne secrets meldet telegram sauber False",
        telegram_post.send_text("selbsttest") is False)
+
+    # 15 tps nur gegen dieselbe definition (reparatur 25.09.2026)
+    alt = dict(GOLD_PREV, week="2026-07-27")
+    neu = build_message(v, alt, 5, dt.date(2026, 8, 3), GOLD_READ)
+    tps_zeile = [l for l in neu.split("\n") if l.startswith("tps ")][0]
+    ok("tps ohne vergleich gegen alte definition", tps_zeile == "tps **0.91**",
+       tps_zeile)
+    gleich = dict(alt, tps_def=TPS_DEF)
+    neu2 = build_message(v, gleich, 5, dt.date(2026, 8, 3), GOLD_READ)
+    tps2 = [l for l in neu2.split("\n") if l.startswith("tps ")][0]
+    ok("tps mit vergleich bei gleicher definition", "up 21.3 percent" in tps2, tps2)
+    e = history_eintrag("2026-09-28", 12, {"tps": 1.47, "hashrate": 350.0})
+    ok("history zeile traegt die definition", e.get("tps_def") == TPS_DEF, e)
+    ok("ohne tps keine definition",
+       "tps_def" not in history_eintrag("2026-09-28", 12, {"hashrate": 350.0}))
+
+    # 16 abstand zur vorwoche (reparatur 25.09.2026)
+    sep7 = dict(GOLD_PREV, week="2026-09-07", tps_def=TPS_DEF)
+    lang = build_message(v, sep7, 12, dt.date(2026, 9, 28), GOLD_READ)
+    ok("drei wochen abstand, kein this week", "this week" not in lang)
+    ok("hashrate sagt since september 7",
+       "up 30.6 percent since september 7" in lang,
+       [l for l in lang.split("\n") if l.startswith("hashrate")])
+    ok("alle vergleiche sagen since",
+       all("since september 7" in l for l in lang.split("\n")
+           if " percent" in l and ("up " in l or "down " in l)),
+       [l for l in lang.split("\n") if " percent" in l])
+    ok("unchanged sagt ebenfalls since",
+       "unchanged since september 7" in lang)
+    assert_punctuation(lang)
+    ok("drei wochen bleibt unter dem limit", len(lang) < 1990, len(lang))
+    ok("sieben tage bleibt this week",
+       vergleich_seit({"week": "2026-09-21"}, dt.date(2026, 9, 28)) is None)
+    ok("ohne vorwoche kein since", vergleich_seit(None, dt.date(2026, 9, 28)) is None)
+
+    # 17 push postet nur am tag selbst (reparatur 25.09.2026)
+    ok("push am montag selbst ist live",
+       push_nur_trocken("push", "2026-09-21", "2026-09-21") is False)
+    ok("push am dienstag ist trocken",
+       push_nur_trocken("push", "2026-09-21", "2026-09-22") is True)
+    ok("von hand gestartet bleibt live",
+       push_nur_trocken("workflow_dispatch", "2026-09-21", "2026-09-22") is False)
+    ok("heute_berlin ist ein datum",
+       bool(re.fullmatch(r"\d{4}-\d{2}-\d{2}", heute_berlin())), heute_berlin())
 
     print("")
     if fails:
