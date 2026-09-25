@@ -1,5 +1,5 @@
 {
-  "generated_at": 1790278503,
+  "generated_at": 1790327633,
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "method": "volume weighted daily average price, kucoin with mexc and bybit gap fill",
   "reliable": true,
@@ -147,14 +147,14 @@
   "last_deposit": "2026-09-23",
   "largest_deposit_kas": 90000000.0,
   "largest_deposit_day": "2024-03-11",
-  "price_now": 0.03997,
-  "value_now_usd": 60929980.49,
-  "unrealized_usd": -75822665.71,
-  "unrealized_pct": -55.45,
+  "price_now": 0.04156,
+  "value_now_usd": 63353765.05,
+  "unrealized_usd": -73398881.14,
+  "unrealized_pct": -53.67,
   "missing_price_days": [],
   "missing_share": 0.0,
   "price_source_days": {
-    "kucoin": 935,
+    "kucoin": 936,
     "mexc": 0,
     "bybit": 0
   },
