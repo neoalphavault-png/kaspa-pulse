@@ -25,7 +25,7 @@ Secret (Umgebung): BREVO_API_KEY. Wird nie gedruckt.
 
     python3 scripts/brevo_send.py --mode test --html newsletter/2026-09-14.html \
         --subject "TEST" --test-to ben@example.com
-    python3 scripts/brevo_send.py --mode schedule --send-at 2026-09-14T16:05 --list-id 16
+    python3 scripts/brevo_send.py --mode schedule --send-at 2026-09-28T18:00 --list-id 16
     python3 scripts/brevo_send.py --mode cancel
     python3 scripts/brevo_send.py --selftest
 
@@ -203,23 +203,57 @@ def mode_test(a, key, q):
     return 0
 
 
-def mode_schedule(a, key, q):
+# Seit dem 25.09.2026 nur noch EIN schreibender Aufruf. Der PUT mit
+# scheduledAt plant die Kampagne bereits. Der zweite Aufruf, PUT .../status
+# mit "queued", ist am 21.09.2026 mit HTTP 400 gescheitert ("queued is an
+# invalid status for scheduled campaign"), der Lauf wurde rot und die Queue
+# blieb auf "draft" stehen, obwohl Kampagne 31 laut Ben um 18:00 rausging.
+# Ob geplant ist, wird jetzt nur noch GELESEN.
+GEPLANT = ("queued", "scheduled", "inProcess", "in_process")
+
+
+def pruefe_geplant(check, when):
+    """None, wenn die gelesene Kampagne auf den gewuenschten Zeitpunkt
+    geplant ist, sonst der Grund. Verglichen wird der Zeitpunkt, nicht der
+    Text: Brevo liefert ihn in UTC zurueck ("...T16:00:00.000Z")."""
+    status = (check or {}).get("status")
+    zurueck = (check or {}).get("scheduledAt")
+    if status not in GEPLANT:
+        return "status %r ist kein geplanter status (%s)" % (status, ", ".join(GEPLANT))
+    if not zurueck:
+        return "status %r, aber kein scheduledAt" % status
+    try:
+        ist = dt.datetime.fromisoformat(str(zurueck).replace("Z", "+00:00"))
+        soll = dt.datetime.fromisoformat(str(when).replace("Z", "+00:00"))
+    except ValueError:
+        return "scheduledAt %r nicht lesbar" % zurueck
+    if abs((ist - soll).total_seconds()) > 60:
+        return "geplant auf %s, gewollt war %s" % (ist.isoformat(), soll.isoformat())
+    return None
+
+
+def mode_schedule(a, key, q, call_fn=None):
+    call_fn = call_fn or call
     cid = q.get("campaign_id")
     if not cid:
         sys.exit("keine kampagne in %s, erst --mode test laufen lassen" % a.queue)
     when = to_brevo_time(a.send_at)
     print("plane kampagne %s auf liste %d, scheduledAt %s" % (cid, a.list_id, when))
-    call("PUT", "/emailCampaigns/%s" % cid, key,
-         {"recipients": {"listIds": [a.list_id]}, "scheduledAt": when})
-    call("PUT", "/emailCampaigns/%s/status" % cid, key, {"status": "queued"})
-    check = call("GET", "/emailCampaigns/%s" % cid, key)
+    call_fn("PUT", "/emailCampaigns/%s" % cid, key,
+            {"recipients": {"listIds": [a.list_id]}, "scheduledAt": when})
+    check = call_fn("GET", "/emailCampaigns/%s" % cid, key)
     print("brevo meldet status %r, scheduledAt %r"
           % (check.get("status"), check.get("scheduledAt")))
-    q["status"] = check.get("status") or "queued"
-    q["scheduled_at"] = check.get("scheduledAt") or when
+    grund = pruefe_geplant(check, when)
+    q["status"] = check.get("status")
+    q["scheduled_at"] = check.get("scheduledAt")
     q["list_id"] = a.list_id
-    note(q, "schedule", campaign_id=cid, scheduled_at=q["scheduled_at"], list_id=a.list_id)
+    note(q, "schedule", campaign_id=cid, scheduled_at=q["scheduled_at"],
+         list_id=a.list_id, result="geplant" if grund is None else grund)
     save_queue(a.queue, q)
+    if grund:
+        sys.exit("FEHLER: kampagne %s ist nicht nachweislich geplant: %s" % (cid, grund))
+    print("kampagne %s ist geplant, gelesen, nicht angenommen" % cid)
     return 0
 
 
@@ -301,8 +335,47 @@ def selftest():
     save_queue(tmp, q)
     again = load_queue(tmp)
     assert again["campaign_id"] == 42 and again["history"][-1]["step"] == "test"
+    # planung: ein PUT, ein GET, kein zweiter statusaufruf (25.09.2026)
+    soll = "2126-09-28T18:00:00+02:00"
+    assert pruefe_geplant({"status": "queued",
+                           "scheduledAt": "2126-09-28T16:00:00.000Z"}, soll) is None
+    assert pruefe_geplant({"status": "draft",
+                           "scheduledAt": "2126-09-28T16:00:00.000Z"}, soll)
+    assert pruefe_geplant({"status": "queued", "scheduledAt": None}, soll)
+    assert "gewollt" in pruefe_geplant({"status": "queued",
+                                        "scheduledAt": "2126-09-28T14:05:00Z"}, soll)
+    aufrufe = []
+
+    def attrappe(method, path, key, body=None):
+        aufrufe.append((method, path))
+        if method == "GET":
+            return {"status": "queued", "scheduledAt": "2126-09-28T16:00:00.000Z"}
+        return {}
+
+    class A:
+        send_at = "2126-09-28T18:00"
+        list_id = 16
+        queue = os.path.join(tempfile.mkdtemp(), "q.json")
+    q2 = {"campaign_id": 31, "history": []}
+    assert mode_schedule(A, "k", q2, call_fn=attrappe) == 0
+    assert aufrufe == [("PUT", "/emailCampaigns/31"), ("GET", "/emailCampaigns/31")], aufrufe
+    assert not any(p.endswith("/status") for _, p in aufrufe)
+    assert load_queue(A.queue)["status"] == "queued"
+    assert load_queue(A.queue)["history"][-1]["result"] == "geplant"
+
+    def entwurf(method, path, key, body=None):
+        return {"status": "draft", "scheduledAt": None} if method == "GET" else {}
+    q3 = {"campaign_id": 32, "history": []}
+    try:
+        mode_schedule(A, "k", q3, call_fn=entwurf)
+    except SystemExit as e:
+        assert "nicht nachweislich geplant" in str(e)
+    else:
+        raise AssertionError("ein entwurf haette rot werden muessen")
+    assert load_queue(A.queue)["status"] == "draft"
     print("selftest ok: berliner zeiten stimmen, vergangenheit wird abgelehnt, "
-          "entwurf wird nicht storniert, queue haelt")
+          "entwurf wird nicht storniert, queue haelt, planung ist ein PUT plus "
+          "ein lesender GET, ein nicht geplanter stand wird rot")
     return 0
 
 
