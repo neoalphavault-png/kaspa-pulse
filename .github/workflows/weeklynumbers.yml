@@ -1,5 +1,23 @@
 name: weekly numbers
 on:
+  # Montags 18:40 Berlin, seit 28.09.2026. Reihenfolge am Montag: Video
+  # 16:00, Newsletter 18:00, X-Faden 18:15 von Hand, dann Discord und
+  # Telegram. Zwei Termine, damit die Uhrzeit die Zeitumstellung am 25.10.
+  # uebersteht: 16:40 UTC ist im Sommer 18:40 Berlin, 17:40 UTC im Winter.
+  # Das Skript postet aus einem automatischen Lauf nie vor 18:30 Berlin;
+  # der jeweils andere Termin endet gruen ohne Post (zu frueh, oder die
+  # Woche steht schon in der History).
+  # Bis dahin lief der Post nur, wenn jemand data/week-input.json von Hand
+  # auf main schob: die Montagsroutine bringt die Datei ueber
+  # automerge-claude.yml nach main, und ein Push mit GITHUB_TOKEN loest
+  # keinen anderen Workflow aus. weekly-afternoon.yml, das den Lauf
+  # anstossen sollte, ist seit 12.09. abgeschaltet.
+  # Gepostet wird nur, wenn week in der Datei der heutige Tag ist (Berlin);
+  # sonst bricht der Lauf ab und meldet sich im Ops-Kanal. Dieselben
+  # Sperren gelten fuer Push-Laeufe. workflow_dispatch bleibt frei.
+  schedule:
+    - cron: "40 16 * * 1"
+    - cron: "40 17 * * 1"
   push:
     branches: [main]
     paths:
@@ -18,6 +36,10 @@ on:
         description: 'dollarwerte an emission und boersenbestand haengen'
         type: boolean
         default: false
+      ops_test:
+        description: 'ops-kanal testen. vorschau des wochenposts und eine abbruchmeldung an ops, kein oeffentlicher post, der lauf endet absichtlich rot'
+        type: boolean
+        default: false
 permissions:
   contents: write
 concurrency:
@@ -34,8 +56,25 @@ jobs:
         with:
           python-version: '3.12'
       - name: selbsttest
-        run: python3 scripts/weekly_numbers.py --selftest
+        run: |
+          set -o pipefail
+          python3 scripts/weekly_numbers.py --selftest 2>&1 | tee -a "$RUNNER_TEMP/weekly.log"
+      # Probe fuer den Ops-Kanal: eine ABBRUCH-Zeile, dann absichtlich rot,
+      # damit der failure()-Schritt unten genau so laeuft wie im Ernstfall.
+      # Vorher geht der Wochenpost als Vorschau in denselben Kanal, trocken
+      # und ohne den oeffentlichen Webhook in der Umgebung.
+      - name: ops-test
+        if: ${{ inputs.ops_test }}
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DRY_RUN: "1"
+          WN_OPS_VORSCHAU: "1"
+        run: |
+          python3 scripts/weekly_numbers.py 2>&1 | tee -a "$RUNNER_TEMP/weekly.log" || true
+          echo "ABBRUCH testmeldung, von hand angestossen. kein post, nichts ist kaputt" | tee -a "$RUNNER_TEMP/weekly.log"
+          exit 1
       - name: rechnen und posten
+        if: ${{ !inputs.ops_test }}
         env:
           DISCORD_WEBHOOK_WEEKLY: ${{ secrets.DISCORD_WEBHOOK_WEEKLY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -43,7 +82,9 @@ jobs:
           DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
           FORCE: ${{ inputs.force && '1' || '' }}
           SHOW_USD: ${{ inputs.show_usd && '1' || '' }}
-        run: python3 scripts/weekly_numbers.py
+        run: |
+          set -o pipefail
+          python3 scripts/weekly_numbers.py 2>&1 | tee -a "$RUNNER_TEMP/weekly.log"
       - name: history zurueckschreiben
         if: ${{ inputs.dry_run != true }}
         run: |
@@ -63,4 +104,16 @@ jobs:
       # schreibt. ein roter lauf heisst dann nicht kaputt, sondern die
       # texte sind dran.
       - name: lesetexte pruefen
-        run: python3 scripts/check_reads.py index.html
+        run: |
+          set -o pipefail
+          python3 scripts/check_reads.py index.html 2>&1 | tee -a "$RUNNER_TEMP/weekly.log"
+
+      # Wird irgendein Schritt rot, geht die ABBRUCH-Zeile (sonst die letzte
+      # Fehlerzeile) in den privaten Ops-Kanal, nicht nur als GitHub-Mail.
+      # Ohne das Secret springt der Schritt sauber ueber und bleibt gruen.
+      - name: abbruch an ops melden
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python3 scripts/weekly_numbers.py --ops-meldung "$RUNNER_TEMP/weekly.log"
