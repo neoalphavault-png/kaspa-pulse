@@ -17,6 +17,11 @@ on:
         required: false
         default: "alle"
 
+# Nur lesend. Die Sonde schreibt nichts ins Repo; das steht hier fest und
+# haengt nicht an der Voreinstellung des Repos.
+permissions:
+  contents: read
+
 jobs:
   probe:
     runs-on: ubuntu-latest
