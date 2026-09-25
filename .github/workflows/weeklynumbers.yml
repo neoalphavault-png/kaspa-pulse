@@ -1,5 +1,15 @@
 name: weekly numbers
 on:
+  # Montags 07:50 UTC, seit 28.09.2026. Bis dahin lief der Post nur, wenn
+  # jemand data/week-input.json von Hand auf main schob: die Montagsroutine
+  # bringt die Datei ueber automerge-claude.yml nach main, und ein Push mit
+  # GITHUB_TOKEN loest keinen anderen Workflow aus. weekly-afternoon.yml,
+  # das den Lauf anstossen sollte, ist seit 12.09. abgeschaltet.
+  # Gepostet wird nur, wenn week in der Datei der heutige Tag ist (Berlin);
+  # sonst bricht der Lauf ab und meldet sich im Ops-Kanal. Dieselbe Sperre
+  # gilt fuer Push-Laeufe. workflow_dispatch bleibt frei.
+  schedule:
+    - cron: "50 7 * * 1"
   push:
     branches: [main]
     paths:
@@ -34,7 +44,9 @@ jobs:
         with:
           python-version: '3.12'
       - name: selbsttest
-        run: python3 scripts/weekly_numbers.py --selftest
+        run: |
+          set -o pipefail
+          python3 scripts/weekly_numbers.py --selftest 2>&1 | tee -a "$RUNNER_TEMP/weekly.log"
       - name: rechnen und posten
         env:
           DISCORD_WEBHOOK_WEEKLY: ${{ secrets.DISCORD_WEBHOOK_WEEKLY }}
@@ -43,7 +55,9 @@ jobs:
           DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
           FORCE: ${{ inputs.force && '1' || '' }}
           SHOW_USD: ${{ inputs.show_usd && '1' || '' }}
-        run: python3 scripts/weekly_numbers.py
+        run: |
+          set -o pipefail
+          python3 scripts/weekly_numbers.py 2>&1 | tee -a "$RUNNER_TEMP/weekly.log"
       - name: history zurueckschreiben
         if: ${{ inputs.dry_run != true }}
         run: |
@@ -63,4 +77,16 @@ jobs:
       # schreibt. ein roter lauf heisst dann nicht kaputt, sondern die
       # texte sind dran.
       - name: lesetexte pruefen
-        run: python3 scripts/check_reads.py index.html
+        run: |
+          set -o pipefail
+          python3 scripts/check_reads.py index.html 2>&1 | tee -a "$RUNNER_TEMP/weekly.log"
+
+      # Wird irgendein Schritt rot, geht die ABBRUCH-Zeile (sonst die letzte
+      # Fehlerzeile) in den privaten Ops-Kanal, nicht nur als GitHub-Mail.
+      # Ohne das Secret springt der Schritt sauber ueber und bleibt gruen.
+      - name: abbruch an ops melden
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python3 scripts/weekly_numbers.py --ops-meldung "$RUNNER_TEMP/weekly.log"

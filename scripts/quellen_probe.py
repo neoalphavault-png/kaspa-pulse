@@ -18,6 +18,7 @@ stellt, soll nicht wieder bei null anfangen.
     python3 scripts/quellen_probe.py richlist      rangliste und labels, api.kaspa.org
     python3 scripts/quellen_probe.py wochen        entity x, einzahlungen je woche
     python3 scripts/quellen_probe.py seite         entity-x.html live gegen stempel
+    python3 scripts/quellen_probe.py montag        weekly numbers, montagstermin trocken
     python3 scripts/quellen_probe.py alle          alles nacheinander
 
 WAS BISHER HERAUSKAM, in Kurzform
@@ -669,6 +670,54 @@ def befehl_seite():
     return 0
 
 
+
+def befehl_montag():
+    """Der Montagstermin von weekly numbers, trocken und mit simuliertem
+    Datum. Nur lesen: DRY_RUN=1, keine Secrets, History bleibt, die
+    Eingabedatei wird als Kopie im Temp-Verzeichnis veraendert, nicht im
+    Repo. Drei Faelle, alle mit heute = naechster Montag:
+      A  Termin, week = naechster Montag     muss den vollen Posttext drucken
+      B  Termin, week wie in der Datei jetzt muss abbrechen
+      C  Push,   week wie in der Datei jetzt muss abbrechen"""
+    import subprocess
+    import tempfile
+    heute = dt.date.today()
+    montag = heute + dt.timedelta(days=(7 - heute.weekday()) % 7 or 7)
+    quelle = os.path.join(REPO, "data", "week-input.json")
+    with open(quelle, encoding="utf-8") as fh:
+        eingabe = json.load(fh)
+    jetzt = eingabe.get("week")
+    print("=" * 78)
+    print("WEEKLY NUMBERS, MONTAGSTERMIN TROCKEN, heute simuliert %s" % montag)
+    print("week in data/week-input.json: %s" % jetzt)
+    print("=" * 78)
+    schlecht = 0
+    faelle = (("A", "schedule", str(montag), 0),
+              ("B", "schedule", jetzt, 1),
+              ("C", "push", jetzt, 1))
+    for name, event, week, soll in faelle:
+        d = tempfile.mkdtemp()
+        pfad = os.path.join(d, "week-input.json")
+        with open(pfad, "w", encoding="utf-8") as fh:
+            json.dump(dict(eingabe, week=week), fh)
+        env = {k: v for k, v in os.environ.items()
+               if not k.startswith(("DISCORD", "TELEGRAM"))}
+        env.update({"DRY_RUN": "1", "FORCE": "", "SHOW_USD": "",
+                    "GITHUB_EVENT_NAME": event, "WN_HEUTE": str(montag),
+                    "WN_INPUT": pfad})
+        r = subprocess.run([sys.executable, os.path.join(HERE, "weekly_numbers.py")],
+                           env=env, capture_output=True, text=True, timeout=300, cwd=REPO)
+        print("\n--- fall %s: %s, week %s, erwartet %s"
+              % (name, event, week, "posttext" if soll == 0 else "abbruch"))
+        print(r.stdout[-5000:].rstrip())
+        if r.stderr.strip():
+            print("stderr: " + r.stderr[-800:])
+        ok = r.returncode == soll
+        print("exit %s, %s" % (r.returncode, "wie erwartet" if ok else "NICHT WIE ERWARTET"))
+        schlecht |= 0 if ok else 1
+    return schlecht
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -679,6 +728,7 @@ BEFEHLE = {
     "richlist": befehl_richlist,
     "wochen": befehl_wochen,
     "seite": befehl_seite,
+    "montag": befehl_montag,
 }
 
 

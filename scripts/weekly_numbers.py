@@ -71,7 +71,10 @@ TIMEOUT = 20
 RETRIES = 3
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-INPUT_PATH = os.path.join(ROOT, "data", "week-input.json")
+# WN_INPUT und WN_HEUTE gibt es nur fuer Trockenlaeufe (quellen_probe.py
+# montag): eine andere Eingabedatei und ein simuliertes Datum. Im
+# Workflow ist keins von beiden gesetzt.
+INPUT_PATH = os.environ.get("WN_INPUT") or os.path.join(ROOT, "data", "week-input.json")
 HISTORY_PATH = os.path.join(ROOT, "data", "weekly-history.json")
 
 # --- Reward-Anker, identisch zu reward_cut_alert v3 -------------------------
@@ -734,19 +737,85 @@ def collect_auto(now_ts, override):
     return v
 
 
-def push_nur_trocken(event, week, heute):
-    """Ein Push auf data/week-input.json startet diesen Lauf. Live gepostet
-    wird daraus nur, wenn week der heutige Tag ist. Am 22. und 23.09.2026
-    haben zwei PR-Merges die Datei beruehrt und je einen echten Lauf
-    gestartet; waere die Sprungbremse nicht gewesen, waere der Montagspost
-    an einem Dienstag mit den Zahlen vom Dienstag rausgegangen. Der Start
-    von Hand (workflow_dispatch) bleibt davon unberuehrt."""
-    return event == "push" and str(week).strip() != str(heute)
+# Automatische Anstoesse. Weder ein Termin- noch ein Push-Lauf postet eine
+# Woche, die nicht heute ist. Der Start von Hand (workflow_dispatch) bleibt
+# frei, dafuer ist er da.
+AUTO_EVENTS = ("push", "schedule")
+
+
+def falsche_woche(event, week, heute):
+    """Gibt die Abbruchmeldung zurueck, wenn ein automatischer Lauf eine
+    Woche posten wuerde, die nicht heute ist, sonst None.
+
+    Push: am 22. und 23.09.2026 haben zwei PR-Merges die Datei beruehrt und
+    je einen echten Lauf gestartet; ohne Sprungbremse waere der Montagspost
+    an einem Dienstag mit den Zahlen vom Dienstag rausgegangen.
+    Termin: steht montags um 07:50 UTC noch die alte Woche in der Datei, hat
+    die Montagsroutine nicht (rechtzeitig) geliefert. Dann kein Post mit
+    alter Woche, sondern ein roter Lauf, den man sieht."""
+    if event not in AUTO_EVENTS:
+        return None
+    if str(week).strip() == str(heute).strip():
+        return None
+    return ("%s-lauf, aber week in data/week-input.json ist %s und heute ist "
+            "%s (Berlin). kein post. entweder hat die montagsroutine die neue "
+            "woche nicht eingetragen, oder der lauf kam an einem anderen tag. "
+            "wenn der post trotzdem raus soll, von hand per workflow_dispatch "
+            "starten" % (event, week or "leer", heute))
 
 
 def heute_berlin():
+    fest = os.environ.get("WN_HEUTE", "").strip()
+    if fest:
+        dt.date.fromisoformat(fest)
+        print("hinweis: datum simuliert, WN_HEUTE=%s" % fest)
+        return fest
     from zoneinfo import ZoneInfo
     return dt.datetime.now(ZoneInfo("Europe/Berlin")).date().isoformat()
+
+
+def ops_zeile(log):
+    """Die eine Zeile, die an den Ops-Kanal geht: die letzte ABBRUCH-Zeile,
+    sonst die letzte Fehlerzeile, sonst die letzte Zeile ueberhaupt."""
+    zeilen = [z.strip() for z in (log or "").splitlines() if z.strip()]
+    for z in reversed(zeilen):
+        if z.startswith("ABBRUCH"):
+            return z
+    for z in reversed(zeilen):
+        if re.search(r"error|fehl|FAIL|Traceback|exception", z, re.I):
+            return z
+    return zeilen[-1] if zeilen else "kein log, der lauf ist vor dem ersten schritt gestorben"
+
+
+def ops_melden(log_pfad, hook=None, lauf="", anlass=""):
+    """Schickt die ops_zeile an DISCORD_WEBHOOK_OPS. Ohne Secret wird still
+    uebersprungen, damit der Schritt nicht selbst rot wird, solange das
+    Secret nicht angelegt ist. Ein Fehler beim Senden wird gedruckt, nicht
+    geworfen: der Lauf ist ohnehin schon rot."""
+    hook = hook if hook is not None else os.environ.get("DISCORD_WEBHOOK_OPS", "")
+    try:
+        with open(log_pfad, encoding="utf-8", errors="replace") as fh:
+            log = fh.read()
+    except OSError:
+        log = ""
+    zeile = ops_zeile(log)
+    text = ("weekly numbers ist rot (%s)\n%s\n%s" % (anlass or "?", zeile, lauf)).strip()
+    if len(text) > 1900:
+        text = text[:1900]
+    print(text)
+    if not hook:
+        print("kein DISCORD_WEBHOOK_OPS gesetzt, meldung uebersprungen")
+        return 0
+    body = json.dumps({"content": text,
+                       "allowed_mentions": {"parse": []}}).encode("utf-8")
+    req = urllib.request.Request(hook, data=body, headers={
+        "Content-Type": "application/json", "User-Agent": UA})
+    try:
+        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+            print("an ops gemeldet, http %s" % r.status)
+    except Exception as exc:  # noqa: BLE001
+        print("WARN ops-meldung ging nicht raus: %s" % exc)
+    return 0
 
 
 def history_eintrag(week, issue, v, price=None):
@@ -766,21 +835,26 @@ def main():
     force = os.environ.get("FORCE", "").strip() not in ("", "0", "false")
     show_usd = os.environ.get("SHOW_USD", "").strip() not in ("", "0", "false")
 
-    # dublettenpruefung vor der strengen pruefung. so laeuft die vorlage,
-    # die noch auf der letzten woche steht, ohne roten lauf durch.
+    event = os.environ.get("GITHUB_EVENT_NAME", "")
     history = load_json(HISTORY_PATH, default=[])
     peek = str(load_json(INPUT_PATH).get("week", "")).strip()
+    heute = heute_berlin()
+    # der montagstermin prueft die woche VOR der dublettenpruefung. sonst
+    # liefe er gruen durch, wenn die routine nicht geliefert hat und noch
+    # die schon gepostete woche in der datei steht, und niemand merkt es.
+    if event == "schedule":
+        falsch = falsche_woche(event, peek, heute)
+        if falsch:
+            raise Stop(falsch)
+    # dublettenpruefung. so laeuft ein merge, der die datei nach dem post
+    # noch einmal beruehrt, gruen durch.
     if any(h.get("week") == peek for h in history) and not force:
         print("woche %s steht schon in der history. nichts gepostet. "
               "mit FORCE=1 starten wenn das absicht ist" % peek)
         return 0
-    heute = heute_berlin()
-    if not dry and push_nur_trocken(os.environ.get("GITHUB_EVENT_NAME", ""),
-                                    peek, heute):
-        print("push-lauf, week %s ist nicht heute (%s). nur trocken, nichts "
-              "gepostet, history bleibt. live geht es von hand per "
-              "workflow_dispatch" % (peek, heute))
-        dry = True
+    falsch = falsche_woche(event, peek, heute)
+    if falsch:
+        raise Stop(falsch)
 
     inp = read_input()
     now_ts = time.time()
@@ -1220,15 +1294,45 @@ def run_selftest():
        vergleich_seit({"week": "2026-09-21"}, dt.date(2026, 9, 28)) is None)
     ok("ohne vorwoche kein since", vergleich_seit(None, dt.date(2026, 9, 28)) is None)
 
-    # 17 push postet nur am tag selbst (reparatur 25.09.2026)
-    ok("push am montag selbst ist live",
-       push_nur_trocken("push", "2026-09-21", "2026-09-21") is False)
-    ok("push am dienstag ist trocken",
-       push_nur_trocken("push", "2026-09-21", "2026-09-22") is True)
-    ok("von hand gestartet bleibt live",
-       push_nur_trocken("workflow_dispatch", "2026-09-21", "2026-09-22") is False)
+    # 17 automatische laeufe posten nur am tag selbst (25.09.2026)
+    ok("push am montag selbst geht durch",
+       falsche_woche("push", "2026-09-28", "2026-09-28") is None)
+    ok("termin am montag selbst geht durch",
+       falsche_woche("schedule", "2026-09-28", "2026-09-28") is None)
+    ok("push mit alter woche bricht ab",
+       "kein post" in (falsche_woche("push", "2026-09-21", "2026-09-28") or ""))
+    ok("termin mit alter woche bricht ab",
+       "kein post" in (falsche_woche("schedule", "2026-09-21", "2026-09-28") or ""))
+    ok("von hand gestartet bleibt frei",
+       falsche_woche("workflow_dispatch", "2026-09-21", "2026-09-28") is None)
+    ok("leere woche bricht ab",
+       "leer" in (falsche_woche("schedule", "", "2026-09-28") or ""))
     ok("heute_berlin ist ein datum",
        bool(re.fullmatch(r"\d{4}-\d{2}-\d{2}", heute_berlin())), heute_berlin())
+    alt_heute = os.environ.get("WN_HEUTE")
+    os.environ["WN_HEUTE"] = "2026-09-28"
+    ok("WN_HEUTE simuliert das datum", heute_berlin() == "2026-09-28")
+    if alt_heute is None:
+        del os.environ["WN_HEUTE"]
+    else:
+        os.environ["WN_HEUTE"] = alt_heute
+
+    # 18 ops-meldung
+    ok("ops nimmt die abbruchzeile",
+       ops_zeile("a\nABBRUCH sprungbremse. tvl\nnode 20 is deprecated\n")
+       == "ABBRUCH sprungbremse. tvl")
+    ok("ops nimmt sonst die fehlerzeile",
+       ops_zeile("x\nTraceback (most recent call last)\n  File y\nKeyError: 'week'\nende")
+       == "KeyError: 'week'")
+    ok("ops ohne log meldet das",
+       ops_zeile("").startswith("kein log"))
+    lp = os.path.join(tmp, "wn.log")
+    with open(lp, "w", encoding="utf-8") as fh:
+        fh.write("ABBRUCH sprungbremse. tvl_total springt\n")
+    ok("ops ohne secret springt sauber ueber",
+       ops_melden(lp, hook="", lauf="https://x/run/1", anlass="schedule") == 0)
+    ok("ops ohne logdatei stuerzt nicht ab",
+       ops_melden(os.path.join(tmp, "fehlt.log"), hook="") == 0)
 
     print("")
     if fails:
@@ -1241,6 +1345,11 @@ def run_selftest():
 if __name__ == "__main__":
     if "--selftest" in sys.argv:
         sys.exit(run_selftest())
+    if "--ops-meldung" in sys.argv:
+        i = sys.argv.index("--ops-meldung")
+        pfad = sys.argv[i + 1] if len(sys.argv) > i + 1 else ""
+        sys.exit(ops_melden(pfad, lauf=os.environ.get("LAUF", ""),
+                            anlass=os.environ.get("GITHUB_EVENT_NAME", "")))
     try:
         sys.exit(main())
     except Stop as e:
