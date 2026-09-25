@@ -585,6 +585,51 @@ def befehl_wochenpost():
     return r.returncode
 
 
+
+def befehl_protokolle():
+    """Welches Protokoll traegt den Sprung von Igra zwischen dem 20. und
+    24.09.2026? Je Protokoll auf Igra und Kasplex der Tages-TVL dieser
+    Kette (/protocol/{slug}, chainTvls) und das Tages-DEX-Volumen je
+    Protokoll (/overview/dexs/{kette} mit Breakdown). Nur lesen, keine
+    Deutung."""
+    print("=" * 78)
+    print("DEFILLAMA JE PROTOKOLL, 17. BIS 25.09.2026")
+    print("=" * 78)
+    von, bis = dt.date(2026, 9, 17), dt.date(2026, 9, 25)
+    namen = _ketten()
+    st, txt = hole(LLAMA + "/protocols")
+    if st != 200:
+        print("/protocols http %s" % st)
+        return 1
+    alle = json.loads(txt)
+    for k, n in namen.items():
+        prot = [p for p in alle if n in (p.get("chainTvls") or {})]
+        print("\n--- %s, tvl je protokoll und tag" % n)
+        for p in prot:
+            st, t2 = hole(LLAMA + "/protocol/" + p["slug"])
+            if st != 200:
+                print("  %-26s http %s" % (p["name"][:26], st))
+                continue
+            reihe = ((json.loads(t2).get("chainTvls") or {}).get(n) or {}).get("tvl") or []
+            werte = {}
+            for r in reihe:
+                d = dt.datetime.fromtimestamp(int(r["date"]), dt.timezone.utc).date()
+                if von <= d <= bis:
+                    werte[d] = r.get("totalLiquidityUSD")
+            zeile = " ".join("%s:%s" % (d.strftime("%d"), "{:,.0f}".format(werte[d]))
+                             for d in sorted(werte))
+            print("  %-22s %s" % (p["name"][:22], zeile))
+        st, t3 = hole(LLAMA + "/overview/dexs/%s?excludeTotalDataChart=true" % k)
+        if st == 200:
+            print("--- %s, dex-volumen je protokoll und tag" % n)
+            for ts, teile in json.loads(t3).get("totalDataChartBreakdown") or []:
+                d = dt.datetime.fromtimestamp(int(ts), dt.timezone.utc).date()
+                if von <= d <= bis:
+                    print("  %s  %s" % (d, "  ".join("%s %s" % (a[:14], "{:,.0f}".format(b))
+                                                     for a, b in sorted(teile.items()))))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -595,6 +640,7 @@ BEFEHLE = {
     "richlist": befehl_richlist,
     "tvl": befehl_tvl,
     "wochenpost": befehl_wochenpost,
+    "protokolle": befehl_protokolle,
 }
 
 
