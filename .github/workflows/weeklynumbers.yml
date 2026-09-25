@@ -1,6 +1,10 @@
 name: weekly numbers
 on:
-  # Montags 07:50 UTC, seit 28.09.2026. Bis dahin lief der Post nur, wenn
+  # Montags 14:20 UTC = 16:20 Berlin (Sommerzeit), seit 28.09.2026. Nach dem
+  # Newsletter um 16:05 Berlin: Discord und Telegram gehen nie vor dem
+  # Newsletter raus. AB ENDE OKTOBER (2026 der 25.10.) faellt Berlin auf
+  # UTC+1 zurueck, dann muss hier "20 15 * * 1" stehen.
+  # Bis dahin lief der Post nur, wenn
   # jemand data/week-input.json von Hand auf main schob: die Montagsroutine
   # bringt die Datei ueber automerge-claude.yml nach main, und ein Push mit
   # GITHUB_TOKEN loest keinen anderen Workflow aus. weekly-afternoon.yml,
@@ -9,7 +13,7 @@ on:
   # sonst bricht der Lauf ab und meldet sich im Ops-Kanal. Dieselbe Sperre
   # gilt fuer Push-Laeufe. workflow_dispatch bleibt frei.
   schedule:
-    - cron: "50 7 * * 1"
+    - cron: "20 14 * * 1"
   push:
     branches: [main]
     paths:

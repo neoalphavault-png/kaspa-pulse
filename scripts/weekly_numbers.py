@@ -750,7 +750,7 @@ def falsche_woche(event, week, heute):
     Push: am 22. und 23.09.2026 haben zwei PR-Merges die Datei beruehrt und
     je einen echten Lauf gestartet; ohne Sprungbremse waere der Montagspost
     an einem Dienstag mit den Zahlen vom Dienstag rausgegangen.
-    Termin: steht montags um 07:50 UTC noch die alte Woche in der Datei, hat
+    Termin: steht montags um 14:20 UTC noch die alte Woche in der Datei, hat
     die Montagsroutine nicht (rechtzeitig) geliefert. Dann kein Post mit
     alter Woche, sondern ein roter Lauf, den man sieht."""
     if event not in AUTO_EVENTS:
