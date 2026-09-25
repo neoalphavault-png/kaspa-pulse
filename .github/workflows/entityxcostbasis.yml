@@ -2,6 +2,8 @@ name: entity x cost basis
 
 on:
   # Montags 03:00 UTC, damit die Zahl fuer den Wochenzahlen-Post frisch ist.
+  # Von Hand, wann immer ein Abfluss nicht bis Montag warten soll. Der
+  # Stempel laeuft in beiden Faellen mit.
   schedule:
     - cron: "0 3 * * 1"
   workflow_dispatch: {}
@@ -21,14 +23,30 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
+      - name: selbsttest seitenstempel
+        run: python3 scripts/entity_x_page.py --selftest
+
       - name: compute the cost basis
         run: python3 scripts/entity_x_costbasis.py
+
+      # Seit dem 24.09.2026 stempelt jede Neuberechnung die Zahlen auch in
+      # den Quelltext von entity-x.html, nicht nur montags. Sonst stand nach
+      # einem Abfluss bis zu sieben Tage lang der alte Text im Quelltext,
+      # waehrend der Browser schon den neuen zeigte.
+      # Schlaegt Stempel oder Pruefung fehl, wird gar nichts committet, auch
+      # die Datei nicht. Seite und Datei bleiben dann gemeinsam auf dem
+      # alten Stand, statt auseinanderzulaufen.
+      - name: seite stempeln
+        run: python3 scripts/entity_x_page.py
+
+      - name: seite gegen datei und browser pruefen
+        run: python3 scripts/entity_x_page.py --check
 
       - name: persist result if changed
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
-          git add data/entity-x-costbasis.json
+          git add data/entity-x-costbasis.json entity-x.html
           if git diff --staged --quiet; then
             echo "cost basis unveraendert, kein commit"
           else

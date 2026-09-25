@@ -13,9 +13,14 @@ on:
   workflow_dispatch:
     inputs:
       befehl:
-        description: "welche frage (alle, kaspalytics, bestaende, stream, tabelle, routen, handwerte)"
+        description: "welche frage (alle, kaspalytics, bestaende, stream, tabelle, routen, handwerte, richlist, wochen, seite)"
         required: false
         default: "alle"
+
+# Nur lesend. Die Sonde schreibt nichts ins Repo; das steht hier fest und
+# haengt nicht an der Voreinstellung des Repos.
+permissions:
+  contents: read
 
 jobs:
   probe:
