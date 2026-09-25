@@ -480,6 +480,111 @@ def befehl_richlist():
     import richlist_log
     return richlist_log.main(["--trocken"])
 
+
+LLAMA = "https://api.llama.fi"
+AB_TAG = dt.date(2026, 9, 1)
+
+
+def _ketten():
+    """die namen, unter denen defillama kasplex und igra fuehrt, genau so
+    wie scripts/weekly_numbers.py sie sucht (name beginnt mit ...)."""
+    st, txt = hole(LLAMA + "/v2/chains")
+    print("/v2/chains  http %s" % st)
+    if st != 200:
+        return {}
+    namen = {}
+    for r in json.loads(txt):
+        n = str(r.get("name") or "")
+        for k in ("kasplex", "igra"):
+            if n.lower().startswith(k) and k not in namen:
+                namen[k] = n
+                print("  %-8s name %r  tvl jetzt %s  gecko_id %s"
+                      % (k, n, "{:,.0f}".format(float(r.get("tvl") or 0)), r.get("gecko_id")))
+    return namen
+
+
+def befehl_tvl():
+    """Warum stoppt weekly numbers seit dem 21.09.2026 an der Sprungbremse?
+    tvl_total ist kasplex + igra aus /v2/chains, dex_vol die Summe von
+    total24h aus /overview/dexs/{kasplex,igra}. Gedruckt wird je Kette die
+    Tagesreihe seit dem 01.09. und welche Protokolle heute den Wert tragen.
+    Nur lesen."""
+    print("=" * 78)
+    print("DEFILLAMA, KASPLEX UND IGRA JE TAG")
+    print("=" * 78)
+    namen = _ketten()
+    reihe = {}
+    for k, n in namen.items():
+        st, txt = hole(LLAMA + "/v2/historicalChainTvl/" + urllib.parse.quote(n))
+        print("historicalChainTvl/%s  http %s" % (n, st))
+        if st == 200:
+            for p in json.loads(txt):
+                d = dt.datetime.fromtimestamp(int(p["date"]), dt.timezone.utc).date()
+                if d >= AB_TAG:
+                    reihe.setdefault(d, {})["tvl_" + k] = float(p["tvl"])
+        st, txt = hole(LLAMA + "/overview/dexs/%s?excludeTotalDataChartBreakdown=true" % k)
+        print("overview/dexs/%s  http %s" % (k, st))
+        if st == 200:
+            o = json.loads(txt)
+            for ts, val in o.get("totalDataChart") or []:
+                d = dt.datetime.fromtimestamp(int(ts), dt.timezone.utc).date()
+                if d >= AB_TAG:
+                    reihe.setdefault(d, {})["dex_" + k] = float(val)
+            print("  total24h %s, protokolle mit volumen:" % o.get("total24h"))
+            for pr in sorted(o.get("protocols") or [], key=lambda x: -(x.get("total24h") or 0))[:5]:
+                print("    %-28s 24h %14s  7d %14s"
+                      % (str(pr.get("name"))[:28], "{:,.0f}".format(pr.get("total24h") or 0),
+                         "{:,.0f}".format(pr.get("total7d") or 0)))
+    print("\n  tag         tvl kasplex      tvl igra     tvl summe   dex kasplex    dex igra")
+    f = lambda x: "{:,.0f}".format(x) if x is not None else "-"
+    for d in sorted(reihe):
+        r = reihe[d]
+        su = (r.get("tvl_kasplex") or 0) + (r.get("tvl_igra") or 0)
+        print("  %s %13s %13s %13s %13s %11s"
+              % (d, f(r.get("tvl_kasplex")), f(r.get("tvl_igra")), f(su),
+                 f(r.get("dex_kasplex")), f(r.get("dex_igra"))))
+
+    # welche protokolle den tvl heute tragen
+    st, txt = hole(LLAMA + "/protocols")
+    print("\n/protocols  http %s" % st)
+    if st == 200:
+        alle = json.loads(txt)
+        for k, n in namen.items():
+            tr = []
+            for pr in alle:
+                v = (pr.get("chainTvls") or {}).get(n)
+                if v:
+                    tr.append((v, pr))
+            tr.sort(key=lambda x: -x[0])
+            print("  %s, %d protokolle, die groessten:" % (n, len(tr)))
+            for v, pr in tr[:5]:
+                print("    %-28s %-12s tvl %13s  7d %s%%"
+                      % (str(pr.get("name"))[:28], str(pr.get("category"))[:12],
+                         "{:,.0f}".format(v), pr.get("change_7d")))
+    return 0
+
+
+def befehl_wochenpost():
+    """weekly numbers trocken, mit DRY_RUN=1 und FORCE=1 und ohne jedes
+    Secret: die Sprungbremse meldet alle Spruenge als WARN statt abzubrechen,
+    und der Text, der rausgegangen waere, steht im Log. Gepostet wird nichts,
+    die History wird nicht geschrieben (nur ohne DRY_RUN)."""
+    import subprocess
+    print("=" * 78)
+    print("WEEKLY NUMBERS, TROCKEN, MIT FORCE")
+    print("=" * 78)
+    env = {k: v for k, v in os.environ.items()
+           if not k.startswith(("DISCORD", "TELEGRAM"))}
+    env.update({"DRY_RUN": "1", "FORCE": "1", "SHOW_USD": ""})
+    r = subprocess.run([sys.executable, os.path.join(HERE, "weekly_numbers.py")],
+                       env=env, capture_output=True, text=True, timeout=300, cwd=REPO)
+    print(r.stdout[-6000:])
+    if r.stderr.strip():
+        print("stderr: " + r.stderr[-1500:])
+    print("exit %s" % r.returncode)
+    return r.returncode
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -488,6 +593,8 @@ BEFEHLE = {
     "routen": befehl_routen,
     "handwerte": befehl_handwerte,
     "richlist": befehl_richlist,
+    "tvl": befehl_tvl,
+    "wochenpost": befehl_wochenpost,
 }
 
 
