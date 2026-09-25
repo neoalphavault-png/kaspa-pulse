@@ -451,12 +451,26 @@ def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
     out.append(read.strip())
     out.append("")
     out.append("\U0001f517 full dashboard kaspapulse.com")
-    # Der Anmeldelink traegt seine Quelle. Discord und Telegram bekommen
-    # denselben Text, aber NICHT denselben Link: sonst steht in der
-    # Auswertung ein Topf fuer zwei Kanaele (scripts/utm.py).
-    out.append("\U0001f4e9 the same numbers by email every monday "
-               + utm.link(quelle, campaign="weekly-numbers"))
+    out.append(newsletter_zeile(quelle))
     return "\n".join(out)
+
+
+def newsletter_zeile(quelle):
+    """Die Anmeldezeile unter dem Wochenpost. Der Link traegt seine Quelle
+    (scripts/utm.py), Discord und Telegram bekommen deshalb NICHT denselben
+    Link. Der Anker #subscribe ist die id des Anmeldeformulars in index.html
+    (<div class="subscribe" id="subscribe">), utm.ANKER haengt ihn an.
+
+    Discord bekommt seit dem 25.09.2026 einen maskierten Link, damit der
+    UTM-Anhang nicht im Post steht. Telegram nicht: telegram_post.py sendet
+    reinen Text ohne parse_mode, ein maskierter Link stuende dort roh als
+    [text](url). Telegram behaelt deshalb die bisherige Zeile mit sichtbarem
+    Link."""
+    link = utm.link(quelle, campaign="weekly-numbers")
+    if quelle == "discord":
+        return ("\U0001f4ec [free cheat sheet plus these numbers by email "
+                "every monday](%s)" % link)
+    return "\U0001f4e9 the same numbers by email every monday " + link
 
 
 URL_IM_TEXT = re.compile(r"https?://\S+")
@@ -812,6 +826,29 @@ def ops_zeile(log):
     return zeilen[-1] if zeilen else "kein log, der lauf ist vor dem ersten schritt gestorben"
 
 
+def ops_vorschau(msg, hook=None):
+    """Nur im Trockenlauf mit WN_OPS_VORSCHAU=1: der Discord-Text des
+    Wochenposts geht an den privaten Ops-Kanal, damit man sieht, wie Discord
+    ihn darstellt (maskierte Links, Fett, Emojis). Nie an den oeffentlichen
+    Kanal."""
+    hook = hook if hook is not None else os.environ.get("DISCORD_WEBHOOK_OPS", "")
+    if not hook:
+        print("kein DISCORD_WEBHOOK_OPS, vorschau uebersprungen")
+        return False
+    text = "vorschau, trockenlauf, nicht oeffentlich\n\n" + msg
+    body = json.dumps({"content": text[:2000],
+                       "allowed_mentions": {"parse": []}}).encode("utf-8")
+    req = urllib.request.Request(hook, data=body, headers={
+        "Content-Type": "application/json", "User-Agent": UA})
+    try:
+        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+            print("vorschau an ops geschickt, http %s" % r.status)
+            return True
+    except Exception as exc:  # noqa: BLE001
+        print("WARN vorschau ging nicht raus: %s" % exc)
+        return False
+
+
 def ops_melden(log_pfad, hook=None, lauf="", anlass=""):
     """Schickt die ops_zeile an DISCORD_WEBHOOK_OPS. Ohne Secret wird still
     uebersprungen, damit der Schritt nicht selbst rot wird, solange das
@@ -908,6 +945,8 @@ def main():
     print(msg)
     print("---- %d zeichen ----" % len(msg))
 
+    if dry and os.environ.get("WN_OPS_VORSCHAU", "").strip() == "1":
+        ops_vorschau(msg)
     post_discord(msg, dry=dry, msg_tg=msg_tg)
 
     if not dry:
@@ -989,9 +1028,11 @@ GOLD_MSG = "\n".join([
     GOLD_READ,
     "",
     "\U0001f517 full dashboard kaspapulse.com",
-    "\U0001f4e9 the same numbers by email every monday "
-    "https://kaspapulse.com/?utm_source=discord&utm_medium=chat"
-    "&utm_campaign=weekly-numbers#subscribe",
+    # seit 25.09.2026 bewusst geaendert: die anmeldezeile in discord ist ein
+    # maskierter link. der goldpost vom 03.08. trug noch die sichtbare url.
+    "\U0001f4ec [free cheat sheet plus these numbers by email every monday]"
+    "(https://kaspapulse.com/?utm_source=discord&utm_medium=chat"
+    "&utm_campaign=weekly-numbers#subscribe)",
 ])
 
 
@@ -1362,6 +1403,20 @@ def run_selftest():
        zu_frueh("schedule", "19:40") is False)
     ok("push am vormittag ist zu frueh", zu_frueh("push", "10:16") is True)
     ok("von hand gilt keine uhrzeit", zu_frueh("workflow_dispatch", "10:16") is False)
+
+    # 17c anmeldezeile (25.09.2026)
+    tg = build_message(v, GOLD_PREV, 4, dt.date(2026, 8, 3), GOLD_READ,
+                       tps_def=None, quelle="tg")
+    ok("telegram behaelt die sichtbare zeile mit utm_source=tg",
+       tg.split("\n")[-1] == "\U0001f4e9 the same numbers by email every monday "
+       "https://kaspapulse.com/?utm_source=tg&utm_medium=chat"
+       "&utm_campaign=weekly-numbers#subscribe", tg.split("\n")[-1])
+    ok("telegram hat keinen maskierten link", "](" not in tg)
+    ok("discord zeile ist maskiert und zeigt auf #subscribe",
+       re.fullmatch(r"\U0001f4ec \[[^\]]+\]\(https://kaspapulse\.com/\?[^)]*#subscribe\)",
+                    newsletter_zeile("discord")) is not None, newsletter_zeile("discord"))
+    assert_punctuation(tg)
+    print("  ok   schreibregel in der telegram-fassung eingehalten")
 
     # 18 ops-meldung
     ok("ops nimmt die abbruchzeile",
