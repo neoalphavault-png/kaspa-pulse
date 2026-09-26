@@ -20,6 +20,7 @@ stellt, soll nicht wieder bei null anfangen.
     python3 scripts/quellen_probe.py seite         entity-x.html live gegen stempel
     python3 scripts/quellen_probe.py montag        weekly numbers, montagstermin trocken
     python3 scripts/quellen_probe.py mining        hashrate, difficulty, gebuehren je tag
+    python3 scripts/quellen_probe.py mining_monat  monatsreihe ertrag je TH/s
     python3 scripts/quellen_probe.py alle          alles nacheinander
 
 WAS BISHER HERAUSKAM, in Kurzform
@@ -876,6 +877,137 @@ def befehl_mining():
     return 0
 
 
+def _hole_json(url):
+    st, txt = hole(url)
+    if st != 200:
+        raise SystemExit("FEHLER %s: http %s %s" % (url, st, kurz(txt, 200)))
+    return json.loads(txt)
+
+
+def _plan_tagesemission(ts):
+    """Unser Reward-Plan wie in weekly_numbers.py, rueckwaerts verlaengert.
+    KAS je Tag zum Zeitpunkt ts (unix s)."""
+    import math
+    anker_ts, anker_r = 1783280744, 2.44997148
+    schritt = (365.25 / 12) * 86400
+    n = math.floor((ts - anker_ts) / schritt)
+    return anker_r * (0.5 ** (n / 12)) * 10 * 86400
+
+
+def befehl_mining_monat():
+    """Monatsreihe KAS je TH/s und Tag, getrennt nach Reward und Gebuehren.
+    Reward: gemessen als Zuwachs der Umlaufmenge (Kaspalytics, CS) zwischen
+    den Messungen, die einem Monat am naechsten liegen, geteilt durch die
+    Zeit dazwischen. Gebuehren: Kaspalytics, accepted fees total, Tagessumme,
+    Mittel ueber die Tage MIT Wert. Hashrate: api.kaspa.org hashrate/history,
+    Mittel aller Stichproben eines UTC-Tages, dann Mittel ueber die Tage.
+    Ertrag = Monatsmittel Reward / Monatsmittel Hashrate (Verhaeltnis der
+    Mittel). Nichts wird geschaetzt: ein Tag ohne Wert faellt heraus und
+    steht in der Spalte 'tage'."""
+    print("=" * 78)
+    print("MINING, MONATSREIHE")
+    print("=" * 78)
+
+    # hashrate, rohe stichproben
+    roh = _hole_json(REST + "/info/hashrate/history")
+    je_tag = {}
+    abw = 0
+    for x in roh:
+        t = dt.datetime.fromtimestamp(x["timestamp"] / 1000, dt.timezone.utc)
+        je_tag.setdefault(t.date(), []).append(x["hashrate_kh"] / 1e9)  # TH/s
+        # plausibel: hashrate = difficulty * 2 * bps
+        bps = 10 if t >= dt.datetime(2025, 5, 5, 15, tzinfo=dt.timezone.utc) else 1
+        erw = x["difficulty"] * 2 * bps / 1000
+        if x["hashrate_kh"] and abs(erw / x["hashrate_kh"] - 1) > 0.02:
+            abw += 1
+    tage = sorted(je_tag)
+    alle = [tage[0] + dt.timedelta(days=i) for i in range((tage[-1] - tage[0]).days + 1)]
+    ohne = [d for d in alle if d not in je_tag]
+    anz = sorted(len(v) for v in je_tag.values())
+    print("hashrate: %d stichproben, %s bis %s, %d tage, %d tage ohne stichprobe"
+          % (len(roh), tage[0], tage[-1], len(je_tag), len(ohne)))
+    print("  tage ohne stichprobe (bis 40): %s" % [str(d) for d in ohne[:40]])
+    print("  stichproben je tag: min %d, median %d, max %d"
+          % (anz[0], anz[len(anz) // 2], anz[-1]))
+    print("  stichproben, deren hashrate NICHT difficulty*2*bps ist (>2%%): %d" % abw)
+    hr = {d: sum(v) / len(v) for d, v in je_tag.items()}
+
+    # gebuehren
+    fz = _hole_json(KL + "/api/charts/transactions/accepted/fees/total")
+    fees = {}
+    for lab, v in zip(fz["labels"], fz["datasets"][0]["data"]):
+        fees[dt.date.fromisoformat(lab[:10])] = float(v)
+    print("gebuehren: %d tage, %s bis %s" % (len(fees), min(fees), max(fees)))
+
+    # umlaufmenge, momentaufnahmen mit zeitstempel
+    cz = _hole_json(KL + "/api/charts/utxo/circulating-supply")
+    cs = []
+    for lab, v in zip(cz["labels"], cz["datasets"][0]["data"]):
+        t = dt.datetime.fromisoformat(lab.replace("Z", "+00:00"))
+        cs.append((t, float(v)))
+    cs.sort()
+    print("umlaufmenge: %d messungen, %s bis %s" % (len(cs), cs[0][0], cs[-1][0]))
+
+    def cs_naechste(t):
+        return min(cs, key=lambda p: abs((p[0] - t).total_seconds()))
+
+    # kurs aus eigenem archiv
+    kerzen = json.load(open(os.path.join(REPO, "data", "kas-candles.json"),
+                            encoding="utf-8"))
+    kurs = {dt.date.fromisoformat(d): float(c) for d, c, *_ in kerzen["kas_daily"]}
+
+    print()
+    print("monat    tage_f tage_h  hashrate  reward/tag   gebuehr/tag  "
+          "rew/TH/tag   geb/TH/tag   anteil%   plan-abw%  usd/TH/tag  cs-luecke_h")
+    monat = dt.date(2023, 10, 1)
+    zeilen = []
+    while monat <= dt.date(2026, 9, 1):
+        nxt = (monat.replace(day=28) + dt.timedelta(days=4)).replace(day=1)
+        tage_m = [monat + dt.timedelta(days=i) for i in range((nxt - monat).days)]
+        tage_m = [d for d in tage_m if d <= dt.date(2026, 9, 25)]
+        f = [fees[d] for d in tage_m if d in fees]
+        h = [hr[d] for d in tage_m if d in hr]
+        a = dt.datetime.combine(monat, dt.time(), dt.timezone.utc)
+        e = dt.datetime.combine(tage_m[-1] + dt.timedelta(days=1), dt.time(),
+                                dt.timezone.utc)
+        (ta, ca), (te, ce) = cs_naechste(a), cs_naechste(e)
+        luecke = max(abs((ta - a).total_seconds()), abs((te - e).total_seconds())) / 3600
+        rew = (ce - ca) / ((te - ta).total_seconds() / 86400)
+        mitte = a + (e - a) / 2
+        plan = _plan_tagesemission(mitte.timestamp())
+        fm = sum(f) / len(f) if f else None
+        hm = sum(h) / len(h) if h else None
+        k = [kurs[d] for d in tage_m if d in kurs]
+        km = sum(k) / len(k) if len(k) == len(tage_m) else None
+        if fm is None or hm is None:
+            print("%s  keine daten" % monat.strftime("%Y-%m"))
+        else:
+            r_th, f_th = rew / hm, fm / hm
+            anteil = 100 * fm / rew
+            usd = (r_th + f_th) * km if km else None
+            print("%s  %3d/%-3d %3d  %9.1f  %11.0f  %11.1f  %10.6f  %11.8f  %8.4f  %8.2f  %s  %6.1f"
+                  % (monat.strftime("%Y-%m"), len(f), len(tage_m), len(h), hm, rew,
+                     fm, r_th, f_th, anteil, 100 * (rew / plan - 1),
+                     ("%.6f" % usd) if usd else "     -    ", luecke))
+            zeilen.append(monat)
+        monat = nxt
+
+    print()
+    print("letzte zehn tage, gebuehren gegen tagesemission des plans")
+    for d in sorted(fees)[-10:]:
+        ts = dt.datetime.combine(d, dt.time(12), dt.timezone.utc).timestamp()
+        em = _plan_tagesemission(ts)
+        print("  %s  %10.2f KAS  emission %10.0f  anteil %.4f %%"
+              % (d, fees[d], em, 100 * fees[d] / em))
+    for d in (dt.date(2026, 8, 29), dt.date(2026, 8, 3)):
+        print("  gegenprobe %s: gebuehren %s KAS" % (d, fees.get(d)))
+
+    print()
+    print("coin metrics roh: %s" % kurz(hole(
+        "https://community-api.coinmetrics.io/v4/catalog-v2/asset-metrics?assets=kas")[1], 400))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -888,6 +1020,7 @@ BEFEHLE = {
     "seite": befehl_seite,
     "montag": befehl_montag,
     "mining": befehl_mining,
+    "mining_monat": befehl_mining_monat,
 }
 
 
