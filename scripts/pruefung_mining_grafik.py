@@ -144,10 +144,12 @@ h1{font-size:78px;line-height:1.04;letter-spacing:-1.5px;margin-top:18px;font-we
 .body{font-size:46px;line-height:1.2;margin-top:14px;flex:none}
 .body em{font-style:normal;color:var(--teal);font-weight:700}
 .foot{margin-top:auto;padding-top:12px;flex:none;border-top:2px solid var(--line);
-  display:flex;justify-content:space-between;align-items:center;gap:24px}
+  display:flex;flex-direction:column;align-items:flex-start;gap:12px}
 .foot .src{font-size:32px;line-height:1.35;color:var(--dimmer)}
 .foot .mark{display:flex;align-items:center;gap:12px;flex:none}
-.foot .falc{width:56px}
+.foot .falc{width:40px}
+.foot .brand{font-size:30px;letter-spacing:4px}
+.foot .mark{gap:10px}
 """
 
 
@@ -157,26 +159,26 @@ def html(reihen, falke):
     anteil = float(letzt["gebuehren_am_ertrag_pct"])
     plus = 100 * (float(letzt["ertrag_kas_je_th_tag"]) / float(feb["ertrag_kas_je_th_tag"]) - 1)
     texte = {
-        "kopf": "Gleichen Gebühren den sinkenden Block Reward aus?",
+        "kopf": "Ersetzen Gebühren den Block Reward?",
         "wert": "%s %%" % zahl(anteil, 2),
         "label": "Anteil der Gebühren am Miner-Ertrag, September 2026",
         "legende": "Monat mit fehlenden Gebührentagen",
-        "satz": "Der Ertrag je TH/s hält sich, weil die Hashrate fällt, "
-                "seit Februar 2025 +%d %% in KAS." % round(plus),
+        "satz": "Weil die Hashrate fällt, steigt der Ertrag je TH/s seit "
+                "Februar 2025 um %s %% in KAS." % zahl(plus, 1),
         "fuss": "Durchschnitt des ganzen Netzes · Quellen Kaspa REST API, "
                 "Kaspalytics · Stand 25.09.2026",
     }
     pruefe_text(texte.values())
-    satz = texte["satz"].replace("+%d %%" % round(plus), "<em>+%d %%</em>" % round(plus))
+    satz = texte["satz"].replace("%s %%" % zahl(plus, 1), "<em>%s %%</em>" % zahl(plus, 1))
     marke = '<img class="falc" src="%s" alt=""><div class="brand">KASPA <span>PULSE</span></div>' % falke
     return ("<!DOCTYPE html><html><head><meta charset='UTF-8'><style>%s</style></head><body>"
             "<div class='top'>%s</div>"
             "<h1>%s</h1><div class='value'>%s</div><div class='vlabel'>%s</div>%s"
             "<div class='legend'><i></i>%s</div>"
             "<div class='body'>%s</div>"
-            "<div class='foot'><div class='src'>%s</div><div class='mark'><img class='falc' src='%s' alt=''></div></div>"
+            "<div class='foot'><div class='src'>%s</div><div class='mark'>%s</div></div>"
             "</body></html>") % (CSS, marke, texte["kopf"], texte["wert"], texte["label"],
-                                 kurve(reihen), texte["legende"], satz, texte["fuss"], falke)
+                                 kurve(reihen), texte["legende"], satz, texte["fuss"], marke)
 
 
 def rendern(seite, out, vorschau=None):
