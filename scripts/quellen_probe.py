@@ -19,6 +19,7 @@ stellt, soll nicht wieder bei null anfangen.
     python3 scripts/quellen_probe.py wochen        entity x, einzahlungen je woche
     python3 scripts/quellen_probe.py seite         entity-x.html live gegen stempel
     python3 scripts/quellen_probe.py montag        weekly numbers, montagstermin trocken
+    python3 scripts/quellen_probe.py mining        hashrate, difficulty, gebuehren je tag
     python3 scripts/quellen_probe.py alle          alles nacheinander
 
 WAS BISHER HERAUSKAM, in Kurzform
@@ -737,6 +738,144 @@ def befehl_montag():
     return schlecht
 
 
+# ------------------------------------------------------------------ mining
+
+MINING_WORT = re.compile(r"hash|difficult|fee|reward|mining|miner|coinbase|"
+                         r"supply|emission|block|issu", re.I)
+MINING_RATEN = [
+    "mining/hashrate", "network/hashrate", "hashrate", "mining/difficulty",
+    "network/difficulty", "difficulty", "fees", "transactions/fees",
+    "fees/total", "fees/daily", "mining/fees", "mining/revenue",
+    "mining/rewards", "blocks/rewards", "supply/circulating", "supply",
+    "supply/emission", "blocks/count", "blocks/accepted/count",
+]
+REST = "https://api.kaspa.org"
+
+
+def _tage(labels):
+    """Datumsluecken einer Chartreihe. Gibt (erster, letzter, anzahl,
+    fehlende tage, doppelte tage)."""
+    tage = []
+    for x in labels:
+        try:
+            tage.append(dt.date.fromisoformat(str(x)[:10]))
+        except ValueError:
+            pass
+    if not tage:
+        return None
+    menge = set(tage)
+    alle = {tage[0] + dt.timedelta(days=i)
+            for i in range((max(tage) - min(tage)).days + 1)}
+    fehlt = sorted(alle - menge)
+    doppelt = len(tage) - len(menge)
+    return min(tage), max(tage), len(tage), fehlt, doppelt
+
+
+def _reihe_zeigen(pfad, txt):
+    d, f = form(txt)
+    print("    %-52s http 200  %s" % (pfad, f))
+    if not isinstance(d, dict) or not d.get("labels"):
+        print("        roh: %s" % kurz(txt, 500))
+        return
+    lab = d["labels"]
+    t = _tage(lab)
+    if t:
+        erst, letzt, n, fehlt, doppelt = t
+        print("        %s bis %s, %d punkte, %d fehlende kalendertage, %d doppelte"
+              % (erst, letzt, n, len(fehlt), doppelt))
+        if fehlt:
+            print("        fehlend (bis 30): %s" % [str(x) for x in fehlt[:30]])
+    print("        stempel erster/letzter: %s / %s" % (lab[0], lab[-1]))
+    for ds in d.get("datasets") or []:
+        werte = ds.get("data") or []
+        leer = sum(1 for v in werte if v is None)
+        print("        reihe %-28r %d werte, %d leer, erste 3 %s, letzte 3 %s"
+              % (ds.get("label"), len(werte), leer, werte[:3], werte[-3:]))
+
+
+def befehl_mining():
+    """Frage vom 26.09.2026 (deutsche TG-Gruppe): Mining-Ertrag je TH/s seit
+    Mainnet-Start, getrennt nach Reward und Gebuehren, dazu Hashrate oder
+    Difficulty. Gesucht: welche Tagesreihen gibt es, ab wann, mit welchen
+    Luecken. Nur lesen."""
+    print("=" * 78)
+    print("MINING: HASHRATE, DIFFICULTY, GEBUEHREN, SUPPLY, JE TAG")
+    print("=" * 78)
+
+    print("\n  1. kaspalytics, routen mit mining-bezug")
+    _, texte = buendel(TABELLE)
+    routen = set()
+    for t in texte.values():
+        routen |= set(ROUTE.findall(t))
+    passend = sorted(r for r in routen if MINING_WORT.search(r))
+    print("  %d routen gesamt, %d mit mining-bezug:" % (len(routen), len(passend)))
+    for r in passend:
+        print("      %s" % r)
+    apis = set()
+    for t in texte.values():
+        apis |= {a for a in API.findall(t) if MINING_WORT.search(a)}
+    print("  api-pfade im buendel mit mining-bezug: %s" % sorted(apis)[:60])
+
+    print("\n  2. kaspalytics, chartdaten dazu")
+    pfade = []
+    for r in passend:
+        pfade.append(r.replace("/app/", "/api/charts/", 1))
+    for r in MINING_RATEN:
+        pfade.append("/api/charts/" + r)
+    gesehen = set()
+    for p in pfade:
+        if "[" in p or p in gesehen:
+            continue
+        gesehen.add(p)
+        st, txt = hole(KL + p)
+        if st != 200:
+            print("    %-52s http %s" % (p, st))
+            continue
+        _reihe_zeigen(p, txt)
+
+    print("\n  3. api.kaspa.org")
+    for p in ["/info/hashrate", "/info/hashrate/max", "/info/blockreward",
+              "/info/halving", "/info/coinsupply", "/info/blockdag",
+              "/info/fee-estimate", "/info/hashrate/history",
+              "/info/hashrate/history?resolution=1d",
+              "/info/hashrate/history?limit=5"]:
+        st, txt = hole(REST + p)
+        if st != 200:
+            print("    %-44s http %s  %s" % (p, st, kurz(txt, 160)))
+            continue
+        d, f = form(txt)
+        print("    %-44s http 200  %s" % (p, f))
+        if isinstance(d, list) and d:
+            print("        erster %s" % kurz(json.dumps(d[0]), 300))
+            print("        letzter %s" % kurz(json.dumps(d[-1]), 300))
+            zeit = [x.get("date_time") or x.get("timestamp") for x in d
+                    if isinstance(x, dict)]
+            zeit = [z for z in zeit if z]
+            if zeit:
+                print("        zeitspanne %s bis %s, %d eintraege"
+                      % (zeit[0], zeit[-1], len(d)))
+        else:
+            print("        roh: %s" % kurz(txt, 400))
+
+    print("\n  4. coin metrics community, katalog fuer kas")
+    cm = "https://community-api.coinmetrics.io/v4/catalog-v2/asset-metrics?assets=kas"
+    st, txt = hole(cm)
+    print("    http %s" % st)
+    d, _ = form(txt) if st == 200 else (None, "")
+    if isinstance(d, dict) and d.get("data"):
+        for a in d["data"]:
+            for m in a.get("metrics") or []:
+                name = m.get("metric", "")
+                if re.search(r"hash|diff|fee|iss|rev|blk|supply", name, re.I):
+                    for fr in m.get("frequencies") or []:
+                        print("        %-22s %-4s %s bis %s" % (
+                            name, fr.get("frequency"), fr.get("min_time"),
+                            fr.get("max_time")))
+    else:
+        print("        %s" % kurz(txt, 300))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -748,6 +887,7 @@ BEFEHLE = {
     "wochen": befehl_wochen,
     "seite": befehl_seite,
     "montag": befehl_montag,
+    "mining": befehl_mining,
 }
 
 
