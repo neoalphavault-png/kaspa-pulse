@@ -989,8 +989,38 @@ def befehl_mining_monat():
                   % (monat.strftime("%Y-%m"), len(f), len(tage_m), len(h), hm, rew,
                      fm, r_th, f_th, anteil, 100 * (rew / plan - 1),
                      ("%.6f" % usd) if usd else "     -    ", luecke))
-            zeilen.append(monat)
+            zeilen.append((monat.strftime("%Y-%m"), len(f), len(tage_m), len(h),
+                           hm, rew, fm, r_th, f_th, anteil,
+                           100 * fm / (rew + fm), r_th + f_th))
         monat = nxt
+
+    # die ganze reihe als csv. gebuehren_zu_reward_pct ist gebuehren durch
+    # reward (definition der 0,0631 % vom 29.08.), gebuehren_am_ertrag_pct
+    # ist gebuehren durch (reward plus gebuehren), also der anteil am
+    # gesamten miner-ertrag.
+    import hashlib
+    kopf = ("monat,tage_gebuehren,tage_im_monat,tage_hashrate,hashrate_th_s,"
+            "reward_kas_tag,gebuehren_kas_tag,reward_kas_je_th_tag,"
+            "gebuehren_kas_je_th_tag,gebuehren_zu_reward_pct,"
+            "gebuehren_am_ertrag_pct,ertrag_kas_je_th_tag")
+    csv = [kopf]
+    for z in zeilen:
+        csv.append("%s,%d,%d,%d,%.1f,%.0f,%.2f,%.6f,%.8f,%.4f,%.4f,%.6f" % z)
+    text = "\n".join(csv) + "\n"
+    print()
+    print("CSV-START")
+    sys.stdout.write(text)
+    print("CSV-ENDE")
+    print("csv sha256 %s" % hashlib.sha256(text.encode("utf-8")).hexdigest())
+    tief = [z for z in zeilen if z[0] == "2025-02"][0]
+    jetzt = zeilen[-1]
+    print("ertrag je TH/s und tag, %s %.6f, %s %.6f, veraenderung %+.2f %%"
+          % (tief[0], tief[11], jetzt[0], jetzt[11], 100 * (jetzt[11] / tief[11] - 1)))
+    spitze = max(zeilen, key=lambda z: z[10])
+    print("hoechster anteil am ertrag %s %.4f %% (zu reward %.4f %%)"
+          % (spitze[0], spitze[10], spitze[9]))
+    print("letzter monat %s, anteil am ertrag %.4f %%, zu reward %.4f %%"
+          % (jetzt[0], jetzt[10], jetzt[9]))
 
     print()
     print("letzte zehn tage, gebuehren gegen tagesemission des plans")
