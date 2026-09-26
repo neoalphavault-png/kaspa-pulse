@@ -19,6 +19,7 @@ stellt, soll nicht wieder bei null anfangen.
     python3 scripts/quellen_probe.py wochen        entity x, einzahlungen je woche
     python3 scripts/quellen_probe.py seite         entity-x.html live gegen stempel
     python3 scripts/quellen_probe.py montag        weekly numbers, montagstermin trocken
+    python3 scripts/quellen_probe.py nodes         oeffentliche nodes, quellen und erreichbarkeit
     python3 scripts/quellen_probe.py alle          alles nacheinander
 
 WAS BISHER HERAUSKAM, in Kurzform
@@ -737,6 +738,139 @@ def befehl_montag():
     return schlecht
 
 
+# ------------------------------------------------------------------ nodes
+
+NODE_SEITEN = [
+    "https://kaspanodes.com/",
+    "https://kasnodes.com/",
+    "https://nodes.kaspa.ws/",
+    "https://eu1.kaspa-nodes.org/stats/",
+    "https://kaspa.stream/nodes",
+    "https://kaspa.aspectron.org/rpc/pnn.html",
+]
+# rusty-kaspa, consensus/core/src/config/params.rs, MAINNET_PARAMS.dns_seeders,
+# Stand Commit 01b532e (22.09.2026)
+DNS_SEEDER = [
+    "mainnet-dnsseed-1.kaspanet.org", "mainnet-dnsseed-2.kaspanet.org",
+    "seeder1.kaspad.net", "seeder2.kaspad.net", "seeder3.kaspad.net",
+    "seeder4.kaspad.net", "kaspadns.kaspacalc.net", "n-mainnet.kaspa.ws",
+    "dnsseeder-kaspa-mainnet.x-con.at",
+]
+# rusty-kaspa, rpc/wrpc/client/Resolvers.toml, aktive gruppen
+RESOLVER = ["https://%s.kaspa.stream" % n for n in ("eric", "maxim", "sean", "troy")] + \
+    ["https://%s.kaspa.red" % n for n in ("john", "mike", "paul", "alex")] + \
+    ["https://%s.kaspa.green" % n for n in ("jake", "mark", "adam", "liam")] + \
+    ["https://%s.kaspa.blue" % n for n in ("noah", "ryan", "jack", "luke")]
+URL_IM_TEXT = re.compile(r"""["'`]((?:https?:)?//[^"'`\s]{4,200}|/[A-Za-z0-9_\-/.]*(?:api|json|node|stat|peer|history)[A-Za-z0-9_\-/.?=&]*)["'`]""", re.I)
+ZAHL_KNOTEN = r"\d[\d,.]*\s*(?:public\s+|reachable\s+|active\s+|online\s+)?(?:nodes|peers|knoten)"
+
+
+def _seite(url):
+    st, html = hole(url)
+    print("\n  %s  http %s, %d zeichen" % (url, st, len(html)))
+    if st != 200:
+        print("    roh: %s" % kurz(html, 200))
+        return
+    t = re.search(r"<title>(.*?)</title>", html, re.I | re.S)
+    print("    titel: %s" % (t.group(1).strip() if t else "-"))
+    for m in re.finditer(r'<meta[^>]+(?:name|property)="(?:description|og:description)"[^>]*>', html, re.I):
+        print("    meta: %s" % kurz(m.group(0), 300))
+    for u in umfeld(html, ZAHL_KNOTEN, weite=200, hoechstens=6):
+        print("    zahl im text: %s" % kurz(re.sub(r"<[^>]+>", " ", u), 220))
+    for u in umfeld(html, r"since|history|historie|daily|average|crawl|port 16111|16111", weite=200, hoechstens=6):
+        print("    umfeld: %s" % kurz(re.sub(r"<[^>]+>", " ", u), 220))
+    basis = urllib.parse.urlsplit(url)
+    js = sorted({urllib.parse.urljoin(url, x) for x in
+                 re.findall(r'<script[^>]+src="([^"]+)"', html, re.I)})
+    kandidaten = set(u for u in URL_IM_TEXT.findall(html))
+    for j in js[:12]:
+        s, t = hole(j)
+        if s == 200:
+            kandidaten |= set(URL_IM_TEXT.findall(t))
+    kandidaten = sorted(k for k in kandidaten
+                        if re.search(r"api|json|node|stat|peer|history|wss?:", k, re.I)
+                        and not re.search(r"\.(?:css|png|svg|woff2?|ico|jpg)(?:\?|$)", k, re.I))
+    print("    %d skripte, api-kandidaten (bis 40): %s" % (len(js), kandidaten[:40]))
+    probiert = 0
+    for k in kandidaten:
+        if probiert >= 12:
+            break
+        if k.startswith("//"):
+            k = "https:" + k
+        voll = urllib.parse.urljoin("%s://%s/" % (basis.scheme, basis.netloc), k)
+        if "{" in voll or "$" in voll:
+            continue
+        s, t = hole(voll)
+        probiert += 1
+        d, f = form(t) if s == 200 else (None, "")
+        print("      %-70s http %s %s" % (kurz(voll, 70), s, f if s == 200 else ""))
+        if s == 200 and d is not None:
+            print("        roh: %s" % kurz(t, 400))
+
+
+def befehl_nodes():
+    """Frage vom 26.09.2026: wie viele oeffentlich erreichbare Kaspa-Nodes
+    gibt es, und laesst sich das als Tagesreihe zaehlen? Nur lesen. Der
+    TCP-Test oeffnet eine Verbindung zu Port 16111 und schliesst sie sofort,
+    ohne ein Byte zu senden."""
+    import socket
+    print("=" * 78)
+    print("NODES: TRACKER, DNS-SEEDER, RESOLVER, ERREICHBARKEIT VOM RUNNER")
+    print("=" * 78)
+
+    print("\n1. tracker-seiten")
+    for u in NODE_SEITEN:
+        _seite(u)
+
+    print("\n2. dns-seeder aus rusty-kaspa, je dreimal gefragt")
+    alle = set()
+    for s in DNS_SEEDER:
+        je = set()
+        for _ in range(3):
+            try:
+                for fam, _, _, _, sa in socket.getaddrinfo(s, 16111, proto=socket.IPPROTO_TCP):
+                    je.add(sa[0])
+            except OSError as e:
+                print("    %-36s fehler %s" % (s, e))
+                break
+        print("    %-36s %3d adressen" % (s, len(je)))
+        alle |= je
+    v4 = [a for a in alle if ":" not in a]
+    print("    zusammen %d verschiedene adressen, davon %d ipv4" % (len(alle), len(v4)))
+
+    print("\n3. tcp auf 16111, ipv4 aus den seedern (hoechstens 60, 4 s)")
+    ok = 0
+    for a in sorted(v4)[:60]:
+        try:
+            with socket.create_connection((a, 16111), timeout=4):
+                ok += 1
+        except OSError:
+            pass
+    print("    %d von %d angenommen" % (ok, min(60, len(v4))))
+
+    print("\n4. resolver (pnn, rpc-knoten), /json")
+    gesehen = {}
+    for r in RESOLVER:
+        st, txt = hole(r + "/json")
+        d, f = form(txt) if st == 200 else (None, "")
+        n = len(d) if isinstance(d, list) else None
+        print("    %-30s http %s %s" % (r, st, ("%d eintraege" % n) if n is not None else kurz(txt, 120)))
+        if isinstance(d, list):
+            if d and not gesehen:
+                print("      erster: %s" % kurz(json.dumps(d[0]), 400))
+            for e in d:
+                if isinstance(e, dict):
+                    k = e.get("uid") or e.get("url") or e.get("fqdn") or json.dumps(e, sort_keys=True)
+                    gesehen[k] = e
+    print("    zusammen %d verschiedene eintraege" % len(gesehen))
+    netze = {}
+    for e in gesehen.values():
+        k = "%s/%s" % (e.get("network", "?"), e.get("protocol", e.get("encoding", "?")))
+        netze[k] = netze.get(k, 0) + 1
+    print("    nach netz/protokoll: %s" % dict(sorted(netze.items())))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -748,6 +882,7 @@ BEFEHLE = {
     "wochen": befehl_wochen,
     "seite": befehl_seite,
     "montag": befehl_montag,
+    "nodes": befehl_nodes,
 }
 
 
