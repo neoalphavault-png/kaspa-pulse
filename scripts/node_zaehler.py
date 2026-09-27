@@ -303,7 +303,9 @@ async def crawl():
         return sum(1 for e in ergebnisse if filt(e))
 
     stufen = ("verbindung", "version", "handshake", "adressen")
-    erreicht = lambda e, s: e["stufe"] in stufen[stufen.index(s):]   # noqa: E731
+    # "anderes_netz" hat die verbindung und die version erreicht, bricht dann ab
+    erreicht = lambda e, s: (e["stufe"] in stufen[stufen.index(s):]    # noqa: E731
+                             or (e["stufe"] == "anderes_netz" and s == "verbindung"))
     mainnet_hs = lambda e: e["netz"] == NETZ and erreicht(e, "handshake")   # noqa: E731
 
     print("\nMESSZEIT start %s utc, ende %s utc, laufzeit %.0f s"
