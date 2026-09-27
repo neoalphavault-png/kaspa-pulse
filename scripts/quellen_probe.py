@@ -883,6 +883,8 @@ BEFEHLE = {
     "seite": befehl_seite,
     "montag": befehl_montag,
     "nodes": befehl_nodes,
+    "node_handshake": lambda: __import__("node_zaehler").main(["handshake"]),
+    "node_crawl": lambda: __import__("node_zaehler").main(["crawl"]),
 }
 
 
