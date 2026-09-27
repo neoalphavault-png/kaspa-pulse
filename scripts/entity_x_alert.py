@@ -22,7 +22,17 @@ SOMPI = 100_000_000  # 1 KAS = 1e8 sompi
 
 # Schwellwerte
 OUTFLOW_EPSILON_KAS = 1_000        # Abfluss-Alarm ab 1.000 KAS unter letztem Stand
-INFLOW_STEP_KAS = 5_000_000       # Zufluss-Alarm je 5M KAS ueber letztem Stand
+INFLOW_STEP_KAS = 500_000          # Zufluss-Alarm ab 500.000 KAS ueber letztem Stand
+NOISE_KAS = 1                      # darunter gilt der Stand als unveraendert
+
+# KORREKTUR 27.09.2026. Bis hierher wurde der Vergleichsstand NUR bei einem
+# Alarm gespeichert. Ein Zufluss unter der Schwelle blieb deshalb liegen und
+# verdeckte den naechsten Abfluss: am 23.09. kamen 2.477.625 KAS herein (unter
+# den damals 5.000.000), am 24.09. gingen 2.000.015 KAS hinaus, und der Bot
+# sah gegen den Stand vom 18.09. nur "delta +477,615" (Lauf 36067897929).
+# Ab jetzt ist der Vergleichsstand immer der zuletzt GESEHENE Kontostand.
+# Die Zufluss-Schwelle stand seit der ersten Fassung (31.07.) auf 5.000.000;
+# Ben nennt 500.000 als Regel, deshalb jetzt 500.000.
 
 # Schreibregel, identisch zu den anderen Bots. Uhrzeiten und URLs sind
 # ausgenommen, deshalb wird vor der Pruefung alles in spitzen Klammern
@@ -173,6 +183,13 @@ def check_once():
         print(f"INFLOW alert, +{fmt(diff)} KAS")
         print("STATE_CHANGED=1")
         return True
+    if abs(diff) >= NOISE_KAS:
+        # kein alarm, aber der stand hat sich bewegt. er wird trotzdem der
+        # neue vergleichsstand, sonst verdeckt diese bewegung die naechste.
+        save_state(balance)
+        print(f"no alert, balance {fmt(balance)} KAS, delta {diff:+,.0f} KAS, stand fortgeschrieben")
+        print("STATE_CHANGED=1")
+        return False
     print(f"no alert, balance {fmt(balance)} KAS, delta {diff:+,.0f} KAS")
     print("STATE_CHANGED=0")
     return False
@@ -260,6 +277,30 @@ def run_selftest():
     raises("gedankenstrich wird abgefangen", "balance down — 2,396,922 KAS")
     ok("eine url in klammern stoert die pruefung nicht",
        assert_text("check it at <https://kaspapulse.com/entity-x.html>") is not None)
+
+    # die woche vom 22. bis 25.09., wie sie die tagespruefung sah. mit der
+    # alten logik blieb der bot bei allen drei bewegungen still.
+    global fetch_balance_kas, load_state, save_state, send_all
+    alt = (fetch_balance_kas, load_state, save_state, send_all)
+    stand = {"balance_kas": 1_523_915_192.09}
+    gesendet = []
+    folge = [1_523_915_197.09, 1_526_392_821.60, 1_524_392_806.78, 1_525_975_596.46]
+    try:
+        load_state = lambda: dict(stand)                              # noqa: E731
+        save_state = lambda b: stand.update(balance_kas=round(b, 2))  # noqa: E731
+        send_all = lambda m: (assert_text(m), gesendet.append(m))     # noqa: E731
+        for b in folge:
+            fetch_balance_kas = lambda b=b: b                         # noqa: E731
+            check_once()
+    finally:
+        fetch_balance_kas, load_state, save_state, send_all = alt
+    arten = ["OUTFLOW" if "OUTFLOW" in m else "INFLOW" for m in gesendet]
+    ok("woche 22. bis 25.09. meldet zufluss, abfluss, zufluss",
+       arten == ["INFLOW", "OUTFLOW", "INFLOW"], arten)
+    ok("abfluss vom 24.09. nennt 2,000,015 KAS",
+       any("2,000,015 KAS" in m for m in gesendet), gesendet)
+    ok("der letzte gesehene stand ist gespeichert",
+       stand["balance_kas"] == 1_525_975_596.46, stand)
 
     print("")
     if fails:
