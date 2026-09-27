@@ -223,6 +223,17 @@ def ist_v6(ip):
     return ":" in ip
 
 
+def hat_ipv6():
+    """Hat der Runner eine IPv6-Route? UDP-connect sendet kein Paket, er
+    fragt nur die Routingtabelle."""
+    try:
+        with socket.socket(socket.AF_INET6, socket.SOCK_DGRAM) as s:
+            s.connect(("2001:4860:4860::8888", 53))
+        return True
+    except OSError:
+        return False
+
+
 # ------------------------------------------------------------------ befehle
 
 async def handshake_probe():
@@ -255,6 +266,10 @@ async def crawl():
     t0 = time.monotonic()
     seeds, je = seeder_adressen()
     print("seeder: %s" % ", ".join("%s %d" % (s, n) for s, n in je.items()))
+    v6_ok = hat_ipv6()
+    print("ipv6 vom runner: %s" % ("ja" if v6_ok else
+          "nein, ipv6-adressen werden gezaehlt, aber nicht versucht"))
+    v6_ungeprueft = set()
     gesehen = set(seeds)
     offen = collections.deque(sorted(seeds))
     ergebnisse = []
@@ -275,7 +290,12 @@ async def crawl():
     while offen or laufend:
         while offen and len(laufend) < GLEICHZEITIG * 2:
             ip, port = offen.popleft()
+            if ist_v6(ip) and not v6_ok:
+                v6_ungeprueft.add((ip, port))
+                continue
             laufend.add(asyncio.create_task(eins(ip, port)))
+        if not laufend:
+            break
         fertig, laufend = await asyncio.wait(laufend, return_when=asyncio.FIRST_COMPLETED)
     ende = dt.datetime.now(dt.timezone.utc)
 
@@ -292,8 +312,13 @@ async def crawl():
     print("regeln: %d gleichzeitig, %.0f s je adresse, eine verbindung je adresse, "
           "agent %s, protokoll %d" % (GLEICHZEITIG, ZEITLIMIT, USER_AGENT, PROTOKOLL))
     print("\n%-44s %8s %8s %8s" % ("", "gesamt", "ipv4", "ipv6"))
+    print("%-44s %8d %8d %8d" % ("gesehene adressen", len(gesehen),
+                                 sum(1 for a in gesehen if not ist_v6(a[0])),
+                                 sum(1 for a in gesehen if ist_v6(a[0]))))
+    print("%-44s %8d %8d %8d" % ("  davon nicht versucht (runner ohne ipv6)",
+                                 len(v6_ungeprueft), 0, len(v6_ungeprueft)))
     for name, f in [
-        ("gesehene adressen (versucht)", lambda e: True),
+        ("versucht", lambda e: True),
         ("verbindungsaufbau ok", lambda e: erreicht(e, "verbindung")),
         ("version erhalten", lambda e: e["netz"] is not None),
         ("  davon anderes netz", lambda e: e["netz"] not in (None, NETZ)),
@@ -318,8 +343,8 @@ async def crawl():
         e["fehler"] for e in ergebnisse if e["fehler"]).most_common(10)))
     if len(gesehen) >= HOECHSTENS:
         print("HINWEIS obergrenze %d adressen erreicht, lauf unvollstaendig" % HOECHSTENS)
-    print("\nBESCHRIFTUNG: von aussen erreichbare Nodes (Handshake im Mainnet), von uns gezaehlt: %d"
-          % z(mainnet_hs))
+    print("\nBESCHRIFTUNG: von aussen erreichbare Nodes (Handshake im Mainnet), von uns gezaehlt: %d%s"
+          % (z(mainnet_hs), "" if v6_ok else "  [nur ipv4, der runner hat kein ipv6]"))
     return 0
 
 
