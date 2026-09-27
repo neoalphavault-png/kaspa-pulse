@@ -491,6 +491,13 @@ def befehl_entityx():
         zeilen.append((bt, tid, gain - spend, spend, gain, gegen, ziele,
                        t.get("accepting_block_blue_score"), t.get("is_accepted")))
     zeilen.sort()
+    # labels nur aus belegter quelle, dieselbe liste wie entity_x_outflows.py
+    try:
+        from entity_x_outflows import KNOWN, KNOWN_SOURCE
+    except Exception:                              # noqa: BLE001
+        KNOWN, KNOWN_SOURCE = {}, "keine"
+    lab = lambda a: KNOWN.get(a, "ohne label")     # noqa: E731
+    print("  labels: %d, quelle %s" % (len(KNOWN), KNOWN_SOURCE))
     print("  unaufgeloeste eingaenge: %d" % offen)
     print("\n  %-20s %18s  %s" % ("zeit utc", "netto KAS", "transaktion"))
     for bt, tid, netto, spend, gain, gegen, ziele, bs, acc in zeilen:
@@ -500,15 +507,16 @@ def befehl_entityx():
         if abs(netto) >= 100000:
             print("      ausgegeben %.2f, zurueck %.2f" % (spend, gain))
             for a, v in sorted(gegen.items(), key=lambda x: -x[1])[:3]:
-                print("      von  %s  %.2f" % (a, v))
+                print("      von  %s  %.2f  [%s]" % (a, v, lab(a)))
             for a, v in sorted(ziele.items(), key=lambda x: -x[1])[:3]:
-                print("      an   %s  %.2f" % (a, v))
+                print("      an   %s  %.2f  [%s]" % (a, v, lab(a)))
 
     # der kontostand zu jedem heartbeat, rueckgerechnet vom live-stand
     print("\n  kontostand zu den heartbeat-zeitpunkten, rueckgerechnet:")
     datei = [("2026-09-22T18:02:24", 1523915197.09),
              ("2026-09-23T18:21:35", 1526392821.60),
-             ("2026-09-24T18:23:27", 1524392806.78)]
+             ("2026-09-24T18:23:27", 1524392806.78),
+             ("2026-09-25T18:30:01", 1525975596.46)]
     for stempel, wert in datei:
         t = dt.datetime.fromisoformat(stempel).replace(tzinfo=dt.timezone.utc)
         t_ms = int(t.timestamp() * 1000)
@@ -516,6 +524,23 @@ def befehl_entityx():
         kette = live - danach
         print("    %s  kette %18.2f  datei %18.2f  differenz %+.2f"
               % (stempel, kette, wert, wert - kette))
+
+    # summe der transaktionen zwischen zwei heartbeats gegen die tagesdifferenz
+    print("\n  transaktionen zwischen zwei heartbeats gegen die differenz der datei:")
+    for (s1, w1), (s2, w2) in zip(datei, datei[1:]):
+        a = int(dt.datetime.fromisoformat(s1).replace(tzinfo=dt.timezone.utc).timestamp() * 1000)
+        b = int(dt.datetime.fromisoformat(s2).replace(tzinfo=dt.timezone.utc).timestamp() * 1000)
+        summe = sum(z[2] for z in zeilen if a < z[0] <= b)
+        anzahl = sum(1 for z in zeilen if a < z[0] <= b and abs(z[2]) >= 1)
+        print("    %s bis %s  %d tx, summe %+16.2f, datei %+16.2f, differenz %+.2f"
+              % (s1[5:16], s2[5:16], anzahl, summe, w2 - w1, (w2 - w1) - summe))
+    # und je utc-tag 22. bis 26.09.
+    print("\n  netto je utc-tag:")
+    for tag in ("2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25", "2026-09-26"):
+        z = [x for x in zeilen if dt.datetime.fromtimestamp(x[0] / 1000, dt.timezone.utc).strftime("%Y-%m-%d") == tag]
+        print("    %s  %d tx, zufluss %+16.2f, abfluss %+16.2f, netto %+16.2f"
+              % (tag, len(z), sum(x[2] for x in z if x[2] > 0),
+                 sum(x[2] for x in z if x[2] < 0), sum(x[2] for x in z)))
     return 0
 
 
