@@ -183,7 +183,7 @@
     <div class="deltas" id="heroDeltas"></div>
     <div class="heropills">
       <a class="heropill" href="#subscribe"><b>FREE CHEAT SHEET</b> · the 8 Kaspa numbers that actually matter <span class="arr">→</span></a>
-      <a class="heropill dc" href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener"><b>LIVE ALERTS</b> · a bot watches the entity x wallet for you <span class="arr">→</span></a>
+      <a class="heropill dc" href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener"><b>WALLET ALERTS</b> · a bot checks the entity x wallet several times a day <span class="arr">→</span></a>
       <a class="heropill yt" href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener"><b>ON YOUTUBE</b> · one number explained every thursday <span class="arr">→</span></a>
     </div>
   </section>
@@ -210,7 +210,7 @@
   </section>
   <section class="panel">
     <div class="sec"><div class="t"><span class="snum">05</span>Whale watch. <span>the biggest wallet on the chain</span></div><div class="tag lv"><i></i>live balance · weekly deltas</div></div>
-    <div class="read"><span class="rl">the read</span>last week the chain's largest address let coins go for the first time. this week it went back to buying, <b><span id="rdWeek">+4.77M</span> KAS this week</b>, the last deposit on september 4, the day of the reward cut. it holds 1.52 billion KAS, having bought <b><span id="rdBought">1.56B</span> KAS in total at an average of <span id="rdAvg">$0.0870</span></b>, our own calculation from every transaction on chain. all told, <b><span id="rdOut">44.4M</span> KAS have left the wallet</b> in <span id="rdOutCnt">22</span> transfers since 2024, <span id="rdShare">2.84%</span> of everything it ever bought. one move out does not make a seller, and one week of deposits does not make a bottom. we count both. <a href="/entity-x.html" style="color:var(--teal); text-decoration:none;">the full record &rarr;</a></div>
+    <div class="read"><span class="rl">the read</span>last week the chain's largest address let coins go for the first time. this week it took in coins again, <b><span id="rdWeek">+4.77M</span> KAS this week</b>, the last deposit on september 4, the day of the reward cut. it holds 1.52 billion KAS, having taken in <b><span id="rdBought">1.56B</span> KAS in total at an average of <span id="rdAvg">$0.0870</span></b>, our own calculation from every transaction on chain. all told, <b><span id="rdOut">44.4M</span> KAS have left the wallet</b> in <span id="rdOutCnt">22</span> transfers since 2024, <span id="rdShare">2.84%</span> of everything it ever received. one move out does not make a seller, and one week of deposits does not make a bottom. we count both. <a href="/entity-x.html" style="color:var(--teal); text-decoration:none;">the full record &rarr;</a></div>
     <div class="grid four" id="whaleCards"></div>
   </section>
   <div class="chart-box">
@@ -239,11 +239,11 @@
     <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
   </div>
   <div class="discordbox" style="background:linear-gradient(160deg, rgba(88,101,242,0.13), rgba(88,101,242,0.03)); border:1px solid rgba(88,101,242,0.45); border-radius:16px; padding:30px 24px; margin:18px 0 0; text-align:center;">
-    <div style="display:inline-block; font-size:10px; letter-spacing:2px; color:#9BA6F8; background:rgba(88,101,242,0.14); border:1px solid rgba(88,101,242,0.45); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700;">free · live alerts</div>
+    <div style="display:inline-block; font-size:10px; letter-spacing:2px; color:#9BA6F8; background:rgba(88,101,242,0.14); border:1px solid rgba(88,101,242,0.45); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700;">free · wallet alerts</div>
     <div style="font-size:18px; font-weight:700; letter-spacing:-0.3px;">the chain, <span style="color:#9BA6F8;">watched for you</span></div>
-    <div style="font-size:12px; color:#7A828C; margin-top:6px; line-height:17px; max-width:460px; margin-left:auto; margin-right:auto;">a bot checks the entity x wallet every 30 minutes, around the clock. the moment the whale moves, the alert fires. plus the monday numbers and a place to request the data you're missing.</div>
+    <div style="font-size:12px; color:#7A828C; margin-top:6px; line-height:17px; max-width:460px; margin-left:auto; margin-right:auto;">a bot checks the entity x wallet several times a day. when the balance has moved since the last check, the alert fires. plus the monday numbers and a place to request the data you're missing.</div>
     <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener" style="display:inline-block; background:#5865F2; color:#FFFFFF; border-radius:8px; padding:11px 22px; font-size:14px; font-weight:700; text-decoration:none; margin-top:16px;">join the kaspa pulse discord</a>
-    <div style="font-size:11px; color:#7A828C; margin-top:10px;">one click, no email · alerts land in #alerts the second they fire</div>
+    <div style="font-size:11px; color:#7A828C; margin-top:10px;">one click, no email · alerts land in #alerts when a check finds a move</div>
   </div>
   <div class="cta">weekly breakdown with context every monday → <a href="https://x.com/gokugalax" target="_blank">@gokugalax on X</a> · a new video every thursday → <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">PulseHawk on YouTube</a></div>
   <footer>
@@ -799,7 +799,7 @@ $("whaleCards").innerHTML = `
   <div class="card"><div class="name">Coins moved out</div><div class="expl">* KAS that has left this address since 2024 — sold or moved to another wallet, the chain doesn't say which</div>
     <div class="val" id="exOut">—</div>
     <div class="trends" id="exOutTrends">
-      <div class="tr"><span class="win">share of all it bought</span><span class="flat">—</span></div>
+      <div class="tr"><span class="win">share of everything it received</span><span class="flat">—</span></div>
       <div class="tr"><span class="win">last move</span><span class="flat">—</span></div>
     </div></div>`;
 // --- cost basis: our own number, computed weekly by a bot, read from disk ---
@@ -839,7 +839,7 @@ $("whaleCards").innerHTML = `
       set("rdOutCnt", cb.outflow_count);
       set("rdShare", share);
       $("exOutTrends").innerHTML =
-        `<div class="tr"><span class="win">share of all it bought</span><span class="flat">${share}</span></div>`+
+        `<div class="tr"><span class="win">share of everything it received</span><span class="flat">${share}</span></div>`+
         `<div class="tr"><span class="win">last move</span><span class="flat">${dstr(cb.last_outflow)}</span></div>`;
     }
   }).catch(()=>{});

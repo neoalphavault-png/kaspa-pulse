@@ -8,6 +8,7 @@
 
 import json
 import os
+import re
 import sys
 import time
 import urllib.request
@@ -35,6 +36,8 @@ FORBIDDEN = ["—", "–", " - ", ":", "→"]
 BANNED_CLAIMS = ["sold", "sell", "selling", "bought", "buying", "stacking",
                  "dumped", "accumulating", "whale is", "zero outflows",
                  "never sold", "first time"]
+WORTREGEL = re.compile(r"\b(buy|buys|bought|buying|purchase[sd]?|purchasing)\b")
+WORT_ERLAUBT = ("not a proven buy", "not proof of a purchase")
 
 
 def assert_text(msg):
@@ -70,6 +73,14 @@ def assert_text(msg):
         raise ValueError(
             "der text behauptet etwas, das der bot nicht misst, %r. er liest "
             "einen kontostand und sonst nichts" % claims)
+    # Wortregel (Ben, 27.09.2026), wie in entity_x_heartbeat.py: auch buy,
+    # buys und purchase, nicht nur bought und buying. Die ausdrueckliche
+    # Verneinung im Zuflusstext bleibt erlaubt.
+    for erlaubt in WORT_ERLAUBT:
+        low = low.replace(erlaubt, "")
+    worte = WORTREGEL.findall(low)
+    if worte:
+        raise ValueError("wortregel verletzt, gefunden %r" % worte)
     return msg
 
 
@@ -258,6 +269,7 @@ def run_selftest():
     raises("kauf wird abgefangen", "entity x keeps stacking")
     raises("doppelpunkt wird abgefangen", "balance: 1,442,000,000 KAS")
     raises("gedankenstrich wird abgefangen", "balance down — 2,396,922 KAS")
+    raises("wortregel, purchase wird abgefangen", "this looks like a purchase")
     ok("eine url in klammern stoert die pruefung nicht",
        assert_text("check it at <https://kaspapulse.com/entity-x.html>") is not None)
 
