@@ -15,7 +15,7 @@
 # Einmal am Tag. Der Heartbeat vergleicht mit dem Stand von gestern und faerbt
 # die Nachricht danach ein.
 #   grau  = kein Nettounterschied zu gestern
-#   gruen = ueber Nacht dazugekauft, mit Tagesdifferenz
+#   gruen = ueber Nacht zugeflossen, mit Tagesdifferenz
 #   rot   = ueber Nacht abgeflossen
 #
 # Neu gegenueber v2: Dollarwerte neben jeder KAS-Zahl. Genau ein Preisabruf
@@ -28,6 +28,7 @@
 
 import json
 import os
+import re
 import sys
 import urllib.request
 
@@ -145,7 +146,24 @@ def save_last(balance_kas):
         json.dump({"balance_kas": round(balance_kas, 2)}, f)
 
 
+# Wortregel (Ben, 27.09.2026): bei Entity X nie buy, bought, buying,
+# purchase. Erlaubt ist nur die Verneinung "not a proven buy". Bis zum
+# 27.09. titelte der gruene Fall "entity x bought more".
+WORTREGEL = re.compile(r"\b(buy|buys|bought|buying|purchase[sd]?|purchasing)\b", re.I)
+ERLAUBT = "not a proven buy"
+
+
+def wortregel(text):
+    """Gibt die verbotenen Woerter im Text zurueck, die erlaubte Verneinung
+    herausgenommen."""
+    return WORTREGEL.findall(text.replace(ERLAUBT, ""))
+
+
 def send_embed(title, description, color, price=None):
+    verstoss = wortregel(title + "\n" + description)
+    if verstoss:
+        print("ERROR: wortregel verletzt %s in %r" % (verstoss, title), file=sys.stderr)
+        sys.exit(1)
     url = os.environ.get("DISCORD_WEBHOOK", "").strip()
     foot = "kaspa pulse · daily check · kaspapulse.com/entity-x.html"
     if price:
@@ -239,11 +257,12 @@ def main():
             )
         elif diff > 0:
             send_embed(
-                "🟢 daily check. entity x bought more",
+                "🟢 daily check. coins came in",
                 f"**{fmt(diff)} KAS** added in the last 24 hours"
                 f"{usd_part(diff, price)}.\n"
                 f"the wallet now holds **{fmt(balance)} KAS**"
                 f"{usd_part(balance, price, lead=', about ')}.{pctline}\n"
+                "an inflow is a transfer, not a proven buy.\n"
                 "this is a net figure. deposits and withdrawals inside the "
                 "same day cancel out before we see them.",
                 GREEN, price=price,
@@ -263,5 +282,45 @@ def main():
     print(f"heartbeat ok, balance {fmt(balance)} KAS")
 
 
+def selftest():
+    """Alle drei Tagesfaelle und der erste Lauf, ohne Netz, mit DRY_RUN."""
+    global fetch_balance_kas, load_last, fetch_supply_pct, fetch_price_usd, save_last
+    os.environ["DRY_RUN"] = "1"
+    fehler = 0
+    for name, gestern in (("erster lauf", None), ("gleich", 100.0),
+                          ("zufluss", 90.0), ("abfluss", 110.0)):
+        fetch_balance_kas = lambda: 100.0             # noqa: E731
+        load_last = lambda g=gestern: g               # noqa: E731
+        fetch_supply_pct = lambda b: 5.5              # noqa: E731
+        fetch_price_usd = lambda: 0.05                # noqa: E731
+        save_last = lambda b: None                    # noqa: E731
+        gesendet = []
+        alt = send_embed.__globals__["send_embed"]
+
+        def fang(title, description, color, price=None, _alt=alt):
+            gesendet.append((title, description))
+            _alt(title, description, color, price)
+        send_embed.__globals__["send_embed"] = fang
+        try:
+            main()
+        finally:
+            send_embed.__globals__["send_embed"] = alt
+        t, d = gesendet[0]
+        v = wortregel(t + "\n" + d)
+        ok = not v
+        if name == "zufluss":
+            ok = ok and t == "🟢 daily check. coins came in" and ERLAUBT in d
+        print("%-4s %-12s %s" % ("ok" if ok else "FEHL", name, t))
+        fehler += 0 if ok else 1
+    ok = wortregel("entity x bought more") == ["bought"] and not wortregel(
+        "an inflow is a transfer, not a proven buy.")
+    print("%-4s %-12s %s" % ("ok" if ok else "FEHL", "wache", "bought faellt auf, verneinung nicht"))
+    fehler += 0 if ok else 1
+    print("%d fehler" % fehler)
+    return fehler
+
+
 if __name__ == "__main__":
+    if "--selftest" in sys.argv:
+        sys.exit(1 if selftest() else 0)
     main()
