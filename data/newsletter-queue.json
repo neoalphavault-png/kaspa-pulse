@@ -1,12 +1,12 @@
 {
- "campaign_id": 31,
- "subject": "the first close above a line 46 weeks old",
- "html_path": "newsletter/2026-09-21.html",
+ "campaign_id": 32,
+ "subject": "30.41 percent above the 50 week line",
+ "html_path": "newsletter/2026-09-28.html",
  "list_id": 16,
  "sender": "hello@kaspapulse.com",
  "status": "draft",
  "scheduled_at": null,
- "created_at": "2026-09-21T07:37:15Z",
+ "created_at": "2026-09-28T06:42:59Z",
  "history": [
   {
    "at": "2026-09-14T06:45:38Z",
@@ -24,6 +24,12 @@
    "at": "2026-09-21T07:37:15Z",
    "step": "test",
    "campaign_id": 31,
+   "test_to": "benni.alkanli@gmail.com"
+  },
+  {
+   "at": "2026-09-28T06:42:59Z",
+   "step": "test",
+   "campaign_id": 32,
    "test_to": "benni.alkanli@gmail.com"
   }
  ],
