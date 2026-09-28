@@ -161,7 +161,7 @@
     <div class="fact"><div class="v teal" id="factBal">live ↑</div><div class="l">current balance — one address, verifiable on any explorer, shown live above</div></div>
     <div class="fact"><div class="v teal" id="factPct">live ↑</div><div class="l">share of all circulating KAS held in this single wallet — computed live from supply</div></div>
     <div class="fact"><div class="v red">&gt; ⅓</div><div class="l">of all known exchange holdings combined (3.94B KAS) — as measured July 2026</div></div>
-    <div class="fact"><div class="v teal" id="factCost">$0.0866</div><div class="l">average price this wallet paid per KAS — our own calculation from every deposit on chain</div></div>
+    <div class="fact"><div class="v teal" id="factCost">$0.0865</div><div class="l">average price this wallet paid per KAS — our own calculation from every deposit on chain</div></div>
   </div>
 </div></div>
 <div class="wrap2">
@@ -179,21 +179,21 @@
   <p>We pull <b>every transaction</b> this address has ever been part of, keep only the true net inflows, and value each one at the <b>volume weighted average price of the day it landed</b> — not the daily close. Nobody buys at midnight. That single choice is why our number will differ slightly from anyone using closing prices, and it is the more honest of the two.</p>
   <div class="cb" id="cbBox">
     <div class="cbt">Average entry price</div>
-    <div class="cbv" id="cbAvg">$0.0866</div>
-    <div class="cbs" id="cbSub">across 315 deposits between 6 Mar 2024 and 23 Sep 2026</div>
+    <div class="cbv" id="cbAvg">$0.0865</div>
+    <div class="cbs" id="cbSub">across 316 deposits between 6 Mar 2024 and 25 Sep 2026</div>
     <div class="cbrow">
       <div class="cbi"><div class="k teal" id="cbInv">$136.8M</div><div class="d">put into this wallet, in dollars, at the prices of the day</div></div>
-      <div class="cbi"><div class="k" id="cbVal">$63.4M</div><div class="d">what the same coins are worth right now</div></div>
-      <div class="cbi"><div class="k red" id="cbPnl">−$73.4M (−54%)</div><div class="d">unrealized</div></div>
+      <div class="cbi"><div class="k" id="cbVal">$72.2M</div><div class="d">what the same coins are worth right now</div></div>
+      <div class="cbi"><div class="k red" id="cbPnl">−$64.6M (−47%)</div><div class="d">unrealized</div></div>
     </div>
   </div>
-  <div class="note">Read that bottom row again. This wallet put a nine figure sum into this position and kept depositing right through the drawdown. The latest deposit in our count landed on <b id="cbLastDep">23 Sep 2026</b>. Whatever it is, it is not trading.</div>
+  <div class="note">Read that bottom row again. This wallet put a nine figure sum into this position and kept depositing right through the drawdown. The latest deposit in our count landed on <b id="cbLastDep">25 Sep 2026</b>. Whatever it is, it is not trading.</div>
   <p style="font-size:13px;">Method, in full: net inflows only, so change from a wallet's own spending is never miscounted as a purchase. Daily prices from KuCoin, with MEXC and Bybit filling any gaps. If more than 2% of the coins land on days we cannot price, the number is marked unreliable and this box disappears rather than showing you something half true. Recomputed automatically every Monday.</p>
 </div></div>
 <div class="wrap2">
   <h2 id="outflows">Every coin that has left this wallet</h2>
   <p>The claim you will read almost everywhere is that Entity X has never sent a single coin out. <b>That is not correct.</b> Since March 2024, <b><span id="oSum">55,202,494</span> KAS</b> have left the address across <b><span id="oCnt">25</span> transfers</b>. Here is every one of them, with the transaction you can open on any explorer.</p>
-  <p>Keep the scale in mind before anyone turns this into a headline. It is <b><span id="oShare">3.49%</span> of everything the wallet ever bought</b>. The other <span id="oRest">96.51%</span> is still there, and the latest deposit in our count landed on <span id="oLastDep">23 Sep 2026</span>. And crucially, <b>the chain does not tell us whether these coins were sold</b>. Sent to an exchange and sold, or moved to a second address the same owner controls, look identical from here. Anyone who tells you which it was is guessing.</p>
+  <p>Keep the scale in mind before anyone turns this into a headline. It is <b><span id="oShare">3.49%</span> of everything the wallet ever bought</b>. The other <span id="oRest">96.51%</span> is still there, and the latest deposit in our count landed on <span id="oLastDep">25 Sep 2026</span>. And crucially, <b>the chain does not tell us whether these coins were sold</b>. Sent to an exchange and sold, or moved to a second address the same owner controls, look identical from here. Anyone who tells you which it was is guessing.</p>
   <div class="tblwrap">
     <table id="outTbl">
       <thead><tr><th>Date</th><th style="text-align:right">KAS out</th><th>Transaction</th></tr></thead>
