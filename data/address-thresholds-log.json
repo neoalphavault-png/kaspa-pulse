@@ -11107,9 +11107,59 @@
       "holders_100kas": 293268,
       "quelle": "kaspalytics",
       "abgerufen_utc": "2026-09-23T14:14:03+00:00"
+    },
+    {
+      "datum": "2026-09-23",
+      "holders_all": 54876780,
+      "holders_mean": 797119,
+      "holders_001kas": 757230,
+      "holders_1kas": 556755,
+      "holders_100kas": 293031,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-28T13:11:55+00:00"
+    },
+    {
+      "datum": "2026-09-24",
+      "holders_all": 54877178,
+      "holders_mean": 797517,
+      "holders_001kas": 757629,
+      "holders_1kas": 557143,
+      "holders_100kas": 293159,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-28T13:11:55+00:00"
+    },
+    {
+      "datum": "2026-09-25",
+      "holders_all": 54877843,
+      "holders_mean": 798182,
+      "holders_001kas": 758294,
+      "holders_1kas": 557811,
+      "holders_100kas": 293238,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-28T13:11:55+00:00"
+    },
+    {
+      "datum": "2026-09-26",
+      "holders_all": 54878400,
+      "holders_mean": 798739,
+      "holders_001kas": 758850,
+      "holders_1kas": 558369,
+      "holders_100kas": 293399,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-28T13:11:55+00:00"
+    },
+    {
+      "datum": "2026-09-27",
+      "holders_all": 54878789,
+      "holders_mean": 799128,
+      "holders_001kas": 759241,
+      "holders_1kas": 558691,
+      "holders_100kas": 293458,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-28T13:11:55+00:00"
     }
   ],
   "hinweis": "schwellen, keine stufen: jede reihe zaehlt alle adressen AB einem betrag. die stufentabelle laesst sich daraus nicht rekonstruieren.",
   "hinweis_holders_all": "holders_all zaehlt jede adresse mit irgendeinem guthaben, auch staub. am 21.09.2026 waren das 54.876.372 gegen 796.711 bei holders_mean. als 'zahl der halter' ist holders_all falsch.",
-  "aktualisiert_utc": "2026-09-23T14:14:03+00:00"
+  "aktualisiert_utc": "2026-09-28T13:11:55+00:00"
 }
