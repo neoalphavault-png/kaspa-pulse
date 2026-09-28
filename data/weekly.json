@@ -1,27 +1,27 @@
 {
-  "updated": "2026-09-21",
-  "next_update": "2026-09-28",
+  "updated": "2026-09-28",
+  "next_update": "2026-10-05",
   "context_fallback": {
-    "price_usd": 0.039854,
-    "mcap_usd": 1104677252,
-    "mined_pct": 96.55,
-    "mined_pct_as_of": "2026-09-21T08:17:27Z"
+    "price_usd": 0.047457,
+    "mcap_usd": 1316079357,
+    "mined_pct": 96.59,
+    "mined_pct_as_of": "2026-09-28T06:42:50Z"
   },
-  "circ_supply": 27712709601,
-  "circ_supply_as_of": "2026-09-21T08:17:27Z",
+  "circ_supply": 27725787812,
+  "circ_supply_as_of": "2026-09-28T06:42:50Z",
   "emission": {
     "block_reward": 2.18,
     "next_reduction_at": "2026-09-04T16:45:44Z",
     "annual_inflation_pct": 2.6
   },
   "hashrate_windows": {
-    "d7": 1.8,
-    "d30": 11.6,
-    "d90": 5.7
+    "d7": 4.6,
+    "d30": 12.7,
+    "d90": 10.5
   },
   "dex_windows": {
-    "kasplex_w": 42.5,
-    "igra_w": 26300.1
+    "kasplex_w": -2.0,
+    "igra_w": -97.6
   },
   "fees_7d": null,
   "history": [
@@ -270,6 +270,32 @@
         "tvl_igra": 8121376,
         "tvl_kasplex": 328438,
         "tvl_total": 8449814
+      }
+    },
+    {
+      "date": "2026-09-28",
+      "m": {
+        "active_addr": 7170,
+        "block_reward": 2.18,
+        "covenant_tx": 342,
+        "dex_vol": 209935,
+        "entityx_kas": 1525975596,
+        "exchange_kas": 3783300501,
+        "fees_day": null,
+        "hashrate": 352.9,
+        "holder_addr": 799128,
+        "holders": 50.66,
+        "igra_dex": 33850,
+        "igra_tx": null,
+        "kasplex_dex": 176085,
+        "kasplex_tx": null,
+        "tps": 1.2,
+        "tps_days": 7,
+        "tps_peak": 2.41,
+        "tps_peak_date": "2026-09-25",
+        "tvl_igra": 1543741,
+        "tvl_kasplex": 381387,
+        "tvl_total": 1925128
       }
     }
   ],
