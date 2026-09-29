@@ -737,6 +737,178 @@ def befehl_montag():
     return schlecht
 
 
+# ------------------------------------------------- entity x, pruefung 28.09.
+
+EX_ADR = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a"
+# Nur diese Arten von Labels werden genannt (Ben, 28.09.2026): Boersen,
+# Pools, Bruecken. Jedes andere Label erscheint nur als "sonstiges label".
+ART = (("boerse", ("gate", "bybit", "bitget", "bitvavo", "mexc", "kucoin", "htx",
+                   "huobi", "okx", "binance", "coinex", "xeggex", "tradeogre",
+                   "bitmart", "lbank", "ascendex", "kraken", "uphold", "bingx",
+                   "bitpanda", "crypto.com", "coinbase", "safetrade", "nonkyc",
+                   "pionex", "biconomy", "bitrue", "coinstore", "hotcoin",
+                   "exchange", "cex")),
+       ("pool", ("pool", "f2pool", "antpool", "viabtc", "k1pool", "herominers",
+                 "2miners", "emcd", "kryptex", "humpool", "acc-pool", "mining")),
+       ("bruecke", ("bridge", "wrapped", "wkas", "igra", "kasplex")))
+
+
+def einordnen(name):
+    if not name:
+        return "ohne label"
+    n = name.lower()
+    for art, woerter in ART:
+        if any(w in n for w in woerter):
+            return "%s: %s" % (art, name)
+    return "sonstiges label"
+
+
+def befehl_entityx28():
+    """Nur lesend. Pruefung vom 28.09.2026: der Heartbeat meldet 1.519.597.995
+    KAS, 6.377.601 weniger als am 25.09. 18:30 UTC. Alle Transaktionen von
+    Entity X seit dem 25.09. 00:00 UTC von der Kette, netto je Transaktion
+    (Ausgaenge an uns minus Eingaenge von uns, wie entity_x_outflows.py),
+    Ziel- und Herkunftsadressen mit Betrag, Labels aus der Liste in
+    entity_x_outflows.py und vom Namensdienst der Explorer-API. Dazu der
+    Kontostand zu jedem Heartbeat und zum Alarmstand, rueckgerechnet vom
+    Live-Stand. Schreibt nichts."""
+    ex = EX_ADR
+    ab = dt.datetime(2026, 9, 25, tzinfo=dt.timezone.utc)
+    ab_ms = int(ab.timestamp() * 1000)
+    print("=" * 78)
+    print("ENTITY X, ALLE BEWEGUNGEN SEIT 25.09.2026 00:00 UTC")
+    print("=" * 78)
+    st, txt = hole("https://api.kaspa.org/addresses/%s/balance" % ex)
+    jetzt = dt.datetime.now(dt.timezone.utc)
+    if st != 200:
+        print("  balance http %s" % st)
+        return 1
+    live = int(json.loads(txt)["balance"]) / 1e8
+    print("  live-kontostand %s: %.2f KAS" % (jetzt.isoformat(timespec="seconds"), live))
+
+    txs, before = [], 0
+    for _ in range(30):
+        url = ("https://api.kaspa.org/addresses/%s/full-transactions-page"
+               "?limit=100&resolve_previous_outpoints=light" % ex)
+        if before:
+            url += "&before=%d" % before
+        st, txt = hole(url)
+        if st != 200:
+            print("  full-transactions-page http %s: %s" % (st, kurz(txt, 200)))
+            return 1
+        seite = json.loads(txt)
+        if not seite:
+            break
+        txs += seite
+        aeltester = min(t.get("block_time") or 0 for t in seite)
+        if aeltester < ab_ms:
+            break
+        before = aeltester
+    print("  %d transaktionen geholt, aelteste %s" % (len(txs), dt.datetime.fromtimestamp(
+        min(t.get("block_time") or 0 for t in txs) / 1000, dt.timezone.utc).isoformat()))
+
+    gesehen, zeilen, offen, nicht_akz = set(), [], 0, 0
+    for t in txs:
+        tid = t.get("transaction_id")
+        bt = t.get("block_time") or 0
+        if tid in gesehen or bt < ab_ms:
+            continue
+        gesehen.add(tid)
+        if t.get("is_accepted") is False:
+            nicht_akz += 1
+            continue
+        gain = sum(float(o.get("amount", 0)) for o in t.get("outputs") or []
+                   if (o.get("script_public_key_address") or o.get("address")) == ex) / 1e8
+        spend, gegen = 0.0, {}
+        for i in t.get("inputs") or []:
+            a, amt = i.get("previous_outpoint_address"), i.get("previous_outpoint_amount")
+            if a is None or amt is None:
+                offen += 1
+                continue
+            if a == ex:
+                spend += float(amt) / 1e8
+            else:
+                gegen[a] = gegen.get(a, 0) + float(amt) / 1e8
+        ziele = {}
+        for o in t.get("outputs") or []:
+            a = o.get("script_public_key_address") or o.get("address") or ""
+            if a and a != ex:
+                ziele[a] = ziele.get(a, 0) + float(o.get("amount", 0)) / 1e8
+        zeilen.append((bt, tid, gain - spend, spend, gain, gegen, ziele))
+    zeilen.sort()
+    try:
+        from entity_x_outflows import KNOWN, KNOWN_SOURCE
+    except Exception:                              # noqa: BLE001
+        KNOWN, KNOWN_SOURCE = {}, "keine"
+    namen = {}
+
+    def label(a):
+        if a in namen:
+            return namen[a]
+        liste = KNOWN.get(a)
+        s2, t2 = hole("https://api.kaspa.org/addresses/%s/name" % a)
+        api = None
+        if s2 == 200:
+            try:
+                api = (json.loads(t2) or {}).get("name")
+            except Exception:                      # noqa: BLE001
+                api = None
+        teile = []
+        if liste:
+            teile.append("liste %s" % einordnen(liste))
+        teile.append("explorer-api %s" % (einordnen(api) if s2 == 200 else "http %s" % s2))
+        namen[a] = "; ".join(teile)
+        return namen[a]
+
+    print("  labels: liste %d eintraege (%s) und api.kaspa.org /addresses/<a>/name"
+          % (len(KNOWN), KNOWN_SOURCE))
+    print("  nicht akzeptierte transaktionen uebersprungen: %d" % nicht_akz)
+    print("  unaufgeloeste eingaenge: %d" % offen)
+    print("\n  %-20s %18s  %s" % ("zeit utc", "netto KAS", "transaktion"))
+    for bt, tid, netto, spend, gain, gegen, ziele in zeilen:
+        print("  %-20s %+18.2f  %s" % (
+            dt.datetime.fromtimestamp(bt / 1000, dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+            netto, tid))
+        if netto <= -1000:
+            print("      ausgegeben %.2f, zurueck an entity x %.2f" % (spend, gain))
+            for a, v in sorted(ziele.items(), key=lambda x: -x[1])[:5]:
+                print("      an   %s  %.2f  [%s]" % (a, v, label(a)))
+        elif netto >= 100000:
+            for a, v in sorted(gegen.items(), key=lambda x: -x[1])[:3]:
+                print("      von  %s  %.2f  [%s]" % (a, v, label(a)))
+
+    raus = [z for z in zeilen if z[2] < 0]
+    rein = [z for z in zeilen if z[2] > 0]
+    print("\n  seit 25.09. 00:00 utc: %d tx raus, brutto %.2f; %d tx rein, brutto %.2f; netto %+.2f"
+          % (len(raus), -sum(z[2] for z in raus), len(rein), sum(z[2] for z in rein),
+             sum(z[2] for z in zeilen)))
+
+    print("\n  kontostand zu festen zeitpunkten, rueckgerechnet vom live-stand:")
+    punkte = [("2026-09-25T00:00:00", None, "beginn 25.09."),
+              ("2026-09-25T18:30:01", 1525975596.46, "heartbeat 25.09."),
+              ("2026-09-28T14:27:56", 1519597995.47, "alarm-stand, commit 0ddd168"),
+              ("2026-09-28T20:30:39", 1519597995.47, "heartbeat 28.09., commit 88bfdb4")]
+    for stempel, wert, was in punkte:
+        t_ms = int(dt.datetime.fromisoformat(stempel).replace(tzinfo=dt.timezone.utc).timestamp() * 1000)
+        kette = live - sum(z[2] for z in zeilen if z[0] > t_ms)
+        print("    %s  kette %18.2f  datei %18s  %s%s" % (
+            stempel, kette, "%.2f" % wert if wert else "-", was,
+            "  differenz %+.2f" % (wert - kette) if wert else ""))
+    a = int(dt.datetime(2026, 9, 25, 18, 30, 1, tzinfo=dt.timezone.utc).timestamp() * 1000)
+    b = int(dt.datetime(2026, 9, 28, 20, 30, 39, tzinfo=dt.timezone.utc).timestamp() * 1000)
+    fenster = [z for z in zeilen if a < z[0] <= b]
+    print("\n  zwischen heartbeat 25.09. 18:30:01 und 28.09. 20:30:39: %d tx, raus %.2f, rein %.2f, netto %+.2f"
+          % (len(fenster), -sum(z[2] for z in fenster if z[2] < 0),
+             sum(z[2] for z in fenster if z[2] > 0), sum(z[2] for z in fenster)))
+    print("\n  netto je utc-tag:")
+    for tag in ("2026-09-25", "2026-09-26", "2026-09-27", "2026-09-28", "2026-09-29"):
+        z = [x for x in zeilen if dt.datetime.fromtimestamp(x[0] / 1000, dt.timezone.utc).strftime("%Y-%m-%d") == tag]
+        print("    %s  %d tx, rein %+16.2f, raus %+16.2f, netto %+16.2f"
+              % (tag, len(z), sum(x[2] for x in z if x[2] > 0),
+                 sum(x[2] for x in z if x[2] < 0), sum(x[2] for x in z)))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -748,6 +920,7 @@ BEFEHLE = {
     "wochen": befehl_wochen,
     "seite": befehl_seite,
     "montag": befehl_montag,
+    "entityx28": befehl_entityx28,
 }
 
 
