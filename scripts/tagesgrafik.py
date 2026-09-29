@@ -7,9 +7,16 @@ anzugeben. Hype ueber Fakten, nie ueber den Kurs. Jede Grafik hat drei
 Zutaten: eine Zahl, die stolz macht, einen Kontrast, der sie sofort
 verstaendlich macht, und eine Zeile Absender.
 
-Vorlage ist die Entity-X-Grafik vom 29.09. (pruefung_entityx_grafik.py auf
-dem Pruef-Branch pruefung/entity-x-2026-09-28): 1080x1350, #080B0F, #49EACB,
-Falke und Schriftzug oben und unten, keine Domain, kein Link.
+HAUSNORM SEIT 29.09.2026 (Ben, Richtung C). Die Zahl ist das Bild: jede Form
+hat genau ein Objekt, das die Daten selbst IST und ohne Lesen verstanden
+wird. Der Rahmen ist bei allen gleich, nur das Objekt wechselt: Kopfzeile
+oben links, die eine Zahl, das Objekt, eine Bedeutungszeile, eine kleine
+Datumszeile mit Messzeit und Herkunft, unten die Signatur (Falke, KASPA
+PULSE, Pulslinie mit einer EKG-Zacke in #49EACB). Das Logo steht nur unten.
+Hoechstens vier Texte. Farben #080B0F, Akzent #49EACB, dritter Ton #2B7A6C
+fuer den Rest der Daten, Weiss nur fuer Kopf und Zahl. Keine Verlaeufe, kein
+Glow, keine Rahmen, Balken ab null. Hausschrift wie number_of_day.py
+(Liberation Sans auf dem Runner). 1080x1350, Vorschau 390 px.
 
 ZEHN FORMEN, jede mit eigener Vorlage (FORMEN unten) und eigener Messung:
 
@@ -18,7 +25,8 @@ ZEHN FORMEN, jede mit eigener Vorlage (FORMEN unten) und eigener Messung:
                         (week-input.json steht um 07:30 noch auf der Vorwoche)
    2  Entity X          Anteil am Umlauf plus letzte Bewegung, von der Kette
    3  Countdown         Tage bis zur naechsten Reward-Senkung, Anker-Arithmetik
-   4  Massstab          Bloecke in Alltagsgroessen, Blockrate im Lauf gemessen
+   4  Massstab          Bloecke waehrend 8 Stunden Schlaf, je Herzschlag, aus der
+                        einen im Lauf gemessenen Blockrate
    5  Miner-Oekonomie   neue Coins gegen Gebuehren, dieselben 30 Tage
    6  Aus der Kette     ein Fakt aus der Historie
    7  Community         Frage aus #data-requests, von Hand
@@ -40,12 +48,16 @@ Gebuehren je Tag von Kaspalytics, neue Coins je Tag aus dem Emissionsplan,
 fuer genau dieselben Tage, Hashrate aus api.kaspa.org fuer dieselben Tage.
 
 REGELN, vor jedem Rendern erzwungen (textpruefung()):
-  jede Grafik traegt ein Datum im Inhalt und "as of <tag>, <zeit> utc" im Fuss
+  die Datumszeile beginnt mit "<tag> <mon> <jahr>, <hh:mm> utc" und endet auf
+  "counted by kaspa pulse" (nur eigene Zaehlung) oder "source ..." allein
   "%" statt "percent", Ziffern statt Zahlwoertern
   kein Doppelpunkt ausser in Uhrzeiten, kein Gedankenstrich, kein Pfeil
   keine Domain, kein Link (einzige Ausnahme ist das Explorer-Label gate.io)
   kein Kursziel, kein Dollar- oder Kurswert
   Wortliste: sold, buy, bought, purchase, dump, whale, because, motive ...
+  Echtzeit-Woerter: around the clock, real time, every minute, instantly, live ...
+  kein Vergleich mit einer anderen Chain (bitcoin, ethereum ...), nie
+  "neue KAS" nur aus neue_kas(), immer mit Fenster
   Form 8 ohne Angreifer-Szenario (attack, 51, attacker ...)
   kein "never" und kein "record", "highest", "lowest" ohne Zeitraum
   X-Text ohne Link und unter 240 Zeichen
@@ -192,14 +204,6 @@ def m_balance(adr):
     return int(d["balance"]) / 1e8
 
 
-def m_hashrate_phs():
-    d = hole(REST + "/info/hashrate?stringOnly=false")
-    ph = float(d["hashrate"]) / 1000.0
-    if not 10 < ph < 100000:
-        raise Stop("hashrate unplausibel %s PH/s" % ph)
-    return ph
-
-
 def m_blockrate(sekunden=60):
     """Bloecke je Sekunde, gemessen als Zuwachs des virtuellen DAA-Scores."""
     a = hole(REST + "/info/blockdag")
@@ -274,14 +278,22 @@ def m_kl_reihe(pfad, name, art):
     return aus
 
 
+# Eine Hashrate je Lauf (Ben, 30.09.2026): jede Form nimmt das Tagesmittel aus
+# /info/hashrate/history, einmal geholt. Keine Momentmessung daneben, damit
+# nie ein Tageswert und ein Momentwert ungekennzeichnet in einem Bild stehen.
+_HASHRATE = {}
+
+
 def m_hashrate_tage():
     """Tagesmittel der Hashrate in TH/s aus api.kaspa.org/info/hashrate/history."""
-    roh = hole(REST + "/info/hashrate/history")
-    je = {}
-    for x in roh:
-        t = dt.datetime.fromtimestamp(x["timestamp"] / 1000, dt.timezone.utc)
-        je.setdefault(t.date().isoformat(), []).append(x["hashrate_kh"] / 1e9)
-    return {d: sum(v) / len(v) for d, v in je.items()}
+    if "tage" not in _HASHRATE:
+        roh = hole(REST + "/info/hashrate/history")
+        je = {}
+        for x in roh:
+            t = dt.datetime.fromtimestamp(x["timestamp"] / 1000, dt.timezone.utc)
+            je.setdefault(t.date().isoformat(), []).append(x["hashrate_kh"] / 1e9)
+        _HASHRATE["tage"] = {d: sum(v) / len(v) for d, v in je.items()}
+    return _HASHRATE["tage"]
 
 
 def emission_am_tag(datum):
@@ -314,13 +326,15 @@ SELBST = "counted by kaspa pulse"
 # dritter Ton fuer den "Rest" der Daten. Weiss nur fuer Kopf und Zahl.
 BG, AK, RESTTON, WEISS = "#080B0F", "#49EACB", "#2B7A6C", "#FFFFFF"
 
-# Eine Blockrate je Lauf, fuer jede Form, die eine braucht.
+# Eine Blockrate je Lauf, fuer jede Form, die eine braucht, ueber 10 Minuten
+# gemessen (Ben, 30.09.2026). 60 Sekunden schwankten zwischen 9.75 und 9.93.
+BLOCKRATE_SEK = 600
 _BLOCKRATE = {}
 
 
 def blockrate():
     if "bps" not in _BLOCKRATE:
-        _BLOCKRATE["bps"], _BLOCKRATE["daa"] = m_blockrate(60)
+        _BLOCKRATE["bps"], _BLOCKRATE["daa"] = m_blockrate(BLOCKRATE_SEK)
     return _BLOCKRATE["bps"], _BLOCKRATE["daa"]
 
 
@@ -443,12 +457,25 @@ def vorlage_1(w, now):
     if k["was"] == "holders":
         bed = "addresses with a meaningful balance, %s against %s" % (tag_kurz(t[-1]), tag_kurz(t[0]))
         her = "source kaspalytics address counts"
+        zus = "one column per day, from zero"
     else:
         bed = "daily hashrate, %s against %s" % (tag_kurz(t[-1]), tag_kurz(t[0]))
-        her = SELBST
+        her = "source kaspa rest api hashrate"
+        zus = "daily hashrate, one column per day, from zero"
+
+    def objekt(x, y, ww, hh):
+        # erste und letzte saeule klein beschriftet, darunter (Ben, 30.09.2026)
+        unter = 52
+        s, bw, gap = o_saeulen(x, y, ww, hh - unter, r, len(r) - 1)
+        for i, farbe in ((0, RESTTON), (len(r) - 1, AK)):
+            s += ("<text x='%.1f' y='%.1f' fill='%s' font-size='30' text-anchor='middle'>%s</text>"
+                  % (x + i * (bw + gap) + bw / 2, y + hh - 10, farbe, tag_kurz(t[i])))
+        return s
     return {"kopf": "THIS WEEK", "zahl": "%+.1f%%" % k["pct"], "bedeutung": bed,
-            "zusatz": "one column per day, from zero", "herkunft": her,
-            "objekt": lambda x, y, ww, hh: o_saeulen(x, y, ww, hh, r, len(r) - 1)[0],
+            "x_satz": "%s %+.1f%% in 7 days, %s against %s" % (
+                "kaspa hashrate" if k["was"] == "hashrate" else "kaspa addresses with a meaningful balance",
+                k["pct"], tag_kurz(t[-1]), tag(t[0])),
+            "zusatz": zus, "herkunft": her, "objekt": objekt,
             "x_zeile": "%s on %s, %s on %s" % (
                 ganz(r[-1]) if k["was"] == "holders" else "%.1f PH/s" % r[-1], tag_kurz(t[-1]),
                 ganz(r[0]) if k["was"] == "holders" else "%.1f PH/s" % r[0], tag_kurz(t[0])),
@@ -472,18 +499,38 @@ def ex_24h(w, now):
     return [b for b in w["bewegungen"] if b["zeit_utc"] >= grenze and abs(b["netto"]) >= EX_EREIGNIS]
 
 
+STREIFEN_MIN_390 = 3      # px in der 390er vorschau, darunter kein streifen
+
+
+def streifen_breite(seite, w, netto):
+    """Breite des Bewegungsstreifens am Wallet-Quadrat. Flaechentreu im
+    Massstab des Umlaufs: Kante des Wallet-Quadrats mal Bewegung / Guthaben
+    (Ben, 30.09.2026)."""
+    wa = seite * math.sqrt(w["bal"] / w["circ"])
+    return wa, wa * abs(netto) / w["bal"]
+
+
 def vorlage_2(w, now):
-    """Die Wallet als Flaeche im Umlauf, die letzte Bewegung als kleiner
-    Block in Akzent, beide im selben Flaechenmassstab. Kein Dollarwert."""
+    """Die Wallet als Flaeche im Umlauf, beide im selben Flaechenmassstab.
+    Die letzte Bewegung ist ein heller Streifen an der Kante des
+    Wallet-Quadrats, im selben Massstab. Ist er in der 390er Vorschau unter
+    3 px, faellt er weg und die Bewegung steht nur in der Bedeutungszeile.
+    Kein Dollarwert."""
     anteil = 100 * w["bal"] / w["circ"]
     gross = [b for b in w["bewegungen"] if abs(b["netto"]) >= 100000]
     ereignis = ex_24h(w, now)
     b = max(ereignis, key=lambda x: abs(x["netto"])) if ereignis else (gross[-1] if gross else None)
+    # die seite des umlauf-quadrats haengt nur an der objektzone, siehe html()
+    _, oy, ow, oh = objektzone(zahlgroesse("%.2f%%" % anteil))
+    seite = min(ow * 0.78, oh)
+    streifen = False
     if b:
+        _, sb = streifen_breite(seite, w, b["netto"])
+        streifen = sb * VORSCHAU / W >= STREIFEN_MIN_390
         t = dt.datetime.fromisoformat(b["zeit_utc"])
         wie = "left" if b["netto"] < 0 else "came in"
-        bed = "of all KAS sits in one wallet. the small block, %s KAS %s on %s" % (
-            kurz(abs(b["netto"])), wie, tag_kurz(t.date()))
+        bed = "of all KAS sits in one wallet. %s KAS %s on %s%s" % (
+            kurz(abs(b["netto"])), wie, tag_kurz(t.date()), ", the bright strip" if streifen else "")
         x_zeile = "%s KAS %s the entity x wallet on %s, %s" % (
             kurz(abs(b["netto"])), "left" if b["netto"] < 0 else "came into", tag(t.date()), uhr(t))
     else:
@@ -495,15 +542,23 @@ def vorlage_2(w, now):
         s = ("<rect x='%.1f' y='%.1f' width='%.1f' height='%.1f' rx='4' fill='%s'/>"
              % (x, y, seite, seite, RESTTON))
         wa = seite * math.sqrt(w["bal"] / w["circ"])
-        s += ("<rect x='%.1f' y='%.1f' width='%.1f' height='%.1f' rx='4' fill='%s'/>"
-              % (x, y, wa, wa, AK))
-        if b:
-            bs = max(seite * math.sqrt(abs(b["netto"]) / w["circ"]), 3)
+        if streifen:
+            # kam etwas herein, ist der streifen teil des guthabens und liegt
+            # innen an der rechten kante; ging etwas hinaus, liegt er aussen.
+            _, sb = streifen_breite(seite, w, b["netto"])
+            innen = b["netto"] > 0
             s += ("<rect x='%.1f' y='%.1f' width='%.1f' height='%.1f' fill='%s'/>"
-                  % (x + seite + 40, y + wa - bs, bs, bs, AK))
+                  % (x, y, wa - (sb + 4 if innen else 0), wa, AK))
+            s += ("<rect x='%.1f' y='%.1f' width='%.1f' height='%.1f' fill='%s'/>"
+                  % (x + (wa - sb if innen else wa + 4), y, sb, wa, AK))
+        else:
+            s += ("<rect x='%.1f' y='%.1f' width='%.1f' height='%.1f' rx='4' fill='%s'/>"
+                  % (x, y, wa, wa, AK))
         return s
     return {"kopf": "ENTITY X MOVED" if ereignis else "ENTITY X", "zahl": "%.2f%%" % anteil,
+            "x_satz": "%.2f%% of all KAS in circulation sits in the entity x wallet, %s" % (anteil, tag(now.date())),
             "bedeutung": bed, "zusatz": "areas to scale, the big square is all KAS in circulation",
+            "streifen": streifen,
             "herkunft": SELBST, "objekt": objekt, "x_zeile": x_zeile,
             "x_neugier": "we check this wallet every day.",
             "pruefung": "nein, eine Wallet-Bewegung wird als Nachricht geteilt, nicht zum Angeben. "
@@ -515,7 +570,10 @@ def vorlage_2(w, now):
 def messen_3(now):
     nod = reward_plan()
     cur, nxt, nxt_ts = nod.reward_state(now.timestamp())
-    stufen = [nod.reward_state(nxt_ts - (k + 0.5) * nod.STEP)[0] for k in range(6, 0, -1)]
+    # fuenf vergangene stufen, die laufende, die naechste
+    stufen = [nod.reward_state(nxt_ts - (k + 0.5) * nod.STEP)[0] for k in range(5, -1, -1)]
+    if abs(stufen[-1] - cur) > 1e-9:
+        raise Stop("treppe passt nicht zur laufenden stufe")
     return {"cur": cur, "nxt": nxt, "nxt_ts": nxt_ts, "stufen": stufen + [nxt]}
 
 
@@ -540,6 +598,7 @@ def vorlage_3(w, now):
                                               "" if tage == 1 else "s"))
         return s
     return {"kopf": "NEXT REWARD CUT", "zahl": zahl, "zahl_im_objekt": True,
+            "x_satz": "%s until the next kaspa reward cut, %s, %s" % (zahl, tag(t.date()), uhr(t)),
             "bedeutung": "KAS per block, one step a month. the next step, %s, %s" % (tag(t.date()), uhr(t)),
             "zusatz": "%.2f KAS per block today, %.2f after, from zero" % (w["cur"], w["nxt"]),
             "herkunft": SELBST, "objekt": objekt,
@@ -555,42 +614,81 @@ RUHEPULS, SCHLAF_H = 60, 8
 
 def messen_4(now):
     bps, daa = blockrate()
-    return {"bps": bps, "daa": daa}
+    return {"bps": bps, "daa": daa, "sek": BLOCKRATE_SEK}
+
+
+BLOECKE_JE_PUNKT = 100
+
+
+def ekg_pfad(x0, x1, yb, amp, schlaege):
+    """Eine EKG-Linie von x0 bis x1 auf Hoehe yb, ein Schlag in der Mitte
+    jedes Abschnitts."""
+    seg = (x1 - x0) / schlaege
+    d = ["M%.1f,%.1f" % (x0, yb)]
+    for i in range(schlaege):
+        m = x0 + seg * (i + 0.5)
+        for dx, dy in ((-34, 0), (-26, -0.10), (-18, 0), (-8, 0), (-3, 0.18), (4, -1.0),
+                       (11, 0.42), (16, 0), (30, 0), (40, -0.16), (52, 0)):
+            d.append("L%.1f,%.1f" % (m + dx, yb + dy * amp))
+    d.append("L%.1f,%.1f" % (x1, yb))
+    return " ".join(d)
+
+
+def o_dichte(x, y, w, h, n, farbe, r=2.1):
+    """n Punkte gleichmaessig verstreut im Feld, fest gewuerfelt (gleiche
+    Zahl, gleiches Bild)."""
+    if n <= 0:
+        return ""
+    z = math.sqrt(w * h / n)
+    sp = max(1, round(w / z))
+    zl = math.ceil(n / sp)
+    zx, zy = w / sp, h / zl
+    s = []
+    for i in range(n):
+        c, rr = i % sp, i // sp
+        j1 = ((i * 2654435761) % 1000) / 1000
+        j2 = ((i * 40503 + 7919) % 1000) / 1000
+        s.append("<circle cx='%.1f' cy='%.1f' r='%.1f' fill='%s'/>"
+                 % (x + (c + 0.15 + 0.7 * j1) * zx, y + (rr + 0.15 + 0.7 * j2) * zy, r, farbe))
+    return "".join(s)
 
 
 def vorlage_4(w, now):
-    """Acht Stundenkacheln, ein Punkt je 100 Bloecke, alles aus der einen
-    gemessenen Blockrate. Kein Vergleich mit einer anderen Chain (Ben)."""
+    """Eine EKG-Linie quer ueber die Objektzone, ein Schlag je Stunde, acht
+    Stundenmarken darunter. Die Bloecke sind Punktdichte entlang der Linie,
+    ein Punkt je 100 Bloecke, alles aus der einen Blockrate, ueber 10 Minuten
+    gemessen. Kein Vergleich mit einer anderen Chain (Ben)."""
     bloecke = w["bps"] * SCHLAF_H * 3600
-    punkte = round(bloecke / 100)
-    je_std = round(w["bps"] * 3600 / 100)
+    punkte = round(bloecke / BLOECKE_JE_PUNKT)
     schlaege = RUHEPULS * 60 * SCHLAF_H
     je_schlag = bloecke / schlaege
 
     def objekt(x, y, ww, hh):
-        sp = max(1, round(math.sqrt(je_std * 2.08)))
-        zl = math.ceil(je_std / sp)
-        gx, gy = 48, 34
-        zelle = min((ww - gx) / (2 * sp), (hh - 3 * gy) / (4 * zl))
-        kw, kh = sp * zelle, zl * zelle
-        x0 = x + (ww - (2 * kw + gx)) / 2
-        s = []
-        rest = punkte
+        marke = 70                     # platz fuer die stundenmarken unten
+        band_h = hh - marke - 20
+        yb = y + band_h * 0.56
+        s = [o_dichte(x, y, ww, band_h, punkte, AK)]
+        # die linie liegt frei im punktfeld, ein hintergrundband schneidet sie aus
+        pfad = ekg_pfad(x, x + ww, yb, band_h * 0.42, SCHLAF_H)
+        s.append("<path d='%s' fill='none' stroke='%s' stroke-width='22' stroke-linejoin='round' "
+                 "stroke-linecap='round'/>" % (pfad, BG))
+        s.append("<path d='%s' fill='none' stroke='%s' stroke-width='5' stroke-linejoin='round' "
+                 "stroke-linecap='round'/>" % (pfad, AK))
+        seg = ww / SCHLAF_H
+        ym = y + hh - marke + 18
         for i in range(SCHLAF_H):
-            n = je_std if i < SCHLAF_H - 1 else rest
-            rest -= n
-            xx = x0 + (i % 2) * (kw + gx)
-            yy = y + (i // 2) * (kh + gy)
-            s.append(o_punkte(xx, yy, kw, kh, max(n, 0)))
+            s.append("<rect x='%.1f' y='%.1f' width='4' height='34' rx='2' fill='%s'/>"
+                     % (x + seg * (i + 0.5) - 2, ym, RESTTON))
         return "".join(s)
     return {"kopf": "WHILE YOU SLEPT", "zahl": ganz(round(bloecke, -3)),
+            "x_satz": "%s blocks added to kaspa in the %d hours you slept, measured %s" % (
+                ganz(round(bloecke, -3)), SCHLAF_H, tag(now.date())),
             "bedeutung": "about %s blocks for every heartbeat while you slept" % ("%.0f" % je_schlag),
-            "zusatz": "one tile per hour, \u25cf is 100 blocks, resting pulse %d, %d hours"
-                      % (RUHEPULS, SCHLAF_H),
+            "zusatz": "one mark per hour, \u25cf is %d blocks, resting pulse %d, %d hours"
+                      % (BLOECKE_JE_PUNKT, RUHEPULS, SCHLAF_H),
             "herkunft": SELBST, "objekt": objekt,
-            "x_zeile": "%s blocks added to kaspa in the %d hours you slept, measured %s"
-                       % (ganz(round(bloecke, -3)), SCHLAF_H, tag(now.date())),
-            "x_neugier": "about %.0f for every heartbeat." % je_schlag,
+            "x_zeile": "about %.0f for every heartbeat" % je_schlag,
+            "x_neugier": "how many heartbeats did you sleep?",
             "pruefung": "ja, riesige Zahl gegen den eigenen Herzschlag, genau der Angeber-Kontrast"}
 
 
@@ -614,6 +712,7 @@ def vorlage_5(w, now):
     fx = w["emission"] / w["fees"]
     n = round(fx) + 1
     return {"kopf": "WHAT PAYS THE MINERS", "zahl": "%sx" % ganz(fx),
+            "x_satz": "%sx more KAS in new coins than in fees, %d days to %s" % (ganz(fx), w["tage"], tag(w["bis"])),
             "bedeutung": "more KAS in new coins than in fees. the one bright square is the fees",
             "zusatz": "%d days to %s, one square each" % (w["tage"], tag(w["bis"])),
             "herkunft": "source kaspalytics fees, kaspa emission schedule",
@@ -635,49 +734,40 @@ def messen_6(now):
 
 
 def vorlage_6(w, now):
-    """Eine lange duenne Linie, jede Reihe 100 Millionen Bloecke, Marke an
-    jedem Reihenende. Anfang nov 2021 (der Genesis-Block der API ist der
-    Neustart vom 22.11.2021 und traegt schon DAA 1.312.860, deshalb nur der
-    Monat)."""
+    """Ein waagerechtes Lineal, eine Marke je 100 Millionen Bloecke, der
+    Endpunkt hell mit der Zahl daneben, die Startmarke "nov 2021" (Ben,
+    30.09.2026). Nur der Monat, weil der Genesis-Block der API der Neustart
+    vom 22.11.2021 ist und schon DAA 1.312.860 traegt."""
     daa = w["daa"]
-    reihen = daa / 1e8
+    mio = round(daa / 1e6)
 
     def objekt(x, y, ww, hh):
-        n = math.ceil(reihen)
-        abst = hh / n
-        r = abst / 2
-        lx0, lx1 = x + r, x + ww - r
-        L = lx1 - lx0
-        teile, marken = [], []
-        px, py = lx0, y + r
-        teile.append("M%.1f,%.1f" % (px, py))
-        for i in range(n):
-            anteil = min(1.0, reihen - i)
-            links = i % 2 == 0
-            ende = (lx0 + L * anteil) if links else (lx1 - L * anteil)
-            teile.append("L%.1f,%.1f" % (ende, py))
-            if anteil >= 1.0:
-                marken.append((ende, py))
-                if i < n - 1:
-                    teile.append("A%.1f,%.1f 0 0 %d %.1f,%.1f" % (r, r, 1 if links else 0, ende, py + abst))
-                    py += abst
-            else:
-                px = ende
-        s = ("<path d='%s' fill='none' stroke='%s' stroke-width='3' stroke-linecap='round'/>"
-             % (" ".join(teile), AK))
-        for mx, my in marken:
-            s += "<rect x='%.1f' y='%.1f' width='6' height='36' rx='3' fill='%s'/>" % (mx - 3, my - 18, AK)
-        s += "<circle cx='%.1f' cy='%.1f' r='9' fill='%s'/>" % (lx0, y + r, RESTTON)
-        s += "<circle cx='%.1f' cy='%.1f' r='12' fill='%s'/>" % (px, py, AK)
-        return s
+        platz = 250                      # rechts fuer "553M" neben dem endpunkt
+        L = ww - platz
+        ym = y + hh * 0.5
+        x_ende = x + L
+        s = ["<rect x='%.1f' y='%.1f' width='%.1f' height='6' rx='3' fill='%s'/>"
+             % (x, ym - 3, L, RESTTON)]
+        # startmarke, dann je 100M eine marke, alle gleich
+        for k in range(int(daa // 1e8) + 1):
+            mx = x + L * (k * 1e8) / daa
+            s.append("<rect x='%.1f' y='%.1f' width='6' height='80' rx='3' fill='%s'/>"
+                     % (mx - (0 if k == 0 else 3), ym - 40, RESTTON))
+        s.append("<text x='%.1f' y='%.1f' fill='%s' font-size='34'>nov 2021</text>"
+                 % (x, ym + 96, RESTTON))
+        s.append("<circle cx='%.1f' cy='%.1f' r='18' fill='%s'/>" % (x_ende, ym, AK))
+        s.append("<text x='%.1f' y='%.1f' fill='%s' font-size='64' font-weight='700'>%dM</text>"
+                 % (x_ende + 40, ym + 23, AK, mio))
+        return "".join(s)
     jahre = (now - dt.datetime(2021, 11, 7, tzinfo=dt.timezone.utc)).days / 365.25
-    return {"kopf": "FROM THE CHAIN", "zahl": "%dM" % round(daa / 1e6),
-            "bedeutung": "blocks since nov 2021, each row is 100 million",
+    return {"kopf": "FROM THE CHAIN", "zahl": "%dM" % mio,
+            "x_satz": "%dM kaspa blocks since nov 2021, counted %s" % (mio, tag(now.date())),
+            "bedeutung": "blocks since nov 2021, one mark every 100 million",
             "zusatz": "%.1f years of blocks, counted by the network's daa score" % (math.floor(jahre * 10) / 10),
             "herkunft": SELBST, "objekt": objekt,
-            "x_zeile": "the first blocks came in nov 2021",
-            "x_neugier": "every one of them is public. count them yourself.",
-            "pruefung": "ja, Hunderte Millionen Bloecke als eine Linie sind ein klarer Angeber-Fakt"}
+            "x_zeile": "%.1f years of blocks, each one public" % (math.floor(jahre * 10) / 10),
+            "x_neugier": "count them yourself.",
+            "pruefung": "ja, Hunderte Millionen Bloecke auf einem Lineal sind ein klarer Angeber-Fakt"}
 
 
 # --------------------------------------------------------------- form 7
@@ -708,6 +798,7 @@ def vorlage_7(w, now):
         return o_punkte(x, y, ww, hh, n)
     zusatz = ("\u25cf is %s" % ganz(ob["einheit"])) if ob.get("art") == "punkte" else "one square is 1%"
     return {"kopf": "%s ASKED" % e["name"].upper(), "zahl": e["zahl"],
+            "x_satz": "%s %s, %s" % (e["zahl"], e["antwort"], tag(e["stand"])),
             "bedeutung": "%s, %s" % (e["antwort"], tag(e["stand"])),
             "zusatz": zusatz, "herkunft": e.get("quelle") or SELBST, "objekt": objekt,
             "x_zeile": "asked by %s in #data-requests" % e["name"],
@@ -718,23 +809,29 @@ def vorlage_7(w, now):
 # --------------------------------------------------------------- form 8
 
 def messen_8(now):
-    ph = m_hashrate_phs()
+    """Eine Hashrate je Lauf: das Tagesmittel. Die grosse Zahl ist gestern,
+    die Flaeche die 90 Tage bis gestern, beide aus derselben Reihe."""
     hr = m_hashrate_tage()
     tage = [(now.date() - dt.timedelta(days=i)).isoformat() for i in range(90, 0, -1)]
+    if tage[-1] not in hr:
+        raise Stop("kein tagesmittel der hashrate fuer %s" % tage[-1])
     reihe = [hr[d] / 1000 for d in tage if d in hr]
     if len(reihe) < 80:
         raise Stop("hashrate-reihe hat nur %d von 90 tagen" % len(reihe))
     neu, _ = neue_kas(gestern(now), gestern(now))
-    return {"ph": ph, "reihe": reihe, "von": tage[0], "bis": tage[-1], "neu": neu,
-            "neu_tag": gestern(now)}
+    return {"ph": hr[tage[-1]] / 1000, "reihe": reihe, "von": tage[0], "bis": tage[-1],
+            "neu": neu, "neu_tag": gestern(now)}
 
 
 def vorlage_8(w, now):
+    t = w["bis"]
     return {"kopf": "SECURED BY WORK", "zahl": "%.1f PH/s" % w["ph"],
-            "bedeutung": "%s quadrillion hashes every second, measured %s" % (ganz(w["ph"]), tag_kurz(now.date())),
-            "zusatz": "daily hashrate, 90 days to %s, from zero" % tag(w["bis"]),
+            "x_satz": "%.1f PH/s of kaspa hashrate, %s quadrillion hashes every second, daily average %s" % (
+                w["ph"], ganz(w["ph"]), tag(t)),
+            "bedeutung": "%s quadrillion hashes every second on %s" % (ganz(w["ph"]), tag_kurz(t)),
+            "zusatz": "daily hashrate %s, 90 days, from zero" % tag_kurz(t),
             "herkunft": "source kaspa rest api hashrate",
-            "objekt": lambda x, y, ww, hh: o_flaeche_linie(x, y, ww, hh, w["reihe"] + [w["ph"]]),
+            "objekt": lambda x, y, ww, hh: o_flaeche_linie(x, y, ww, hh, w["reihe"]),
             "x_zeile": "%s new KAS paid for that work on %s" % (kurz(w["neu"]), tag_kurz(w["neu_tag"])),
             "x_neugier": "that is the work behind every block.",
             "pruefung": "ja, Quadrillion pro Sekunde ist ein Angeber-Kontrast ohne Kursbezug"}
@@ -743,28 +840,67 @@ def vorlage_8(w, now):
 # --------------------------------------------------------------- form 9
 
 def messen_9(now):
+    """Adressen ab 100 KAS, die letzten 8 Tage als Tageswerte, damit das
+    Objekt die Zugaenge je Tag zeigen kann."""
     import address_thresholds_log as atl
     roh, probleme = atl.sammle(heute=now.date())
-    tage = sorted(roh)
+    tage = sorted(d for d in roh if "holders_100kas" in roh[d])
     if not tage:
         raise Stop("keine schwellen: %s" % probleme)
     d1 = tage[-1]
-    d0 = d1 - dt.timedelta(days=7)
-    if d0 not in roh:
-        raise Stop("kein wert 7 tage vor %s" % d1)
-    return {"d1": d1.isoformat(), "d0": d0.isoformat(), "jetzt": roh[d1], "vorher": roh[d0]}
+    acht = [d1 - dt.timedelta(days=i) for i in range(7, -1, -1)]
+    fehlt = [d.isoformat() for d in acht if d not in tage]
+    if fehlt:
+        raise Stop("adressen ab 100 KAS fehlen fuer %s" % ", ".join(fehlt))
+    return {"d1": d1.isoformat(), "d0": acht[0].isoformat(),
+            "tage": {d.isoformat(): roh[d]["holders_100kas"] for d in acht}}
+
+
+def o_tagesspalten(x, y, w, h, werte, beschriftung):
+    """Eine Spalte je Tag, ein Punkt je Adresse, von unten gestapelt, alle
+    Spalten im selben Punktabstand. Ein Tag mit Rueckgang zeigt seine Punkte
+    im Resteton, die Zahl darunter traegt das Vorzeichen."""
+    n = len(werte)
+    gap = 24
+    unter = 52
+    cw = (w - gap * (n - 1)) / n
+    hoch = h - unter
+    hi = max(1, max(abs(v) for v in werte))
+    best = (0, 1)
+    for k in range(1, 40):
+        pz = min(cw / k, hoch / math.ceil(hi / k))
+        if pz > best[0]:
+            best = (pz, k)
+    pz, k = best
+    s = []
+    for i, v in enumerate(werte):
+        x0 = x + i * (cw + gap) + (cw - k * pz) / 2
+        farbe = AK if v >= 0 else RESTTON
+        for j in range(abs(v)):
+            s.append("<circle cx='%.1f' cy='%.1f' r='%.1f' fill='%s'/>"
+                     % (x0 + (j % k) * pz + pz / 2, y + hoch - (j // k) * pz - pz / 2, pz * 0.36, farbe))
+        s.append("<text x='%.1f' y='%.1f' fill='%s' font-size='30' text-anchor='middle'>%s</text>"
+                 % (x + i * (cw + gap) + cw / 2, y + h - 10, RESTTON, beschriftung[i]))
+    return "".join(s)
 
 
 def vorlage_9(w, now):
-    j, v = w["jetzt"]["holders_100kas"], w["vorher"]["holders_100kas"]
-    plus = j - v
-    einheit = 10
+    """Das Objekt zeigt nur die neuen Adressen, ein Punkt je Adresse, sieben
+    Spalten fuer sieben Tage, die Tageszahl klein darunter (Ben, 30.09.2026).
+    Die Gesamtzahl bleibt die grosse Zahl oben."""
+    reihe = [w["tage"][d] for d in sorted(w["tage"])]
+    tage = sorted(w["tage"])[1:]
+    neu = [b - a for a, b in zip(reihe, reihe[1:])]
+    j = reihe[-1]
+    plus = j - reihe[0]
+    rueck = any(v < 0 for v in neu)
     return {"kopf": "ADDRESSES", "zahl": ganz(j),
-            "bedeutung": "addresses hold at least 100 KAS, %+d in 7 days, the bright dots" % plus,
-            "zusatz": "\u25cf is %d addresses, %s against %s" % (einheit, tag_kurz(w["d1"]), tag_kurz(w["d0"])),
+            "x_satz": "%s kaspa addresses hold at least 100 KAS, %s" % (ganz(j), tag(w["d1"])),
+            "bedeutung": "addresses hold at least 100 KAS, %+d in 7 days, one dot each" % plus,
+            "zusatz": "one column per day, %s to %s%s" % (
+                tag_kurz(tage[0]), tag_kurz(tage[-1]), ", dim dots are a day that fell" if rueck else ""),
             "herkunft": "source kaspalytics address thresholds",
-            "objekt": lambda x, y, ww, hh: o_punkte(x, y, ww, hh, round(j / einheit), RESTTON,
-                                                    hervor=max(0, round(plus / einheit)), r=0.42),
+            "objekt": lambda x, y, ww, hh: o_tagesspalten(x, y, ww, hh, neu, ["%+d" % v for v in neu]),
             "x_zeile": "%+d in 7 days, since %s" % (plus, tag_kurz(w["d0"])),
             "x_neugier": "which side of 100 are you on?",
             "pruefung": ("ja, die Schwelle waechst, und jeder kann sich darin wiederfinden"
@@ -781,6 +917,7 @@ def messen_10(now):
 def vorlage_10(w, now):
     pct = 100 * w["circ"] / w["max"]
     return {"kopf": "MINED SO FAR", "zahl": "%.2f%%" % pct, "bedeutung": "0 premine",
+            "x_satz": "%.2f%% of all KAS that will ever exist is mined, %s" % (pct, tag(now.date())),
             "bedeutung_fett": True,
             "zusatz": "one square is 1% of all KAS that will ever exist",
             "herkunft": SELBST,
@@ -918,7 +1055,7 @@ def texte(s, form, messzeit):
         teile.append(s["zusatz"])
     teile.append(s["herkunft"])
     s["datumszeile"] = " \u00b7 ".join(teile)
-    satz_x = "%s %s." % (s["zahl"], s["bedeutung"])
+    satz_x = (s["x_satz"] if s.get("x_satz") else "%s %s" % (s["zahl"], s["bedeutung"])) + "."
     zweite = s.get("x_zeile")
     s["x"] = "%s\n%s.\n\n%s" % (satz_x, zweite.rstrip(".?!"), s["x_neugier"]) if zweite else \
         "%s\n\n%s" % (satz_x, s["x_neugier"])
@@ -973,16 +1110,21 @@ def zahlgroesse(z):
 OBJ = (64, 350, 952, 720)
 
 
+def objektzone(zg, zahl_im_objekt=False):
+    x, _, w, _ = OBJ
+    if zahl_im_objekt:
+        return x, 150, w, 870
+    y = 118 + zg * 0.86 + 50
+    return x, y, w, 1020 - y
+
+
 def html(s, falke):
     zg = zahlgroesse(s["zahl"])
-    x, y, w, h = OBJ
+    x, y, w, h = objektzone(zg, s.get("zahl_im_objekt"))
     if s.get("zahl_im_objekt"):
-        y, h = 150, 870
         zahl = ""
     else:
         zahl = "<div class='zahl' style='font-size:%dpx'>%s</div>" % (zg, esc(s["zahl"]))
-        y = 118 + zg * 0.86 + 50
-        h = 1020 - y
     obj = s["objekt"](x, y, w, h)
     sig = ("<div class='sig'><img src='%s' alt=''><span>KASPA PULSE</span>"
            "<svg viewBox='0 0 900 44' preserveAspectRatio='xMinYMid slice'><path d='%s' fill='none' "
@@ -1248,11 +1390,11 @@ FAKE = {
                     "stand": "2026-09-28", "offen": True,
                     "quelle": "source kaspalytics address thresholds",
                     "objekt": {"art": "punkte", "anzahl": 293501, "einheit": 100}}},
-    8: {"ph": 339.05, "reihe": [300 + i * 0.5 for i in range(90)], "von": "2026-07-01",
+    8: {"ph": 344.5, "reihe": [300 + i * 0.5 for i in range(90)], "von": "2026-07-01",
         "bis": "2026-09-28", "neu": 1885832.45, "neu_tag": "2026-09-28"},
     9: {"d1": "2026-09-28", "d0": "2026-09-21",
-        "jetzt": {"holders_100kas": 293501, "holders_1kas": 558856},
-        "vorher": {"holders_100kas": 293153, "holders_1kas": 556406}},
+        "tage": {"2026-09-%02d" % d: v for d, v in zip(range(21, 29), (
+            293153, 293190, 293241, 293260, 293302, 293371, 293430, 293501))}},
     10: {"circ": 27728257200.07, "max": 28704035605.0},
 }
 
@@ -1306,6 +1448,25 @@ def selbsttest():
     ok("eine rechnung fuer neue kas", abs(neue_kas("2026-09-28", "2026-09-28")[0]
                                           - emission_am_tag("2026-09-28")) < 1e-6)
     ok("form 2 ohne dollar", "$" not in json.dumps(s, default=str))
+    # objekt-regeln vom 30.09.2026
+    ok("form 2, 1.77M von 1.52B ist unter 3 px, kein streifen", not s["streifen"]
+       and "strip" not in s["bedeutung"] and "1.77M KAS came in" in s["bedeutung"])
+    gross = dict(FAKE[2], bewegungen=[{"zeit_utc": "2026-09-29T08:03:36+00:00", "tx": "x",
+                                       "netto": 300e6}])
+    s2g = seite_bauen(2, gross, FAKE_NOW, log)
+    ok("form 2, 300M gibt einen streifen", s2g["streifen"] and "bright strip" in s2g["bedeutung"])
+    o9 = s9["objekt"](*objektzone(zahlgroesse(s9["zahl"])))
+    ok("form 9, ein punkt je neuer adresse (348)", o9.count("<circle") == 348)
+    ok("form 9, sieben spalten beschriftet", o9.count("<text") == 7)
+    s1 = seite_bauen(1, FAKE[1], FAKE_NOW, log)
+    o1 = s1["objekt"](*objektzone(zahlgroesse(s1["zahl"])))
+    ok("form 1, erste und letzte saeule beschriftet", ">21 sep<" in o1 and ">28 sep<" in o1)
+    ok("form 8, eine hashrate, als tageswert gekennzeichnet",
+       "daily hashrate 28 sep" in s8["datumszeile"] and "measured" not in json.dumps(s8, default=str)
+       and abs(FAKE[8]["ph"] - FAKE[8]["reihe"][-1]) < 1e-9)
+    o4 = s4["objekt"](*objektzone(zahlgroesse(s4["zahl"])))
+    ok("form 4, punkte je 100 bloecke", o4.count("<circle") == round(FAKE[4]["bps"] * 8 * 3600 / 100))
+    ok("form 4, blockrate ueber 10 minuten", BLOCKRATE_SEK == 600)
     # rotation
     mo = dt.date(2026, 10, 5)
     ok("montag gibt form 1", waehle_form(mo, log)[0] == 1)
