@@ -1017,6 +1017,49 @@ def befehl_entityx28hop():
     return 0
 
 
+def befehl_entityx28stand():
+    """Nur lesend. Fuer die Grafik vom 29.09.2026: Umlaufmenge, Kontostand von
+    Entity X und der beiden Zieladressen, jeweils mit Abrufzeit, dazu die
+    Umlaufmenge um 29.09. 03:00 UTC, rueckgerechnet aus der virtuellen DAA-
+    Zeit nicht moeglich, deshalb die Emission je Stunde aus zwei Abrufen."""
+    import time
+    print("=" * 78)
+    print("ENTITY X, STAND FUER DIE GRAFIK")
+    print("=" * 78)
+
+    def supply():
+        st, txt = hole("https://api.kaspa.org/info/coinsupply")
+        if st != 200:
+            return None, None
+        d = json.loads(txt)
+        return dt.datetime.now(dt.timezone.utc), int(d["circulatingSupply"]) / 1e8
+
+    t1, c1 = supply()
+    for a in (EX_ADR,
+              "kaspa:qrl6dvnd6fjszucdnfueendlvvxdzcjrs2lcjune98up0whm954uz5k4dl80k",
+              "kaspa:qp779ewja7svac0r2xsvrdr7mckc0nk84m0sef6t9tsl7fs22y2jy4ucce686"):
+        st, txt = hole("https://api.kaspa.org/addresses/%s/balance" % a)
+        print("  %s  %s" % (a, "%.2f KAS" % (int(json.loads(txt)["balance"]) / 1e8)
+                            if st == 200 else "http %s" % st))
+    time.sleep(120)
+    t2, c2 = supply()
+    if c1 is None or c2 is None:
+        print("  coinsupply nicht erreichbar")
+        return 1
+    je_s = (c2 - c1) / max((t2 - t1).total_seconds(), 1)
+    ziel = dt.datetime(2026, 9, 29, 3, tzinfo=dt.timezone.utc)
+    c03 = c1 - je_s * (t1 - ziel).total_seconds()
+    st, txt = hole("https://api.kaspa.org/addresses/%s/balance" % EX_ADR)
+    ex = int(json.loads(txt)["balance"]) / 1e8
+    print("\n  umlauf %s  %.2f KAS" % (t1.isoformat(timespec="seconds"), c1))
+    print("  umlauf %s  %.2f KAS" % (t2.isoformat(timespec="seconds"), c2))
+    print("  emission gemessen %.2f KAS je sekunde" % je_s)
+    print("  umlauf 29.09. 03:00 utc, rueckgerechnet  %.2f KAS" % c03)
+    print("  entity x %.2f KAS, anteil jetzt %.4f %%, anteil 03:00 utc %.4f %%"
+          % (ex, 100 * ex / c2, 100 * ex / c03))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -1031,6 +1074,7 @@ BEFEHLE = {
     "entityx28": befehl_entityx28,
     "entityx28tx": befehl_entityx28tx,
     "entityx28hop": befehl_entityx28hop,
+    "entityx28stand": befehl_entityx28stand,
 }
 
 
