@@ -1,0 +1,109 @@
+name: tagesgrafik
+
+# Eine Grafik pro Tag fuer X und Discord (Ben, 29.09.2026). Der Workflow
+# postet NICHTS oeffentlich. PNG, Vorschau 390 px, Discord-Text, X-Text und
+# die Selbstpruefung gehen ueber DISCORD_WEBHOOK_OPS nach #moderator-only.
+# Ben prueft, postet Discord um 09:00 und plant X fuer 17:00.
+#
+# 07:30 Berlin, sommer- und winterzeitfest wie die Montagskette: zwei
+# Termine. 05:30 UTC ist im Sommer 07:30 Berlin, 06:30 UTC im Winter.
+# scripts/tagesgrafik.py --zeitplan liefert nur zwischen 07:00 und 12:00
+# Berlin und nur einmal am Tag (data/tagesgrafik-log.json). Der jeweils
+# andere Termin endet gruen ohne Lieferung: im Winter ist 05:30 UTC erst
+# 06:30 Berlin, im Sommer steht der Tag um 06:30 UTC schon im Log. Faellt
+# der erste Termin aus, liefert der zweite.
+
+on:
+  schedule:
+    - cron: "30 5 * * *"
+    - cron: "30 6 * * *"
+  workflow_dispatch:
+    inputs:
+      form:
+        description: "eine form von hand (1 bis 10), leer = rotation"
+        required: false
+        default: ""
+      senden:
+        description: "an #moderator-only schicken"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tagesgrafik
+  cancel-in-progress: false
+
+jobs:
+  grafik:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: playwright
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: selbsttest
+        run: python3 scripts/tagesgrafik.py --selftest
+      - name: grafik, geplant
+        if: github.event_name == 'schedule'
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+        run: python3 scripts/tagesgrafik.py --zeitplan --senden --log-schreiben --out graphics/tagesgrafik
+      - name: grafik, von hand
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          FORM: ${{ inputs.form }}
+          SENDEN: ${{ inputs.senden }}
+        run: |
+          ARGS="--out graphics/tagesgrafik"
+          if [ -n "$FORM" ]; then
+            case "$FORM" in ''|*[!0-9]*) echo "form muss eine zahl sein"; exit 1;; esac
+            ARGS="$ARGS --form $FORM"
+          fi
+          if [ "$SENDEN" = "true" ]; then ARGS="$ARGS --senden"; fi
+          python3 scripts/tagesgrafik.py $ARGS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tagesgrafik
+          path: graphics/tagesgrafik/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: log sichern
+        if: github.event_name == 'schedule'
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/tagesgrafik-log.json
+          if git diff --staged --quiet; then
+            echo "log unveraendert, kein commit"
+          else
+            git commit -m "tagesgrafik log [bot]"
+            git pull --rebase origin main
+            git push
+          fi
+      - name: ops bei rot
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
+          text = "tagesgrafik ist rot, keine grafik heute\n" + os.environ.get("LAUF", "")
+          print(text)
+          if hook:
+              req = urllib.request.Request(hook, data=json.dumps({"content": text,
+                    "allowed_mentions": {"parse": []}}).encode(), headers={
+                    "Content-Type": "application/json", "User-Agent": "kaspa-pulse-bot"})
+              urllib.request.urlopen(req, timeout=30)
+          PY
