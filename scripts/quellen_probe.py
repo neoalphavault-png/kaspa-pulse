@@ -737,6 +737,38 @@ def befehl_montag():
     return schlecht
 
 
+def befehl_tagesgrafik():
+    """Nur lesend. Misst alle freigeschalteten Formen von scripts/tagesgrafik.py
+    einmal echt und druckt jede Messung als eine Zeile "TGJSON {...}". Aus
+    diesen Zeilen rendert die Sitzung die Beispiele. Dazu die Rohfelder von
+    /info/blockdag und dem Genesis-Block, damit die Form-6-Zahlen belegt sind."""
+    import tagesgrafik as tg
+    print("=" * 78)
+    print("TAGESGRAFIK, ECHTE MESSUNG ALLER FORMEN")
+    print("=" * 78)
+    st, txt = hole(tg.REST + "/info/blockdag")
+    print("blockdag http %s: %s" % (st, kurz(txt, 900)))
+    st, txt = hole(tg.REST + "/blocks/%s?includeColor=false" % tg.GENESIS)
+    print("genesis http %s: %s" % (st, kurz(txt, 900)))
+    now = tg.jetzt_utc()
+    cut = tg.messen_3(now)
+    print("reward-senkung in %.2f tagen" % tg.cut_tage(cut, now))
+    try:
+        ex = tg.ex_24h({"bewegungen": tg.m_entityx_bewegungen(2)}, now)
+        print("entity x ab 500.000 in 24 h: %s" % ex)
+    except tg.Stop as exc:
+        print("entity x pruefung: %s" % exc)
+    schlecht = 0
+    for form in sorted(tg.FREIGESCHALTET - {7}):
+        try:
+            m = tg.messen(form, tg.jetzt_utc())
+            print("TGJSON " + json.dumps(m, ensure_ascii=False))
+        except tg.Stop as exc:
+            print("FORM %d ABBRUCH %s" % (form, exc))
+            schlecht += 1
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -748,6 +780,7 @@ BEFEHLE = {
     "wochen": befehl_wochen,
     "seite": befehl_seite,
     "montag": befehl_montag,
+    "tagesgrafik": befehl_tagesgrafik,
 }
 
 
