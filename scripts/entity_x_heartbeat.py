@@ -26,6 +26,7 @@
 #
 # Eigene State-Datei, damit der 10-Minuten-Watcher davon unberuehrt bleibt.
 
+import datetime as dt
 import json
 import os
 import re
@@ -141,9 +142,30 @@ def load_last():
         return None
 
 
+# Seit wann verglichen wird (Ben, 29.09.2026). Der Text sagte "in the last
+# 24 hours", verglichen wird aber mit dem letzten Lauf. Am 26. und 27.09.
+# lief keiner, und der Abgang vom 28.09. stand unter "24 hours", obwohl der
+# Vergleich rund 74 Stunden zurueckreichte. Die Datei traegt deshalb jetzt
+# den Zeitpunkt des Laufs mit, und der Text nennt dessen Datum.
+def load_last_check():
+    """Datum des letzten Laufs als "28 sep 2026", oder None, wenn die
+    Datei (noch) keinen Zeitpunkt traegt."""
+    try:
+        with open(STATE_FILE) as f:
+            t = json.load(f).get("checked_utc")
+        return dt.datetime.fromisoformat(t).strftime("%-d %b %Y").lower() if t else None
+    except (FileNotFoundError, json.JSONDecodeError, ValueError, TypeError, AttributeError):
+        return None
+
+
+def seit(datum):
+    return f"since the last check on {datum}" if datum else "since the last check"
+
+
 def save_last(balance_kas):
     with open(STATE_FILE, "w") as f:
-        json.dump({"balance_kas": round(balance_kas, 2)}, f)
+        json.dump({"balance_kas": round(balance_kas, 2),
+                   "checked_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")}, f)
 
 
 # Wortregel (Ben, 27.09.2026): bei Entity X nie buy, bought, buying,
@@ -219,6 +241,7 @@ def usd_part(kas, price, lead=", worth about "):
 def main():
     balance = fetch_balance_kas()
     last = load_last()
+    zuletzt = seit(load_last_check())
     pct = fetch_supply_pct(balance)
     price = fetch_price_usd()
     pctline = f" that is **{pct:.2f} percent** of everything in circulation." if pct else ""
@@ -249,7 +272,7 @@ def main():
         if abs(diff) < NOISE_KAS:
             send_embed(
                 "⚪ daily check. nothing moved",
-                f"entity x still holds **{fmt(balance)} KAS**, unchanged since yesterday.{pctline}\n"
+                f"entity x still holds **{fmt(balance)} KAS**, unchanged {zuletzt}.{pctline}\n"
                 f"{holdline}{driftline}"
                 "every coin that ever left this wallet is counted at "
                 "kaspapulse.com/entity-x.html.",
@@ -258,19 +281,19 @@ def main():
         elif diff > 0:
             send_embed(
                 "🟢 daily check. coins came in",
-                f"**{fmt(diff)} KAS** added in the last 24 hours"
+                f"**{fmt(diff)} KAS** added {zuletzt}"
                 f"{usd_part(diff, price)}.\n"
                 f"the wallet now holds **{fmt(balance)} KAS**"
                 f"{usd_part(balance, price, lead=', about ')}.{pctline}\n"
                 "an inflow is a transfer, not a proven buy.\n"
                 "this is a net figure. deposits and withdrawals inside the "
-                "same day cancel out before we see them.",
+                "same window cancel out before we see them.",
                 GREEN, price=price,
             )
         else:
             send_embed(
                 "🔴 daily check. coins left the wallet",
-                f"**{fmt(-diff)} KAS** left in the last 24 hours"
+                f"**{fmt(-diff)} KAS** left {zuletzt}"
                 f"{usd_part(-diff, price)}.\n"
                 f"the wallet now holds **{fmt(balance)} KAS**"
                 f"{usd_part(balance, price, lead=', about ')}.{pctline}\n"
@@ -285,6 +308,7 @@ def main():
 def selftest():
     """Alle drei Tagesfaelle und der erste Lauf, ohne Netz, mit DRY_RUN."""
     global fetch_balance_kas, load_last, fetch_supply_pct, fetch_price_usd, save_last
+    global load_last_check
     os.environ["DRY_RUN"] = "1"
     fehler = 0
     for name, gestern in (("erster lauf", None), ("gleich", 100.0),
@@ -294,6 +318,7 @@ def selftest():
         fetch_supply_pct = lambda b: 5.5              # noqa: E731
         fetch_price_usd = lambda: 0.05                # noqa: E731
         save_last = lambda b: None                    # noqa: E731
+        load_last_check = lambda: "25 sep 2026"       # noqa: E731
         gesendet = []
         alt = send_embed.__globals__["send_embed"]
 
@@ -310,11 +335,18 @@ def selftest():
         ok = not v
         if name == "zufluss":
             ok = ok and t == "🟢 daily check. coins came in" and ERLAUBT in d
+        if gestern is not None:
+            ok = ok and "since the last check on 25 sep 2026" in d and "24 hours" not in d \
+                and "yesterday" not in d
         print("%-4s %-12s %s" % ("ok" if ok else "FEHL", name, t))
         fehler += 0 if ok else 1
     ok = wortregel("entity x bought more") == ["bought"] and not wortregel(
         "an inflow is a transfer, not a proven buy.")
     print("%-4s %-12s %s" % ("ok" if ok else "FEHL", "wache", "bought faellt auf, verneinung nicht"))
+    fehler += 0 if ok else 1
+    ok = seit(None) == "since the last check" and seit("28 sep 2026") == \
+        "since the last check on 28 sep 2026"
+    print("%-4s %-12s %s" % ("ok" if ok else "FEHL", "ohne datum", "alte datei ohne zeitpunkt"))
     fehler += 0 if ok else 1
     print("%d fehler" % fehler)
     return fehler
