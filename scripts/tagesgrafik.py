@@ -459,6 +459,9 @@ def vorlage_1(w, now):
         bed = "daily hashrate, %s against %s" % (tag_kurz(t[-1]), tag_kurz(t[0]))
         her = SELBST
     return {"kopf": "THIS WEEK", "zahl": "%+.1f%%" % k["pct"], "bedeutung": bed,
+            "x_satz": "%s %+.1f%% in 7 days, %s against %s" % (
+                "kaspa hashrate" if k["was"] == "hashrate" else "kaspa addresses with a meaningful balance",
+                k["pct"], tag_kurz(t[-1]), tag(t[0])),
             "zusatz": "one column per day, from zero", "herkunft": her,
             "objekt": lambda x, y, ww, hh: o_saeulen(x, y, ww, hh, r, len(r) - 1)[0],
             "x_zeile": "%s on %s, %s on %s" % (
@@ -515,6 +518,7 @@ def vorlage_2(w, now):
                   % (x + seite + 40, y + wa - bs, bs, bs, AK))
         return s
     return {"kopf": "ENTITY X MOVED" if ereignis else "ENTITY X", "zahl": "%.2f%%" % anteil,
+            "x_satz": "%.2f%% of all KAS in circulation sits in the entity x wallet, %s" % (anteil, tag(now.date())),
             "bedeutung": bed, "zusatz": "areas to scale, the big square is all KAS in circulation",
             "herkunft": SELBST, "objekt": objekt, "x_zeile": x_zeile,
             "x_neugier": "we check this wallet every day.",
@@ -555,6 +559,7 @@ def vorlage_3(w, now):
                                               "" if tage == 1 else "s"))
         return s
     return {"kopf": "NEXT REWARD CUT", "zahl": zahl, "zahl_im_objekt": True,
+            "x_satz": "%s until the next kaspa reward cut, %s, %s" % (zahl, tag(t.date()), uhr(t)),
             "bedeutung": "KAS per block, one step a month. the next step, %s, %s" % (tag(t.date()), uhr(t)),
             "zusatz": "%.2f KAS per block today, %.2f after, from zero" % (w["cur"], w["nxt"]),
             "herkunft": SELBST, "objekt": objekt,
@@ -599,13 +604,14 @@ def vorlage_4(w, now):
             s.append(o_punkte(xx, yy, kw, kh, max(n, 0)))
         return "".join(s)
     return {"kopf": "WHILE YOU SLEPT", "zahl": ganz(round(bloecke, -3)),
+            "x_satz": "%s blocks added to kaspa in the %d hours you slept, measured %s" % (
+                ganz(round(bloecke, -3)), SCHLAF_H, tag(now.date())),
             "bedeutung": "about %s blocks for every heartbeat while you slept" % ("%.0f" % je_schlag),
             "zusatz": "one tile per hour, \u25cf is 100 blocks, resting pulse %d, %d hours"
                       % (RUHEPULS, SCHLAF_H),
             "herkunft": SELBST, "objekt": objekt,
-            "x_zeile": "%s blocks added to kaspa in the %d hours you slept, measured %s"
-                       % (ganz(round(bloecke, -3)), SCHLAF_H, tag(now.date())),
-            "x_neugier": "about %.0f for every heartbeat." % je_schlag,
+            "x_zeile": "about %.0f for every heartbeat" % je_schlag,
+            "x_neugier": "how many heartbeats did you sleep?",
             "pruefung": "ja, riesige Zahl gegen den eigenen Herzschlag, genau der Angeber-Kontrast"}
 
 
@@ -629,6 +635,7 @@ def vorlage_5(w, now):
     fx = w["emission"] / w["fees"]
     n = round(fx) + 1
     return {"kopf": "WHAT PAYS THE MINERS", "zahl": "%sx" % ganz(fx),
+            "x_satz": "%sx more KAS in new coins than in fees, %d days to %s" % (ganz(fx), w["tage"], tag(w["bis"])),
             "bedeutung": "more KAS in new coins than in fees. the one bright square is the fees",
             "zusatz": "%d days to %s, one square each" % (w["tage"], tag(w["bis"])),
             "herkunft": "source kaspalytics fees, kaspa emission schedule",
@@ -687,11 +694,12 @@ def vorlage_6(w, now):
         return s
     jahre = (now - dt.datetime(2021, 11, 7, tzinfo=dt.timezone.utc)).days / 365.25
     return {"kopf": "FROM THE CHAIN", "zahl": "%dM" % round(daa / 1e6),
+            "x_satz": "%dM kaspa blocks since nov 2021, counted %s" % (round(daa / 1e6), tag(now.date())),
             "bedeutung": "blocks since nov 2021, each row is 100 million",
             "zusatz": "%.1f years of blocks, counted by the network's daa score" % (math.floor(jahre * 10) / 10),
             "herkunft": SELBST, "objekt": objekt,
-            "x_zeile": "the first blocks came in nov 2021",
-            "x_neugier": "every one of them is public. count them yourself.",
+            "x_zeile": "%.1f years of blocks, each one public" % (math.floor(jahre * 10) / 10),
+            "x_neugier": "count them yourself.",
             "pruefung": "ja, Hunderte Millionen Bloecke als eine Linie sind ein klarer Angeber-Fakt"}
 
 
@@ -723,6 +731,7 @@ def vorlage_7(w, now):
         return o_punkte(x, y, ww, hh, n)
     zusatz = ("\u25cf is %s" % ganz(ob["einheit"])) if ob.get("art") == "punkte" else "one square is 1%"
     return {"kopf": "%s ASKED" % e["name"].upper(), "zahl": e["zahl"],
+            "x_satz": "%s %s, %s" % (e["zahl"], e["antwort"], tag(e["stand"])),
             "bedeutung": "%s, %s" % (e["antwort"], tag(e["stand"])),
             "zusatz": zusatz, "herkunft": e.get("quelle") or SELBST, "objekt": objekt,
             "x_zeile": "asked by %s in #data-requests" % e["name"],
@@ -746,6 +755,8 @@ def messen_8(now):
 
 def vorlage_8(w, now):
     return {"kopf": "SECURED BY WORK", "zahl": "%.1f PH/s" % w["ph"],
+            "x_satz": "%.1f PH/s of kaspa hashrate, %s quadrillion hashes every second, measured %s" % (
+                w["ph"], ganz(w["ph"]), tag(now.date())),
             "bedeutung": "%s quadrillion hashes every second, measured %s" % (ganz(w["ph"]), tag_kurz(now.date())),
             "zusatz": "daily hashrate, 90 days to %s, from zero" % tag(w["bis"]),
             "herkunft": "source kaspa rest api hashrate",
@@ -775,6 +786,7 @@ def vorlage_9(w, now):
     plus = j - v
     einheit = 10
     return {"kopf": "ADDRESSES", "zahl": ganz(j),
+            "x_satz": "%s kaspa addresses hold at least 100 KAS, %s" % (ganz(j), tag(w["d1"])),
             "bedeutung": "addresses hold at least 100 KAS, %+d in 7 days, the bright dots" % plus,
             "zusatz": "\u25cf is %d addresses, %s against %s" % (einheit, tag_kurz(w["d1"]), tag_kurz(w["d0"])),
             "herkunft": "source kaspalytics address thresholds",
@@ -796,6 +808,7 @@ def messen_10(now):
 def vorlage_10(w, now):
     pct = 100 * w["circ"] / w["max"]
     return {"kopf": "MINED SO FAR", "zahl": "%.2f%%" % pct, "bedeutung": "0 premine",
+            "x_satz": "%.2f%% of all KAS that will ever exist is mined, %s" % (pct, tag(now.date())),
             "bedeutung_fett": True,
             "zusatz": "one square is 1% of all KAS that will ever exist",
             "herkunft": SELBST,
@@ -933,7 +946,7 @@ def texte(s, form, messzeit):
         teile.append(s["zusatz"])
     teile.append(s["herkunft"])
     s["datumszeile"] = " \u00b7 ".join(teile)
-    satz_x = "%s %s." % (s["zahl"], s["bedeutung"])
+    satz_x = (s["x_satz"] if s.get("x_satz") else "%s %s" % (s["zahl"], s["bedeutung"])) + "."
     zweite = s.get("x_zeile")
     s["x"] = "%s\n%s.\n\n%s" % (satz_x, zweite.rstrip(".?!"), s["x_neugier"]) if zweite else \
         "%s\n\n%s" % (satz_x, s["x_neugier"])
