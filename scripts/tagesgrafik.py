@@ -7,9 +7,16 @@ anzugeben. Hype ueber Fakten, nie ueber den Kurs. Jede Grafik hat drei
 Zutaten: eine Zahl, die stolz macht, einen Kontrast, der sie sofort
 verstaendlich macht, und eine Zeile Absender.
 
-Vorlage ist die Entity-X-Grafik vom 29.09. (pruefung_entityx_grafik.py auf
-dem Pruef-Branch pruefung/entity-x-2026-09-28): 1080x1350, #080B0F, #49EACB,
-Falke und Schriftzug oben und unten, keine Domain, kein Link.
+HAUSNORM SEIT 29.09.2026 (Ben, Richtung C). Die Zahl ist das Bild: jede Form
+hat genau ein Objekt, das die Daten selbst IST und ohne Lesen verstanden
+wird. Der Rahmen ist bei allen gleich, nur das Objekt wechselt: Kopfzeile
+oben links, die eine Zahl, das Objekt, eine Bedeutungszeile, eine kleine
+Datumszeile mit Messzeit und Herkunft, unten die Signatur (Falke, KASPA
+PULSE, Pulslinie mit einer EKG-Zacke in #49EACB). Das Logo steht nur unten.
+Hoechstens vier Texte. Farben #080B0F, Akzent #49EACB, dritter Ton #2B7A6C
+fuer den Rest der Daten, Weiss nur fuer Kopf und Zahl. Keine Verlaeufe, kein
+Glow, keine Rahmen, Balken ab null. Hausschrift wie number_of_day.py
+(Liberation Sans auf dem Runner). 1080x1350, Vorschau 390 px.
 
 ZEHN FORMEN, jede mit eigener Vorlage (FORMEN unten) und eigener Messung:
 
@@ -18,7 +25,8 @@ ZEHN FORMEN, jede mit eigener Vorlage (FORMEN unten) und eigener Messung:
                         (week-input.json steht um 07:30 noch auf der Vorwoche)
    2  Entity X          Anteil am Umlauf plus letzte Bewegung, von der Kette
    3  Countdown         Tage bis zur naechsten Reward-Senkung, Anker-Arithmetik
-   4  Massstab          Bloecke in Alltagsgroessen, Blockrate im Lauf gemessen
+   4  Massstab          Bloecke waehrend 8 Stunden Schlaf, je Herzschlag, aus der
+                        einen im Lauf gemessenen Blockrate
    5  Miner-Oekonomie   neue Coins gegen Gebuehren, dieselben 30 Tage
    6  Aus der Kette     ein Fakt aus der Historie
    7  Community         Frage aus #data-requests, von Hand
@@ -40,12 +48,16 @@ Gebuehren je Tag von Kaspalytics, neue Coins je Tag aus dem Emissionsplan,
 fuer genau dieselben Tage, Hashrate aus api.kaspa.org fuer dieselben Tage.
 
 REGELN, vor jedem Rendern erzwungen (textpruefung()):
-  jede Grafik traegt ein Datum im Inhalt und "as of <tag>, <zeit> utc" im Fuss
+  die Datumszeile beginnt mit "<tag> <mon> <jahr>, <hh:mm> utc" und endet auf
+  "counted by kaspa pulse" (nur eigene Zaehlung) oder "source ..." allein
   "%" statt "percent", Ziffern statt Zahlwoertern
   kein Doppelpunkt ausser in Uhrzeiten, kein Gedankenstrich, kein Pfeil
   keine Domain, kein Link (einzige Ausnahme ist das Explorer-Label gate.io)
   kein Kursziel, kein Dollar- oder Kurswert
   Wortliste: sold, buy, bought, purchase, dump, whale, because, motive ...
+  Echtzeit-Woerter: around the clock, real time, every minute, instantly, live ...
+  kein Vergleich mit einer anderen Chain (bitcoin, ethereum ...), nie
+  "neue KAS" nur aus neue_kas(), immer mit Fenster
   Form 8 ohne Angreifer-Szenario (attack, 51, attacker ...)
   kein "never" und kein "record", "highest", "lowest" ohne Zeitraum
   X-Text ohne Link und unter 240 Zeichen
@@ -515,7 +527,10 @@ def vorlage_2(w, now):
 def messen_3(now):
     nod = reward_plan()
     cur, nxt, nxt_ts = nod.reward_state(now.timestamp())
-    stufen = [nod.reward_state(nxt_ts - (k + 0.5) * nod.STEP)[0] for k in range(6, 0, -1)]
+    # fuenf vergangene stufen, die laufende, die naechste
+    stufen = [nod.reward_state(nxt_ts - (k + 0.5) * nod.STEP)[0] for k in range(5, -1, -1)]
+    if abs(stufen[-1] - cur) > 1e-9:
+        raise Stop("treppe passt nicht zur laufenden stufe")
     return {"cur": cur, "nxt": nxt, "nxt_ts": nxt_ts, "stufen": stufen + [nxt]}
 
 
