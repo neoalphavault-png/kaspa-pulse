@@ -748,8 +748,22 @@ def befehl_tagesgrafik():
     print("=" * 78)
     st, txt = hole(tg.REST + "/info/blockdag")
     print("blockdag http %s: %s" % (st, kurz(txt, 900)))
-    st, txt = hole(tg.REST + "/blocks/%s?includeColor=false" % tg.GENESIS)
-    print("genesis http %s: %s" % (st, kurz(txt, 900)))
+    # die eine eingangstransaktion vom 29.09. vollstaendig (Bens zahlenfrage)
+    tid = "5e664c65fea87c87616667b8b2446dabe15c042ee2c931758f62f40769a6c4e1"
+    st, txt = hole(tg.REST + "/transactions/%s?inputs=true&outputs=true&resolve_previous_outpoints=light" % tid)
+    if st == 200:
+        t = json.loads(txt)
+        print("tx %s block_time %s accepted %s" % (tid, t.get("block_time"), t.get("is_accepted")))
+        for i in t.get("inputs") or []:
+            a = i.get("previous_outpoint_address")
+            s2, t2 = hole(tg.REST + "/addresses/%s/name" % a)
+            print("  ein %s %.2f [%s]" % (a, float(i.get("previous_outpoint_amount") or 0) / 1e8,
+                  "entity x" if a == tg.EX_ADR else (json.loads(t2).get("name") if s2 == 200 else "http %s" % s2)))
+        for o in t.get("outputs") or []:
+            a = o.get("script_public_key_address")
+            print("  aus %s %.2f%s" % (a, float(o.get("amount") or 0) / 1e8, " [entity x]" if a == tg.EX_ADR else ""))
+    else:
+        print("tx http %s" % st)
     now = tg.jetzt_utc()
     cut = tg.messen_3(now)
     print("reward-senkung in %.2f tagen" % tg.cut_tage(cut, now))
