@@ -635,21 +635,23 @@ def ekg_pfad(x0, x1, yb, amp, schlaege):
 
 
 def o_dichte(x, y, w, h, n, farbe, r=2.1):
-    """n Punkte gleichmaessig verstreut im Feld, fest gewuerfelt (gleiche
-    Zahl, gleiches Bild)."""
+    """n Punkte gleichmaessig verstreut im Feld: ein Raster mit mindestens n
+    Zellen, jeder Punkt zufaellig in seiner Zelle, die leeren Zellen zufaellig
+    verteilt. Fester Zufall, gleiche Zahl gibt dasselbe Bild."""
+    import random
     if n <= 0:
         return ""
+    rnd = random.Random(n)
     z = math.sqrt(w * h / n)
     sp = max(1, round(w / z))
     zl = math.ceil(n / sp)
     zx, zy = w / sp, h / zl
+    zellen = rnd.sample(range(sp * zl), n)
     s = []
-    for i in range(n):
-        c, rr = i % sp, i // sp
-        j1 = ((i * 2654435761) % 1000) / 1000
-        j2 = ((i * 40503 + 7919) % 1000) / 1000
+    for c in zellen:
         s.append("<circle cx='%.1f' cy='%.1f' r='%.1f' fill='%s'/>"
-                 % (x + (c + 0.15 + 0.7 * j1) * zx, y + (rr + 0.15 + 0.7 * j2) * zy, r, farbe))
+                 % (x + (c % sp + 0.15 + 0.7 * rnd.random()) * zx,
+                    y + (c // sp + 0.15 + 0.7 * rnd.random()) * zy, r, farbe))
     return "".join(s)
 
 
@@ -857,28 +859,36 @@ def messen_9(now):
 
 
 def o_tagesspalten(x, y, w, h, werte, beschriftung):
-    """Eine Spalte je Tag, ein Punkt je Adresse, von unten gestapelt, alle
-    Spalten im selben Punktabstand. Ein Tag mit Rueckgang zeigt seine Punkte
-    im Resteton, die Zahl darunter traegt das Vorzeichen."""
+    """Eine Spalte je Tag, ein Punkt je Adresse, alle Spalten im selben
+    Punktabstand. Zugaenge stehen hell ueber der Linie, ein Tag mit
+    Rueckgang zeigt seine Punkte im Resteton darunter, die Zahl unten traegt
+    das Vorzeichen. So stimmt jede Spalte, auch wenn ein Tag faellt."""
     n = len(werte)
-    gap = 24
-    unter = 52
+    gap, unter, luft = 24, 52, 14
     cw = (w - gap * (n - 1)) / n
-    hoch = h - unter
-    hi = max(1, max(abs(v) for v in werte))
+    hoch = h - unter - luft
+    auf = max([v for v in werte if v > 0] or [0])
+    ab = max([-v for v in werte if v < 0] or [0])
     best = (0, 1)
     for k in range(1, 40):
-        pz = min(cw / k, hoch / math.ceil(hi / k))
+        zeilen = math.ceil(auf / k) + math.ceil(ab / k)
+        pz = min(cw / k, hoch / max(1, zeilen))
         if pz > best[0]:
             best = (pz, k)
     pz, k = best
+    yl = y + math.ceil(auf / k) * pz + luft / 2          # die linie
     s = []
+    if ab:
+        s.append("<rect x='%.1f' y='%.1f' width='%.1f' height='2' fill='%s'/>" % (x, yl - 1, w, RESTTON))
     for i, v in enumerate(werte):
         x0 = x + i * (cw + gap) + (cw - k * pz) / 2
-        farbe = AK if v >= 0 else RESTTON
         for j in range(abs(v)):
-            s.append("<circle cx='%.1f' cy='%.1f' r='%.1f' fill='%s'/>"
-                     % (x0 + (j % k) * pz + pz / 2, y + hoch - (j // k) * pz - pz / 2, pz * 0.36, farbe))
+            cx = x0 + (j % k) * pz + pz / 2
+            if v > 0:
+                cy, farbe = yl - luft / 2 - (j // k) * pz - pz / 2, AK
+            else:
+                cy, farbe = yl + luft / 2 + (j // k) * pz + pz / 2, RESTTON
+            s.append("<circle cx='%.1f' cy='%.1f' r='%.1f' fill='%s'/>" % (cx, cy, pz * 0.36, farbe))
         s.append("<text x='%.1f' y='%.1f' fill='%s' font-size='30' text-anchor='middle'>%s</text>"
                  % (x + i * (cw + gap) + cw / 2, y + h - 10, RESTTON, beschriftung[i]))
     return "".join(s)
@@ -898,7 +908,7 @@ def vorlage_9(w, now):
             "x_satz": "%s kaspa addresses hold at least 100 KAS, %s" % (ganz(j), tag(w["d1"])),
             "bedeutung": "addresses hold at least 100 KAS, %+d in 7 days, one dot each" % plus,
             "zusatz": "one column per day, %s to %s%s" % (
-                tag_kurz(tage[0]), tag_kurz(tage[-1]), ", dim dots are a day that fell" if rueck else ""),
+                tag_kurz(tage[0]), tag_kurz(tage[-1]), ", below the line a day that fell" if rueck else ""),
             "herkunft": "source kaspalytics address thresholds",
             "objekt": lambda x, y, ww, hh: o_tagesspalten(x, y, ww, hh, neu, ["%+d" % v for v in neu]),
             "x_zeile": "%+d in 7 days, since %s" % (plus, tag_kurz(w["d0"])),
@@ -1458,6 +1468,11 @@ def selbsttest():
     o9 = s9["objekt"](*objektzone(zahlgroesse(s9["zahl"])))
     ok("form 9, ein punkt je neuer adresse (348)", o9.count("<circle") == 348)
     ok("form 9, sieben spalten beschriftet", o9.count("<text") == 7)
+    fall = dict(FAKE[9], tage=dict(FAKE[9]["tage"], **{"2026-09-23": 293031}))
+    s9f = seite_bauen(9, fall, FAKE_NOW, log)
+    o9f = s9f["objekt"](*objektzone(zahlgroesse(s9f["zahl"])))
+    ok("form 9, tag mit rueckgang unter der linie im resteton",
+       o9f.count("fill='%s'/>" % RESTTON) >= 159 and "below the line" in s9f["datumszeile"])
     s1 = seite_bauen(1, FAKE[1], FAKE_NOW, log)
     o1 = s1["objekt"](*objektzone(zahlgroesse(s1["zahl"])))
     ok("form 1, erste und letzte saeule beschriftet", ">21 sep<" in o1 and ">28 sep<" in o1)
