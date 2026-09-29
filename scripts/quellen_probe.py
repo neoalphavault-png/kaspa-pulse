@@ -977,6 +977,46 @@ def befehl_entityx28tx():
     return 0
 
 
+def befehl_entityx28hop():
+    """Nur lesend. Wohin die Zieladresse qrl6dvnd... die 3.291.851 KAS vom
+    28.09.2026 weitergegeben hat: alle ihre Transaktionen ab 28.09. 12:00
+    UTC, Ausgaenge mit Betrag und Label (Liste und Explorer-API)."""
+    a = "kaspa:qrl6dvnd6fjszucdnfueendlvvxdzcjrs2lcjune98up0whm954uz5k4dl80k"
+    ab_ms = int(dt.datetime(2026, 9, 28, 12, tzinfo=dt.timezone.utc).timestamp() * 1000)
+    try:
+        from entity_x_outflows import KNOWN
+    except Exception:                              # noqa: BLE001
+        KNOWN = {}
+    print("=" * 78)
+    print("ZIELADRESSE %s, WEITERGABE AB 28.09. 12:00 UTC" % a)
+    print("=" * 78)
+    st, txt = hole("https://api.kaspa.org/addresses/%s/full-transactions-page"
+                   "?limit=20&resolve_previous_outpoints=light" % a)
+    if st != 200:
+        print("  http %s: %s" % (st, kurz(txt, 200)))
+        return 1
+    for t in sorted(json.loads(txt), key=lambda x: x.get("block_time") or 0):
+        bt = t.get("block_time") or 0
+        if bt < ab_ms:
+            continue
+        print("\n  %s  %s  accepted %s" % (
+            dt.datetime.fromtimestamp(bt / 1000, dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+            t.get("transaction_id"), t.get("is_accepted")))
+        for i in t.get("inputs") or []:
+            x = i.get("previous_outpoint_address")
+            print("    ein  %s  %16.2f%s" % (x, float(i.get("previous_outpoint_amount") or 0) / 1e8,
+                                           "  [entity x]" if x == EX_ADR else ""))
+        for o in t.get("outputs") or []:
+            x = o.get("script_public_key_address") or o.get("address")
+            liste = KNOWN.get(x)
+            s2, t2 = hole("https://api.kaspa.org/addresses/%s/name" % x)
+            api = (json.loads(t2) or {}).get("name") if s2 == 200 else None
+            print("    aus  %s  %16.2f  [liste %s; explorer-api %s]" % (
+                x, float(o.get("amount") or 0) / 1e8, einordnen(liste),
+                einordnen(api) if s2 == 200 else "http %s" % s2))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -990,6 +1030,7 @@ BEFEHLE = {
     "montag": befehl_montag,
     "entityx28": befehl_entityx28,
     "entityx28tx": befehl_entityx28tx,
+    "entityx28hop": befehl_entityx28hop,
 }
 
 
