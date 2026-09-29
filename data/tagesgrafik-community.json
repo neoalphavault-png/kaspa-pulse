@@ -1,0 +1,12 @@
+{
+ "_hinweise": {
+  "fragen": "je frage ein eintrag. die tagesgrafik nimmt den ersten mit offen true, sobald form 7 dran ist, und setzt ihn danach nicht selbst zurueck. nach dem post offen auf false stellen.",
+  "zahl": "die zahl, gross im bild, mit ziffern, zum beispiel 293,458",
+  "antwort": "was die zahl ist, ein satz ohne doppelpunkt, zum beispiel addresses held at least 100 KAS",
+  "stand": "messdatum JJJJ-MM-TT, es steht im bild",
+  "name": "der discord-name, wie er im bild stehen soll, nur mit zustimmung",
+  "frage": "die frage, wie sie in #data-requests gestellt wurde, kurz",
+  "quelle": "optional, landet in der fusszeile, zum beispiel source kaspalytics address thresholds"
+ },
+ "fragen": []
+}
