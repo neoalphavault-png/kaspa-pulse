@@ -909,6 +909,74 @@ def befehl_entityx28():
     return 0
 
 
+def befehl_entityx28tx():
+    """Nur lesend. Die eine Abgangs-Transaktion vom 28.09.2026 vollstaendig:
+    jeder Eingang und jeder Ausgang mit Adresse, Betrag und Label, dazu die
+    Gebuehr, und fuer die beiden Zieladressen Kontostand und Zahl der
+    Transaktionen. Schreibt nichts."""
+    tid = "65f120cf8cbeec472a20f283c5da84d3d9a4ac775c8326c7a1871c8a4a924964"
+    print("=" * 78)
+    print("ENTITY X, TRANSAKTION %s" % tid)
+    print("=" * 78)
+    st, txt = hole("https://api.kaspa.org/transactions/%s?inputs=true&outputs=true"
+                   "&resolve_previous_outpoints=light" % tid)
+    if st != 200:
+        print("  http %s: %s" % (st, kurz(txt, 200)))
+        return 1
+    t = json.loads(txt)
+    print("  block_time %s, accepted %s, blue score %s" % (
+        dt.datetime.fromtimestamp((t.get("block_time") or 0) / 1000, dt.timezone.utc).isoformat(),
+        t.get("is_accepted"), t.get("accepting_block_blue_score")))
+
+    def name(a):
+        if a == EX_ADR:
+            return "entity x"
+        s2, t2 = hole("https://api.kaspa.org/addresses/%s/name" % a)
+        api = None
+        if s2 == 200:
+            try:
+                api = (json.loads(t2) or {}).get("name")
+            except Exception:                      # noqa: BLE001
+                api = None
+        return "explorer-api %s" % (einordnen(api) if s2 == 200 else "http %s" % s2)
+
+    ein = 0.0
+    print("\n  eingaenge:")
+    for i in t.get("inputs") or []:
+        a, amt = i.get("previous_outpoint_address"), float(i.get("previous_outpoint_amount") or 0) / 1e8
+        ein += amt
+        print("    %s  %16.2f  [%s]" % (a, amt, name(a)))
+    aus = 0.0
+    print("\n  ausgaenge:")
+    for o in t.get("outputs") or []:
+        a = o.get("script_public_key_address") or o.get("address")
+        amt = float(o.get("amount") or 0) / 1e8
+        aus += amt
+        print("    %s  %16.2f  [%s]" % (a, amt, name(a)))
+    print("\n  summe ein %.2f, summe aus %.2f, gebuehr %.8f" % (ein, aus, ein - aus))
+
+    ziele = sorted({o.get("script_public_key_address") or o.get("address")
+                    for o in t.get("outputs") or []} - {EX_ADR})
+    print("\n  zieladressen heute:")
+    for a in ziele:
+        s1, b = hole("https://api.kaspa.org/addresses/%s/balance" % a)
+        s2, c = hole("https://api.kaspa.org/addresses/%s/transactions-count" % a)
+        bal = int(json.loads(b)["balance"]) / 1e8 if s1 == 200 else None
+        cnt = json.loads(c).get("total") if s2 == 200 else None
+        s3, fl = hole("https://api.kaspa.org/addresses/%s/full-transactions-page"
+                      "?limit=10&resolve_previous_outpoints=no" % a)
+        erste = letzte = None
+        if s3 == 200:
+            zeiten = sorted(x.get("block_time") or 0 for x in json.loads(fl))
+            if zeiten:
+                f = lambda v: dt.datetime.fromtimestamp(v / 1000, dt.timezone.utc).strftime("%Y-%m-%d %H:%M")  # noqa: E731
+                erste, letzte = f(zeiten[0]), f(zeiten[-1])
+        print("    %s  kontostand %s, transaktionen %s, juengste zehn %s bis %s"
+              % (a, "%.2f" % bal if bal is not None else "http %s" % s1,
+                 cnt if cnt is not None else "http %s" % s2, erste, letzte))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -921,6 +989,7 @@ BEFEHLE = {
     "seite": befehl_seite,
     "montag": befehl_montag,
     "entityx28": befehl_entityx28,
+    "entityx28tx": befehl_entityx28tx,
 }
 
 
