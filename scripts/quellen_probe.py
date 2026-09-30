@@ -737,6 +737,93 @@ def befehl_montag():
     return schlecht
 
 
+def befehl_formen1112():
+    """Nur lesend, fuer die Pruefung Form 11 und 12 (Ben, 30.09.2026).
+    Form 11: supply/inactive mit mehreren minAge-Werten, die hodl-waves-Baender
+    und der Erklaertext der Seite. Form 12: supply/exchange-holdings roh, der
+    Erklaertext der Seite, alle /api/-Pfade aus Seite und Skripten, dazu die
+    Explorer-Labels mit Kontostand von heute."""
+    print("=" * 78)
+    print("FORM 11 UND 12, KASPALYTICS UND LABELS")
+    print("=" * 78)
+
+    def reihe_zeigen(pfad):
+        st, txt = hole(KL + "/api/charts/" + pfad)
+        print("\n%s  http %s" % (pfad, st))
+        if st != 200:
+            print("  " + kurz(txt, 200))
+            return None
+        d, f = form(txt)
+        if not isinstance(d, dict):
+            print("  " + f)
+            return None
+        lab = d.get("labels") or []
+        print("  schluessel %s, %d marken, erste %s, letzte %s" % (
+            sorted(d.keys()), len(lab), lab[:1], lab[-3:]))
+        for ds in d.get("datasets") or []:
+            werte = ds.get("data") or []
+            print("  reihe %r, %d werte, letzte drei %s" % (ds.get("label"), len(werte), werte[-3:]))
+        for k in d:
+            if k not in ("labels", "datasets"):
+                print("  feld %s = %s" % (k, kurz(json.dumps(d[k]), 400)))
+        return d
+
+    for m in ("1year", "2years", "2year", "6months", "3years", "730days", "2y", "1y"):
+        reihe_zeigen("supply/inactive?minAge=" + m)
+    reihe_zeigen("supply/hodl-waves")
+    reihe_zeigen("supply/exchange-holdings")
+    for g in ("supply/exchange-holdings?breakdown=true", "supply/exchange-holdings/addresses",
+              "supply/exchanges", "supply/distribution", "supply/balance-distribution",
+              "address/distribution", "supply/top-holders", "supply/rich-list",
+              "address/count/balance-ranges"):
+        st, txt = hole(KL + "/api/charts/" + g)
+        print("versuch %s  http %s  %s" % (g, st, kurz(txt, 160)))
+
+    # erklaertexte und alle api-pfade aus den seiten und ihren skripten
+    pfade, skripte = set(), set()
+    for seite in ("/app/supply/exchange-holdings", "/app/supply/inactive", "/app/supply/hodl-waves",
+                  "/app/supply"):
+        st, html = hole(KL + seite)
+        print("\nSEITE %s  http %s, %d zeichen" % (seite, st, len(html)))
+        if st != 200:
+            continue
+        text = re.sub(r"<script.*?</script>|<style.*?</style>", " ", html, flags=re.S)
+        text = " ".join(re.sub(r"<[^>]+>", " ", text).split())
+        for wort in ("exchange", "Exchange", "address", "inactive", "Inactive", "dormant", "moved",
+                     "tracked", "Tracked", "label"):
+            for mt in re.finditer(wort, text):
+                print("  text …%s…" % text[max(0, mt.start() - 160): mt.start() + 200])
+                break
+        pfade |= set(re.findall(r"/api/[A-Za-z0-9/_\-?=&.]+", html))
+        skripte |= set(re.findall(r'src="(/_next/static/[^"]+\.js)"', html))
+    print("\n%d skripte" % len(skripte))
+    for sk in sorted(skripte)[:60]:
+        st, js = hole(KL + sk)
+        if st == 200:
+            pfade |= set(re.findall(r"/api/[A-Za-z0-9/_\-?=&.${}]+", js))
+            pfade |= set("charts/" + x for x in re.findall(r'"(supply/[A-Za-z0-9/_\-?=&.]+)"', js))
+            for mt in re.finditer(r"[Ee]xchange[^\"']{0,20}[\"'][^\"']{0,200}", js):
+                if "address" in mt.group(0).lower() or "kaspa:" in mt.group(0):
+                    print("  js %s …%s…" % (sk[-30:], kurz(mt.group(0), 220)))
+            for mt in re.finditer(r"kaspa:q[a-z0-9]{60}", js):
+                print("  js %s adresse %s" % (sk[-30:], mt.group(0)))
+    print("\nALLE API-PFADE (%d)" % len(pfade))
+    for x in sorted(pfade):
+        print("  " + x)
+
+    # explorer-labels mit kontostand heute, dieselbe quelle wie die richlist
+    st, txt = hole(KASPA_API + "/addresses/names")
+    namen = json.loads(txt) if st == 200 else []
+    print("\nLABELS http %s, %d" % (st, len(namen)))
+    for n in namen:
+        s2, t2 = hole(KASPA_API + "/addresses/%s/balance" % n["address"])
+        kas = int(json.loads(t2)["balance"]) / 1e8 if s2 == 200 else None
+        print("LABELJSON " + json.dumps({"name": n["name"], "adresse": n["address"], "kas": kas,
+                                          "zeit_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")},
+                                         ensure_ascii=False))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -748,6 +835,7 @@ BEFEHLE = {
     "wochen": befehl_wochen,
     "seite": befehl_seite,
     "montag": befehl_montag,
+    "formen1112": befehl_formen1112,
 }
 
 
