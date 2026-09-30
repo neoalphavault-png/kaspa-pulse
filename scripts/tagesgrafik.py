@@ -60,7 +60,9 @@ REGELN, vor jedem Rendern erzwungen (textpruefung()):
   "neue KAS" nur aus neue_kas(), immer mit Fenster
   Form 8 ohne Angreifer-Szenario (attack, 51, attacker ...)
   kein "never" und kein "record", "highest", "lowest" ohne Zeitraum
-  X-Text ohne Link und unter 240 Zeichen
+  X-Text in drei Zeilen, ohne Link, unter 240 Zeichen: Zeile 1 ohne
+  Dezimalstelle, Zeile 3 eine Frage. Der Link steht nur im Feld antwort
+  (utm_source=x, utm_medium=reply, utm_campaign=form<N>).
 
 ROTATION (waehle_form()). Ereignis schlaegt Plan: Reward-Senkung in hoechstens
 3 Tagen gibt Form 3, eine Entity-X-Bewegung ab 500.000 KAS in den letzten
@@ -69,8 +71,8 @@ nicht lief und in den letzten 30 Tagen am seltensten, bei Gleichstand die,
 deren letzter Lauf am laengsten her ist. data/tagesgrafik-log.json haelt,
 welche Form wann lief.
 
-AUSGABE: PNG 1080x1350, Vorschau 390 px, Discord-Text, X-Text und eine
-Zeile Selbstpruefung. Mit --senden geht alles an DISCORD_WEBHOOK_OPS
+AUSGABE: PNG 1080x1350, Vorschau 390 px, Discord-Text, X-Text, die
+Antwort unter dem X-Post und eine Zeile Selbstpruefung. Mit --senden geht alles an DISCORD_WEBHOOK_OPS
 (#moderator-only). Es gibt keinen oeffentlichen Post aus diesem Skript.
 
     python3 scripts/tagesgrafik.py --out /tmp/tg                 heute, rotiert
@@ -464,22 +466,40 @@ def vorlage_1(w, now):
         zus = "daily hashrate, one column per day, from zero"
 
     def objekt(x, y, ww, hh):
-        # erste und letzte saeule klein beschriftet, darunter (Ben, 30.09.2026)
-        unter = 52
-        s, bw, gap = o_saeulen(x, y, ww, hh - unter, r, len(r) - 1)
-        for i, farbe in ((0, RESTTON), (len(r) - 1, AK)):
+        # nur zwei saeulen, der erste und der letzte tag, ab null, die
+        # rechte hell, beide klein beschriftet (Ben, 30.09.2026, v4)
+        unter, bw, gap = 52, 300, 120
+        x0 = x + (ww - 2 * bw - gap) / 2
+        hi = max(r[0], r[-1])
+        s = ""
+        for i, (v, farbe) in enumerate(((r[0], RESTTON), (r[-1], AK))):
+            hs = (hh - unter) * v / hi
+            s += ("<rect x='%.1f' y='%.1f' width='%.1f' height='%.1f' rx='4' fill='%s'/>"
+                  % (x0 + i * (bw + gap), y + hh - unter - hs, bw, hs, farbe))
             s += ("<text x='%.1f' y='%.1f' fill='%s' font-size='30' text-anchor='middle'>%s</text>"
-                  % (x + i * (bw + gap) + bw / 2, y + hh - 10, farbe, tag_kurz(t[i])))
+                  % (x0 + i * (bw + gap) + bw / 2, y + hh - 10, farbe, tag_kurz(t[-1 if i else 0])))
         return s
+    ganzzahl = abs(round(k["pct"]))
+    wie = "rose" if k["pct"] > 0 else "fell"
+    if k["was"] == "holders":
+        n = r[-1] - r[0]
+        x1 = "kaspa %s %s addresses with a meaningful balance in one week." % (
+            "gained" if n >= 0 else "lost", ganz(abs(n)))
+        x2 = "%s against %s, source kaspalytics address counts" % (tag_kurz(t[-1]), tag(t[0]))
+        x3 = "how many is that a day?"
+        aufl = ("%s in 7 days is about %s a day. kaspalytics counted %s on %s and %s on %s." % (
+            ganz(abs(n)), ganz(abs(n) / 7), ganz(r[-1]), tag_kurz(t[-1]), ganz(r[0]), tag_kurz(t[0])))
+    else:
+        x1 = ("kaspa hashrate %s %d%% in one week." % (wie, ganzzahl) if ganzzahl
+              else "kaspa hashrate held within 1% of the week before.")
+        x2 = "daily average, %s against %s, source kaspa rest api" % (tag_kurz(t[-1]), tag(t[0]))
+        x3 = "how many hashes is that?"
+        aufl = ("on %s the network averaged %.1f PH/s, that is %s quadrillion hashes every second. "
+                "on %s the average was %.1f PH/s." % (tag_kurz(t[-1]), r[-1], ganz(r[-1]),
+                                                      tag_kurz(t[0]), r[0]))
     return {"kopf": "THIS WEEK", "zahl": "%+.1f%%" % k["pct"], "bedeutung": bed,
-            "x_satz": "%s %+.1f%% in 7 days, %s against %s" % (
-                "kaspa hashrate" if k["was"] == "hashrate" else "kaspa addresses with a meaningful balance",
-                k["pct"], tag_kurz(t[-1]), tag(t[0])),
-            "zusatz": zus, "herkunft": her, "objekt": objekt,
-            "x_zeile": "%s on %s, %s on %s" % (
-                ganz(r[-1]) if k["was"] == "holders" else "%.1f PH/s" % r[-1], tag_kurz(t[-1]),
-                ganz(r[0]) if k["was"] == "holders" else "%.1f PH/s" % r[0], tag_kurz(t[0])),
-            "x_neugier": "what will next week add?",
+            "zusatz": zus.replace("one column per day", "first and last day"), "herkunft": her,
+            "objekt": objekt, "x1": x1, "x2": x2, "x3": x3, "aufloesung": aufl,
             "pruefung": ("ja, %s steigt gegen die Vorwoche, und die Saeulen zeigen es ab null"
                          % k["was"]) if k["pct"] > 0 else
                         "nein, %s ist gegen die Vorwoche gefallen" % k["was"]}
@@ -531,11 +551,11 @@ def vorlage_2(w, now):
         wie = "left" if b["netto"] < 0 else "came in"
         bed = "of all KAS sits in one wallet. %s KAS %s on %s%s" % (
             kurz(abs(b["netto"])), wie, tag_kurz(t.date()), ", the bright strip" if streifen else "")
-        x_zeile = "%s KAS %s the entity x wallet on %s, %s" % (
+        x2 = "%s KAS %s it on %s, %s, counted on chain" % (
             kurz(abs(b["netto"])), "left" if b["netto"] < 0 else "came into", tag(t.date()), uhr(t))
     else:
         bed = "of all KAS sits in one wallet, no move above 100,000 KAS in 7 days"
-        x_zeile = "no move above 100,000 KAS in the 7 days to %s" % tag(now.date())
+        x2 = "no move above 100,000 KAS in the 7 days to %s, counted on chain" % tag(now.date())
 
     def objekt(x, y, ww, hh):
         seite = min(ww * 0.78, hh)
@@ -556,11 +576,13 @@ def vorlage_2(w, now):
                   % (x, y, wa, wa, AK))
         return s
     return {"kopf": "ENTITY X MOVED" if ereignis else "ENTITY X", "zahl": "%.2f%%" % anteil,
-            "x_satz": "%.2f%% of all KAS in circulation sits in the entity x wallet, %s" % (anteil, tag(now.date())),
             "bedeutung": bed, "zusatz": "areas to scale, the big square is all KAS in circulation",
-            "streifen": streifen,
-            "herkunft": SELBST, "objekt": objekt, "x_zeile": x_zeile,
-            "x_neugier": "we check this wallet every day.",
+            "streifen": streifen, "herkunft": SELBST, "objekt": objekt,
+            "x1": "one wallet holds about 1 in %d of all KAS in circulation." % round(w["circ"] / w["bal"]),
+            "x2": x2, "x3": "how many KAS is that?",
+            "aufloesung": "%s KAS sit in that one wallet on %s, %.2f%% of the %s KAS in circulation. "
+                          "its address is public, and we check it several times a day." % (
+                              ganz(w["bal"]), tag_kurz(now.date()), anteil, kurz(w["circ"])),
             "pruefung": "nein, eine Wallet-Bewegung wird als Nachricht geteilt, nicht zum Angeben. "
                         "Die Form bleibt, weil Halter sie sehen wollen"}
 
@@ -598,12 +620,14 @@ def vorlage_3(w, now):
                                               "" if tage == 1 else "s"))
         return s
     return {"kopf": "NEXT REWARD CUT", "zahl": zahl, "zahl_im_objekt": True,
-            "x_satz": "%s until the next kaspa reward cut, %s, %s" % (zahl, tag(t.date()), uhr(t)),
             "bedeutung": "KAS per block, one step a month. the next step, %s, %s" % (tag(t.date()), uhr(t)),
             "zusatz": "%.2f KAS per block today, %.2f after, from zero" % (w["cur"], w["nxt"]),
             "herkunft": SELBST, "objekt": objekt,
-            "x_zeile": "%.2f KAS per block today, %.2f KAS after the cut" % (w["cur"], w["nxt"]),
-            "x_neugier": "12 of these cuts make a halving.",
+            "x1": "kaspa cuts its block reward again in %s." % zahl,
+            "x2": "next step %s, %s, from the emission schedule" % (tag(t.date()), uhr(t)),
+            "x3": "how often does that happen?",
+            "aufloesung": "once a month, and 12 steps halve the reward. on %s it goes from %.2f "
+                          "to %.2f KAS per block." % (tag_kurz(t.date()), w["cur"], w["nxt"]),
             "pruefung": "ja, knappe Terminzahl mit Datum, Halter teilen Countdowns gern"}
 
 
@@ -683,14 +707,18 @@ def vorlage_4(w, now):
                      % (x + seg * (i + 0.5) - 2, ym, RESTTON))
         return "".join(s)
     return {"kopf": "WHILE YOU SLEPT", "zahl": ganz(round(bloecke, -3)),
-            "x_satz": "%s blocks added to kaspa in the %d hours you slept, measured %s" % (
-                ganz(round(bloecke, -3)), SCHLAF_H, tag(now.date())),
             "bedeutung": "about %s blocks for every heartbeat while you slept" % ("%.0f" % je_schlag),
             "zusatz": "one mark per hour, \u25cf is %d blocks, resting pulse %d, %d hours"
                       % (BLOECKE_JE_PUNKT, RUHEPULS, SCHLAF_H),
             "herkunft": SELBST, "objekt": objekt,
-            "x_zeile": "about %.0f for every heartbeat" % je_schlag,
-            "x_neugier": "how many heartbeats did you sleep?",
+            "x1": "kaspa added %s blocks while you slept." % ganz(round(bloecke, -3)),
+            "x2": "%d hours at the block rate we measured over %d minutes, %s, %s" % (
+                SCHLAF_H, w.get("sek", BLOCKRATE_SEK) // 60, tag(now.date()), uhr(now)),
+            "x3": "how many did you sleep through?",
+            "aufloesung": "about %.0f for every heartbeat, at a resting pulse of %d that is %s beats "
+                          "in %d hours. we measured %.2f blocks per second over %d minutes." % (
+                              je_schlag, RUHEPULS, ganz(schlaege), SCHLAF_H, w["bps"],
+                              w.get("sek", BLOCKRATE_SEK) // 60),
             "pruefung": "ja, riesige Zahl gegen den eigenen Herzschlag, genau der Angeber-Kontrast"}
 
 
@@ -714,14 +742,16 @@ def vorlage_5(w, now):
     fx = w["emission"] / w["fees"]
     n = round(fx) + 1
     return {"kopf": "WHAT PAYS THE MINERS", "zahl": "%sx" % ganz(fx),
-            "x_satz": "%sx more KAS in new coins than in fees, %d days to %s" % (ganz(fx), w["tage"], tag(w["bis"])),
             "bedeutung": "more KAS in new coins than in fees. the one bright square is the fees",
             "zusatz": "%d days to %s, one square each" % (w["tage"], tag(w["bis"])),
             "herkunft": "source kaspalytics fees, kaspa emission schedule",
             "objekt": lambda x, y, ww, hh: o_punkte(x, y, ww, hh, n, RESTTON, hervor=1, r=0.42),
-            "x_zeile": "%s KAS in new coins, %s KAS in fees, %d days to %s" % (
-                kurz(w["emission"]), kurz(w["fees"]), w["tage"], tag(w["bis"])),
-            "x_neugier": "the new coins shrink every month. the fees are the part that can grow.",
+            "x1": "kaspa miners earned %s times more in new coins than in fees." % ganz(fx),
+            "x2": "%d days to %s, source kaspalytics fees and the emission schedule" % (
+                w["tage"], tag(w["bis"])),
+            "x3": "so what pays the miners?",
+            "aufloesung": "mostly new coins, %s KAS in those %d days. fees paid %s KAS in the same days." % (
+                kurz(w["emission"]), w["tage"], ganz(w["fees"])),
             "pruefung": "nein, stark, aber fuer Halter erklaerungsbeduerftig. Nerds teilen sie, "
                         "der Durchschnitt nicht"}
 
@@ -763,12 +793,15 @@ def vorlage_6(w, now):
         return "".join(s)
     jahre = (now - dt.datetime(2021, 11, 7, tzinfo=dt.timezone.utc)).days / 365.25
     return {"kopf": "FROM THE CHAIN", "zahl": "%dM" % mio,
-            "x_satz": "%dM kaspa blocks since nov 2021, counted %s" % (mio, tag(now.date())),
             "bedeutung": "blocks since nov 2021, one mark every 100 million",
             "zusatz": "%.1f years of blocks, counted by the network's daa score" % (math.floor(jahre * 10) / 10),
             "herkunft": SELBST, "objekt": objekt,
-            "x_zeile": "%.1f years of blocks, each one public" % (math.floor(jahre * 10) / 10),
-            "x_neugier": "count them yourself.",
+            "x1": "the kaspa chain has passed %d million blocks since nov 2021." % (daa // 1000000),
+            "x2": "counted by the network's daa score, %s, %s" % (tag(now.date()), uhr(now)),
+            "x3": "who keeps that count?",
+            "aufloesung": "every kaspa node does, it is the daa score, %s on %s, %s. the same counter "
+                          "has run since the first blocks in nov 2021." % (
+                              ganz(daa), tag_kurz(now.date()), uhr(now)),
             "pruefung": "ja, Hunderte Millionen Bloecke auf einem Lineal sind ein klarer Angeber-Fakt"}
 
 
@@ -800,11 +833,13 @@ def vorlage_7(w, now):
         return o_punkte(x, y, ww, hh, n)
     zusatz = ("\u25cf is %s" % ganz(ob["einheit"])) if ob.get("art") == "punkte" else "one square is 1%"
     return {"kopf": "%s ASKED" % e["name"].upper(), "zahl": e["zahl"],
-            "x_satz": "%s %s, %s" % (e["zahl"], e["antwort"], tag(e["stand"])),
             "bedeutung": "%s, %s" % (e["antwort"], tag(e["stand"])),
             "zusatz": zusatz, "herkunft": e.get("quelle") or SELBST, "objekt": objekt,
-            "x_zeile": "asked by %s in #data-requests" % e["name"],
-            "x_neugier": "ask the next one in our discord.",
+            "x1": "%s %s." % (e["zahl"], e["antwort"]),
+            "x2": "asked by %s in our discord, %s" % (e["name"], tag(e["stand"])),
+            "x3": "what should we count next?",
+            "aufloesung": "%s asked, and we counted %s on %s, %s. ask the next one in #data-requests." % (
+                e["name"], e["zahl"], tag_kurz(e["stand"]), e.get("quelle") or SELBST),
             "pruefung": "ja, wer gefragt hat, teilt die Antwort mit seinem Namen darauf"}
 
 
@@ -828,14 +863,15 @@ def messen_8(now):
 def vorlage_8(w, now):
     t = w["bis"]
     return {"kopf": "SECURED BY WORK", "zahl": "%.1f PH/s" % w["ph"],
-            "x_satz": "%.1f PH/s of kaspa hashrate, %s quadrillion hashes every second, daily average %s" % (
-                w["ph"], ganz(w["ph"]), tag(t)),
             "bedeutung": "%s quadrillion hashes every second on %s" % (ganz(w["ph"]), tag_kurz(t)),
             "zusatz": "daily hashrate %s, 90 days, from zero" % tag_kurz(t),
             "herkunft": "source kaspa rest api hashrate",
             "objekt": lambda x, y, ww, hh: o_flaeche_linie(x, y, ww, hh, w["reihe"]),
-            "x_zeile": "%s new KAS paid for that work on %s" % (kurz(w["neu"]), tag_kurz(w["neu_tag"])),
-            "x_neugier": "that is the work behind every block.",
+            "x1": "kaspa miners ran %s quadrillion hashes every second." % ganz(w["ph"]),
+            "x2": "daily average %s, source kaspa rest api" % tag(t),
+            "x3": "what was that work paid?",
+            "aufloesung": "%s new KAS on %s, from the emission schedule. the hashrate that day "
+                          "averaged %.1f PH/s." % (kurz(w["neu"]), tag_kurz(w["neu_tag"]), w["ph"]),
             "pruefung": "ja, Quadrillion pro Sekunde ist ein Angeber-Kontrast ohne Kursbezug"}
 
 
@@ -905,14 +941,18 @@ def vorlage_9(w, now):
     plus = j - reihe[0]
     rueck = any(v < 0 for v in neu)
     return {"kopf": "ADDRESSES", "zahl": ganz(j),
-            "x_satz": "%s kaspa addresses hold at least 100 KAS, %s" % (ganz(j), tag(w["d1"])),
             "bedeutung": "addresses hold at least 100 KAS, %+d in 7 days, one dot each" % plus,
             "zusatz": "one column per day, %s to %s%s" % (
                 tag_kurz(tage[0]), tag_kurz(tage[-1]), ", below the line a day that fell" if rueck else ""),
             "herkunft": "source kaspalytics address thresholds",
             "objekt": lambda x, y, ww, hh: o_tagesspalten(x, y, ww, hh, neu, ["%+d" % v for v in neu]),
-            "x_zeile": "%+d in 7 days, since %s" % (plus, tag_kurz(w["d0"])),
-            "x_neugier": "which side of 100 are you on?",
+            "x1": "%s kaspa addresses now hold at least 100 KAS." % ganz(j),
+            "x2": "%s, source kaspalytics address thresholds" % tag(w["d1"]),
+            "x3": "how many joined this week?",
+            "aufloesung": "%+d net in the 7 days to %s. %s came in on the days it grew%s." % (
+                plus, tag_kurz(w["d1"]), ganz(sum(v for v in neu if v > 0)),
+                "".join(", and it fell by %s on %s" % (ganz(-v), tag_kurz(d))
+                        for d, v in zip(tage, neu) if v < 0)),
             "pruefung": ("ja, die Schwelle waechst, und jeder kann sich darin wiederfinden"
                          if plus > 0 else "nein, die Zahl ist in dieser Woche gefallen")}
 
@@ -927,13 +967,16 @@ def messen_10(now):
 def vorlage_10(w, now):
     pct = 100 * w["circ"] / w["max"]
     return {"kopf": "MINED SO FAR", "zahl": "%.2f%%" % pct, "bedeutung": "0 premine",
-            "x_satz": "%.2f%% of all KAS that will ever exist is mined, %s" % (pct, tag(now.date())),
             "bedeutung_fett": True,
             "zusatz": "one square is 1% of all KAS that will ever exist",
             "herkunft": SELBST,
             "objekt": lambda x, y, ww, hh: o_waffel(x, y, ww, hh, pct),
-            "x_zeile": "0 KAS premined, presold or set aside for developers",
-            "x_neugier": "every coin came from proof of work since the first blocks in nov 2021.",
+            "x1": "%d%% of all KAS that will ever exist is already mined, with 0 premine." % round(pct),
+            "x2": "%s, coin supply against max supply" % tag(now.date()),
+            "x3": "how much is left?",
+            "aufloesung": "%s KAS, %.2f%% of the %s maximum. every coin so far came from proof of "
+                          "work since the first blocks in nov 2021." % (
+                              kurz(w["max"] - w["circ"]), 100 - pct, kurz(w["max"])),
             "pruefung": "ja, fairer Start ist der Stolz der Community, und die Zahl belegt ihn"}
 
 
@@ -945,7 +988,8 @@ def vorlage_11(w, now):
     return {"kopf": "NODES", "zahl": ganz(w["nodes"]),
             "bedeutung": "reachable over IPv4, counted by us", "zusatz": "", "herkunft": SELBST,
             "objekt": lambda x, y, ww, hh: o_punkte(x, y, ww, hh, int(w["nodes"])),
-            "x_neugier": "is yours one of them?", "pruefung": "offen, erst nach Bens Beschluss"}
+            "x1": "", "x2": "", "x3": "is yours one of them?", "aufloesung": "",
+            "pruefung": "offen, erst nach Bens Beschluss"}
 
 
 FORMEN = {
@@ -1036,6 +1080,26 @@ def textpruefung(s, form):
               "datumszeile": s["datumszeile"], "x": s["x"], "discord": s["discord"]}
     for k, v in felder.items():
         fehler += pruefe_eine(v, form, k)
+    # das feld antwort ist der einzige ort mit link (Ben, 30.09.2026, v4). der
+    # link selbst ist von den satzregeln ausgenommen, der rest nicht.
+    lk = antwort_link(form)
+    if s.get("antwort", "").count(lk) != 1:
+        fehler.append("antwort traegt den link %s nicht genau einmal" % lk)
+    fehler += pruefe_eine(s.get("antwort", "").replace(lk, ""), form, "antwort")
+    # die antwort geht als x-antwort raus, x zaehlt jeden link als 23 zeichen
+    lang = len(s.get("antwort", "").replace(lk, "x" * 23))
+    if lang > 280:
+        fehler.append("antwort hat %d zeichen nach x-zaehlung, erlaubt sind 280" % lang)
+    zeilen = s["x"].split("\n")
+    if len(zeilen) != 3:
+        fehler.append("x-text hat %d zeilen, verlangt sind 3" % len(zeilen))
+    else:
+        if re.search(r"\d\.\d", zeilen[0]):
+            fehler.append("x-zeile 1 hat eine dezimalstelle")
+        if not zeilen[2].endswith("?"):
+            fehler.append("x-zeile 3 endet nicht mit fragezeichen")
+    if MAIL_SATZ not in s["discord"] or MAIL_SATZ not in s.get("antwort", ""):
+        fehler.append("sonntagsmail-satz fehlt in discord oder antwort")
     if not DATUMSZEILE.match(s["datumszeile"]):
         fehler.append("datumszeile beginnt nicht mit '<tag> <mon> <jahr>, <hh:mm> utc \u00b7'")
     her = s["datumszeile"].split(" \u00b7 ")[-1]
@@ -1051,30 +1115,43 @@ def textpruefung(s, form):
         fehler.append("discord-text ohne 'it goes on x at %s'" % X_ZEIT)
     if not re.match(r"(ja|nein|offen), ", s.get("pruefung", "")):
         fehler.append("selbstpruefung beginnt nicht mit ja oder nein")
-    if form == 2 and re.search(r"\$|usd|worth", " ".join(felder.values()), re.I):
+    # "worth watching" aus dem mail-satz ist kein wert
+    if form == 2 and re.search(r"\$|usd|\bworth\b(?! watching)", " ".join(felder.values()), re.I):
         fehler.append("form 2 nennt einen dollarwert")
     return fehler
 
 
 # ------------------------------------------------------------ texte
 
+# Was nur in der Wochenmail steht (Stand 30.09.2026, geprueft gegen die
+# Ausgaben vom 14., 21. und 28.09.): die Bloecke "the take" und "worth
+# watching" gibt es in keiner anderen Datei, weder auf kaspa-weekly.html noch
+# auf index.html noch in pulse-studio. Ben nennt sie Sonntagsmail; sie geht
+# montags 18:00 Berlin raus, deshalb sagt der Satz "weekly mail".
+MAIL_SATZ = "the weekly take and what is worth watching next are only in our weekly mail."
+
+
+def antwort_link(form):
+    from utm import link
+    return link("x", "reply", "form%d" % form)
+
+
 def texte(s, form, messzeit):
+    """X in drei Zeilen (Ben, 30.09.2026, v4): der Satz zum Nachsprechen, das
+    Fenster oder die Quelle, der Haken als Frage. Die Aufloesung steht im
+    Feld antwort, dem einzigen Ort mit Link. Discord bekommt Zeile 1 und 2,
+    den 17:00-Satz und den Mail-Satz ohne Link."""
     s = dict(s)
     teile = [tag(messzeit.date()) + ", " + uhr(messzeit)]
     if s.get("zusatz"):
         teile.append(s["zusatz"])
     teile.append(s["herkunft"])
     s["datumszeile"] = " \u00b7 ".join(teile)
-    satz_x = (s["x_satz"] if s.get("x_satz") else "%s %s" % (s["zahl"], s["bedeutung"])) + "."
-    zweite = s.get("x_zeile")
-    s["x"] = "%s\n%s.\n\n%s" % (satz_x, zweite.rstrip(".?!"), s["x_neugier"]) if zweite else \
-        "%s\n\n%s" % (satz_x, s["x_neugier"])
-    if not DATUM.search(s["x"]):
-        s["x"] = s["x"].replace(satz_x, "%s %s, %s." % (s["zahl"], s["bedeutung"], tag(messzeit.date())))
-    if len(s["x"]) >= 240:
-        s["x"] = "%s\n\n%s" % (satz_x, s["x_neugier"])
-    s["discord"] = ("%s\n%s.\n\nshare it first, it goes on x at %s."
-                    % (satz_x, (zweite or s["zusatz"]).rstrip(".?!"), X_ZEIT))
+    x1 = s["x1"].rstrip(".") + "."
+    x2 = s["x2"].rstrip(".") + "."
+    s["x"] = "%s\n%s\n%s" % (x1, x2, s["x3"])
+    s["antwort"] = "%s %s %s" % (s["aufloesung"], MAIL_SATZ, antwort_link(form))
+    s["discord"] = "%s\n%s\n\nshare it first, it goes on x at %s.\n%s" % (x1, x2, X_ZEIT, MAIL_SATZ)
     return s
 
 
@@ -1238,10 +1315,10 @@ def variante(log, form):
 
 def ops_senden(png, vorschau, s, form, grund, hook):
     inhalt = ("tagesgrafik %s, form %d %s (%s)\nnicht oeffentlich. discord 09:00, x %s.\n\n"
-              "DISCORD\n```\n%s\n```\nX, %d zeichen\n```\n%s\n```\nselbstpruefung, wuerde ein halter "
-              "das reposten, um anzugeben? %s" % (
+              "DISCORD\n```\n%s\n```\nX, %d zeichen\n```\n%s\n```\nANTWORT unter dem X-Post\n```\n%s\n```\n"
+              "selbstpruefung, wuerde ein halter das reposten, um anzugeben? %s" % (
                   s["datum"], form, FORMEN[form][0], grund, X_ZEIT, s["discord"], len(s["x"]),
-                  s["x"], s["pruefung"]))
+                  s["x"], s["antwort"], s["pruefung"]))
     if len(inhalt) > 1990:
         inhalt = inhalt[:1990]
     grenze = "----tg" + uuid.uuid4().hex
@@ -1360,8 +1437,9 @@ def main(argv=None):
     png, vpng = rendern(html(s, falke_lesen(a.falke)),
                         out / ("tagesgrafik-%s-form%02d.png" % (messzeit.date().isoformat(), form)))
     (out / (png.stem + ".txt")).write_text(
-        "DISCORD\n%s\n\nX (%d zeichen)\n%s\n\nSELBSTPRUEFUNG\nwuerde ein halter das reposten, um "
-        "anzugeben? %s\n" % (s["discord"], len(s["x"]), s["x"], s["pruefung"]), encoding="utf-8")
+        "DISCORD\n%s\n\nX (%d zeichen)\n%s\n\nANTWORT unter dem X-Post\n%s\n\nSELBSTPRUEFUNG\n"
+        "wuerde ein halter das reposten, um anzugeben? %s\n" % (
+            s["discord"], len(s["x"]), s["x"], s["antwort"], s["pruefung"]), encoding="utf-8")
     (out / (png.stem + ".json")).write_text(json.dumps(m, ensure_ascii=False, indent=1),
                                             encoding="utf-8")
     print("form %d (%s), %s\n%s\n%s" % (form, grund, png, vpng, (out / (png.stem + ".txt")).read_text()))
@@ -1458,6 +1536,8 @@ def selbsttest():
     ok("eine rechnung fuer neue kas", abs(neue_kas("2026-09-28", "2026-09-28")[0]
                                           - emission_am_tag("2026-09-28")) < 1e-6)
     ok("form 2 ohne dollar", "$" not in json.dumps(s, default=str))
+    ok("form 2, 'worth' mit wert faellt weiter",
+       any("dollarwert" in f for f in textpruefung(dict(s, bedeutung="a wallet worth millions"), 2)))
     # objekt-regeln vom 30.09.2026
     ok("form 2, 1.77M von 1.52B ist unter 3 px, kein streifen", not s["streifen"]
        and "strip" not in s["bedeutung"] and "1.77M KAS came in" in s["bedeutung"])
@@ -1475,7 +1555,35 @@ def selbsttest():
        o9f.count("fill='%s'/>" % RESTTON) >= 159 and "below the line" in s9f["datumszeile"])
     s1 = seite_bauen(1, FAKE[1], FAKE_NOW, log)
     o1 = s1["objekt"](*objektzone(zahlgroesse(s1["zahl"])))
-    ok("form 1, erste und letzte saeule beschriftet", ">21 sep<" in o1 and ">28 sep<" in o1)
+    ok("form 1, zwei saeulen, 21 sep und 28 sep beschriftet, die rechte hell",
+       o1.count("<rect") == 2 and ">21 sep<" in o1 and ">28 sep<" in o1
+       and o1.index(RESTTON) < o1.index(AK))
+    # v4, texte (Ben, 30.09.2026)
+    for f in sorted(FAKE):
+        sf = seite_bauen(f, FAKE[f], FAKE_NOW, log)
+        z = sf["x"].split("\n")
+        ok("form %d, x in drei zeilen, zeile 1 ohne dezimalstelle, zeile 3 eine frage" % f,
+           len(z) == 3 and not re.search(r"\d\.\d", z[0]) and z[2].endswith("?"))
+        ok("form %d, link nur im feld antwort" % f,
+           all("kaspapulse" not in sf[k] and "http" not in sf[k]
+               for k in ("x", "discord", "bedeutung", "datumszeile", "kopf", "zahl"))
+           and sf["antwort"].endswith(antwort_link(f))
+           and "utm_source=x&utm_medium=reply&utm_campaign=form%d" % f in sf["antwort"])
+        ok("form %d, discord mit 17:00 und mail-satz ohne link" % f,
+           sf["discord"].split("\n")[:2] == z[:2] and sf["discord"].endswith(MAIL_SATZ))
+    kaputt = dict(seite_bauen(4, FAKE[4], FAKE_NOW, log))
+    kaputt["x"] = "kaspa added 281,000.5 blocks.\n8 hours, 29 sep.\nhow many."
+    fk = textpruefung(kaputt, 4)
+    ok("dezimalstelle in zeile 1 faellt", any("dezimalstelle" in f for f in fk))
+    ok("zeile 3 ohne fragezeichen faellt", any("fragezeichen" in f for f in fk))
+    kaputt = dict(seite_bauen(4, FAKE[4], FAKE_NOW, log))
+    kaputt["discord"] += " " + antwort_link(4)
+    ok("link im discord-text faellt", bool(textpruefung(kaputt, 4)))
+    kaputt = dict(seite_bauen(4, FAKE[4], FAKE_NOW, log), antwort="about 10 per heartbeat.")
+    ok("antwort ohne link faellt", any("link" in f for f in textpruefung(kaputt, 4)))
+    lang = dict(seite_bauen(4, FAKE[4], FAKE_NOW, log))
+    lang["antwort"] = "a" * 260 + " " + antwort_link(4)
+    ok("antwort ueber 280 nach x-zaehlung faellt", any("280" in f for f in textpruefung(lang, 4)))
     ok("form 8, eine hashrate, als tageswert gekennzeichnet",
        "daily hashrate 28 sep" in s8["datumszeile"] and "measured" not in json.dumps(s8, default=str)
        and abs(FAKE[8]["ph"] - FAKE[8]["reihe"][-1]) < 1e-9)
