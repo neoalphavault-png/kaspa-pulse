@@ -1,32 +1,43 @@
 {
-  "issue": "SEP 29 2026",
+  "issue": "SEP 30 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "96.60%",
-  "value_label": "of every KAS that will ever exist is already mined",
-  "headline": "the supply story is *almost over*.",
+  "value": "864,000",
+  "value_label": "blocks the kaspa network produces every single day",
+  "headline": "bitcoin finds *144 blocks*.\nkaspa finds 864,000.",
   "panes": [
     {
-      "kind": "dots",
-      "title": "EVERY KAS THAT WILL EVER EXIST",
-      "sub": "one dot is one percent of the maximum",
-      "total": 100,
-      "lit": 96.59906419904408,
-      "tone": "teal",
-      "note": "*96.60 percent* mined, 3.40 percent still to come."
+      "kind": "compare",
+      "title": "BLOCKS IN TWENTY FOUR HOURS",
+      "sub": "protocol target, not an average of a good day",
+      "rows": [
+        {
+          "label": "kaspa",
+          "sub": "ten per second",
+          "value": "864,000",
+          "pct": 100.0,
+          "tone": "teal"
+        },
+        {
+          "label": "bitcoin",
+          "sub": "one per ten minutes",
+          "value": "144",
+          "pct": 2.0,
+          "tone": "grey"
+        }
+      ]
     },
     {
       "kind": "anchor",
-      "title": "WHAT IS LEFT",
+      "title": "WHY IT DOES NOT COLLAPSE",
       "lines": [
-        "*976,205,823 KAS* are still to come.",
-        "99 percent is reached in may 2028."
+        "parallel blocks are not thrown away. they are *ordered and kept*."
       ]
     }
   ],
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "96.60 percent of every KAS that will ever exist is already mined. 976,205,823 KAS are still to come, and 99 percent is reached in may 2028 at the current schedule. what comes after keeps halving every twelve months.",
-    "reply": "the full emission schedule is on kaspapulse.com/kaspa-halving.html. the remaining amount shrinks and never quite reaches the maximum."
+    "x": "kaspa produces 864,000 blocks a day. bitcoin produces about 144. ten every second against one every ten minutes. blocks found at the same moment are not discarded, they are ordered and kept, and that is the part most comparisons leave out.",
+    "reply": "how that ordering works is explained on kaspapulse.com. the coins per block shrink, the number of blocks does not."
   }
 }
