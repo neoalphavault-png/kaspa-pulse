@@ -824,6 +824,70 @@ def befehl_formen1112():
     return 0
 
 
+def befehl_formen1112b():
+    """Nur lesend. Zweite Runde: breakdown der boersenbestaende, die ganzen
+    erklaertexte, eine umlaufreihe als nenner, die laenge der hashrate- und
+    gebuehrenreihe fuer die musterdateien."""
+    print("=" * 78)
+    print("FORM 11 UND 12, ZWEITE RUNDE")
+    print("=" * 78)
+    st, txt = hole(KL + "/api/charts/supply/exchange-holdings?breakdown=true")
+    d, f = form(txt)
+    print("breakdown http %s, %s" % (st, f))
+    if isinstance(d, dict):
+        lab = d.get("labels") or []
+        print("  %d marken, letzte %s" % (len(lab), lab[-2:]))
+        for ds in d.get("datasets") or []:
+            w = ds.get("data") or []
+            print("  reihe %r, %d werte, vorletzter %s, letzter %s" % (ds.get("label"), len(w), w[-2:-1], w[-1:]))
+        for k in d:
+            if k not in ("labels", "datasets"):
+                print("  feld %s = %s" % (k, kurz(json.dumps(d[k]), 1500)))
+    for seite in ("/app/supply/exchange-holdings", "/app/supply/inactive", "/app/supply/hodl-waves"):
+        st, html = hole(KL + seite)
+        text = re.sub(r"<script.*?</script>|<style.*?</style>", " ", html, flags=re.S)
+        text = " ".join(re.sub(r"<[^>]+>", " ", text).split())
+        i = text.find("Description Overview")
+        print("\nTEXT %s\n  %s" % (seite, text[i:i + 1600] if i >= 0 else "nicht gefunden"))
+        print("  links " + " ".join(sorted(set(re.findall(r'href="(/app/supply/[^"]+)"', html)))))
+    for g in ("supply/circulating", "supply/circulating-supply", "supply/circulating?", "supply/total",
+              "supply/mined"):
+        st, txt = hole(KL + "/api/charts/" + g)
+        d, f = form(txt)
+        print("\numlauf %s http %s %s" % (g, st, f if st == 200 else kurz(txt, 80)))
+        if st == 200 and isinstance(d, dict):
+            lab = d.get("labels") or []
+            for ds in d.get("datasets") or []:
+                w = ds.get("data") or []
+                print("  reihe %r %d werte, erste %s %s, letzte %s %s" % (
+                    ds.get("label"), len(w), lab[:1], w[:1], lab[-1:], w[-1:]))
+    st, txt = hole(KL + "/api/charts/transactions/accepted/fees/total")
+    d, f = form(txt)
+    if isinstance(d, dict):
+        lab = d.get("labels") or []
+        for ds in d.get("datasets") or []:
+            w = ds.get("data") or []
+            leer = sum(1 for x in w if x is None)
+            print("\ngebuehren reihe %r %d werte, %d leer, erste %s, letzte %s" % (
+                ds.get("label"), len(w), leer, lab[:1], lab[-3:]))
+            print("  letzte zehn %s" % list(zip(lab[-10:], w[-10:])))
+    st, txt = hole(KASPA_API + "/info/hashrate/history")
+    d, f = form(txt)
+    if isinstance(d, list) and d:
+        ts = sorted(x["timestamp"] for x in d)
+        print("\nhashrate/history %d punkte, erster %s, letzter %s, schluessel %s" % (
+            len(d), dt.datetime.fromtimestamp(ts[0] / 1000, dt.timezone.utc),
+            dt.datetime.fromtimestamp(ts[-1] / 1000, dt.timezone.utc), sorted(d[0].keys())))
+        tage = sorted({dt.datetime.fromtimestamp(t / 1000, dt.timezone.utc).date() for t in ts})
+        luecken = [(a, b) for a, b in zip(tage, tage[1:]) if (b - a).days > 1]
+        print("  %d tage, luecken %s" % (len(tage), luecken[:20]))
+        for grenze in ("2024-03-01", "2025-05-01", "2025-06-01"):
+            g = dt.date.fromisoformat(grenze)
+            n = [t for t in ts if dt.datetime.fromtimestamp(t / 1000, dt.timezone.utc).date().isoformat()[:7] == grenze[:7]]
+            print("  punkte im monat %s: %d" % (grenze[:7], len(n)))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -836,6 +900,7 @@ BEFEHLE = {
     "seite": befehl_seite,
     "montag": befehl_montag,
     "formen1112": befehl_formen1112,
+    "formen1112b": befehl_formen1112b,
 }
 
 
