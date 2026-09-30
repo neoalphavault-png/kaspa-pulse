@@ -276,59 +276,90 @@ def ledger():
 
 # ------------------------------------------------------------ miner
 
+def je_sekunde(daa):
+    """Reward je Sekunde in Sompi nach Protokoll (je Block mal Nenn-BPS)."""
+    return subsidy_sompi(daa) * (BPS_NACH if daa >= CRESCENDO_DAA else BPS_VOR)
+
+
 def miner():
+    """Je UTC-Tag ab REIHE_AB bis gestern.
+
+    Stufen nach Protokoll: eine Monatsstufe gilt ab dem ersten
+    Hashrate-Messpunkt, dessen DAA-Score schon im neuen Monat liegt (hoechstens
+    rund eine Stunde nach der Stufe). neue KAS je Tag ist der Reward je Sekunde
+    nach Protokoll, ueber den UTC-Tag summiert, mit diesen Stufenzeitpunkten.
+    Eine Stufe, die noch kein Messpunkt gesehen hat, kommt aus dem Hausplan."""
     import kaspalytics as k
+    import number_of_day_data as nod
     hist = hole(API + "/info/hashrate/history")
+    pkte = sorted((x["timestamp"] / 1000, x["hashrate_kh"], int(x["daaScore"])) for x in hist)
     je_tag = {}
-    for x in hist:
-        t = utc(x["timestamp"])
-        je_tag.setdefault(t.date().isoformat(), []).append((x["timestamp"], x["hashrate_kh"], int(x["daaScore"])))
+    for t, h, d in pkte:
+        je_tag.setdefault(utc(t * 1000).date().isoformat(), []).append((t, h, d))
+    # beobachtete stufen: (zeit des ersten punkts im neuen monat, reward je sekunde danach)
+    stufen = [(pkte[0][0], je_sekunde(pkte[0][2]))]
+    for (t0, _, d0), (t1, _, d1) in zip(pkte, pkte[1:]):
+        if je_sekunde(d1) != je_sekunde(d0) and subsidy_sompi(d1) * 10 != subsidy_sompi(d0) \
+                and not (d0 < CRESCENDO_DAA <= d1):
+            stufen.append((t1, je_sekunde(d1)))
+    letzte_messung = pkte[-1][0]
+
+    def rate_bei(t):
+        r = stufen[0][1]
+        for ts, rr in stufen:
+            if ts <= t:
+                r = rr
+        return r
+
+    def neu_am_tag(a):
+        grenzen = [a] + [ts for ts, _ in stufen if a < ts < a + 86400] + [a + 86400]
+        return sum(rate_bei(x) * (y - x) for x, y in zip(grenzen, grenzen[1:])) / SOMPI
+
     d = k.hole("transactions/accepted/fees/total")
     gebuehr = {}
     for lab, v in zip(d.get("labels") or [], k.reihe(d, "Fees")):
         if v is not None:
             gebuehr[k.stichtag(lab, "fluss").isoformat()] = float(v)
-    import number_of_day_data as nod
     gestern = dt.datetime.now(dt.timezone.utc).date() - dt.timedelta(days=1)
     tag = dt.date.fromisoformat(REIHE_AB)
-    aus, pruef = [], {"tage": 0, "ohne_hashrate": 0, "ohne_gebuehr": 0, "wenige_messpunkte": [],
-                      "plan_gegen_protokoll_max_abw_pct": 0.0, "plan_gegen_protokoll_tage": 0,
-                      "reward_wechselt_im_tag": 0}
+    aus, pruef = [], {"tage": 0, "ohne_hashrate": 0, "ohne_gebuehr": [], "wenige_messpunkte": [],
+                      "stufen_beobachtet": [], "plan_stufe_anderer_tag": [],
+                      "max_abstand_stufe_zu_vorpunkt_s": 0}
+    for (t0, _, d0), (t1, _, d1) in zip(pkte, pkte[1:]):
+        if (t1, je_sekunde(d1)) in stufen:
+            pruef["max_abstand_stufe_zu_vorpunkt_s"] = max(pruef["max_abstand_stufe_zu_vorpunkt_s"], round(t1 - t0))
     while tag <= gestern:
         ds = tag.isoformat()
         a = dt.datetime.combine(tag, dt.time(), dt.timezone.utc).timestamp()
-        neu = emission(a, a + 86400)
-        pkte = sorted(je_tag.get(ds, []))
+        tp = je_tag.get(ds, [])
         hr = reward = ""
-        if pkte:
-            hr = "%.3f" % (sum(p[1] for p in pkte) / len(pkte) / 1e12)
-            if len(pkte) < 12:
-                pruef["wenige_messpunkte"].append((ds, len(pkte)))
-            # reward je block beim ersten messpunkt des tages, exakt nach protokoll
-            erste, letzte = pkte[0][2], pkte[-1][2]
-            r0 = subsidy_sompi(erste)
-            reward = "%.8f" % (r0 / SOMPI)
-            if subsidy_sompi(letzte) != r0:
-                pruef["reward_wechselt_im_tag"] += 1
-            else:
-                # plan gegen protokoll: reward je sekunde aus dem plan gegen den
-                # protokollwert je sekunde, an tagen ohne wechsel
-                bps = BPS_NACH if erste >= CRESCENDO_DAA else BPS_VOR
-                plan = nod.reward_state(a + 43200)[0] * nod.BPS
-                abw = abs(plan - r0 * bps / SOMPI) / (r0 * bps / SOMPI) * 100
-                pruef["plan_gegen_protokoll_tage"] += 1
-                pruef["plan_gegen_protokoll_max_abw_pct"] = max(pruef["plan_gegen_protokoll_max_abw_pct"], abw)
+        if tp:
+            hr = "%.3f" % (sum(p[1] for p in tp) / len(tp) / 1e12)
+            if len(tp) < 12:
+                pruef["wenige_messpunkte"].append((ds, len(tp)))
+            reward = "%.8f" % (subsidy_sompi(tp[0][2]) / SOMPI)
         else:
             pruef["ohne_hashrate"] += 1
+        neu = neu_am_tag(a)
         fee = gebuehr.get(ds)
         if fee is None:
-            pruef["ohne_gebuehr"] += 1
-        nxt = dt.datetime.fromtimestamp(nod.reward_state(a)[2], dt.timezone.utc)
+            pruef["ohne_gebuehr"].append(ds)
+        kommend = [ts for ts, _ in stufen[1:] if ts > a]
+        if kommend:
+            nxt = dt.datetime.fromtimestamp(kommend[0], dt.timezone.utc)
+        else:
+            nxt = dt.datetime.fromtimestamp(nod.reward_state(max(a, letzte_messung))[2], dt.timezone.utc)
+        plan = dt.datetime.fromtimestamp(nod.reward_state(a)[2], dt.timezone.utc)
+        if plan.date() != nxt.date():
+            pruef["plan_stufe_anderer_tag"].append((ds, plan.strftime("%Y-%m-%d %H:%M"),
+                                                    nxt.strftime("%Y-%m-%d %H:%M")))
         aus.append([ds, hr, reward, "%.2f" % neu, "" if fee is None else "%.8f" % fee,
                     "" if fee is None else "%.4f" % (100 * fee / (fee + neu)),
                     nxt.strftime("%Y-%m-%d %H:%M")])
         pruef["tage"] += 1
         tag += dt.timedelta(days=1)
+    pruef["stufen_beobachtet"] = [dt.datetime.fromtimestamp(ts, dt.timezone.utc).strftime("%Y-%m-%d %H:%M")
+                                  for ts, _ in stufen[1:] if ts >= a - 86400 * 1200]
     pruef["gezaehlt_utc"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
     pruef["hashrate_punkte"] = len(hist)
     pruef["gebuehren_tage"] = len(gebuehr)
