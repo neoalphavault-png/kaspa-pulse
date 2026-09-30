@@ -991,7 +991,10 @@ def messen_11(now):
     Stichtag, sonst keine Grafik."""
     eins = m_kl_reihe("supply/inactive?minAge=1year", "CSPERCENT", "bestand")
     zwei = m_kl_reihe("supply/inactive?minAge=2years", "CSPERCENT", "bestand")
-    gemeinsam = sorted(set(eins) & set(zwei))
+    # nie der laufende tag (regel 2 in kaspalytics.py): am 30.09.2026 um 18:26
+    # utc lag schon ein punkt fuer den 30.09. vor (lauf 36758580309)
+    heute = now.date().isoformat()
+    gemeinsam = sorted(d for d in set(eins) & set(zwei) if d < heute)
     if not gemeinsam:
         raise Stop("kein gemeinsamer stichtag fuer 1 und 2 jahre")
     d = gemeinsam[-1]
@@ -1712,6 +1715,15 @@ def selbsttest():
         ok("form 11, %r faellt" % wort, bool(pruefe_eine("the %s coins stay put" % wort, 11)))
     ok("form 11, motiv faellt", bool(pruefe_eine("holders are waiting deliberately", 11)))
     ok("form 11 laeuft in der rotation", 11 in FREIGESCHALTET)
+    alt_reihe = globals()["m_kl_reihe"]
+    globals()["m_kl_reihe"] = lambda pfad, name, art: (
+        {"2026-09-28": 50.58, "2026-09-29": 50.6, "2026-09-30": 50.53} if "1year" in pfad
+        else {"2026-09-28": 25.75, "2026-09-29": 25.77, "2026-09-30": 25.79})
+    try:
+        w11 = messen_11(dt.datetime(2026, 9, 30, 18, 26, tzinfo=dt.timezone.utc))
+        ok("form 11 liest nie den laufenden tag", w11["stichtag"] == "2026-09-29")
+    finally:
+        globals()["m_kl_reihe"] = alt_reihe
     # zeitplan-sperre, ohne netz: vor 07:00 Berlin und nach einer lieferung
     alt = os.environ.get("TG_JETZT")
     os.environ["TG_JETZT"] = "2026-10-01T06:30:00+02:00"
