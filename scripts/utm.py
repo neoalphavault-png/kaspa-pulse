@@ -21,6 +21,8 @@ Ab dem 16.09.2026 traegt JEDER Newsletter-Link drei Parameter:
                    chat    Discord und Telegram
                    mail    eine Newsletter-Ausgabe
                    site    eine eigene Seite
+                   reply   eine Selbstantwort unter einem Post (Tagesgrafik,
+                           seit 30.09.2026, campaign form1 bis form10)
     utm_campaign   WELCHE Serie oder Ausgabe ihn gebracht hat.
 
 Und die Seite reicht utm_source ins Brevo-Formular durch (scripts/utm_fields.py
@@ -63,7 +65,7 @@ QUELLEN = {
 
 # Gattungen, die es gibt. Ein Tippfehler im medium ist genauso teuer wie
 # einer in der Quelle: er eroeffnet eine zweite Zeile in der Auswertung.
-MEDIEN = ("shorts", "video", "post", "chat", "mail", "site")
+MEDIEN = ("shorts", "video", "post", "chat", "mail", "site", "reply")
 
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 
@@ -124,6 +126,8 @@ def selftest():
     pruefe("gattung ueberschreiben geht", link("x", "mail", "weekly"),
            "https://kaspapulse.com/?utm_source=x&utm_medium=mail&utm_campaign=weekly#subscribe")
     pruefe("der anker bleibt hinten", link("x").endswith("#subscribe"), True)
+    pruefe("tagesgrafik, antwort unter dem x-post", link("x", "reply", "form4"),
+           "https://kaspapulse.com/?utm_source=x&utm_medium=reply&utm_campaign=form4#subscribe")
     pruefe("fuenf quellen aus dem auftrag",
            all(q in QUELLEN for q in ("yt-description", "yt-pinned", "x", "discord", "tg")),
            True)
@@ -138,7 +142,7 @@ def selftest():
         except ValueError:
             print("  ok   %s faellt auf" % was)
 
-    print("%d von 16 faellen falsch" % schlecht)
+    print("%d von 17 faellen falsch" % schlecht)
     return 1 if schlecht else 0
 
 
