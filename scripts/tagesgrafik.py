@@ -18,7 +18,7 @@ fuer den Rest der Daten, Weiss nur fuer Kopf und Zahl. Keine Verlaeufe, kein
 Glow, keine Rahmen, Balken ab null. Hausschrift wie number_of_day.py
 (Liberation Sans auf dem Runner). 1080x1350, Vorschau 390 px.
 
-ZEHN FORMEN, jede mit eigener Vorlage (FORMEN unten) und eigener Messung:
+ELF FORMEN, jede mit eigener Vorlage (FORMEN unten) und eigener Messung:
 
    1  Wochenzahl        montags fest. Adressen mit nennenswertem Guthaben
                         oder Hashrate gegen die Vorwoche, im Lauf gemessen
@@ -34,7 +34,11 @@ ZEHN FORMEN, jede mit eigener Vorlage (FORMEN unten) und eigener Messung:
    8  Sicherheit        Hashrate und Sicherheitsbudget, nie ein Angriff
    9  Adressen          Adressen ueber Schwellen mit Wochenbewegung
   10  Herkunft          kein Premine, kein Presale, kein Dev-Fund, gemint-Anteil
-  11  Nodes             vorbereitet, gesperrt bis die Tagesreihe beschlossen ist
+  11  Schlafende Coins  Anteil des Umlaufs, der seit 1 Jahr unbewegt ist, darin
+                        seit 2 Jahren (Kaspalytics supply/inactive, Ben 30.09.2026)
+  12  Boersen           geparkt, kein Code, bis die Boersensumme geklaert ist
+                        (Kaspalytics 3.78B gegen unsere Labels 6.1B, docs/pruefung)
+  13  Nodes             vorbereitet, gesperrt bis die Tagesreihe beschlossen ist
 
 LUECKE BEI FORM 9. Ben wollte 1k, 10k, 100k und 1M KAS. Kaspalytics hat
 Schwellen nur fuer 0,01, 1 und 100 KAS, 1000+ antwortet mit http 400
@@ -112,7 +116,7 @@ MONATE = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", 
 X_ZEIT = "17:00"                     # Ben plant X um 17:00 Berlin
 EX_EREIGNIS = 500000                 # KAS in 24 h, dann Form 2
 CUT_EREIGNIS_TAGE = 3                # Reward-Senkung in hoechstens 3 Tagen, dann Form 3
-FREIGESCHALTET = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}   # 11 erst nach Bens Beschluss
+FREIGESCHALTET = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}   # 13 erst nach Bens Beschluss
 
 
 class Stop(Exception):
@@ -981,10 +985,71 @@ def vorlage_10(w, now):
 
 
 def messen_11(now):
-    raise Stop("form 11 ist gesperrt, bis die tagesreihe der nodes beschlossen ist")
+    """Schlafende Coins. Kaspalytics supply/inactive, Reihe CSPERCENT, fuer
+    minAge=1year und minAge=2years. Momentaufnahme, Stichtag nach der
+    Mitternachtsregel in kaspalytics.stichtag. Beide Werte vom selben
+    Stichtag, sonst keine Grafik."""
+    eins = m_kl_reihe("supply/inactive?minAge=1year", "CSPERCENT", "bestand")
+    zwei = m_kl_reihe("supply/inactive?minAge=2years", "CSPERCENT", "bestand")
+    gemeinsam = sorted(set(eins) & set(zwei))
+    if not gemeinsam:
+        raise Stop("kein gemeinsamer stichtag fuer 1 und 2 jahre")
+    d = gemeinsam[-1]
+    if d < (now.date() - dt.timedelta(days=3)).isoformat():
+        raise Stop("letzter stichtag %s ist aelter als 3 tage" % d)
+    p1, p2 = eins[d], zwei[d]
+    if not 0 < p2 <= p1 < 100:
+        raise Stop("anteile unplausibel, 1 jahr %s, 2 jahre %s" % (p1, p2))
+    return {"stichtag": d, "p1": p1, "p2": p2}
+
+
+AK_DUNKEL = "#2FAE96"   # nur form 11: der akzent dunkler abgesetzt (Ben, 30.09.2026)
 
 
 def vorlage_11(w, now):
+    """Ein Balken ueber die volle Breite. Hell der Anteil seit 1 Jahr
+    unbewegt, darin dunkler abgesetzt der seit 2 Jahren, der Rest im dritten
+    Ton. Kein Motiv, kein dormant, kein hodl."""
+    p1, p2, d = w["p1"], w["p2"], w["stichtag"]
+    halb = 45 <= p1 <= 55
+    bed = ("half of all KAS has not moved in a year" if halb
+           else "%d%% of all KAS has not moved in a year" % round(p1))
+
+    def objekt(x, y, ww, hh):
+        bh = 200
+        yb = y + (hh - bh) / 2 - 90
+        s = ("<rect x='%.1f' y='%.1f' width='%.1f' height='%.1f' rx='6' fill='%s'/>"
+             % (x, yb, ww, bh, RESTTON))
+        s += ("<rect x='%.1f' y='%.1f' width='%.1f' height='%.1f' rx='6' fill='%s'/>"
+              % (x, yb, ww * p1 / 100, bh, AK))
+        s += ("<rect x='%.1f' y='%.1f' width='%.1f' height='%.1f' rx='6' fill='%s'/>"
+              % (x, yb, ww * p2 / 100, bh, AK_DUNKEL))
+        # kleine legende in drei zeilen unter dem balken, je ein farbquadrat
+        for i, (farbe, text) in enumerate(((AK_DUNKEL, "not moved in 2 years or more, %.2f%%" % p2),
+                                           (AK, "not moved in 1 to 2 years, %.2f%%" % (p1 - p2)),
+                                           (RESTTON, "moved within a year, %.2f%%" % (100 - p1)))):
+            yl = yb + bh + 60 + i * 50
+            s += ("<rect x='%.1f' y='%.1f' width='26' height='26' rx='4' fill='%s'/>"
+                  "<text x='%.1f' y='%.1f' fill='%s' font-size='30'>%s</text>"
+                  % (x, yl - 23, farbe, x + 42, yl, farbe, text))
+        return s
+    return {"kopf": "SLEEPING COINS", "zahl": "%.2f%%" % p1, "bedeutung": bed,
+            "zusatz": "", "herkunft": "source kaspalytics, age estimated by daa score, %s" % tag(d),
+            "objekt": objekt,
+            "x1": (bed if halb else "%d%% of all KAS in circulation has not moved in a year" % round(p1)) + ".",
+            "x2": "%s, source kaspalytics, age estimated by daa score" % tag(d),
+            "x3": "how much has not moved in 2 years?",
+            "aufloesung": "%.2f%% has not moved in 2 years, and %.2f%% in 1 year, as of %s. kaspalytics "
+                          "estimates the age of each coin from the daa score of its last move." % (
+                              p2, p1, tag_kurz(d)),
+            "pruefung": "ja, die Haelfte des Umlaufs unbewegt ist eine Zahl, die Halter gern zeigen"}
+
+
+def messen_13(now):
+    raise Stop("form 13 ist gesperrt, bis die tagesreihe der nodes beschlossen ist")
+
+
+def vorlage_13(w, now):
     return {"kopf": "NODES", "zahl": ganz(w["nodes"]),
             "bedeutung": "reachable over IPv4, counted by us", "zusatz": "", "herkunft": SELBST,
             "objekt": lambda x, y, ww, hh: o_punkte(x, y, ww, hh, int(w["nodes"])),
@@ -1003,7 +1068,8 @@ FORMEN = {
     8: ("sicherheit", messen_8, vorlage_8),
     9: ("adressen", messen_9, vorlage_9),
     10: ("herkunft", messen_10, vorlage_10),
-    11: ("nodes", messen_11, vorlage_11),
+    11: ("schlafende coins", messen_11, vorlage_11),
+    13: ("nodes", messen_13, vorlage_13),
 }
 
 
@@ -1012,7 +1078,12 @@ FORMEN = {
 WORTLISTE = ("sold", "sell", "sells", "selling", "sale", "bought", "buy", "buys", "buying",
              "purchase", "purchased", "dump", "dumping", "whale", "whales", "because",
              "motive", "panic", "exit", "cash out", "profit", "wants", "intends", "plans",
-             "preparing", "moon", "pump", "bullish", "bearish", "target", "to the moon")
+             "preparing", "moon", "pump", "bullish", "bearish", "target", "to the moon",
+             "dormant", "hodl", "hodling", "hodlers", "diamond hands")
+# Form 11 zeigt, dass Coins nicht bewegt wurden, nie warum (Ben, 30.09.2026).
+MOTIV_11 = ("deliberately", "deliberate", "forgotten", "forget", "lost", "conviction", "believe",
+            "believers", "faith", "refuse", "refusing", "waiting", "patient", "patience",
+            "long term holders", "long-term holders", "strong hands", "weak hands", "never sell")
 # Echtzeit-Woerter (Ben, 27.09. und 29.09.2026): unsere Bots pruefen mehrmals
 # am Tag, nicht laufend. Die Woerter fallen ueberall, auch wo sie fuer Bloecke
 # stimmen wuerden.
@@ -1063,6 +1134,10 @@ def pruefe_eine(t, form=None, feld=""):
             fehler.append("zahlwort %r in %s" % (w, feld))
     if "$" in t or re.search(r"\b(usd|usdt|dollars?|price)\b", t, re.I):
         fehler.append("kurs- oder dollarangabe in %s" % feld)
+    if form == 11:
+        for w in MOTIV_11:
+            if " %s " % w in klein:
+                fehler.append("motiv %r in %s" % (w, feld))
     if form == 8:
         for w in ANGRIFF:
             if " %s " % w in klein:
@@ -1484,6 +1559,7 @@ FAKE = {
         "tage": {"2026-09-%02d" % d: v for d, v in zip(range(21, 29), (
             293153, 293190, 293241, 293260, 293302, 293371, 293430, 293501))}},
     10: {"circ": 27728257200.07, "max": 28704035605.0},
+    11: {"stichtag": "2026-09-28", "p1": 50.57806049611307, "p2": 25.751732530896824},
 }
 
 
@@ -1620,7 +1696,22 @@ def selbsttest():
                   and dt.date.fromisoformat(x["datum"]).isocalendar()[:2] == dd.isocalendar()[:2]]
         doppelt |= len(gleich) > 1
     ok("90 tage ohne doppelte form in einer woche", not doppelt)
-    ok("form 11 gesperrt", 11 not in FREIGESCHALTET)
+    ok("form 13 (nodes) gesperrt", 13 not in FREIGESCHALTET and 12 not in FORMEN)
+    s11 = seite_bauen(11, FAKE[11], FAKE_NOW, log)
+    o11 = s11["objekt"](*objektzone(zahlgroesse(s11["zahl"])))
+    ok("form 11, kopf, zahl und bedeutung", s11["kopf"] == "SLEEPING COINS" and s11["zahl"] == "50.58%"
+       and s11["bedeutung"] == "half of all KAS has not moved in a year")
+    ok("form 11, balken hell, darin dunkel, rest im dritten ton",
+       o11.count("<rect") == 6 and AK in o11 and AK_DUNKEL in o11 and RESTTON in o11)
+    ok("form 11, datumszeile nur mit quelle, ohne counted by",
+       s11["datumszeile"].endswith("source kaspalytics, age estimated by daa score, 28 sep 2026")
+       and SELBST not in s11["datumszeile"])
+    ok("form 11, antwort mit der 2-jahres-zahl und form11", "25.75%" in s11["antwort"]
+       and s11["antwort"].endswith(antwort_link(11)) and "utm_campaign=form11" in s11["antwort"])
+    for wort in ("dormant", "hodl", "diamond hands"):
+        ok("form 11, %r faellt" % wort, bool(pruefe_eine("the %s coins stay put" % wort, 11)))
+    ok("form 11, motiv faellt", bool(pruefe_eine("holders are waiting deliberately", 11)))
+    ok("form 11 laeuft in der rotation", 11 in FREIGESCHALTET)
     # zeitplan-sperre, ohne netz: vor 07:00 Berlin und nach einer lieferung
     alt = os.environ.get("TG_JETZT")
     os.environ["TG_JETZT"] = "2026-10-01T06:30:00+02:00"
