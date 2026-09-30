@@ -945,8 +945,28 @@
       "utxo_count": 13093,
       "quelle": "kaspalytics",
       "abgerufen_utc": "2026-09-28T14:25:12+00:00"
+    },
+    {
+      "datum": "2026-09-28",
+      "tx": 192,
+      "outputs": 419,
+      "outputs_created": 419,
+      "outputs_spent": 364,
+      "utxo_count": 13148,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-30T12:58:20+00:00"
+    },
+    {
+      "datum": "2026-09-29",
+      "tx": 146,
+      "outputs": 314,
+      "outputs_created": 314,
+      "outputs_spent": 239,
+      "utxo_count": 13342,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-09-30T12:58:20+00:00"
     }
   ],
   "toccata_aktiv_seit": "2026-06-30",
-  "aktualisiert_utc": "2026-09-28T14:25:12+00:00"
+  "aktualisiert_utc": "2026-09-30T12:58:20+00:00"
 }
