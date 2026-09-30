@@ -737,6 +737,19 @@ def befehl_montag():
     return schlecht
 
 
+def befehl_notd():
+    """Nur lesend. Zahl des Tages fuer heute (aus dem log) und fuer morgen
+    05:30 utc (vorab gerechnet), dazu die gesperrten formen."""
+    import tagesgrafik as tg
+    jetzt = tg.jetzt_utc()
+    morgen = dt.datetime.combine(jetzt.date() + dt.timedelta(days=1), dt.time(5, 30), dt.timezone.utc)
+    for wann in (jetzt, morgen):
+        k, woher = tg.notd_heute(wann)
+        print("zahl des tages %s: %s (%s), gesperrt %s" % (wann.isoformat(timespec="minutes"), k, woher,
+                                                         sorted(tg.kollision(k))))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -748,6 +761,7 @@ BEFEHLE = {
     "wochen": befehl_wochen,
     "seite": befehl_seite,
     "montag": befehl_montag,
+    "notd": befehl_notd,
 }
 
 
