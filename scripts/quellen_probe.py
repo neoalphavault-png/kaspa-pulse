@@ -737,6 +737,16 @@ def befehl_montag():
     return schlecht
 
 
+def befehl_form11():
+    """Nur lesend. Misst Form 11 einmal echt und druckt die Messung als TGJSON."""
+    import tagesgrafik as tg
+    m = tg.messen(11, tg.jetzt_utc())
+    print("TGJSON " + json.dumps(m, ensure_ascii=False))
+    s = tg.seite_bauen(11, m["werte"], dt.datetime.fromisoformat(m["messzeit_utc"]))
+    print("X\n%s\nANTWORT\n%s\nDATUMSZEILE\n%s" % (s["x"], s["antwort"], s["datumszeile"]))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -748,6 +758,7 @@ BEFEHLE = {
     "wochen": befehl_wochen,
     "seite": befehl_seite,
     "montag": befehl_montag,
+    "form11": befehl_form11,
 }
 
 
