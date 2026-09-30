@@ -737,6 +737,34 @@ def befehl_montag():
     return schlecht
 
 
+def befehl_musterdateien():
+    """Nur lesend. Zaehlt beide Musterdateien und druckt jede Zeile ins Log,
+    siehe scripts/musterdateien.py."""
+    import musterdateien
+    return musterdateien.drucken()
+
+
+def befehl_verteilung():
+    """Nur lesend. Die Kaspalytics-Seite distribution-table fuer Form 12:
+    gibt es ein Aggregat der Bestaende nach Guthabenstufe?"""
+    print("=" * 78)
+    print("VERTEILUNG NACH GUTHABEN")
+    print("=" * 78)
+    st, html = hole(KL + "/app/supply/distribution-table/KAS")
+    text = re.sub(r"<script.*?</script>|<style.*?</style>", " ", html, flags=re.S)
+    text = " ".join(re.sub(r"<[^>]+>", " ", text).split())
+    i = text.find("Description")
+    print("seite http %s\n  %s" % (st, text[max(0, i - 2500):i + 1500] if i >= 0 else text[:3000]))
+    for m in re.finditer(r'(?:fetch\(|["\'])(/api/[A-Za-z0-9/_\-?=&.]+)', html):
+        print("  pfad " + m.group(1))
+    for g in ("supply/distribution-table/KAS", "supply/distribution-table?currency=KAS",
+              "supply/distribution-table", "address/distribution-table/KAS",
+              "supply/distribution/KAS"):
+        st, txt = hole(KL + "/api/charts/" + g)
+        print("versuch %s http %s %s" % (g, st, kurz(txt, 1800 if st == 200 else 100)))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -748,6 +776,8 @@ BEFEHLE = {
     "wochen": befehl_wochen,
     "seite": befehl_seite,
     "montag": befehl_montag,
+    "musterdateien": befehl_musterdateien,
+    "verteilung": befehl_verteilung,
 }
 
 
