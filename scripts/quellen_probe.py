@@ -765,6 +765,18 @@ def befehl_verteilung():
     return 0
 
 
+def befehl_verteilung2():
+    """Nur lesend. SvelteKit-Daten der Verteilungstabelle und der
+    Boersenseite (__data.json)."""
+    for seite in ("/app/supply/distribution-table/KAS/__data.json",
+                  "/app/supply/distribution-table/KAS/__data.json?x-sveltekit-invalidated=01",
+                  "/app/supply/exchange-holdings/__data.json"):
+        st, txt = hole(KL + seite)
+        print("\n%s http %s, %d zeichen" % (seite, st, len(txt)))
+        print("  " + kurz(txt, 6000))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -778,6 +790,7 @@ BEFEHLE = {
     "montag": befehl_montag,
     "musterdateien": befehl_musterdateien,
     "verteilung": befehl_verteilung,
+    "verteilung2": befehl_verteilung2,
 }
 
 
