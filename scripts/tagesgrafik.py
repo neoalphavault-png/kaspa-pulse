@@ -75,6 +75,14 @@ nicht lief und in den letzten 30 Tagen am seltensten, bei Gleichstand die,
 deren letzter Lauf am laengsten her ist. data/tagesgrafik-log.json haelt,
 welche Form wann lief.
 
+KOLLISION MIT DER ZAHL DES TAGES (v5, 30.09.2026). Vor der Wahl liest die
+Rotation, welche Kennzahl number_of_day heute traegt (aus dem Log oder vorab
+mit number_of_day_data.choose() gerechnet), und ueberspringt jede Form mit
+derselben Kennzahl (NOTD_KENNZAHL, FORM_KENNZAHL). Ereignisse eingeschlossen.
+
+GEGEN WAS? (v5). Jedes Objekt zeigt den Vergleich selbst: eine zweite Groesse
+im selben Massstab, den Rest einer Flaeche oder vorher gegen nachher.
+
 AUSGABE: PNG 1080x1350, Vorschau 390 px, Discord-Text, X-Text, die
 Antwort unter dem X-Post und eine Zeile Selbstpruefung. Mit --senden geht alles an DISCORD_WEBHOOK_OPS
 (#moderator-only). Es gibt keinen oeffentlichen Post aus diesem Skript.
@@ -415,6 +423,23 @@ def o_saeulen(x, y, w, h, werte, hervor_index, zahl_platz=0):
     return "".join(s), bw, gap
 
 
+def o_zwei_saeulen(x, y, w, h, links, rechts):
+    """Zwei Saeulen ab null im selben Massstab, je mit kleiner Beschriftung
+    darunter. links und rechts sind (wert, text, farbe). Die Prueffrage
+    "gegen was?" (Ben, 30.09.2026): das Bild zeigt die Bezugsgroesse selbst."""
+    unter, bw, gap = 60, 300, 120
+    x0 = x + (w - 2 * bw - gap) / 2
+    hi = max(links[0], rechts[0])
+    s = ""
+    for i, (v, text, farbe) in enumerate((links, rechts)):
+        hs = max((h - unter) * v / hi, 4)
+        s += ("<rect x='%.1f' y='%.1f' width='%.1f' height='%.1f' rx='4' fill='%s'/>"
+              % (x0 + i * (bw + gap), y + h - unter - hs, bw, hs, farbe))
+        s += ("<text x='%.1f' y='%.1f' fill='%s' font-size='30' text-anchor='middle'>%s</text>"
+              % (x0 + i * (bw + gap) + bw / 2, y + h - 12, farbe, text))
+    return s
+
+
 def o_flaeche_linie(x, y, w, h, werte):
     """Flaeche ab null im Resteton, Linie in Akzent, letzter Punkt markiert."""
     hi = max(werte) * 1.08
@@ -445,6 +470,8 @@ def messen_1(now):
     except Exception as exc:                        # noqa: BLE001
         print("form 1, holders nicht belegt: %s" % exc)
     try:
+        if "hashrate" in GESPERRTE_KENNZAHLEN:
+            raise Stop("die zahl des tages zeigt heute die hashrate")
         hr = m_hashrate_tage()
         if all(d in hr for d in tage):
             kand.append({"was": "hashrate", "reihe": [hr[d] / 1000 for d in tage], "tage": tage})
@@ -645,75 +672,21 @@ def messen_4(now):
     return {"bps": bps, "daa": daa, "sek": BLOCKRATE_SEK}
 
 
-BLOECKE_JE_PUNKT = 100
-
-
-def ekg_pfad(x0, x1, yb, amp, schlaege):
-    """Eine EKG-Linie von x0 bis x1 auf Hoehe yb, ein Schlag in der Mitte
-    jedes Abschnitts."""
-    seg = (x1 - x0) / schlaege
-    d = ["M%.1f,%.1f" % (x0, yb)]
-    for i in range(schlaege):
-        m = x0 + seg * (i + 0.5)
-        for dx, dy in ((-34, 0), (-26, -0.10), (-18, 0), (-8, 0), (-3, 0.18), (4, -1.0),
-                       (11, 0.42), (16, 0), (30, 0), (40, -0.16), (52, 0)):
-            d.append("L%.1f,%.1f" % (m + dx, yb + dy * amp))
-    d.append("L%.1f,%.1f" % (x1, yb))
-    return " ".join(d)
-
-
-def o_dichte(x, y, w, h, n, farbe, r=2.1):
-    """n Punkte gleichmaessig verstreut im Feld: ein Raster mit mindestens n
-    Zellen, jeder Punkt zufaellig in seiner Zelle, die leeren Zellen zufaellig
-    verteilt. Fester Zufall, gleiche Zahl gibt dasselbe Bild."""
-    import random
-    if n <= 0:
-        return ""
-    rnd = random.Random(n)
-    z = math.sqrt(w * h / n)
-    sp = max(1, round(w / z))
-    zl = math.ceil(n / sp)
-    zx, zy = w / sp, h / zl
-    zellen = rnd.sample(range(sp * zl), n)
-    s = []
-    for c in zellen:
-        s.append("<circle cx='%.1f' cy='%.1f' r='%.1f' fill='%s'/>"
-                 % (x + (c % sp + 0.15 + 0.7 * rnd.random()) * zx,
-                    y + (c // sp + 0.15 + 0.7 * rnd.random()) * zy, r, farbe))
-    return "".join(s)
-
-
 def vorlage_4(w, now):
-    """Eine EKG-Linie quer ueber die Objektzone, ein Schlag je Stunde, acht
-    Stundenmarken darunter. Die Bloecke sind Punktdichte entlang der Linie,
-    ein Punkt je 100 Bloecke, alles aus der einen Blockrate, ueber 10 Minuten
-    gemessen. Kein Vergleich mit einer anderen Chain (Ben)."""
+    """Zwei Balken ab null in denselben 8 Stunden: deine Herzschlaege gegen
+    die Bloecke, der Bloecke-Balken hell (Ben, 30.09.2026, v5). Die Bloecke
+    aus der einen Blockrate, ueber 10 Minuten gemessen."""
     bloecke = w["bps"] * SCHLAF_H * 3600
-    punkte = round(bloecke / BLOECKE_JE_PUNKT)
     schlaege = RUHEPULS * 60 * SCHLAF_H
     je_schlag = bloecke / schlaege
 
     def objekt(x, y, ww, hh):
-        marke = 70                     # platz fuer die stundenmarken unten
-        band_h = hh - marke - 20
-        yb = y + band_h * 0.56
-        s = [o_dichte(x, y, ww, band_h, punkte, AK)]
-        # die linie liegt frei im punktfeld, ein hintergrundband schneidet sie aus
-        pfad = ekg_pfad(x, x + ww, yb, band_h * 0.42, SCHLAF_H)
-        s.append("<path d='%s' fill='none' stroke='%s' stroke-width='22' stroke-linejoin='round' "
-                 "stroke-linecap='round'/>" % (pfad, BG))
-        s.append("<path d='%s' fill='none' stroke='%s' stroke-width='5' stroke-linejoin='round' "
-                 "stroke-linecap='round'/>" % (pfad, AK))
-        seg = ww / SCHLAF_H
-        ym = y + hh - marke + 18
-        for i in range(SCHLAF_H):
-            s.append("<rect x='%.1f' y='%.1f' width='4' height='34' rx='2' fill='%s'/>"
-                     % (x + seg * (i + 0.5) - 2, ym, RESTTON))
-        return "".join(s)
+        return o_zwei_saeulen(x, y, ww, hh,
+                              (schlaege, "your heartbeats, %s" % ganz(schlaege), RESTTON),
+                              (bloecke, "blocks, %s" % ganz(round(bloecke, -3)), AK))
     return {"kopf": "WHILE YOU SLEPT", "zahl": ganz(round(bloecke, -3)),
-            "bedeutung": "about %s blocks for every heartbeat while you slept" % ("%.0f" % je_schlag),
-            "zusatz": "one mark per hour, \u25cf is %d blocks, resting pulse %d, %d hours"
-                      % (BLOECKE_JE_PUNKT, RUHEPULS, SCHLAF_H),
+            "bedeutung": "%.0f blocks for every heartbeat while you slept" % je_schlag,
+            "zusatz": "the same %d hours, from zero, resting pulse %d assumed" % (SCHLAF_H, RUHEPULS),
             "herkunft": SELBST, "objekt": objekt,
             "x1": "kaspa added %s blocks while you slept." % ganz(round(bloecke, -3)),
             "x2": "%d hours at the block rate we measured over %d minutes, %s, %s" % (
@@ -723,7 +696,7 @@ def vorlage_4(w, now):
                           "in %d hours. we measured %.2f blocks per second over %d minutes." % (
                               je_schlag, RUHEPULS, ganz(schlaege), SCHLAF_H, w["bps"],
                               w.get("sek", BLOCKRATE_SEK) // 60),
-            "pruefung": "ja, riesige Zahl gegen den eigenen Herzschlag, genau der Angeber-Kontrast"}
+            "pruefung": "ja, die Bloecke stehen im Bild neben dem eigenen Herzschlag"}
 
 
 # --------------------------------------------------------------- form 5
@@ -769,21 +742,33 @@ def messen_6(now):
     return w
 
 
+# Crescendo, der Wechsel von 1 auf 10 Bloecke je Sekunde. Protokollkonstante
+# aus rusty-kaspa v2.1.0, consensus/core/src/config/params.rs, MAINNET_PARAMS
+# (crescendo_activation), "roughly 2025-05-05 1500 UTC".
+CRESCENDO_DAA = 110165000
+
+
 def vorlage_6(w, now):
     """Ein waagerechtes Lineal, eine Marke je 100 Millionen Bloecke, der
-    Endpunkt hell mit der Zahl daneben, die Startmarke "nov 2021" (Ben,
+    Endpunkt mit der Zahl daneben, die Startmarke "nov 2021" (Ben,
     30.09.2026). Nur der Monat, weil der Genesis-Block der API der Neustart
-    vom 22.11.2021 ist und schon DAA 1.312.860 traegt."""
+    vom 22.11.2021 ist und schon DAA 1.312.860 traegt.
+    v5, "gegen was?": das Lineal ist geteilt, vor Crescendo im dritten Ton,
+    danach hell. So steht im Bild, wie viel davon in den letzten Monaten kam."""
     daa = w["daa"]
     mio = round(daa / 1e6)
+    danach = 100 * (daa - CRESCENDO_DAA) / daa
 
     def objekt(x, y, ww, hh):
         platz = 250                      # rechts fuer "553M" neben dem endpunkt
         L = ww - platz
         ym = y + hh * 0.5
         x_ende = x + L
-        s = ["<rect x='%.1f' y='%.1f' width='%.1f' height='6' rx='3' fill='%s'/>"
-             % (x, ym - 3, L, RESTTON)]
+        xc = x + L * CRESCENDO_DAA / daa
+        s = ["<rect x='%.1f' y='%.1f' width='%.1f' height='14' rx='3' fill='%s'/>"
+             % (x, ym - 7, xc - x, RESTTON),
+             "<rect x='%.1f' y='%.1f' width='%.1f' height='14' rx='3' fill='%s'/>"
+             % (xc, ym - 7, x + L - xc, AK)]
         # startmarke, dann je 100M eine marke, alle gleich
         for k in range(int(daa // 1e8) + 1):
             mx = x + L * (k * 1e8) / daa
@@ -791,14 +776,18 @@ def vorlage_6(w, now):
                      % (mx - (0 if k == 0 else 3), ym - 40, RESTTON))
         s.append("<text x='%.1f' y='%.1f' fill='%s' font-size='34'>nov 2021</text>"
                  % (x, ym + 96, RESTTON))
+        s.append("<rect x='%.1f' y='%.1f' width='6' height='120' rx='3' fill='%s'/>"
+                 % (xc - 3, ym - 60, AK))
+        s.append("<text x='%.1f' y='%.1f' fill='%s' font-size='34' text-anchor='middle'>may 2025</text>"
+                 % (xc, ym - 84, AK))
         s.append("<circle cx='%.1f' cy='%.1f' r='18' fill='%s'/>" % (x_ende, ym, AK))
         s.append("<text x='%.1f' y='%.1f' fill='%s' font-size='64' font-weight='700'>%dM</text>"
                  % (x_ende + 40, ym + 23, AK, mio))
         return "".join(s)
     jahre = (now - dt.datetime(2021, 11, 7, tzinfo=dt.timezone.utc)).days / 365.25
     return {"kopf": "FROM THE CHAIN", "zahl": "%dM" % mio,
-            "bedeutung": "blocks since nov 2021, one mark every 100 million",
-            "zusatz": "%.1f years of blocks, counted by the network's daa score" % (math.floor(jahre * 10) / 10),
+            "bedeutung": "blocks since nov 2021, %d%% of them since may 2025" % math.floor(danach),
+            "zusatz": "daa score, a mark every 100 million, 10 blocks a second since may 2025, 1 before",
             "herkunft": SELBST, "objekt": objekt,
             "x1": "the kaspa chain has passed %d million blocks since nov 2021." % (daa // 1000000),
             "x2": "counted by the network's daa score, %s, %s" % (tag(now.date()), uhr(now)),
@@ -806,7 +795,8 @@ def vorlage_6(w, now):
             "aufloesung": "every kaspa node does, it is the daa score, %s on %s, %s. the same counter "
                           "has run since the first blocks in nov 2021." % (
                               ganz(daa), tag_kurz(now.date()), uhr(now)),
-            "pruefung": "ja, Hunderte Millionen Bloecke auf einem Lineal sind ein klarer Angeber-Fakt"}
+            "pruefung": "ja, das Lineal zeigt vorher gegen nachher, %.1f Jahre Kette" % (
+                math.floor(jahre * 10) / 10)}
 
 
 # --------------------------------------------------------------- form 7
@@ -814,14 +804,20 @@ def vorlage_6(w, now):
 def messen_7(now):
     """Von Hand: data/tagesgrafik-community.json, die erste Frage mit
     "offen": true. Ben liefert Frage, Antwort, Zahl, Namen, Messdatum und
-    das Objekt: {"art": "punkte", "anzahl": n, "einheit": k} oder
-    {"art": "anteil", "prozent": p}."""
+    das Objekt, seit v5 (30.09.2026) immer mit Vergleich im Bild:
+    {"art": "anteil", "prozent": p} oder
+    {"art": "zwei", "a": {"wert": x, "text": "..."}, "b": {"wert": y, "text": "..."}},
+    b ist die Zahl der Frage und steht hell. "punkte" allein zeigt nur die
+    eine Zahl in anderer Gestalt und wird abgelehnt."""
     try:
         d = json.loads(COMMUNITY.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         raise Stop("keine community-datei")
     for e in d.get("fragen") or []:
         if e.get("offen"):
+            art = (e.get("objekt") or {}).get("art")
+            if art not in ("anteil", "zwei"):
+                raise Stop("form 7 braucht einen vergleich im bild, objekt anteil oder zwei, nicht %r" % art)
             return {"eintrag": e}
     raise Stop("keine offene community-frage")
 
@@ -833,9 +829,10 @@ def vorlage_7(w, now):
     def objekt(x, y, ww, hh):
         if ob.get("art") == "anteil":
             return o_waffel(x, y, ww, hh, float(ob["prozent"]))
-        n = round(float(ob.get("anzahl", 0)) / float(ob.get("einheit", 1)))
-        return o_punkte(x, y, ww, hh, n)
-    zusatz = ("\u25cf is %s" % ganz(ob["einheit"])) if ob.get("art") == "punkte" else "one square is 1%"
+        return o_zwei_saeulen(x, y, ww, hh,
+                              (float(ob["a"]["wert"]), ob["a"]["text"], RESTTON),
+                              (float(ob["b"]["wert"]), ob["b"]["text"], AK))
+    zusatz = "one square is 1%" if ob.get("art") == "anteil" else "both from zero"
     return {"kopf": "%s ASKED" % e["name"].upper(), "zahl": e["zahl"],
             "bedeutung": "%s, %s" % (e["antwort"], tag(e["stand"])),
             "zusatz": zusatz, "herkunft": e.get("quelle") or SELBST, "objekt": objekt,
@@ -1353,6 +1350,50 @@ def rendern(seite, out, vorschau=VORSCHAU):
 
 # ------------------------------------------------------------ rotation
 
+# Kollision mit der Zahl des Tages (Ben, 30.09.2026, v5). Welche Kennzahl
+# zeigt number_of_day heute, und welche Formen tragen dieselbe? Die Zahl des
+# Tages entsteht erst um 08:42 UTC, die Tagesgrafik um 05:30. Deshalb liest die
+# Rotation den heutigen Eintrag aus data/number-of-day-log.json, und wenn es
+# ihn noch nicht gibt, rechnet sie die Wahl mit number_of_day_data.choose()
+# selbst vorab, mit denselben Live-Daten.
+NOTD_KENNZAHL = {
+    "cut_today": "reward_cut", "cut_countdown": "reward_cut",
+    "mined_left": "mined", "whale_weight": "entity_x",
+    "emission_vs_btc": "emission", "blocks_per_day": "blocks",
+    "hashrate_move": "hashrate", "hashrate_consequence": "hashrate",
+    "tvl_move": "tvl", "weekly_line": "price", "sats_divergence": "price",
+}
+FORM_KENNZAHL = {
+    1: set(),                  # montags fest; bei hashrate nimmt messen_1 die adressen
+    2: {"entity_x"}, 3: {"reward_cut"}, 4: {"blocks"}, 5: {"emission"},
+    6: {"blocks"}, 7: set(), 8: {"hashrate"}, 9: {"addresses"}, 10: {"mined"},
+    11: {"dormant"},
+}
+GESPERRTE_KENNZAHLEN = set()   # vom zeitplanlauf gesetzt, messen_1 liest es
+
+
+def notd_heute(now, log_pfad=None):
+    """(kandidat, woher) der Zahl des Tages fuer den UTC-Tag von now, oder
+    (None, grund), wenn weder Log noch Vorabwahl etwas liefern."""
+    import number_of_day_data as nod
+    log = nod.load_json(log_pfad or nod.LOG_PATH, [])
+    heute = now.date().isoformat()
+    for r in reversed(log or []):
+        if str(r.get("date")) == heute and r.get("candidate"):
+            return r["candidate"], "aus dem log"
+    try:
+        name, _, _ = nod.choose(nod.build_context(now.timestamp()), log)
+        return name, "vorab gerechnet"
+    except Exception as exc:                        # noqa: BLE001
+        return None, "vorabwahl gescheitert (%s)" % exc
+
+
+def kollision(kandidat):
+    """Formen, die dieselbe Kennzahl tragen wie die Zahl des Tages."""
+    k = NOTD_KENNZAHL.get(kandidat)
+    return {f for f, ks in FORM_KENNZAHL.items() if k and k in ks}
+
+
 def lade_log():
     try:
         return json.loads(LOG.read_text(encoding="utf-8"))
@@ -1492,12 +1533,21 @@ def main(argv=None):
                 ereignis_ex = bool(ex_24h({"bewegungen": m_entityx_bewegungen(2)}, now))
             except Stop as exc:
                 print("entity-x-pruefung fuer die rotation fehlgeschlagen: %s" % exc)
-            ausgeschl, m = set(), None
+            notd, woher = notd_heute(now)
+            ausgeschl = kollision(notd)
+            GESPERRTE_KENNZAHLEN.clear()
+            if notd in NOTD_KENNZAHL:
+                GESPERRTE_KENNZAHLEN.add(NOTD_KENNZAHL[notd])
+            print("zahl des tages %s (%s), uebersprungen %s" % (notd, woher, sorted(ausgeschl) or "keine"))
+            m = None
             while m is None:
                 verf = FREIGESCHALTET - ausgeschl
                 if not verf:
                     raise SystemExit("ABBRUCH keine form heute belegbar")
                 form, grund = waehle_form(heute, log, ereignis_cut, ereignis_ex, verf)
+                if notd:
+                    grund += ", zahl des tages %s (%s)%s" % (
+                        notd, woher, ", uebersprungen %s" % sorted(ausgeschl) if ausgeschl else "")
                 try:
                     m = messen(form, now)
                 except Stop as exc:
@@ -1555,7 +1605,8 @@ FAKE = {
                     "antwort": "addresses held at least 100 KAS", "name": "@PLATZHALTER",
                     "stand": "2026-09-28", "offen": True,
                     "quelle": "source kaspalytics address thresholds",
-                    "objekt": {"art": "punkte", "anzahl": 293501, "einheit": 100}}},
+                    "objekt": {"art": "zwei", "a": {"wert": 558856, "text": "at least 1 KAS, 558,856"},
+                               "b": {"wert": 293501, "text": "at least 100 KAS, 293,501"}}}},
     8: {"ph": 344.5, "reihe": [300 + i * 0.5 for i in range(90)], "von": "2026-07-01",
         "bis": "2026-09-28", "neu": 1885832.45, "neu_tag": "2026-09-28"},
     9: {"d1": "2026-09-28", "d0": "2026-09-21",
@@ -1605,8 +1656,8 @@ def selbsttest():
     ok("echtzeit-wort faellt", bool(probe("sealed by proof of work, around the clock")))
     ok("echtzeit live faellt", bool(probe("tracked live")))
     s4 = seite_bauen(4, FAKE[4], FAKE_NOW, log)
-    ok("form 4 heartbeat aus der blockrate", "about 10 blocks for every heartbeat" in s4["bedeutung"]
-       and "resting pulse 60, 8 hours" in s4["datumszeile"])
+    ok("form 4 heartbeat aus der blockrate", s4["bedeutung"] == "10 blocks for every heartbeat while you slept"
+       and "resting pulse 60 assumed" in s4["datumszeile"])
     s9 = seite_bauen(9, FAKE[9], FAKE_NOW, log)
     ok("kaspalytics-form ohne counted by", "counted by" not in s9["datumszeile"]
        and "source kaspalytics" in s9["datumszeile"])
@@ -1667,7 +1718,46 @@ def selbsttest():
        "daily hashrate 28 sep" in s8["datumszeile"] and "measured" not in json.dumps(s8, default=str)
        and abs(FAKE[8]["ph"] - FAKE[8]["reihe"][-1]) < 1e-9)
     o4 = s4["objekt"](*objektzone(zahlgroesse(s4["zahl"])))
-    ok("form 4, punkte je 100 bloecke", o4.count("<circle") == round(FAKE[4]["bps"] * 8 * 3600 / 100))
+    ok("form 4, zwei balken ab null, bloecke hell, beide beschriftet, keine ekg-linie",
+       o4.count("<rect") == 2 and "<path" not in o4 and ">your heartbeats, 28,800<" in o4
+       and ">blocks, 281,000<" in o4 and o4.index(RESTTON) < o4.index(AK))
+    s6 = seite_bauen(6, FAKE[6], FAKE_NOW, log)
+    o6 = s6["objekt"](*objektzone(zahlgroesse(s6["zahl"])))
+    ok("form 6, lineal vor und nach crescendo", ">may 2025<" in o6 and "80% of them since may 2025"
+       in s6["bedeutung"])
+    s7 = seite_bauen(7, FAKE[7], FAKE_NOW, log)
+    o7 = s7["objekt"](*objektzone(zahlgroesse(s7["zahl"])))
+    ok("form 7, zwei groessen im selben massstab", o7.count("<rect") == 2)
+    # gegen was? jede form zeigt eine zweite groesse, einen rest oder vorher/nachher
+    for f in sorted(FAKE):
+        sf = seite_bauen(f, FAKE[f], FAKE_NOW, log)
+        of = sf["objekt"](*objektzone(zahlgroesse(sf["zahl"])))
+        farben = {c for c in (AK, RESTTON, AK_DUNKEL) if c in of}
+        ok("form %d, gegen was, mindestens zwei toene im objekt" % f, len(farben) >= 2)
+    # kollision mit der zahl des tages
+    ok("zahl des tages blocks_per_day sperrt form 4 und 6", kollision("blocks_per_day") == {4, 6})
+    ok("zahl des tages hashrate sperrt form 8", kollision("hashrate_move") == {8})
+    ok("zahl des tages kurs sperrt nichts", kollision("weekly_line") == set())
+    woche = {"laeufe": [{"datum": "2026-10-06", "form": 2}, {"datum": "2026-10-07", "form": 3}]}
+    tag_x = dt.date(2026, 10, 8)
+    ohne, _ = waehle_form(tag_x, woche)
+    mit, _ = waehle_form(tag_x, woche, verfuegbar=FREIGESCHALTET - kollision("blocks_per_day"))
+    ok("heute waere form 4 dran, mit blocks_per_day kommt eine andere", ohne == 4 and mit not in (4, 6))
+    tmp = Path("/tmp/tagesgrafik-selbsttest-notd.json")
+    tmp.write_text(json.dumps([{"date": "2026-09-30", "candidate": "blocks_per_day"}]))
+    ok("zahl des tages aus dem log gelesen",
+       notd_heute(dt.datetime(2026, 9, 30, 5, 30, tzinfo=dt.timezone.utc), tmp) == ("blocks_per_day", "aus dem log"))
+    tmp.unlink()
+    GESPERRTE_KENNZAHLEN.add("hashrate")
+    alt_reihe = globals()["m_kl_reihe"]
+    globals()["m_kl_reihe"] = lambda pfad, name, art: {"2026-09-%02d" % d: 796000.0 + d for d in range(20, 30)}
+    try:
+        w1 = messen_1(FAKE_NOW)
+        ok("montags mit hashrate als zahl des tages nimmt form 1 die adressen",
+           [k["was"] for k in w1["kandidaten"]] == ["holders"])
+    finally:
+        globals()["m_kl_reihe"] = alt_reihe
+        GESPERRTE_KENNZAHLEN.clear()
     ok("form 4, blockrate ueber 10 minuten", BLOCKRATE_SEK == 600)
     # rotation
     mo = dt.date(2026, 10, 5)
