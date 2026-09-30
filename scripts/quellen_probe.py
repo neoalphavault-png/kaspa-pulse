@@ -777,6 +777,43 @@ def befehl_verteilung2():
     return 0
 
 
+def befehl_verteilung3():
+    """Nur lesend. Sucht in den SvelteKit-Modulen der Verteilungsseite den
+    API-Pfad der Tabelle und ruft ihn einmal ab."""
+    st, html = hole(KL + "/app/supply/distribution-table/KAS")
+    module = sorted(set(re.findall(r'(/_app/immutable/[A-Za-z0-9/_\-.]+\.js)', html)))
+    print("seite http %s, %d module" % (st, len(module)))
+    pfade = set()
+    gesehen = set()
+    warteschlange = list(module)
+    while warteschlange and len(gesehen) < 120:
+        m = warteschlange.pop(0)
+        if m in gesehen:
+            continue
+        gesehen.add(m)
+        s2, js = hole(KL + m)
+        if s2 != 200:
+            continue
+        for n in re.findall(r'["\'](\.{0,2}/?[A-Za-z0-9/_\-.]*\.js)["\']', js):
+            if n.startswith("/_app/"):
+                warteschlange.append(n)
+            elif n.startswith("./") or n.startswith("../"):
+                basis = m.rsplit("/", 1)[0]
+                while n.startswith("../"):
+                    basis, n = basis.rsplit("/", 1)[0], n[3:]
+                warteschlange.append(basis + "/" + n.lstrip("./"))
+        for x in re.findall(r'[`"\'](/?api/[A-Za-z0-9/_\-?=&.${}:]+)', js):
+            pfade.add(x)
+    print("%d module gelesen" % len(gesehen))
+    for x in sorted(pfade):
+        print("  pfad " + x)
+    for x in sorted(pfade):
+        if "distribution" in x.lower() and "$" not in x:
+            st, txt = hole(KL + ("" if x.startswith("/") else "/") + x)
+            print("\nabruf %s http %s\n  %s" % (x, st, kurz(txt, 5000)))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -791,6 +828,7 @@ BEFEHLE = {
     "musterdateien": befehl_musterdateien,
     "verteilung": befehl_verteilung,
     "verteilung2": befehl_verteilung2,
+    "verteilung3": befehl_verteilung3,
 }
 
 
