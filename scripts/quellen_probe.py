@@ -737,6 +737,188 @@ def befehl_montag():
     return schlecht
 
 
+# ------------------------------------------------- entity x, pruefung 01.10.
+
+EX_ADR = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a"
+ZWISCHEN_2809 = "kaspa:qrl6dvnd6fjszucdnfueendlvvxdzcjrs2lcjune98up0whm954uz5k4dl80k"
+ZIEL2_2809 = "kaspa:qp779ewja7svac0r2xsvrdr7mckc0nk84m0sef6t9tsl7fs22y2jy4ucce686"
+
+
+def _zeit(ms):
+    return dt.datetime.fromtimestamp((ms or 0) / 1000, dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _label(a, cache={}):
+    """Liste aus entity_x_outflows.py und Namensdienst der Explorer-API."""
+    if a in cache:
+        return cache[a]
+    if a == EX_ADR:
+        cache[a] = "entity x"
+        return cache[a]
+    try:
+        from entity_x_outflows import KNOWN
+    except Exception:                              # noqa: BLE001
+        KNOWN = {}
+    s2, t2 = hole("https://api.kaspa.org/addresses/%s/name" % a)
+    api = None
+    if s2 == 200:
+        try:
+            api = (json.loads(t2) or {}).get("name")
+        except Exception:                          # noqa: BLE001
+            api = None
+    teile = ["liste %s" % (KNOWN.get(a) or "-"),
+             "explorer-api %s" % ((api or "-") if s2 == 200 else "http %s" % s2)]
+    if a == ZWISCHEN_2809:
+        teile.append("ZWISCHENADRESSE VOM 28.09.")
+    if a == ZIEL2_2809:
+        teile.append("ZWEITES ZIEL VOM 28.09.")
+    cache[a] = "; ".join(teile)
+    return cache[a]
+
+
+def _gate(a):
+    return "gate" in _label(a).lower()
+
+
+def _seiten(adr, ab_ms, n=10):
+    txs, before = [], 0
+    for _ in range(n):
+        url = ("https://api.kaspa.org/addresses/%s/full-transactions-page"
+               "?limit=100&resolve_previous_outpoints=light" % adr)
+        if before:
+            url += "&before=%d" % before
+        st, txt = hole(url)
+        if st != 200:
+            print("  full-transactions-page %s http %s: %s" % (adr[:20], st, kurz(txt, 200)))
+            return None
+        seite = json.loads(txt)
+        if not seite:
+            break
+        txs += seite
+        aeltester = min(t.get("block_time") or 0 for t in seite)
+        if aeltester < ab_ms:
+            break
+        before = aeltester
+    return txs
+
+
+def _weiter(adr, ab_ms, tiefe, schon):
+    """Was gibt adr nach ab_ms aus? Ausgaenge mit Label. Unbeschriftete
+    Empfaenger werden eine Stufe weiter verfolgt (hoechstens tiefe 2)."""
+    einr = "  " * (3 - tiefe)
+    txs = _seiten(adr, ab_ms, 3) or []
+    s1, b = hole("https://api.kaspa.org/addresses/%s/balance" % adr)
+    bal = int(json.loads(b)["balance"]) / 1e8 if s1 == 200 else None
+    print("%s%s  kontostand jetzt %s  [%s]" % (einr, adr, "%.2f" % bal if bal is not None else "http %s" % s1,
+                                              _label(adr)))
+    gefunden = False
+    for t in sorted(txs, key=lambda x: x.get("block_time") or 0):
+        bt = t.get("block_time") or 0
+        tid = t.get("transaction_id")
+        if bt <= ab_ms or tid in schon:
+            continue
+        ein_von_adr = sum(float(i.get("previous_outpoint_amount") or 0) for i in t.get("inputs") or []
+                          if i.get("previous_outpoint_address") == adr) / 1e8
+        if ein_von_adr <= 0:
+            continue
+        schon.add(tid)
+        ein_ges = sum(float(i.get("previous_outpoint_amount") or 0) for i in t.get("inputs") or []) / 1e8
+        fremd = len({i.get("previous_outpoint_address") for i in t.get("inputs") or []} - {adr})
+        print("%s  gibt aus %s  %s  accepted %s, von dieser adresse %.2f, eingaenge gesamt %.2f, "
+              "fremde eingangsadressen %d" % (einr, _zeit(bt), tid, t.get("is_accepted"), ein_von_adr,
+                                              ein_ges, fremd))
+        aus = sorted(((o.get("script_public_key_address") or o.get("address"),
+                       float(o.get("amount") or 0) / 1e8) for o in t.get("outputs") or []),
+                     key=lambda x: -x[1])
+        for x, v in aus:
+            g = _gate(x)
+            gefunden |= g
+            print("%s    an %s  %16.2f  [%s]%s" % (einr, x, v, _label(x), "  GATE" if g else ""))
+        if tiefe > 1:
+            for x, v in aus[:2]:
+                if x not in (adr, EX_ADR) and not _gate(x) and v >= 100000:
+                    gefunden |= _weiter(x, bt, tiefe - 1, schon)
+    return gefunden
+
+
+def befehl_entityx01():
+    """Nur lesend. Pruefung vom 01.10.2026: Alarm 15:37 UTC, Abgang
+    4.517.808 KAS, Stand 1.517.998.349. Alle Transaktionen von Entity X ab
+    30.09. 12:00 UTC, jeder Abgang vollstaendig (Ein- und Ausgaenge, Labels,
+    Gebuehr), dazu die Weitergabe jeder Zieladresse bis zwei Stufen tief und
+    der Vergleich mit der Zwischenadresse vom 28.09. Schreibt nichts."""
+    ab = dt.datetime(2026, 9, 30, 12, tzinfo=dt.timezone.utc)
+    ab_ms = int(ab.timestamp() * 1000)
+    print("=" * 78)
+    print("ENTITY X, BEWEGUNGEN AB 30.09.2026 12:00 UTC")
+    print("=" * 78)
+    jetzt = dt.datetime.now(dt.timezone.utc)
+    st, txt = hole("https://api.kaspa.org/addresses/%s/balance" % EX_ADR)
+    if st != 200:
+        print("  balance http %s" % st)
+        return 1
+    live = int(json.loads(txt)["balance"]) / 1e8
+    print("  live-kontostand %s: %.2f KAS" % (jetzt.isoformat(timespec="seconds"), live))
+    txs = _seiten(EX_ADR, ab_ms)
+    if txs is None:
+        return 1
+    zeilen, gesehen = [], set()
+    for t in txs:
+        tid, bt = t.get("transaction_id"), t.get("block_time") or 0
+        if tid in gesehen or bt < ab_ms:
+            continue
+        gesehen.add(tid)
+        if t.get("is_accepted") is False:
+            print("  nicht akzeptiert, uebersprungen: %s %s" % (_zeit(bt), tid))
+            continue
+        gain = sum(float(o.get("amount") or 0) for o in t.get("outputs") or []
+                   if (o.get("script_public_key_address") or o.get("address")) == EX_ADR) / 1e8
+        spend = sum(float(i.get("previous_outpoint_amount") or 0) for i in t.get("inputs") or []
+                    if i.get("previous_outpoint_address") == EX_ADR) / 1e8
+        zeilen.append((bt, tid, gain - spend, t))
+    zeilen.sort(key=lambda z: z[0])
+    print("\n  %-20s %18s  %s" % ("zeit utc", "netto KAS", "transaktion"))
+    for bt, tid, netto, _ in zeilen:
+        print("  %-20s %+18.2f  %s" % (_zeit(bt), netto, tid))
+    print("\n  kontostand vor und nach jeder transaktion, rueckgerechnet vom live-stand:")
+    for bt, tid, netto, _ in zeilen:
+        nach = live - sum(z[2] for z in zeilen if z[0] > bt)
+        print("    %s  vorher %.2f  nachher %.2f" % (_zeit(bt), nach - netto, nach))
+    for bt, tid, netto, t in zeilen:
+        if netto > -1000:
+            continue
+        print("\n" + "-" * 78)
+        print("  ABGANG %s  %s" % (_zeit(bt), tid))
+        print("  accepted %s, accepting blue score %s, netto %+.2f" % (
+            t.get("is_accepted"), t.get("accepting_block_blue_score"), netto))
+        ein = 0.0
+        print("  eingaenge:")
+        for i in t.get("inputs") or []:
+            a, amt = i.get("previous_outpoint_address"), float(i.get("previous_outpoint_amount") or 0) / 1e8
+            ein += amt
+            print("    %s  %16.2f  [%s]" % (a, amt, _label(a)))
+        aus = 0.0
+        ziele = []
+        print("  ausgaenge:")
+        for o in t.get("outputs") or []:
+            a = o.get("script_public_key_address") or o.get("address")
+            amt = float(o.get("amount") or 0) / 1e8
+            aus += amt
+            if a != EX_ADR:
+                ziele.append((a, amt))
+            print("    %s  %16.2f  [%s]" % (a, amt, _label(a)))
+        print("  summe ein %.2f, summe aus %.2f, gebuehr %.8f" % (ein, aus, ein - aus))
+        print("\n  weitergabe der ziele (bis zwei stufen):")
+        for a, amt in sorted(ziele, key=lambda x: -x[1]):
+            s2, c = hole("https://api.kaspa.org/addresses/%s/transactions-count" % a)
+            print("\n  ZIEL %s  erhielt %.2f, transaktionen gesamt %s, gleiche zwischenadresse wie 28.09. %s"
+                  % (a, amt, json.loads(c).get("total") if s2 == 200 else "http %s" % s2,
+                     "JA" if a == ZWISCHEN_2809 else "nein"))
+            g = _weiter(a, bt, 2, set())
+            print("  weiterleitung an gate-label gefunden: %s" % ("JA" if g else "nein"))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -748,6 +930,7 @@ BEFEHLE = {
     "wochen": befehl_wochen,
     "seite": befehl_seite,
     "montag": befehl_montag,
+    "entityx01": befehl_entityx01,
 }
 
 
