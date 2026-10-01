@@ -1486,6 +1486,16 @@ def falke_lesen(pfad=None):
     raise Stop("falke fehlt (graphics/falcon.b64)")
 
 
+def log_eintragen(log, eintrag):
+    """Ein Eintrag je Tag. Liefert ein Handlauf nach dem Cron noch einmal,
+    zaehlt die spaetere Lieferung, sonst steht der Tag doppelt in der
+    Rotation (Ben, 01.10.2026: der Handlauf schreibt das Log wie der Cron)."""
+    laeufe = [e for e in log.get("laeufe", []) if e["datum"] != eintrag["datum"]]
+    laeufe.append(eintrag)
+    log["laeufe"] = laeufe
+    return log
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="graphics/tagesgrafik")
@@ -1577,8 +1587,8 @@ def main(argv=None):
             raise SystemExit("ABBRUCH kein DISCORD_WEBHOOK_OPS, nichts geschickt")
         ops_senden(png, vpng, s, form, grund, hook)
     if a.log_schreiben:
-        log.setdefault("laeufe", []).append({"datum": heute.isoformat(), "form": form,
-                                             "grund": grund, "messzeit_utc": m["messzeit_utc"]})
+        log_eintragen(log, {"datum": heute.isoformat(), "form": form,
+                            "grund": grund, "messzeit_utc": m["messzeit_utc"]})
         LOG.write_text(json.dumps(log, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     return 0
 
@@ -1743,6 +1753,11 @@ def selbsttest():
     ohne, _ = waehle_form(tag_x, woche)
     mit, _ = waehle_form(tag_x, woche, verfuegbar=FREIGESCHALTET - kollision("blocks_per_day"))
     ok("heute waere form 4 dran, mit blocks_per_day kommt eine andere", ohne == 4 and mit not in (4, 6))
+    lg2 = {"laeufe": [{"datum": "2026-10-01", "form": 3}]}
+    log_eintragen(lg2, {"datum": "2026-10-01", "form": 2})
+    log_eintragen(lg2, {"datum": "2026-10-02", "form": 4})
+    ok("handlauf nach dem cron, ein eintrag je tag, die spaetere lieferung zaehlt",
+       [(e["datum"], e["form"]) for e in lg2["laeufe"]] == [("2026-10-01", 2), ("2026-10-02", 4)])
     tmp = Path("/tmp/tagesgrafik-selbsttest-notd.json")
     tmp.write_text(json.dumps([{"date": "2026-09-30", "candidate": "blocks_per_day"}]))
     ok("zahl des tages aus dem log gelesen",
