@@ -916,7 +916,91 @@ def befehl_entityx01():
                      "JA" if a == ZWISCHEN_2809 else "nein"))
             g = _weiter(a, bt, 2, set())
             print("  weiterleitung an gate-label gefunden: %s" % ("JA" if g else "nein"))
+    _zugaenge(zeilen, live)
     return 0
+
+
+def _herkunft(adr, bis_ms, schon, n=3):
+    """Woher hatte adr die Muenzen? Die letzten n Eingaenge vor bis_ms mit
+    den Labels der einzahlenden Adressen. Eine Stufe, nur lesend."""
+    txs = _seiten(adr, bis_ms - 30 * 86400000, 2) or []
+    gefunden, k = False, 0
+    for t in sorted(txs, key=lambda x: -(x.get("block_time") or 0)):
+        bt, tid = t.get("block_time") or 0, t.get("transaction_id")
+        if bt >= bis_ms or tid in schon or t.get("is_accepted") is False:
+            continue
+        an_adr = sum(float(o.get("amount") or 0) for o in t.get("outputs") or []
+                     if (o.get("script_public_key_address") or o.get("address")) == adr) / 1e8
+        von_adr = sum(float(i.get("previous_outpoint_amount") or 0) for i in t.get("inputs") or []
+                      if i.get("previous_outpoint_address") == adr) / 1e8
+        if an_adr - von_adr <= 0:
+            continue
+        schon.add(tid)
+        k += 1
+        print("      erhielt %s  %s  netto %+.2f" % (_zeit(bt), tid, an_adr - von_adr))
+        quellen = {}
+        for i in t.get("inputs") or []:
+            a = i.get("previous_outpoint_address")
+            if a != adr:
+                quellen[a] = quellen.get(a, 0) + float(i.get("previous_outpoint_amount") or 0) / 1e8
+        for a, v in sorted(quellen.items(), key=lambda x: -x[1]):
+            g = _gate(a)
+            gefunden |= g
+            print("        von %s  %16.2f  [%s]%s" % (a, v, _label(a), "  GATE" if g else ""))
+        if k >= n:
+            break
+    if not k:
+        print("      keine eingaenge vor dem zugang gefunden (30 tage, 200 transaktionen)")
+    return gefunden
+
+
+def _zugaenge(zeilen, live):
+    """Nachtrag 02.10.: Zugaenge ab 01.10. 16:00 UTC (nach dem Abgang vom
+    01.10.), ab 100.000 KAS netto. Herkunft je Eingangsadresse mit Label,
+    bei unbeschrifteter Herkunft eine Stufe zurueck. Neuer Stand nach jedem
+    Zugang, rueckgerechnet vom live-stand. Anlass: Meldung Kaspa Daily
+    (02.10. gegen 09:50 UTC), +2,04 Mio. KAS von gate.io."""
+    ab_ms = int(dt.datetime(2026, 10, 1, 16, tzinfo=dt.timezone.utc).timestamp() * 1000)
+    zu = [z for z in zeilen if z[0] >= ab_ms and z[2] >= 100000]
+    print("\n" + "=" * 78)
+    print("ZUGAENGE AB 01.10.2026 16:00 UTC, AB 100.000 KAS NETTO")
+    print("=" * 78)
+    klein = [z for z in zeilen if z[0] >= ab_ms and 0 < z[2] < 100000]
+    print("  kleinere zugaenge im fenster: %d, zusammen %.2f KAS" % (len(klein), sum(z[2] for z in klein)))
+    if not zu:
+        print("  ZUFLUSS: nein")
+        return
+    for bt, tid, netto, t in zu:
+        nach = live - sum(z[2] for z in zeilen if z[0] > bt)
+        print("\n  ZUGANG %s UTC  %s" % (_zeit(bt), tid))
+        print("  accepted %s, accepting blue score %s" % (t.get("is_accepted"), t.get("accepting_block_blue_score")))
+        print("  betrag netto %+.2f KAS, stand vorher %.2f, stand nachher %.2f" % (netto, nach - netto, nach))
+        quellen = {}
+        for i in t.get("inputs") or []:
+            a = i.get("previous_outpoint_address")
+            quellen[a] = quellen.get(a, 0) + float(i.get("previous_outpoint_amount") or 0) / 1e8
+        print("  eingaenge je adresse:")
+        gate_direkt = False
+        for a, v in sorted(quellen.items(), key=lambda x: -x[1]):
+            g = _gate(a)
+            gate_direkt |= g
+            print("    %s  %16.2f  [%s]%s" % (a, v, _label(a), "  GATE" if g else ""))
+        print("  ausgaenge:")
+        for o in t.get("outputs") or []:
+            a = o.get("script_public_key_address") or o.get("address")
+            print("    %s  %16.2f  [%s]" % (a, float(o.get("amount") or 0) / 1e8, _label(a)))
+        gate_vorher = False
+        if not gate_direkt:
+            print("  herkunft eine stufe zurueck (unbeschriftete eingangsadressen):")
+            for a, v in sorted(quellen.items(), key=lambda x: -x[1])[:3]:
+                if a == EX_ADR:
+                    continue
+                print("    %s" % a)
+                gate_vorher |= _herkunft(a, bt, set())
+        print("  ZUFLUSS: ja, %s UTC, %+.2f KAS, gate-label direkt %s, gate-label eine stufe davor %s"
+              % (_zeit(bt), netto, "JA" if gate_direkt else "nein",
+                 "JA" if gate_vorher else ("-" if gate_direkt else "nein")))
+    print("\n  live-stand zum abruf: %.2f KAS" % live)
 
 
 BEFEHLE = {
