@@ -25,8 +25,16 @@ auf der seite neben die zahlen gedruckt, wie immer.
 regeln aus dem haus:
 - faellt die datenbeschaffung aus, bricht der lauf mit fehler ab. lieber
   keine datei als eine mit luecken, die keiner bemerkt.
-- die datei wird komplett neu geschrieben, nie fortgeschrieben. die quelle
-  liefert die volle historie, damit gibt es keinen driftenden zustand.
+- AENDERUNG 02.10.2026: die datei wird mit der vorhandenen historie
+  zusammengefuehrt. coingecko antwortet seit september mit http 401 (days=max
+  braucht jetzt einen schluessel), jeder lauf geht ueber kraken, und kraken
+  liefert hoechstens 720 tageskerzen. ab dem 08.11.2026 fiele damit jeden tag
+  ein alter kas-tag vorne heraus. ueberlappende tage muessen gleich sein,
+  sonst bricht der lauf ab (die quelle hat sich geaendert).
+- frische: die letzte kerze muss der gestrige utc-tag sein, sonst abbruch.
+  eine datei mit altem stand soll rot werden, nicht still liegen bleiben.
+- ohne aenderung an den reihen wird nichts geschrieben, auch kein neuer
+  zeitstempel. so erzeugen mehrere laeufe am tag keine leeren commits.
 - keine geheimnisse. der endpunkt ist oeffentlich und braucht keinen key.
 
 lokal (im sandkasten geht kein netz, dort nur --selftest):
@@ -199,16 +207,63 @@ def build():
     }
 
 
+UEBERLAPP_TOLERANZ = 0.005   # 0,5 %. kraken schreibt alte tage nicht um.
+
+
+def zusammenfuehren(alt, neu, name, toleranz=UEBERLAPP_TOLERANZ):
+    """Vorhandene Tage bleiben, neue kommen dazu. Ein Tag, den beide kennen,
+    muss im Schluss passen, sonst Stop. Gibt die vereinte Reihe zurueck."""
+    a = {r[0]: r for r in (alt or [])}
+    for r in neu:
+        if r[0] in a:
+            x, y = float(a[r[0]][1]), float(r[1])
+            if abs(x - y) > toleranz * max(abs(x), abs(y), 1e-12):
+                raise Stop("%s am %s: alt %s, neu %s. die quelle hat sich geaendert, "
+                           "nichts geschrieben" % (name, r[0], x, y))
+        a[r[0]] = r
+    return [a[k] for k in sorted(a)]
+
+
+def frisch_pruefen(rows, name, heute=None):
+    heute = heute or dt.datetime.now(dt.timezone.utc).date()
+    letzte = dt.date.fromisoformat(rows[-1][0])
+    if letzte < heute - dt.timedelta(days=1):
+        raise Stop("%s: letzte geschlossene kerze %s, erwartet %s. quelle hinkt, "
+                   "nichts geschrieben" % (name, letzte, heute - dt.timedelta(days=1)))
+
+
+def zusammen_mit_bestand(data, pfad):
+    """Fuehrt build() mit der Datei auf der Platte zusammen. Gibt (daten,
+    geaendert) zurueck."""
+    try:
+        with open(pfad, encoding="utf-8") as f:
+            alt = json.load(f)
+    except (OSError, ValueError):
+        alt = {}
+    kas = zusammenfuehren(alt.get("kas_daily"), data["kas_daily"], "kas")
+    btc = zusammenfuehren(alt.get("btc_daily"), data["btc_daily"], "btc")
+    frisch_pruefen(kas, "kas")
+    frisch_pruefen(btc, "btc")
+    data = dict(data, kas_daily=kas, btc_daily=btc, kas_weekly=weekly_close(kas),
+                history_from=kas[0][0])
+    gleich = all(alt.get(k) == data[k] for k in ("kas_daily", "btc_daily", "kas_weekly",
+                                                 "history_from", "source"))
+    return data, not gleich
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="data/kas-candles.json")
     a = ap.parse_args()
-    data = build()
+    data, geaendert = zusammen_mit_bestand(build(), a.out)
+    if not geaendert:
+        print("unveraendert, letzte kerze %s, nichts geschrieben" % data["kas_daily"][-1][0])
+        return 0
     with open(a.out, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
         f.write("\n")
-    print("geschrieben %s, %d kas tage, %d btc tage, %d volle wochen"
-          % (a.out, len(data["kas_daily"]), len(data["btc_daily"]),
+    print("geschrieben %s, %d kas tage (letzte %s), %d btc tage, %d volle wochen"
+          % (a.out, len(data["kas_daily"]), data["kas_daily"][-1][0], len(data["btc_daily"]),
              len(data["kas_weekly"])))
     return 0
 
@@ -245,6 +300,31 @@ def run_selftest():
     # kraken antwortformat, ein winziges fixture
     ok("kraken url traegt keinen interval=daily parameter",
        "interval=daily" not in CG)
+    # zusammenfuehren: alte tage bleiben, neue kommen dazu, abweichung bricht ab
+    alt = [["2026-01-01", 1.0], ["2026-01-02", 2.0]]
+    neu = [["2026-01-02", 2.0], ["2026-01-03", 3.0]]
+    ok("zusammenfuehren haelt den alten ersten tag",
+       [r[0] for r in zusammenfuehren(alt, neu, "t")] == ["2026-01-01", "2026-01-02", "2026-01-03"])
+    try:
+        zusammenfuehren(alt, [["2026-01-02", 2.5]], "t")
+        ok("abweichender ueberlapp bricht ab", False)
+    except Stop:
+        ok("abweichender ueberlapp bricht ab", True)
+    # 720-kerzen-fenster: kraken schneidet vorne ab, die historie bleibt
+    lang = [[str(dt.date(2024, 11, 19) + dt.timedelta(days=i)), 1.0] for i in range(760)]
+    fenster = lang[-720:]
+    ok("nach dem 720. tag bleibt der erste tag erhalten",
+       zusammenfuehren(lang[:700], fenster, "t")[0][0] == "2024-11-19")
+    try:
+        frisch_pruefen([["2026-09-30", 1.0]], "t", heute=dt.date(2026, 10, 2))
+        ok("zwei tage alte kerze bricht ab", False)
+    except Stop:
+        ok("zwei tage alte kerze bricht ab", True)
+    try:
+        frisch_pruefen([["2026-10-01", 1.0]], "t", heute=dt.date(2026, 10, 2))
+        ok("gestrige kerze ist frisch", True)
+    except Stop:
+        ok("gestrige kerze ist frisch", False)
     print("")
     if fails:
         print("%d fehlgeschlagen %s" % (len(fails), fails))
