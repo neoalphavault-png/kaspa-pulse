@@ -335,6 +335,9 @@ def emission_am_tag(datum):
 # gezeigte Zahl selbst aus Kettendaten oder dem Emissionsplan gerechnet
 # haben. Steckt eine Kaspalytics-Zahl darin, steht allein die Quelle.
 SELBST = "counted by kaspa pulse"
+# Die Datumszeile darf zwei Zeilen fuellen, nicht mehr. 140 Zeichen sind bei
+# 30 px gut zwei Zeilen auf 952 px Breite (Form 9 im Selbsttest hat 133).
+DATUMSZEILE_MAX = 140
 
 # Farben (Hausnorm seit 29.09.2026): Hintergrund, Akzent, und genau ein
 # dritter Ton fuer den "Rest" der Daten. Weiss nur fuer Kopf und Zahl.
@@ -649,10 +652,19 @@ def vorlage_3(w, now):
               "letter-spacing='-6'>%d</text><text x='%.1f' y='%.1f' fill='%s' font-weight='700' "
               "font-size='64'>day%s</text>" % (xs, ys + 150, WEISS, tage, xs + 6, ys + 222, WEISS,
                                               "" if tage == 1 else "s"))
+        # die beiden letzten stufen tragen ihren wert, klein ueber der saeule
+        # (Ben, 02.10.2026). kein eigenes textelement der seite, die zahl
+        # bleibt die einzige grosse zahl, die fusszeile bleibt.
+        n = len(w["stufen"])
+        for i, farbe in ((n - 2, RESTTON), (n - 1, AK)):
+            v = w["stufen"][i]
+            s += ("<text x='%.1f' y='%.1f' fill='%s' font-size='30' font-weight='700' "
+                  "text-anchor='middle'>%.2f</text>" % (x + i * (bw + gap) + bw / 2,
+                                                       y + hh - hh * v / max(w["stufen"]) - 14, farbe, v))
         return s
     return {"kopf": "NEXT REWARD CUT", "zahl": zahl, "zahl_im_objekt": True,
             "bedeutung": "KAS per block, one step a month. the next step, %s, %s" % (tag(t.date()), uhr(t)),
-            "zusatz": "%.2f KAS per block today, %.2f after, from zero" % (w["cur"], w["nxt"]),
+            "zusatz": "from zero",
             "herkunft": SELBST, "objekt": objekt,
             "x1": "kaspa cuts its block reward again in %s." % zahl,
             "x2": "next step %s, %s, from the emission schedule" % (tag(t.date()), uhr(t)),
@@ -1175,6 +1187,8 @@ def textpruefung(s, form):
             fehler.append("x-zeile 3 endet nicht mit fragezeichen")
     if MAIL_SATZ not in s["discord"] or MAIL_SATZ not in s.get("antwort", ""):
         fehler.append("sonntagsmail-satz fehlt in discord oder antwort")
+    if len(s["datumszeile"]) > DATUMSZEILE_MAX:
+        fehler.append("datumszeile %d zeichen, hoechstens %d" % (len(s["datumszeile"]), DATUMSZEILE_MAX))
     if not DATUMSZEILE.match(s["datumszeile"]):
         fehler.append("datumszeile beginnt nicht mit '<tag> <mon> <jahr>, <hh:mm> utc \u00b7'")
     her = s["datumszeile"].split(" \u00b7 ")[-1]
@@ -1326,7 +1340,19 @@ def rendern(seite, out, vorschau=VORSCHAU):
           if (bed && dat && bed.bottom > dat.top - 6) f.push('bedeutung stoesst an die datumszeile');
           if (dat && sig && dat.bottom > sig.top + 4) f.push('datumszeile stoesst an die signatur');
           if (bed && bed.top < 1040) f.push('bedeutung zu hoch');
+          // jede textzeile einzeln: rechts hoechstens bis 1080 - 48 px
+          for (const [sel, name] of [['.bed', 'bedeutung'], ['.datum', 'datumszeile'], ['.kopf', 'kopf']]) {
+            const e = document.querySelector(sel);
+            if (!e) continue;
+            const rg = document.createRange(); rg.selectNodeContents(e);
+            const rs = [...rg.getClientRects()];
+            const rechts = Math.max(...rs.map(q => q.right));
+            const zeilen = new Set(rs.map(q => Math.round(q.top))).size;
+            window.__mass = (window.__mass || []).concat([name + ' ' + zeilen + ' zeile(n), rechts ' + Math.round(rechts) + ' px']);
+            if (rechts > 1080 - 48) f.push(name + ' laeuft rechts hinaus (' + Math.round(rechts) + ' px)');
+          }
           return f; }""")
+        print("layout, " + "; ".join(pg.evaluate("window.__mass || []")))
         if kollision:
             b.close()
             raise Stop("layout, %s. text kuerzen" % ", ".join(kollision))
@@ -1744,6 +1770,18 @@ def selbsttest():
         of = sf["objekt"](*objektzone(zahlgroesse(sf["zahl"])))
         farben = {c for c in (AK, RESTTON, AK_DUNKEL) if c in of}
         ok("form %d, gegen was, mindestens zwei toene im objekt" % f, len(farben) >= 2)
+    # form 3 (Ben, 02.10.2026): die beiden letzten stufen tragen ihren wert,
+    # die datumszeile bleibt kurz
+    s3 = seite_bauen(3, FAKE[3], FAKE_NOW, log)
+    o3 = s3["objekt"](*objektzone(zahlgroesse(s3["zahl"]), True))
+    st3 = FAKE[3]["stufen"]
+    ok("form 3, helle stufe und die davor beschriftet",
+       (">%.2f</text>" % st3[-1]) in o3 and (">%.2f</text>" % st3[-2]) in o3)
+    ok("form 3, datumszeile ohne die werte, hoechstens eine zeile lang",
+       len(s3["datumszeile"]) <= 70 and "after" not in s3["datumszeile"])
+    ok("datumszeile ueber %d zeichen wird abgelehnt" % DATUMSZEILE_MAX,
+       any("hoechstens %d" % DATUMSZEILE_MAX in f for f in
+           textpruefung(dict(s3, datumszeile=s3["datumszeile"] + " ·" + " x" * 80), 3)))
     # kollision mit der zahl des tages
     ok("zahl des tages blocks_per_day sperrt form 4 und 6", kollision("blocks_per_day") == {4, 6})
     ok("zahl des tages hashrate sperrt form 8", kollision("hashrate_move") == {8})
