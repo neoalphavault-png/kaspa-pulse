@@ -742,6 +742,22 @@ def befehl_montag():
 KASKAMA = "https://kaskama.com"
 KASPA_API = "https://api.kaspa.org"
 KK_AB = dt.datetime(2026, 9, 15, tzinfo=dt.timezone.utc)
+# Stichtag der Veroeffentlichungszaehlung (Ben, 02.10.2026). Laeuft die Probe
+# frueher, gilt der Abrufzeitpunkt.
+KK_BIS = dt.datetime(2026, 10, 15, 12, 0, tzinfo=dt.timezone.utc)
+# Mainnet-Start laut Repo, Commit c776bff, deploy/configmap.yaml
+KK_MAINNET = dt.datetime(2026, 9, 22, 22, 56, 45, tzinfo=dt.timezone.utc)
+# Eigene Adressen (Kaspa Pulse), getrennt ausgewiesen, damit sie im Post
+# offengelegt werden koennen. Eine Adresse je Zeile, # fuer Kommentare.
+KK_EIGENE_DATEI = "docs/pruefung/kaskama-eigene.txt"
+
+
+def _kk_eigene():
+    try:
+        with open(KK_EIGENE_DATEI, encoding="utf-8") as f:
+            return {z.split("#")[0].strip() for z in f if z.split("#")[0].strip().startswith("kaspa:")}
+    except OSError:
+        return set()
 
 
 def _kk_payload(hexstr):
@@ -802,10 +818,16 @@ def befehl_kaskama():
     jeder Creator, der in einer gefundenen Zahlung auftaucht. Keine Wallet,
     kein Schluessel, nichts signiert."""
     ab_ms = int(KK_AB.timestamp() * 1000)
-    jetzt = dt.datetime.now(dt.timezone.utc)
+    abruf = dt.datetime.now(dt.timezone.utc)
+    jetzt = min(abruf, KK_BIS)
+    bis_ms = int(jetzt.timestamp() * 1000)
+    eigene = _kk_eigene()
     print("=" * 78)
-    print("KASKAMA, ZAEHLUNG AB %s, ABRUF %s" % (KK_AB.date(), jetzt.isoformat(timespec="seconds")))
+    print("KASKAMA, ZAEHLUNG AB %s, STICHTAG %s, ABRUF %s" % (
+        KK_AB.date(), jetzt.isoformat(timespec="minutes"), abruf.isoformat(timespec="seconds")))
     print("=" * 78)
+    print("  eigene adressen (%s): %d%s" % (KK_EIGENE_DATEI, len(eigene),
+          ", ".join(" " + _kk_kurz(a) for a in sorted(eigene)) if eigene else ", keine gemeldet"))
     st, txt = hole(KASKAMA + "/api/config")
     print("  /api/config http %s %s" % (st, kurz(txt, 200)))
     st, txt = hole(KASKAMA + "/api/creators/public")
@@ -817,7 +839,7 @@ def befehl_kaskama():
             print("  creators/public nicht lesbar: %s" % exc)
     print("  /api/creators/public http %s, %d mainnet-creator" % (st, len(creators)))
 
-    offen = list(dict.fromkeys(creators))
+    offen = list(dict.fromkeys(creators + sorted(eigene)))
     gesehen_adr, alle = set(), {}
     plattform = set()
     unvollstaendig = []
@@ -833,7 +855,7 @@ def befehl_kaskama():
             if not voll:
                 unvollstaendig.append(adr)
             for t in txs:
-                if (t.get("block_time") or 0) >= ab_ms:
+                if ab_ms <= (t.get("block_time") or 0) < bis_ms:
                     alle[t["transaction_id"]] = t
         # plattformadresse und weitere creator aus den gefundenen zahlungen
         for t in alle.values():
@@ -856,7 +878,7 @@ def befehl_kaskama():
         print("  NICHT VOLLSTAENDIG GELESEN: %d adressen" % len(unvollstaendig))
 
     # einordnen
-    tage = {}
+    tage, tage_eigen = {}, {}
     beispiel = {}
     for tid, t in alle.items():
         if t.get("is_accepted") is False:
@@ -866,10 +888,13 @@ def befehl_kaskama():
         outs = t.get("outputs") or []
         ins = t.get("inputs") or []
         tag = dt.datetime.fromtimestamp((t.get("block_time") or 0) / 1000, dt.timezone.utc).strftime("%Y-%m-%d")
-        z = tage.setdefault(tag, {"kk": 0, "post": 0, "mitglied": 0, "sonst": 0, "angebot": 0,
-                                  "sompi": 0, "zahler": set(), "creator": set()})
         in_adr = {i.get("previous_outpoint_address") for i in ins} - {None}
         zahler = {a for a in in_adr if a.startswith("kaspa:q")}
+        out_adr = {o.get("script_public_key_address") for o in outs} - {None}
+        ist_eigen = bool(eigene & (in_adr | out_adr))
+        topf = tage_eigen if ist_eigen else tage
+        z = topf.setdefault(tag, {"kk": 0, "post": 0, "mitglied": 0, "sonst": 0, "angebot": 0,
+                                  "sompi": 0, "zahler": set(), "creator": set()})
         if art is None:
             # angebot: keine payload, version 1, creator gibt aus, ein output
             # traegt genau 0,5 KAS an eine p2sh-adresse (MEMBERSHIP_OUTPUT_VALUE)
@@ -923,6 +948,24 @@ def befehl_kaskama():
     print("  %-10s %5d %5d %8d %6d %7d %14.2f %7d %7d   (zahler und creator eindeutig ueber alle tage)" % (
         "summe", summe["kk"], summe["post"], summe["mitglied"], summe["sonst"], summe["angebot"],
         summe["sompi"] / 1e8, len(zs), len(cs)))
+    se = {"kk": 0, "post": 0, "mitglied": 0, "sonst": 0, "angebot": 0, "sompi": 0}
+    ze, ce = set(), set()
+    print("\n  EIGENE (getrennt, nicht in der tabelle oben):")
+    for tag in sorted(tage_eigen):
+        z = tage_eigen[tag]
+        ze |= z["zahler"]
+        ce |= z["creator"]
+        for k in se:
+            se[k] += z[k]
+        print("  %-10s %5d %5d %8d %6d %7d %14.2f %7d %7d" % (
+            tag, z["kk"], z["post"], z["mitglied"], z["sonst"], z["angebot"], z["sompi"] / 1e8,
+            len(z["zahler"]), len(z["creator"])))
+    print("  %-10s %5d %5d %8d %6d %7d %14.2f %7d %7d" % (
+        "eigene", se["kk"], se["post"], se["mitglied"], se["sonst"], se["angebot"], se["sompi"] / 1e8,
+        len(ze), len(ce)))
+    vor = [t for t in alle.values() if _kk_payload(t.get("payload"))
+           and (t.get("block_time") or 0) < int(KK_MAINNET.timestamp() * 1000)]
+    print("\n  kaskama-transaktionen vor dem mainnet-start %s: %d" % (KK_MAINNET.isoformat(), len(vor)))
     print("\n  jede kaskama-transaktion einzeln (adressen gekuerzt):")
     for tid, t in sorted(alle.items(), key=lambda x: x[1].get("block_time") or 0):
         v = _kk_payload(t.get("payload"))
@@ -933,11 +976,13 @@ def befehl_kaskama():
         print("    %s  %s  %-8s accepted %s" % (
             dt.datetime.fromtimestamp((t.get("block_time") or 0) / 1000, dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
             tid[:16], _kk_art(v), t.get("is_accepted")))
-        print("      zahler %s | zahler ist oeffentlicher creator: %s" % (
-            ", ".join(_kk_kurz(a) for a in sorted(ins)), any(a in creators for a in ins)))
+        print("      zahler %s | zahler ist oeffentlicher creator: %s | eigene: %s" % (
+            ", ".join(_kk_kurz(a) for a in sorted(ins)), any(a in creators for a in ins),
+            any(a in eigene for a in ins)))
         for a, sompi in outs:
-            print("      an %s  %.8f KAS%s%s" % (_kk_kurz(a), sompi / 1e8,
-                  "  [oeffentlicher creator]" if a in creators else "", "  [= zahler]" if a in ins else ""))
+            print("      an %s  %.8f KAS%s%s%s" % (_kk_kurz(a), sompi / 1e8,
+                  "  [oeffentlicher creator]" if a in creators else "", "  [= zahler]" if a in ins else "",
+                  "  [EIGENE]" if a in eigene else ""))
         print("      postId %s" % str(v.get("postId"))[:40])
     cov = [(tid, t) for tid, t in alle.items()
            if any(o.get("covenant_id") for o in t.get("outputs") or [])]
@@ -967,6 +1012,8 @@ def befehl_kaskama():
                                  "tage": {k: {**{x: v[x] for x in summe}, "zahler": len(v["zahler"]),
                                               "creator": len(v["creator"])} for k, v in sorted(tage.items())},
                                  "summe": {**summe, "zahler": len(zs), "creator": len(cs)},
+                                 "eigene": {**se, "zahler": len(ze), "creator": len(ce)},
+                                 "vor_mainnet": len(vor),
                                  "adressen_gelesen": len(gesehen_adr), "creator_public": len(creators),
                                  "unvollstaendig": len(unvollstaendig)}))
     return 0
