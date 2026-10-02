@@ -975,8 +975,18 @@
       "utxo_count": 13486,
       "quelle": "kaspalytics",
       "abgerufen_utc": "2026-10-01T13:50:58+00:00"
+    },
+    {
+      "datum": "2026-10-01",
+      "tx": 279,
+      "outputs": 582,
+      "outputs_created": 582,
+      "outputs_spent": 455,
+      "utxo_count": 13613,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-10-02T13:07:06+00:00"
     }
   ],
   "toccata_aktiv_seit": "2026-06-30",
-  "aktualisiert_utc": "2026-10-01T13:50:58+00:00"
+  "aktualisiert_utc": "2026-10-02T13:07:06+00:00"
 }
