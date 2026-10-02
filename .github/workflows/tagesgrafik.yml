@@ -68,7 +68,8 @@ jobs:
             case "$FORM" in ''|*[!0-9]*) echo "form muss eine zahl sein"; exit 1;; esac
             ARGS="$ARGS --form $FORM"
           fi
-          if [ "$SENDEN" = "true" ]; then ARGS="$ARGS --senden"; fi
+          # geschickt ist geliefert, also ins log wie beim cron (Ben, 01.10.2026)
+          if [ "$SENDEN" = "true" ]; then ARGS="$ARGS --senden --log-schreiben"; fi
           python3 scripts/tagesgrafik.py $ARGS
       - uses: actions/upload-artifact@v4
         if: always()
@@ -78,7 +79,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
       - name: log sichern
-        if: github.event_name == 'schedule'
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.senden)
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
