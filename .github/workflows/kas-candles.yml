@@ -52,6 +52,6 @@ jobs:
             echo "keine neue kerze, kein commit"
           else
             git commit -m "kas candles $(date -u +%F)"
-            git pull --rebase origin main
+            git pull --rebase origin "$GITHUB_REF_NAME"
             git push
           fi
