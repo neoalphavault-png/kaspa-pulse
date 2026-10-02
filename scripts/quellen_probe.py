@@ -737,6 +737,198 @@ def befehl_montag():
     return schlecht
 
 
+# ------------------------------------------------- kaskama, zaehlung 02.10.
+
+KASKAMA = "https://kaskama.com"
+KASPA_API = "https://api.kaspa.org"
+KK_AB = dt.datetime(2026, 9, 15, tzinfo=dt.timezone.utc)
+
+
+def _kk_payload(hexstr):
+    """Kaskama-Payload: hex-kodiertes JSON mit protocol 'kaskama'.
+    post-purchase  backend/src/ppv-payload.ts (type)
+    membership     backend/src/membership-contract.ts (tokenType)"""
+    if not hexstr or len(hexstr) % 2:
+        return None
+    try:
+        v = json.loads(bytes.fromhex(hexstr).decode("utf-8"))
+    except Exception:                              # noqa: BLE001
+        return None
+    if not isinstance(v, dict) or v.get("protocol") != "kaskama":
+        return None
+    return v
+
+
+def _kk_art(v):
+    if v is None:
+        return None
+    if v.get("type") == "post-purchase":
+        return "post"
+    if v.get("tokenType") == "membership":
+        return "mitglied"
+    return "sonst:" + str(v.get("type") or v.get("tokenType"))
+
+
+def _kk_kurz(a):
+    return (a or "")[:14] + "…" if a else "-"
+
+
+def _kk_txs(adr, ab_ms, seiten=40):
+    txs, before = [], 0
+    for _ in range(seiten):
+        url = ("%s/addresses/%s/full-transactions-page?limit=100"
+               "&resolve_previous_outpoints=light" % (KASPA_API, adr))
+        if before:
+            url += "&before=%d" % before
+        st, txt = hole(url)
+        if st != 200:
+            print("  %s: http %s %s" % (_kk_kurz(adr), st, kurz(txt, 120)))
+            return txs, False
+        seite = json.loads(txt)
+        if not seite:
+            return txs, True
+        txs += seite
+        aeltester = min(t.get("block_time") or 0 for t in seite)
+        if aeltester < ab_ms:
+            return txs, True
+        before = aeltester
+    return txs, False
+
+
+def befehl_kaskama():
+    """Nur lesend. Zaehlt Kaskama-Transaktionen auf dem Mainnet seit dem
+    15.09.2026 00:00 UTC. Einstieg: oeffentliche Creator von kaskama.com,
+    danach die Plattformadresse aus den Mitgliedschafts-Payloads, danach
+    jeder Creator, der in einer gefundenen Zahlung auftaucht. Keine Wallet,
+    kein Schluessel, nichts signiert."""
+    ab_ms = int(KK_AB.timestamp() * 1000)
+    jetzt = dt.datetime.now(dt.timezone.utc)
+    print("=" * 78)
+    print("KASKAMA, ZAEHLUNG AB %s, ABRUF %s" % (KK_AB.date(), jetzt.isoformat(timespec="seconds")))
+    print("=" * 78)
+    st, txt = hole(KASKAMA + "/api/config")
+    print("  /api/config http %s %s" % (st, kurz(txt, 200)))
+    st, txt = hole(KASKAMA + "/api/creators/public")
+    creators = []
+    if st == 200:
+        try:
+            creators = [c["address"] for c in json.loads(txt) if c.get("address", "").startswith("kaspa:")]
+        except Exception as exc:                   # noqa: BLE001
+            print("  creators/public nicht lesbar: %s" % exc)
+    print("  /api/creators/public http %s, %d mainnet-creator" % (st, len(creators)))
+
+    offen = list(dict.fromkeys(creators))
+    gesehen_adr, alle = set(), {}
+    plattform = set()
+    unvollstaendig = []
+    runde = 0
+    while offen and runde < 6:
+        runde += 1
+        neu = []
+        for adr in offen:
+            if adr in gesehen_adr:
+                continue
+            gesehen_adr.add(adr)
+            txs, voll = _kk_txs(adr, ab_ms)
+            if not voll:
+                unvollstaendig.append(adr)
+            for t in txs:
+                if (t.get("block_time") or 0) >= ab_ms:
+                    alle[t["transaction_id"]] = t
+        # plattformadresse und weitere creator aus den gefundenen zahlungen
+        for t in alle.values():
+            v = _kk_payload(t.get("payload"))
+            if v and v.get("tokenType") == "membership":
+                pa = (v.get("metadata") or {}).get("platformAddress")
+                if pa and pa not in plattform:
+                    plattform.add(pa)
+                    neu.append(pa)
+            if v:
+                for o in t.get("outputs") or []:
+                    a = o.get("script_public_key_address") or ""
+                    if a.startswith("kaspa:q") and a not in gesehen_adr and a not in plattform:
+                        neu.append(a)
+        offen = [a for a in dict.fromkeys(neu) if a not in gesehen_adr]
+        print("  runde %d: %d adressen gelesen, %d tx gesammelt, %d neue adressen"
+              % (runde, len(gesehen_adr), len(alle), len(offen)))
+    print("  plattformadresse(n) aus payload: %s" % ", ".join(_kk_kurz(a) for a in plattform))
+    if unvollstaendig:
+        print("  NICHT VOLLSTAENDIG GELESEN: %d adressen" % len(unvollstaendig))
+
+    # einordnen
+    tage = {}
+    beispiel = {}
+    for tid, t in alle.items():
+        if t.get("is_accepted") is False:
+            continue
+        v = _kk_payload(t.get("payload"))
+        art = _kk_art(v)
+        outs = t.get("outputs") or []
+        ins = t.get("inputs") or []
+        tag = dt.datetime.fromtimestamp((t.get("block_time") or 0) / 1000, dt.timezone.utc).strftime("%Y-%m-%d")
+        z = tage.setdefault(tag, {"kk": 0, "post": 0, "mitglied": 0, "sonst": 0, "angebot": 0,
+                                  "sompi": 0, "zahler": set(), "creator": set()})
+        in_adr = {i.get("previous_outpoint_address") for i in ins} - {None}
+        zahler = {a for a in in_adr if a.startswith("kaspa:q")}
+        if art is None:
+            # angebot: keine payload, version 1, creator gibt aus, ein output
+            # traegt genau 0,5 KAS an eine p2sh-adresse (MEMBERSHIP_OUTPUT_VALUE)
+            p2sh = [o for o in outs if (o.get("script_public_key_address") or "").startswith("kaspa:p")
+                    and int(o.get("amount") or 0) == 50_000_000]
+            if p2sh and in_adr and all(a in gesehen_adr for a in in_adr) and not t.get("payload"):
+                z["angebot"] += 1
+                beispiel.setdefault("angebot", t)
+            continue
+        z["kk"] += 1
+        beispiel.setdefault(art, t)
+        if art.startswith("sonst"):
+            z["sonst"] += 1
+            continue
+        z[art] += 1
+        z["zahler"] |= zahler
+        bezahlt, cr = 0, set()
+        for o in outs:
+            a = o.get("script_public_key_address") or ""
+            if not a.startswith("kaspa:q") or a in zahler:
+                continue
+            bezahlt += int(o.get("amount") or 0)
+            if a not in plattform:
+                cr.add(a)
+        z["sompi"] += bezahlt
+        z["creator"] |= cr
+    print("\n  beispiele (feldnamen eines outputs, payload-schluessel):")
+    for art, t in beispiel.items():
+        o = (t.get("outputs") or [{}])[0]
+        v = _kk_payload(t.get("payload")) or {}
+        print("    %-9s %s  version %s  output-felder %s  payload %s" % (
+            art, t["transaction_id"][:16], t.get("version"), sorted(o.keys()), sorted(v.keys())))
+    print("\n  %-10s %5s %5s %8s %6s %7s %14s %7s %7s" % (
+        "tag", "kk-tx", "post", "mitglied", "sonst", "angebot", "KAS bezahlt", "zahler", "creator"))
+    zs, cs = set(), set()
+    summe = {"kk": 0, "post": 0, "mitglied": 0, "sonst": 0, "angebot": 0, "sompi": 0}
+    for tag in sorted(tage):
+        z = tage[tag]
+        zs |= z["zahler"]
+        cs |= z["creator"]
+        for k in summe:
+            summe[k] += z[k]
+        print("  %-10s %5d %5d %8d %6d %7d %14.2f %7d %7d" % (
+            tag, z["kk"], z["post"], z["mitglied"], z["sonst"], z["angebot"], z["sompi"] / 1e8,
+            len(z["zahler"]), len(z["creator"])))
+    print("  %-10s %5d %5d %8d %6d %7d %14.2f %7d %7d   (zahler und creator eindeutig ueber alle tage)" % (
+        "summe", summe["kk"], summe["post"], summe["mitglied"], summe["sonst"], summe["angebot"],
+        summe["sompi"] / 1e8, len(zs), len(cs)))
+    print("\n  gelesene adressen %d, davon oeffentliche creator %d, plattform %d"
+          % (len(gesehen_adr), len(creators), len(plattform)))
+    print("  JSON " + json.dumps({"stichtag_utc": jetzt.isoformat(timespec="seconds"), "ab": str(KK_AB.date()),
+                                 "tage": {k: {**{x: v[x] for x in summe}, "zahler": len(v["zahler"]),
+                                              "creator": len(v["creator"])} for k, v in sorted(tage.items())},
+                                 "summe": {**summe, "zahler": len(zs), "creator": len(cs)},
+                                 "adressen_gelesen": len(gesehen_adr), "creator_public": len(creators),
+                                 "unvollstaendig": len(unvollstaendig)}))
+    return 0
+
+
 BEFEHLE = {
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
@@ -748,6 +940,7 @@ BEFEHLE = {
     "wochen": befehl_wochen,
     "seite": befehl_seite,
     "montag": befehl_montag,
+    "kaskama": befehl_kaskama,
 }
 
 
