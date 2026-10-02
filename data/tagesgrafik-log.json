@@ -6,6 +6,11 @@
    "grund": "von hand gepostet, 6.38M, nachgetragen"
   },
   {
+   "datum": "2026-09-30",
+   "form": 4,
+   "grund": "von hand, workflow_dispatch, zwei balken heartbeats gegen bloecke, discord vormittags, x 17:00 berlin, nachgetragen"
+  },
+  {
    "datum": "2026-10-01",
    "form": 2,
    "grund": "rotation, workflow_dispatch 07:36 utc, an ops geschickt, kein cron im fenster, nachgetragen"
