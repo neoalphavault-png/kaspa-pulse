@@ -1340,7 +1340,7 @@ def rendern(seite, out, vorschau=VORSCHAU):
           if (bed && dat && bed.bottom > dat.top - 6) f.push('bedeutung stoesst an die datumszeile');
           if (dat && sig && dat.bottom > sig.top + 4) f.push('datumszeile stoesst an die signatur');
           if (bed && bed.top < 1040) f.push('bedeutung zu hoch');
-          // jede textzeile einzeln: rechts hoechstens bis 1080 - 48 px
+          // jede textzeile einzeln: rechts hoechstens bis zum rand von 64 px (+2)
           for (const [sel, name] of [['.bed', 'bedeutung'], ['.datum', 'datumszeile'], ['.kopf', 'kopf']]) {
             const e = document.querySelector(sel);
             if (!e) continue;
@@ -1349,7 +1349,7 @@ def rendern(seite, out, vorschau=VORSCHAU):
             const rechts = Math.max(...rs.map(q => q.right));
             const zeilen = new Set(rs.map(q => Math.round(q.top))).size;
             window.__mass = (window.__mass || []).concat([name + ' ' + zeilen + ' zeile(n), rechts ' + Math.round(rechts) + ' px']);
-            if (rechts > 1080 - 48) f.push(name + ' laeuft rechts hinaus (' + Math.round(rechts) + ' px)');
+            if (rechts > 1080 - 62) f.push(name + ' laeuft rechts hinaus (' + Math.round(rechts) + ' px)');
           }
           return f; }""")
         print("layout, " + "; ".join(pg.evaluate("window.__mass || []")))
