@@ -906,6 +906,11 @@ def befehl_kaskama():
         "tag", "kk-tx", "post", "mitglied", "sonst", "angebot", "KAS bezahlt", "zahler", "creator"))
     zs, cs = set(), set()
     summe = {"kk": 0, "post": 0, "mitglied": 0, "sonst": 0, "angebot": 0, "sompi": 0}
+    d = KK_AB.date()
+    while d <= jetzt.date():
+        tage.setdefault(str(d), {"kk": 0, "post": 0, "mitglied": 0, "sonst": 0, "angebot": 0,
+                                 "sompi": 0, "zahler": set(), "creator": set()})
+        d += dt.timedelta(days=1)
     for tag in sorted(tage):
         z = tage[tag]
         zs |= z["zahler"]
@@ -918,6 +923,44 @@ def befehl_kaskama():
     print("  %-10s %5d %5d %8d %6d %7d %14.2f %7d %7d   (zahler und creator eindeutig ueber alle tage)" % (
         "summe", summe["kk"], summe["post"], summe["mitglied"], summe["sonst"], summe["angebot"],
         summe["sompi"] / 1e8, len(zs), len(cs)))
+    print("\n  jede kaskama-transaktion einzeln (adressen gekuerzt):")
+    for tid, t in sorted(alle.items(), key=lambda x: x[1].get("block_time") or 0):
+        v = _kk_payload(t.get("payload"))
+        if not v:
+            continue
+        ins = {i.get("previous_outpoint_address") for i in t.get("inputs") or []} - {None}
+        outs = [(o.get("script_public_key_address"), int(o.get("amount") or 0)) for o in t.get("outputs") or []]
+        print("    %s  %s  %-8s accepted %s" % (
+            dt.datetime.fromtimestamp((t.get("block_time") or 0) / 1000, dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+            tid[:16], _kk_art(v), t.get("is_accepted")))
+        print("      zahler %s | zahler ist oeffentlicher creator: %s" % (
+            ", ".join(_kk_kurz(a) for a in sorted(ins)), any(a in creators for a in ins)))
+        for a, sompi in outs:
+            print("      an %s  %.8f KAS%s%s" % (_kk_kurz(a), sompi / 1e8,
+                  "  [oeffentlicher creator]" if a in creators else "", "  [= zahler]" if a in ins else ""))
+        print("      postId %s" % str(v.get("postId"))[:40])
+    cov = [(tid, t) for tid, t in alle.items()
+           if any(o.get("covenant_id") for o in t.get("outputs") or [])]
+    print("\n  transaktionen mit covenant-output (feld covenant_id gesetzt): %d" % len(cov))
+    for tid, t in sorted(cov, key=lambda x: x[1].get("block_time") or 0)[:20]:
+        print("    %s  %s  payload %s  outputs %s" % (
+            dt.datetime.fromtimestamp((t.get("block_time") or 0) / 1000, dt.timezone.utc).strftime("%Y-%m-%d %H:%M"),
+            tid[:16], "ja" if t.get("payload") else "leer",
+            [(_kk_kurz(o.get("script_public_key_address")), int(o.get("amount") or 0) / 1e8,
+              "cov" if o.get("covenant_id") else "") for o in t.get("outputs") or []]))
+    print("\n  plattform-sicht je oeffentlichem creator (/api/creators/<adresse>, datenbank, nicht kette):")
+    for a in creators:
+        st2, t2 = hole(KASKAMA + "/api/creators/" + a)
+        if st2 != 200:
+            print("    %s http %s" % (_kk_kurz(a), st2))
+            continue
+        c = json.loads(t2)
+        posts = c.get("posts") or []
+        bez = [x for x in posts if str(x.get("priceSompi", "0")) != "0"]
+        m = c.get("membership") or {}
+        print("    %s  posts %d, davon bezahlt %d, mitgliedschaft angeboten %s, preis %s" % (
+            _kk_kurz(a), len(posts), len(bez), m.get("offered"),
+            (int(m["priceSompi"]) / 1e8) if m.get("priceSompi") else "-"))
     print("\n  gelesene adressen %d, davon oeffentliche creator %d, plattform %d"
           % (len(gesehen_adr), len(creators), len(plattform)))
     print("  JSON " + json.dumps({"stichtag_utc": jetzt.isoformat(timespec="seconds"), "ab": str(KK_AB.date()),
