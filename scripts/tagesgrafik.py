@@ -1427,18 +1427,56 @@ def lade_log():
         return {"laeufe": []}
 
 
-def waehle_form(heute, log, ereignis_cut=False, ereignis_ex=False, verfuegbar=None):
-    """Gibt (form, grund) zurueck. heute ist ein date in Berlin."""
+def berlin_tag(ts):
+    from zoneinfo import ZoneInfo
+    return dt.datetime.fromtimestamp(ts, ZoneInfo("Europe/Berlin")).date()
+
+
+def cut_lage(heute, tage_bis, nxt_ts, prev_ts, log):
+    """Reward-Senkung in der Rotation (Ben, 03.10.2026). heute ist ein date
+    in Berlin, tage_bis die Tage bis zur naechsten Senkung, prev_ts die
+    letzte Senkung. Gibt (ereignis_cut, cut_tag, gesperrt, text) zurueck.
+
+    Form 3 kommt genau einmal je Senkung, beim ersten Lauf mit hoechstens
+    CUT_EREIGNIS_TAGE Tagen Rest. Steht sie fuer diese Senkung schon im Log,
+    ist sie bis nach der Senkung gesperrt. Am Tag der Senkung (Berlin) kommt
+    Form 10; bis dahin ist Form 10 im Fenster und in der Woche der Senkung
+    fuer diesen Tag reserviert."""
+    tag_senkung = berlin_tag(nxt_ts)
+    cut_tag = berlin_tag(prev_ts) == heute or tag_senkung == heute
+    im_fenster = 0 < tage_bis <= CUT_EREIGNIS_TAGE and not cut_tag
+    fenster_ab = berlin_tag(nxt_ts - CUT_EREIGNIS_TAGE * 86400)
+    schon = sorted(e["datum"] for e in log.get("laeufe", []) if e["form"] == 3
+                   and fenster_ab <= dt.date.fromisoformat(e["datum"]) < heute)
+    gesperrt, text = set(), []
+    if cut_tag:
+        text.append("tag der reward-senkung")
+    if im_fenster and schon:
+        gesperrt.add(3)
+        text.append("form 3 fuer die senkung am %s schon am %s, gesperrt" % (tag_senkung, schon[0]))
+    if not cut_tag and heute < tag_senkung and (
+            im_fenster or heute.isocalendar()[:2] == tag_senkung.isocalendar()[:2]):
+        gesperrt.add(10)
+        text.append("form 10 fuer den %s reserviert" % tag_senkung)
+    return im_fenster and not schon, cut_tag, gesperrt, ", ".join(text)
+
+
+def waehle_form(heute, log, ereignis_cut=False, ereignis_ex=False, verfuegbar=None, cut_tag=False):
+    """Gibt (form, grund) zurueck. heute ist ein date in Berlin. Ereignisse
+    halten die Wochenregel wie die Rotation (Ben, 03.10.2026)."""
     verfuegbar = set(verfuegbar or FREIGESCHALTET)
-    if ereignis_cut and 3 in verfuegbar:
-        return 3, "reward-senkung in hoechstens %d tagen" % CUT_EREIGNIS_TAGE
-    if ereignis_ex and 2 in verfuegbar:
-        return 2, "entity-x-bewegung ab %s KAS in 24 h" % ganz(EX_EREIGNIS)
-    if heute.weekday() == 0 and 1 in verfuegbar:
-        return 1, "montag"
     woche = heute.isocalendar()[:2]
     laeufe = [(dt.date.fromisoformat(e["datum"]), e["form"]) for e in log.get("laeufe", [])]
     diese_woche = {f for d, f in laeufe if d.isocalendar()[:2] == woche and d < heute}
+    frei = verfuegbar - diese_woche
+    if cut_tag and 10 in frei:
+        return 10, "tag der reward-senkung"
+    if ereignis_cut and 3 in frei:
+        return 3, "reward-senkung in hoechstens %d tagen" % CUT_EREIGNIS_TAGE
+    if ereignis_ex and 2 in frei:
+        return 2, "entity-x-bewegung ab %s KAS in 24 h" % ganz(EX_EREIGNIS)
+    if heute.weekday() == 0 and 1 in verfuegbar:
+        return 1, "montag"
     kand = [f for f in sorted(verfuegbar) if f != 1 and f not in diese_woche]
     if not kand:
         kand = [f for f in sorted(verfuegbar) if f != 1]
@@ -1563,7 +1601,10 @@ def main(argv=None):
             m = messen(form, now)
         else:
             cut = messen_3(now)
-            ereignis_cut = cut_tage(cut, now) <= CUT_EREIGNIS_TAGE
+            ereignis_cut, cut_tag, cut_sperre, cut_text = cut_lage(
+                heute, cut_tage(cut, now), cut["nxt_ts"], cut["nxt_ts"] - reward_plan().STEP, log)
+            if cut_text:
+                print(cut_text)
             ereignis_ex = False
             try:
                 ereignis_ex = bool(ex_24h({"bewegungen": m_entityx_bewegungen(2)}, now))
@@ -1577,10 +1618,12 @@ def main(argv=None):
             print("zahl des tages %s (%s), uebersprungen %s" % (notd, woher, sorted(ausgeschl) or "keine"))
             m = None
             while m is None:
-                verf = FREIGESCHALTET - ausgeschl
+                verf = FREIGESCHALTET - ausgeschl - cut_sperre
                 if not verf:
                     raise SystemExit("ABBRUCH keine form heute belegbar")
-                form, grund = waehle_form(heute, log, ereignis_cut, ereignis_ex, verf)
+                form, grund = waehle_form(heute, log, ereignis_cut, ereignis_ex, verf, cut_tag)
+                if cut_text and cut_text != grund:
+                    grund += ", " + cut_text
                 if notd:
                     grund += ", zahl des tages %s (%s)%s" % (
                         notd, woher, ", uebersprungen %s" % sorted(ausgeschl) if ausgeschl else "")
@@ -1824,6 +1867,41 @@ def selbsttest():
     woche = {"laeufe": [{"datum": "2026-10-0%d" % (5 + i), "form": g} for i, g in enumerate((1, 2, 3, 4))]}
     f, _ = waehle_form(dt.date(2026, 10, 9), woche)
     ok("keine form zweimal in derselben woche", f not in (2, 3, 4))
+    # reward-senkung 05.10.2026 03:15:44 utc, form 3 einmal je senkung (Ben, 03.10.2026)
+    nxt = 1791170144
+    prev = nxt - reward_plan().STEP
+    nach = nxt + reward_plan().STEP
+
+    def tage(berlin):
+        return (nxt - dt.datetime.fromisoformat(berlin).timestamp()) / 86400
+    w40 = {"laeufe": [{"datum": "2026-09-29", "form": 2}, {"datum": "2026-09-30", "form": 4},
+                      {"datum": "2026-10-01", "form": 2}]}
+    e, ct, sp, _ = cut_lage(dt.date(2026, 10, 2), tage("2026-10-02T09:02:15+02:00"), nxt, prev, w40)
+    ok("02.10. erster treffer im fenster gibt form 3", e and not ct
+       and waehle_form(dt.date(2026, 10, 2), w40, e, False, FREIGESCHALTET - sp)[0] == 3)
+    w40["laeufe"].append({"datum": "2026-10-02", "form": 3})
+    e, ct, sp, txt = cut_lage(dt.date(2026, 10, 3), tage("2026-10-03T13:27:41+02:00"), nxt, prev, w40)
+    f, _ = waehle_form(dt.date(2026, 10, 3), w40, e, False, FREIGESCHALTET - sp - kollision("hashrate_move"))
+    ok("03.10. kein zweites mal form 3, rotation waehlt %d" % f,
+       not e and sp == {3, 10} and f not in (1, 2, 3, 4, 8, 10) and "2026-10-02" in txt)
+    w40["laeufe"].append({"datum": "2026-10-03", "form": f})
+    e, ct, sp, _ = cut_lage(dt.date(2026, 10, 4), tage("2026-10-04T07:30:00+02:00"), nxt, prev, w40)
+    ok("04.10. form 3 bleibt bis zur senkung gesperrt", not e and 3 in sp and 10 in sp)
+    e, ct, sp, _ = cut_lage(dt.date(2026, 10, 5), 30.2, nach, nxt, w40)
+    ok("05.10. tag der senkung gibt form 10, auch am montag", ct and not e
+       and waehle_form(dt.date(2026, 10, 5), w40, e, False, FREIGESCHALTET - sp, ct)[0] == 10)
+    e, ct, sp, _ = cut_lage(dt.date(2026, 10, 6), 29.2, nach, nxt, w40)
+    ok("06.10. nach der senkung keine sperre", not e and not ct and not sp)
+    sa = {"laeufe": [{"datum": "2026-10-03", "form": 3}]}
+    di = 1791270000                      # dienstag 06.10.2026 09:00 berlin, gedachte senkung
+    e, ct, sp, _ = cut_lage(dt.date(2026, 10, 5), 1.06, di, di - reward_plan().STEP, sa)
+    ok("fenster ueber die woche, montag kein zweites mal form 3", not e and 3 in sp)
+    ok("ereignis haelt die wochenregel", waehle_form(dt.date(2026, 10, 3), w40, False, True)[0] != 2)
+    do = 1792058400                      # donnerstag 15.10.2026 12:00 berlin, gedachte senkung
+    e, ct, sp, _ = cut_lage(dt.date(2026, 10, 13), 2.2, do, do - reward_plan().STEP, {"laeufe": []})
+    ok("im fenster ohne treffer gibt form 3", e)
+    e, ct, sp, _ = cut_lage(dt.date(2026, 10, 12), 3.2, do, do - reward_plan().STEP, {"laeufe": []})
+    ok("woche der senkung haelt form 10 frei", 10 in sp and not e)
     gezaehlt = {}
     lg = {"laeufe": []}
     d = dt.date(2026, 10, 1)
