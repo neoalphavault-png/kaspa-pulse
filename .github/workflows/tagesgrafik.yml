@@ -88,7 +88,9 @@ jobs:
             echo "log unveraendert, kein commit"
           else
             git commit -m "tagesgrafik log [bot]"
-            git pull --rebase origin main
+            # der eigene branch, nicht main: ein handlauf von einem fix-branch
+            # lief sonst am 03.10. in einen add/add-konflikt (lauf 37119999946)
+            git pull --rebase origin "$GITHUB_REF_NAME"
             git push
           fi
       - name: ops bei rot
