@@ -1,43 +1,44 @@
 {
-  "issue": "OCT 2 2026",
+  "issue": "OCT 3 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "$80.9K",
-  "value_label": "of brand new kaspa supply is created every day",
-  "headline": "bitcoin prints *481x*\nmore supply each day.",
+  "value": "354 PH",
+  "value_label": "petahash per second securing the network right now",
+  "headline": "hashrate is *up 6 percent*\nagainst 4 weeks ago.",
   "panes": [
     {
       "kind": "compare",
-      "title": "NEW SUPPLY PER DAY",
-      "sub": "issuance valued at today's spot price",
+      "title": "NETWORK HASHRATE",
+      "sub": "same measurement, two dates",
       "rows": [
         {
-          "label": "kaspa",
-          "sub": "1.89 million KAS",
-          "value": "$80.9K",
-          "pct": 0.2080897560654479,
+          "label": "today",
+          "sub": "",
+          "value": "354 PH",
+          "pct": 100.0,
           "tone": "teal"
         },
         {
-          "label": "bitcoin",
-          "sub": "450 BTC",
-          "value": "$38.88M",
-          "pct": 100.0,
+          "label": "4 weeks ago",
+          "sub": "",
+          "value": "333 PH",
+          "pct": 93.93650865708237,
           "tone": "grey"
         }
       ]
     },
     {
       "kind": "anchor",
-      "title": "WHY THAT GAP CLOSES",
+      "title": "WHAT THE NUMBER IS",
       "lines": [
-        "kaspa cuts *twelve times a year*. bitcoin once every four years."
+        "the difference is *21 PH*.",
+        "*counted* from the same source."
       ]
     }
   ],
-  "sources": "api.kaspa.org and coingecko.com",
+  "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "kaspa creates about $80.9K of new supply per day. bitcoin creates $38.88M, roughly 481 times more. kaspa cuts its reward twelve times a year and bitcoin once every four years, so that gap narrows every month without anyone voting on it.",
-    "reply": "the full emission schedule is on kaspapulse.com/kaspa-halving.html. bitcoin issuance is 3.125 coins per block, about 144 blocks a day."
+    "x": "hashrate on kaspa is up 6 percent against 4 weeks ago. 354 PH today, 333 PH then, both read from the same source 26 days apart.",
+    "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
   }
 }
