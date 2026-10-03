@@ -47,6 +47,12 @@ REGELN, DIE HIER DRINSTECKEN
      Aendert die Quelle einen alten Wert, wird er uebernommen UND das Feld
      abgerufen_utc des Tages zieht mit, damit im Log sichtbar bleibt, dass
      dieser Tag spaeter noch einmal angefasst wurde.
+  6. Ein Bestandspunkt zaehlt nur, wenn er hoechstens zwei Stunden neben
+     Mitternacht liegt (Ben, 03.10.2026). Am 30.09. hat die Quelle um
+     12:02:05 UTC gemessen statt um Mitternacht; der Wert 13.342 landete als
+     Stand vom 29.09. im Log und ging so oeffentlich raus. Liegt ein Punkt
+     weiter weg, bleibt der Tag beim Bestand leer, und das steht als Problem
+     im Lauf. Der Zeitstempel der Quelle steht als stand_utc an jedem Tag.
   5. Rueckwirkend gefuellt wird, soweit die Quelle Historie hergibt. Am
      22.09.2026 waren das 88 Tage zurueck bis zum 26.06., also vier Tage vor
      Toccata. Weiter zurueck hat die Quelle nichts, und erfunden wird nichts.
@@ -123,12 +129,25 @@ def stichtag_fluss(label):
     return zeit_von(label).date()
 
 
+BESTAND_SCHLUPF = dt.timedelta(hours=2)        # regel 6
+
+
+def naechste_mitternacht(label):
+    t = zeit_von(label)
+    m = dt.datetime.combine(t.date(), dt.time(), tzinfo=dt.timezone.utc)
+    return m if t - m <= m + dt.timedelta(days=1) - t else m + dt.timedelta(days=1)
+
+
+def abstand_mitternacht(label):
+    return abs(zeit_von(label) - naechste_mitternacht(label))
+
+
 def stichtag_bestand(label):
     """momentaufnahme um mitternacht, mit schlupf in beide richtungen.
-    eine stunde vorstellen, dann einen tag zurueck: aus 23:59:59 des 26.
-    wird der 26., aus 00:00:02 des 28. wird der 27."""
-    t = zeit_von(label) + dt.timedelta(hours=1)
-    return t.date() - dt.timedelta(days=1)
+    die naechste mitternacht, dann einen tag zurueck: aus 23:59:59 des 26.
+    wird der 26., aus 00:00:02 des 28. wird der 27. ob der punkt nah genug
+    an mitternacht liegt, prueft bestandsreihe() (regel 6)."""
+    return naechste_mitternacht(label).date() - dt.timedelta(days=1)
 
 
 def reihe(daten, name):
@@ -164,6 +183,43 @@ def tagesreihe(daten, name, art, bis):
     return aus
 
 
+def bestandsreihe(daten, name, bis):
+    """wie tagesreihe, aber nur punkte hoechstens BESTAND_SCHLUPF neben
+    mitternacht (regel 6). gibt (werte, stand, neben) zurueck: {tag: wert},
+    {tag: zeitstempel der quelle} und {tag: label} der punkte, die zu weit
+    neben mitternacht lagen und fuer die es keinen gueltigen punkt gibt."""
+    labels = daten.get("labels") or []
+    werte = reihe(daten, name)
+    aus, stand, gesehen, neben = {}, {}, {}, {}
+    for i, lab in enumerate(labels):
+        try:
+            t = zeit_von(lab)
+            tag = stichtag_bestand(lab)
+        except ValueError:
+            continue
+        if tag > bis or i >= len(werte) or werte[i] is None:
+            continue
+        if abstand_mitternacht(lab) > BESTAND_SCHLUPF:
+            # der tag, auf den die alte regel (+1 h, dann einen tag zurueck)
+            # den punkt gelegt haette; so kam 30.09. 12:02 auf den 29.09.
+            neben[(t + dt.timedelta(hours=1)).date() - dt.timedelta(days=1)] = lab
+            continue
+        if tag in gesehen and gesehen[tag] >= t:
+            continue
+        gesehen[tag] = t
+        aus[tag] = float(werte[i])
+        stand[tag] = t.isoformat(timespec="seconds").replace("+00:00", "Z")
+    # jeder tag zwischen dem ersten und letzten gueltigen punkt ohne eigenen
+    # punkt ist eine luecke, auch wenn die quelle ihn ganz ausgelassen hat
+    if aus:
+        d = min(aus)
+        while d < max(aus):
+            if d not in aus and d not in neben:
+                neben[d] = "kein punkt"
+            d += dt.timedelta(days=1)
+    return aus, stand, {k: v for k, v in neben.items() if k not in aus}
+
+
 def plausibel(feld, wert):
     lo, hi = FENSTER[feld]
     return lo <= wert <= hi
@@ -180,10 +236,26 @@ def sammle(heute=None, holer=None):
         try:
             if pfad not in puffer:
                 puffer[pfad] = holer(pfad)
-            reihe_tage = tagesreihe(puffer[pfad], name, art, bis)
+            if art == "bestand":
+                reihe_tage, stand, neben = bestandsreihe(puffer[pfad], name, bis)
+            else:
+                reihe_tage, stand, neben = tagesreihe(puffer[pfad], name, art, bis), {}, {}
         except Exception as exc:      # noqa: BLE001
             probleme.append("%s, %s" % (feld, exc))
             continue
+        for tag, lab in sorted(neben.items()):
+            # bewusste luecke: None heisst "quelle hat geantwortet, aber
+            # keinen gueltigen punkt", und ersetzt einen alten wert im log
+            roh.setdefault(tag, {})[feld] = None
+            roh[tag]["stand_utc"] = None
+            if lab == "kein punkt":
+                probleme.append("%s, %s bleibt leer, die quelle hat keinen punkt" % (feld, tag))
+                continue
+            ab = abstand_mitternacht(lab)
+            probleme.append("%s, %s bleibt leer, der punkt %s liegt %d h %02d min neben mitternacht"
+                            % (feld, tag, lab, ab.seconds // 3600, ab.seconds % 3600 // 60))
+        for tag, t in stand.items():
+            roh.setdefault(tag, {})["stand_utc"] = t
         verworfen = 0
         for tag, wert in reihe_tage.items():
             if not plausibel(feld, wert):
@@ -212,22 +284,29 @@ def verschmelze(log, roh, jetzt):
     neu = geaendert = 0
     for tag in sorted(roh):
         schluessel = str(tag)
-        felder = {
-            "tx": roh[tag].get("tx"),
-            "outputs": roh[tag].get("outputs_created"),
-            "outputs_created": roh[tag].get("outputs_created"),
-            "outputs_spent": roh[tag].get("outputs_spent"),
-            "utxo_count": roh[tag].get("utxo_count"),
-        }
+        # nur felder, die dieser lauf fuer den tag hat. fehlt ein feld, weil
+        # seine quelle tot war, bleibt der alte wert stehen (regel 3). None
+        # ist eine bewusste luecke (regel 6) und ersetzt den alten wert.
+        felder = {k: roh[tag][q] for k, q in (
+            ("tx", "tx"), ("outputs", "outputs_created"), ("outputs_created", "outputs_created"),
+            ("outputs_spent", "outputs_spent"), ("utxo_count", "utxo_count"),
+            ("stand_utc", "stand_utc")) if q in roh[tag]}
         alt = nach_tag.get(schluessel)
         if alt is None:
             eintrag = {"datum": schluessel}
+            for k in ("tx", "outputs", "outputs_created", "outputs_spent", "utxo_count"):
+                eintrag[k] = None
             eintrag.update(felder)
             eintrag["quelle"] = QUELLENNAME
             eintrag["abgerufen_utc"] = jetzt
             nach_tag[schluessel] = eintrag
             neu += 1
             continue
+        # stand_utc nachtragen, wo es noch fehlt, ist keine korrektur eines
+        # werts und zieht abgerufen_utc nicht mit
+        if "stand_utc" not in alt and felder.get("stand_utc") and alt.get("utxo_count") == felder.get(
+                "utxo_count", alt.get("utxo_count")):
+            alt["stand_utc"] = felder["stand_utc"]
         if all(alt.get(k) == v for k, v in felder.items()):
             continue
         alt.update(felder)
@@ -294,9 +373,10 @@ def _stub(pfad):
 
 
 def run_selftest():
-    fails = []
+    fails, gezaehlt = [], [0]
 
     def check(name, ist, soll):
+        gezaehlt[0] += 1
         if ist != soll:
             fails.append("%s\n    ist  %r\n    soll %r" % (name, ist, soll))
 
@@ -398,12 +478,50 @@ def run_selftest():
     check("der tag selbst bleibt bestehen",
           roh_l[dt.date(2026, 9, 14)]["outputs_created"], 1760)
 
+    # regel 6 (Ben, 03.10.2026): bestandspunkte nur bis 2 h neben mitternacht
+    check("stand_utc steht am tag", roh[dt.date(2026, 9, 19)]["stand_utc"], "2026-09-19T23:59:58Z")
+    check("01:59 nach mitternacht zaehlt",
+          abstand_mitternacht("2026-09-30T01:59:00Z") <= BESTAND_SCHLUPF, True)
+    check("02:01 nach mitternacht zaehlt nicht",
+          abstand_mitternacht("2026-09-30T02:01:00Z") <= BESTAND_SCHLUPF, False)
+    check("22:30 ist der tag selbst", str(stichtag_bestand("2026-09-29T22:30:00Z")), "2026-09-29")
+
+    def mittag(pfad):
+        # wie die echte quelle am 30.09.: statt mitternacht ein punkt um 12:02:05
+        d = json.loads(json.dumps(_stub(pfad)))
+        if pfad == "utxo/covenant-count":
+            d["labels"][8] = "2026-09-20T12:02:05.729Z"
+        return d
+    roh_m, probleme_m = sammle(heute=heute, holer=mittag)
+    t19 = roh_m[dt.date(2026, 9, 19)]
+    check("mittagspunkt, bestand bleibt leer", (t19["utxo_count"], t19["stand_utc"]), (None, None))
+    check("mittagspunkt, die tagessummen bleiben", t19["tx"], 542)
+    check("mittagspunkt steht als problem drin",
+          any("2026-09-19 bleibt leer" in x and "11 h 57 min" in x for x in probleme_m), True)
+    alt29 = {"tage": [{"datum": "2026-09-19", "tx": 542, "outputs": 1084, "outputs_created": 1084,
+                       "outputs_spent": 170, "utxo_count": 13342, "quelle": QUELLENNAME,
+                       "abgerufen_utc": "2026-09-20T12:58:20+00:00"}]}
+    log_m, _, ge_m = verschmelze(alt29, {dt.date(2026, 9, 19): t19}, "2026-10-03T13:00:00+00:00")
+    e = log_m["tage"][0]
+    check("falscher alter bestand wird zur luecke", (e["utxo_count"], e["abgerufen_utc"]),
+          (None, "2026-10-03T13:00:00+00:00"))
+    alt_ohne = json.loads(json.dumps(log))
+    for e in alt_ohne["tage"]:
+        e.pop("stand_utc", None)
+    log_s, _, ge_s = verschmelze(alt_ohne, roh, "2026-10-04T08:00:00+00:00")
+    check("stand_utc wird nachgetragen", all(e.get("stand_utc") for e in log_s["tage"]), True)
+    check("nachtragen zieht abgerufen_utc nicht mit",
+          (ge_s, {e["abgerufen_utc"] for e in log_s["tage"]}), (0, {"2026-09-22T08:00:00+00:00"}))
+    log_t, _, _ = verschmelze(json.loads(json.dumps(log)), roh_t, "2026-10-04T08:00:00+00:00")
+    check("tote quelle loescht keinen alten bestand",
+          [e["utxo_count"] for e in log_t["tage"]] == [e["utxo_count"] for e in log["tage"]], True)
+
     if fails:
         print("selftest FEHLGESCHLAGEN")
         for f in fails:
             print("  " + f)
         return 1
-    print("selftest ok, 30 faelle")
+    print("selftest ok, %d faelle" % gezaehlt[0])
     return 0
 
 
