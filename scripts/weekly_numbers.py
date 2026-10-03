@@ -479,6 +479,19 @@ def newsletter_zeile(quelle):
 
 URL_IM_TEXT = re.compile(r"https?://\S+")
 
+# Wortregel (Ben, 27.09.2026), dieselbe Wache wie in entity_x_heartbeat.py:
+# nie buy, bought, buying, purchase. Erlaubt ist nur die ausdrueckliche
+# Verneinung, sie wird vor der Pruefung herausgenommen.
+WORTREGEL = re.compile(r"\b(buy|buys|bought|buying|purchase[sd]?|purchasing)\b", re.I)
+WORT_ERLAUBT = ("not a proven buy", "not proof of a purchase")
+
+
+def wortregel(text):
+    t = text.lower()
+    for e in WORT_ERLAUBT:
+        t = t.replace(e, "")
+    return WORTREGEL.findall(t)
+
 
 def assert_punctuation(text):
     """Schreibregel mechanisch statt aus dem Gedaechtnis.
@@ -493,6 +506,10 @@ def assert_punctuation(text):
     if hits:
         raise Stop("schreibregel verletzt, gefunden %r. keine gedankenstriche, "
                    "keine doppelpunkte, keine pfeile im post" % hits)
+    worte = wortregel(text)
+    if worte:
+        raise Stop("wortregel verletzt, gefunden %r. kein buy, bought, buying "
+                   "oder purchase im post" % worte)
 
 
 # ------------------------------------------------------------------ pruefen --
@@ -1179,6 +1196,10 @@ def run_selftest():
            lambda: assert_punctuation("hashrate — up"))
     raises("pfeil wird abgefangen",
            lambda: assert_punctuation("2.45 → 2.31"))
+    raises("bought wird abgefangen",
+           lambda: assert_punctuation("the largest address bought more"))
+    ok("verneinung bleibt erlaubt",
+       not wortregel("an inflow is a transfer, not a proven buy."))
 
     # 8 plausibilitaetsfenster
     raises("absurde hashrate stoppt",

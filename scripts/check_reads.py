@@ -269,7 +269,7 @@ def run_selftest():
     with tempfile.TemporaryDirectory() as tmp:
         with open(os.path.join(tmp, "entity-x-costbasis.json"), "w") as fh:
             json.dump({"total_kas": 1540000000, "avg_usd": 0.0881}, fh)
-        wal = ("the largest address has bought 1.54B KAS in total at an "
+        wal = ("the largest address has taken in 1.54B KAS in total at an "
                "average of $0.0881 since the first transfer landed.")
         check("fremde datei deckt die zahl",
               p(wal, extra_dir=tmp)[1], [])
