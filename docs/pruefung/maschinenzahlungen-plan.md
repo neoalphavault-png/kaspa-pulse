@@ -56,6 +56,10 @@ Sie dürfen nicht in den Erklärer. Dort stehen nur Zahlen aus dem Runner-Lauf.
   - **Tageszugang:** Feld `outputs_created`, je UTC-Tag. `outputs_spent` ist der Tagesabgang.
     - Die früher hier genannten 582 sind der Zugang vom 01.10., nicht der Bestand.
   - In die JSON kommt der Bestand mit dem Zeitstempel der Quelle, dazu der Zugang des Tages.
+  - **Formulierung für den Erklärer** (Ben, 03.10.):
+    - „13,655 covenant outputs unspent on chain at the end of 2 Oct“
+    - getrennt davon, falls gebraucht: „288,751 created since the fork“ (Summe `outputs_created` bis einschließlich 02.10., vor dem 30.06. ist jeder Tag 0)
+    - Der Lauf am 06.10. schreibt beide Zahlen neu aus dem Log, mit Datum. Steht im Video der 02.10., bleiben die Zahlen oben.
 - **Laufzeit, geschätzt:**
   - 100 Zahlungen dauern wenige Minuten.
   - Dazu kommen 10 Minuten Blockrate.
