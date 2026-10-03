@@ -1,0 +1,5 @@
+# Experiment "100 Zahlungen" (Ben, 03.10.2026): SDK fest, Version und Pruefsumme.
+# Wheel fuer CPython 3.12, manylinux_2_28, x86_64 (ubuntu-latest mit setup-python 3.12).
+# Das Paket hat keine Abhaengigkeiten. Installiert wird mit
+#   pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt
+kaspa==2.1.0 --hash=sha256:1f12fc746709f230228cc50a4a2ceedf485806978e4a33421ba4753551807315
