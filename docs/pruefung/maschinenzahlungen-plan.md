@@ -1,6 +1,13 @@
 # Experiment „100 Zahlungen“, Machbarkeit
 
 Stand 03.10.2026. Nur Plan, kein Lauf, kein Schlüssel, nichts signiert.
+
+**Freigegeben von Ben am 03.10.:**
+- 0,15 KAS je Zahlung, nacheinander, Rest am Ende an B.
+- Payload „kp-test 017/100“ (Punkt 3 des Videos).
+- SDK 2.1.0 mit festgenagelter Version und Prüfsumme, höchstens 20 KAS auf A.
+- Scanner-PR vor dem Lauf (#33).
+- „Bestätigt“ heißt von der Kette angenommen, nicht final. So steht es auch im Skript.
 Ziel ist der Erklärer am Do 08.10. Routine 4 liest am Mi 07.10. um 19:00 aus dem Repo.
 Das Ergebnis muss also bis **Di 06.10. abends auf main** sein.
 
@@ -43,9 +50,12 @@ Sie dürfen nicht in den Erklärer. Dort stehen nur Zahlen aus dem Runner-Lauf.
     - Median der Gebühr aller Tx mit 1 Eingang und höchstens 2 Ausgängen, ohne Coinbase.
     - Stichprobe aus den Blöcken genau dieser 10 Minuten, mit Zeitfenster und Zahl der Tx.
     - Dazu die Gebührenschätzung des Knotens (`get_fee_estimate`).
-- **Covenant-Outputs:** aus `data/covenants-log.json`. Quelle ist Kaspalytics, ein Wert je Tag.
-  - Genommen wird der letzte vollständige Tag mit Datum. Heute ist das der 01.10. mit 582 erzeugten Outputs.
-  - Am 06.10. ist es voraussichtlich der 05.10.
+- **Covenant-Outputs:** aus `data/covenants-log.json`, Quelle Kaspalytics. Korrigiert am 03.10. nach der Probe 37122169380.
+  - **Bestand**, also die unverbrauchten Covenant-Outputs auf der Kette: Feld `utxo_count` (Kaspalytics „Covenant UTXOs“), eine Momentaufnahme mit eigenem Zeitstempel.
+    - Zuletzt 13.655, Zeitstempel der Quelle 03.10.2026 00:00:03 UTC, also Ende 02.10.
+  - **Tageszugang:** Feld `outputs_created`, je UTC-Tag. `outputs_spent` ist der Tagesabgang.
+    - Die früher hier genannten 582 sind der Zugang vom 01.10., nicht der Bestand.
+  - In die JSON kommt der Bestand mit dem Zeitstempel der Quelle, dazu der Zugang des Tages.
 - **Laufzeit, geschätzt:**
   - 100 Zahlungen dauern wenige Minuten.
   - Dazu kommen 10 Minuten Blockrate.
