@@ -1,0 +1,141 @@
+name: maschinenzahlungen
+
+# Experiment "100 Zahlungen" fuer den Erklaerer am 08.10.2026 (Ben, 03.10.2026).
+# Nur von Hand. Plan und Freigabe: docs/pruefung/maschinenzahlungen-plan.md.
+#
+# Drei Modi:
+#   trocken  kein schluessel, nichts gesendet. Die Zahlungen laufen mit einem
+#            wegwerf-schluessel gegen einen erfundenen UTXO, die messung ist echt.
+#   probe    3 zahlungen von A an B, mit schluessel
+#   lauf     100 zahlungen von A an B, mit schluessel, ergebnis auf einen fix/-branch
+#
+# Der Schluessel liegt nur im Environment "testwallet" (Required reviewer Ben).
+# Nur der Job "zahlungen" nennt dieses Environment, also bekommt nur er das
+# Secret, und erst nach Bens Klick "Approve". Er hat nur Leserechte. Die Messung
+# und der Bericht laufen ohne Secret; nur der Bericht darf schreiben, und er
+# schreibt nie auf main, nur auf fix/maschinenzahlungen-<datum>.
+#
+# Bestaetigt heisst: von der Kette angenommen, nicht final.
+
+on:
+  workflow_dispatch:
+    inputs:
+      modus:
+        description: "trocken, probe (3 zahlungen) oder lauf (100 zahlungen)"
+        type: choice
+        options: [trocken, probe, lauf]
+        default: trocken
+
+permissions:
+  contents: read
+
+concurrency:
+  group: maschinenzahlungen
+  cancel-in-progress: false
+
+jobs:
+  messung:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: sdk, version und pruefsumme fest
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+      - name: selbsttest
+        run: python3 scripts/maschinenzahlungen.py --selbsttest
+      - name: blockrate 10 minuten, gebuehr einfacher tx, covenants
+        run: python3 scripts/maschinenzahlungen.py messung --out out/messung.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: messung
+          path: out/messung.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+  trocken:
+    if: inputs.modus == 'trocken'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+      - name: 100 zahlungen trocken
+        run: python3 scripts/maschinenzahlungen.py trocken --anzahl 100 --out out/zahlungen.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zahlungen
+          path: out/zahlungen.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+  zahlungen:
+    if: inputs.modus == 'probe' || inputs.modus == 'lauf'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: testwallet
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+      - name: zahlungen von A an B
+        env:
+          KASPA_TESTWALLET_PRIVKEY: ${{ secrets.KASPA_TESTWALLET_PRIVKEY }}
+          KASPA_TESTWALLET_ABSENDER: ${{ vars.KASPA_TESTWALLET_ABSENDER }}
+          KASPA_TESTWALLET_ZIEL: ${{ vars.KASPA_TESTWALLET_ZIEL }}
+          ANZAHL: ${{ inputs.modus == 'lauf' && '100' || '3' }}
+        run: python3 scripts/maschinenzahlungen.py zahlungen --anzahl "$ANZAHL" --out out/zahlungen.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zahlungen
+          path: out/zahlungen.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+  bericht:
+    needs: [messung, trocken, zahlungen]
+    if: always() && needs.messung.result != 'cancelled'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+      - name: bericht
+        env:
+          MODUS: ${{ inputs.modus }}
+        run: |
+          DATUM=$(date -u +%F)
+          if [ "$MODUS" != "lauf" ]; then DATUM="$DATUM-$MODUS"; fi
+          echo "DATUM=$DATUM" >> "$GITHUB_ENV"
+          python3 scripts/maschinenzahlungen.py bericht --datum "$DATUM" \
+            --zahlungen out/zahlungen/zahlungen.json --messung out/messung/messung.json
+          python3 scripts/secret_scan.py --dateien "data/pruefung/maschinenzahlungen-$DATUM.json" \
+            "docs/pruefung/maschinenzahlungen-$DATUM.md"
+      - name: auf fix-branch, nur beim lauf
+        if: inputs.modus == 'lauf'
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git checkout -b "fix/maschinenzahlungen-$DATUM"
+          git add "data/pruefung/maschinenzahlungen-$DATUM.json" "docs/pruefung/maschinenzahlungen-$DATUM.md"
+          git commit -m "maschinenzahlungen $DATUM, ergebnis des laufs [bot]"
+          git push origin "fix/maschinenzahlungen-$DATUM"
