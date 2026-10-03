@@ -558,6 +558,9 @@ def bericht(z, m, datum):
         "## Netz im selben Zeitraum", "",
         "- Blockrate %s Bloecke je Sekunde, gemessen %s bis %s (%s s)" % (
             b.get("bloecke_je_sekunde"), b.get("von_utc"), b.get("bis_utc"), b.get("sekunden")),
+        "- Knoten der Messung %s, RPC-Pruefung %s" % (
+            m.get("knoten", "-"), json.dumps(m.get("rpc_pruefung"), ensure_ascii=False)),
+        "- Gebuehrenschaetzung des Knotens %s" % json.dumps(m.get("fee_estimate"), ensure_ascii=False),
         "- Typische Gebuehr einer einfachen Tx: Median %s KAS (%s Sompi), %s einfache Tx aus %s im Fenster %s bis %s" % (
             g.get("median_kas"), g.get("median_sompi"), g.get("einfach"), g.get("stichprobe"),
             g.get("fenster_von_utc"), g.get("fenster_bis_utc")),
@@ -665,7 +668,8 @@ def main(argv=None):
     if a.befehl == "messung":
         m = asyncio.run(messung(a.sekunden))
         schreibe_json(a.out, m)
-        print(json.dumps({k: m.get(k) for k in ("blockrate", "gebuehr_einfach", "covenants")}, ensure_ascii=False))
+        print(json.dumps({k: m.get(k) for k in ("knoten", "fee_estimate", "rpc_pruefung", "blockrate",
+                                                 "gebuehr_einfach", "covenants")}, ensure_ascii=False))
         return 0
     if a.befehl == "bericht":
         z = json.loads(Path(a.z).read_text()) if a.z and Path(a.z).exists() else {"fehler": "keine zahlungsdaten"}
