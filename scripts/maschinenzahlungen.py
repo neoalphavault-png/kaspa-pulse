@@ -54,6 +54,7 @@ BETRAG = 15_000_000                 # 0,15 KAS je zahlung
 HOECHSTENS_AUF_A = 20 * SOMPI       # mehr als 20 KAS auf A: abbruch
 GEBUEHR_GRENZE = 1_000_000          # 0,01 KAS je tx: abbruch
 WARTEN_S = 60                       # je tx hoechstens so lange auf die annahme warten
+REST_NACH_S = 10.0                  # ohne ereignis ab hier alle 5 s bei api.kaspa.org nachsehen
 FEHLER_IN_FOLGE = 3                 # dann abbruch mit teilergebnis
 BLOCKRATE_S = 600                   # 10 minuten
 REST = "https://api.kaspa.org"
@@ -199,7 +200,8 @@ def baue(kaspa, eintraege, a, b, nr, anzahl, geheim_key):
 # ------------------------------------------------------------ zahlungen
 
 class Annahme:
-    """Merkt sich, wann eine Tx-ID zum ersten Mal als angenommen gemeldet wurde."""
+    """Merkt sich, wann eine Tx-ID zum ersten Mal als angenommen gemeldet wurde.
+    Eintrag (wanduhr, monoton oder None, annehmender block, zeitquelle)."""
 
     def __init__(self):
         self.gesehen = {}
@@ -210,12 +212,128 @@ class Annahme:
         for blk in daten.get("acceptedTransactionIds") or []:
             for txid in blk.get("acceptedTransactionIds") or []:
                 if txid not in self.gesehen:
-                    self.gesehen[txid] = (t_wand, t_mono, blk.get("acceptingBlockHash"))
+                    self.gesehen[txid] = (t_wand, t_mono, blk.get("acceptingBlockHash"), "ereignis")
 
 
-async def zahlungen(anzahl, trocken=False, senden=None, verbinde=None):
+def neuer_client():
+    kaspa = sdk()
+    return kaspa.RpcClient(resolver=kaspa.Resolver(), network_id=NETZ)
+
+
+class Verbindung:
+    """Haelt die RPC-Verbindung. Am 03.10.2026 (Lauf 37155913663) trennte der
+    oeffentliche Knoten nach einigen Minuten Ruhe die WebSocket-Verbindung.
+    rufe() verbindet dann ueber den Resolver neu, moeglicherweise mit einem
+    anderen Knoten, und meldet die virtuelle Kette wieder an, wenn jemand auf
+    Annahmen wartet. Jeder Verbindungsaufbau steht in self.knoten."""
+
+    def __init__(self, annahme=None, fabrik=None, pause=2.0):
+        self.annahme, self.fabrik, self.pause = annahme, fabrik or neuer_client, pause
+        self.rpc, self.knoten = None, []
+
+    async def auf(self):
+        self.rpc = self.fabrik()
+        await self.rpc.connect()
+        self.knoten.append({"zeit_utc": iso(jetzt()), "knoten": ohne_ip(getattr(self.rpc, "url", "") or "")})
+        if self.annahme is not None:
+            self.rpc.add_event_listener(sdk().NotificationEvent.VirtualChainChanged, self.annahme.ereignis)
+            await self.rpc.subscribe_virtual_chain_changed(True)
+
+    async def neu(self):
+        try:
+            if self.rpc is not None:
+                await self.rpc.disconnect()
+        except Exception:                           # noqa: BLE001
+            pass
+        await self.auf()
+
+    def verbunden(self):
+        return self.rpc is not None and bool(getattr(self.rpc, "is_connected", False))
+
+    async def rufe(self, fn, versuche=4, harmlos=None):
+        """fn bekommt den Client und gibt ein Awaitable zurueck. Ein Fehler,
+        fuer den harmlos(exc) wahr ist, gilt als Erfolg (Rueckgabe None), ohne
+        neu zu verbinden."""
+        letzter = None
+        for i in range(versuche):
+            try:
+                if not self.verbunden():
+                    await self.neu()
+                return await fn(self.rpc)
+            except Exception as exc:                # noqa: BLE001
+                if harmlos is not None and harmlos(exc):
+                    return None
+                letzter = exc
+                await asyncio.sleep(self.pause * (i + 1))
+                try:
+                    await self.neu()
+                except Exception as exc2:           # noqa: BLE001
+                    letzter = exc2
+        raise letzter
+
+    async def zu(self):
+        try:
+            if self.rpc is not None:
+                await self.rpc.disconnect()
+        except Exception:                           # noqa: BLE001
+            pass
+
+
+def schon_bekannt(exc):
+    """Ein erneutes Senden derselben Tx nach einem Verbindungsabbruch ist
+    harmlos: der Knoten kennt sie dann schon."""
+    t = str(exc).lower()
+    return "already" in t or "duplicate" in t
+
+
+async def senden_robust(verb, fn):
+    """fn(rpc) sendet. Wiederholt ueber Verbindung.rufe; meldet der Knoten,
+    dass er die Tx schon kennt, gilt sie als gesendet."""
+    return await verb.rufe(fn, harmlos=schon_bekannt)
+
+
+def rest_annahme(txid):
+    """Gegenprobe ueber api.kaspa.org, wenn kein Ereignis kam. Gibt
+    (wanduhr der annahme oder None, block) zurueck, oder None."""
+    try:
+        t = hole("/transactions/%s?resolve_previous_outpoints=no" % txid, versuche=1)
+    except Exception:                               # noqa: BLE001
+        return None
+    if not t or not t.get("is_accepted"):
+        return None
+    ms = t.get("accepting_block_time")
+    wann = dt.datetime.fromtimestamp(ms / 1000, dt.timezone.utc) if ms else None
+    return wann, t.get("accepting_block_hash")
+
+
+async def warte_auf_annahme(annahme, txid, t0_wand, t0, verb=None, rest=rest_annahme):
+    """Wartet bis WARTEN_S. Nach 10 s ohne Ereignis: Verbindung pruefen und
+    alle 5 s bei api.kaspa.org nachsehen. Gibt (wanduhr, sekunden oder None,
+    block, zeitquelle) zurueck oder wirft."""
+    naechste_rest = REST_NACH_S
+    while time.monotonic() - t0 < WARTEN_S:
+        if txid in annahme.gesehen:
+            t1_wand, t1, blk, quelle = annahme.gesehen[txid]
+            sek = round(t1 - t0, 3) if t1 is not None else (
+                round((t1_wand - t0_wand).total_seconds(), 3) if t1_wand else None)
+            return t1_wand, sek, blk, quelle
+        if time.monotonic() - t0 >= naechste_rest:
+            naechste_rest += 5.0
+            if verb is not None and not verb.verbunden():
+                try:
+                    await verb.neu()
+                except Exception:                   # noqa: BLE001
+                    pass
+            r = await asyncio.to_thread(rest, txid)
+            if r is not None and txid not in annahme.gesehen:
+                annahme.gesehen[txid] = (r[0], None, r[1], "rest accepting_block_time" if r[0] else "rest ohne zeit")
+        await asyncio.sleep(0.02)
+    raise RuntimeError("nach %d s nicht als angenommen gemeldet" % WARTEN_S)
+
+
+async def zahlungen(anzahl, trocken=False, senden=None, fabrik=None, rest=rest_annahme):
     """Der Lauf. trocken: Wegwerf-Schluessel im Speicher, erfundener UTXO, nichts
-    wird gesendet, die Annahme wird nachgestellt. senden/verbinde ersetzen im
+    wird gesendet, die Annahme wird nachgestellt. senden/fabrik/rest ersetzen im
     Selbsttest das Netz."""
     kaspa = sdk()
     erg = {"experiment": "100 zahlungen", "modus": "trocken" if trocken else "echt",
@@ -246,15 +364,19 @@ async def zahlungen(anzahl, trocken=False, senden=None, verbinde=None):
     spk_a = kaspa.pay_to_address_script(a)
 
     annahme = Annahme()
-    rpc = None
+    verb = None
+
+    async def utxos():
+        antwort = await verb.rufe(lambda r: r.get_utxos_by_addresses({"addresses": [str(a)]}))
+        return [kaspa.UtxoEntryReference.from_dict(e) for e in antwort.get("entries") or []]
+
     if trocken:
         eintraege = [ref(kaspa, a, spk_a, "11" * 32, 0, 20 * SOMPI)]
         erg["bestand_a_vorher_kas"] = 20.0
     else:
-        rpc = await (verbinde or verbinden)(annahme)
-        erg["knoten"] = ohne_ip(getattr(rpc, "url", "") or "")
-        antwort = await rpc.get_utxos_by_addresses({"addresses": [str(a)]})
-        eintraege = [kaspa.UtxoEntryReference.from_dict(e) for e in antwort.get("entries") or []]
+        verb = Verbindung(annahme, fabrik)
+        await verb.auf()
+        eintraege = await utxos()
         bestand = sum(e.amount for e in eintraege)
         erg["bestand_a_vorher_kas"] = bestand / SOMPI
         if bestand > HOECHSTENS_AUF_A + SOMPI // 2:
@@ -272,18 +394,21 @@ async def zahlungen(anzahl, trocken=False, senden=None, verbinde=None):
                       "gebuehr_kas": p.fee_amount / SOMPI})
             t0_wand, t0 = jetzt(), time.monotonic()
             z["abgeschickt_utc"] = iso(t0_wand)
+            verbindungen_vorher = len(verb.knoten) if verb is not None else 0
             if trocken:
-                annahme.gesehen[p.id] = (t0_wand + dt.timedelta(seconds=1), t0 + 1.0, "trocken")
+                annahme.gesehen[p.id] = (t0_wand + dt.timedelta(seconds=1), t0 + 1.0, "trocken", "trocken")
             else:
-                await (senden or (lambda pp: pp.submit(rpc)))(p)
+                await senden_robust(verb, (lambda r, pp=p: senden(r, pp)) if senden else (lambda r, pp=p: pp.submit(r)))
             z["sendeaufruf_s"] = round(time.monotonic() - t0, 3)
-            while p.id not in annahme.gesehen and time.monotonic() - t0 < WARTEN_S:
-                await asyncio.sleep(0.02)
-            if p.id not in annahme.gesehen:
-                raise RuntimeError("nach %d s nicht als angenommen gemeldet" % WARTEN_S)
-            t1_wand, t1, blk = annahme.gesehen[p.id]
-            z.update({"angenommen_utc": iso(t1_wand), "sekunden_bis_angenommen": round(t1 - t0, 3),
-                      "annehmender_block": blk})
+            t1_wand, sek, blk, quelle = await warte_auf_annahme(annahme, p.id, t0_wand, t0, verb, rest)
+            z.update({"angenommen_utc": iso(t1_wand) if t1_wand else None, "annehmender_block": blk,
+                      "zeitquelle": quelle})
+            if verb is not None and len(verb.knoten) > verbindungen_vorher:
+                z["neuverbindungen"] = len(verb.knoten) - verbindungen_vorher
+            if sek is not None:
+                z["sekunden_bis_angenommen"] = sek
+            else:
+                z["hinweis"] = "angenommen laut api.kaspa.org, zeit nicht gemessen"
             if wechsel is None:
                 raise RuntimeError("kein wechselgeld-ausgang gefunden")
             eintraege = [ref(kaspa, a, spk_a, p.id, wechsel, p.change_amount)]
@@ -291,48 +416,41 @@ async def zahlungen(anzahl, trocken=False, senden=None, verbinde=None):
         except Exception as exc:                    # noqa: BLE001
             z["fehler"] = sauber(exc, geheim)
             in_folge += 1
-            if rpc is not None:
-                await asyncio.sleep(2)
-                antwort = await rpc.get_utxos_by_addresses({"addresses": [str(a)]})
-                eintraege = [kaspa.UtxoEntryReference.from_dict(e) for e in antwort.get("entries") or []]
+            if verb is not None:
+                try:
+                    await asyncio.sleep(2)
+                    eintraege = await utxos()
+                except Exception as exc2:           # noqa: BLE001
+                    z["fehler"] += "; utxo neu laden gescheitert, " + sauber(exc2, geheim)
         erg["zahlungen"].append(z)
         print("  %3d  %-16s  %s" % (nr, z.get("payload_text", ""),
-                                     "angenommen nach %.3f s" % z["sekunden_bis_angenommen"]
-                                     if "sekunden_bis_angenommen" in z else "FEHLER " + z["fehler"]))
+                                     "angenommen nach %.3f s (%s)" % (z["sekunden_bis_angenommen"], z["zeitquelle"])
+                                     if "sekunden_bis_angenommen" in z else ("FEHLER " + z["fehler"]
+                                                                            if "fehler" in z else z.get("hinweis"))))
         if in_folge >= FEHLER_IN_FOLGE:
             erg["abbruch"] = "%d fehler in folge nach zahlung %d" % (in_folge, nr)
             break
 
     erg["zusammen"] = zusammenfassen(erg["zahlungen"], anzahl)
-    erg["rueckgabe"] = await rueckgabe(kaspa, rpc, eintraege, a, b, schluessel, geheim, trocken, annahme, senden)
+    erg["rueckgabe"] = await rueckgabe(kaspa, verb, eintraege, b, schluessel, geheim, trocken, annahme, senden, rest)
     erg["ende_utc"] = iso(jetzt())
-    if rpc is not None:
-        try:
-            await rpc.disconnect()
-        except Exception:                           # noqa: BLE001
-            pass
+    if verb is not None:
+        erg["knoten"] = verb.knoten
+        erg["neu_verbunden"] = len(verb.knoten) - 1
+        await verb.zu()
     return erg, geheim
 
 
-async def verbinden(annahme):
-    kaspa = sdk()
-    rpc = kaspa.RpcClient(resolver=kaspa.Resolver(), network_id=NETZ)
-    await rpc.connect()
-    rpc.add_event_listener(kaspa.NotificationEvent.VirtualChainChanged, annahme.ereignis)
-    await rpc.subscribe_virtual_chain_changed(True)
-    return rpc
-
-
-async def rueckgabe(kaspa, rpc, eintraege, a, b, schluessel, geheim, trocken, annahme, senden):
+async def rueckgabe(kaspa, verb, eintraege, b, schluessel, geheim, trocken, annahme, senden, rest=rest_annahme):
     """Rest von A an B (Ben: ja). Eine Tx, alle Eingaenge, ein Ausgang an B,
     Gebuehr = Mindestgebuehr laut SDK. Nicht Teil der 100."""
     try:
         if not eintraege:
             return {"hinweis": "kein rest auf A"}
-        rest = sum(e.amount for e in eintraege)
+        rest_betrag = sum(e.amount for e in eintraege)
         f = 0
         for _ in range(5):
-            tx = kaspa.create_transaction(eintraege, [kaspa.PaymentOutput(b, rest - f)], f)
+            tx = kaspa.create_transaction(eintraege, [kaspa.PaymentOutput(b, rest_betrag - f)], f)
             mind = kaspa.calculate_transaction_fee(NETZ, tx)
             if mind is not None and f >= mind:
                 break
@@ -343,14 +461,17 @@ async def rueckgabe(kaspa, rpc, eintraege, a, b, schluessel, geheim, trocken, an
             tx = kaspa.sign_transaction(tx, [schluessel], True)
         except Exception as exc:                    # noqa: BLE001
             raise RuntimeError("signieren gescheitert (%s)" % type(exc).__name__) from None
-        r = {"tx_id": tx.id, "betrag_kas": (rest - f) / SOMPI, "gebuehr_sompi": f, "gebuehr_kas": f / SOMPI,
+        r = {"tx_id": tx.id, "betrag_kas": (rest_betrag - f) / SOMPI, "gebuehr_sompi": f, "gebuehr_kas": f / SOMPI,
              "eingaenge": len(eintraege)}
         if not trocken:
-            t0 = time.monotonic()
-            await (senden or (lambda t: rpc.submit_transaction({"transaction": t, "allowOrphan": False})))(tx)
-            while tx.id not in annahme.gesehen and time.monotonic() - t0 < WARTEN_S:
-                await asyncio.sleep(0.05)
-            r["angenommen"] = tx.id in annahme.gesehen
+            t0_wand, t0 = jetzt(), time.monotonic()
+            await senden_robust(verb, (lambda rr: senden(rr, tx)) if senden else (
+                lambda rr: rr.submit_transaction({"transaction": tx, "allowOrphan": False})))
+            try:
+                await warte_auf_annahme(annahme, tx.id, t0_wand, t0, verb, rest)
+                r["angenommen"] = True
+            except RuntimeError:
+                r["angenommen"] = False
         return r
     except Exception as exc:                        # noqa: BLE001
         return {"fehler": sauber(exc, geheim)}
@@ -365,6 +486,11 @@ def zusammenfassen(zl, anzahl):
          "payload_bytes_je_tx": sorted({z["payload_bytes"] for z in zl if "payload_bytes" in z}),
          "masse_von_bis": [min((z["masse"] for z in ok), default=None), max((z["masse"] for z in ok), default=None)]}
     s["gebuehren_gesamt_kas"] = s["gebuehren_gesamt_sompi"] / SOMPI
+    quellen = {}
+    for z in ok:
+        quellen[z.get("zeitquelle", "-")] = quellen.get(z.get("zeitquelle", "-"), 0) + 1
+    s["zeitquelle_anzahl"] = quellen
+    s["mit_neuverbindung"] = [z["nr"] for z in zl if z.get("neuverbindungen")]
     if zeiten:
         erste = dt.datetime.fromisoformat(ok[0]["abgeschickt_utc"].replace("Z", "+00:00"))
         letzte = dt.datetime.fromisoformat(ok[-1]["angenommen_utc"].replace("Z", "+00:00"))
@@ -377,68 +503,94 @@ def zusammenfassen(zl, anzahl):
 
 # ------------------------------------------------------------ messung, ohne schluessel
 
-async def messung(sekunden=BLOCKRATE_S):
-    kaspa = sdk()
+async def messung(sekunden=BLOCKRATE_S, fabrik=None, takt=30):
+    """Blockrate ueber das Fenster: alle 30 s den virtuellen DAA-Score lesen.
+    Das haelt die Verbindung wach; bricht sie trotzdem ab, verbindet
+    Verbindung.rufe neu. Gerechnet wird vom ersten bis zum letzten Messpunkt."""
     m = {"start_utc": iso(jetzt())}
-    rpc = kaspa.RpcClient(resolver=kaspa.Resolver(), network_id=NETZ)
-    await rpc.connect()
-    m["knoten"] = ohne_ip(getattr(rpc, "url", "") or "")
+    verb = Verbindung(None, fabrik)
     try:
-        d0, t0w, t0 = await rpc.get_block_dag_info(), jetzt(), time.monotonic()
-        sink0 = (await rpc.get_sink()).get("sink")
+        await verb.auf()
+        punkte = []
+
+        async def punkt():
+            d = await verb.rufe(lambda r: r.get_block_dag_info())
+            punkte.append((jetzt(), time.monotonic(), int(d["virtualDaaScore"]), len(verb.knoten)))
+
+        await punkt()
+        sink0 = (await verb.rufe(lambda r: r.get_sink())).get("sink")
         try:
-            fe = (await rpc.get_fee_estimate()).get("estimate") or {}
+            fe = (await verb.rufe(lambda r: r.get_fee_estimate())).get("estimate") or {}
             m["fee_estimate"] = {"priority_feerate": (fe.get("priorityBucket") or {}).get("feerate"),
                                  "normal_feerate": [b.get("feerate") for b in fe.get("normalBuckets") or []][:3],
                                  "einheit": "sompi je gramm masse", "zeit_utc": iso(jetzt())}
         except Exception as exc:                    # noqa: BLE001
             m["fee_estimate"] = {"fehler": sauber(exc)}
-        await asyncio.sleep(sekunden)
-        d1, t1w, t1 = await rpc.get_block_dag_info(), jetzt(), time.monotonic()
-        daa0, daa1 = int(d0["virtualDaaScore"]), int(d1["virtualDaaScore"])
-        bps = (daa1 - daa0) / (t1 - t0)
-        m["blockrate"] = {"bloecke_je_sekunde": round(bps, 3), "von_utc": iso(t0w), "bis_utc": iso(t1w),
+        t_start = time.monotonic()
+        while time.monotonic() - t_start < sekunden:
+            await asyncio.sleep(min(takt, max(0.0, sekunden - (time.monotonic() - t_start))))
+            try:
+                await punkt()
+            except Exception as exc:                # noqa: BLE001
+                m.setdefault("messpunkt_fehler", []).append(sauber(exc))
+        (w0, t0, daa0, _), (w1, t1, daa1, _) = punkte[0], punkte[-1]
+        bps = (daa1 - daa0) / (t1 - t0) if t1 > t0 else 0.0
+        m["blockrate"] = {"bloecke_je_sekunde": round(bps, 3), "von_utc": iso(w0), "bis_utc": iso(w1),
                           "sekunden": round(t1 - t0, 1), "daa_von": daa0, "daa_bis": daa1,
+                          "messpunkte": len(punkte),
                           "quelle": "virtueller daa-score des knotens (rpc), zuwachs ueber das fenster",
-                          "plausibel": 5 < bps < 15}
-        m["gebuehr_einfach"] = await gebuehr_einfach(rpc, sink0, t0w, t1w)
-        m["rpc_pruefung"] = await rpc_pruefung(rpc)
+                          "plausibel": 5 < bps < 15 and t1 - t0 >= 0.9 * sekunden}
+        m["gebuehr_einfach"] = await gebuehr_einfach(verb, sink0, w0, w1)
+        m["rpc_pruefung"] = await rpc_pruefung(verb)
     finally:
-        try:
-            await rpc.disconnect()
-        except Exception:                           # noqa: BLE001
-            pass
+        m["knoten"] = verb.knoten
+        m["neu_verbunden"] = max(0, len(verb.knoten) - 1)
+        await verb.zu()
     m["covenants"] = covenants()
     m["ende_utc"] = iso(jetzt())
     return m
 
 
-async def rpc_pruefung(rpc, sekunden=20):
+async def rpc_pruefung(verb, sekunden=20):
     """Prueft ohne Schluessel die Wege, die der Lauf braucht: Ereignis der
     virtuellen Kette mit angenommenen Tx-IDs, UTXO-Abfrage im Format, das
-    UtxoEntryReference.from_dict nimmt. Adresse ist die oeffentliche von Entity X."""
+    UtxoEntryReference.from_dict nimmt (Adresse ist die oeffentliche von
+    Entity X), und ein Wiederverbinden mit erneuter Anmeldung der Kette."""
     kaspa = sdk()
     r = {}
+    a = Annahme()
     try:
-        a = Annahme()
-        rpc.add_event_listener(kaspa.NotificationEvent.VirtualChainChanged, a.ereignis)
-        await rpc.subscribe_virtual_chain_changed(True)
+        verb.annahme = a
+        await verb.neu()
         await asyncio.sleep(sekunden)
         r["kettenereignis_tx_ids_in_%d_s" % sekunden] = len(a.gesehen)
+        n1 = len(a.gesehen)
+        await verb.neu()
+        await asyncio.sleep(sekunden)
+        r["nach_neuverbindung_weitere_tx_ids"] = len(a.gesehen) - n1
     except Exception as exc:                        # noqa: BLE001
         r["kettenereignis_fehler"] = sauber(exc)
+    finally:
+        verb.annahme = None
     try:
         ex = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a"
-        u = await rpc.get_utxos_by_addresses({"addresses": [ex]})
+        u = await verb.rufe(lambda c: c.get_utxos_by_addresses({"addresses": [ex]}))
         e = (u.get("entries") or [])[:3]
         refs = [kaspa.UtxoEntryReference.from_dict(x) for x in e]
         r["utxo_format"] = "ok, %d eintraege umgewandelt" % len(refs)
     except Exception as exc:                        # noqa: BLE001
         r["utxo_format_fehler"] = sauber(exc)
+    try:
+        ids = list(a.gesehen)[:3]
+        if ids:
+            r["rest_gegenprobe"] = "%d von %d bei api.kaspa.org als angenommen gefunden" % (
+                sum(1 for t in ids if rest_annahme(t) is not None), len(ids))
+    except Exception as exc:                        # noqa: BLE001
+        r["rest_gegenprobe_fehler"] = sauber(exc)
     return r
 
 
-async def gebuehr_einfach(rpc, sink0, von, bis, stichprobe=300):
+async def gebuehr_einfach(verb, sink0, von, bis, stichprobe=300):
     """Median der Gebuehr aller Tx mit 1 Eingang und hoechstens 2 Ausgaengen,
     angenommen in genau diesem Fenster (virtuelle Kette ab dem Sink zu Beginn).
     Eingangsbetraege ueber api.kaspa.org, weil die Kette sie in der Tx nicht traegt."""
@@ -446,7 +598,8 @@ async def gebuehr_einfach(rpc, sink0, von, bis, stichprobe=300):
          "definition": "1 eingang, hoechstens 2 ausgaenge, keine coinbase, angenommen im fenster",
          "quelle": "tx-ids aus der virtuellen kette des knotens, betraege aus api.kaspa.org"}
     try:
-        vc = await rpc.get_virtual_chain_from_block({"startHash": sink0, "includeAcceptedTransactionIds": True})
+        vc = await verb.rufe(lambda c: c.get_virtual_chain_from_block(
+            {"startHash": sink0, "includeAcceptedTransactionIds": True}))
         ids = [t for blk in vc.get("acceptedTransactionIds") or [] for t in blk.get("acceptedTransactionIds") or []]
         g["tx_im_fenster"] = len(ids)
         probe = ids[:: max(1, len(ids) // stichprobe)][:stichprobe]
@@ -545,6 +698,8 @@ def bericht(z, m, datum):
             ", abgebrochen (%s)" % z["abbruch"] if z.get("abbruch") else ""),
         "- Gesamtzeit %s s, Median %s s, Maximum %s s, Minimum %s s" % (
             s.get("gesamtzeit_s"), s.get("median_s"), s.get("maximum_s"), s.get("minimum_s")),
+        "- Zeitquelle je Zahlung %s; Zahlungen mit Neuverbindung zum Knoten (Zeit enthaelt das Neuverbinden) %s" % (
+            json.dumps(s.get("zeitquelle_anzahl"), ensure_ascii=False), s.get("mit_neuverbindung") or "keine"),
         "- Gebuehr je Zahlung gemessen auf der Kette %s Sompi, gesamt %s KAS (%s von %s Tx gefunden, Quelle %s)" % (
             k.get("gebuehr_je_tx_sompi"), k.get("gebuehren_gesamt_kas"), k.get("gefunden"),
             s.get("anzahl_gesendet"), k.get("quelle")),
@@ -558,6 +713,9 @@ def bericht(z, m, datum):
         "## Netz im selben Zeitraum", "",
         "- Blockrate %s Bloecke je Sekunde, gemessen %s bis %s (%s s)" % (
             b.get("bloecke_je_sekunde"), b.get("von_utc"), b.get("bis_utc"), b.get("sekunden")),
+        "- Knoten der Messung %s, RPC-Pruefung %s" % (
+            m.get("knoten", "-"), json.dumps(m.get("rpc_pruefung"), ensure_ascii=False)),
+        "- Gebuehrenschaetzung des Knotens %s" % json.dumps(m.get("fee_estimate"), ensure_ascii=False),
         "- Typische Gebuehr einer einfachen Tx: Median %s KAS (%s Sompi), %s einfache Tx aus %s im Fenster %s bis %s" % (
             g.get("median_kas"), g.get("median_sompi"), g.get("einfach"), g.get("stichprobe"),
             g.get("fenster_von_utc"), g.get("fenster_bis_utc")),
@@ -635,9 +793,90 @@ def selbsttest():
        (zf["median_s"], zf["maximum_s"], zf["gesamtzeit_s"], zf["fehler"]) == (2.0, 3.0, 5.0, 1))
     c = covenants()
     ok("covenants aus dem log, bestand mit datum", "bestand_unverbraucht" in c and "erzeugt_seit_fork" in c)
+    abbruch_test(ok)
     tmp.unlink()
     print("%d fehler" % len(fehler))
     return 1 if fehler else 0
+
+
+def abbruch_test(ok):
+    """Nachgestellter Knoten (ohne Netz). Zahlung 2: die Verbindung bricht beim
+    Senden ab. Zahlung 3: die Sendung kommt an, die Antwort geht verloren,
+    der zweite Versuch meldet "already". Zahlung 4: es kommt kein Ereignis,
+    api.kaspa.org meldet die Annahme."""
+    global REST_NACH_S
+    kaspa = sdk()
+    kp, kb = kaspa.Keypair.random(), kaspa.Keypair.random()
+    a, b = kp.to_address(NETZ), kb.to_address(NETZ)
+    spk = kaspa.pay_to_address_script(a)
+    zustand = {"clients": 0, "gesendet": [], "nr": 0}
+
+    class FakeRpc:
+        def __init__(self):
+            zustand["clients"] += 1
+            zustand["aktiv"] = self
+            self.is_connected, self.url, self.cb = False, "wss://knoten-%d.example" % zustand["clients"], None
+
+        async def connect(self):
+            self.is_connected = True
+
+        async def disconnect(self):
+            self.is_connected = False
+
+        def add_event_listener(self, _ev, cb):
+            self.cb = cb
+
+        async def subscribe_virtual_chain_changed(self, _flag):
+            return None
+
+        async def get_utxos_by_addresses(self, _req):
+            return {"entries": [{"address": str(a), "outpoint": {"transactionId": "22" * 32, "index": 0},
+                                 "utxoEntry": {"amount": 20 * SOMPI, "scriptPublicKey":
+                                               {"version": spk.version, "script": spk.script},
+                                               "blockDaaScore": 1, "isCoinbase": False, "covenantId": None}}]}
+
+    async def senden(r, tx):
+        zustand["nr"] += 1
+        n = zustand["nr"]
+        if n == 2:                                  # abbruch beim senden
+            r.is_connected = False
+            raise RuntimeError("WebSocket is not connected")
+        if n == 5:                                  # zweiter versuch: der knoten kennt sie schon
+            raise RuntimeError("transaction already in the mempool")
+        zustand["gesendet"].append(tx.id)
+        if n != 6:                                  # zahlung 4 (sendung 6): kein ereignis
+            asyncio.get_running_loop().call_later(0.05, lambda: zustand["aktiv"].cb(
+                {"data": {"acceptedTransactionIds": [
+                    {"acceptingBlockHash": "ab" * 32, "acceptedTransactionIds": [tx.id]}]}}))
+        if n == 4:                                  # angekommen, aber die antwort geht verloren
+            raise TimeoutError("response timeout")
+
+    def rest(txid):
+        if txid in zustand["gesendet"][3:4]:
+            return jetzt(), "cd" * 32
+        return None
+
+    alt = dict(os.environ)
+    os.environ.update({"KASPA_TESTWALLET_PRIVKEY": kp.private_key, "KASPA_TESTWALLET_ABSENDER": str(a),
+                       "KASPA_TESTWALLET_ZIEL": str(b)})
+    alt_rest, REST_NACH_S = REST_NACH_S, 0.3
+    try:
+        erg, _ = asyncio.run(zahlungen(5, senden=senden, fabrik=FakeRpc, rest=rest))
+    finally:
+        REST_NACH_S = alt_rest
+        os.environ.clear()
+        os.environ.update(alt)
+    zl = erg["zahlungen"]
+    ok("abbruch: alle 5 zahlungen angenommen, 0 fehler", erg["zusammen"]["anzahl_angenommen"] == 5
+       and erg["zusammen"]["fehler"] == 0)
+    ok("abbruch: neu verbunden, knoten gezaehlt", erg["neu_verbunden"] >= 1 and len(erg["knoten"]) >= 2)
+    ok("abbruch: zahlung 2 traegt die neuverbindung", zl[1].get("neuverbindungen", 0) >= 1
+       and erg["zusammen"]["mit_neuverbindung"] == [2, 3])
+    ok("abbruch: zahlung 3 zweimal gesendet, einmal gezaehlt", zustand["gesendet"].count(zl[2]["tx_id"]) == 1)
+    ok("abbruch: zahlung 4 ueber api.kaspa.org bestaetigt", zl[3]["zeitquelle"].startswith("rest"))
+    ok("abbruch: die anderen ueber das ereignis", all(z["zeitquelle"] == "ereignis" for i, z in enumerate(zl) if i != 3))
+    ok("abbruch: rueckgabe gesendet und angenommen", erg["rueckgabe"].get("angenommen") is True)
+    ok("abbruch: schluessel danach nicht mehr in der umgebung", "KASPA_TESTWALLET_PRIVKEY" not in os.environ)
 
 
 # ------------------------------------------------------------ main
@@ -665,7 +904,8 @@ def main(argv=None):
     if a.befehl == "messung":
         m = asyncio.run(messung(a.sekunden))
         schreibe_json(a.out, m)
-        print(json.dumps({k: m.get(k) for k in ("blockrate", "gebuehr_einfach", "covenants")}, ensure_ascii=False))
+        print(json.dumps({k: m.get(k) for k in ("knoten", "fee_estimate", "rpc_pruefung", "blockrate",
+                                                 "gebuehr_einfach", "covenants")}, ensure_ascii=False))
         return 0
     if a.befehl == "bericht":
         z = json.loads(Path(a.z).read_text()) if a.z and Path(a.z).exists() else {"fehler": "keine zahlungsdaten"}
