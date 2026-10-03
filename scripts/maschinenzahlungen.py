@@ -500,8 +500,38 @@ def covenants(pfad=COVENANTS):
 
 # ------------------------------------------------------------ bericht
 
+def kette_pruefen(z):
+    """Nach dem Lauf, ohne Schluessel: jede Tx bei api.kaspa.org nachschlagen
+    und die Gebuehr aus der Kette messen (Summe der Eingaenge minus Summe der
+    Ausgaenge). Das ist die Zahl fuer das Video. gebuehr_sompi in den Zahlungen
+    ist nur, was das SDK beim Bau gesetzt hat (Ben, 03.10.2026)."""
+    ids = [x["tx_id"] for x in z.get("zahlungen") or [] if x.get("tx_id")]
+    k = {"quelle": "api.kaspa.org /transactions/search, eingaenge minus ausgaenge", "abgefragt_utc": iso(jetzt())}
+    try:
+        txs = []
+        for i in range(0, len(ids), 50):
+            txs += hole("/transactions/search?resolve_previous_outpoints=light",
+                        {"transactionIds": ids[i:i + 50]}) or []
+        je = {}
+        for t in txs:
+            e = sum(int(x.get("previous_outpoint_amount") or 0) for x in t.get("inputs") or [])
+            a = sum(int(x.get("amount") or 0) for x in t.get("outputs") or [])
+            je[t.get("transaction_id")] = {"gebuehr_sompi": e - a if e else None, "angenommen": t.get("is_accepted")}
+        gemessen = [v["gebuehr_sompi"] for v in je.values() if v["gebuehr_sompi"] is not None]
+        k.update({"gefunden": len(je), "angenommen": sum(1 for v in je.values() if v["angenommen"]),
+                  "gebuehr_je_tx_sompi": sorted(set(gemessen)),
+                  "gebuehren_gesamt_sompi": sum(gemessen), "gebuehren_gesamt_kas": sum(gemessen) / SOMPI,
+                  "abweichung_zum_sdk": [x["nr"] for x in z.get("zahlungen") or []
+                                         if x.get("tx_id") in je and je[x["tx_id"]]["gebuehr_sompi"] is not None
+                                         and je[x["tx_id"]]["gebuehr_sompi"] != x.get("gebuehr_sompi")]})
+    except Exception as exc:                        # noqa: BLE001
+        k["fehler"] = sauber(exc)
+    return k
+
+
 def bericht(z, m, datum):
     s = z.get("zusammen", {})
+    k = z.get("laut_kette") or {"fehler": "nicht abgefragt (trockenlauf)"}
     b = m.get("blockrate", {})
     g = m.get("gebuehr_einfach", {})
     c = m.get("covenants", {})
@@ -515,7 +545,12 @@ def bericht(z, m, datum):
             ", abgebrochen (%s)" % z["abbruch"] if z.get("abbruch") else ""),
         "- Gesamtzeit %s s, Median %s s, Maximum %s s, Minimum %s s" % (
             s.get("gesamtzeit_s"), s.get("median_s"), s.get("maximum_s"), s.get("minimum_s")),
-        "- Gebuehren gesamt %s KAS, Masse je Tx %s" % (s.get("gebuehren_gesamt_kas"), s.get("masse_von_bis")),
+        "- Gebuehr je Zahlung gemessen auf der Kette %s Sompi, gesamt %s KAS (%s von %s Tx gefunden, Quelle %s)" % (
+            k.get("gebuehr_je_tx_sompi"), k.get("gebuehren_gesamt_kas"), k.get("gefunden"),
+            s.get("anzahl_gesendet"), k.get("quelle")),
+        "- Zum Vergleich die Rechnung des SDK beim Bau: gesamt %s KAS. Fuers Video zaehlt nur die gemessene Zahl." % (
+            s.get("gebuehren_gesamt_kas")),
+        "- Masse je Tx %s" % (s.get("masse_von_bis"),),
         "- Payload je Tx %s Byte, Text wie `%s`" % (s.get("payload_bytes_je_tx"), payload_text(17, 100)),
         "- %s KAS je Zahlung, von %s an %s, Knoten %s" % (z.get("betrag_je_zahlung_kas"), z.get("absender"),
                                                          z.get("ziel"), z.get("knoten", "-")),
@@ -531,7 +566,7 @@ def bericht(z, m, datum):
             c.get("erzeugt_seit_fork"), c.get("erzeugt_bis_datum")),
         "",
     ]
-    for f in (z.get("fehler"), g.get("fehler"), c.get("fehler")):
+    for f in (z.get("fehler"), k.get("fehler"), g.get("fehler"), c.get("fehler")):
         if f:
             zeilen.append("Fehler: %s" % f)
     return "\n".join(zeilen) + "\n"
@@ -634,6 +669,8 @@ def main(argv=None):
         return 0
     if a.befehl == "bericht":
         z = json.loads(Path(a.z).read_text()) if a.z and Path(a.z).exists() else {"fehler": "keine zahlungsdaten"}
+        if z.get("modus") == "echt":
+            z["laut_kette"] = kette_pruefen(z)
         m = json.loads(Path(a.m).read_text()) if a.m and Path(a.m).exists() else {"fehler": "keine messdaten"}
         gesamt = {"experiment": "100 zahlungen", "datum": a.datum, "definition_bestaetigt": DEFINITION,
                   "zahlungen": z, "netz": m}
