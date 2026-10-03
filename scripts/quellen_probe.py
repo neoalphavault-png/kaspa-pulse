@@ -737,7 +737,64 @@ def befehl_montag():
     return schlecht
 
 
+def befehl_covenants():
+    """Nur lesend. Pruefung 03.10.2026: Was ist utxo_count, was ist
+    outputs_created, und warum passt der Bestand vom 29.09. (13.342) nicht
+    zum Vortag plus Zugang minus Abgang? Druckt die Rohpunkte der drei
+    Kaspalytics-Reihen ab 26.09. mit Zeitstempel, den Stichtag, den
+    covenants_log.py daraus macht, und die Summen seit Beginn."""
+    import covenants_log as cl
+    ab = "2026-09-26"
+    roh = {}
+    for pfad in ("utxo/covenant-count", "covenants/outputs", "covenants/transactions"):
+        st, txt = hole(KL + "/api/charts/" + pfad)
+        print("\n" + "=" * 78)
+        print("%s  http %s" % (pfad, st))
+        print("=" * 78)
+        if st != 200:
+            print(kurz(txt, 300))
+            continue
+        d = json.loads(txt)
+        roh[pfad] = d
+        labels = d.get("labels") or []
+        print("  punkte %d, erster %s, letzter %s" % (len(labels), labels[0] if labels else "-",
+                                                     labels[-1] if labels else "-"))
+        for ds in d.get("datasets") or []:
+            name = ds.get("label")
+            werte = ds.get("data") or []
+            art = "bestand" if pfad.startswith("utxo/") else "fluss"
+            summe = sum(float(w) for w in werte if w is not None)
+            print("\n  reihe %r (%s), summe aller punkte %.0f" % (name, art, summe))
+            for lab, w in zip(labels, werte):
+                if str(lab)[:10] < ab:
+                    continue
+                tag = cl.stichtag_bestand(lab) if art == "bestand" else cl.stichtag_fluss(lab)
+                print("    %-30s  %10s  -> stichtag %s" % (lab, w, tag))
+    try:
+        heute = dt.datetime.now(dt.timezone.utc).date()
+        bis = heute - dt.timedelta(days=1)
+        u = cl.tagesreihe(roh["utxo/covenant-count"], "Covenant UTXOs", "bestand", bis)
+        c = cl.tagesreihe(roh["covenants/outputs"], "Created", "fluss", bis)
+        sp = cl.tagesreihe(roh["covenants/outputs"], "Spent", "fluss", bis)
+    except Exception as exc:                       # noqa: BLE001
+        print("\n  tagesreihe gescheitert: %s" % exc)
+        return 1
+    print("\n  STICHTAG  bestand  vortag+created-spent  differenz")
+    for tag in sorted(u):
+        if str(tag) < ab:
+            continue
+        vor = u.get(tag - dt.timedelta(days=1))
+        soll = vor + c.get(tag, 0) - sp.get(tag, 0) if vor is not None else None
+        print("  %s  %7d  %s  %s" % (tag, u[tag], "%7d" % soll if soll is not None else "      -",
+                                     "%+d" % (u[tag] - soll) if soll is not None else "-"))
+    print("\n  created seit beginn %d, spent seit beginn %d, differenz %d, letzter bestand %d (%s)"
+          % (sum(c.values()), sum(sp.values()), sum(c.values()) - sum(sp.values()),
+             u[max(u)], max(u)))
+    return 0
+
+
 BEFEHLE = {
+    "covenants": befehl_covenants,
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
     "stream": befehl_stream,
