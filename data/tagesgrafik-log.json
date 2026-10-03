@@ -23,9 +23,8 @@
   },
   {
    "datum": "2026-10-03",
-   "form": 3,
-   "grund": "reward-senkung in hoechstens 3 tagen, zahl des tages hashrate_move (aus dem log), uebersprungen [8]",
-   "messzeit_utc": "2026-10-03T11:27:41+00:00"
+   "form": 5,
+   "grund": "rotation, 0 laeufe in 30 tagen, form 3 fuer die senkung am 2026-10-05 schon am 2026-10-02, gesperrt, form 10 fuer den 2026-10-05 reserviert, zahl des tages hashrate_move (aus dem log), uebersprungen [8], workflow_dispatch 11:33 utc vom fix-branch, an ops geschickt, ersetzt form 3 aus dem handlauf 11:27 utc (nicht gepostet), nachgetragen"
   }
  ]
 }
