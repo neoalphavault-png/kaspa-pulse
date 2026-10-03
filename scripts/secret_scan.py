@@ -56,6 +56,15 @@ MUSTER = [
     ("openai key", r"\bsk-(?:proj-)?[A-Za-z0-9_\-]{32,}"),
     ("x access-token", r"\b[1-9]\d{5,19}-[A-Za-z0-9]{20,60}\b"),
     ("x bearer-token", r"\bAAAAAAAAAAAAAAAAAAAAA[A-Za-z0-9%]{30,}"),
+    # Kaspa (Ben, 03.10.2026, vor dem Experiment "100 Zahlungen"). Ein
+    # privater Schluessel ist 64 Hex wie eine Tx-ID, deshalb nur mit Namen
+    # oder im Aufruf PrivateKey(...). Erweiterte Schluessel (xprv/kprv) sehen
+    # nach nichts anderem aus.
+    ("kaspa privater schluessel", r"""(?ix)
+        ["']?[a-z0-9_\-]*(?:priv|private|seed|wif)[a-z0-9_\-]*["']?
+        \s*[:=]\s*["']?([0-9a-f]{64})\b"""),
+    ("kaspa privater schluessel", r"""(?i)PrivateKey\(\s*["']([0-9a-f]{64})["']"""),
+    ("erweiterter privater schluessel", r"\b((?:xprv|kprv|tprv|ktrv)[1-9A-HJ-NP-Za-km-z]{100,112})\b"),
     # Zuweisung an einen Namen mit key/secret/token/password, in Python,
     # YAML, JSON, JS oder Shell. Der Wert muss nach Zufall aussehen.
     ("zuweisung key/secret/token", r"""(?ix)
@@ -111,6 +120,54 @@ def name_verboten(pfad):
     return any(fnmatch.fnmatch(n, v) for v in VERBOTENE_NAMEN)
 
 
+# Seed-Woerter: 12 oder mehr Woerter der BIP39-Liste in Folge, auch ueber
+# Zeilen ("1. abandon", "2. ability" ...). Zahlen und Satzzeichen zaehlen
+# nicht, jedes andere Wort bricht die Folge. "the", "and", "of" stehen nicht
+# auf der Liste, deshalb kommt normaler Text kaum auf 12.
+SEED_LISTE = Path(__file__).resolve().parent / "bip39_english.txt"
+SEED_MIN = 12
+_SEED = set()
+# Die Liste selbst ist die einzige Datei, die 2048 Seed-Woerter am Stueck
+# enthaelt. Sie ist ausgenommen und dafuer im Selbsttest per sha256 an die
+# offizielle BIP39-Liste gebunden, damit sich darin kein Seed verstecken kann.
+SEED_LISTE_REPO = "scripts/bip39_english.txt"
+BIP39_LISTE_PRUEFSUMME = "2f5eed53a4727b4bf8880d8f3f199efc90e58503646d9ff8eff3a2ed3b24dbda"
+
+
+def seed_woerter():
+    if not _SEED and SEED_LISTE.exists():
+        _SEED.update(SEED_LISTE.read_text(encoding="utf-8").split())
+    return _SEED
+
+
+class SeedLauf:
+    """Zaehlt Seed-Woerter in Folge ueber Zeilen. zeile() gibt den
+    Fingerabdruck zurueck, sobald eine Folge 12 Woerter erreicht, einmal je
+    Folge, sonst None. Der Fingerabdruck ist der der ganzen Folge bis dahin;
+    die Woerter selbst verlassen die Klasse nie."""
+
+    def __init__(self):
+        self.woerter, self.start, self.gemeldet = [], 0, False
+
+    def zeile(self, nr, text):
+        liste = seed_woerter()
+        if not liste:
+            return None
+        treffer = None
+        for w in re.findall(r"[A-Za-z]+", text):
+            w = w.lower()
+            if w in liste:
+                if not self.woerter:
+                    self.start, self.gemeldet = nr, False
+                self.woerter.append(w)
+                if len(self.woerter) >= SEED_MIN and not self.gemeldet:
+                    self.gemeldet = True
+                    treffer = (self.start, fingerabdruck(" ".join(self.woerter)))
+            else:
+                self.woerter = []
+        return treffer
+
+
 def zeile_pruefen(text):
     """Liste von (art, fingerabdruck) fuer eine Zeile. Gibt keine Werte zurueck."""
     funde, belegt = [], []
@@ -128,13 +185,18 @@ def zeile_pruefen(text):
 
 
 def text_pruefen(pfad, text, ok):
-    funde = []
+    funde, lauf = [], SeedLauf()
+    if pfad.endswith(SEED_LISTE_REPO):
+        lauf = None
     for nr, z in enumerate(text.splitlines(), 1):
         if len(z) > 20000:
             z = z[:20000]
         for art, fp in zeile_pruefen(z):
             if fp not in ok:
                 funde.append((pfad, nr, art, fp))
+        s = lauf.zeile(nr, z) if lauf else None
+        if s and s[1] not in ok:
+            funde.append((pfad, s[0], "seed-woerter", s[1]))
     return funde
 
 
@@ -151,16 +213,18 @@ def git(*args, binaer=False):
 
 def diff_pruefen(diff, ok, quelle):
     """Nur hinzugefuegte Zeilen eines Diffs. Zeilennummer in der neuen Datei."""
-    funde, pfad, nr = [], None, 0
+    funde, pfad, nr, lauf = [], None, 0, SeedLauf()
     for z in diff.splitlines():
         if z.startswith("+++ "):
             pfad = z[6:] if z.startswith("+++ b/") else None
+            lauf = None if pfad == SEED_LISTE_REPO else SeedLauf()
             if pfad and name_verboten(pfad):
                 funde.append((pfad, 0, "verbotener dateiname", "-"))
             continue
         m = re.match(r"@@ -\d+(?:,\d+)? \+(\d+)", z)
         if m:
             nr = int(m.group(1))
+            lauf = None if pfad == SEED_LISTE_REPO else SeedLauf()
             continue
         if pfad is None:
             continue
@@ -168,6 +232,9 @@ def diff_pruefen(diff, ok, quelle):
             for art, fp in zeile_pruefen(z[1:]):
                 if fp not in ok:
                     funde.append((pfad, nr, art, fp))
+            s = lauf.zeile(nr, z[1:]) if lauf else None
+            if s and s[1] not in ok:
+                funde.append((pfad, s[0], "seed-woerter", s[1]))
             nr += 1
         elif not z.startswith("-"):
             nr += 1
@@ -303,6 +370,41 @@ def selbsttest():
     diff = ("+++ b/scripts/neu.py\n@@ -0,0 +1,2 @@\n+a = 1\n+tok = \"%s\"\n" % erfunden["x access-token"])
     f = diff_pruefen(diff, set(), "abc1234")
     ok("diff, zeile 2 in scripts/neu.py", len(f) == 1 and f[0][1] == 2 and f[0][0].endswith("scripts/neu.py"))
+    # kaspa (Ben, 03.10.2026). Werte zur Laufzeit gebaut, nie echte.
+    hexwert = "0f" * 32
+    for zeile in ('KASPA_TESTWALLET_PRIVKEY = "%s"' % hexwert,
+                  'private_key: %s' % hexwert,
+                  'k = PrivateKey("%s")' % hexwert,
+                  '{"seed": "%s"}' % hexwert):
+        f = zeile_pruefen(zeile)
+        ok("kaspa-schluessel erkannt: %s" % zeile[:24], any(a == "kaspa privater schluessel" for a, _ in f)
+           and all(hexwert not in str(x) for x in f))
+    ok("kprv erkannt", any(a == "erweiterter privater schluessel"
+                           for a, _ in zeile_pruefen("x = kprv" + "T" * 107)))
+    for harmlos in ('tx_id = "%s"' % hexwert, 'transaction_id: %s' % hexwert,
+                    'priv = os.environ["KASPA_TESTWALLET_PRIVKEY"]',
+                    'KASPA_TESTWALLET_PRIVKEY: ${{ secrets.KASPA_TESTWALLET_PRIVKEY }}'):
+        ok("harmlos bleibt still: %s" % harmlos[:40], zeile_pruefen(harmlos) == [])
+    liste = sorted(seed_woerter())
+    ok("bip39-liste geladen, 2048 woerter", len(liste) == 2048)
+    ok("bip39-liste ist die offizielle (sha256)",
+       hashlib.sha256(SEED_LISTE.read_bytes()).hexdigest() == BIP39_LISTE_PRUEFSUMME)
+    ok("die liste selbst ist ausgenommen", text_pruefen(SEED_LISTE_REPO, SEED_LISTE.read_text(), set()) == [])
+    zwoelf = [liste[i * 170] for i in range(12)]
+    f = text_pruefen("s.txt", "a = 1\nseed: %s\n" % " ".join(zwoelf), set())
+    ok("12 seed-woerter in einer zeile", [(n, a) for _, n, a, _ in f] == [(2, "seed-woerter")]
+       and all(w not in str(f) for w in zwoelf))
+    f = text_pruefen("s.md", "\n".join("%d. %s" % (i + 1, w) for i, w in enumerate(zwoelf)), set())
+    ok("12 seed-woerter als nummerierte liste, treffer auf zeile 1", [(n, a) for _, n, a, _ in f]
+       == [(1, "seed-woerter")])
+    f = text_pruefen("s.txt", " ".join(zwoelf[:11]), set())
+    ok("11 woerter sind noch kein seed", f == [])
+    diff = "+++ b/n.txt\n@@ -0,0 +1,12 @@\n" + "".join("+%s\n" % w for w in zwoelf)
+    ok("seed im diff ueber zeilen", [a for _, _, a, _ in diff_pruefen(diff, set(), "abc1234")] == ["seed-woerter"])
+    for satz in ("The miners earned more in new coins than in fees over the last thirty days.",
+                 "kaspa cuts its block reward again in two days, once a month, and twelve steps halve it",
+                 "Die Rotation hat Form 3 zum zweiten Tag in Folge gewaehlt, das ist gegen die Wochenregel."):
+        ok("text bleibt still: %s" % satz[:30], text_pruefen("t.md", satz, set()) == [])
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 
