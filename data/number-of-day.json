@@ -1,44 +1,80 @@
 {
-  "issue": "OCT 3 2026",
+  "issue": "OCT 4 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "354 PH",
-  "value_label": "petahash per second securing the network right now",
-  "headline": "hashrate is *up 6 percent*\nagainst 4 weeks ago.",
+  "value": "51",
+  "value_label": "satoshis buy one kas today, priced from daily closes",
+  "headline": "kas is *down 23 percent*\nagainst bitcoin this year.",
   "panes": [
     {
-      "kind": "compare",
-      "title": "NETWORK HASHRATE",
-      "sub": "same measurement, two dates",
-      "rows": [
+      "kind": "columns",
+      "title": "ONE KAS IN SATOSHIS, BY MONTH",
+      "sub": "twelve months, our own daily closes",
+      "bars": [
         {
-          "label": "today",
-          "sub": "",
-          "value": "354 PH",
-          "pct": 100.0,
-          "tone": "teal"
+          "label": "nov",
+          "value": 50.49385214354391
         },
         {
-          "label": "4 weeks ago",
-          "sub": "",
-          "value": "333 PH",
-          "pct": 93.93650865708237,
-          "tone": "grey"
+          "label": "dec",
+          "value": 56.95797317634413
+        },
+        {
+          "label": "jan",
+          "value": 54.92371291555599
+        },
+        {
+          "label": "feb",
+          "value": 43.04934447589094
+        },
+        {
+          "label": "mar",
+          "value": 43.957122109228315
+        },
+        {
+          "label": "apr",
+          "value": 45.30840209464228
+        },
+        {
+          "label": "may",
+          "value": 44.942164591468355
+        },
+        {
+          "label": "jun",
+          "value": 50.62428425617526
+        },
+        {
+          "label": "jul",
+          "value": 48.653153648986525
+        },
+        {
+          "label": "aug",
+          "value": 41.231029589235284
+        },
+        {
+          "label": "sep",
+          "value": 36.65284136418947
+        },
+        {
+          "label": "oct",
+          "value": 50.88506018409252
         }
-      ]
+      ],
+      "highlight": 11,
+      "tone": "red"
     },
     {
       "kind": "anchor",
-      "title": "WHAT THE NUMBER IS",
+      "title": "WHY IT READS DIFFERENTLY",
       "lines": [
-        "the difference is *21 PH*.",
-        "*counted* from the same source."
+        "the dollar chart *can rise*",
+        "while this one falls."
       ]
     }
   ],
-  "sources": "api.kaspa.org",
+  "sources": "kraken daily closes, counted by us",
   "site": "kaspapulse.com",
   "post": {
-    "x": "hashrate on kaspa is up 6 percent against 4 weeks ago. 354 PH today, 333 PH then, both read from the same source 26 days apart.",
-    "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
+    "x": "one kas buys 51 satoshis today. a year ago it bought 66. that is down 23 percent against bitcoin, on the same days the dollar chart tells its own story. both are true at once, and almost nobody posts the second one.",
+    "reply": "priced from our own kraken daily closes, recounted every monday on kaspapulse.com/kaspa-weekly.html."
   }
 }
