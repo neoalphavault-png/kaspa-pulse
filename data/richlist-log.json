@@ -32,6 +32,38 @@
         "names_sha256": "d03f06e34b05b16f755fd466957867ac5ecfe050a14258038806f08aba5517d5"
       },
       "ersetzt": "2026-09-24T19:10:08+00:00"
+    },
+    {
+      "woche": "2026-W40",
+      "datum": "2026-10-04",
+      "timestamp": 1791103896000,
+      "timestamp_utc": "2026-10-04T08:51:36+00:00",
+      "abgerufen_utc": "2026-10-04T09:50:53+00:00",
+      "adressen": 10000,
+      "mit_label": 40,
+      "labels_im_verzeichnis": 138,
+      "summe_rangliste_kas": 22617629853,
+      "circ_supply_kas": 27737348925,
+      "circ_supply_sompi": "2773734892491560552",
+      "anteil_rangliste_pct": 81.5421,
+      "einheit": "ganze KAS, abgeschnitten",
+      "einheitspruefung": {
+        "rang0_adresse": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
+        "rang0_betrag": 1524397553,
+        "referenz_kas": 1524397553.94,
+        "referenz_quelle": "live /addresses/{entity x}/balance",
+        "abweichung_kas": -0.94,
+        "abweichung_pct": 0.0,
+        "toleranz_pct": 1.0
+      },
+      "roh": {
+        "top": "data/richlist/2026-10-04.top.json.gz",
+        "names": "data/richlist/2026-10-04.names.json",
+        "top_bytes": 1113568,
+        "names_bytes": 14055,
+        "top_sha256": "7603d527b2947de8963433e0774ee706e1391bff4a3caf40c9d29ba95ceb34d3",
+        "names_sha256": "d03f06e34b05b16f755fd466957867ac5ecfe050a14258038806f08aba5517d5"
+      }
     }
   ],
   "quelle": "api.kaspa.org, experimentell",
