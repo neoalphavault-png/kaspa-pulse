@@ -1,10 +1,10 @@
 {
-  "week": "2026-09-28",
+  "week": "2026-10-05",
   "manual": {},
-  "read": "the close broke five times further above the fifty week average than seven days earlier, this second close over the line landing thirty point four one percent above it after a twenty two percent weekly gain, while the gap to the twenty one week average widened to a new record forty three point four six percent and hashrate set a fresh high the same week. exchange holdings eased further, dormant supply held near fifty point five percent, and unique active addresses read seven thousand seven hundred ninety one on saturday.",
+  "read": "the close fell 9.98% from saturday 26 september to saturday 3 october and still sits 17.88% above the 50 week average, the 3rd close above that line in a row and in the 48 weeks it exists in our series, which starts on 19 november 2024. a week earlier the gap was 30.41%. the block reward fell to 2.0602 kas on monday 5 october, 5.61% below the 2.1827 of saturday. hashrate averaged 343.92 PH/s from 27 september to 3 october, against 342.72 the week before.",
   "override": {
     "chain_fees": 220,
-    "hashrate": 356.63
+    "hashrate": 354.49
   },
   "issue": null,
   "_hinweise": {

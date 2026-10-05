@@ -1,10 +1,10 @@
 {
- "date": "2026-09-28",
- "main": "kaspa's close sits 30.41% above the 50 week average, the widest gap since that line began 47 weeks ago. week 48. above or below the 50 week line?",
+ "date": "2026-10-05",
+ "main": "kaspa closed the week 9.98% lower and still sits 17.88% above the 50 week average on 3 oct 2026, the 3rd close above that line in 48 weeks of our series since 2 nov 2025. week 49. above or below the 50 week line?",
  "image": "",
- "reply_video": "the whole close in one sitting, both lines, the widest gap since the 50 week line began, and what the chain settled this week {video_url}",
- "reply_newsletter": "the same numbers land by email every monday at 18:00 berlin, before the video is anywhere else https://kaspapulse.com/?utm_source=x&utm_medium=post&utm_campaign=weekly-numbers#subscribe",
- "video_url": "https://youtu.be/CPQyZX4tpMY",
+ "reply_video": "the whole close in one sitting, both lines, and the reward cut that landed this morning {video_url}",
+ "reply_newsletter": "the same numbers land by email every monday at 18:00 berlin https://kaspapulse.com/?utm_source=x&utm_medium=post&utm_campaign=weekly-numbers#subscribe",
+ "video_url": "",
  "_hinweise": {
   "wer fuellt das": "Die Montagsroutine schreibt date, main, image, reply_video und reply_newsletter (Sonntagsdatei traegt den vorformulierten Faden bereits in pulse-studio/kw/2026-09-28/uploadpaket.md). weekly-guard.yml und weekly-afternoon.yml stehen auf disabled_manually, Ben traegt video_url von Hand ein und postet den Faden von Hand um 18:15 Berlin.",
   "date": "Der Tag, an dem der Faden rausgeht, JJJJ-MM-TT. Steht hier nicht das heutige Datum, postet x_post.py --weekly nichts und der Lauf bleibt gruen. Das Datum ist der Schalter.",
