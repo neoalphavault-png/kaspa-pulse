@@ -33,6 +33,9 @@ macht, und genau das ist am 05.10. passiert.
     python3 scripts/weekly_facts.py cut
     python3 scripts/weekly_facts.py linie --wochen 21
     python3 scripts/weekly_facts.py pruefe index.html newsletter/2026-10-05.html
+
+Ein Absatz, der eine falsche Zahl absichtlich zitiert, traegt den Vermerk
+"weekly_facts: ignore"; dort sieht der Waechter weg.
     python3 scripts/weekly_facts.py --selbsttest
 
 Nur Standardbibliothek.
@@ -231,6 +234,11 @@ ZAHL_RE = re.compile("(?<![\\d.,\u202f\u00a0])"
 TOLERANZ = 3          # so weit darf eine gedruckte Differenz danebenliegen,
                       # damit wir sie noch als gemeinte Differenz erkennen
 
+# Ein Text, der eine falsche Zahl absichtlich zitiert (ein Korrekturvermerk,
+# ein Pruefbericht), traegt diesen Vermerk im selben Absatz. Dann sieht der
+# Waechter dort weg. Sichtbar im Text, damit niemand heimlich stummschaltet.
+AUSNAHME = "weekly_facts: ignore"
+
 
 def segmente(text, ist_html):
     """Der Text in Stuecke, innerhalb derer eine Differenz gemeint sein kann.
@@ -285,6 +293,8 @@ def pruefe_text(text, ist_html=False):
     die drei Zahlen haben nichts miteinander zu tun."""
     befunde = []
     for seg in segmente(text, ist_html):
+        if AUSNAHME in seg:
+            continue
         gesehen = set()      # je Segment, damit jede Fundstelle gemeldet wird
         werte = sorted({abs(parse_zahl(m.group(0))) for m in ZAHL_RE.finditer(seg)},
                        reverse=True)
@@ -381,6 +391,7 @@ def selbsttest():
     assert len(b) == 1 and b[0]["richtig"] == 1578042, b
     gut = schlecht.replace("1,578,043", "1,578,042")
     assert pruefe_text(gut) == []
+    assert pruefe_text(schlecht + " (weekly_facts: ignore, absichtlich zitiert)") == []
     emi = "daily emission 1,885,832 to 1,779,989 kas, 105,844 fewer new coins a day"
     assert len(pruefe_text(emi)) == 1, pruefe_text(emi)
     assert pruefe_text(emi.replace("105,844", "105,843")) == []
