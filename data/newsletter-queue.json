@@ -1,12 +1,12 @@
 {
- "campaign_id": 35,
+ "campaign_id": 36,
  "subject": "17.88 percent above the 50 week line",
  "html_path": "newsletter/2026-10-05.html",
  "list_id": 16,
  "sender": "hello@kaspapulse.com",
  "status": "draft",
  "scheduled_at": null,
- "created_at": "2026-10-05T06:48:48Z",
+ "created_at": "2026-10-05T07:50:57Z",
  "history": [
   {
    "at": "2026-09-14T06:45:38Z",
@@ -56,6 +56,12 @@
    "at": "2026-10-05T06:48:48Z",
    "step": "test",
    "campaign_id": 35,
+   "test_to": "benni.alkanli@gmail.com"
+  },
+  {
+   "at": "2026-10-05T07:50:57Z",
+   "step": "test",
+   "campaign_id": 36,
    "test_to": "benni.alkanli@gmail.com"
   }
  ],
