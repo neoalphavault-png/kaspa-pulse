@@ -31,6 +31,12 @@
    "form": 6,
    "grund": "rotation, 0 laeufe in 30 tagen, form 3 fuer die senkung am 2026-10-05 schon am 2026-10-02, gesperrt, form 10 fuer den 2026-10-05 reserviert, zahl des tages sats_divergence (aus dem log)",
    "messzeit_utc": "2026-10-04T08:47:06+00:00"
+  },
+  {
+   "datum": "2026-10-05",
+   "form": 10,
+   "grund": "tag der reward-senkung, zahl des tages cut_today (vorab gerechnet), uebersprungen [3]",
+   "messzeit_utc": "2026-10-05T06:20:24+00:00"
   }
  ]
 }
