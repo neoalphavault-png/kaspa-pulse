@@ -9,6 +9,12 @@
 #                ersetzen und eine neue Testmail schicken. Nur fuer einen
 #                Entwurf, nichts wird geplant. Fuer Korrekturen nach dem
 #                Testlauf, damit die Kampagne traegt, was im Repo steht.
+# mode fix       Eine schon GEPLANTE Kampagne korrigieren: storniert sie,
+#                bestueckt sie mit dem HTML und plant sie auf denselben
+#                Zeitpunkt zurueck, den Brevo nennt. Der Termin wird nie
+#                erfunden; liegt er unter zehn Minuten entfernt, passiert
+#                nichts. Dafuer gedacht, dass eine Korrektur eine Kampagne
+#                erreicht, die schon auf Abschuss steht.
 # mode cancel    Genau diese Kampagne auf suspended setzen (Bens Veto).
 #
 # Vor jedem Aufruf, der HTML an Brevo gibt (test und update), prueft
@@ -45,11 +51,11 @@ on:
         default: ""
         type: string
       mode:
-        description: "test, update, schedule oder cancel"
+        description: "test, update, fix, schedule oder cancel"
         required: true
         default: "test"
         type: choice
-        options: [test, update, schedule, cancel]
+        options: [test, update, fix, schedule, cancel]
       send_at:
         description: "ISO in Berliner Zeit, z. B. 2026-09-14T16:05 (nur mode schedule)"
         required: false
@@ -129,6 +135,10 @@ jobs:
               ;;
             update)
               python3 scripts/brevo_send.py --mode update \
+                --html "$HTML_PATH" --subject "$SUBJECT"
+              ;;
+            fix)
+              python3 scripts/brevo_send.py --mode fix \
                 --html "$HTML_PATH" --subject "$SUBJECT"
               ;;
             cancel)

@@ -21,6 +21,11 @@ sein (newsletter_issue). Ein stehengebliebenes {{ISSUE}} haelt den Versand an.
                      einen Entwurf. Es wird nichts geplant und nichts geht an
                      die Liste. Dafuer gedacht, dass eine Korrektur die schon
                      angelegte Kampagne erreicht, statt nur im Repo zu stehen.
+    --mode fix       Eine schon GEPLANTE Kampagne korrigieren: storniert sie,
+                     bestueckt sie mit dem HTML und plant sie auf denselben
+                     Zeitpunkt zurueck, den Brevo nennt. Der Termin wird nie
+                     erfunden, und liegt er weniger als zehn Minuten entfernt,
+                     passiert nichts.
     --mode cancel    Die Kampagne aus der Queue auf suspended setzen. Storniert
                      wird nur, was wirklich auf Abschuss steht (queued,
                      inProcess). Entwurf, schon storniert, schon versendet oder
@@ -266,9 +271,11 @@ def mode_update(a, key, q):
         sys.exit("kein HTML: --html fehlt und %r aus der queue zeigt ins Leere" % pfad)
     html = html_lesen_und_pruefen(pfad)
     state = call("GET", "/emailCampaigns/%s" % cid, key)
-    if state.get("status") != "draft":
-        sys.exit("kampagne %s hat den status %r. Geaendert wird nur ein Entwurf. "
-                 "Erst --mode cancel, dann hier noch einmal."
+    if state.get("status") not in ("draft", "suspended"):
+        sys.exit("kampagne %s hat den status %r. Bestueckt wird nur ein Entwurf "
+                 "oder eine stornierte Kampagne, denn beide gehen nicht von selbst "
+                 "raus. Fuer eine geplante Kampagne ist --mode fix da: storniert, "
+                 "bestueckt und plant auf denselben Zeitpunkt zurueck."
                  % (cid, state.get("status")))
     body = {"htmlContent": html}
     if a.subject.strip():
@@ -340,6 +347,93 @@ def mode_schedule(a, key, q, call_fn=None):
     if grund:
         sys.exit("FEHLER: kampagne %s ist nicht nachweislich geplant: %s" % (cid, grund))
     print("kampagne %s ist geplant, gelesen, nicht angenommen" % cid)
+    return 0
+
+
+def mode_fix(a, key, q, call_fn=None):
+    """Eine schon GEPLANTE Kampagne korrigieren, ohne ihren Termin zu verlieren.
+
+    Brevo laesst eine geplante Kampagne nicht bestuecken, und Bens Termin darf
+    nicht verloren gehen. Also in dieser Reihenfolge:
+
+        1. lesen, Status und scheduledAt merken
+        2. HTML lesen und pruefen, BEVOR irgendetwas angefasst wird
+        3. stornieren (nur wenn sie geplant war)
+        4. bestuecken
+        5. auf denselben scheduledAt zurueckplanen und das Ergebnis lesen
+        6. eine Testmail, damit die korrigierte Fassung im Postfach nachweisbar ist
+
+    Der Termin wird NIE erfunden, er kommt aus Brevo. Liegt er weniger als
+    zehn Minuten entfernt, passiert nichts: so kurz vorher ist ein Storno das
+    groessere Risiko als der Fehler im Text."""
+    call_fn = call_fn or call
+    cid = q.get("campaign_id")
+    if not cid:
+        sys.exit("keine kampagne in %s" % a.queue)
+    pfad = a.html or q.get("html_path")
+    if not pfad or not os.path.isfile(pfad):
+        sys.exit("kein HTML: --html fehlt und %r aus der queue zeigt ins Leere" % pfad)
+
+    state = call_fn("GET", "/emailCampaigns/%s" % cid, key)
+    status, when = state.get("status"), state.get("scheduledAt")
+    print("kampagne %s: status %r, scheduledAt %r" % (cid, status, when))
+    if status == "sent":
+        sys.exit("kampagne %s ist schon raus. Nichts mehr zu korrigieren." % cid)
+    if status in GEPLANT and not when:
+        sys.exit("kampagne %s ist geplant, aber Brevo nennt kein scheduledAt. "
+                 "Von Hand ansehen, hier wird nichts angefasst." % cid)
+    if status in GEPLANT:
+        rest = (dt.datetime.fromisoformat(str(when).replace("Z", "+00:00"))
+                - dt.datetime.now(dt.timezone.utc)).total_seconds()
+        print("bis zum versand sind es %.0f minuten" % (rest / 60))
+        if rest < 600:
+            sys.exit("der versand liegt in weniger als zehn Minuten (%.0f min). "
+                     "Ein Storno waere jetzt das groessere Risiko. Nichts angefasst." % (rest / 60))
+
+    html = html_lesen_und_pruefen(pfad)       # erst pruefen, dann anfassen
+
+    if status in GEPLANT:
+        call_fn("PUT", "/emailCampaigns/%s/status" % cid, key, {"status": "suspended"})
+        print("storniert, um bestuecken zu koennen")
+    body = {"htmlContent": html}
+    if a.subject.strip():
+        body["subject"] = a.subject.strip()
+    try:
+        call_fn("PUT", "/emailCampaigns/%s" % cid, key, body)
+    except RuntimeError:
+        if status in GEPLANT:
+            # zurueck in den Zustand, in dem Ben sie uebergeben hat
+            call_fn("PUT", "/emailCampaigns/%s" % cid, key, {"scheduledAt": when})
+            print("bestuecken fehlgeschlagen, alter Termin wieder gesetzt: %s" % when)
+        raise
+    print("kampagne %s neu bestueckt aus %s" % (cid, pfad))
+    q["html_path"] = os.path.relpath(os.path.abspath(pfad), ROOT)
+    if a.subject.strip():
+        q["subject"] = a.subject.strip()
+
+    if status in GEPLANT:
+        call_fn("PUT", "/emailCampaigns/%s" % cid, key, {"scheduledAt": when})
+        check = call_fn("GET", "/emailCampaigns/%s" % cid, key)
+        grund = pruefe_geplant(check, when)
+        q["status"] = check.get("status")
+        q["scheduled_at"] = check.get("scheduledAt")
+        note(q, "fix", campaign_id=cid, scheduled_at=q["scheduled_at"],
+             result="wieder geplant" if grund is None else grund)
+        save_queue(a.queue, q)
+        if grund:
+            sys.exit("ACHTUNG: kampagne %s ist bestueckt, aber NICHT nachweislich "
+                     "wieder geplant: %s. Von Hand nachsehen." % (cid, grund))
+        print("kampagne %s ist wieder geplant auf %s, gelesen, nicht angenommen"
+              % (cid, check.get("scheduledAt")))
+    else:
+        q["status"] = status
+        note(q, "fix", campaign_id=cid, result="bestueckt, war nicht geplant")
+        save_queue(a.queue, q)
+
+    test_to = (a.test_to or "").strip() or q.get("sender") or ""
+    if test_to:
+        call_fn("POST", "/emailCampaigns/%s/sendTest" % cid, key, {"emailTo": [test_to]})
+        print("testmail an %s raus, damit die korrigierte Fassung nachweisbar ist" % test_to)
     return 0
 
 
@@ -459,6 +553,67 @@ def selftest():
     else:
         raise AssertionError("ein entwurf haette rot werden muessen")
     assert load_queue(A.queue)["status"] == "draft"
+    # mode fix: storniert, bestueckt, plant auf DENSELBEN termin zurueck
+    weit = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=5)
+            ).strftime("%Y-%m-%dT%H:%M:00.000Z")
+    import tempfile as _tf2
+    htmldir = _tf2.mkdtemp()
+    hpfad = os.path.join(htmldir, "2026-10-05.html")
+    with open(hpfad, "w", encoding="utf-8") as fh:
+        fh.write("<html><body><td>1,525,975,596 to 1,524,397,554 kas, 1,578,042 less</td>"
+                 "<p>issue 13 " + "x" * 250 + "</p></body></html>")
+    fixe = []
+
+    def attrappe_fix(method, path, key, body=None):
+        fixe.append((method, path, tuple(sorted((body or {}).keys()))))
+        if method == "GET":
+            return {"status": "queued", "scheduledAt": weit}
+        return {}
+
+    class F:
+        html = hpfad
+        subject = ""
+        test_to = "ben@example.com"
+        queue = os.path.join(_tf2.mkdtemp(), "q.json")
+    qf = {"campaign_id": 36, "history": [], "html_path": hpfad}
+    assert mode_fix(F, "k", qf, call_fn=attrappe_fix) == 0
+    wege = [(m, p) for m, p, _ in fixe]
+    assert wege == [("GET", "/emailCampaigns/36"),
+                    ("PUT", "/emailCampaigns/36/status"),
+                    ("PUT", "/emailCampaigns/36"),
+                    ("PUT", "/emailCampaigns/36"),
+                    ("GET", "/emailCampaigns/36"),
+                    ("POST", "/emailCampaigns/36/sendTest")], wege
+    assert fixe[2][2] == ("htmlContent",), fixe[2]
+    assert fixe[3][2] == ("scheduledAt",), fixe[3]
+    assert load_queue(F.queue)["history"][-1]["result"] == "wieder geplant"
+    assert load_queue(F.queue)["scheduled_at"] == weit
+
+    # kurz vor dem versand wird nichts angefasst
+    gleich = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=4)
+              ).strftime("%Y-%m-%dT%H:%M:00.000Z")
+
+    def attrappe_knapp(method, path, key, body=None):
+        if method == "GET":
+            return {"status": "queued", "scheduledAt": gleich}
+        raise AssertionError("haette nichts anfassen duerfen")
+    try:
+        mode_fix(F, "k", {"campaign_id": 36, "history": [], "html_path": hpfad},
+                 call_fn=attrappe_knapp)
+    except SystemExit as e:
+        assert "zehn Minuten" in str(e), str(e)
+    else:
+        raise AssertionError("knapp vor dem versand haette abbrechen muessen")
+
+    # eine schon versendete kampagne wird nicht angefasst
+    try:
+        mode_fix(F, "k", {"campaign_id": 36, "history": [], "html_path": hpfad},
+                 call_fn=lambda m, pth, k, body=None: {"status": "sent"})
+    except SystemExit as e:
+        assert "schon raus" in str(e)
+    else:
+        raise AssertionError("eine versendete kampagne haette abbrechen muessen")
+
     # der Waechter haengt mit drin: ein HTML mit krummer Differenz geht nicht raus
     import tempfile as _tf
     rumpf = "<p>" + "x" * 250 + "</p></body></html>"
@@ -479,14 +634,15 @@ def selftest():
     print("selftest ok: berliner zeiten stimmen, vergangenheit wird abgelehnt, "
           "entwurf wird nicht storniert, queue haelt, planung ist ein PUT plus "
           "ein lesender GET, ein nicht geplanter stand wird rot, und ein HTML "
-          "mit krummer Differenz geht nicht an Brevo")
+          "mit krummer Differenz geht nicht an Brevo, und fix plant auf denselben "
+          "termin zurueck")
     return 0
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--mode", choices=("test", "update", "schedule", "cancel"))
+    ap.add_argument("--mode", choices=("test", "update", "fix", "schedule", "cancel"))
     ap.add_argument("--html", help="Pfad zum fertigen Newsletter-HTML (mode test)")
     ap.add_argument("--subject", default="", help="Betreff (mode test)")
     ap.add_argument("--send-at", default="", help="ISO, Berliner Zeit, z. B. 2026-09-14T16:05")
@@ -508,13 +664,13 @@ def main():
             sys.exit("--html fehlt oder zeigt ins Leere: %r" % a.html)
         if not a.subject.strip():
             sys.exit("--subject fehlt")
-    if a.mode == "update" and a.html and not os.path.isfile(a.html):
+    if a.mode in ("update", "fix") and a.html and not os.path.isfile(a.html):
         sys.exit("--html zeigt ins Leere: %r" % a.html)
     if a.mode == "schedule" and not a.send_at.strip():
         sys.exit("--send-at fehlt (ISO, Berliner Zeit)")
     key = key_from_env()
     q = load_queue(a.queue)
-    return {"test": mode_test, "update": mode_update,
+    return {"test": mode_test, "update": mode_update, "fix": mode_fix,
             "schedule": mode_schedule, "cancel": mode_cancel}[a.mode](a, key, q)
 
 
