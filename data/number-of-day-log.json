@@ -8,10 +8,6 @@
     "candidate": "cut_today"
   },
   {
-    "date": "2026-08-05",
-    "candidate": "cut_today"
-  },
-  {
     "date": "2026-08-06",
     "candidate": "mined_left"
   },
@@ -486,6 +482,15 @@
     "tvl_total": 1344780.933324,
     "mined_pct": 96.631913,
     "price_kas": 0.042408,
+    "whale_kas": 1524397553.944426
+  },
+  {
+    "date": "2026-10-05",
+    "candidate": "cut_today",
+    "hashrate": 333.854117,
+    "tvl_total": 1384354.469078,
+    "mined_pct": 96.638396,
+    "price_kas": 0.043361,
     "whale_kas": 1524397553.944426
   }
 ]

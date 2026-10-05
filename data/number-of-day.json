@@ -1,80 +1,44 @@
 {
-  "issue": "OCT 4 2026",
+  "issue": "OCT 5 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "51",
-  "value_label": "satoshis buy one kas today, priced from daily closes",
-  "headline": "kas is *down 23 percent*\nagainst bitcoin this year.",
+  "value": "5.61%",
+  "value_label": "kaspa block reward, fell this morning",
+  "headline": "*twelve cuts a year*,\nnot one every four.",
   "panes": [
     {
-      "kind": "columns",
-      "title": "ONE KAS IN SATOSHIS, BY MONTH",
-      "sub": "twelve months, our own daily closes",
-      "bars": [
+      "kind": "compare",
+      "title": "SIZE OF ONE CUT",
+      "sub": "how much new supply disappears at once",
+      "rows": [
         {
-          "label": "nov",
-          "value": 50.49385214354391
+          "label": "kaspa",
+          "sub": "every month",
+          "value": "5.61%",
+          "pct": 11.225137463661294,
+          "tone": "teal"
         },
         {
-          "label": "dec",
-          "value": 56.95797317634413
-        },
-        {
-          "label": "jan",
-          "value": 54.92371291555599
-        },
-        {
-          "label": "feb",
-          "value": 43.04934447589094
-        },
-        {
-          "label": "mar",
-          "value": 43.957122109228315
-        },
-        {
-          "label": "apr",
-          "value": 45.30840209464228
-        },
-        {
-          "label": "may",
-          "value": 44.942164591468355
-        },
-        {
-          "label": "jun",
-          "value": 50.62428425617526
-        },
-        {
-          "label": "jul",
-          "value": 48.653153648986525
-        },
-        {
-          "label": "aug",
-          "value": 41.231029589235284
-        },
-        {
-          "label": "sep",
-          "value": 36.65284136418947
-        },
-        {
-          "label": "oct",
-          "value": 50.88506018409252
+          "label": "bitcoin",
+          "sub": "every four years",
+          "value": "50%",
+          "pct": 100,
+          "tone": "grey"
         }
-      ],
-      "highlight": 11,
-      "tone": "red"
+      ]
     },
     {
       "kind": "anchor",
-      "title": "WHY IT READS DIFFERENTLY",
+      "title": "WHAT THAT MEANS",
       "lines": [
-        "the dollar chart *can rise*",
-        "while this one falls."
+        "twelve small steps, the *same 50 percent*.",
+        "*105,844 fewer KAS* minted every day from now on."
       ]
     }
   ],
-  "sources": "kraken daily closes, counted by us",
+  "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "one kas buys 51 satoshis today. a year ago it bought 66. that is down 23 percent against bitcoin, on the same days the dollar chart tells its own story. both are true at once, and almost nobody posts the second one.",
-    "reply": "priced from our own kraken daily closes, recounted every monday on kaspapulse.com/kaspa-weekly.html."
+    "x": "the kaspa block reward fell 5.61 percent this morning. bitcoin does 50 percent once every four years. kaspa does one small step every month, and twelve of them land on the same 50 percent. the network now mints 105,844 fewer KAS per day, emission went from 1.89 million to 1.78 million.",
+    "reply": "the live emission numbers are on kaspapulse.com/kaspa-halving.html. the exact minute drifts, the cut lands on a block score, not a clock."
   }
 }
