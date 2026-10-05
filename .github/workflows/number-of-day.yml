@@ -28,42 +28,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      # TEMP 05.10.2026: Testmail fuer die Newsletter-Vorlage Ausgabe 14.
-      # brevo-send.yml checkt fest main aus, die Vorlage liegt aber nur im
-      # fix-Branch. Dieser Job hier checkt den Dispatch-Ref aus, also den
-      # Branch. Wird nach dem Lauf im selben Branch zurueckgenommen, damit der
-      # PR nur die Newsletter-Aenderungen traegt.
-      - name: vorlage ausgabe 14, testmail
-        env:
-          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
-          BREVO_SENDER_EMAIL: ${{ vars.BREVO_SENDER_EMAIL }}
-          NEWSLETTER_TEST_TO: ${{ vars.NEWSLETTER_TEST_TO }}
-        run: |
-          set -e
-          python3 scripts/newsletter_issue.py --selbsttest
-          python3 scripts/weekly_facts.py --selbsttest
-          python3 scripts/brevo_send.py --selftest > /dev/null && echo "brevo selbsttest ok"
-          echo "--- die vorlage selbst muss abgewiesen werden ---"
-          if python3 scripts/brevo_send.py --mode test --html newsletter/2026-10-12.html \
-               --subject "darf nicht rausgehen" --queue /tmp/q-nein.json; then
-            echo "::error::die vorlage mit offenen platzhaltern haette abgewiesen werden muessen"
-            exit 1
-          fi
-          echo "--- gefuellte kopie, testmail ---"
-          cp newsletter/2026-10-12.html /tmp/2026-10-12.html
-          python3 scripts/newsletter_issue.py set /tmp/2026-10-12.html
-          python3 - <<'EOP'
-          s = open("/tmp/2026-10-12.html", encoding="utf-8").read()
-          s = s.replace("{{SUBJECT}}", "TEST vorlage ausgabe 14")
-          s = s.replace("VIDEO_URL", "https://youtu.be/yobwNnm3wBM")
-          open("/tmp/2026-10-12.html", "w", encoding="utf-8").write(s)
-          EOP
-          python3 scripts/brevo_send.py --mode test --html /tmp/2026-10-12.html \
-            --subject "TEST vorlage ausgabe 14 (kein versand)" --queue /tmp/q.json
-          cat /tmp/q.json
-
       - name: x testpost, sofort geloescht
-        if: false   # TEMP: dieser lauf schickt nur die testmail, kein x-post
         env:
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
