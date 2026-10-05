@@ -11,6 +11,11 @@ Drei Modi, immer derselbe Kampagnen-Datensatz:
     --mode schedule  Genau diese Kampagne auf die Liste planen, scheduledAt =
                      --send-at. Brevo plant serverseitig; danach muss kein
                      Runner mehr um 16:05 laufen.
+Vor jedem Aufruf, der HTML an Brevo gibt, laufen zwei Pruefungen: jede
+gedruckte Differenz muss zur Differenz ihrer gedruckten Endpunkte passen
+(weekly_facts), und die Ausgabennummer muss die der letzten Ausgabe plus eins
+sein (newsletter_issue). Ein stehengebliebenes {{ISSUE}} haelt den Versand an.
+
     --mode update    Das HTML (und auf Wunsch den Betreff) der Kampagne aus der
                      Queue ersetzen und eine neue Testmail schicken. Nur fuer
                      einen Entwurf. Es wird nichts geplant und nichts geht an
@@ -50,6 +55,7 @@ API = "https://api.brevo.com/v3"
 TIMEOUT = 60
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import weekly_facts  # noqa: E402  (Rechenregeln und der Differenz-Waechter)
+import newsletter_issue  # noqa: E402  (Ausgabennummer, zaehlt sich selbst hoch)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 QUEUE = os.path.join(ROOT, "data", "newsletter-queue.json")
@@ -185,6 +191,18 @@ def html_lesen_und_pruefen(pfad):
                  "passen. Regel: erst runden, dann abziehen. Nichts an Brevo geschickt."
                  % (pfad, len(befunde)))
     print("waechter ok: jede gedruckte Differenz in %s passt zu ihren Endpunkten" % pfad)
+
+    # Ausgabennummer. Ein stehengebliebener Platzhalter haelt den Versand an,
+    # er waere im Postfach nicht zu reparieren. Eine abweichende Nummer ist
+    # nur eine Warnung: eine Sonderausgabe darf aus der Reihe fallen, und ein
+    # blockierter Montag kostet mehr als eine schiefe Zahl.
+    if newsletter_issue.PLATZHALTER in newsletter_issue.nur_inhalt(html):
+        sys.exit("%s traegt noch den Platzhalter %s. Erst "
+                 "'python3 scripts/newsletter_issue.py set %s', dann wieder hierher."
+                 % (pfad, newsletter_issue.PLATZHALTER, pfad))
+    if newsletter_issue.pruefe(pfad) != 0:
+        print("WARNUNG: die Ausgabennummer zaehlt nicht wie erwartet weiter. "
+              "Gewollt? Dann weiter. Sonst 'newsletter_issue.py set %s'." % pfad)
     return html
 
 

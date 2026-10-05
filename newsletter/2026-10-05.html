@@ -12,8 +12,15 @@
   1.-25.09.2026, Zaehler und Nenner ueber dieselben 25 Tage, 10 Tage alt.
   Quelle des Befunds: pulse-studio/docs/weekly/2026-10-05.md.
 
-  VIDEO_URL ist Platzhalter: die Folge geht erst 16:00 Berlin raus, Ben
-  liefert den Link nach.
+  VIDEO_URL ist ab jetzt https://youtu.be/yobwNnm3wBM (Ben, 05.10., Folge 6,
+  16:00 Berlin live). Der Knopf "watch this week's episode" trug bis dahin
+  den Platzhalter und haette im Postfach ins Leere gefuehrt.
+
+  Ausgabennummer: nicht mehr von Hand. scripts/newsletter_issue.py zaehlt sie
+  aus den Dateien in newsletter/ hoch (letzte Ausgabe plus eins) und schreibt
+  sie in <title> und Kopfzeile. Eine neue Ausgabe darf {{ISSUE}} tragen, dann
+  "newsletter_issue.py set newsletter/<datum>.html". brevo_send.py laesst kein
+  HTML mit stehengebliebenem Platzhalter an Brevo.
 
   Wochengrafik: graphics/weekly-2026-10-05.png, 600x3 (1800x1200).
   UTM: utm_source=newsletter, utm_medium=mail, utm_campaign=weekly6.
@@ -143,7 +150,7 @@
         <div style="font-size:13px; line-height:21px; color:#9BA3AB; padding:8px 0 14px 0;">
           the whole close in one sitting, both lines, and the reward cut that landed this morning. new chart breakdown every monday, subscribe so you don't miss it.
         </div>
-        <a href="VIDEO_URL" style="display:inline-block; background:#49EACB; color:#050608; font-size:14px; font-weight:700; text-decoration:none; padding:11px 20px; border-radius:8px;">watch this week's episode</a>
+        <a href="https://youtu.be/yobwNnm3wBM" style="display:inline-block; background:#49EACB; color:#050608; font-size:14px; font-weight:700; text-decoration:none; padding:11px 20px; border-radius:8px;">watch this week's episode</a>
       </td></tr>
     </table>
   </td></tr>

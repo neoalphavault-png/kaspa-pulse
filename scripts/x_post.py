@@ -286,12 +286,18 @@ def run_weekly(args):
     r_video = check_text(r_video, "Antwort mit Videolink")
     r_news = check_text(r_news, "Antwort mit Anmeldelink")
     image = q.get("image") or args.image
-    if not image or not os.path.isfile(image):
+    fehlt = not image or not os.path.isfile(image)
+    if fehlt and not args.dry_run:
         sys.exit("wochengrafik fehlt: %r" % image)
-    ratio = png_ratio(image)
-    if ratio is not None and abs(ratio - 0.8) > 0.02:
-        print("WARNUNG: %s hat das seitenverhaeltnis %.3f, erwartet sind 0.800 (4:5)"
-              % (image, ratio))
+    if fehlt:
+        # Im Trockenlauf wird trotzdem gezeigt, was der Faden sagen wuerde.
+        # Sonst liesse sich der Text nicht gegenlesen, bevor die Grafik da ist.
+        print("WARNUNG: wochengrafik fehlt (%r). Ein echter Lauf bricht hier ab." % image)
+    else:
+        ratio = png_ratio(image)
+        if ratio is not None and abs(ratio - 0.8) > 0.02:
+            print("WARNUNG: %s hat das seitenverhaeltnis %.3f, erwartet sind 0.800 (4:5)"
+                  % (image, ratio))
     key = args.key or "weekly-%s" % day
     cost = 0.015 + 0.20 + 0.20
     print("montagsfaden %s, bild %s, kosten dieses laufs rund %.3f $" % (key, image, cost))
