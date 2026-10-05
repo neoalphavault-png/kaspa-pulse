@@ -123,5 +123,23 @@
     "exchange_kas": 3783300501.0,
     "tps": 1.2,
     "tps_def": "standard_7d"
+  },
+  {
+    "week": "2026-10-05",
+    "issue": 13,
+    "hashrate": 354.49,
+    "block_reward": 2.060172,
+    "emission": 1779988.811045,
+    "mined_pct": 96.639453,
+    "tvl_kasplex": 445829.623754,
+    "tvl_igra": 940575.717215,
+    "tvl_total": 1386405.340968,
+    "dex_vol": 142997.0,
+    "holders": 800919.0,
+    "active_addr": 6119.0,
+    "dormant_pct": 50.62,
+    "exchange_kas": 3781925849.0,
+    "tps": 0.92,
+    "tps_def": "standard_7d"
   }
 ]
