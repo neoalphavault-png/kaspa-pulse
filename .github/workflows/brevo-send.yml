@@ -5,7 +5,18 @@
 # mode schedule  Genau diese Kampagne auf Liste 16 planen, scheduledAt =
 #                send_at. Brevo plant serverseitig, also muss um 16:05 kein
 #                Runner mehr laufen und kein Rechner an sein.
+# mode update    HTML (und auf Wunsch Betreff) der schon angelegten Kampagne
+#                ersetzen und eine neue Testmail schicken. Nur fuer einen
+#                Entwurf, nichts wird geplant. Fuer Korrekturen nach dem
+#                Testlauf, damit die Kampagne traegt, was im Repo steht.
 # mode cancel    Genau diese Kampagne auf suspended setzen (Bens Veto).
+#
+# Vor jedem Aufruf, der HTML an Brevo gibt (test und update), prueft
+# scripts/weekly_facts.py jede gedruckte Differenz gegen ihre gedruckten
+# Endpunkte. Am 05.10.2026 stand im Newsletter "1,525,975,596 to
+# 1,524,397,554 kas, 1,578,043 less", und 1 578 043 ist die gerundete exakte
+# Differenz, nicht die Differenz der gerundeten Endpunkte. Solche Zeilen
+# kommen hier nicht mehr durch.
 #
 # Die Kampagnen-ID steht in data/newsletter-queue.json. Sie ist das Band
 # zwischen den drei Modi und wird nach jedem Lauf auf main zurueckgeschrieben.
@@ -30,11 +41,11 @@ on:
         default: ""
         type: string
       mode:
-        description: "test, schedule oder cancel"
+        description: "test, update, schedule oder cancel"
         required: true
         default: "test"
         type: choice
-        options: [test, schedule, cancel]
+        options: [test, update, schedule, cancel]
       send_at:
         description: "ISO in Berliner Zeit, z. B. 2026-09-14T16:05 (nur mode schedule)"
         required: false
@@ -81,7 +92,16 @@ jobs:
           python-version: "3.12"
 
       - name: selbsttest
-        run: python3 scripts/brevo_send.py --selftest
+        run: |
+          python3 scripts/brevo_send.py --selftest
+          python3 scripts/weekly_facts.py --selbsttest
+
+      # Weich, mit Absicht: eine krumme Differenz auf der Seite soll den
+      # Newsletter nicht aufhalten, aber im Lauf sichtbar sein. Hart geprueft
+      # wird das Newsletter-HTML, und zwar in brevo_send.py selbst.
+      - name: dashboard gegenlesen
+        continue-on-error: true
+        run: python3 scripts/weekly_facts.py pruefe index.html
 
       - name: brevo
         env:
@@ -102,6 +122,10 @@ jobs:
               ;;
             schedule)
               python3 scripts/brevo_send.py --mode schedule --send-at "$SEND_AT"
+              ;;
+            update)
+              python3 scripts/brevo_send.py --mode update \
+                --html "$HTML_PATH" --subject "$SUBJECT"
               ;;
             cancel)
               python3 scripts/brevo_send.py --mode cancel

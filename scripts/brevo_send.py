@@ -11,6 +11,11 @@ Drei Modi, immer derselbe Kampagnen-Datensatz:
     --mode schedule  Genau diese Kampagne auf die Liste planen, scheduledAt =
                      --send-at. Brevo plant serverseitig; danach muss kein
                      Runner mehr um 16:05 laufen.
+    --mode update    Das HTML (und auf Wunsch den Betreff) der Kampagne aus der
+                     Queue ersetzen und eine neue Testmail schicken. Nur fuer
+                     einen Entwurf. Es wird nichts geplant und nichts geht an
+                     die Liste. Dafuer gedacht, dass eine Korrektur die schon
+                     angelegte Kampagne erreicht, statt nur im Repo zu stehen.
     --mode cancel    Die Kampagne aus der Queue auf suspended setzen. Storniert
                      wird nur, was wirklich auf Abschuss steht (queued,
                      inProcess). Entwurf, schon storniert, schon versendet oder
@@ -43,6 +48,9 @@ import urllib.request
 
 API = "https://api.brevo.com/v3"
 TIMEOUT = 60
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import weekly_facts  # noqa: E402  (Rechenregeln und der Differenz-Waechter)
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 QUEUE = os.path.join(ROOT, "data", "newsletter-queue.json")
 DEFAULT_LIST_ID = 16
@@ -155,13 +163,35 @@ def note(q, what, **kw):
     q["history"] = q["history"][-40:]
 
 
+# ---------------------------------------------------------------- Pruefung
+
+def html_lesen_und_pruefen(pfad):
+    """HTML laden und die eine Rechnung pruefen, die am 05.10.2026 falsch war:
+    eine gedruckte Differenz, die nicht zur Differenz ihrer gedruckten
+    Endpunkte passt (1 578 043 statt 1 578 042). Findet der Waechter etwas,
+    geht nichts an Brevo."""
+    with open(pfad, encoding="utf-8") as fh:
+        html = fh.read()
+    if len(html) < 200:
+        sys.exit("das HTML ist kuerzer als 200 Zeichen, das kann nicht der Newsletter sein: %s" % pfad)
+    befunde = weekly_facts.pruefe_text(html, ist_html=True)
+    for b in befunde:
+        print("FEHLER %s minus %s ist %s, gedruckt steht %s\n  %r"
+              % (weekly_facts.zahl(b["von"]), weekly_facts.zahl(b["bis"]),
+                 weekly_facts.zahl(b["richtig"]), weekly_facts.zahl(b["gedruckt"]),
+                 b["segment"]), file=sys.stderr)
+    if befunde:
+        sys.exit("%s traegt %d Differenz(en), die nicht zu den gedruckten Endpunkten "
+                 "passen. Regel: erst runden, dann abziehen. Nichts an Brevo geschickt."
+                 % (pfad, len(befunde)))
+    print("waechter ok: jede gedruckte Differenz in %s passt zu ihren Endpunkten" % pfad)
+    return html
+
+
 # ---------------------------------------------------------------- Modi
 
 def mode_test(a, key, q):
-    with open(a.html, encoding="utf-8") as fh:
-        html = fh.read()
-    if len(html) < 200:
-        sys.exit("das HTML ist kuerzer als 200 Zeichen, das kann nicht der Newsletter sein: %s" % a.html)
+    html = html_lesen_und_pruefen(a.html)
     sender = pick_sender(key, os.environ.get("BREVO_SENDER_EMAIL", "").strip())
     test_to = (a.test_to or "").strip()
     if not test_to:
@@ -198,6 +228,44 @@ def mode_test(a, key, q):
     q["created_at"] = now_z()
     note(q, "test", campaign_id=cid, test_to=test_to)
     save_queue(a.queue, q)          # ID sofort merken, bevor irgendetwas anderes passiert
+    call("POST", "/emailCampaigns/%s/sendTest" % cid, key, {"emailTo": [test_to]})
+    print("testmail an %s raus. an die liste geht nichts, die kampagne bleibt entwurf." % test_to)
+    return 0
+
+
+def mode_update(a, key, q):
+    """Eine Korrektur in die schon angelegte Kampagne nachziehen.
+
+    Angefasst wird nur ein Entwurf. Ist die Kampagne geplant, muss sie erst
+    storniert werden: eine scharfe Kampagne still umzuschreiben wuerde an der
+    Entscheidung vorbeigehen, die das Planen war. Geplant oder gesendet wird
+    hier nichts, nur das HTML ersetzt und eine Testmail geschickt."""
+    cid = q.get("campaign_id")
+    if not cid:
+        sys.exit("keine kampagne in %s, erst --mode test laufen lassen" % a.queue)
+    pfad = a.html or q.get("html_path")
+    if not pfad or not os.path.isfile(pfad):
+        sys.exit("kein HTML: --html fehlt und %r aus der queue zeigt ins Leere" % pfad)
+    html = html_lesen_und_pruefen(pfad)
+    state = call("GET", "/emailCampaigns/%s" % cid, key)
+    if state.get("status") != "draft":
+        sys.exit("kampagne %s hat den status %r. Geaendert wird nur ein Entwurf. "
+                 "Erst --mode cancel, dann hier noch einmal."
+                 % (cid, state.get("status")))
+    body = {"htmlContent": html}
+    if a.subject.strip():
+        body["subject"] = a.subject.strip()
+    call("PUT", "/emailCampaigns/%s" % cid, key, body)
+    print("kampagne %s neu bestueckt aus %s%s"
+          % (cid, pfad, (", betreff %r" % a.subject.strip()) if a.subject.strip() else ""))
+    q["html_path"] = os.path.relpath(os.path.abspath(pfad), ROOT)
+    if a.subject.strip():
+        q["subject"] = a.subject.strip()
+    test_to = (a.test_to or "").strip() or q.get("sender") or ""
+    if not test_to:
+        sys.exit("FEHLT: keine Testadresse (vars.NEWSLETTER_TEST_TO oder --test-to)")
+    note(q, "update", campaign_id=cid, html_path=q["html_path"], test_to=test_to)
+    save_queue(a.queue, q)
     call("POST", "/emailCampaigns/%s/sendTest" % cid, key, {"emailTo": [test_to]})
     print("testmail an %s raus. an die liste geht nichts, die kampagne bleibt entwurf." % test_to)
     return 0
@@ -373,16 +441,34 @@ def selftest():
     else:
         raise AssertionError("ein entwurf haette rot werden muessen")
     assert load_queue(A.queue)["status"] == "draft"
+    # der Waechter haengt mit drin: ein HTML mit krummer Differenz geht nicht raus
+    import tempfile as _tf
+    rumpf = "<p>" + "x" * 250 + "</p></body></html>"
+    bad = os.path.join(_tf.mkdtemp(), "n.html")
+    with open(bad, "w", encoding="utf-8") as fh:
+        fh.write("<html><body><td>1,525,975,596 to 1,524,397,554 kas, 1,578,043 less</td>" + rumpf)
+    try:
+        html_lesen_und_pruefen(bad)
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("der waechter haette das html ablehnen muessen")
+    gut = bad.replace("n.html", "g.html")
+    with open(gut, "w", encoding="utf-8") as fh:
+        fh.write("<html><body><td>1,525,975,596 to 1,524,397,554 kas, 1,578,042 less</td>" + rumpf)
+    assert html_lesen_und_pruefen(gut)
+
     print("selftest ok: berliner zeiten stimmen, vergangenheit wird abgelehnt, "
           "entwurf wird nicht storniert, queue haelt, planung ist ein PUT plus "
-          "ein lesender GET, ein nicht geplanter stand wird rot")
+          "ein lesender GET, ein nicht geplanter stand wird rot, und ein HTML "
+          "mit krummer Differenz geht nicht an Brevo")
     return 0
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--mode", choices=("test", "schedule", "cancel"))
+    ap.add_argument("--mode", choices=("test", "update", "schedule", "cancel"))
     ap.add_argument("--html", help="Pfad zum fertigen Newsletter-HTML (mode test)")
     ap.add_argument("--subject", default="", help="Betreff (mode test)")
     ap.add_argument("--send-at", default="", help="ISO, Berliner Zeit, z. B. 2026-09-14T16:05")
@@ -404,11 +490,14 @@ def main():
             sys.exit("--html fehlt oder zeigt ins Leere: %r" % a.html)
         if not a.subject.strip():
             sys.exit("--subject fehlt")
+    if a.mode == "update" and a.html and not os.path.isfile(a.html):
+        sys.exit("--html zeigt ins Leere: %r" % a.html)
     if a.mode == "schedule" and not a.send_at.strip():
         sys.exit("--send-at fehlt (ISO, Berliner Zeit)")
     key = key_from_env()
     q = load_queue(a.queue)
-    return {"test": mode_test, "schedule": mode_schedule, "cancel": mode_cancel}[a.mode](a, key, q)
+    return {"test": mode_test, "update": mode_update,
+            "schedule": mode_schedule, "cancel": mode_cancel}[a.mode](a, key, q)
 
 
 if __name__ == "__main__":

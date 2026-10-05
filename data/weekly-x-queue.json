@@ -14,6 +14,6 @@
   "reply_newsletter": "Zweite Selbstantwort, haengt an der ersten und muss den Anmeldelink tragen, sonst bricht das Skript ab. Der Link traegt seit dem 16.09.2026 utm_source=x (scripts/utm.py), sonst weiss niemand, ob X die Liste fuellt.",
   "video_url": "Leer heisst: kein Video bestaetigt, also kein Faden. Nur weekly-guard.yml traegt hier ein, aktuell also nur Ben von Hand.",
   "kosten": "Hauptpost 0,015 $, zwei Antworten mit Link je 0,20 $, zusammen rund 0,42 $ je Montag. Mit Number of the Day (0,215 $/Tag) bleibt der Monat bei rund 8 $ von 15 $ Spend Cap.",
-  "stand der zahlen": "main und reply_video sind am 28.09. gegen den fertigen Wochenschluss vom Samstag 26.09. geschrieben (Schluss 0,04790, 50-Wochen-Linie 0,036729, 30,41 Prozent darueber, 21-Wochen-Linie 0,033388, 43,46 Prozent darueber, siehe pulse-studio/docs/weekly/2026-09-28.md)."
+  "stand der zahlen": "main und reply_video sind gegen den fertigen Wochenschluss vom Samstag 03.10. geschrieben (Schluss 0,04312, 50-Wochen-Linie 0,036581, 17,88 Prozent darueber, 3. Schluss ueber dieser Linie in 48 Wochen, 21-Wochen-Linie 0,034273, 25,81 Prozent darueber, siehe pulse-studio/docs/weekly/2026-10-05.md). Nachgerechnet am 05.10. mit scripts/weekly_facts.py linie --wochen 50 und --wochen 21. Der Faden traegt keine der drei am 05.10. korrigierten Zeilen (Wallet-Differenz, Uhrzeit der naechsten Senkung, Superlativ zur 21-Wochen-Linie)."
  }
 }
