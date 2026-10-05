@@ -1,0 +1,235 @@
+<!doctype html>
+<!--
+  KASPA PULSE, Newsletter Ausgabe {{ISSUE}}, Montag 12.10.2026, 18:00 Berlin.
+  Diese Datei ist die VORLAGE ab Ausgabe 14 (Bens Auftrag vom 05.10.2026).
+
+  WAS DIE MONTAGSROUTINE FUELLT, und was sie dabei nicht vergessen darf:
+
+    {{ISSUE}}    python3 scripts/newsletter_issue.py set newsletter/2026-10-12.html
+                 Zaehlt selbst: hoechste Nummer aller Ausgaben davor plus eins.
+                 Steht in <title> und in der Kopfzeile. Nie von Hand tippen.
+    {{SUBJECT}}  Betreff, steht in <meta name="x-subject">. Die eine Zahl der
+                 Woche, wie in Ausgabe 11 bis 13.
+    VIDEO_URL    Erst eintragen, wenn die Folge wirklich oeffentlich ist
+                 (16:00 Berlin). Zwei Stellen: der Knopf und der Titel darueber.
+    ZAHLEN       Alle Tabellen und der Absatz "the take" tragen noch die Zahlen
+                 der Ausgabe 13 (Woche bis Sa 03.10.) als Fuellung, damit die
+                 Vorlage prueffaehig ist. Die Montagsroutine ersetzt sie gegen
+                 den Wochenschluss vom Sa 10.10. und schreibt die Quelle in
+                 diesen Kopf, wie in Ausgabe 13.
+    GRAFIK       Der Hero-Chart zeigt noch auf graphics/weekly-2026-10-05.png,
+                 damit die Vorlage rendert. Die Montagsroutine legt
+                 graphics/weekly-2026-10-12.png ab und traegt sie hier ein.
+                 brevo_send.py warnt, wenn ein verlinktes Bild im Repo fehlt.
+    UTM          utm_campaign=weekly<N>, N ist die FOLGENNUMMER, nicht die
+                 Ausgabe (Ausgabe 13 war Folge 6, also weekly6; Ausgabe 14 ist
+                 Folge 7, also weekly7). Hier steht schon weekly7.
+
+  Kein Versand, solange einer dieser Platzhalter steht: brevo_send.py weist
+  HTML mit {{ISSUE}}, {{SUBJECT}} oder VIDEO_URL ab, und ein geplanter
+  Newsletter mit totem Knopf ist genau der Fehler vom 05.10.2026.
+
+  NEU IN DIESER VORLAGE (05.10.2026):
+    - Discord-Block mit eigenem Knopf im Stil des YouTube-Knopfes (#49EACB),
+      darueber der Grund: live wallet alerts.
+    - Kanal-Leiste unten: YouTube, Discord, X, Instagram. Jeder Eintrag traegt
+      ein kleines PNG, einen alt-Text UND den Namen als Text daneben, damit
+      die Leiste ohne geladene Bilder vollstaendig lesbar bleibt.
+    - Telegram ist raus, aus der Leiste und aus dem Wallet-Alerts-Text,
+      bis der Kanal Mitglieder hat (Bens Entscheidung 05.10.2026).
+    - Jeder Kanal-Link traegt utm_content (youtube, discord, x, instagram),
+      damit der Brevo-Klickbericht die Kanaele auseinanderhaelt. Der
+      Discord-Knopf und der Discord-Eintrag in der Leiste tragen dieselbe
+      Adresse und laufen im Bericht zusammen; wer sie trennen will, gibt der
+      Leiste utm_content=discord-bar.
+
+  DIE VIER ICONS FEHLEN NOCH im Repo: graphics/social/youtube.png,
+  discord.png, x.png, instagram.png, je 40x40 (dargestellt 20x20, damit es
+  auf Retina scharf ist), offizielle Brand-Assets der Plattformen, nur als
+  Link auf unsere eigenen Kanaele. Woher: graphics/social/README.md. Solange
+  sie fehlen, zeigen Mailprogramme den alt-Text oder ein kleines leeres
+  Kaestchen, der Name daneben steht so oder so da.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-subject" content="{{SUBJECT}}">
+<title>Kaspa Pulse Weekly, issue {{ISSUE}}</title>
+</head>
+<body style="margin:0; padding:0; background:#050608;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#050608;">
+<tr><td align="center" style="padding:24px 12px 40px 12px;">
+
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:100%; background:#0B0E12; border:1px solid #1A1D21; border-radius:14px; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+
+  <tr><td style="padding:26px 28px 6px 28px; border-bottom:1px solid #1A1D21;">
+    <div style="font-size:12px; letter-spacing:5px; font-weight:700; color:#FFFFFF;">KASPA PULSE</div>
+    <div style="font-size:12px; color:#7A828C; padding:8px 0 18px 0;">weekly numbers &middot; issue {{ISSUE}} &middot; monday 12 october 2026</div>
+  </td></tr>
+
+  <tr><td style="padding:30px 28px 6px 28px; text-align:center;">
+    <div style="font-size:64px; line-height:64px; color:#49EACB; font-weight:700;">17.88</div>
+    <div style="font-size:13px; letter-spacing:1px; color:#9BA3AB; text-transform:uppercase; padding-top:10px;">percent above kaspa's 50 week average on saturday 3 october, the 3rd close above it in the 48 weeks the line has existed in our series (since 2 november 2025)</div>
+  </td></tr>
+
+  <tr><td style="padding:18px 28px 4px 28px;">
+    <img src="https://kaspapulse.com/graphics/weekly-2026-10-05.png" width="544" alt="kaspa weekly close against the 21 and 50 week averages, 97 weeks from 24 november 2024" style="display:block; width:100%; max-width:544px; border-radius:8px;">
+  </td></tr>
+
+  <tr><td style="padding:18px 28px 4px 28px;">
+    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">the numbers</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px; color:#FFFFFF; margin-top:10px;">
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">weekly close, saturday 3 oct</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">$0.04312</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">week against saturday 26 sep</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">down 9.98 percent</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">50 week average, 3 oct</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">$0.036581</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">close against the 50 week line</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">17.88 percent above, down from 30.41 percent a week earlier</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">21 week average, 3 oct</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">$0.034273</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">close against the 21 week line</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">25.81 percent above, the 2nd widest gap of the 77 weeks we have that line (since 13 april 2025), behind 43.46 percent a week earlier</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">weekly volume, 27 sep to 3 oct</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">10.18M units, 19.34 percent below the week before</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; color:#9BA3AB;">one kas in satoshis, 3 oct</td>
+        <td style="padding:9px 0; text-align:right;">50.89, down from 56.74 a week earlier</td>
+      </tr>
+    </table>
+  </td></tr>
+
+  <tr><td style="padding:22px 28px 4px 28px;">
+    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">the take</div>
+    <div style="font-size:15px; line-height:24px; color:#9BA3AB; padding-top:10px;">
+      kaspa closed the week 9.98 percent lower, saturday 26 september to saturday 3 october, the first down week
+      after four up weeks and the 16th weakest of the 96 weekly moves in our series, which starts on 19 november 2024.
+      it still closed 17.88 percent above the 50 week average. our series carries that line for 48 weeks, the first
+      45 closed below it, and the last 3 closed above it, in a row. a week earlier the gap was 30.41 percent, so it
+      lost 41.2 percent of its width and stayed positive. the close sits 25.81 percent above the 21 week average,
+      which has closed above it in 10 of 77 weeks. hashrate averaged 343.92 PH/s from 27 september to 3 october,
+      against 342.72 the week before. every claim here is measured inside our window, not against kaspa's history
+      since 2022.
+    </div>
+  </td></tr>
+
+  <tr><td style="padding:22px 28px 4px 28px;">
+    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">worth watching</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px; color:#FFFFFF; margin-top:10px;">
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">block reward cut, monday 5 oct, 03:15 utc</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">2.1827 to 2.0602 kas, 5.61 percent per monthly step; daily emission 1,885,832 to 1,779,989 kas</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">next cut</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">wednesday 4 nov, reward to 1.9445 kas</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">threshold to hold both lines next week</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">a close above $0.036128</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0; color:#9BA3AB;">largest known wallet, 28 sep 08:29 to 3 oct 17:53 utc</td>
+        <td style="padding:9px 0; text-align:right; color:#49EACB;">1,525,975,596 to 1,524,397,554 kas, 1,578,042 less</td>
+      </tr>
+    </table>
+  </td></tr>
+
+  <tr><td style="padding:22px 28px 4px 28px;">
+    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">how we count</div>
+    <div style="font-size:13px; line-height:21px; color:#7A828C; padding-top:10px;">
+      price, the close and the two moving averages come from kraken's daily candles, weekly marks every sunday
+      00:00 utc, 97 full weeks from 24 november 2024 checked for gaps. the 21 week average is the exponential average
+      of the last 21 weekly closes, seeded with the plain average of the first 21; the 50 week average is the plain
+      average of the last 50 weekly closes. the chart above draws from that same series. block reward and emission
+      come from our own chain reader against kaspa's fixed anchor and monthly step; for the next cut we print
+      the date only, because the step lands on a block score and not on a clock, so the minute moves. hashrate is our own daily
+      reading, averaged over seven days per window. the fee share is our own count across 1 to 25 september 2026,
+      0.1338 percent of miner revenue, fees and reward over the same 25 days; that count is 10 days old today and
+      there is no fee reading for last week. the wallet figures are daily balances at the times given, two
+      endpoints, no transaction list.
+    </div>
+  </td></tr>
+
+  <tr><td style="padding:26px 28px 6px 28px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0F1319; border:1px solid #1A1D21; border-radius:10px;">
+      <tr><td style="padding:18px 20px;">
+        <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">new on youtube</div>
+        <div style="font-size:15px; color:#FFFFFF; font-weight:700; padding-top:10px;">{{SUBJECT}}</div>
+        <div style="font-size:13px; line-height:21px; color:#9BA3AB; padding:8px 0 14px 0;">
+          the whole close in one sitting, both lines, and the reward cut that landed this morning. new chart breakdown every monday, subscribe so you don't miss it.
+        </div>
+        <a href="VIDEO_URL" style="display:inline-block; background:#49EACB; color:#050608; font-size:14px; font-weight:700; text-decoration:none; padding:11px 20px; border-radius:8px;">watch this week's episode</a>
+      </td></tr>
+    </table>
+  </td></tr>
+
+  <tr><td style="padding:22px 28px 4px 28px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0F1319; border:1px solid #1A1D21; border-radius:10px;">
+      <tr><td style="padding:18px 20px;">
+        <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">wallet alerts</div>
+        <div style="font-size:15px; color:#FFFFFF; font-weight:700; padding-top:10px;">live wallet alerts for the largest wallet and reward cuts</div>
+        <div style="font-size:13px; line-height:21px; color:#9BA3AB; padding:8px 0 14px 0;">
+          a bot checks both several times a day, not once a week, and posts the second a check finds something. free, no account beyond discord.
+        </div>
+        <a href="https://discord.gg/h33JBhrPP7?utm_source=newsletter&amp;utm_medium=mail&amp;utm_campaign=weekly7&amp;utm_content=discord" style="display:inline-block; background:#49EACB; color:#050608; font-size:14px; font-weight:700; text-decoration:none; padding:11px 20px; border-radius:8px;">join the discord</a>
+      </td></tr>
+    </table>
+  </td></tr>
+
+  <tr><td style="padding:18px 28px 0 28px;">
+    <div style="font-size:13px; line-height:21px; color:#9BA3AB;">
+      every number here is counted by us from public data, kraken daily candles for price and volume,
+      our own chain reader for reward and emission. the definitions and the daily updates are at
+      <a href="https://kaspapulse.com/?utm_source=newsletter&amp;utm_medium=mail&amp;utm_campaign=weekly7#subscribe" style="color:#49EACB; text-decoration:none;">kaspapulse.com</a>,
+      the weekly page with the same chart is at
+      <a href="https://kaspapulse.com/kaspa-weekly.html" style="color:#49EACB; text-decoration:none;">kaspapulse.com/kaspa-weekly.html</a>.
+    </div>
+    <div style="font-size:15px; line-height:24px; color:#FFFFFF; font-weight:700; padding-top:16px;">week 49, above or below the 50 week line? hit reply with your call.</div>
+    <div style="font-size:11px; line-height:18px; color:#7A828C; padding-top:12px;">not financial advice.</div>
+  </td></tr>
+
+  <tr><td style="padding:24px 28px 2px 28px; border-top:1px solid #1A1D21;">
+    <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase; padding-bottom:10px;">more from kaspa pulse</div>
+    <div style="line-height:32px;">
+        <a href="https://www.youtube.com/@gokugalax3000?utm_source=newsletter&amp;utm_medium=mail&amp;utm_campaign=weekly7&amp;utm_content=youtube" style="display:inline-block; padding:6px 10px; color:#9BA3AB; font-size:13px; text-decoration:none; white-space:nowrap;"><img src="https://kaspapulse.com/graphics/social/youtube.png" width="20" height="20" alt="youtube" style="width:20px; height:20px; border:0; vertical-align:middle; margin-right:6px;">youtube</a>
+        <a href="https://discord.gg/h33JBhrPP7?utm_source=newsletter&amp;utm_medium=mail&amp;utm_campaign=weekly7&amp;utm_content=discord" style="display:inline-block; padding:6px 10px; color:#9BA3AB; font-size:13px; text-decoration:none; white-space:nowrap;"><img src="https://kaspapulse.com/graphics/social/discord.png" width="20" height="20" alt="discord" style="width:20px; height:20px; border:0; vertical-align:middle; margin-right:6px;">discord</a>
+        <a href="https://x.com/gokugalax?utm_source=newsletter&amp;utm_medium=mail&amp;utm_campaign=weekly7&amp;utm_content=x" style="display:inline-block; padding:6px 10px; color:#9BA3AB; font-size:13px; text-decoration:none; white-space:nowrap;"><img src="https://kaspapulse.com/graphics/social/x.png" width="20" height="20" alt="x" style="width:20px; height:20px; border:0; vertical-align:middle; margin-right:6px;">x @gokugalax</a>
+        <a href="https://www.instagram.com/kaspapulse/?utm_source=newsletter&amp;utm_medium=mail&amp;utm_campaign=weekly7&amp;utm_content=instagram" style="display:inline-block; padding:6px 10px; color:#9BA3AB; font-size:13px; text-decoration:none; white-space:nowrap;"><img src="https://kaspapulse.com/graphics/social/instagram.png" width="20" height="20" alt="instagram" style="width:20px; height:20px; border:0; vertical-align:middle; margin-right:6px;">instagram @kaspapulse</a>
+    </div>
+    <div style="font-size:11px; line-height:18px; color:#7A828C; padding-top:8px;">
+      four places, one count. the numbers above are the same ones we post everywhere else.
+    </div>
+  </td></tr>
+
+  <tr><td style="padding:22px 28px 26px 28px; border-top:1px solid #1A1D21; margin-top:20px;">
+    <div style="font-size:11px; line-height:18px; color:#7A828C;">
+      you are getting this because you asked for the kaspa on chain cheat sheet at kaspapulse.com and confirmed your address.<br>
+      Vizora Digital UG (haftungsbeschr&auml;nkt), Marc-Chagall-Stra&szlig;e 54, 40477 D&uuml;sseldorf, Germany<br>
+      <a href="{{ unsubscribe }}" style="color:#9BA3AB;">unsubscribe</a> &middot;
+      <a href="https://kaspapulse.com/datenschutz.html" style="color:#9BA3AB;">privacy</a> &middot;
+      <a href="https://kaspapulse.com/impressum.html" style="color:#9BA3AB;">legal notice</a>
+    </div>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>

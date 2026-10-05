@@ -52,6 +52,7 @@ import argparse
 import datetime as dt
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -176,6 +177,18 @@ def note(q, what, **kw):
 
 # ---------------------------------------------------------------- Pruefung
 
+BILD_RE = re.compile(r'src="(?:https?://(?:www\.)?kaspapulse\.com)?/([^"?#]+\.(?:png|jpg|jpeg|gif|webp))"', re.I)
+
+
+def fehlende_bilder(html):
+    """Bilder, die auf kaspapulse.com zeigen und im Repo nicht liegen."""
+    fehlt = []
+    for rel in sorted(set(BILD_RE.findall(newsletter_issue.nur_inhalt(html)))):
+        if not os.path.isfile(os.path.join(ROOT, rel)):
+            fehlt.append(rel)
+    return fehlt
+
+
 def html_lesen_und_pruefen(pfad):
     """HTML laden und die eine Rechnung pruefen, die am 05.10.2026 falsch war:
     eine gedruckte Differenz, die nicht zur Differenz ihrer gedruckten
@@ -201,13 +214,31 @@ def html_lesen_und_pruefen(pfad):
     # er waere im Postfach nicht zu reparieren. Eine abweichende Nummer ist
     # nur eine Warnung: eine Sonderausgabe darf aus der Reihe fallen, und ein
     # blockierter Montag kostet mehr als eine schiefe Zahl.
-    if newsletter_issue.PLATZHALTER in newsletter_issue.nur_inhalt(html):
-        sys.exit("%s traegt noch den Platzhalter %s. Erst "
-                 "'python3 scripts/newsletter_issue.py set %s', dann wieder hierher."
-                 % (pfad, newsletter_issue.PLATZHALTER, pfad))
+    offen = newsletter_issue.offene_platzhalter(html)
+    if offen:
+        sys.exit("%s traegt noch %s. Eine Vorlage mit offenem Platzhalter geht "
+                 "nicht raus: {{ISSUE}} fuellt "
+                 "'python3 scripts/newsletter_issue.py set %s', {{SUBJECT}} und "
+                 "VIDEO_URL fuellt die Montagsroutine, und VIDEO_URL erst, wenn "
+                 "die Folge wirklich oeffentlich ist."
+                 % (pfad, " und ".join(offen), pfad))
     if newsletter_issue.pruefe(pfad) != 0:
         print("WARNUNG: die Ausgabennummer zaehlt nicht wie erwartet weiter. "
               "Gewollt? Dann weiter. Sonst 'newsletter_issue.py set %s'." % pfad)
+
+    # Bilder, die im HTML auf unsere eigene Seite zeigen, muessen im Repo
+    # liegen, sonst steht im Postfach ein leeres Kaestchen. Nur eine Warnung:
+    # ein fehlendes Icon ist kein Grund, einen Montag anzuhalten.
+    for rel in fehlende_bilder(html):
+        print("WARNUNG: %s verlinkt %s, die Datei liegt nicht im Repo" % (pfad, rel))
+
+    # Ein Videolink, der schon in einer frueheren Ausgabe stand, ist meistens
+    # ein vergessener Link und nicht Absicht.
+    try:
+        for vid, frueher in newsletter_issue.videolink_schon_benutzt(pfad):
+            print("WARNUNG: der videolink %s stand schon in %s. Vergessen?" % (vid, frueher))
+    except OSError:
+        pass
     return html
 
 
@@ -613,6 +644,23 @@ def selftest():
         assert "schon raus" in str(e)
     else:
         raise AssertionError("eine versendete kampagne haette abbrechen muessen")
+
+    # offene platzhalter halten den versand an, fehlende bilder warnen nur
+    assert fehlende_bilder('<img src="https://kaspapulse.com/graphics/social/x.png">') == \
+        ["graphics/social/x.png"]
+    assert fehlende_bilder('<img src="/graphics/number-of-day.png">') == []
+    assert fehlende_bilder('<img src="https://example.com/fremd.png">') == []
+    import tempfile as _tf3
+    vorl = os.path.join(_tf3.mkdtemp(), "2026-10-12.html")
+    with open(vorl, "w", encoding="utf-8") as fh:
+        fh.write("<html><body><td>issue 14</td><a href=\"VIDEO_URL\">v</a>"
+                 "<p>" + "x" * 250 + "</p></body></html>")
+    try:
+        html_lesen_und_pruefen(vorl)
+    except SystemExit as e:
+        assert "VIDEO_URL" in str(e), str(e)
+    else:
+        raise AssertionError("eine vorlage mit VIDEO_URL haette abbrechen muessen")
 
     # der Waechter haengt mit drin: ein HTML mit krummer Differenz geht nicht raus
     import tempfile as _tf
