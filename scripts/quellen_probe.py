@@ -890,7 +890,18 @@ def befehl_hashrate():
     return 0
 
 
+def befehl_kron():
+    """Nur lesend. Pruefung der Kron-Seite: was kron.technology heute ueber sich sagt."""
+    print("abruf %s utc" % dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"))
+    st, t = _seite("https://kron.technology", r"launch|bonding|curve|graduat|kaspa|liquidity|locked|token", hoechstens=10)
+    st, txt = hole("https://kron.technology")
+    print("  meta description: %r" % re.findall(r'(?is)<meta[^>]+name="description"[^>]+content="([^"]*)"', txt or "")[:1])
+    print("  api-pfade im html: %s" % sorted(set(re.findall(r'["\'](/api/[A-Za-z0-9_/\-]*)', txt or "")))[:10])
+    return 0
+
+
 BEFEHLE = {
+    "kron": befehl_kron,
     "hashrate": befehl_hashrate,
     "toccata": befehl_toccata,
     "seo3": befehl_seo3,
