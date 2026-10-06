@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kaspa Hashrate, Explained — What Secures the Network and What Moves the Number — Kaspa Pulse</title>
-<meta name="description" content="Kaspa is secured by purpose-built ASIC miners running kHeavyHash. Live hashrate, how to read it next to Bitcoin's, the three traps in hashrate charts, and what actually moves the number — explained.">
+<title>Kaspa Hashrate Today, Live PH/s and Weekly History</title>
+<meta name="description" content="Kaspa's hashrate today in PH/s, the weekly averages of the last two months and the highest daily average on record, each with its date and source.">
 <link rel="canonical" href="https://kaspapulse.com/kaspa-hashrate.html">
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
@@ -138,8 +138,8 @@
 </nav>
 <div class="wrap">
 
-  <h1>Kaspa hashrate, explained. <b>What the number secures — and what actually moves it.</b></h1>
-  <div class="sub">Hashrate is the most quoted and most misread number in proof-of-work. Here's what Kaspa's actually measures, how to place it next to Bitcoin's without fooling yourself, and which moves in the chart mean something.</div>
+  <h1>Kaspa hashrate today. <b>What the number secures, and what actually moves it.</b></h1>
+  <div class="sub"><!--AUTO:hashrate-satz-->Kaspa's hashrate was <b>318.9 PH/s</b> on 6 October 2026 at 10:53 UTC, according to api.kaspa.org. The highest daily average on record is <b>1484.1 PH/s</b>, on 30 December 2024.<!--/AUTO:hashrate-satz--> Hashrate is the most quoted and most misread number in proof-of-work. Here's what Kaspa's actually measures, how to place it next to Bitcoin's without fooling yourself, and which moves in the chart mean something.</div>
 
   <div class="answer">
     <div class="lbl">The short answer</div>
@@ -158,6 +158,11 @@
   </div>
   <div class="note">This figure is fetched live from the public Kaspa API every time the page loads — the same source we use for the weekly <a href="/">Kaspa Pulse dashboard</a>. Nothing here is hardcoded.</div>
 
+</div>
+
+<div class="wrap2">
+  <h2>Weekly history</h2>
+  <div class="tblwrap"><!--AUTO:hashrate-wochen--><table><thead><tr><th>Week, Monday to Sunday</th><th>Average hashrate</th></tr></thead><tbody><tr><td>week of 10 August 2026</td><td>317.5 PH/s</td></tr><tr><td>week of 17 August 2026</td><td>314.6 PH/s</td></tr><tr><td>week of 24 August 2026</td><td>318.1 PH/s</td></tr><tr><td>week of 31 August 2026</td><td>320.6 PH/s</td></tr><tr><td>week of 7 September 2026</td><td>331.2 PH/s</td></tr><tr><td>week of 14 September 2026</td><td>340.1 PH/s</td></tr><tr><td>week of 21 September 2026</td><td>343.4 PH/s</td></tr><tr><td>week of 28 September 2026</td><td>347.4 PH/s</td></tr></tbody></table><p class="note">Weekly averages of the daily means in api.kaspa.org's hashrate history, read on 6 October 2026.</p><!--/AUTO:hashrate-wochen--></div>
 </div>
 
 <div class="band"><div class="wrap2">
@@ -224,6 +229,21 @@
 <div class="wrap2">
   <div class="note">We publish Kaspa's hashrate with weekly context every Monday on the <a href="/">Kaspa Pulse dashboard</a> — including honest reads on what moved it (reward cuts, price, efficiency turnover) and what didn't (merged mining).</div>
 
+<!--AUTO:faq-->
+  <div class="faq">
+  <h2>Questions people ask</h2>
+  <h3>What is Kaspa's hashrate?</h3>
+  <p>Kaspa's hashrate is the total computing power miners direct at the network, produced by purpose-built ASIC machines running the kHeavyHash algorithm. The live figure is published on this page, fetched directly from the public Kaspa API.</p>
+  <h3>What algorithm does Kaspa use for mining?</h3>
+  <p>Kaspa uses kHeavyHash, its own proof-of-work algorithm, mined by dedicated ASIC hardware. GPU mining stopped being competitive after the first Kaspa ASICs arrived in 2023.</p>
+  <h3>Can you compare Kaspa's hashrate to Bitcoin's?</h3>
+  <p>Not directly. Kaspa's kHeavyHash and Bitcoin's SHA-256 are different computations on different hardware, so raw hash counts don't convert between the two. What can be compared is the economics behind each network — the real hardware and electricity committed to it. Any raw factor between the two numbers is a statement of scale, not a security ratio.</p>
+  <h3>Does merged mining reduce Kaspa's hashrate?</h3>
+  <p>No. Merged-mined networks such as ZKas reuse the same kHeavyHash work Kaspa miners already produce, so no mining power leaves Kaspa — participating in merged mining requires mining Kaspa. Hashrate moves are driven by miner economics: coin price, electricity costs, and Kaspa's monthly block reward reductions.</p>
+  <h3>Why does Kaspa's hashrate go down?</h3>
+  <p>Hashrate follows miner profitability with a lag. When the KAS price falls or a monthly reward reduction lands, the least efficient machines eventually become unprofitable and shut off. A falling hashrate usually reflects past miner economics rather than a change in the health of the network itself.</p>
+  </div>
+<!--/AUTO:faq-->
   <div class="subscribe">
     <div class="badge">free · instant</div>
     <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>

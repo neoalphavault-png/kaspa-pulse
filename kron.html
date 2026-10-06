@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kron Kaspa, What It Is and What the Numbers Actually Say</title>
-<meta name="description" content="Kron is a token launchpad on Kaspa. What it does, how many of its tokens have graduated, and how its volume compares to the rest of Kaspa DeFi.">
+<title>Kron Kaspa, the DEX and Launchpad on Layer 1, Explained</title>
+<meta name="description" content="Kron is a DEX and token launchpad on Kaspa layer 1. How a launch on its bonding curve works, what is live so far and three numbers to check before trading.">
 <link rel="canonical" href="https://kaspapulse.com/kron.html">
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
@@ -122,7 +122,7 @@
 </nav>
 <div class="wrap">
   <h1>Kron on Kaspa, explained. <b>The first native launchpad, the model behind it, and the three numbers to check before you buy.</b></h1>
-  <div class="sub">A new kind of token has started trading on Kaspa, launched directly on layer 1 instead of as a side-chain asset. Here's how the model works, where it fits in the stack, and the honest read on what's live so far.</div>
+  <div class="sub">Kron describes itself as a Kaspa DEX and token launchpad on native layer 1, with a permanently locked AMM and a bonding curve for new launches, according to kron.technology on 6 October 2026. A new kind of token has started trading on Kaspa, launched directly on layer 1 instead of as a side-chain asset. Here's how the model works, where it fits in the stack, and the honest read on what's live so far.</div>
   <div class="answer">
     <div class="lbl">The short answer</div>
     <p><b>KRON is a decentralized exchange and token launchpad built directly on Kaspa's layer 1</b> — not an EVM layer 2 like Kasplex or Igra. New tokens launch on a bonding curve (an automatic, algorithmic price curve with no presale and no team allocation to dump), and once a token hits a market cap threshold it "graduates" into a permanently-locked liquidity pool that trades against KAS. The platform describes itself as non-custodial: KRON never takes custody of user funds, the contract logic does.</p>
@@ -174,6 +174,25 @@
     <div class="fact"><div class="v teal">Graduation rate over time</div><div class="l">the more useful long-run signal is not any single token's price, it is what share of everything launched on Kron ever reaches graduation. that is a number to judge over a year, not over a week</div></div>
   </div>
   <div class="note">Every Monday we publish what actually moved on Kaspa, counted from the chain, on <a href="/">the Kaspa Pulse dashboard</a>. Related reading: <a href="/kaspa-smart-contracts.html">how Kaspa's covenants and L2s work</a> and <a href="/kaspa-tvl.html">what TVL on Kaspa actually means</a>.</div>
+<!--AUTO:faq-->
+  <div class="faq">
+  <h2>Questions people ask</h2>
+  <h3>What is KRON on Kaspa?</h3>
+  <p>KRON is a decentralized exchange and token launchpad built directly on Kaspa's layer 1, rather than on an EVM layer 2 like Kasplex or Igra. It lets anyone launch a token on an automatic bonding curve with no presale, and tokens that reach a market cap threshold graduate into a permanently locked liquidity pool that trades against KAS.</p>
+  <h3>How does a bonding curve token launch work?</h3>
+  <p>A bonding curve sets a token's price algorithmically instead of through a presale: the price rises as more people buy and falls as they sell, following a predefined formula. There is no team allocation to unlock, because there was no presale. Once enough buying pushes the token past a market cap threshold, it graduates and its liquidity is locked into an automated market maker permanently.</p>
+  <h3>Is a locked liquidity pool the same as a safe token?</h3>
+  <p>No. A locked liquidity pool removes one specific risk, the classic rug where a team withdraws the trading pool and leaves holders with an illiquid token. It says nothing about how concentrated ownership is, whether the underlying contract has been audited, or whether the token has any purpose beyond trading. Those need to be checked separately.</p>
+  <h3>How is KRON different from Kaspa's KRC-20 tokens?</h3>
+  <p>KRC-20 tokens are inscriptions on Kaspa's layer 1 that carry metadata but no executable logic and no built-in liquidity. KRON's launches are covenant-based, meaning the token's supply, bonding curve and locked liquidity are enforced directly by layer-1 contract logic, with an automated market maker created automatically at graduation.</p>
+  <h3>Is Kron on Kaspa legit and safe?</h3>
+  <p>The platform and the tokens on it are two separate questions. Kron itself is non-custodial, meaning its logic runs in Kaspa layer-1 covenant code and it never holds user funds, which is a structural property rather than a promise. The tokens launched on it carry ordinary launchpad risk: anyone can create one in a minute with no funding and no purpose, and on every chain that has run this model most of them go to zero. Treat the platform as young, unaudited infrastructure and every individual token as a bet you can lose in full.</p>
+  <h3>How many holders does the KRON token have?</h3>
+  <p>When we first counted, on 1 August 2026, the KRON token had 295 holders against a market cap of about 10.22 million KAS. Kron publishes no public holder or price feed that can be read automatically, so the current figure has to be checked at kron.technology directly. The scale is the point either way: at a few hundred holders, a small number of wallets can still move the price sharply in either direction.</p>
+  <h3>What should I check before buying a token launched on KRON?</h3>
+  <p>Holder count and concentration matter more than the price chart. A small number of holders means a small number of wallets can move the price sharply in either direction, regardless of whether liquidity is locked. Treat any individual token launched this way as carrying real, unaudited contract risk.</p>
+  </div>
+<!--/AUTO:faq-->
   <div class="subscribe">
     <div class="badge">free · instant</div>
     <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
@@ -199,7 +218,7 @@
     <div style="font-size:11px; color:#7A828C; margin-top:10px;">one click, no email · alerts land in #alerts the second they fire</div>
   </div>
   <footer>
-    <div>page last reviewed 22 August 2026 · not financial advice · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">youtube</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>page last reviewed 6 October 2026 against kron.technology, the holder count stays dated 1 August 2026 · not financial advice · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">youtube</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
     <div class="fund" style="margin-top:10px;"><a href="/how-we-fund-this.html" style="display:inline-block;padding:12px 10px;">how we fund this</a></div>
   </footer>
 </div>
