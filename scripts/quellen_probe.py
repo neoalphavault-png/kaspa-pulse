@@ -831,7 +831,33 @@ def befehl_seo2():
     return 0
 
 
+def befehl_seo3():
+    """Nur lesend. Dritte Runde: Kasware-Tag-Datum und Store-Stand, Kaspium im
+    Play Store, Store-Links von den Projektseiten."""
+    print("abruf %s utc" % dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"))
+    st, txt = hole("https://api.github.com/repos/kasware-wallet/extension/tags?per_page=3")
+    for t in (json.loads(txt) if st == 200 else [])[:3]:
+        s2, c = hole(t["commit"]["url"])
+        datum = json.loads(c)["commit"]["committer"]["date"] if s2 == 200 else "http %s" % s2
+        print("  kasware tag %s  commit-datum %s" % (t["name"], datum))
+    store = re.compile(r"https?://(?:chromewebstore\.google\.com|chrome\.google\.com/webstore|addons\.mozilla\.org|"
+                       r"play\.google\.com|apps\.apple\.com)[^\s)\]\"'<>]*")
+    gefunden = {}
+    for seite in ("https://kasware.xyz/", "https://kaspium.io/"):
+        st, txt = hole(seite)
+        links = sorted(set(store.findall(txt or "")))
+        print("  %s http %s store-links %s" % (seite, st, links[:6]))
+        gefunden[seite] = links
+    for u in [l for ls in gefunden.values() for l in ls][:6]:
+        st, txt = hole(u)
+        t = _text(txt)
+        ver = re.findall(r"(?:Version|Updated|Aktualisiert|Updated on)\s*[:]?\s*([A-Za-z0-9 ,.]{3,24})", t)[:4]
+        print("  %s http %s  %s" % (u[:90], st, ver))
+    return 0
+
+
 BEFEHLE = {
+    "seo3": befehl_seo3,
     "seo2": befehl_seo2,
     "seo": befehl_seo,
     "kaspalytics": befehl_kaspalytics,
