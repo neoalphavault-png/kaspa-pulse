@@ -463,7 +463,12 @@ async def rueckgabe(kaspa, verb, eintraege, b, schluessel, geheim, trocken, anna
             raise RuntimeError("signieren gescheitert (%s)" % type(exc).__name__) from None
         r = {"tx_id": tx.id, "betrag_kas": (rest_betrag - f) / SOMPI, "gebuehr_sompi": f, "gebuehr_kas": f / SOMPI,
              "eingaenge": len(eintraege)}
-        if not trocken:
+        if trocken:
+            # gebaut und signiert, aber nie gesendet. eine tx_id stuende im
+            # bericht wie eine echte da, deshalb raus (Ben, 06.10.2026).
+            del r["tx_id"]
+            r["hinweis"] = TROCKEN_NICHT_GESENDET
+        else:
             t0_wand, t0 = jetzt(), time.monotonic()
             await senden_robust(verb, (lambda rr: senden(rr, tx)) if senden else (
                 lambda rr: rr.submit_transaction({"transaction": tx, "allowOrphan": False})))
@@ -682,9 +687,15 @@ def kette_pruefen(z):
     return k
 
 
+TROCKEN_NICHT_GESENDET = "trocken, nicht gesendet"
+
+
 def bericht(z, m, datum):
     s = z.get("zusammen", {})
-    k = z.get("laut_kette") or {"fehler": "nicht abgefragt (trockenlauf)"}
+    trocken = z.get("modus") == "trocken"
+    # im trockenlauf gibt es keine kette, also auch keine gemessene gebuehr.
+    # dort steht "trocken, nicht gesendet" statt None (Ben, 06.10.2026).
+    k = z.get("laut_kette") or ({} if trocken else {"fehler": "nicht abgefragt"})
     b = m.get("blockrate", {})
     g = m.get("gebuehr_einfach", {})
     c = m.get("covenants", {})
@@ -700,6 +711,7 @@ def bericht(z, m, datum):
             s.get("gesamtzeit_s"), s.get("median_s"), s.get("maximum_s"), s.get("minimum_s")),
         "- Zeitquelle je Zahlung %s; Zahlungen mit Neuverbindung zum Knoten (Zeit enthaelt das Neuverbinden) %s" % (
             json.dumps(s.get("zeitquelle_anzahl"), ensure_ascii=False), s.get("mit_neuverbindung") or "keine"),
+        ("- Gebuehr je Zahlung gemessen auf der Kette, %s" % TROCKEN_NICHT_GESENDET) if trocken else
         "- Gebuehr je Zahlung gemessen auf der Kette %s Sompi, gesamt %s KAS (%s von %s Tx gefunden, Quelle %s)" % (
             k.get("gebuehr_je_tx_sompi"), k.get("gebuehren_gesamt_kas"), k.get("gefunden"),
             s.get("anzahl_gesendet"), k.get("quelle")),
@@ -709,6 +721,7 @@ def bericht(z, m, datum):
         "- Payload je Tx %s Byte, Text wie `%s`" % (s.get("payload_bytes_je_tx"), payload_text(17, 100)),
         "- %s KAS je Zahlung, von %s an %s, Knoten %s" % (z.get("betrag_je_zahlung_kas"), z.get("absender"),
                                                          z.get("ziel"), z.get("knoten", "-")),
+        ("- Rueckgabe des Rests an B, %s" % TROCKEN_NICHT_GESENDET) if trocken else
         "- Rueckgabe des Rests an B: %s" % json.dumps(z.get("rueckgabe"), ensure_ascii=False), "",
         "## Netz im selben Zeitraum", "",
         "- Blockrate %s Bloecke je Sekunde, gemessen %s bis %s (%s s)" % (
@@ -748,9 +761,15 @@ def selbsttest():
     ok("gebuehr je tx unter der grenze", all(z["gebuehr_sompi"] <= GEBUEHR_GRENZE for z in erg["zahlungen"]))
     ok("masse unter 100000", s["masse_von_bis"][1] < 100000)
     r = erg["rueckgabe"]
-    ok("rueckgabe des rests, eine tx, gebuehr unter der grenze",
-       "fehler" not in r and r.get("tx_id") and 0 < r["gebuehr_sompi"] <= GEBUEHR_GRENZE
+    ok("rueckgabe des rests, eine tx, gebuehr unter der grenze, trocken ohne tx_id",
+       "fehler" not in r and "tx_id" not in r and r.get("hinweis") == TROCKEN_NICHT_GESENDET
+       and 0 < r["gebuehr_sompi"] <= GEBUEHR_GRENZE
        and abs(r["betrag_kas"] + r["gebuehr_kas"] - 20 + 100 * BETRAG / SOMPI + s["gebuehren_gesamt_kas"]) < 1e-8)
+    tb = bericht(erg, {}, "2026-10-06-trocken").split("## Netz")[0]
+    ok("trocken-bericht, zahlungsteil ohne None und ohne tx_id, zweimal nicht gesendet",
+       "None" not in tb and "tx_id" not in tb and tb.count(TROCKEN_NICHT_GESENDET) == 2 and "Fehler:" not in tb)
+    eb = bericht(dict(erg, modus="echt"), {}, "2026-10-07")
+    ok("echter bericht ohne kettendaten meldet das als fehler", "Fehler: nicht abgefragt" in eb)
     tmp = Path("/tmp/maschinenzahlungen-selbsttest.json")
     schreibe_json(tmp, erg, geheim)
     text = tmp.read_text()
