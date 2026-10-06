@@ -28,7 +28,7 @@
  "description": "Two proposals are called KCC1. One is shared covenant vocabulary, the token spec is KCC-0020. Where each stands and why tokens on a UTXO chain are harder.",
  "url": "https://kaspapulse.com/kaspa-token-standard.html",
  "inLanguage": "en",
- "dateModified": "2026-08-14",
+ "dateModified": "2026-10-06",
  "isPartOf": {
   "@type": "WebSite",
   "name": "Kaspa Pulse",
@@ -176,7 +176,7 @@
 <div class="wrap">
 
   <h1>What is KCC1? <b>It is not Kaspa's token standard — and the token standard is not finished.</b></h1>
-  <div class="sub">Coins are already being minted against something called KCC1, so far on testnet only. The trouble is that two different proposals are using that name for two different things, and neither of them is merged. Here is what each one actually defines, where each stands, and why a token standard on a UTXO chain is genuinely harder than ERC-20.</div>
+  <div class="sub">Coins are already being minted against something called KCC1, so far on testnet only. The trouble is that two different proposals are using that name for two different things, and neither of them is merged. Here is what each one actually defines, where each stands, and why a token standard on a UTXO chain is genuinely harder than on an account-based chain.</div>
 
   <div class="answer">
     <div class="lbl">The short answer</div>
@@ -211,7 +211,7 @@
   <p>Two sentences from the proposal matter more than the list. <b>"KCC1 is independent of any source language, compiler, framework, or artifact format."</b> And: <b>"It does not change consensus rules."</b> This is not a protocol upgrade and it is not a token. It is an agreement on what words and byte layouts mean, so that later specifications can use them without redefining them.</p>
 
   <h3>Why that agreement is the hard part</h3>
-  <p>An ERC-20 token works because every Ethereum contract is a global object with a stable interface. You call <code>transfer</code> and the contract handles the rest internally. On a UTXO chain there is no global object. A covenant is a rule attached to a coin, and every state transition has to be constructed and proven inside the transaction itself. Before anyone can write "the token standard," the ecosystem first has to agree on how a covenant's state is laid out in bytes, how you address a piece of it, and how you identify the same contract across two spends. That agreement is KCC-0001.</p>
+  <p>On an account-based chain a token works because every contract is a global object with a stable interface. You call <code>transfer</code> and the contract handles the rest internally. On a UTXO chain there is no global object. A covenant is a rule attached to a coin, and every state transition has to be constructed and proven inside the transaction itself. Before anyone can write "the token standard," the ecosystem first has to agree on how a covenant's state is laid out in bytes, how you address a piece of it, and how you identify the same contract across two spends. That agreement is KCC-0001.</p>
 </div></div>
 
 <div class="wrap2">
@@ -251,7 +251,7 @@
   <p>The most common complaint in Kaspa communities right now is that the token standard is slow. The review discussion contains the real answer, and it is more interesting than "developers are slow."</p>
 
   <h3>Kaspa is verification-focused, not execution-focused</h3>
-  <p>On Ethereum, a contract lives on chain as a global object with persistent state. It can hide its implementation behind a stable callable interface, so a wallet building a transaction needs to know almost nothing about the contract's internals. Kaspa's layer 1 does not work that way. As Michael Sutton describes it in the review, the entire transition and verification logic must be supplied in each transaction — which means <b>the transaction builder has to know every detail of how that specific token works</b>.</p>
+  <p>On an account-based chain, a contract lives on chain as a global object with persistent state. It can hide its implementation behind a stable callable interface, so a wallet building a transaction needs to know almost nothing about the contract's internals. Kaspa's layer 1 does not work that way. As Michael Sutton describes it in the review, the entire transition and verification logic must be supplied in each transaction — which means <b>the transaction builder has to know every detail of how that specific token works</b>.</p>
 
   <h3>The reader and writer problem</h3>
   <p>This produces a very concrete failure mode, raised by an implementer during review. A specification that describes state layout and template bytes is enough for a <b>reader</b>: an explorer or a wallet can look at a UTXO and correctly recognise "this is a token, this is the balance." It is not enough for a <b>writer</b>. An independent wallet that wants to construct a transfer also needs the witness framing, the entrypoint selectors, the input and output ordering, the compatibility rules and the practical mass limits. Without an exact recipe, a wallet can display your token but cannot safely spend it.</p>
@@ -302,6 +302,25 @@
 
   <div class="note">Related reading on this site: <a href="/kaspa-smart-contracts.html">how smart contracts actually work on Kaspa</a>, which explains covenants and the Argent language, and the weekly on-chain numbers on the <a href="/">Kaspa Pulse dashboard</a>.</div>
 
+<!--AUTO:faq-->
+  <div class="faq">
+  <h2>Questions people ask</h2>
+  <h3>What is KCC1 on Kaspa?</h3>
+  <p>KCC1, formally KCC-0001, is a proposed specification that defines common terminology, byte layouts and application binary interface conventions for covenants on Kaspa. It defines canonical state and argument codecs, entrypoints and dispatch tags, the P2SH envelope of a covenant program, covenant state and templates, Covenant ID lineage, leader and delegator roles, and virtual elements. It is independent of any source language or compiler and does not change consensus rules. It is not a token standard.</p>
+  <h3>Is KCC1 the Kaspa token standard?</h3>
+  <p>In the kaspanet/kccs specification repository, no. KCC-0001 is the shared vocabulary and byte layout specification that token standards build on, and the fungible token standard there is a separate proposal called KCC-0020. Confusingly, at least one project uses the name KCC1 for its own proposed token standard, which is a different document. The same abbreviation currently points at two different things.</p>
+  <h3>Is the Kaspa token standard finished?</h3>
+  <p>Not as of 14 August 2026. Both KCC-0001 and the fungible token specification KCC-0020 exist as open pull requests in the kaspanet/kccs repository. Both still require at least one approving review from a maintainer with write access before they can be merged, and the drafts have changed during review, including a switch of the default hash function from blake2b to blake3.</p>
+  <h3>Why is a token standard harder on a UTXO chain like Kaspa?</h3>
+  <p>On an account-based chain a contract is a global object with persistent state and a stable callable interface, so a wallet building a transaction needs to know little about its internals. Kaspa's layer 1 is UTXO based and verification focused, so the full state transition and verification logic must be supplied inside every transaction. That means the transaction builder needs to know the specific details of each token implementation, which is why the specification also needs an exact writer recipe and not only a state layout.</p>
+  <h3>How many Kaspa token proposals are there?</h3>
+  <p>As of August 2026 there are at least three overlapping proposals plus one shipped implementation. KCC-0020 covers fungible token covenants, KCC-0008 proposes a unified multi-token standard covering fungible, non-fungible and mixed profiles, and KaspaCom has an implementation called KCC20V2 whose compatibility with the drafts is being clarified in its own tracker. All of them depend on the base specification KCC-0001, which is itself unmerged.</p>
+  <h3>Is KCC1 live on Kaspa mainnet?</h3>
+  <p>Not as of August 2026. The team behind the KCC1 token work stated in the official Kaspa Telegram that it is a proposal rather than a launch, running on testnet-10 only, with no mainnet deployment yet. The underlying specifications in the kaspanet/kccs repository are also still open pull requests without an approving review.</p>
+  <h3>Can any wallet support a KCC20 token?</h3>
+  <p>Not automatically. A specification describing state layout and template bytes is enough for a reader, so an explorer or wallet can recognise a token and display a balance. Constructing a transfer additionally requires witness framing, entrypoint selectors, input and output ordering, compatibility rules and practical mass limits. Without that exact recipe an independent wallet can display a token but cannot safely spend it.</p>
+  </div>
+<!--/AUTO:faq-->
   <div class="subscribe">
     <div class="badge">free · instant</div>
     <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
@@ -329,7 +348,7 @@
   </div>
 
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 14 August 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 6 October 2026<!--/AUTO:seitenstand--></div>
     <div>not financial advice · further reading: <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
     <div class="fund" style="margin-top:10px;"><a href="/how-we-fund-this.html" style="display:inline-block;padding:12px 10px;">how we fund this</a></div>
   </footer>
@@ -343,37 +362,58 @@
     {
       "@type": "Question",
       "name": "What is KCC1 on Kaspa?",
-      "acceptedAnswer": { "@type": "Answer", "text": "KCC1, formally KCC-0001, is a proposed specification that defines common terminology, byte layouts and application binary interface conventions for covenants on Kaspa. It defines canonical state and argument codecs, entrypoints and dispatch tags, the P2SH envelope of a covenant program, covenant state and templates, Covenant ID lineage, leader and delegator roles, and virtual elements. It is independent of any source language or compiler and does not change consensus rules. It is not a token standard." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "KCC1, formally KCC-0001, is a proposed specification that defines common terminology, byte layouts and application binary interface conventions for covenants on Kaspa. It defines canonical state and argument codecs, entrypoints and dispatch tags, the P2SH envelope of a covenant program, covenant state and templates, Covenant ID lineage, leader and delegator roles, and virtual elements. It is independent of any source language or compiler and does not change consensus rules. It is not a token standard."
+      }
     },
     {
       "@type": "Question",
       "name": "Is KCC1 the Kaspa token standard?",
-      "acceptedAnswer": { "@type": "Answer", "text": "In the kaspanet/kccs specification repository, no. KCC-0001 is the shared vocabulary and byte layout specification that token standards build on, and the fungible token standard there is a separate proposal called KCC-0020. Confusingly, at least one project uses the name KCC1 for its own proposed token standard, which is a different document. The same abbreviation currently points at two different things." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "In the kaspanet/kccs specification repository, no. KCC-0001 is the shared vocabulary and byte layout specification that token standards build on, and the fungible token standard there is a separate proposal called KCC-0020. Confusingly, at least one project uses the name KCC1 for its own proposed token standard, which is a different document. The same abbreviation currently points at two different things."
+      }
     },
     {
       "@type": "Question",
       "name": "Is the Kaspa token standard finished?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Not as of 14 August 2026. Both KCC-0001 and the fungible token specification KCC-0020 exist as open pull requests in the kaspanet/kccs repository. Both still require at least one approving review from a maintainer with write access before they can be merged, and the drafts have changed during review, including a switch of the default hash function from blake2b to blake3." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not as of 14 August 2026. Both KCC-0001 and the fungible token specification KCC-0020 exist as open pull requests in the kaspanet/kccs repository. Both still require at least one approving review from a maintainer with write access before they can be merged, and the drafts have changed during review, including a switch of the default hash function from blake2b to blake3."
+      }
     },
     {
       "@type": "Question",
-      "name": "Why is a token standard harder on Kaspa than on Ethereum?",
-      "acceptedAnswer": { "@type": "Answer", "text": "On Ethereum a contract is a global object with persistent state and a stable callable interface, so a wallet building a transaction needs to know little about its internals. Kaspa's layer 1 is UTXO based and verification focused, so the full state transition and verification logic must be supplied inside every transaction. That means the transaction builder needs to know the specific details of each token implementation, which is why the specification also needs an exact writer recipe and not only a state layout." }
+      "name": "Why is a token standard harder on a UTXO chain like Kaspa?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "On an account-based chain a contract is a global object with persistent state and a stable callable interface, so a wallet building a transaction needs to know little about its internals. Kaspa's layer 1 is UTXO based and verification focused, so the full state transition and verification logic must be supplied inside every transaction. That means the transaction builder needs to know the specific details of each token implementation, which is why the specification also needs an exact writer recipe and not only a state layout."
+      }
     },
     {
       "@type": "Question",
       "name": "How many Kaspa token proposals are there?",
-      "acceptedAnswer": { "@type": "Answer", "text": "As of August 2026 there are at least three overlapping proposals plus one shipped implementation. KCC-0020 covers fungible token covenants, KCC-0008 proposes a unified multi-token standard covering fungible, non-fungible and mixed profiles, and KaspaCom has an implementation called KCC20V2 whose compatibility with the drafts is being clarified in its own tracker. All of them depend on the base specification KCC-0001, which is itself unmerged." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "As of August 2026 there are at least three overlapping proposals plus one shipped implementation. KCC-0020 covers fungible token covenants, KCC-0008 proposes a unified multi-token standard covering fungible, non-fungible and mixed profiles, and KaspaCom has an implementation called KCC20V2 whose compatibility with the drafts is being clarified in its own tracker. All of them depend on the base specification KCC-0001, which is itself unmerged."
+      }
     },
     {
       "@type": "Question",
       "name": "Is KCC1 live on Kaspa mainnet?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Not as of August 2026. The team behind the KCC1 token work stated in the official Kaspa Telegram that it is a proposal rather than a launch, running on testnet-10 only, with no mainnet deployment yet. The underlying specifications in the kaspanet/kccs repository are also still open pull requests without an approving review." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not as of August 2026. The team behind the KCC1 token work stated in the official Kaspa Telegram that it is a proposal rather than a launch, running on testnet-10 only, with no mainnet deployment yet. The underlying specifications in the kaspanet/kccs repository are also still open pull requests without an approving review."
+      }
     },
     {
       "@type": "Question",
       "name": "Can any wallet support a KCC20 token?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Not automatically. A specification describing state layout and template bytes is enough for a reader, so an explorer or wallet can recognise a token and display a balance. Constructing a transfer additionally requires witness framing, entrypoint selectors, input and output ordering, compatibility rules and practical mass limits. Without that exact recipe an independent wallet can display a token but cannot safely spend it." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not automatically. A specification describing state layout and template bytes is enough for a reader, so an explorer or wallet can recognise a token and display a balance. Constructing a transfer additionally requires witness framing, entrypoint selectors, input and output ordering, compatibility rules and practical mass limits. Without that exact recipe an independent wallet can display a token but cannot safely spend it."
+      }
     }
   ]
 }
