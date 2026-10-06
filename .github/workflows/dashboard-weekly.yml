@@ -68,12 +68,20 @@ jobs:
         if: steps.guard.outputs.done != '1'
         run: python3 scripts/dashboard_weekly.py --apply-input
 
+      # SEO, Ben 06.10.2026: der antwortsatz auf kaspa-supply.html steht fest
+      # im html und wird hier aus data/weekly.json erneuert, mit datum.
+      - name: zahlen in die seiten
+        if: steps.guard.outputs.done != '1'
+        run: |
+          python3 scripts/seiten_zahlen.py --selbsttest
+          python3 scripts/seiten_zahlen.py
+
       - name: commit
         if: steps.guard.outputs.done != '1'
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
-          git add index.html data/weekly.json data/weekly-notes.md data/dashboard-input.json
+          git add index.html data/weekly.json data/weekly-notes.md data/dashboard-input.json kaspa-supply.html kaspa-smart-contracts.html
           if git diff --staged --quiet; then
             echo "nothing changed"
           else
