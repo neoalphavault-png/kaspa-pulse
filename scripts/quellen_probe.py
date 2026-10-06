@@ -856,7 +856,33 @@ def befehl_seo3():
     return 0
 
 
+def befehl_toccata():
+    """Nur lesend. Zeitpunkt der Toccata-Aktivierung (DAA 474,165,565) laut
+    Knoten: get_daa_score_timestamp_estimate ueber das Kaspa-SDK (Version und
+    Pruefsumme wie im Experiment), dazu die Nachbarn als Plausibilitaet."""
+    import subprocess
+    r = subprocess.run([sys.executable, "-m", "pip", "install", "-q", "--only-binary=:all:", "--require-hashes",
+                        "-r", "scripts/maschinenzahlungen-requirements.txt"], capture_output=True, text=True)
+    print("sdk installiert: %s %s" % (r.returncode == 0, r.stderr[-200:] if r.returncode else ""))
+    import asyncio
+    import kaspa
+
+    async def frage():
+        rpc = kaspa.RpcClient(resolver=kaspa.Resolver(), network_id="mainnet")
+        await rpc.connect()
+        try:
+            daa = [474165565 - 36000, 474165565, 474165565 + 36000]
+            a = await rpc.get_daa_score_timestamp_estimate({"daaScores": daa})
+            for d, ms in zip(daa, a.get("timestamps") or []):
+                print("  daa %s  -> %s utc" % (d, dt.datetime.fromtimestamp(ms / 1000, dt.timezone.utc).isoformat()))
+        finally:
+            await rpc.disconnect()
+    asyncio.run(frage())
+    return 0
+
+
 BEFEHLE = {
+    "toccata": befehl_toccata,
     "seo3": befehl_seo3,
     "seo2": befehl_seo2,
     "seo": befehl_seo,
