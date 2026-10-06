@@ -737,7 +737,73 @@ def befehl_montag():
     return schlecht
 
 
+def _text(html):
+    t = re.sub(r"(?is)<(script|style|noscript)[^>]*>.*?</\1>", " ", html or "")
+    t = re.sub(r"(?s)<[^>]+>", " ", t)
+    return " ".join(__import__("html").unescape(t).split())
+
+
+def _seite(url, muster, weite=300, hoechstens=6):
+    st, txt = hole(url)
+    titel = re.findall(r"(?is)<title[^>]*>(.*?)</title>", txt or "")
+    t = _text(txt)
+    print("\n--- %s  http %s  %d zeichen  titel %r" % (url, st, len(t), (titel[0].strip()[:120] if titel else "")))
+    for u in umfeld(t, muster, weite, hoechstens):
+        print("    ..." + u.replace("\n", " ") + "...")
+    return st, t
+
+
+def befehl_seo():
+    """Nur lesend. Ben, 06.10.2026, SEO-Ausbau Block A und B: Belege fuer die
+    Wallet-Tabelle (letzte Version und Datum, Plattformen, Hardware, KRC-20),
+    Trezor, Ledger, docs.kaspa.org zu Toccata. Druckt Auszuege mit Abrufzeit."""
+    print("abruf %s utc" % dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"))
+    print("\n=== GITHUB RELEASES (letzte, sonst letzter tag)")
+    for r in ("azbuky/kaspium_wallet", "aspectron/kaspa-ng", "kasware-wallet/extension",
+              "coderofstuff/app-kaspa", "coderofstuff/kasvault", "OneKeyHQ/app-monorepo",
+              "tangem/tangem-app-ios", "tangem/tangem-app-android", "kaspanet/kaspa-wallet"):
+        st, txt = hole("https://api.github.com/repos/%s/releases/latest" % r)
+        if st == 200:
+            d = json.loads(txt)
+            print("  %-32s release %-20s %s  vorabversion %s" % (r, d.get("tag_name"), d.get("published_at"),
+                                                                d.get("prerelease")))
+        else:
+            st2, t2 = hole("https://api.github.com/repos/%s" % r)
+            info = json.loads(t2) if st2 == 200 else {}
+            st3, t3 = hole("https://api.github.com/repos/%s/tags?per_page=1" % r)
+            tag = (json.loads(t3) or [{}])[0].get("name") if st3 == 200 and t3.strip().startswith("[") else None
+            print("  %-32s releases http %s, repo http %s, archiviert %s, letzter push %s, letzter tag %s" % (
+                r, st, st2, info.get("archived"), info.get("pushed_at"), tag))
+    print("\n=== APP STORE (itunes search api)")
+    for term in ("kaspium", "tangem", "onekey wallet", "kasware", "kaspa ng"):
+        st, txt = hole("https://itunes.apple.com/search?entity=software&limit=4&term=" + urllib.parse.quote(term))
+        if st != 200:
+            print("  %s http %s" % (term, st))
+            continue
+        for a in json.loads(txt).get("results", []):
+            beschr = a.get("description") or ""
+            kas = "kaspa" in beschr.lower()
+            print("  %-14s %-34s v%-10s %s  kaspa in beschreibung %s  %s" % (
+                term, (a.get("trackName") or "")[:34], a.get("version"), a.get("currentVersionReleaseDate"),
+                kas, a.get("trackViewUrl", "").split("?")[0]))
+    print("\n=== SEITEN")
+    _seite("https://trezor.io/coins/detail/kaspa", r"kaspa|not supported|supported")
+    _seite("https://wiki.kaspa.org/en/wallet", r"kaspium|kaspa ng|kasware|tangem|ledger|onekey|kasvault|web wallet|"
+           r"deprecated|trezor|ios|android", hoechstens=14)
+    _seite("https://kaspa.org/hodl/", r"wallet|ledger|tangem|kaspium|kasware|onekey", hoechstens=10)
+    _seite("https://www.ledger.com/coin/wallet/kaspa", r"ledger live|kasvault|kaspa", hoechstens=8)
+    _seite("https://support.ledger.com/article/Kaspa", r"ledger live|kasvault|kaspa", hoechstens=6)
+    _seite("https://kasvault.io/", r"ledger|kaspa|kasvault", hoechstens=4)
+    _seite("https://kaspa-ng.org/", r"web|browser|desktop|extension|wallet", hoechstens=8)
+    _seite("https://tangem.com/en/cryptocurrencies/kaspa/", r"kaspa|krc", hoechstens=5)
+    _seite("https://onekey.so/blog/ecosystem/kaspa", r"kaspa|krc|classic|pro", hoechstens=5)
+    _seite("https://docs.kaspa.org/", r"toccata|covenant|smart contract", hoechstens=6)
+    _seite("https://kaspa.org/", r"toccata|smart contract|covenant", hoechstens=6)
+    return 0
+
+
 BEFEHLE = {
+    "seo": befehl_seo,
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
     "stream": befehl_stream,
