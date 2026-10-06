@@ -881,7 +881,17 @@ def befehl_toccata():
     return 0
 
 
+def befehl_hashrate():
+    """Nur lesend. Rechnet mit scripts/seiten_zahlen.py (Stand des SEO-Blocks C)
+    den Hashrate-Satz und die Wochentabelle aus api.kaspa.org und druckt beides."""
+    import seiten_zahlen as sz
+    h = sz.hashrate_html(sz.hashrate_daten())
+    print(json.dumps(h, ensure_ascii=False, indent=1))
+    return 0
+
+
 BEFEHLE = {
+    "hashrate": befehl_hashrate,
     "toccata": befehl_toccata,
     "seo3": befehl_seo3,
     "seo2": befehl_seo2,
