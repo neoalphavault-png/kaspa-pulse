@@ -38,6 +38,7 @@
     ]},
     { t: "tools", k: [
       ["wallets", "/kaspa-wallets.html"],
+      ["web wallet safety", "/kaspa-web-wallet-safe.html"],
       ["data sources", "/kaspa-data-sources.html"]
     ]}
   ];

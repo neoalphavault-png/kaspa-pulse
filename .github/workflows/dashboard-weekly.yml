@@ -76,12 +76,21 @@ jobs:
           python3 scripts/seiten_zahlen.py --selbsttest
           python3 scripts/seiten_zahlen.py
 
+      # SEO Block D, Ben 06.10.2026: stand-zeile, dateModified und
+      # lastmod in sitemap.xml ziehen nach, wenn sich der text einer seite
+      # geaendert hat. ohne textaenderung bleibt alles, wie es ist.
+      - name: seitenstand und sitemap
+        if: steps.guard.outputs.done != '1'
+        run: |
+          python3 scripts/seo_seiten.py --selbsttest
+          python3 scripts/seo_seiten.py
+
       - name: commit
         if: steps.guard.outputs.done != '1'
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
-          git add index.html data/weekly.json data/weekly-notes.md data/dashboard-input.json kaspa-supply.html kaspa-smart-contracts.html
+          git add index.html data/weekly.json data/weekly-notes.md data/dashboard-input.json kaspa-supply.html kaspa-smart-contracts.html kaspa-hashrate.html sitemap.xml data/seiten-stand.json
           if git diff --staged --quiet; then
             echo "nothing changed"
           else
