@@ -802,7 +802,37 @@ def befehl_seo():
     return 0
 
 
+def befehl_seo2():
+    """Nur lesend. Zweite Runde: READMEs (Web-Adresse, Ledger, KRC-20,
+    Store-Links), Ledger-Support-Artikel, Tangem KRC-20, Toccata-Doku."""
+    print("abruf %s utc" % dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"))
+    store = re.compile(r"https?://(?:chromewebstore\.google\.com|chrome\.google\.com/webstore|addons\.mozilla\.org|"
+                       r"play\.google\.com|apps\.apple\.com|microsoftedge\.microsoft\.com)[^\s)\]\"'<>]*")
+    for r in ("aspectron/kaspa-ng", "kasware-wallet/extension", "azbuky/kaspium_wallet", "coderofstuff/kasvault",
+              "coderofstuff/app-kaspa"):
+        st, txt = hole("https://raw.githubusercontent.com/%s/HEAD/README.md" % r)
+        print("\n=== README %s http %s, %d zeichen" % (r, st, len(txt or "")))
+        for u in sorted(set(store.findall(txt or "")))[:8]:
+            print("    store-link " + u)
+        for u in umfeld(txt or "", r"web|browser|ledger|hardware|krc|token|seed|mnemonic|ios|android|linux|windows|mac",
+                        220, 10):
+            print("    ..." + " ".join(u.split()) + "...")
+    _seite("https://support.ledger.com/article/12665738333853-zd", r"ledger live|kasvault|third|kaspa", hoechstens=8)
+    _seite("https://support.ledger.com/hc/en-us/articles/12665738333853-zd", r"ledger live|kasvault|third|kaspa",
+           hoechstens=8)
+    _seite("https://tangem.com/en/cryptocurrencies/kaspa/", r"krc|token|tangem wallet support|supported", hoechstens=6)
+    _seite("https://tangem.com/en/blog/post/kaspa-krc20/", r"krc|token", hoechstens=4)
+    st, txt = hole("https://docs.kaspa.org/")
+    links = sorted(set(re.findall(r'href="(/[^"]*(?:toccata|covenant)[^"]*)"', txt or "", re.I)))
+    print("\n=== docs.kaspa.org links mit toccata/covenant: %s" % links[:12])
+    for l in links[:4]:
+        _seite("https://docs.kaspa.org" + l, r"toccata|hard ?fork|activat|daa|covenant|smart contract", hoechstens=8)
+    _seite("https://kaspa.org/toccata/", r"toccata|hard ?fork|activat|daa|smart contract", hoechstens=6)
+    return 0
+
+
 BEFEHLE = {
+    "seo2": befehl_seo2,
     "seo": befehl_seo,
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
