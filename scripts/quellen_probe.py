@@ -900,7 +900,30 @@ def befehl_kron():
     return 0
 
 
+def befehl_staking():
+    """Nur lesend. Ben, 06.10.2026, Staking-Seite und Smart-Contracts-Seite:
+    PoW und Fair Launch auf kaspa.org, docs.kaspa.org zu Toccata und Accounts,
+    Igra und Kasplex als based rollups, Lending auf Igra, Herkunft der Rendite
+    bei einer Plattform mit "Kaspa staking". Druckt Auszuege mit Abrufzeit."""
+    print("abruf %s utc" % dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"))
+    for u in ("https://kaspa.org/", "https://kaspa.org/features/", "https://kaspa.org/learn/",
+              "https://kaspa.org/faq/"):
+        _seite(u, r"proof.of.work|fair launch|pre.?min|ICO|no premine|validator|stak", hoechstens=8)
+    for u in ("https://docs.kaspa.org/toccata", "https://docs.kaspa.org/toccata/"):
+        _seite(u, r"account|UTXOs expressive|application state", hoechstens=8)
+    for u in ("https://igralabs.com/", "https://docs.igralabs.com/", "https://kasplex.org/",
+              "https://docs-kasplex.gitbook.io/l2-network"):
+        _seite(u, r"based rollup|sequencer|validator|stak|rollup", hoechstens=6)
+    for u in ("https://kaskad.app/", "https://www.kaskad.app/", "https://kaskad.io/", "https://docs.kaskad.app/"):
+        _seite(u, r"lend|borrow|APY|APR|reward|incentive|interest", hoechstens=6)
+    for u in ("https://coinunited.io/en/staking", "https://coinunited.io/en/staking/kaspa",
+              "https://coinunited.io/en/earn", "https://coinunited.io/staking/KAS"):
+        _seite(u, r"interest rate is determined|borrowing demand|kaspa|KAS staking", hoechstens=4)
+    return 0
+
+
 BEFEHLE = {
+    "staking": befehl_staking,
     "kron": befehl_kron,
     "hashrate": befehl_hashrate,
     "toccata": befehl_toccata,
