@@ -737,7 +737,24 @@ def befehl_montag():
     return schlecht
 
 
+def befehl_startseite():
+    """Nur lesend. Ben, 06.10.2026: steht das FlexOffers-Tag live im
+    Quelltext von https://kaspapulse.com/? Druckt die Zeilen mit fo-verify
+    und den Kommentar davor, dazu Status und Zeit des Abrufs."""
+    jetzt = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+    st, txt = hole("https://kaspapulse.com/?nocache=%d" % int(dt.datetime.now().timestamp()))
+    print("abruf %s utc, https://kaspapulse.com/, http %s, %d zeichen" % (jetzt, st, len(txt or "")))
+    treffer = [(i, z) for i, z in enumerate((txt or "").splitlines(), 1) if "fo-verify" in z or "FlexOffers" in z]
+    for i, z in treffer:
+        print("  zeile %d: %s" % (i, z.strip()))
+    soll = '<meta name="fo-verify" content="947fd0e6-86c3-42e7-89d7-0ad0609e2b50" />'
+    ok = any(soll in z for _, z in treffer)
+    print("TAG LIVE: %s" % ("ja" if ok else "nein"))
+    return 0 if ok else 1
+
+
 BEFEHLE = {
+    "startseite": befehl_startseite,
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
     "stream": befehl_stream,
