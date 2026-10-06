@@ -37,6 +37,12 @@
    "form": 10,
    "grund": "tag der reward-senkung, zahl des tages cut_today (vorab gerechnet), uebersprungen [3]",
    "messzeit_utc": "2026-10-05T06:20:24+00:00"
+  },
+  {
+   "datum": "2026-10-06",
+   "form": 8,
+   "grund": "rotation, 0 laeufe in 30 tagen, zahl des tages whale_weight (aus dem log), uebersprungen [2, 7]",
+   "messzeit_utc": "2026-10-06T09:56:49+00:00"
   }
  ]
 }
