@@ -204,23 +204,22 @@
   <p>Raw covenant scripting is unforgiving — one wrong byte and funds are stuck. <b>Argent</b> is the high-level language built to fix that: developers define <b>actors</b> (a contract plus the state it owns), entries (the operations you can call), and transition rules, and the compiler generates the underlying script. Two design choices matter for non-developers too. Every app is a <b>closed system under one covenant ID</b> — outside code cannot inject itself into an app's state machine. And the compiler is only needed at build time; creating transactions afterwards needs only a lightweight runtime, <b>so tooling in other languages can drive the same apps</b>. Core developer Michael Sutton documents the whole workflow in public live-coding sessions on the Kaspa Native channel — episode one builds a working ticketing app from scratch.</p>
 
   <h3>Layer 2: full EVM, familiar tooling</h3>
-  <p>For everything that expects Ethereum — Solidity contracts, MetaMask, existing DeFi codebases — Kaspa has two EVM layer 2s that settle against layer 1: <b>Kasplex</b>, a zkEVM live since 2025, and <b>Igra</b>, live since 2026. This is where Kaspa's DeFi actually operates today, and where the TVL shown above lives. The trade-off is the standard one: EVM compatibility and rich tooling, in exchange for each L2's own performance and trust profile.</p>
+  <p>For everything built for the EVM, Solidity contracts, MetaMask and existing DeFi codebases, Kaspa has two EVM layer 2s that settle against layer 1: <b>Kasplex</b>, a zkEVM live since 2025, and <b>Igra</b>, live since 2026. This is where Kaspa's DeFi actually operates today, and where the TVL shown above lives. The trade-off is the standard one: EVM compatibility and rich tooling, in exchange for each L2's own performance and trust profile.</p>
 </div></div>
 
 <div class="wrap2">
-  <h2>How this differs from Ethereum</h2>
-  <p>The comparison everyone wants, done honestly:</p>
+  <h2>Account-based contracts and UTXO contracts</h2>
+  <p>There are two ways to build smart contracts on a blockchain. In an account-based design, contracts are accounts with balances and storage inside one shared machine, and every transaction updates that global state in turn. In a UTXO design, there is no shared machine. Each coin carries its own rules and its own piece of state, and a transaction proves that the next output follows those rules. Kaspa's developer documentation is explicit about which one Toccata built, <i>"The result is still UTXO-native. Toccata does not turn Kaspa into an account-chain smart contract system. Instead it makes UTXOs able to carry state, split into parallel lineages, merge when necessary, and prove the next step."</i> (<a href="https://docs.kaspa.org/toccata" target="_blank" rel="noopener">docs.kaspa.org</a>, read on 6 October 2026)</p>
   <div class="tblwrap"><table>
-    <thead><tr><th></th><th>Ethereum</th><th>Kaspa L1 covenants</th><th>Kaspa L2s</th></tr></thead>
+    <thead><tr><th></th><th>Account-based design</th><th>Kaspa L1 covenants</th><th>Kaspa L2s</th></tr></thead>
     <tbody>
-      <tr><td class="n">Model</td><td>one global virtual machine</td><td class="hl">state machines inside UTXOs</td><td>EVM, per rollup</td></tr>
-      <tr><td class="n">Where state lives</td><td>global account tree</td><td class="hl">partitioned across UTXOs</td><td>the L2's own state</td></tr>
-      <tr><td class="n">Language</td><td>Solidity and friends</td><td class="hl">Argent</td><td>Solidity and friends</td></tr>
-      <tr><td class="n">Runs existing ETH code</td><td>natively</td><td>no — different model</td><td>yes</td></tr>
-      <tr><td class="n">Maturity</td><td>since 2015</td><td class="hl">since june 2026</td><td>since 2025–2026</td></tr>
+      <tr><td class="n">Model</td><td>one shared virtual machine</td><td class="hl">state machines inside UTXOs</td><td>EVM, per rollup</td></tr>
+      <tr><td class="n">Where state lives</td><td>global account storage</td><td class="hl">partitioned across UTXOs</td><td>the L2's own state</td></tr>
+      <tr><td class="n">How work is split</td><td>transactions queue for the one machine</td><td class="hl">parallel lineages that merge when necessary</td><td>the rollup's own execution</td></tr>
+      <tr><td class="n">What a transaction proves</td><td>a call into a contract account</td><td class="hl">that the next output follows the rules</td><td>a call into an EVM contract</td></tr>
     </tbody>
   </table></div>
-  <p>Neither approach is free. Ethereum's global machine makes composability trivial and congestion structural. Kaspa's partitioned model keeps the base layer fast and parallel, but asks developers to learn a genuinely different way of building — which is why the tooling work around Argent matters as much as the protocol itself.</p>
+  <p>Neither approach is free. One shared machine makes composability easy and congestion structural. Kaspa's partitioned model keeps the base layer fast and parallel, but asks developers to learn a genuinely different way of building, which is why the tooling work around covenants matters as much as the protocol itself.</p>
 </div>
 
 <div class="band"><div class="wrap2">
@@ -251,17 +250,17 @@
   <div class="faq">
   <h2>Questions people ask</h2>
   <h3>Does Kaspa have smart contracts?</h3>
-  <p>Yes, in two layers. Since the Toccata hard fork on June 30, 2026, Kaspa's layer 1 runs native covenant contracts — programmable spending rules living inside UTXOs, written in the Argent language. In addition, two EVM layer 2s, Kasplex (since 2025) and Igra (since 2026), run full Ethereum-style smart contracts on top of Kaspa.</p>
+  <p>Yes, in two layers. Since the Toccata hard fork on June 30, 2026, Kaspa's layer 1 runs native covenant contracts, programmable spending rules living inside UTXOs, written in the Argent language. In addition, two EVM layer 2s, Kasplex (since 2025) and Igra (since 2026), run full EVM smart contracts on top of Kaspa.</p>
   <h3>What are Kaspa covenants?</h3>
-  <p>Covenants are programmable spending rules attached to individual UTXOs on Kaspa's layer 1. Each contract is a small self-contained state machine: the coin carries code plus state committed as a hash, and any spend must reveal and satisfy those rules. There is no single global virtual machine — state is partitioned across UTXOs, preserving layer 1's speed and parallelism.</p>
+  <p>Covenants are programmable spending rules attached to individual UTXOs on Kaspa's layer 1. Each contract is a small self-contained state machine. The coin carries code plus state committed as a hash, and any spend must reveal and satisfy those rules. There is no single global virtual machine. State is partitioned across UTXOs, preserving layer 1's speed and parallelism.</p>
   <h3>What is Argent on Kaspa?</h3>
   <p>Argent is the high-level language for writing covenant applications on Kaspa's layer 1. Developers define actors (a contract plus its state) and entries (callable operations), and the compiler generates the underlying script. Each app is a closed system under one covenant ID, and transactions can be created with a lightweight runtime without the compiler.</p>
   <h3>Are Kaspa smart contracts EVM compatible?</h3>
-  <p>Layer 1 covenants are not EVM compatible — they use a different, UTXO-native model. Full EVM compatibility lives on Kaspa's layer 2s: Kasplex, a zkEVM live since 2025, and Igra, live since 2026, which run Solidity contracts and standard Ethereum tooling.</p>
+  <p>Layer 1 covenants are not EVM compatible, they use a different, UTXO-native model. Full EVM compatibility lives on Kaspa's layer 2s, Kasplex, a zkEVM live since 2025, and Igra, live since 2026, which run Solidity contracts and standard EVM tooling.</p>
   <h3>Are smart contracts on Kaspa safe to use?</h3>
-  <p>The mechanisms are live on mainnet, but the first wave of applications launched in 2025–2026 and much of it is young, some of it anonymous or unaudited. Kaspa's own core contributors advise users to understand exactly what they are buying. Treat individual apps as carrying real contract risk until independently audited.</p>
+  <p>The mechanisms are live on mainnet, but the first wave of applications launched in 2025 and 2026 and much of it is young, some of it anonymous or unaudited. Kaspa's own core contributors advise users to understand exactly what they are buying. Treat individual apps as carrying real contract risk until independently audited.</p>
   <h3>What did the Toccata hard fork actually add?</h3>
-  <p>Toccata activated on Kaspa mainnet on June 30, 2026 at DAA score 474,165,565. It added covenant rules, covenant IDs, transaction introspection opcodes and zero-knowledge proof verification to layer 1. It did not add account-based smart contracts — Kaspa's own documentation states that Toccata does not turn Kaspa into an account-chain smart contract system. Full EVM contracts run on the layer 2s, Kasplex and Igra.</p>
+  <p>Toccata activated on Kaspa mainnet on June 30, 2026 at DAA score 474,165,565. It added covenant rules, covenant IDs, transaction introspection opcodes and zero-knowledge proof verification to layer 1. It did not add account-based smart contracts. Kaspa's own documentation states that Toccata does not turn Kaspa into an account-chain smart contract system. Full EVM contracts run on the layer 2s, Kasplex and Igra.</p>
   </div>
 <!--/AUTO:faq-->
   <div class="subscribe">
@@ -305,12 +304,12 @@
     {
       "@type": "Question",
       "name": "Does Kaspa have smart contracts?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes, in two layers. Since the Toccata hard fork on June 30, 2026, Kaspa's layer 1 runs native covenant contracts — programmable spending rules living inside UTXOs, written in the Argent language. In addition, two EVM layer 2s, Kasplex (since 2025) and Igra (since 2026), run full Ethereum-style smart contracts on top of Kaspa." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes, in two layers. Since the Toccata hard fork on June 30, 2026, Kaspa's layer 1 runs native covenant contracts, programmable spending rules living inside UTXOs, written in the Argent language. In addition, two EVM layer 2s, Kasplex (since 2025) and Igra (since 2026), run full EVM smart contracts on top of Kaspa." }
     },
     {
       "@type": "Question",
       "name": "What are Kaspa covenants?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Covenants are programmable spending rules attached to individual UTXOs on Kaspa's layer 1. Each contract is a small self-contained state machine: the coin carries code plus state committed as a hash, and any spend must reveal and satisfy those rules. There is no single global virtual machine — state is partitioned across UTXOs, preserving layer 1's speed and parallelism." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Covenants are programmable spending rules attached to individual UTXOs on Kaspa's layer 1. Each contract is a small self-contained state machine. The coin carries code plus state committed as a hash, and any spend must reveal and satisfy those rules. There is no single global virtual machine. State is partitioned across UTXOs, preserving layer 1's speed and parallelism." }
     },
     {
       "@type": "Question",
@@ -320,17 +319,17 @@
     {
       "@type": "Question",
       "name": "Are Kaspa smart contracts EVM compatible?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Layer 1 covenants are not EVM compatible — they use a different, UTXO-native model. Full EVM compatibility lives on Kaspa's layer 2s: Kasplex, a zkEVM live since 2025, and Igra, live since 2026, which run Solidity contracts and standard Ethereum tooling." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Layer 1 covenants are not EVM compatible, they use a different, UTXO-native model. Full EVM compatibility lives on Kaspa's layer 2s, Kasplex, a zkEVM live since 2025, and Igra, live since 2026, which run Solidity contracts and standard EVM tooling." }
     },
     {
       "@type": "Question",
       "name": "Are smart contracts on Kaspa safe to use?",
-      "acceptedAnswer": { "@type": "Answer", "text": "The mechanisms are live on mainnet, but the first wave of applications launched in 2025–2026 and much of it is young, some of it anonymous or unaudited. Kaspa's own core contributors advise users to understand exactly what they are buying. Treat individual apps as carrying real contract risk until independently audited." }
+      "acceptedAnswer": { "@type": "Answer", "text": "The mechanisms are live on mainnet, but the first wave of applications launched in 2025 and 2026 and much of it is young, some of it anonymous or unaudited. Kaspa's own core contributors advise users to understand exactly what they are buying. Treat individual apps as carrying real contract risk until independently audited." }
     },
     {
       "@type": "Question",
       "name": "What did the Toccata hard fork actually add?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Toccata activated on Kaspa mainnet on June 30, 2026 at DAA score 474,165,565. It added covenant rules, covenant IDs, transaction introspection opcodes and zero-knowledge proof verification to layer 1. It did not add account-based smart contracts \u2014 Kaspa's own documentation states that Toccata does not turn Kaspa into an account-chain smart contract system. Full EVM contracts run on the layer 2s, Kasplex and Igra." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Toccata activated on Kaspa mainnet on June 30, 2026 at DAA score 474,165,565. It added covenant rules, covenant IDs, transaction introspection opcodes and zero-knowledge proof verification to layer 1. It did not add account-based smart contracts. Kaspa's own documentation states that Toccata does not turn Kaspa into an account-chain smart contract system. Full EVM contracts run on the layer 2s, Kasplex and Igra." }
     }
   ]
 }

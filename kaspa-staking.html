@@ -182,7 +182,7 @@
 
   <div class="answer">
     <div class="lbl">The short answer</div>
-    <p><b>Kaspa blocks come only from mining, so there is nothing to stake.</b> New KAS is created by mining and only by mining. There are no validators to delegate to, no staking contract on layer 1, no masternodes and no governance token. Holding KAS in your own wallet earns exactly nothing, forever, by design.</p>
+    <p><b>Kaspa blocks come only from mining, so there is nothing to stake.</b> New KAS is created by mining and only by mining. kaspa.org describes the mainnet launch in November 2021 as <i>"a fair-launched proof-of-work network. No premine, insider allocation, or pre-sales. Every coin in circulation has been mined in the open from genesis onward."</i> (<a href="https://kaspa.org/features/" target="_blank" rel="noopener">kaspa.org</a>, read on 6 October 2026). There are no validators to delegate to, no staking contract on layer 1, no masternodes and no governance token. Holding KAS in your own wallet earns exactly nothing, forever, by design.</p>
     <p>Every service advertising a "Kaspa staking APY" is doing one of two things: taking custody of your coins and lending them out, or offering a DeFi product on a layer 2 where what you deposit is not native KAS. Neither is staking. Both carry a risk that holding KAS does not.</p>
   </div>
 
@@ -237,7 +237,7 @@
   <p>The same structure sits under most of the others: thecoinearn, stakingy, coinando and the rest of the first page are either the same custodial lending model or affiliate pages sending you to one. The tell is always identical. Ask <b>who pays the yield</b>. If the honest answer is a company rather than the protocol, it is not staking, whatever the button says.</p>
 
   <div class="tblwrap"><table>
-    <thead><tr><th></th><th class="r">Real staking, e.g. Ethereum</th><th class="r">"Kaspa staking" offers</th></tr></thead>
+    <thead><tr><th></th><th class="r">Staking in proof of stake networks</th><th class="r">"Kaspa staking" offers</th></tr></thead>
     <tbody>
       <tr><td class="n">Who pays you</td><td class="r">the protocol, in new coins</td><td class="r">a company, out of its own revenue</td></tr>
       <tr><td class="n">Who holds your coins</td><td class="r">a contract you can audit</td><td class="r">the company</td></tr>
@@ -253,7 +253,7 @@
 <div class="band"><div class="wrap2">
   <h2>The honest complication, layer 2</h2>
   <p>There is one place where the answer stops being a flat no, and the yield sites never explain it, so we will.</p>
-  <p>Kaspa now has layer 2 networks on top of it, chiefly <b>Kasplex</b> and <b>Igra</b>, which brought a mainnet EVM layer live in march 2026. Both are based rollups, meaning they hand transaction ordering back to the Kaspa layer 1 rather than running their own sequencer or validator set. That design detail matters here more than anywhere else: <b>a based rollup has no validators to stake against either.</b> The property that removes staking from Kaspa layer 1 carries straight up into its layer 2.</p>
+  <p>Kaspa now has layer 2 networks on top of it, chiefly <b>Kasplex</b> and <b>Igra</b>, which brought a mainnet EVM layer live in march 2026. Both are based rollups, meaning they hand transaction ordering back to the Kaspa layer 1 rather than running their own sequencer or validator set. That design detail matters here more than anywhere else: <b>a based rollup has no validators to stake against either.</b> The property that removes staking from Kaspa layer 1 carries straight up into its layer 2. Kasplex says so in its own documentation, <i>"Sequencing and data availability are managed by Kaspa's Layer 1, eliminating centralized sequencers."</i> (<a href="https://docs-kasplex.gitbook.io/l2-network" target="_blank" rel="noopener">docs-kasplex.gitbook.io</a>, read on 6 October 2026)</p>
   <p>What does exist on those layers is ordinary DeFi. On Igra, lending markets such as Kaskad let you supply assets and earn interest paid by borrowers, plus a separate incentive token. That is a real product, and it can be a reasonable thing to use with eyes open. It is simply not staking, and three differences decide whether you should care:</p>
   <ul>
     <li><b>It is not native KAS.</b> What you supply is iKAS, a wrapped representation minted when real KAS is locked in a bridge contract on layer 1. Your claim is on the bridge, not on the chain.</li>
