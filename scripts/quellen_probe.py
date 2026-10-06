@@ -922,7 +922,23 @@ def befehl_staking():
     return 0
 
 
+def befehl_igra():
+    """Nur lesend. Ben, 06.10.2026: steht bei Igra selbst, dass es ein based
+    rollup ohne eigenen sequencer ist? Die Startseiten sind reines Javascript,
+    deshalb Textquellen daneben. Plus coinunited ueber andere Pfade."""
+    print("abruf %s utc" % dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"))
+    for u in ("https://docs.igralabs.com/llms.txt", "https://docs.igralabs.com/llms-full.txt",
+              "https://igralabs.com/llms.txt", "https://docs.igralabs.com/sitemap.xml",
+              "https://github.com/IgraLabs", "https://raw.githubusercontent.com/IgraLabs/igra-docs/main/README.md",
+              "https://docs.kaskad.app/for-humans/architecture", "https://docs.kaskad.app/for-humans/incentives-and-emissions"):
+        _seite(u, r"based rollup|based|sequencer|validator|stak|rollup|incentive|emission|KSKD", hoechstens=6)
+    for u in ("https://www.coinunited.io/en/staking/kas", "https://coinunited.io/en/kaspa-staking"):
+        _seite(u, r"interest rate is determined|borrowing demand", hoechstens=3)
+    return 0
+
+
 BEFEHLE = {
+    "igra": befehl_igra,
     "staking": befehl_staking,
     "kron": befehl_kron,
     "hashrate": befehl_hashrate,
