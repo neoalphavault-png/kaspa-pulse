@@ -1,0 +1,54 @@
+name: seo pruefung
+
+# SEO-Ausbau, Ben 06.10.2026, Block E. Jeder PR, der eine Seite, die
+# Sitemap, das Menue oder die SEO-Skripte anfasst, bekommt hier:
+#   - die Tabelle "Seite | title alt -> neu | description alt -> neu | Laenge"
+#     in der Zusammenfassung des Laufs (gegen die Basis des PRs)
+#   - Laengen und Stil von Titel und Beschreibung (<=60, 140 bis 155,
+#     ohne Doppelpunkt und Gedankenstrich), nur fuer geaenderte Seiten
+#   - FAQPage-Schema: gueltiges JSON, jede Frage sichtbar auf der Seite
+#   - Affiliate: kein rel="sponsored" ausserhalb von kaspa-wallets.html, und
+#     die Hinweissaetze passen dazu, ob ein Link live ist
+#   - fo-verify-Tag in index.html unveraendert
+#   - Kopf, Stand-Zeile, Navigation und Sitemap auf dem Stand von
+#     scripts/seo_seiten.py (wer Seitentext aendert, laesst es vorher laufen)
+# Der Rich-Results-Test von Google laeuft nur gegen die Live-Adresse und
+# bleibt Handarbeit nach dem Deploy, siehe docs/seo-pruefung.md.
+
+on:
+  pull_request:
+    paths:
+      - "*.html"
+      - "sitemap.xml"
+      - "robots.txt"
+      - "capture.js"
+      - "data/seiten-stand.json"
+      - "scripts/seo_*.py"
+      - ".github/workflows/seo-pruefung.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: selbsttest
+        run: |
+          python3 scripts/seo_pruefung.py --selbsttest
+          python3 scripts/seo_seiten.py --selbsttest
+      - name: seiten gegen die basis des prs
+        env:
+          BASIS: ${{ github.base_ref || 'main' }}
+        run: |
+          python3 scripts/seo_pruefung.py --gegen "origin/$BASIS" --markdown | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: kopf, stand, navigation und sitemap auf stand
+        run: python3 scripts/seo_seiten.py --pruefen
