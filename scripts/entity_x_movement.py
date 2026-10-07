@@ -272,12 +272,6 @@ def main():
     print("  hinweis: der umlauf waechst laufend, der anteil gilt nur zu "
           "dieser abrufzeit")
 
-    print("\n[5] zweitquelle louka-txs.com")
-    print("  5a feste kandidatenpfade")
-    louka = probe_louka()
-    print("  5b route aus den skriptbuendeln suchen")
-    entdeckt = discover_louka()
-
     print("\n" + "=" * 74)
     print(f"fertig in {time.time() - t0:.1f} sekunden. nichts geschrieben, "
           f"nichts gepostet.")
@@ -338,9 +332,24 @@ def main():
             print(f"    von: {quellen}")
         if ziele:
             print(f"    an:  {ziele}")
-    print(f"louka feste pfade  "
-          f"{sum(1 for r in louka if r.get('status') == 200)} von {len(louka)} mit 200")
-    print(f"louka kandidaten   {len(entdeckt)}")
+
+    # Zweitquelle ganz am Ende, damit sie im Log nicht untergeht.
+    print("\n" + "=" * 74)
+    print("[5] ZWEITQUELLE louka-txs.com")
+    print("=" * 74)
+    print("  5a feste kandidatenpfade")
+    louka = probe_louka()
+    print("\n  5b route aus den skriptbuendeln suchen")
+    entdeckt = discover_louka()
+    print("\n  ERGEBNIS zweitquelle")
+    print(f"    feste pfade mit 200: "
+          f"{sum(1 for r in louka if r.get('status') == 200)} von {len(louka)}")
+    print(f"    json-antworten:      "
+          f"{sum(1 for r in louka if r.get('json_keys'))}")
+    print(f"    api-kandidaten:      {len(entdeckt)}")
+    if not any(r.get("json_keys") for r in louka) and not entdeckt:
+        print("    KEINE maschinenlesbare route gefunden. Der Vorgang laesst "
+              "sich hier nicht gegenrechnen.")
 
 
 if __name__ == "__main__":
