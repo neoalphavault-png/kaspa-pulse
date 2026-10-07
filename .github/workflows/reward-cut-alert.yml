@@ -22,6 +22,12 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
+      # Selbsttest zuerst. Prueft die Rundungsregel fuer Differenzen und
+      # dass in veroeffentlichten Texten keine Uhrzeit steht, gegen die
+      # Zahlen des Cuts vom 05.10.2026. Faellt er, wird nichts gepostet.
+      - name: selbsttest
+        run: python3 scripts/reward_cut_alert.py --selbsttest
+
       - name: watch the emission schedule
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
