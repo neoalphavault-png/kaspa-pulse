@@ -1,0 +1,47 @@
+# Kaspa Pulse - unabhaengiger zaehler fuer Testnet-10 (Ben, 07.10.2026)
+#
+# Liegt bewusst NUR auf dem Branch messung/tn10-zaehler. Nicht gemergt.
+# push-getriggert wie beim Entity-X-Audit: ein per API angestossener
+# workflow_dispatch findet nur Workflows auf dem Default-Branch, ein
+# push-Trigger laeuft aus dem Branch heraus.
+#
+# Nur lesend. Der Job sendet nichts, hat keine Wallet, keine Schluessel,
+# keine Secrets, schreibt nichts ins Repo und postet nichts. Ergebnis im Log
+# und als Artefakt. Dauer des Fensters in Sekunden in messung/tn10/dauer.txt.
+
+name: tn10 zaehler
+
+on:
+  push:
+    branches:
+      - messung/tn10-zaehler
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tn10-zaehler
+  cancel-in-progress: false
+
+jobs:
+  zaehlen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: sdk, version und pruefsumme fest
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+      - name: selbsttest
+        run: python3 scripts/tn10_zaehler.py --selbsttest
+      - name: zaehlen
+        run: python3 scripts/tn10_zaehler.py --dauer "$(cat messung/tn10/dauer.txt)" --out out/tn10
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tn10-zaehler
+          path: out/
+          if-no-files-found: ignore
+          retention-days: 30
