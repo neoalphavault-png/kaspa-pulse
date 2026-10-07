@@ -20,12 +20,19 @@ beider Rohdateien gegen die Zeile geprueft.
 
 WER RAUSFAELLT
 Die Zuordnung Label -> Kategorie steht in data/label-kategorien.json, von
-Hand gepflegt, jede Zeile mit Datum. Entfernt werden boerse, pool, bruecke.
+Hand gepflegt, jede Zeile mit Datum. Entfernt werden boerse, pool, miner
+(Ben, 07.10.2026: zaehlt wie ein pool) und bruecke.
 Alles andere bleibt drin, auch Adressen ohne Label. Ein Label, das nicht in
 der Tabelle steht, wird nicht geraten: es bleibt drin und erzeugt eine
 Warnung. Ein Label, das einen Vorwurf enthaelt, wird nie ausgegeben, auch
 nicht in einer Warnung; es steht in der Tabelle nur als sha256 und zaehlt
-zu sonstige.
+zu sonstige. Seit dem 07.10.2026 legt scripts/richlist_log.py solche
+Labels schon maskiert ab ("sha256:<hash>"), sie werden hier ueber den Hash
+gefunden.
+
+Labels ausser Entity X werden nie oeffentlich genannt (Ben, 07.10.2026).
+Die Warnungen im Log nennen deshalb nur den Anfang des sha256 eines neuen
+Labels. Den Klartext zeigt nur --zeige-unbekannt, lokal, nicht im Workflow.
 
     kohorte                die 100 groessten verbleibenden adressen, Entity X eingeschlossen
     anteil_pct             kohorte / umlauf
@@ -48,6 +55,7 @@ Fuer Texte: "the address the explorer calls Entity X", und immer der Satz
     python3 scripts/kohorte.py --git REV       messpunkte aus einem alten git-stand nachrechnen, nur ausgeben
     python3 scripts/kohorte.py --selbsttest    ohne netz
     python3 scripts/kohorte.py --live          einheitenprobe gegen den live-kontostand von Entity X (netz)
+    python3 scripts/kohorte.py --zeige-unbekannt   neue labels im klartext, nur lokal
 """
 import argparse
 import gzip
@@ -64,7 +72,7 @@ LOG = "data/richlist-log.json"
 TABELLE = "data/label-kategorien.json"
 AUSGABE = "data/kohorte.json"
 GROESSE = 100
-RAUS = ("boerse", "pool", "bruecke")
+RAUS = ("boerse", "pool", "miner", "bruecke")
 KATEGORIEN = RAUS + ("entity_x", "sonstige", "offen")
 EX_LABEL = "Entity X"
 SOMPI = 100_000_000
@@ -115,6 +123,9 @@ def kategorie(label, tabelle):
     klar, hashes = tabelle
     if label in klar:
         return klar[label], True
+    if label.startswith("sha256:"):
+        # schon von richlist_log.py maskiert, also ein label mit vorwurf
+        return hashes.get(label[7:], "sonstige"), label[7:] in hashes
     h = sha(label.encode("utf-8"))
     if h in hashes:
         return hashes[h], True
@@ -123,16 +134,25 @@ def kategorie(label, tabelle):
     return None, False
 
 
+ZEIGE_KLARTEXT = False
+
+
 def zeige_label(label):
-    """Fuer Warnungen. Ein Label mit Vorwurf erscheint nie, auch nicht im Log."""
-    return "[label mit vorwurf, nicht ausgegeben]" if VORWURF.search(label) else repr(label)
+    """Fuer Warnungen. Kein label erscheint im log, nur der anfang seines
+    sha256. Ein label mit vorwurf erscheint nie, auch nicht mit --zeige-unbekannt."""
+    if VORWURF.search(label) or label.startswith("sha256:"):
+        return "[label mit vorwurf, nicht ausgegeben]"
+    if ZEIGE_KLARTEXT:
+        return repr(label)
+    return "sha256 %s…" % sha(label.encode("utf-8"))[:12]
 
 
 def lade_messpunkt(zeile, rev=None):
     roh = zeile["roh"]
     top_b = gzip.decompress(lies_bytes(roh["top"], rev))
     names_b = lies_bytes(roh["names"], rev)
-    if sha(top_b) != roh["top_sha256"] or sha(names_b) != roh["names_sha256"]:
+    names_soll = roh.get("names_sha256_datei") or roh.get("names_sha256")
+    if sha(top_b) != roh["top_sha256"] or sha(names_b) != names_soll:
         raise Abbruch("%s: sha256 der rohdaten passt nicht zur zeile im log" % zeile["datum"])
     top = json.loads(top_b)
     top = top[0] if isinstance(top, list) else top
@@ -308,22 +328,33 @@ def selbsttest():
         {"label": "Bourse", "kategorie": "boerse", "datum": "x"},
         {"label": "Pool A", "kategorie": "pool", "datum": "x"},
         {"label": "Bridge", "kategorie": "bruecke", "datum": "x"},
+        {"label": "Miner M", "kategorie": "miner", "datum": "x"},
         {"label": "Fund", "kategorie": "sonstige", "datum": "x"}],
         "labels_als_hash": [{"label_sha256": sha("Bad Scam 1".encode()), "kategorie": "sonstige", "datum": "x"}]})
-    ranking = [{"rank": i, "address": "a%d" % i, "amount": 1000 - i} for i in range(10)]
-    names = {"a0": "Entity X", "a1": "Bourse", "a2": "Bad Scam 1", "a3": "Pool A", "a4": "Bridge", "a5": "Fund",
-             "a6": "Other Laundering", "a7": "Neu und unbekannt", "a9": "Spaeter Neu"}
+    ranking = [{"rank": i, "address": "a%d" % i, "amount": 1000 - i} for i in range(12)]
+    names = {"a0": "Entity X", "a1": "Bourse", "a2": "sha256:" + sha("Bad Scam 1".encode()), "a3": "Pool A",
+             "a4": "Bridge", "a5": "Fund", "a6": "Other Laundering", "a7": "Neu und unbekannt",
+             "a8": "Miner M", "a11": "Spaeter Neu"}
     r, w, ex = rechne(ranking, names, 10_000 * SOMPI, tab, groesse=5)
     # raus: a1, a3, a4. kohorte: a0 a2 a5 a6 a7
     ok("kohorte ueberspringt boerse, pool, bruecke und fuellt auf",
        r["kohorte_kas"] == 1000 + 998 + 995 + 994 + 993 and r["letzter_rohrang_der_kohorte"] == 7)
+    r6, _, _ = rechne(ranking, names, 10_000 * SOMPI, tab, groesse=6)
+    # kohorte aus 6: a0 a2 a5 a6 a7, dann a8 (miner) uebersprungen, a9
+    ok("miner faellt raus wie ein pool", r6["letzter_rohrang_der_kohorte"] == 9
+       and r6["kohorte_kas"] == 1000 + 998 + 995 + 994 + 993 + 991)
     ok("Entity X steht in der kohorte und getrennt", ex == "a0" and r["entity_x_kas"] == 1000)
     ok("anteile mit und ohne Entity X", r["anteil_pct"] == round(4980 / 10_000 * 100, 4)
        and r["anteil_ohne_ex_pct"] == round(3980 / 10_000 * 100, 4) and r["entity_x_pct"] == 10.0)
-    ok("ausgeschlossene je kategorie in der roh-top", r["ausgeschlossen_in_roh_top100"] == {"boerse": 1, "pool": 1, "bruecke": 1})
-    ok("unbekanntes label warnt und bleibt drin", any("Neu und unbekannt" in x for x in w)
+    ok("ausgeschlossene je kategorie in der roh-top",
+       r["ausgeschlossen_in_roh_top100"] == {"boerse": 1, "pool": 1, "miner": 0, "bruecke": 1})
+    kenn = sha("Neu und unbekannt".encode())[:12]
+    ok("unbekanntes label warnt und bleibt drin", any(kenn in x for x in w)
        and r["kohorte_nach_label"]["unbekannt"] == 1)
-    ok("unbekanntes label warnt auch ausserhalb der kohorte", any("Spaeter Neu" in x for x in w))
+    ok("unbekanntes label warnt auch ausserhalb der kohorte", any(sha("Spaeter Neu".encode())[:12] in x for x in w))
+    ok("warnung nennt kein label im klartext", not any("Neu und unbekannt" in x or "Spaeter Neu" in x for x in w))
+    ok("maskiertes label wird ueber den hash erkannt", kategorie("sha256:" + sha("Bad Scam 1".encode()), tab)
+       == ("sonstige", True))
     alles = json.dumps(r) + "\n".join(w)
     ok("label mit vorwurf erscheint nie, auch nicht in der warnung", not VORWURF.search(alles)
        and any("nicht ausgegeben" in x for x in w))
@@ -384,7 +415,11 @@ def main(argv=None):
     ap.add_argument("--pruefen", action="store_true")
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--git", metavar="REV")
+    ap.add_argument("--zeige-unbekannt", action="store_true", help="neue labels im klartext, nur lokal")
     a = ap.parse_args(argv)
+    if a.zeige_unbekannt:
+        global ZEIGE_KLARTEXT
+        ZEIGE_KLARTEXT = True
     try:
         if a.selbsttest:
             return selbsttest()
