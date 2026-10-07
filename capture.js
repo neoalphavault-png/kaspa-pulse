@@ -38,6 +38,7 @@
     ]},
     { t: "tools", k: [
       ["wallets", "/kaspa-wallets.html"],
+      ["web wallet safety", "/kaspa-web-wallet-safe.html"],
       ["data sources", "/kaspa-data-sources.html"]
     ]}
   ];
@@ -211,12 +212,18 @@
     + "#kpcForm{flex-direction:column;margin-top:11px;}"
     + "#kpcX{top:8px;right:10px;}"
     + "}"
-    + "@media(max-width:480px){#kpcBtn{right:10px;bottom:10px;padding:10px 14px;font-size:11px;}}";
+    + "@media(max-width:480px){#kpcBtn{right:10px;bottom:10px;padding:10px 14px;font-size:11px;}}"
+    // der knopf bleibt sichtbar, darf aber nichts verdecken (Ben, 06.10.2026):
+    // am seitenende ein leerer streifen in hoehe des knopfs plus abstand
+    // plus rand, damit sich die letzte zeile ueber den knopf schieben laesst.
+    + "#kpcPad{height:76px;}"
+    + "@media(max-width:480px){#kpcPad{height:64px;}}";
   var st = document.createElement("style");
   st.textContent = css;
   document.head.appendChild(st);
   var wrap = document.createElement("div");
   wrap.innerHTML = ""
+    + "<div id='kpcPad' aria-hidden='true'></div>"
     + "<button id='kpcBtn' type='button'>free cheat sheet</button>"
     + "<div id='kpcOv' role='dialog' aria-modal='true' aria-label='newsletter'>"
     + "<div id='kpcCard'>"
