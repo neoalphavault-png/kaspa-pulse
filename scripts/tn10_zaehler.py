@@ -668,11 +668,12 @@ async def lauf(bis_s, out, spur, teil, plan_von, plan_bis):
             dag = await k.rpc.get_block_dag_info()
             k.z.form.setdefault("get_block_dag_info", schluessel(dag))
             s.update({"daa": zahl(feld(dag, "virtualDaaScore")), "lesung_ms": int(time.time() * 1000),
-                      "schwierigkeit": feld(dag, "difficulty")})
+                      "schwierigkeit": round(feld(dag, "difficulty"), 1) if isinstance(feld(dag, "difficulty"), float)
+                      else feld(dag, "difficulty")})
         except Exception as exc:                         # noqa: BLE001
             meldungen.append("%s get_block_dag_info: %s" % (k.name, type(exc).__name__))
         letzte = max((b["empfangen"] for b in list(k.z.bloecke.values())[-50:]), default=None)
-        s["stille_ms"] = jetzt_ms - letzte if letzte else ""
+        s["stille_ms"] = max(0, int(time.time() * 1000) - letzte) if letzte else ""
         k.status[m] = s
 
     async def minute(k_haupt):
@@ -684,7 +685,8 @@ async def lauf(bis_s, out, spur, teil, plan_von, plan_bis):
             est = feld(fe, "estimate") or fe
             nb = feld(est, "normalBuckets") or []
             pb = feld(est, "priorityBucket") or {}
-            feerate.append((jetzt_ms, feld(nb[0], "feerate") if nb else None, feld(pb, "feerate")))
+            rund = lambda x: round(x, 2) if isinstance(x, float) else x      # noqa: E731
+            feerate.append((jetzt_ms, rund(feld(nb[0], "feerate")) if nb else None, rund(feld(pb, "feerate"))))
         except Exception as exc:                         # noqa: BLE001
             meldungen.append("fee_estimate: %s" % type(exc).__name__)
         # stichprobe: eine angenommene tx, die schon mindestens 30 s alt ist

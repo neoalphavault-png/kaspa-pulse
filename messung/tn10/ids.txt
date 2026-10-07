@@ -1,2 +1,10 @@
 # Tx-IDs fuer den Pruefmodus, eine je Zeile, # leitet einen Kommentar ein.
 # Eine Aenderung an dieser Datei startet .github/workflows/tn10-pruefung.yml.
+# probe 07.10., stichproben-tx aus teil b1 des laufs 37676900822
+f56f9d838901f4de455e353a2bb8d1133caec8258b88dea471b4cbea5086505d
+fc463d389f5a3cfdfd7bffb548b93e6b1776991d9f657854ba8583991c7ff6f9
+ede920be5ee6549c85570c574b8cad06d0ce6c09df3722a05350e5bef1d9622f
+cdfa1657beb5f3d33cfedb422d74143267ab061dad082e31cf5e03d2f959f182
+f3ddf61f375f4ed17e33c860ec3cf1e0ba11bd5d128bb63506372f1a58da4a2a
+# erfundene id, muss als nicht gefunden kommen
+0000000000000000000000000000000000000000000000000000000000000001
