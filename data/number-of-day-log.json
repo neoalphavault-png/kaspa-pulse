@@ -1,9 +1,5 @@
 [
   {
-    "date": "2026-08-05",
-    "candidate": "cut_today"
-  },
-  {
     "date": "2026-08-06",
     "candidate": "mined_left"
   },
@@ -497,5 +493,14 @@
     "mined_pct": 96.644595,
     "price_kas": 0.042889,
     "whale_kas": 1524445707.737062
+  },
+  {
+    "date": "2026-10-07",
+    "candidate": "mined_left",
+    "hashrate": 336.312563,
+    "tvl_total": 1374039.514066,
+    "mined_pct": 96.650797,
+    "price_kas": 0.041605,
+    "whale_kas": 1527589465.963703
   }
 ]
