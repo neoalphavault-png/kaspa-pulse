@@ -272,6 +272,12 @@ def main():
     print("  hinweis: der umlauf waechst laufend, der anteil gilt nur zu "
           "dieser abrufzeit")
 
+    print("\n[5] zweitquelle louka-txs.com")
+    print("  5a feste kandidatenpfade")
+    louka = probe_louka()
+    print("\n  5b route aus den skriptbuendeln suchen")
+    entdeckt = discover_louka()
+
     print("\n" + "=" * 74)
     print(f"fertig in {time.time() - t0:.1f} sekunden. nichts geschrieben, "
           f"nichts gepostet.")
@@ -333,15 +339,11 @@ def main():
         if ziele:
             print(f"    an:  {ziele}")
 
-    # Zweitquelle ganz am Ende, damit sie im Log nicht untergeht.
+    # Ergebnis der Zweitquelle noch einmal ganz am Ende, damit es im Log
+    # nicht untergeht. Kein erneuter Abruf, nur die Auswertung von oben.
     print("\n" + "=" * 74)
-    print("[5] ZWEITQUELLE louka-txs.com")
+    print("ERGEBNIS ZWEITQUELLE louka-txs.com")
     print("=" * 74)
-    print("  5a feste kandidatenpfade")
-    louka = probe_louka()
-    print("\n  5b route aus den skriptbuendeln suchen")
-    entdeckt = discover_louka()
-    print("\n  ERGEBNIS zweitquelle")
     print(f"    feste pfade mit 200: "
           f"{sum(1 for r in louka if r.get('status') == 200)} von {len(louka)}")
     print(f"    json-antworten:      "
