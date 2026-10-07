@@ -45,6 +45,11 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 BASIS = "https://kaspapulse.com/"
 BILD = BASIS + "og-card.png"
+BILD_ALT = "Kaspa Pulse, on-chain numbers for Kaspa"
+# seiten mit eigenem share-bild (Ben, 07.10.2026): datei, alt-text
+BILDER = {
+    "for-builders.html": ("og-builders.png", "Find out what breaks on Kaspa before your users do. Kaspa Pulse"),
+}
 STAND = "data/seiten-stand.json"
 AUSGENOMMEN = {"utm-test.html"}
 MONATE = ["January", "February", "March", "April", "May", "June", "July", "August", "September",
@@ -109,6 +114,8 @@ def attr(x):
 
 def kopf_block(s, datei, iso):
     t, d, u = titel(s), beschreibung(s), url(datei)
+    bild, alt = BILDER.get(datei, (None, BILD_ALT))
+    bild = BASIS + bild if bild else BILD
     z = ['<link rel="canonical" href="%s">' % u]
     if not noindex(s):
         z += ['<meta property="og:type" content="website">',
@@ -116,14 +123,15 @@ def kopf_block(s, datei, iso):
               '<meta property="og:title" content="%s">' % attr(t),
               '<meta property="og:description" content="%s">' % attr(d),
               '<meta property="og:url" content="%s">' % u,
-              '<meta property="og:image" content="%s">' % BILD,
+              '<meta property="og:image" content="%s">' % bild,
               '<meta property="og:image:width" content="1200">',
               '<meta property="og:image:height" content="630">',
-              '<meta property="og:image:alt" content="Kaspa Pulse, on-chain numbers for Kaspa">',
+              '<meta property="og:image:alt" content="%s">' % attr(alt),
               '<meta name="twitter:card" content="summary_large_image">',
               '<meta name="twitter:title" content="%s">' % attr(t),
               '<meta name="twitter:description" content="%s">' % attr(d),
-              '<meta name="twitter:image" content="%s">' % BILD]
+              '<meta name="twitter:image" content="%s">' % bild,
+              '<meta name="twitter:image:alt" content="%s">' % attr(alt)]
         if iso:
             ld = {"@context": "https://schema.org", "@type": "WebPage", "name": t, "description": d, "url": u,
                   "inLanguage": "en", "dateModified": iso,
@@ -302,6 +310,8 @@ def selbsttest():
     ok("beschreibung nicht doppelt maskiert", 'og:description" content="A &amp; B."' in k)
     ok("schema mit dateModified", '"dateModified": "2026-10-06"' in k)
     ok("kopf wiederholbar", kopf(k, "x.html", "2026-10-06") == k)
+    ok("eigenes share-bild je seite", 'og-builders.png' in kopf(n, "for-builders.html", "2026-10-07")
+       and 'og-card.png' in k)
     ok("index hat die wurzel als url", 'href="https://kaspapulse.com/">' in kopf(n, "index.html", "2026-10-06"))
     ni = k.replace("<head>", '<head><meta name="robots" content="noindex">')
     ok("noindex, nur canonical", "og:title" not in kopf(ni, "x.html", None) and 'rel="canonical"' in kopf(ni, "x.html", None))
