@@ -1,0 +1,11 @@
+{
+  "zweck": "anteil der 100 groessten adressen am umlauf, ohne gelabelte boersen, pools und bruecken. Entity X bleibt drin und steht getrennt da. noch nicht veroeffentlicht, erst ab dem weekly vom 19.10.2026.",
+  "einschraenkung": "only labelled exchanges, pools and bridges are removed; unlabelled ones stay in.",
+  "entity_x_im_text": "the address the explorer calls Entity X",
+  "quelle": "data/richlist-log.json und data/richlist/, api.kaspa.org /addresses/top und /addresses/names, umlauf aus /info/coinsupply desselben laufs",
+  "rechnung": "scripts/kohorte.py, labels nach data/label-kategorien.json",
+  "messpunkte": [
+    {"anteil_ohne_ex_pct": 13.58, "anteil_pct": 19.08, "ausgeschlossen_in_roh_top100": {"boerse": 14, "bruecke": 2, "pool": 1}, "datum": "2026-09-27", "entity_x_pct": 5.5, "genau": {"anteil_ohne_ex_pct": 13.5777, "anteil_pct": 19.0818, "circ_supply_kas": 27724105701.44, "entity_x_kas": 1525975596, "entity_x_pct": 5.5041, "kohorte_kas": 5290270376}, "kohorte_nach_label": {"offen": 1, "ohne_label": 96, "sonstige": 2, "unbekannt": 0}, "letzter_rohrang_der_kohorte": 116, "schnappschuss_utc": "2026-09-27T08:31:47+00:00", "umlauf_abgerufen_utc": "2026-09-27T09:18:06+00:00", "veraenderung_pp": null, "woche": "2026-W39"},
+    {"anteil_ohne_ex_pct": 13.34, "anteil_pct": 18.84, "ausgeschlossen_in_roh_top100": {"boerse": 14, "bruecke": 2, "pool": 1}, "datum": "2026-10-04", "entity_x_pct": 5.5, "genau": {"anteil_ohne_ex_pct": 13.3402, "anteil_pct": 18.836, "circ_supply_kas": 27737348924.92, "entity_x_kas": 1524397553, "entity_x_pct": 5.4958, "kohorte_kas": 5224603150}, "kohorte_nach_label": {"offen": 1, "ohne_label": 96, "sonstige": 2, "unbekannt": 0}, "letzter_rohrang_der_kohorte": 117, "schnappschuss_utc": "2026-10-04T08:51:36+00:00", "umlauf_abgerufen_utc": "2026-10-04T09:50:53+00:00", "veraenderung_pp": {"anteil_ohne_ex_pct": {"bis": 13.34, "pp": -0.24, "von": 13.58}, "anteil_pct": {"bis": 18.84, "pp": -0.24, "von": 19.08}, "entity_x_pct": {"bis": 5.5, "pp": 0.0, "von": 5.5}}, "woche": "2026-W40"}
+  ]
+}
