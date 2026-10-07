@@ -10,6 +10,8 @@ Zahl traegt ihr Datum und ihre Quelle.
 
   supply-antwort   kaspa-supply.html           aus data/weekly.json (api.kaspa.org/info/coinsupply)
   covenant-zahl    kaspa-smart-contracts.html  aus data/covenants-log.json (Kaspalytics)
+  hashrate         kaspa-hashrate.html         live aus api.kaspa.org/info/hashrate und
+                                               /info/hashrate/history (braucht Netz)
 
 Faellt eine Quelle aus oder fehlt ein Wert, bleibt der alte Satz stehen.
 Lieber ein Satz mit altem Datum als einer ohne Datum.
@@ -21,6 +23,7 @@ import datetime as dt
 import json
 import re
 import sys
+import urllib.request
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -70,6 +73,55 @@ def covenant_satz(log):
             % (ganz(e["utxo_count"]), datum(e["datum"])))
 
 
+REST = "https://api.kaspa.org"
+UA = "kaspa-pulse-bot (+https://kaspapulse.com)"
+
+
+def hole(pfad):
+    req = urllib.request.Request(REST + pfad, headers={"User-Agent": UA, "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=40) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+def hashrate_daten(jetzt=None):
+    """Aktueller Wert (TH/s) und Tagesmittel aus der Historie (kH/s -> PH/s)."""
+    jetzt = jetzt or dt.datetime.now(dt.timezone.utc)
+    akt = hole("/info/hashrate?stringOnly=false")
+    roh = hole("/info/hashrate/history")
+    je = {}
+    for x in roh:
+        t = dt.datetime.fromtimestamp(x["timestamp"] / 1000, dt.timezone.utc)
+        je.setdefault(t.date(), []).append(x["hashrate_kh"] / 1e12)
+    return {"jetzt": jetzt, "ph": float(akt["hashrate"]) / 1e3,
+            "tage": {d: sum(v) / len(v) for d, v in je.items()}}
+
+
+def hashrate_html(d, wochen=8):
+    if not d or not d.get("tage"):
+        return None
+    jetzt, tage = d["jetzt"], d["tage"]
+    heute = jetzt.date()
+    fertig = {t: v for t, v in tage.items() if t < heute}
+    if not fertig:
+        return None
+    hoch_tag = max(fertig, key=lambda t: fertig[t])
+    montag = heute - dt.timedelta(days=heute.weekday())
+    zeilen = []
+    for k in range(wochen, 0, -1):
+        a = montag - dt.timedelta(weeks=k)
+        werte = [fertig[a + dt.timedelta(days=i)] for i in range(7) if a + dt.timedelta(days=i) in fertig]
+        if len(werte) == 7:
+            zeilen.append("<tr><td>week of %s</td><td>%.1f PH/s</td></tr>" % (datum(a.isoformat()), sum(werte) / 7))
+    satz = ("Kaspa's hashrate was <b>%.1f PH/s</b> on %s at %s UTC, according to api.kaspa.org. The highest daily "
+            "average on record is <b>%.1f PH/s</b>, on %s." % (d["ph"], datum(jetzt.isoformat()),
+                                                               jetzt.strftime("%H:%M"), fertig[hoch_tag],
+                                                               datum(hoch_tag.isoformat())))
+    tabelle = ("<table><thead><tr><th>Week, Monday to Sunday</th><th>Average hashrate</th></tr></thead><tbody>%s"
+               "</tbody></table><p class=\"note\">Weekly averages of the daily means in api.kaspa.org's hashrate "
+               "history, read on %s.</p>" % ("".join(zeilen), datum(jetzt.isoformat())))
+    return {"hashrate-satz": satz, "hashrate-wochen": tabelle}
+
+
 AUFGABEN = [
     ("kaspa-supply.html", "supply-antwort", lambda: supply_satz(lies_json("data/weekly.json"))),
     ("kaspa-smart-contracts.html", "covenant-zahl", lambda: covenant_satz(lies_json("data/covenants-log.json"))),
@@ -87,7 +139,16 @@ def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     if argv[:1] == ["--selbsttest"]:
         return selbsttest()
-    for datei, name, quelle in AUFGABEN:
+    aufgaben = list(AUFGABEN)
+    if "--ohne-netz" not in argv:
+        try:
+            hr = hashrate_html(hashrate_daten())
+        except Exception as exc:                    # noqa: BLE001
+            print("kaspa-hashrate.html, api.kaspa.org nicht erreichbar (%s), alte saetze bleiben" % type(exc).__name__)
+            hr = None
+        for name in ("hashrate-satz", "hashrate-wochen"):
+            aufgaben.append(("kaspa-hashrate.html", name, (lambda n=name: hr[n] if hr else None)))
+    for datei, name, quelle in aufgaben:
         p = REPO / datei
         s = p.read_text(encoding="utf-8")
         satz = quelle()
@@ -120,6 +181,14 @@ def selbsttest():
                     {"datum": "2026-10-05", "utxo_count": None}]}
     ok("covenant-satz nimmt den letzten tag mit bestand", "13,760 covenant outputs" in covenant_satz(log)
        and "4 October 2026" in covenant_satz(log))
+    tage = {dt.date(2026, 8, 3) + dt.timedelta(days=i): 300.0 + (i % 7) for i in range(63)}
+    tage[dt.date(2026, 8, 20)] = 512.34
+    h = hashrate_html({"jetzt": dt.datetime(2026, 10, 6, 11, 5, tzinfo=dt.timezone.utc), "ph": 345.67, "tage": tage})
+    ok("hashrate-satz mit zeit und allzeithoch", h["hashrate-satz"].startswith(
+        "Kaspa's hashrate was <b>345.7 PH/s</b> on 6 October 2026 at 11:05 UTC")
+       and "<b>512.3 PH/s</b>, on 20 August 2026" in h["hashrate-satz"])
+    ok("acht volle wochen, die laufende nicht", h["hashrate-wochen"].count("<tr><td>week of") == 8
+       and "week of 28 September 2026" in h["hashrate-wochen"] and "5 October" not in h["hashrate-wochen"])
     ok("ersetzen zwischen marken", ersetze("a<!--AUTO:x-->alt<!--/AUTO:x-->b", "x", "neu")
        == "a<!--AUTO:x-->neu<!--/AUTO:x-->b")
     print("%d fehler" % len(f))

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kaspalytics and Every Other Kaspa Data Source, Compared</title>
-<meta name="description" content="Kaspalytics, kaspa.stream, kas.fyi, the Kaspa API and the rest. What each one is best at, and why two of them can show a different TPS.">
+<title>Kaspalytics, Kaspa Explorers and APIs Compared Side by Side</title>
+<meta name="description" content="Kaspalytics, the Kaspa explorers and the public APIs side by side. Which source answers which question and why two of them can show different numbers.">
 <link rel="canonical" href="https://kaspapulse.com/kaspa-data-sources.html">
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
@@ -177,6 +177,23 @@
   <p>We are a source on this list, so the same standard applies to us. The weekly figures on the dashboard come from Kaspalytics for supply aging, exchange holdings, active addresses and accepted transaction counts, from api.kaspa.org where we count something ourselves transaction by transaction, and from DeFiLlama for layer 2 value. Hash rate and difficulty are cross-checked against more than one source before they go out.</p>
   <p><b>Where we cannot verify a number, we print a dash instead of a guess.</b> That is why the dashboard occasionally shows blanks while other sites show a figure for the same tile. A dash means we could not stand behind it that week, and we would rather be visibly incomplete than quietly wrong. When we do make a claim about what a wallet did, we counted every transaction ourselves and we report the movement, never the motive.</p>
   <div class="note">The weekly reading lands every Monday on <a href="/">the Kaspa Pulse dashboard</a>, with the definition printed next to each number. Related reading: <a href="/kaspa-supply.html">Kaspa's supply, explained</a> and <a href="/kaspa-hashrate.html">what hash rate actually tells you</a>.</div>
+<!--AUTO:faq-->
+  <div class="faq">
+  <h2>Questions people ask</h2>
+  <h3>What is Kaspalytics?</h3>
+  <p>Kaspalytics is a free on-chain analytics site for Kaspa. It publishes chart sets for mining, meaning hash rate and difficulty, for transactions, meaning counts, active addresses, fees, script types and covenant activity, and for supply, meaning exchange holdings, supply aging and HODL waves, address balance buckets and realized price. It needs no account. Network and fee views refresh within seconds, while supply aging and address balance views update about once a day around 00:00 UTC.</p>
+  <h3>Is there a free Kaspa API?</h3>
+  <p>Yes. The REST API behind the public Kaspa explorer is available at api.kaspa.org with a documentation page you can click through, and it needs no key. Equivalent endpoints exist for the testnets. Separately, kas.fyi runs a developer platform at docs.kas.fyi that uses API keys and paid plans for higher volume access.</p>
+  <h3>Why do two Kaspa sites show a different transactions per second?</h3>
+  <p>Because they measure different things. Kaspa produces roughly ten blocks per second in parallel, and every block carries a coinbase transaction, so a live counter showing raw flow will read far higher than a figure built from accepted transactions. Kaspa Pulse divides the accepted transactions of a full day, standard plus coinbase, by 86,400 seconds, which counts each transaction once and averages across the whole day. A live per second reading and a per day accepted average are both valid, and neither is an error.</p>
+  <h3>Which Kaspa explorer should I use?</h3>
+  <p>For a single transaction, address or block, explorer.kaspa.org is the straightforward choice and covers the testnets too. For watching blocks and transactions arrive in real time, along with miner and node metrics, kaspa.stream is built for that view. For KRC-20 tokens, kas.fyi has a page per token.</p>
+  <h3>Where does Kaspa Pulse get its data?</h3>
+  <p>Supply aging, exchange holdings, active addresses and accepted transaction counts come from Kaspalytics. Anything counted transaction by transaction, such as the movement out of the largest wallet on the chain, is counted from api.kaspa.org directly. Layer 2 value comes from DeFiLlama. Hash rate and difficulty are cross checked against more than one source. Where a number cannot be verified, the dashboard prints a dash instead of an estimate.</p>
+  <h3>Where can I see how much Kaspa sits on exchanges?</h3>
+  <p>Kaspalytics publishes an exchange holdings chart, which sums the balances of addresses identified as belonging to exchanges. Read it as a movement signal rather than a certainty. Address labelling is inference, a deposit to an exchange is not proof of a sale, and a withdrawal from one is not proof of a purchase.</p>
+  </div>
+<!--/AUTO:faq-->
   <div class="subscribe">
     <div class="badge">free · instant</div>
     <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
@@ -239,7 +256,7 @@
     {
       "@type": "Question",
       "name": "Where can I see how much Kaspa sits on exchanges?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Kaspalytics publishes an exchange holdings chart, which sums the balances of addresses identified as belonging to exchanges. Read it as a movement signal rather than a certainty: address labelling is inference, a deposit to an exchange is not proof of a sale, and a withdrawal from one is not proof of a purchase." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Kaspalytics publishes an exchange holdings chart, which sums the balances of addresses identified as belonging to exchanges. Read it as a movement signal rather than a certainty. Address labelling is inference, a deposit to an exchange is not proof of a sale, and a withdrawal from one is not proof of a purchase." }
     }
   ]
 }
