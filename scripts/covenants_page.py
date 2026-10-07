@@ -287,6 +287,10 @@ def bloecke(log):
 
 
 MARKE = re.compile(r"(<!--AUTO:([a-z0-9_]+)-->)(.*?)(<!--/AUTO:\2-->)", re.S)
+# bloecke, die andere skripte auf derselben seite pflegen (SEO, 06.10.2026):
+# faq kommt aus scripts/seo_faq.py, seitenstand aus scripts/seo_seiten.py.
+# die bleiben hier unberuehrt und zaehlen nicht als fehlender inhalt.
+FREMDE = {"faq", "seitenstand"}
 
 
 def rendere(html, log):
@@ -295,6 +299,8 @@ def rendere(html, log):
 
     def ersatz(m):
         name = m.group(2)
+        if name in FREMDE:
+            return m.group(0)
         if name not in inhalte:
             fehlend.append(name)
             return m.group(0)
@@ -416,6 +422,8 @@ def run_selftest():
 
     # zweimal rendern gibt dasselbe, sonst waere der lauf nicht wiederholbar
     check("rendern ist wiederholbar", rendere(neu, log)[0], neu)
+    fremd = neu + "<!--AUTO:faq-->x<!--/AUTO:faq--><!--AUTO:seitenstand-->y<!--/AUTO:seitenstand-->"
+    check("fremde bloecke bleiben stehen", rendere(fremd, log)[:2], (fremd, []))
 
     # der letzte utxo-wert steht im quelltext, nicht nur als platzhalter
     check("die zahl steht im quelltext", '>1,900<' in neu, True)

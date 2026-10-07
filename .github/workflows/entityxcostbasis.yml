@@ -42,11 +42,19 @@ jobs:
       - name: seite gegen datei und browser pruefen
         run: python3 scripts/entity_x_page.py --check
 
+      # SEO Block D, Ben 06.10.2026: stand-zeile, dateModified und
+      # lastmod in sitemap.xml ziehen nach, wenn sich der text einer seite
+      # geaendert hat. ohne textaenderung bleibt alles, wie es ist.
+      - name: seitenstand und sitemap
+        run: |
+          python3 scripts/seo_seiten.py --selbsttest
+          python3 scripts/seo_seiten.py
+
       - name: persist result if changed
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
-          git add data/entity-x-costbasis.json entity-x.html
+          git add data/entity-x-costbasis.json entity-x.html sitemap.xml data/seiten-stand.json
           if git diff --staged --quiet; then
             echo "cost basis unveraendert, kein commit"
           else
