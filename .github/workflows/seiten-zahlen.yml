@@ -1,0 +1,53 @@
+name: seiten zahlen
+
+# SEO, Ben 06.10.2026. Antwortsaetze mit Zahlen stehen fest im HTML, damit
+# Suchmaschinen sie lesen. Dieser Lauf erneuert sie einmal am Tag:
+#   kaspa-hashrate.html        aktueller wert, wochenmittel, allzeithoch (api.kaspa.org)
+#   kaspa-supply.html          umlauf und anteil gemined (data/weekly.json)
+#   kaspa-smart-contracts.html covenant-bestand (data/covenants-log.json)
+# Faellt eine Quelle aus, bleibt der alte Satz mit seinem Datum stehen.
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: seiten-zahlen
+  cancel-in-progress: false
+
+jobs:
+  zahlen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: selbsttest
+        run: python3 scripts/seiten_zahlen.py --selbsttest
+      - name: zahlen in die seiten
+        run: python3 scripts/seiten_zahlen.py
+      # SEO Block D, Ben 06.10.2026: stand-zeile, dateModified und
+      # lastmod in sitemap.xml ziehen nach, wenn sich der text einer seite
+      # geaendert hat. ohne textaenderung bleibt alles, wie es ist.
+      - name: seitenstand und sitemap
+        run: |
+          python3 scripts/seo_seiten.py --selbsttest
+          python3 scripts/seo_seiten.py
+      - name: commit
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add kaspa-hashrate.html kaspa-supply.html kaspa-smart-contracts.html sitemap.xml data/seiten-stand.json
+          if git diff --staged --quiet; then
+            echo "nichts geaendert"
+          else
+            git commit -m "seiten zahlen $(date -u +%F) [bot]"
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            git push
+          fi

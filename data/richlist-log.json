@@ -27,9 +27,12 @@
         "top": "data/richlist/2026-09-27.top.json.gz",
         "names": "data/richlist/2026-09-27.names.json",
         "top_bytes": 1113530,
-        "names_bytes": 14055,
+        "names_bytes_api": 14055,
         "top_sha256": "8d8b7f0c43dd20e19a4cd40ebaeb3a7be7b1184a95b6f350ea554ed7565afe80",
-        "names_sha256": "d03f06e34b05b16f755fd466957867ac5ecfe050a14258038806f08aba5517d5"
+        "names_sha256_api": "d03f06e34b05b16f755fd466957867ac5ecfe050a14258038806f08aba5517d5",
+        "names_bytes_datei": 14199,
+        "names_sha256_datei": "057fad005584548ab0fc2148af48424ae023af4c00a6712994b0f0b225d359bd",
+        "names_maskiert": 3
       },
       "ersetzt": "2026-09-24T19:10:08+00:00"
     },
@@ -60,9 +63,12 @@
         "top": "data/richlist/2026-10-04.top.json.gz",
         "names": "data/richlist/2026-10-04.names.json",
         "top_bytes": 1113568,
-        "names_bytes": 14055,
+        "names_bytes_api": 14055,
         "top_sha256": "7603d527b2947de8963433e0774ee706e1391bff4a3caf40c9d29ba95ceb34d3",
-        "names_sha256": "d03f06e34b05b16f755fd466957867ac5ecfe050a14258038806f08aba5517d5"
+        "names_sha256_api": "d03f06e34b05b16f755fd466957867ac5ecfe050a14258038806f08aba5517d5",
+        "names_bytes_datei": 14199,
+        "names_sha256_datei": "057fad005584548ab0fc2148af48424ae023af4c00a6712994b0f0b225d359bd",
+        "names_maskiert": 3
       }
     }
   ],
@@ -73,5 +79,5 @@
     "circ_supply": "https://api.kaspa.org/info/coinsupply",
     "referenz_entity_x": "https://api.kaspa.org/addresses/kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a/balance"
   },
-  "hinweis": "stufe 1, nur archiv. nichts davon ist veroeffentlicht. die rangliste nennt ganze KAS, abgeschnitten; der kontostand-endpunkt nennt sompi. rohdaten liegen je woche unter data/richlist/, byte fuer byte, sha256 in der zeile."
+  "hinweis": "stufe 1, nur archiv. nichts davon ist veroeffentlicht. die rangliste nennt ganze KAS, abgeschnitten; der kontostand-endpunkt nennt sompi. rohdaten liegen je woche unter data/richlist/, die rangliste byte fuer byte, im verzeichnis sind labels mit vorwurf durch ihren sha256 ersetzt. sha256 der api-antwort und der datei getrennt in der zeile, methode im kopf von scripts/richlist_log.py."
 }

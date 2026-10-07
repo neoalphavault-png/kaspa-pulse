@@ -106,6 +106,18 @@ def jsonld(s):
     return aus
 
 
+def schema_stand(s):
+    """Was ueber die faq-pruefung entscheidet: die FAQPage-objekte und die zahl kaputter bloecke."""
+    faq, kaputt = [], 0
+    for daten, err in jsonld(s):
+        if err:
+            kaputt += 1
+            continue
+        faq += [o for o in (daten if isinstance(daten, list) else [daten])
+                if isinstance(o, dict) and o.get("@type") == "FAQPage"]
+    return faq, kaputt
+
+
 def pruefe_schema(name, s):
     fehler = []
     text = sichtbarer_text(s).lower()
@@ -212,10 +224,12 @@ def pruefen(gegen=None, markdown=False):
     ausgabe(tab, markdown)
     texte = {n: lies(n) for n in seiten()}
     for n, s in texte.items():
-        # schema-fehler blockieren nur, wo das json-ld neu ist oder sich
-        # aendert; sonst sind sie altbefund und warnung
+        # schema-fehler blockieren nur, wo der FAQPage-block neu ist oder
+        # sich aendert, oder wo ein json-ld neu kaputt ist; sonst sind sie
+        # altbefund und warnung. ein neuer WebPage-block allein macht
+        # alte faq-befunde nicht zu neuen.
         alt = lies(n, gegen) if gegen else None
-        geaendert = gegen is None or alt is None or [d for d, _ in jsonld(alt)] != [d for d, _ in jsonld(s)]
+        geaendert = gegen is None or alt is None or schema_stand(alt) != schema_stand(s)
         (fehler if geaendert else warn).extend(pruefe_schema(n, s))
     fehler += pruefe_affiliate(texte)
     idx = texte.get("index.html") or ""
@@ -259,6 +273,9 @@ def selbsttest():
     ok("faq sichtbar und vollstaendig, ok", pruefe_schema("x", faq) == [])
     ok("faq-frage nicht sichtbar, fehler", len(pruefe_schema("x", faq.replace("<h3>Is it safe?</h3>", ""))) == 1)
     ok("kaputtes json, fehler", len(pruefe_schema("x", '<script type="application/ld+json">{x</script>')) == 1)
+    web = '<script type="application/ld+json">{"@type":"WebPage","name":"x"}</script>'
+    ok("neuer WebPage-block aendert den faq-stand nicht", schema_stand(faq + web) == schema_stand(faq))
+    ok("geaenderte faq aendert den stand", schema_stand(faq.replace("Is it safe?", "Is it ok?")) != schema_stand(faq))
     ok("doppelpunkt im titel erkannt", stilfehler("Kaspa Wallets: Web") == ["doppelpunkt"])
     ok("uhrzeit ist kein doppelpunkt", stilfehler("at 16:15 utc") == [])
     ok("gedankenstrich erkannt", stilfehler("Kaspa — Wallets") == ["gedankenstrich oder pfeil"])

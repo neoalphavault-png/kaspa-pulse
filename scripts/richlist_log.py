@@ -42,10 +42,32 @@ Gigabyte an Versionen in der Historie. Deshalb:
 
     data/richlist-log.json                  eine zeile je woche, klein
     data/richlist/JJJJ-MM-TT.top.json.gz    die rangliste, byte fuer byte
-    data/richlist/JJJJ-MM-TT.names.json     das verzeichnis, byte fuer byte
+    data/richlist/JJJJ-MM-TT.names.json     das verzeichnis, labels mit vorwurf maskiert
 
-Jede Zeile nennt beide Dateien und ihre sha256 ueber die ROHEN Bytes, so
-wie sie von der API kamen. Entpackt ergibt die .gz-Datei exakt die Antwort.
+Jede Zeile nennt beide Dateien und ihre sha256. Entpackt ergibt die
+.gz-Datei exakt die Antwort der API (top_sha256 ueber diese Bytes).
+
+LABELS MIT VORWURF (Ben, 07.10.2026)
+Das Repo ist oeffentlich. Ein Label, das einen Vorwurf enthaelt (Muster
+VORWURF unten, etwa "Scam" oder "Laundering"), wird vor dem Ablegen ersetzt
+und erscheint weder in der Datei noch im Log des Laufs. Die Methode:
+
+    1. die API-Antwort als JSON lesen
+    2. jedes "name", auf das VORWURF passt, ersetzen durch
+       "sha256:" + sha256(name als utf-8).hexdigest()
+    3. kompakt zurueckschreiben, json.dumps(..., ensure_ascii=False,
+       separators=(",", ":")), utf-8. Genau so liefert die API ihre Antwort,
+       ohne Treffer ist die Datei also byte fuer byte die Antwort.
+
+Getrennt dokumentiert stehen in der Zeile:
+    names_sha256_api, names_bytes_api      ueber die unveraenderte API-Antwort
+    names_sha256_datei, names_bytes_datei  ueber die abgelegte, maskierte Datei
+    names_maskiert                         wie viele eintraege ersetzt sind
+Wer die Antwort der API zu einem spaeteren Zeitpunkt selbst holt, kann sie
+mit names_sha256_api vergleichen, ohne dass der Klartext hier liegen muss.
+Die Zeilen vom 27.09. und 04.10.2026 wurden am 07.10.2026 mit
+--maskiere-bestand nachtraeglich so umgestellt; ihr alter names_sha256 steht
+jetzt als names_sha256_api da. Die Git-Historie davor ist nicht umgeschrieben.
 
 EINE ZEILE JE WOCHE
 Schluessel ist die ISO-Woche. Laeuft der Job in derselben Woche zweimal,
@@ -56,6 +78,7 @@ mit. Die Zeile nennt dann, wessen Stelle sie eingenommen hat.
     python3 scripts/richlist_log.py             holen, pruefen, schreiben
     python3 scripts/richlist_log.py --trocken   holen, pruefen, nichts schreiben
     python3 scripts/richlist_log.py --selftest  ohne netz
+    python3 scripts/richlist_log.py --maskiere-bestand   vorhandene names-dateien maskieren
 """
 
 import argparse
@@ -64,6 +87,7 @@ import gzip
 import hashlib
 import json
 import os
+import re
 import sys
 import tempfile
 import urllib.error
@@ -77,6 +101,8 @@ ROH_ORDNER = os.path.join(REPO, "data", "richlist")
 API = "https://api.kaspa.org"
 PFAD_TOP = "/addresses/top"
 PFAD_NAMES = "/addresses/names"
+# dasselbe muster wie in scripts/kohorte.py
+VORWURF = re.compile(r"scam|launder|fraud|hack|exploit|stolen|theft|phish|ponzi", re.I)
 PFAD_SUPPLY = "/info/coinsupply"
 ENTITY_X = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a"
 PFAD_EX = "/addresses/%s/balance" % ENTITY_X
@@ -264,6 +290,27 @@ def referenz(holer):
 
 # ------------------------------------------------------------------ bauen
 
+def maske(name):
+    """Ein label mit vorwurf wird zu seinem hash, alle anderen bleiben."""
+    if VORWURF.search(name or ""):
+        return "sha256:" + hashlib.sha256(name.encode("utf-8")).hexdigest()
+    return name
+
+
+def maskiere_names(roh):
+    """(bytes fuer die datei, anzahl ersetzt). Ohne treffer die rohen bytes."""
+    d = json.loads(roh.decode("utf-8"))
+    n = 0
+    for e in d:
+        m = maske(e.get("name"))
+        if m != e.get("name"):
+            e["name"] = m
+            n += 1
+    if not n:
+        return roh, 0
+    return json.dumps(d, ensure_ascii=False, separators=(",", ":")).encode("utf-8"), n
+
+
 def schnappschuss(holer=None, jetzt=None):
     """Alles holen und pruefen. Gibt (zeile, roh_top, roh_names) zurueck
     oder wirft Abbruch. Geschrieben wird hier nichts."""
@@ -272,8 +319,9 @@ def schnappschuss(holer=None, jetzt=None):
 
     roh_top = holer(PFAD_TOP)
     ts_ms, liste = pruefe_rangliste(als_json(roh_top, PFAD_TOP))
-    roh_names = holer(PFAD_NAMES)
-    labels = pruefe_names(als_json(roh_names, PFAD_NAMES))
+    roh_names_api = holer(PFAD_NAMES)
+    labels = {a: maske(n) for a, n in pruefe_names(als_json(roh_names_api, PFAD_NAMES)).items()}
+    roh_names, maskiert = maskiere_names(roh_names_api)
     umlauf_sompi, umlauf_kas = pruefe_umlauf(als_json(holer(PFAD_SUPPLY), PFAD_SUPPLY))
     ref_kas, ref_quelle = referenz(holer)
     abw = pruefe_einheit(liste, ref_kas)
@@ -317,9 +365,12 @@ def schnappschuss(holer=None, jetzt=None):
             "top": "data/richlist/%s.top.json.gz" % datum,
             "names": "data/richlist/%s.names.json" % datum,
             "top_bytes": len(roh_top),
-            "names_bytes": len(roh_names),
             "top_sha256": hashlib.sha256(roh_top).hexdigest(),
-            "names_sha256": hashlib.sha256(roh_names).hexdigest(),
+            "names_bytes_api": len(roh_names_api),
+            "names_sha256_api": hashlib.sha256(roh_names_api).hexdigest(),
+            "names_bytes_datei": len(roh_names),
+            "names_sha256_datei": hashlib.sha256(roh_names).hexdigest(),
+            "names_maskiert": maskiert,
         },
     }
     return zeile, roh_top, roh_names, liste, labels
@@ -330,6 +381,55 @@ def lade(pfad):
         return {"wochen": []}
     with open(pfad, encoding="utf-8") as fh:
         return json.load(fh)
+
+
+HINWEIS = ("stufe 1, nur archiv. nichts davon ist veroeffentlicht. "
+           "die rangliste nennt ganze KAS, abgeschnitten; der "
+           "kontostand-endpunkt nennt sompi. rohdaten liegen je woche "
+           "unter data/richlist/, die rangliste byte fuer byte, im verzeichnis "
+           "sind labels mit vorwurf durch ihren sha256 ersetzt. sha256 der "
+           "api-antwort und der datei getrennt in der zeile, methode im kopf "
+           "von scripts/richlist_log.py.")
+
+
+def maskiere_bestand(log_pfad=LOG, repo=REPO):
+    """Einmalig fuer die zeilen vor dem 07.10.2026: die names-datei gegen
+    ihren alten sha256 pruefen (sie ist dann genau die api-antwort),
+    maskieren, beide hashes getrennt eintragen. Wiederholbar: zeilen mit
+    names_sha256_api werden nicht noch einmal angefasst."""
+    log = lade(log_pfad)
+    geaendert = []
+    for w in log.get("wochen", []):
+        r = w["roh"]
+        if "names_sha256_api" in r:
+            continue
+        p = os.path.join(repo, r["names"])
+        with open(p, "rb") as fh:
+            roh = fh.read()
+        if hashlib.sha256(roh).hexdigest() != r["names_sha256"]:
+            raise Abbruch("%s: die names-datei ist nicht mehr die api-antwort, nichts geaendert" % w["datum"])
+        datei, n = maskiere_names(roh)
+        neu = {}
+        for k, v in r.items():
+            if k == "names_bytes":
+                neu["names_bytes_api"] = v
+            elif k == "names_sha256":
+                neu["names_sha256_api"] = v
+                neu["names_bytes_datei"] = len(datei)
+                neu["names_sha256_datei"] = hashlib.sha256(datei).hexdigest()
+                neu["names_maskiert"] = n
+            else:
+                neu[k] = v
+        w["roh"] = neu
+        with open(p, "wb") as fh:
+            fh.write(datei)
+        geaendert.append((w["datum"], n))
+    if geaendert:
+        log["hinweis"] = HINWEIS
+        with open(log_pfad, "w", encoding="utf-8") as fh:
+            json.dump(log, fh, indent=2, ensure_ascii=False)
+            fh.write("\n")
+    return geaendert
 
 
 def eintragen(zeile, roh_top, roh_names, log_pfad=LOG, repo=REPO):
@@ -359,10 +459,7 @@ def eintragen(zeile, roh_top, roh_names, log_pfad=LOG, repo=REPO):
     log["endpunkte"] = {"top": API + PFAD_TOP, "names": API + PFAD_NAMES,
                         "circ_supply": API + PFAD_SUPPLY,
                         "referenz_entity_x": API + PFAD_EX}
-    log["hinweis"] = ("stufe 1, nur archiv. nichts davon ist veroeffentlicht. "
-                      "die rangliste nennt ganze KAS, abgeschnitten; der "
-                      "kontostand-endpunkt nennt sompi. rohdaten liegen je woche "
-                      "unter data/richlist/, byte fuer byte, sha256 in der zeile.")
+    log["hinweis"] = HINWEIS
     log["wochen"] = wochen
     os.makedirs(os.path.dirname(log_pfad), exist_ok=True)
     with open(log_pfad, "w", encoding="utf-8") as fh:
@@ -390,7 +487,8 @@ def _stub(**aenderung):
                  "amount": 10_000_000 - i * 1000} for i in range(3, 150)]
     top = [{"timestamp": TS_2409, "ranking": ranking}]
     names = [{"address": "kaspa:qrvum2" + "b" * 50, "name": "Bybit"},
-             {"address": "kaspa:qqywx2" + "d" * 50, "name": "Bitget"}]
+             {"address": "kaspa:qqywx2" + "d" * 50, "name": "Bitget"},
+             {"address": "kaspa:q00005" + "c" * 50, "name": "Probe Scam (Laundering 1)"}]
     supply = {"circulatingSupply": "2771889423183447277", "maxSupply": "2870403560500000000"}
     balance = {"address": ENTITY_X, "balance": EX_SOMPI_2409}
     antworten = {PFAD_TOP: top, PFAD_NAMES: names, PFAD_SUPPLY: supply, PFAD_EX: balance}
@@ -399,6 +497,9 @@ def _stub(**aenderung):
     def holer(pfad):
         if pfad in aenderung.get("fehler", {}):
             raise aenderung["fehler"][pfad]
+        if pfad == PFAD_NAMES:
+            # so kompakt, wie die api ihr verzeichnis liefert
+            return json.dumps(antworten[pfad], ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         return json.dumps(antworten[pfad]).encode("utf-8")
     return holer
 
@@ -510,7 +611,37 @@ def run_selftest():
     check("und ihr sha256 stimmt", hashlib.sha256(zurueck).hexdigest(),
           zeile["roh"]["top_sha256"])
     with open(os.path.join(tmp, zeile["roh"]["names"]), "rb") as fh:
-        check("das verzeichnis byte fuer byte", fh.read(), roh_names)
+        datei = fh.read()
+    check("das verzeichnis liegt maskiert ab", datei, roh_names)
+    check("kein label mit vorwurf in der datei", bool(VORWURF.search(datei.decode("utf-8"))), False)
+    api = _stub()(PFAD_NAMES)
+    check("sha256 der api-antwort getrennt", zeile["roh"]["names_sha256_api"], hashlib.sha256(api).hexdigest())
+    check("sha256 der datei getrennt", zeile["roh"]["names_sha256_datei"], hashlib.sha256(datei).hexdigest())
+    check("ein eintrag maskiert", zeile["roh"]["names_maskiert"], 1)
+    check("maske ist der hash des labels",
+          ("sha256:" + hashlib.sha256("Probe Scam (Laundering 1)".encode("utf-8")).hexdigest()).encode() in datei, True)
+    check("sonst byte fuer byte wie die api",
+          datei.replace(b"sha256:" + hashlib.sha256("Probe Scam (Laundering 1)".encode("utf-8")).hexdigest().encode(),
+                        b"Probe Scam (Laundering 1)"), api)
+    ohne = json.dumps([{"address": "a", "name": "Bybit"}], ensure_ascii=False, separators=(",", ":")).encode()
+    check("ohne treffer bleiben die bytes unveraendert", maskiere_names(ohne), (ohne, 0))
+    _, _, _, _, lab = schnappschuss(holer=_stub(), jetzt=JETZT_2409)
+    check("auch die ausgabe im log nennt den vorwurf nicht",
+          any(VORWURF.search(v) for v in lab.values()), False)
+    # bestand: alte zeile mit names_sha256 ueber die rohe antwort
+    btmp = tempfile.mkdtemp()
+    os.makedirs(os.path.join(btmp, "data", "richlist"))
+    with open(os.path.join(btmp, "data", "richlist", "x.names.json"), "wb") as fh:
+        fh.write(api)
+    blog = os.path.join(btmp, "data", "richlist-log.json")
+    with open(blog, "w") as fh:
+        json.dump({"wochen": [{"datum": "x", "roh": {"names": "data/richlist/x.names.json",
+                                                     "names_bytes": len(api),
+                                                     "names_sha256": hashlib.sha256(api).hexdigest()}}]}, fh)
+    check("bestand wird maskiert", maskiere_bestand(blog, btmp), [("x", 1)])
+    r = lade(blog)["wochen"][0]["roh"]
+    check("bestand: alter hash steht als api-hash da", r["names_sha256_api"], hashlib.sha256(api).hexdigest())
+    check("bestand: zweiter lauf aendert nichts", maskiere_bestand(blog, btmp), [])
     check("woche 39", lade(log)["wochen"][0]["woche"], "2026-W39")
 
     # derselbe lauf am sonntag derselben woche ersetzt die zeile
@@ -560,9 +691,19 @@ def main(argv=None):
     ap.add_argument("--trocken", action="store_true",
                     help="holen und pruefen, nichts schreiben")
     ap.add_argument("--selftest", action="store_true")
+    ap.add_argument("--maskiere-bestand", action="store_true",
+                    help="vorhandene names-dateien maskieren, beide sha256 eintragen")
     a = ap.parse_args(argv)
     if a.selftest:
         return run_selftest()
+    if a.maskiere_bestand:
+        try:
+            for datum, n in maskiere_bestand():
+                print("%s, %d label(s) maskiert" % (datum, n))
+        except Abbruch as exc:
+            print("ABBRUCH %s" % exc)
+            return 1
+        return 0
 
     try:
         zeile, roh_top, roh_names, liste, labels = schnappschuss()
