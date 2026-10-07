@@ -1,19 +1,39 @@
 # Kaspa Pulse · Entity X Watcher
 # Ablageort im Repo: .github/workflows/entity-x-alert.yml
 #
-# Gemessen am 11.08.2026: GitHub startet den Zeitplan */10 in der Praxis nur
-# etwa stuendlich, nicht alle zehn Minuten. Der Job bleibt deshalb 50 Minuten
-# am Leben und prueft intern jede Minute, damit die Luecke bis zum naechsten
-# Start fast geschlossen ist. Die concurrency group verhindert Doppellaeufe.
+# Dauerlauf mit Selbstneustart (Ben, 07.10.2026, Option A). Auf der
+# Startseite steht "every 30 minutes, around the clock". Mit dem alten Plan
+# (*/10, 50 Minuten je Lauf) startete GitHub den Zeitplan nur alle paar
+# Stunden; vom 06.10. 16:02 bis 07.10. 14:34 UTC liefen fuenf Starts zu je
+# rund 49 Minuten, das ist etwa ein Sechstel des Tages.
+#
+# Jetzt:
+#   - ein Lauf prueft gut 5,5 Stunden lang an jeder vollen Minute
+#   - vor dem Ende meldet er per workflow_dispatch seinen Nachfolger an.
+#     Durch die concurrency group wartet der Nachfolger, bis dieser Lauf
+#     fertig ist, und startet dann sofort. Ein workflow_dispatch mit dem
+#     GITHUB_TOKEN loest ausdruecklich einen neuen Lauf aus.
+#   - der Zeitplan alle 15 Minuten bleibt als Rueckfall, falls eine Kette
+#     reisst. Laeuft schon ein Lauf, wartet der geplante, mehr nicht.
+#   - jede beobachtete Minute steht in data/entity-x-abdeckung.json, und
+#     jeder Lauf schreibt die Tagesabdeckung ins Log. Ziel 95 % je Tag,
+#     groesste Luecke unter 30 Minuten.
+#
+# Umzug auf den Server c2: die Repository-Variable SERVER_AKTIV auf "true"
+# setzen (Name wie im Server-Vorschlag). Dann ueberspringt dieser Job sich
+# selbst, meldet keinen Nachfolger mehr an, und die Kette endet. Zurueck:
+# Variable auf "false", einen Lauf von Hand starten. Anleitung in
+# deploy/c2/entity-x-alarm/README.md.
 name: entity-x-alert
 
 on:
-  schedule:
-    - cron: "*/10 * * * *"
   workflow_dispatch: {}
+  schedule:
+    - cron: "*/15 * * * *"
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: entity-x-alert
@@ -21,8 +41,9 @@ concurrency:
 
 jobs:
   check:
+    if: vars.SERVER_AKTIV != 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 58
+    timeout-minutes: 350
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -32,16 +53,36 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          LOOP_SECONDS: "3000"
+          LOOP_SECONDS: "20100"
           POLL_INTERVAL: "60"
         run: python3 scripts/entity_x_alert.py
+
+      - name: nachfolger anmelden
+        if: always() && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          if curl -fsS -X POST \
+               -H "Authorization: Bearer $GH_TOKEN" \
+               -H "Accept: application/vnd.github+json" \
+               "https://api.github.com/repos/$REPO/actions/workflows/entity-x-alert.yml/dispatches" \
+               -d '{"ref":"main"}'; then
+            echo "nachfolger angemeldet, er startet, sobald dieser lauf fertig ist"
+          else
+            echo "nachfolger nicht angemeldet, der zeitplan alle 15 minuten faengt das auf"
+          fi
+
+      - name: abdeckung ins log
+        if: always()
+        run: python3 scripts/entity_x_alert.py --abdeckung
 
       - name: persist state if changed
         if: always()
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
-          git add scripts/entity_x_state.json
+          git add scripts/entity_x_state.json data/entity-x-abdeckung.json
           if git diff --staged --quiet; then
             echo "state unveraendert, kein commit"
           else

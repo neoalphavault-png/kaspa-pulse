@@ -1,0 +1,34 @@
+# Kaspa Pulse, Entity-X-Alarm auf c2 (Ben, 07.10.2026)
+# Ein Dauerdienst, prueft an jeder vollen Minute. Nach 24 Stunden endet
+# der Lauf geplant, systemd startet ihn neu und holt vorher main.
+# Keine Werte in dieser Datei. Secrets kommen verschluesselt ueber
+# LoadCredentialEncrypted aus /etc/credstore.encrypted/.
+[Unit]
+Description=Kaspa Pulse Entity X Alarm
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=kpbot
+Group=kpbot
+WorkingDirectory=/opt/kaspa-pulse
+ExecStartPre=/usr/bin/git -C /opt/kaspa-pulse pull --ff-only --quiet
+ExecStart=/opt/kaspa-pulse/deploy/c2/entity-x-alarm/start.sh
+Restart=always
+RestartSec=5
+StateDirectory=kaspa-pulse
+Environment=LOOP_SECONDS=86400
+Environment=POLL_INTERVAL=60
+Environment=ENTITY_X_STATE_FILE=/var/lib/kaspa-pulse/entity_x_state.json
+Environment=ABDECKUNG_FILE=/var/lib/kaspa-pulse/entity-x-abdeckung.json
+LoadCredentialEncrypted=discord_webhook
+LoadCredentialEncrypted=telegram_bot_token
+LoadCredentialEncrypted=telegram_chat_id
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/kaspa-pulse /var/lib/kaspa-pulse
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

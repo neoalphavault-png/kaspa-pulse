@@ -6,6 +6,7 @@
 #
 # Nur Python-Standardbibliothek, keine Abhaengigkeiten.
 
+import datetime as dt
 import json
 import os
 import sys
@@ -17,7 +18,18 @@ import telegram_post  # noqa: E402
 
 ADDRESS = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a"
 API = "https://api.kaspa.org/addresses/{}/balance"
-STATE_FILE = "scripts/entity_x_state.json"
+# auf dem server c2 liegt der stand ausserhalb des repos, siehe deploy/c2/entity-x-alarm/
+STATE_FILE = os.environ.get("ENTITY_X_STATE_FILE", "scripts/entity_x_state.json")
+# Abdeckung (Ben, 07.10.2026). Auf der Startseite steht "every 30 minutes,
+# around the clock". Damit das nachpruefbar stimmt, wird jede Minute mit
+# einer erfolgreichen Pruefung markiert, je UTC-Tag als 1440 Zeichen
+# ("1" beobachtet, "." nicht). Ziel mindestens 95 % je Tag, groesste
+# Luecke unter 30 Minuten. Auf dem Server c2 zeigt ABDECKUNG_FILE auf
+# eine lokale Datei.
+ABDECKUNG_FILE = os.environ.get("ABDECKUNG_FILE", "data/entity-x-abdeckung.json")
+ABDECKUNG_TAGE = 35
+ZIEL_PCT = 95.0
+ZIEL_LUECKE_MIN = 30
 SOMPI = 100_000_000  # 1 KAS = 1e8 sompi
 
 # Schwellwerte
@@ -195,6 +207,75 @@ def check_once():
     return False
 
 
+# ---------------------------------------------------------------- abdeckung
+
+def abdeckung_laden(pfad=None):
+    try:
+        with open(pfad or ABDECKUNG_FILE) as f:
+            d = json.load(f)
+        return d if isinstance(d.get("tage"), dict) else {"tage": {}}
+    except (FileNotFoundError, json.JSONDecodeError, AttributeError):
+        return {"tage": {}}
+
+
+def markiere(ab, ts):
+    """Die Minute, in der ts liegt, gilt als beobachtet."""
+    t = dt.datetime.fromtimestamp(ts, dt.timezone.utc)
+    tag = t.date().isoformat()
+    bits = list(ab["tage"].get(tag) or "." * 1440)
+    bits[t.hour * 60 + t.minute] = "1"
+    ab["tage"][tag] = "".join(bits)
+
+
+def abdeckung_speichern(ab, pfad=None):
+    pfad = pfad or ABDECKUNG_FILE
+    tage = sorted(ab["tage"])[-ABDECKUNG_TAGE:]
+    os.makedirs(os.path.dirname(pfad) or ".", exist_ok=True)
+    zeilen = ['  %s: %s' % (json.dumps(t), json.dumps(ab["tage"][t])) for t in tage]
+    with open(pfad, "w") as f:
+        f.write('{\n "zweck": "entity x alarm, beobachtete minuten je utc-tag, 1 beobachtet, . nicht",\n'
+                ' "tage": {\n' + ",\n".join(zeilen) + "\n }\n}\n")
+
+
+def tageswert(bits, bis_minute=1440):
+    """(prozent, beobachtet, minuten, groesste luecke, beginn der luecke)
+    ueber die ersten bis_minute minuten des tages."""
+    b = bits[:bis_minute]
+    n = len(b)
+    beob = b.count("1")
+    luecke, beginn, lauf, start = 0, None, 0, 0
+    for i, c in enumerate(b):
+        if c == "1":
+            lauf = 0
+            continue
+        if lauf == 0:
+            start = i
+        lauf += 1
+        if lauf > luecke:
+            luecke, beginn = lauf, start
+    return (round(100.0 * beob / n, 1) if n else 0.0), beob, n, luecke, beginn
+
+
+def abdeckung_bericht(ab, jetzt=None, tage=2):
+    jetzt = jetzt or dt.datetime.now(dt.timezone.utc)
+    heute = jetzt.date().isoformat()
+    zeilen = []
+    for tag in sorted(ab["tage"])[-tage:]:
+        bis = jetzt.hour * 60 + jetzt.minute + 1 if tag == heute else 1440
+        pct, beob, n, luecke, beginn = tageswert(ab["tage"][tag], bis)
+        lz = ("%02d.%02d bis %02d.%02d utc" % (beginn // 60, beginn % 60, (beginn + luecke) // 60 % 24,
+                                               (beginn + luecke) % 60)) if luecke else "keine"
+        ziel = "ziel erreicht" if pct >= ZIEL_PCT and luecke < ZIEL_LUECKE_MIN else "UNTER ZIEL"
+        zeilen.append("abdeckung %s%s %.1f%% beobachtet (%d von %d minuten), groesste luecke %d min (%s), %s"
+                      % (tag, " bis jetzt" if tag == heute else "", pct, beob, n, luecke, lz, ziel))
+    return zeilen
+
+
+def naechste_minute(jetzt, versatz=5):
+    """Sekunden bis zur naechsten vollen Minute plus versatz."""
+    return 60 - (jetzt % 60) + versatz
+
+
 def main():
     """Poll-Schleife.
 
@@ -212,24 +293,32 @@ def main():
     started = time.monotonic()
     checks = 0
     alerts = 0
+    fehler = 0
+    ab = abdeckung_laden()
 
     while True:
         checks += 1
         try:
             if check_once():
                 alerts += 1
+            # nur eine erfolgreiche pruefung zaehlt als beobachtete minute
+            markiere(ab, time.time())
+            abdeckung_speichern(ab)
         except Exception as exc:  # noqa: BLE001
             # ein einzelner fehlschlag darf die schleife nicht beenden,
             # sonst reisst eine api-stoerung das ganze fenster.
+            fehler += 1
             print("pruefung fehlgeschlagen (%s)" % exc, file=sys.stderr)
 
         elapsed = time.monotonic() - started
         if elapsed + interval >= loop:
             break
-        time.sleep(interval)
+        # im minutentakt an der vollen minute ausgerichtet, damit keine
+        # minute durchrutscht, weil sich die pruefzeit langsam verschiebt
+        time.sleep(naechste_minute(time.time()) if interval == 60 else interval)
 
-    print("fertig nach %d pruefungen in %.0f sekunden, %d alarme"
-          % (checks, time.monotonic() - started, alerts))
+    print("fertig nach %d pruefungen in %.0f sekunden, %d alarme, %d fehlgeschlagen"
+          % (checks, time.monotonic() - started, alerts, fehler))
 
 
 def run_selftest():
@@ -302,6 +391,30 @@ def run_selftest():
     ok("der letzte gesehene stand ist gespeichert",
        stand["balance_kas"] == 1_525_975_596.46, stand)
 
+    # abdeckung
+    ab = {"tage": {}}
+    t0 = dt.datetime(2026, 10, 7, 0, 0, 30, tzinfo=dt.timezone.utc).timestamp()
+    for m in list(range(0, 600)) + list(range(625, 1440)):
+        markiere(ab, t0 + m * 60)
+    pct, beob, n, luecke, beginn = tageswert(ab["tage"]["2026-10-07"])
+    ok("abdeckung zaehlt beobachtete minuten", beob == 1415 and n == 1440, (beob, n))
+    ok("groesste luecke und ihr beginn", luecke == 25 and beginn == 600, (luecke, beginn))
+    zeile = abdeckung_bericht(ab, jetzt=dt.datetime(2026, 10, 8, 1, 0, tzinfo=dt.timezone.utc))[0]
+    ok("bericht mit prozent und luecke", "98.3% beobachtet" in zeile and "25 min" in zeile
+       and "ziel erreicht" in zeile, zeile)
+    ab2 = {"tage": {"2026-10-07": "1" * 600 + "." * 40 + "1" * 800}}
+    ok("luecke ab 30 minuten verfehlt das ziel", "UNTER ZIEL" in abdeckung_bericht(
+        ab2, jetzt=dt.datetime(2026, 10, 8, 1, 0, tzinfo=dt.timezone.utc))[0])
+    heute = abdeckung_bericht({"tage": {"2026-10-07": "1" * 61 + "." * 1379}},
+                              jetzt=dt.datetime(2026, 10, 7, 1, 0, 40, tzinfo=dt.timezone.utc))[0]
+    ok("heute zaehlt nur bis jetzt", "bis jetzt 100.0%" in heute, heute)
+    import tempfile
+    tmp = os.path.join(tempfile.mkdtemp(), "ab.json")
+    abdeckung_speichern(ab, tmp)
+    ok("abdeckung kommt aus der datei zurueck", abdeckung_laden(tmp) == {"tage": ab["tage"]}
+       or abdeckung_laden(tmp)["tage"] == ab["tage"])
+    ok("naechste volle minute", naechste_minute(120.0) == 65 and naechste_minute(179.5) == 5.5)
+
     print("")
     if fails:
         print("%d fehlgeschlagen %s" % (len(fails), fails))
@@ -313,4 +426,7 @@ def run_selftest():
 if __name__ == "__main__":
     if "--selftest" in sys.argv:
         sys.exit(run_selftest())
+    if "--abdeckung" in sys.argv:
+        print("\n".join(abdeckung_bericht(abdeckung_laden())) or "abdeckung, noch keine daten")
+        sys.exit(0)
     main()
