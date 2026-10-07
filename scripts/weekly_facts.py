@@ -95,12 +95,12 @@ def fenster_zeile(von, bis):
 # ------------------------------------------------------------------ Kohorte
 
 # Ben, 07.10.2026: der anteil der 100 groessten adressen ohne gelabelte
-# boersen, pools und bruecken, aus data/kohorte.json (scripts/kohorte.py).
+# boersen, pools, miner und bruecken, aus data/kohorte.json (scripts/kohorte.py).
 # Erste veroeffentlichung im weekly vom 19.10.2026. Der satz zur
 # einschraenkung steht immer dabei, Entity X heisst immer so wie hier.
 KOHORTE = os.path.join(ROOT, "data", "kohorte.json")
 KOHORTE_AB = dt.date(2026, 10, 19)
-KOHORTE_EINSCHRAENKUNG = "only labelled exchanges, pools and bridges are removed; unlabelled ones stay in."
+KOHORTE_EINSCHRAENKUNG = "only labelled exchanges, pools, miners and bridges are removed; unlabelled ones stay in."
 
 
 def _richtung(pp):
@@ -129,7 +129,7 @@ def kohorte_zeile(punkte=None):
         if pp == 0:
             return "%.2f%%%s, unchanged from %.2f%% a week earlier" % (bis, mitte, von)
         return "%.2f%%%s, %s %.2f points from %.2f%% a week earlier" % (bis, mitte, _richtung(pp), abs(pp), von)
-    return ("on %d %s the 100 largest addresses outside labelled exchanges, pools and bridges held %s. "
+    return ("on %d %s the 100 largest addresses outside labelled exchanges, pools, miners and bridges held %s. "
             "without the address the explorer calls Entity X they held %s. Entity X alone held %.2f%%. %s"
             % (d.day, MONATE_EN[d.month - 1], bewegung(a_bis, a_von, a_pp, " of circulating supply"),
                bewegung(o_bis, o_von, o_pp), round(neu["entity_x_pct"], 2), KOHORTE_EINSCHRAENKUNG))

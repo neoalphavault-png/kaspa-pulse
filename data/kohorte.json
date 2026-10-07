@@ -1,6 +1,6 @@
 {
-  "zweck": "anteil der 100 groessten adressen am umlauf, ohne gelabelte boersen, pools und bruecken. Entity X bleibt drin und steht getrennt da. noch nicht veroeffentlicht, erst ab dem weekly vom 19.10.2026.",
-  "einschraenkung": "only labelled exchanges, pools and bridges are removed; unlabelled ones stay in.",
+  "zweck": "anteil der 100 groessten adressen am umlauf, ohne gelabelte boersen, pools, miner und bruecken. Entity X bleibt drin und steht getrennt da. noch nicht veroeffentlicht, erst ab dem weekly vom 19.10.2026.",
+  "einschraenkung": "only labelled exchanges, pools, miners and bridges are removed; unlabelled ones stay in.",
   "entity_x_im_text": "the address the explorer calls Entity X",
   "quelle": "data/richlist-log.json und data/richlist/, api.kaspa.org /addresses/top und /addresses/names, umlauf aus /info/coinsupply desselben laufs",
   "rechnung": "scripts/kohorte.py, labels nach data/label-kategorien.json",

@@ -30,9 +30,11 @@ zu sonstige. Seit dem 07.10.2026 legt scripts/richlist_log.py solche
 Labels schon maskiert ab ("sha256:<hash>"), sie werden hier ueber den Hash
 gefunden.
 
-Labels ausser Entity X werden nie oeffentlich genannt (Ben, 07.10.2026).
-Die Warnungen im Log nennen deshalb nur den Anfang des sha256 eines neuen
-Labels. Den Klartext zeigt nur --zeige-unbekannt, lokal, nicht im Workflow.
+Neutrale Labels (Boersen, Pools, Miner, Bruecken, Projekte) duerfen im
+Klartext in der Tabelle und im Log stehen, das sind oeffentliche API-Daten
+und noetig fuer die Pruefbarkeit (Ben, 07.10.2026). Oeffentlich, also in
+Posts, Grafiken, Website und Newsletter, wird ausser Entity X keine Adresse
+und kein Label genannt.
 
     kohorte                die 100 groessten verbleibenden adressen, Entity X eingeschlossen
     anteil_pct             kohorte / umlauf
@@ -48,14 +50,13 @@ WAS NIE HERAUSGEHT
 Keine Adresse, keine Rangliste, kein Label einer anderen Adresse. In
 data/kohorte.json stehen nur Summen, Anteile und Zaehler je Kategorie.
 Fuer Texte: "the address the explorer calls Entity X", und immer der Satz
-"only labelled exchanges, pools and bridges are removed; unlabelled ones stay in."
+"only labelled exchanges, pools, miners and bridges are removed; unlabelled ones stay in."
 
     python3 scripts/kohorte.py                 rechnen, data/kohorte.json schreiben
     python3 scripts/kohorte.py --pruefen       rechnen, mit der datei vergleichen, nichts schreiben
     python3 scripts/kohorte.py --git REV       messpunkte aus einem alten git-stand nachrechnen, nur ausgeben
     python3 scripts/kohorte.py --selbsttest    ohne netz
     python3 scripts/kohorte.py --live          einheitenprobe gegen den live-kontostand von Entity X (netz)
-    python3 scripts/kohorte.py --zeige-unbekannt   neue labels im klartext, nur lokal
 """
 import argparse
 import gzip
@@ -78,7 +79,7 @@ EX_LABEL = "Entity X"
 SOMPI = 100_000_000
 TOLERANZ_PCT = 1.0
 API = "https://api.kaspa.org"
-EINSCHRAENKUNG = "only labelled exchanges, pools and bridges are removed; unlabelled ones stay in."
+EINSCHRAENKUNG = "only labelled exchanges, pools, miners and bridges are removed; unlabelled ones stay in."
 NAME_EX = "the address the explorer calls Entity X"
 VORWURF = re.compile(r"scam|launder|fraud|hack|exploit|stolen|theft|phish|ponzi", re.I)
 
@@ -134,17 +135,11 @@ def kategorie(label, tabelle):
     return None, False
 
 
-ZEIGE_KLARTEXT = False
-
-
 def zeige_label(label):
-    """Fuer Warnungen. Kein label erscheint im log, nur der anfang seines
-    sha256. Ein label mit vorwurf erscheint nie, auch nicht mit --zeige-unbekannt."""
+    """Fuer Warnungen. Ein label mit vorwurf erscheint nie, auch nicht im log."""
     if VORWURF.search(label) or label.startswith("sha256:"):
         return "[label mit vorwurf, nicht ausgegeben]"
-    if ZEIGE_KLARTEXT:
-        return repr(label)
-    return "sha256 %s…" % sha(label.encode("utf-8"))[:12]
+    return repr(label)
 
 
 def lade_messpunkt(zeile, rev=None):
@@ -274,7 +269,7 @@ def reihe(rev=None, tabelle=None):
 
 def text(punkte):
     kopf = {
-        "zweck": "anteil der 100 groessten adressen am umlauf, ohne gelabelte boersen, pools und bruecken. "
+        "zweck": "anteil der 100 groessten adressen am umlauf, ohne gelabelte boersen, pools, miner und bruecken. "
                  "Entity X bleibt drin und steht getrennt da. noch nicht veroeffentlicht, erst ab dem weekly vom 19.10.2026.",
         "einschraenkung": EINSCHRAENKUNG,
         "entity_x_im_text": NAME_EX,
@@ -348,11 +343,9 @@ def selbsttest():
        and r["anteil_ohne_ex_pct"] == round(3980 / 10_000 * 100, 4) and r["entity_x_pct"] == 10.0)
     ok("ausgeschlossene je kategorie in der roh-top",
        r["ausgeschlossen_in_roh_top100"] == {"boerse": 1, "pool": 1, "miner": 0, "bruecke": 1})
-    kenn = sha("Neu und unbekannt".encode())[:12]
-    ok("unbekanntes label warnt und bleibt drin", any(kenn in x for x in w)
+    ok("unbekanntes label warnt und bleibt drin", any("Neu und unbekannt" in x for x in w)
        and r["kohorte_nach_label"]["unbekannt"] == 1)
-    ok("unbekanntes label warnt auch ausserhalb der kohorte", any(sha("Spaeter Neu".encode())[:12] in x for x in w))
-    ok("warnung nennt kein label im klartext", not any("Neu und unbekannt" in x or "Spaeter Neu" in x for x in w))
+    ok("unbekanntes label warnt auch ausserhalb der kohorte", any("Spaeter Neu" in x for x in w))
     ok("maskiertes label wird ueber den hash erkannt", kategorie("sha256:" + sha("Bad Scam 1".encode()), tab)
        == ("sonstige", True))
     alles = json.dumps(r) + "\n".join(w)
@@ -415,11 +408,7 @@ def main(argv=None):
     ap.add_argument("--pruefen", action="store_true")
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--git", metavar="REV")
-    ap.add_argument("--zeige-unbekannt", action="store_true", help="neue labels im klartext, nur lokal")
     a = ap.parse_args(argv)
-    if a.zeige_unbekannt:
-        global ZEIGE_KLARTEXT
-        ZEIGE_KLARTEXT = True
     try:
         if a.selbsttest:
             return selbsttest()
