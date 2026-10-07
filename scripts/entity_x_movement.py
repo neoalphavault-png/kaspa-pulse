@@ -118,6 +118,51 @@ def movements(txs, since_ts):
     return out
 
 
+def fetch_text(url, limit=400000, timeout=25):
+    req = urllib.request.Request(
+        url, headers={"User-Agent": "kaspapulse-crosscheck/1.0",
+                      "Accept": "application/json, text/html, */*"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.status, r.read(limit).decode("utf-8", "replace")
+
+
+def discover_louka():
+    """Die Adressseite ist eine JS-Anwendung, das HTML tragt keine Zahlen.
+    Also die Skriptbuendel holen und darin nach der API-Route suchen.
+
+    Fremder Code wird NICHT ausgefuehrt, nur nach Mustern durchsucht.
+    """
+    import re
+    cands = set()
+    try:
+        _, html = fetch_text(f"https://{LOUKA_HOST}/")
+    except Exception as e:  # noqa: BLE001
+        print(f"  startseite nicht lesbar: {e}")
+        return []
+    bundles = re.findall(r'(?:src|href)="([^"]+\.js)"', html)
+    print(f"  {len(bundles)} skriptdateien im html: {bundles[:6]}")
+    for b in bundles[:6]:
+        url = b if b.startswith("http") else f"https://{LOUKA_HOST}/{b.lstrip('/')}"
+        try:
+            _, js = fetch_text(url)
+        except Exception as e:  # noqa: BLE001
+            print(f"  {url} nicht lesbar: {e}")
+            continue
+        print(f"  {url}: {len(js)} zeichen")
+        trim = '"\'`,);'
+        for m in re.findall(r'https?://[A-Za-z0-9._-]*louka[A-Za-z0-9._/-]*', js):
+            cands.add(m.rstrip(trim))
+        for m in re.findall(r'https?://api[A-Za-z0-9._-]*\.[a-z]{2,}[A-Za-z0-9._/-]*', js):
+            cands.add(m.rstrip(trim))
+        for m in re.findall(r'(/(?:api|rest)/[A-Za-z0-9._/-]{2,60})', js):
+            cands.add("https://" + LOUKA_HOST + m.rstrip(trim))
+    out = sorted(c for c in cands if len(c) < 160)
+    print(f"  {len(out)} kandidaten gefunden")
+    for c in out[:40]:
+        print(f"    {c}")
+    return out
+
+
 def probe_louka():
     res = []
     for path in LOUKA_PATHS:
@@ -228,7 +273,10 @@ def main():
           "dieser abrufzeit")
 
     print("\n[5] zweitquelle louka-txs.com")
+    print("  5a feste kandidatenpfade")
     louka = probe_louka()
+    print("  5b route aus den skriptbuendeln suchen")
+    entdeckt = discover_louka()
 
     print("\n" + "=" * 74)
     print(f"fertig in {time.time() - t0:.1f} sekunden. nichts geschrieben, "
@@ -264,6 +312,35 @@ def main():
         "label_source": x.KNOWN_SOURCE,
     }, indent=2))
     print("JSON_END")
+
+    # Ganz am Ende noch einmal kurz, damit ein kurzer Blick ins Log reicht.
+    print("\n" + "=" * 74)
+    print("KURZFASSUNG")
+    print("=" * 74)
+    print(f"abruf kontostand   {stamp(t_bal)}")
+    print(f"abruf umlauf       {stamp(t_sup)}")
+    print(f"stand vorher       {kas(stand_vor)} KAS")
+    print(f"stand nachher      {kas(bal)} KAS")
+    print(f"differenz          {bal - stand_vor:+,.8f} KAS")
+    print(f"umlauf             {kas(circ)} KAS")
+    print(f"anteil vorher      {stand_vor / circ * 100:.6f} %")
+    print(f"anteil nachher     {bal / circ * 100:.6f} %")
+    for m in mv:
+        art = "zufluss" if m["net_kas"] > 0 else "abfluss"
+        quellen = "; ".join(
+            f"{kas(v)} KAS von {a[:26]}.. [{x.KNOWN.get(a) or 'kein label'}]"
+            for a, v in sorted(m["senders"].items(), key=lambda p: -p[1]))
+        ziele = "; ".join(
+            f"{kas(v)} KAS an {a[:26]}.. [{x.KNOWN.get(a) or 'kein label'}]"
+            for a, v in sorted(m["recipients"].items(), key=lambda p: -p[1]))
+        print(f"{art} {m['utc']}  {m['net_kas']:+,.8f} KAS  tx {m['tx']}")
+        if quellen:
+            print(f"    von: {quellen}")
+        if ziele:
+            print(f"    an:  {ziele}")
+    print(f"louka feste pfade  "
+          f"{sum(1 for r in louka if r.get('status') == 200)} von {len(louka)} mit 200")
+    print(f"louka kandidaten   {len(entdeckt)}")
 
 
 if __name__ == "__main__":
