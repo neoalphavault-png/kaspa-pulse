@@ -1,42 +1,67 @@
-name: entity x inflow trace
+# SONDE, nur auf dem Branch audit/dispatch-probe.
+#
+# Einzige Frage: darf ein Lauf sich mit dem GITHUB_TOKEN selbst per
+# workflow_dispatch neu starten? Davon haengt das Design fuer die
+# Dauerbeobachtung von Entity X ab (Option A).
+#
+# Diese Datei liegt bewusst auf dem Pfad von entity-x-inflows.yml, weil ein
+# per API angestossener workflow_dispatch nur Workflows findet, die auf dem
+# Default-Branch existieren. Der Inhalt kommt aber aus dem Ref, das beim
+# Dispatch angegeben wird. Auf main bleibt die echte Datei unberuehrt.
+#
+# Die Sonde holt keine Daten, schreibt nichts und postet nichts. Sie zaehlt
+# nur bis drei und hoert dann von selbst auf.
 
-# manueller lauf. beantwortet die frage, woher die zufluesse von entity x
-# kommen. ergebnis liegt danach als data/entity-x-inflows.json im repo und
-# als artifact zum download, die zusammenfassung steht im log.
+name: entity x inflow trace
 
 on:
   workflow_dispatch:
+    inputs:
+      generation:
+        description: "Zaehler der Selbstneustarts"
+        required: false
+        default: "1"
 
 permissions:
-  contents: write
+  contents: read
+  actions: write      # genau das braucht ein Dispatch per API
 
 jobs:
   trace:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: trace inflows
-        run: python scripts/entity_x_inflows.py
-
-      - name: commit result
+      - name: wer bin ich
         run: |
-          git config user.name "kaspa-pulse-bot"
-          git config user.email "bot@kaspapulse.com"
-          git add data/entity-x-inflows.json
-          if git diff --staged --quiet; then
-            echo "nothing changed"
+          echo "SONDE generation=${{ inputs.generation }} ref=${GITHUB_REF_NAME}"
+          echo "run_id=${GITHUB_RUN_ID} attempt=${GITHUB_RUN_ATTEMPT}"
+
+      # Harte Obergrenze. Drei Generationen reichen als Beweis, und eine
+      # Sonde, die sich selbst neu startet, braucht eine Bremse im Code und
+      # nicht nur im Kopf.
+      - name: selbst neu starten
+        if: ${{ fromJSON(inputs.generation) < 3 }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEXT=$(( ${{ inputs.generation }} + 1 ))
+          echo "versuche generation $NEXT auf ref ${GITHUB_REF_NAME}"
+          CODE=$(curl -sS -o /tmp/resp.txt -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/entity-x-inflows.yml/dispatches" \
+            -d "{\"ref\":\"${GITHUB_REF_NAME}\",\"inputs\":{\"generation\":\"${NEXT}\"}}")
+          echo "HTTP ${CODE}"
+          echo "--- antwort ---"
+          cat /tmp/resp.txt || true
+          echo
+          if [ "$CODE" != "204" ]; then
+            echo "DISPATCH ABGELEHNT (http ${CODE})"
           else
-            git commit -m "entity x inflow trace $(date -u +%Y-%m-%d)"
-            git push
+            echo "DISPATCH ANGENOMMEN (http 204). ob daraus ein lauf wird,"
+            echo "zeigt erst die lauf-liste."
           fi
 
-      - name: upload for download
-        uses: actions/upload-artifact@v4
-        with:
-          name: entity-x-inflows
-          path: data/entity-x-inflows.json
+      - name: ende
+        run: echo "SONDE generation=${{ inputs.generation }} fertig"
