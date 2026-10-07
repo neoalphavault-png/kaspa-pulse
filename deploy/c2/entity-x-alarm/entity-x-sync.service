@@ -1,0 +1,9 @@
+[Unit]
+Description=Kaspa Pulse Entity X Stand und Abdeckung ins Repo
+
+[Service]
+Type=oneshot
+User=kpbot
+Group=kpbot
+Environment=ABDECKUNG_FILE=/var/lib/kaspa-pulse/entity-x-abdeckung.json
+ExecStart=/opt/kaspa-pulse/deploy/c2/entity-x-alarm/sync.sh
