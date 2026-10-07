@@ -1,0 +1,55 @@
+# Kaspa Pulse - Entity X Movement Report (einmalige Pruefung)
+#
+# Liegt NUR auf dem Branch audit/entity-x-movement-2026-10-07. Nicht
+# gemerged. Ben entscheidet per PR, ob davon etwas dauerhaft ins Repo soll.
+#
+# Warum push als Auslöser: ein per API angestossener workflow_dispatch
+# findet nur Workflows, die auf dem Default-Branch liegen. Ein push-Trigger
+# laeuft aus dem Branch heraus, in den gepusht wurde. So braucht diese
+# Pruefung main nicht anzufassen.
+#
+# Der Job ist LESEND. Kein git commit, kein git push, kein Webhook, kein
+# Discord, kein X. Ergebnis steht im Log und als Artifact.
+
+name: entity x movement report
+
+on:
+  push:
+    branches:
+      - audit/entity-x-movement-2026-10-07
+  workflow_dispatch: {}
+
+# Absichtlich nur Lesen. Der Job soll nichts schreiben koennen.
+permissions:
+  contents: read
+
+concurrency:
+  group: entity-x-movement
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: movement report
+        env:
+          HOURS: "36"
+          CLAIM_KAS: "3143758"
+          CLAIM_LOCAL: "2026-10-07 10:15 Europe/Berlin"
+        run: |
+          set -o pipefail
+          python3 scripts/entity_x_movement.py 2>&1 | tee movement.log
+
+      - name: zum herunterladen ablegen
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: entity-x-movement
+          path: movement.log
