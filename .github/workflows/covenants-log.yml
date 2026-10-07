@@ -45,11 +45,18 @@ jobs:
       - name: seite gegen das log pruefen
         run: python3 scripts/covenants_page.py --check
 
+      # SEO, Ben 06.10.2026: die covenant-zahl im antwortsatz von
+      # kaspa-smart-contracts.html kommt aus demselben log.
+      - name: zahlen in die seiten
+        run: |
+          python3 scripts/seiten_zahlen.py --selbsttest
+          python3 scripts/seiten_zahlen.py
+
       - name: commit
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
-          git add data/covenants-log.json kaspa-covenants.html
+          git add data/covenants-log.json kaspa-covenants.html kaspa-smart-contracts.html kaspa-supply.html
           if git diff --staged --quiet; then
             echo "nichts geaendert"
           else
