@@ -9,6 +9,7 @@
 import datetime as dt
 import json
 import os
+import subprocess
 import sys
 import time
 import urllib.request
@@ -168,6 +169,50 @@ def build_inflow(balance, diff):
     )
 
 
+def _git(*args):
+    return subprocess.run(("git",) + args, capture_output=True, text=True)
+
+
+def persist_now(grund):
+    """Vergleichsstand sofort festschreiben, nicht erst am Jobende.
+
+    Seit dem Dauerlauf (#52) laeuft ein Job 5 h 35 min. Committet wird erst
+    danach. Bricht der Lauf ab, bevor der letzte Schritt kommt, dann ist
+    scripts/entity_x_state.json von bis zu 5 h 35 min Bewegung verloren.
+    Der naechste Lauf vergleicht dann gegen den alten Stand und meldet
+    dieselbe Bewegung ein zweites Mal.
+
+    Die concurrency group verhindert, dass zwei Laeufe gleichzeitig
+    denselben Zufluss sehen. Gegen diesen Fall hilft sie nicht, denn hier
+    laufen die beiden Laeufe nacheinander.
+
+    Ein Alarm ist selten, deshalb wird genau dann gepusht und nicht im
+    Minutentakt. Die Abdeckungsdatei kommt mit, weil sie ohnehin
+    danebenliegt; zwischen zwei Alarmen bleibt sie weiter dem Schritt am
+    Jobende ueberlassen.
+
+    Nur aktiv, wenn PERSIST_EACH gesetzt ist. Lokale Laeufe und der
+    Selbsttest fassen git nicht an.
+    """
+    if not os.environ.get("PERSIST_EACH"):
+        return False
+    _git("config", "user.name", "kaspa-pulse-bot")
+    _git("config", "user.email", "bot@kaspapulse.com")
+    _git("add", "--", STATE_FILE, ABDECKUNG_FILE)
+    if _git("diff", "--staged", "--quiet").returncode == 0:
+        return False
+    _git("commit", "-m", "entity x state update, %s [bot]" % grund)
+    for _ in range(2):
+        if _git("push").returncode == 0:
+            print("vergleichsstand sofort festgeschrieben (%s)" % grund)
+            return True
+        # Ein anderer Bot war schneller. Einmal nachziehen, dann nochmal.
+        _git("pull", "--rebase", "origin", "main")
+    print("WARN push des vergleichsstands fehlgeschlagen. der lauf macht "
+          "weiter, der schritt am jobende versucht es erneut", file=sys.stderr)
+    return False
+
+
 def check_once():
     """Eine Pruefung. Gibt True zurueck, wenn sich der Stand geaendert hat."""
     balance = fetch_balance_kas()
@@ -186,12 +231,14 @@ def check_once():
     if diff <= -OUTFLOW_EPSILON_KAS:
         send_all(build_outflow(balance, last, diff))
         save_state(balance)
+        persist_now("abfluss")
         print(f"OUTFLOW alert, {fmt(-diff)} KAS")
         print("STATE_CHANGED=1")
         return True
     elif diff >= INFLOW_STEP_KAS:
         send_all(build_inflow(balance, diff))
         save_state(balance)
+        persist_now("zufluss")
         print(f"INFLOW alert, +{fmt(diff)} KAS")
         print("STATE_CHANGED=1")
         return True
@@ -390,6 +437,9 @@ def run_selftest():
        any("2,000,015 KAS" in m for m in gesendet), gesendet)
     ok("der letzte gesehene stand ist gespeichert",
        stand["balance_kas"] == 1_525_975_596.46, stand)
+
+    ok("persist_now fasst ohne PERSIST_EACH kein git an",
+       os.environ.get("PERSIST_EACH") is None and persist_now("test") is False)
 
     # abdeckung
     ab = {"tage": {}}
