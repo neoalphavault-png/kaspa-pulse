@@ -5,9 +5,15 @@
 # workflow_dispatch findet nur Workflows auf dem Default-Branch, ein
 # push-Trigger laeuft aus dem Branch heraus.
 #
-# Nur lesend. Der Job sendet nichts, hat keine Wallet, keine Schluessel,
-# keine Secrets, schreibt nichts ins Repo und postet nichts. Ergebnis im Log
-# und als Artefakt. Dauer des Fensters in Sekunden in messung/tn10/dauer.txt.
+# Nur lesend. Kein Job sendet etwas, hat eine Wallet, Schluessel oder
+# Secrets, schreibt ins Repo oder postet. Ergebnis im Log und als Artefakt.
+#
+# Ein Lauf startet, wenn sich messung/tn10/dauer.txt, segment.txt oder
+# einer der beiden Workflows aendert. Fenster bis 6 h am Stueck: zwei
+# versetzte Spuren von Teil-Laeufen (a1 a2, b1 b2 b3), jeder Teil hoechstens
+# ein Segment lang. Die Uebergaben der einen Spur liegen mitten in einem Teil
+# der anderen. Der letzte Job baut aus allen Teilen eine Minuten-CSV ohne
+# Luecke und vergleicht doppelt gezaehlte Minuten.
 
 name: tn10 zaehler
 
@@ -15,6 +21,11 @@ on:
   push:
     branches:
       - messung/tn10-zaehler
+    paths:
+      - messung/tn10/dauer.txt
+      - messung/tn10/segment.txt
+      - .github/workflows/tn10-zaehler.yml
+      - .github/workflows/tn10-teil.yml
 
 permissions:
   contents: read
@@ -24,24 +35,97 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  zaehlen:
+  plan:
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 5
+    outputs:
+      t0: ${{ steps.p.outputs.t0 }}
+      ende: ${{ steps.p.outputs.ende }}
+      a1: ${{ steps.p.outputs.a1 }}
+      a2: ${{ steps.p.outputs.a2 }}
+      b1: ${{ steps.p.outputs.b1 }}
+      b2: ${{ steps.p.outputs.b2 }}
+      b3: ${{ steps.p.outputs.b3 }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: sdk, version und pruefsumme fest
-        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
-      - name: selbsttest
-        run: python3 scripts/tn10_zaehler.py --selbsttest
-      - name: zaehlen
-        run: python3 scripts/tn10_zaehler.py --dauer "$(cat messung/tn10/dauer.txt)" --out out/tn10
+      - name: grenzen der teile
+        id: p
+        run: python3 scripts/tn10_zaehler.py --plan "$(cat messung/tn10/dauer.txt)" --segment "$(cat messung/tn10/segment.txt)" | tee -a "$GITHUB_OUTPUT"
+
+  a1:
+    needs: plan
+    uses: ./.github/workflows/tn10-teil.yml
+    with:
+      teil: a1
+      bis: ${{ needs.plan.outputs.a1 }}
+      von: ${{ needs.plan.outputs.t0 }}
+      bis_plan: ${{ needs.plan.outputs.ende }}
+
+  a2:
+    needs: [plan, a1]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.a2 != '0' }}
+    uses: ./.github/workflows/tn10-teil.yml
+    with:
+      teil: a2
+      bis: ${{ needs.plan.outputs.a2 }}
+      von: ${{ needs.plan.outputs.t0 }}
+      bis_plan: ${{ needs.plan.outputs.ende }}
+
+  b1:
+    needs: plan
+    uses: ./.github/workflows/tn10-teil.yml
+    with:
+      teil: b1
+      bis: ${{ needs.plan.outputs.b1 }}
+      von: ${{ needs.plan.outputs.t0 }}
+      bis_plan: ${{ needs.plan.outputs.ende }}
+
+  b2:
+    needs: [plan, b1]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.b2 != '0' }}
+    uses: ./.github/workflows/tn10-teil.yml
+    with:
+      teil: b2
+      bis: ${{ needs.plan.outputs.b2 }}
+      von: ${{ needs.plan.outputs.t0 }}
+      bis_plan: ${{ needs.plan.outputs.ende }}
+
+  b3:
+    needs: [plan, b2]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.b3 != '0' }}
+    uses: ./.github/workflows/tn10-teil.yml
+    with:
+      teil: b3
+      bis: ${{ needs.plan.outputs.b3 }}
+      von: ${{ needs.plan.outputs.t0 }}
+      bis_plan: ${{ needs.plan.outputs.ende }}
+
+  zusammen:
+    needs: [plan, a1, a2, b1, b2, b3]
+    if: ${{ !cancelled() && needs.plan.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: tn10-teil-*
+          path: out/teile
+      - name: minuten ohne luecke zusammenfuehren
+        env:
+          VON: ${{ needs.plan.outputs.t0 }}
+          BIS: ${{ needs.plan.outputs.ende }}
+        run: python3 scripts/tn10_zaehler.py --zusammenfuehren out/teile --von "$VON" --bis-plan "$BIS" --out out/gesamt/tn10-gesamt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: tn10-zaehler
-          path: out/
+          name: tn10-gesamt
+          path: out/gesamt/
           if-no-files-found: ignore
           retention-days: 30

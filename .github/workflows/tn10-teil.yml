@@ -1,0 +1,54 @@
+# Kaspa Pulse - ein Teil-Lauf des tn10-zaehlers (Ben, 07.10.2026)
+#
+# Wird nur von tn10-zaehler.yml aufgerufen, hat keinen eigenen Trigger.
+# Nur lesend: zwei Knoten-Verbindungen und Stichproben beim TN10-Indexer.
+# Keine Wallet, keine Schluessel, keine Secrets, nichts ins Repo.
+
+name: tn10 teil
+
+on:
+  workflow_call:
+    inputs:
+      teil:
+        type: string
+        required: true
+      bis:
+        type: string
+        required: true
+      von:
+        type: string
+        required: true
+      bis_plan:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  zaehlen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 200
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: sdk, version und pruefsumme fest
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+      - name: selbsttest
+        run: python3 scripts/tn10_zaehler.py --selbsttest
+      - name: zaehlen
+        env:
+          TEIL: ${{ inputs.teil }}
+          BIS: ${{ inputs.bis }}
+          VON: ${{ inputs.von }}
+          BIS_PLAN: ${{ inputs.bis_plan }}
+        run: python3 scripts/tn10_zaehler.py --teil "$TEIL" --bis "$BIS" --von "$VON" --bis-plan "$BIS_PLAN" --out "out/tn10-$TEIL"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tn10-teil-${{ inputs.teil }}
+          path: out/
+          if-no-files-found: ignore
+          retention-days: 30

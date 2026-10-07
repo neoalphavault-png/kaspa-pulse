@@ -1,0 +1,52 @@
+# Kaspa Pulse - Pruefmodus fuer Tx-IDs auf Testnet-10 (Ben, 07.10.2026)
+#
+# Liegt bewusst NUR auf dem Branch messung/tn10-zaehler. Nicht gemergt.
+# Startet, wenn sich messung/tn10/ids.txt aendert (eine Tx-ID je Zeile).
+# Schreibt je ID, ob und wann sie angenommen ist: annehmender Block und
+# Blockzeit laut TN10-Indexer, Block bestaetigt von einem Knoten.
+# Nur lesend, hoechstens eine Abfrage je Sekunde, keine Secrets.
+
+name: tn10 pruefung tx-ids
+
+on:
+  push:
+    branches:
+      - messung/tn10-zaehler
+    paths:
+      - messung/tn10/ids.txt
+      - .github/workflows/tn10-pruefung.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tn10-pruefung
+  cancel-in-progress: false
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: sdk, version und pruefsumme fest
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+      - name: selbsttest
+        run: python3 scripts/tn10_zaehler.py --selbsttest
+      - name: ids pruefen
+        run: |
+          if grep -qE '^[[:space:]]*[0-9a-fA-F]{64}' messung/tn10/ids.txt; then
+            python3 scripts/tn10_zaehler.py --pruefe-ids messung/tn10/ids.txt --out out/tn10-ids
+          else
+            echo "keine tx-id in messung/tn10/ids.txt"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tn10-pruefung
+          path: out/
+          if-no-files-found: ignore
+          retention-days: 30
