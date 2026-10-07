@@ -737,7 +737,23 @@ def befehl_montag():
     return schlecht
 
 
+def befehl_kohorte():
+    """Nur lesend. Ben, 07.10.2026: scripts/kohorte.py auf dem runner,
+    selbsttest, abgleich mit data/kohorte.json und die einheitenprobe gegen
+    den live-kontostand von Entity X (sompi, bricht bei mehr als 1 % ab)."""
+    import subprocess
+    print("abruf %s utc" % dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"))
+    schlecht = 0
+    for args in (["--selbsttest"], ["--pruefen"], ["--live"]):
+        r = subprocess.run([sys.executable, "scripts/kohorte.py"] + args, capture_output=True, text=True)
+        print("\n--- kohorte.py %s, exit %d" % (" ".join(args), r.returncode))
+        print(r.stdout + r.stderr)
+        schlecht |= 1 if r.returncode else 0
+    return schlecht
+
+
 BEFEHLE = {
+    "kohorte": befehl_kohorte,
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
     "stream": befehl_stream,
