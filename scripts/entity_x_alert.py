@@ -6,8 +6,10 @@
 #
 # Nur Python-Standardbibliothek, keine Abhaengigkeiten.
 
+import datetime as dt
 import json
 import os
+import subprocess
 import sys
 import time
 import urllib.request
@@ -18,6 +20,10 @@ import telegram_post  # noqa: E402
 ADDRESS = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a"
 API = "https://api.kaspa.org/addresses/{}/balance"
 STATE_FILE = "scripts/entity_x_state.json"
+# Beobachtungsprotokoll. Ein Eintrag je Lauf, damit die Abdeckung messbar
+# ist und nicht geschaetzt werden muss. Siehe coverage_lines().
+WATCH_LOG = "data/entity-x-watch-log.json"
+WATCH_LOG_KEEP = 400
 SOMPI = 100_000_000  # 1 KAS = 1e8 sompi
 
 # Schwellwerte
@@ -156,6 +162,130 @@ def build_inflow(balance, diff):
     )
 
 
+# ------------------------------------------------- beobachtungsprotokoll
+
+def load_watch_log():
+    try:
+        with open(WATCH_LOG) as f:
+            d = json.load(f)
+        return d if isinstance(d, list) else []
+    except (OSError, ValueError):
+        return []
+
+
+def append_watch(start_ts, end_ts, checks, alerts):
+    log = load_watch_log()
+    log.append({
+        "start_utc": dt.datetime.fromtimestamp(start_ts, dt.timezone.utc)
+                       .strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "end_utc": dt.datetime.fromtimestamp(end_ts, dt.timezone.utc)
+                     .strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "seconds": int(end_ts - start_ts),
+        "checks": checks,
+        "alerts": alerts,
+        "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+        "chain": os.environ.get("ALERT_CHAIN", ""),
+    })
+    log = log[-WATCH_LOG_KEEP:]
+    os.makedirs(os.path.dirname(WATCH_LOG), exist_ok=True)
+    with open(WATCH_LOG, "w") as f:
+        json.dump(log, f, indent=1)
+        f.write("\n")
+    return log
+
+
+def _merge(spans):
+    """Ueberlappende Fenster zusammenlegen, sonst kaeme Abdeckung ueber
+    100 Prozent heraus, wenn zwei Laeufe sich ueberschneiden."""
+    out = []
+    for a, b in sorted(spans):
+        if out and a <= out[-1][1]:
+            out[-1][1] = max(out[-1][1], b)
+        else:
+            out.append([a, b])
+    return out
+
+
+def coverage_lines(log, days=7, now=None):
+    """Abdeckung je Tag aus dem Protokoll. Das ist die Zahl, an der sich
+    die Kanalbeschreibung messen laesst."""
+    now = now if now is not None else time.time()
+    spans = []
+    for e in log:
+        try:
+            a = dt.datetime.strptime(e["start_utc"], "%Y-%m-%dT%H:%M:%SZ") \
+                  .replace(tzinfo=dt.timezone.utc).timestamp()
+            b = dt.datetime.strptime(e["end_utc"], "%Y-%m-%dT%H:%M:%SZ") \
+                  .replace(tzinfo=dt.timezone.utc).timestamp()
+        except (KeyError, ValueError):
+            continue
+        if b > a:
+            spans.append((a, b))
+    spans = _merge(spans)
+    heute = dt.datetime.fromtimestamp(now, dt.timezone.utc).date()
+    zeilen = []
+    for i in range(days - 1, -1, -1):
+        tag = heute - dt.timedelta(days=i)
+        t0 = dt.datetime.combine(tag, dt.time(0, 0), dt.timezone.utc).timestamp()
+        t1 = t0 + 86400
+        gedeckt = sum(max(0.0, min(b, t1) - max(a, t0)) for a, b in spans)
+        teil = min(t1, now) - t0
+        if teil <= 0:
+            continue
+        zeilen.append({
+            "tag": tag.isoformat(),
+            "sekunden": int(gedeckt),
+            "stunden": round(gedeckt / 3600, 2),
+            "anteil_pct": round(gedeckt / teil * 100, 1),
+            "unvollstaendig": t1 > now,
+        })
+    return zeilen
+
+
+def print_coverage(log, now=None):
+    print("\nabdeckung je tag, aus %s" % WATCH_LOG)
+    for z in coverage_lines(log, now=now):
+        rest = "  (tag laeuft noch)" if z["unvollstaendig"] else ""
+        print("  %s  %5.2f h  %5.1f prozent%s"
+              % (z["tag"], z["stunden"], z["anteil_pct"], rest))
+
+
+# ------------------------------------------------- sofort festschreiben
+
+def _git(*args):
+    return subprocess.run(("git",) + args, capture_output=True, text=True)
+
+
+def persist_now(grund):
+    """Vergleichsstand sofort festschreiben, nicht erst am Jobende.
+
+    Mit der Dauerbeobachtung laeuft ein Job bis zu 5 h 40 min. Bricht er ab,
+    waere der Vergleichsstand von bis zu 5 h 40 min Bewegung verloren, und
+    der naechste Lauf meldete dieselbe Bewegung ein zweites Mal. Nach jedem
+    Alarm wird deshalb sofort gepusht.
+
+    Nur aktiv, wenn PERSIST_EACH gesetzt ist. Lokale Laeufe und der
+    Selbsttest fassen git nicht an.
+    """
+    if not os.environ.get("PERSIST_EACH"):
+        return False
+    _git("config", "user.name", "kaspa-pulse-bot")
+    _git("config", "user.email", "bot@kaspapulse.com")
+    _git("add", STATE_FILE, WATCH_LOG)
+    if _git("diff", "--staged", "--quiet").returncode == 0:
+        return False
+    _git("commit", "-m", "entity x state update, %s [bot]" % grund)
+    for versuch in range(2):
+        if _git("push").returncode == 0:
+            print("vergleichsstand sofort festgeschrieben (%s)" % grund)
+            return True
+        # Ein anderer Bot war schneller. Einmal nachziehen, dann nochmal.
+        _git("pull", "--rebase", "origin", "main")
+    print("WARN push des vergleichsstands fehlgeschlagen, der lauf macht "
+          "weiter; der jobende-commit versucht es erneut", file=sys.stderr)
+    return False
+
+
 def check_once():
     """Eine Pruefung. Gibt True zurueck, wenn sich der Stand geaendert hat."""
     balance = fetch_balance_kas()
@@ -174,12 +304,14 @@ def check_once():
     if diff <= -OUTFLOW_EPSILON_KAS:
         send_all(build_outflow(balance, last, diff))
         save_state(balance)
+        persist_now("abfluss")
         print(f"OUTFLOW alert, {fmt(-diff)} KAS")
         print("STATE_CHANGED=1")
         return True
     elif diff >= INFLOW_STEP_KAS:
         send_all(build_inflow(balance, diff))
         save_state(balance)
+        persist_now("zufluss")
         print(f"INFLOW alert, +{fmt(diff)} KAS")
         print("STATE_CHANGED=1")
         return True
@@ -210,6 +342,7 @@ def main():
     loop = int(os.environ.get("LOOP_SECONDS", "0") or 0)
     interval = int(os.environ.get("POLL_INTERVAL", "60") or 60)
     started = time.monotonic()
+    start_wall = time.time()
     checks = 0
     alerts = 0
 
@@ -227,6 +360,16 @@ def main():
         if elapsed + interval >= loop:
             break
         time.sleep(interval)
+
+    # Was dieser Lauf wirklich beobachtet hat, ins Protokoll. Die Abdeckung
+    # ist damit gemessen und nicht geschaetzt.
+    log = append_watch(start_wall, time.time(), checks, alerts)
+    print("\nfenster %s bis %s, %d pruefungen, %d alarme"
+          % (dt.datetime.fromtimestamp(start_wall, dt.timezone.utc)
+               .strftime("%H:%M:%S"),
+             dt.datetime.now(dt.timezone.utc).strftime("%H:%M:%S UTC"),
+             checks, alerts))
+    print_coverage(log)
 
     print("fertig nach %d pruefungen in %.0f sekunden, %d alarme"
           % (checks, time.monotonic() - started, alerts))
@@ -301,6 +444,66 @@ def run_selftest():
        any("2,000,015 KAS" in m for m in gesendet), gesendet)
     ok("der letzte gesehene stand ist gespeichert",
        stand["balance_kas"] == 1_525_975_596.46, stand)
+
+    # --- abdeckungsrechnung, die zahl aus punkt 5 des pruefauftrags ---
+    print("abdeckung")
+    ok("ueberlappende fenster werden zusammengelegt",
+       _merge([(0, 100), (50, 200), (300, 400)]) == [[0, 200], [300, 400]],
+       _merge([(0, 100), (50, 200), (300, 400)]))
+
+    def tag(d, h, m=0):
+        return dt.datetime(2026, 10, d, h, m, tzinfo=dt.timezone.utc) \
+                 .strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    jetzt = dt.datetime(2026, 10, 9, 0, 0, tzinfo=dt.timezone.utc).timestamp()
+
+    # ein voller tag aus vier luecklosen fenstern
+    voll = [{"start_utc": tag(8, h), "end_utc": tag(8, h + 6) if h < 18
+             else tag(9, 0)} for h in (0, 6, 12, 18)]
+    z = {x["tag"]: x for x in coverage_lines(voll, days=2, now=jetzt)}
+    ok("vier luecklose fenster ergeben 100 prozent",
+       z["2026-10-08"]["anteil_pct"] == 100.0, z.get("2026-10-08"))
+
+    # doppelt gezaehlt waeren es 200 prozent
+    doppelt = voll + voll
+    z2 = {x["tag"]: x for x in coverage_lines(doppelt, days=2, now=jetzt)}
+    ok("doppelte eintraege ergeben trotzdem 100 prozent",
+       z2["2026-10-08"]["anteil_pct"] == 100.0, z2.get("2026-10-08"))
+
+    # ein fenster ueber mitternacht faellt auf beide tage
+    nacht = [{"start_utc": tag(7, 22), "end_utc": tag(8, 2)}]
+    z3 = {x["tag"]: x for x in coverage_lines(nacht, days=3, now=jetzt)}
+    ok("fenster ueber mitternacht zaehlt auf beiden tagen",
+       z3["2026-10-07"]["stunden"] == 2.0 and z3["2026-10-08"]["stunden"] == 2.0,
+       {k: v["stunden"] for k, v in z3.items()})
+
+    # der gemessene istzustand vor der umstellung, 50 min je lauf
+    alt = [{"start_utc": tag(8, h), "end_utc": tag(8, h, 50)}
+           for h in (0, 5, 10, 15, 20)]
+    z4 = {x["tag"]: x for x in coverage_lines(alt, days=2, now=jetzt)}
+    ok("fuenf fenster von 50 minuten ergeben die gemessenen 17 prozent",
+       z4["2026-10-08"]["anteil_pct"] == 17.4, z4.get("2026-10-08"))
+
+    # das neue fenster, 5 h 40 min, viermal
+    neu = [{"start_utc": tag(8, h), "end_utc": tag(8, h + 5, 40)}
+           for h in (0, 6, 12, 18)]
+    z5 = {x["tag"]: x for x in coverage_lines(neu, days=2, now=jetzt)}
+    ok("vier fenster von 5 h 40 min deckten 94 prozent",
+       z5["2026-10-08"]["anteil_pct"] == 94.4, z5.get("2026-10-08"))
+
+    # Mittags, damit der laufende Tag ueberhaupt verstrichene Zeit hat.
+    # Um genau Mitternacht faellt er zu Recht heraus, dann gibt es fuer ihn
+    # keinen sinnvollen Anteil.
+    mittag = dt.datetime(2026, 10, 9, 12, 0, tzinfo=dt.timezone.utc).timestamp()
+    ok("kaputte eintraege kippen die rechnung nicht",
+       coverage_lines([{"start_utc": "quatsch"}, {}, {"start_utc": tag(9, 5),
+                        "end_utc": tag(9, 4)}], days=1, now=mittag)
+       [0]["sekunden"] == 0)
+    ok("ein tag ohne verstrichene zeit wird nicht gemeldet",
+       coverage_lines(voll, days=1, now=jetzt) == [])
+
+    ok("persist_now fasst ohne PERSIST_EACH kein git an",
+       os.environ.get("PERSIST_EACH") is None and persist_now("test") is False)
 
     print("")
     if fails:
