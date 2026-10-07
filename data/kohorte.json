@@ -1,0 +1,11 @@
+{
+  "zweck": "anteil der 100 groessten adressen am umlauf, ohne gelabelte boersen, pools, miner und bruecken. Entity X bleibt drin und steht getrennt da. noch nicht veroeffentlicht, erst ab dem weekly vom 19.10.2026.",
+  "einschraenkung": "only labelled exchanges, pools, miners and bridges are removed; unlabelled ones stay in.",
+  "entity_x_im_text": "the address the explorer calls Entity X",
+  "quelle": "data/richlist-log.json und data/richlist/, api.kaspa.org /addresses/top und /addresses/names, umlauf aus /info/coinsupply desselben laufs",
+  "rechnung": "scripts/kohorte.py, labels nach data/label-kategorien.json",
+  "messpunkte": [
+    {"anteil_ohne_ex_pct": 13.43, "anteil_pct": 18.93, "ausgeschlossen_in_roh_top100": {"boerse": 14, "bruecke": 2, "miner": 1, "pool": 1}, "datum": "2026-09-27", "entity_x_pct": 5.5, "genau": {"anteil_ohne_ex_pct": 13.4287, "anteil_pct": 18.9328, "circ_supply_kas": 27724105701.44, "entity_x_kas": 1525975596, "entity_x_pct": 5.5041, "kohorte_kas": 5248960862}, "kohorte_nach_label": {"offen": 0, "ohne_label": 97, "sonstige": 2, "unbekannt": 0}, "letzter_rohrang_der_kohorte": 117, "schnappschuss_utc": "2026-09-27T08:31:47+00:00", "umlauf_abgerufen_utc": "2026-09-27T09:18:06+00:00", "veraenderung_pp": null, "woche": "2026-W39"},
+    {"anteil_ohne_ex_pct": 13.32, "anteil_pct": 18.81, "ausgeschlossen_in_roh_top100": {"boerse": 14, "bruecke": 2, "miner": 1, "pool": 1}, "datum": "2026-10-04", "entity_x_pct": 5.5, "genau": {"anteil_ohne_ex_pct": 13.3159, "anteil_pct": 18.8118, "circ_supply_kas": 27737348924.92, "entity_x_kas": 1524397553, "entity_x_pct": 5.4958, "kohorte_kas": 5217884138}, "kohorte_nach_label": {"offen": 0, "ohne_label": 97, "sonstige": 2, "unbekannt": 0}, "letzter_rohrang_der_kohorte": 118, "schnappschuss_utc": "2026-10-04T08:51:36+00:00", "umlauf_abgerufen_utc": "2026-10-04T09:50:53+00:00", "veraenderung_pp": {"anteil_ohne_ex_pct": {"bis": 13.32, "pp": -0.11, "von": 13.43}, "anteil_pct": {"bis": 18.81, "pp": -0.12, "von": 18.93}, "entity_x_pct": {"bis": 5.5, "pp": 0.0, "von": 5.5}}, "woche": "2026-W40"}
+  ]
+}

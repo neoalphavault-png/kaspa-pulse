@@ -81,6 +81,8 @@ def fenster(von, bis):
 
 
 def zahl(n):
+    if isinstance(n, float) and not n.is_integer():
+        return format(n, ",.2f")
     return format(int(n), ",")
 
 
@@ -88,6 +90,66 @@ def fenster_zeile(von, bis):
     f = fenster(von, bis)
     return "%s to %s kas, %s %s" % (zahl(f["von_gerundet"]), zahl(f["bis_gerundet"]),
                                     zahl(f["differenz"]), f["richtung"])
+
+
+# ------------------------------------------------------------------ Kohorte
+
+# Ben, 07.10.2026: der anteil der 100 groessten adressen ohne gelabelte
+# boersen, pools, miner und bruecken, aus data/kohorte.json (scripts/kohorte.py).
+# Erste veroeffentlichung im weekly vom 19.10.2026. Der satz zur
+# einschraenkung steht immer dabei, Entity X heisst immer so wie hier.
+KOHORTE = os.path.join(ROOT, "data", "kohorte.json")
+KOHORTE_AB = dt.date(2026, 10, 19)
+KOHORTE_EINSCHRAENKUNG = "only labelled exchanges, pools, miners and bridges are removed; unlabelled ones stay in."
+
+
+def _richtung(pp):
+    return "up" if pp > 0 else "down" if pp < 0 else "unchanged"
+
+
+def kohorte_zeile(punkte=None):
+    """Ein satz aus den letzten zwei messpunkten. Erst runden, dann abziehen:
+    die punkte in data/kohorte.json sind schon so gerechnet, hier wird nur
+    gegengerechnet und abgebrochen, wenn es nicht passt."""
+    if punkte is None:
+        with open(KOHORTE, encoding="utf-8") as fh:
+            punkte = json.load(fh)["messpunkte"]
+    neu, alt = punkte[-1], punkte[-2]
+    d = dt.date.fromisoformat(neu["datum"])
+    teile = []
+    for feld in ("anteil_pct", "anteil_ohne_ex_pct"):
+        von, bis = round(alt[feld], 2), round(neu[feld], 2)
+        pp = round(bis - von, 2)
+        v = (neu.get("veraenderung_pp") or {}).get(feld)
+        if v and (v["von"], v["bis"], v["pp"]) != (von, bis, pp):
+            raise ValueError("kohorte: %s in data/kohorte.json passt nicht zur gegenrechnung" % feld)
+        teile.append((bis, von, pp))
+    (a_bis, a_von, a_pp), (o_bis, o_von, o_pp) = teile
+    def bewegung(bis, von, pp, mitte=""):
+        if pp == 0:
+            return "%.2f%%%s, unchanged from %.2f%% a week earlier" % (bis, mitte, von)
+        return "%.2f%%%s, %s %.2f points from %.2f%% a week earlier" % (bis, mitte, _richtung(pp), abs(pp), von)
+    return ("on %d %s the 100 largest addresses outside labelled exchanges, pools, miners and bridges held %s. "
+            "without the address the explorer calls Entity X they held %s. Entity X alone held %.2f%%. %s"
+            % (d.day, MONATE_EN[d.month - 1], bewegung(a_bis, a_von, a_pp, " of circulating supply"),
+               bewegung(o_bis, o_von, o_pp), round(neu["entity_x_pct"], 2), KOHORTE_EINSCHRAENKUNG))
+
+
+PROZENT_RE = re.compile(r"(\d+(?:\.\d+)?)%[^%.]{0,40}?\b(up|down) (\d+(?:\.\d+)?) (?:percentage )?points? from "
+                        r"(\d+(?:\.\d+)?)%")
+
+
+def pruefe_prozent(seg):
+    """'B%, down D points from A%': D muss |B - A| der gedruckten werte sein,
+    die richtung muss stimmen."""
+    aus = []
+    for m in PROZENT_RE.finditer(seg):
+        bis, richtung, d, von = float(m.group(1)), m.group(2), float(m.group(3)), float(m.group(4))
+        soll = round(bis - von, 2)
+        if round(d, 2) != abs(soll) or (soll != 0 and richtung != _richtung(soll)):
+            aus.append({"segment": seg[:200], "von": von, "bis": bis,
+                        "gedruckt": d if richtung == "up" else -d, "richtig": soll})
+    return aus
 
 
 # ------------------------------------------------------------------ Emission
@@ -295,6 +357,7 @@ def pruefe_text(text, ist_html=False):
     for seg in segmente(text, ist_html):
         if AUSNAHME in seg:
             continue
+        befunde += pruefe_prozent(seg)
         gesehen = set()      # je Segment, damit jede Fundstelle gemeldet wird
         werte = sorted({abs(parse_zahl(m.group(0))) for m in ZAHL_RE.finditer(seg)},
                        reverse=True)
@@ -403,7 +466,27 @@ def selbsttest():
     b = pruefe_text(html, ist_html=True)
     assert len(b) == 1 and b[0]["gedruckt"] == 105844, b
 
-    print("selbsttest ok: differenzregel, senkung ohne uhrzeit, rang, waechter")
+    # kohorte: zeile aus zwei messpunkten, gegengerechnet, waechter fuer prozentpunkte
+    pk = [{"datum": "2026-09-27", "anteil_pct": 19.08, "anteil_ohne_ex_pct": 13.58, "entity_x_pct": 5.5},
+          {"datum": "2026-10-04", "anteil_pct": 18.84, "anteil_ohne_ex_pct": 13.34, "entity_x_pct": 5.5,
+           "veraenderung_pp": {"anteil_pct": {"von": 19.08, "bis": 18.84, "pp": -0.24}}}]
+    z = kohorte_zeile(pk)
+    assert "18.84% of circulating supply, down 0.24 points from 19.08%" in z, z
+    assert "13.34%, down 0.24 points from 13.58%" in z, z
+    assert z.endswith(KOHORTE_EINSCHRAENKUNG) and "the address the explorer calls Entity X" in z, z
+    assert ":" not in z and "\u2014" not in z, z
+    assert pruefe_text(z) == [], pruefe_text(z)
+    assert len(pruefe_text("held 18.84%, down 0.25 points from 19.08% a week earlier")) == 1
+    assert len(pruefe_text("held 18.84%, up 0.24 points from 19.08% a week earlier")) == 1
+    assert len(pruefe_text("held 18.84% of circulating supply, down 0.23 points from 19.08%")) == 1
+    pk[1]["veraenderung_pp"]["anteil_pct"]["pp"] = -0.25
+    try:
+        kohorte_zeile(pk)
+        raise AssertionError("falsche veraenderung in der datei nicht erkannt")
+    except ValueError:
+        pass
+
+    print("selbsttest ok: differenzregel, senkung ohne uhrzeit, rang, waechter, kohorte")
     return 0
 
 
@@ -412,7 +495,7 @@ def selbsttest():
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("modus", nargs="?", choices=("fenster", "emission", "cut", "linie", "pruefe"))
+    ap.add_argument("modus", nargs="?", choices=("fenster", "emission", "cut", "linie", "pruefe", "kohorte"))
     ap.add_argument("dateien", nargs="*")
     ap.add_argument("--von", type=float)
     ap.add_argument("--bis", type=float)
@@ -446,6 +529,13 @@ def main():
         r = linie(a.wochen)
         print(json.dumps(r, indent=1))
         print("veroeffentlichen:", linien_satz(a.wochen))
+    elif a.modus == "kohorte":
+        z = kohorte_zeile()
+        heute = dt.datetime.now(dt.timezone.utc).date()
+        print(("veroeffentlichen: " if heute >= KOHORTE_AB else
+               "noch nicht veroeffentlichen, erst ab %s: " % KOHORTE_AB.isoformat()) + z)
+        if pruefe_text(z):
+            sys.exit("kohorte: die zeile besteht den eigenen waechter nicht")
     elif a.modus == "pruefe":
         if not a.dateien:
             sys.exit("keine dateien angegeben")
