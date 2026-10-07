@@ -937,7 +937,23 @@ def befehl_igra():
     return 0
 
 
+def befehl_kasware():
+    """Nur lesend. Ben, 07.10.2026: Version und Aktualisierungsdatum von
+    Kasware im Chrome Web Store, Anbieter, Repo. Druckt Auszuege mit Abrufzeit."""
+    print("abruf %s utc" % dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"))
+    u = "https://chromewebstore.google.com/detail/kasware-wallet/hklhheigdmpoolooomdihmhlpjjdbklf"
+    st, txt = hole(u)
+    t = _text(txt)
+    print("\n--- %s  http %s  %d zeichen" % (u, st, len(t)))
+    for m in umfeld(t, r"Version|Updated|Aktualisiert|Offered by|Angeboten|kasware\.xyz|Size", 160, 12):
+        print("    ..." + m + "...")
+    print("  roh-treffer version: %s" % sorted(set(re.findall(r'"(\d+\.\d+\.\d+)"', txt or "")))[:10])
+    _seite("https://github.com/kasware-wallet/extension/releases", r"v?0\.\d+\.\d+|Latest|released", hoechstens=6)
+    return 0
+
+
 BEFEHLE = {
+    "kasware": befehl_kasware,
     "igra": befehl_igra,
     "staking": befehl_staking,
     "kron": befehl_kron,
