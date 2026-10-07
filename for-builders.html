@@ -161,6 +161,10 @@
   .schluss { text-align:center; background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 22px; margin:56px 0 0; }
   .wrap2 .schluss h2 { margin:0 0 20px; padding:0; }
   .schluss h2::before { display:none; }
+  /* auf dieser seite steht der aufruf schon im hero und am schluss. am
+     handy stuende der schwebende cheat-sheet-knopf sonst direkt unter dem
+     aus der kopfzeile (Ben, 07.10.2026) */
+  @media (max-width:759px){ #kpcBtn, #kpcPad { display:none !important; } }
   @media (max-width:520px){ .hero h1{font-size:31px;} .hero .unter{font-size:16px;line-height:25px;} }
 </style>
 </head>
@@ -220,12 +224,12 @@
     <li><b>Fixed price, written report.</b>If you want the full round, you get a fixed quote. Payment up front, report within about a week.</li>
   </ol>
 
-  <p class="lead">Most teams start with the free first look.</p>
+  <p class="lead">Every project starts with a free first look.</p>
 
   <h2>Kaspa project review before your audit</h2>
   <div class="answer">
     <div class="lbl">Pre-audit review</div>
-    <p class="preis">150 € per round</p>
+    <p class="preis">from 150 € per round</p>
     <p>A close read of your project before it goes to a professional audit. We look at the flow, the interface and the claims you make, and send a written list of what holds, what confuses and what to fix first. It fits covenant apps written in Silverscript as well as a Kaspa wallet, a front end or a token tool. One round covers one version.</p>
   </div>
 
@@ -333,22 +337,18 @@
     {
      "@type": "Offer",
      "name": "Pre-audit review",
-     "price": 150,
-     "priceCurrency": "EUR",
      "priceSpecification": {
       "@type": "UnitPriceSpecification",
-      "price": 150,
+      "minPrice": 150,
       "priceCurrency": "EUR",
       "valueAddedTaxIncluded": false,
-      "description": "150 EUR per round, plus VAT where it applies",
-      "unitText": "per round"
+      "unitText": "per round",
+      "description": "from 150 EUR per round, plus VAT where it applies"
      }
     },
     {
      "@type": "Offer",
      "name": "On-chain count",
-     "price": 75,
-     "priceCurrency": "EUR",
      "priceSpecification": {
       "@type": "UnitPriceSpecification",
       "minPrice": 75,
