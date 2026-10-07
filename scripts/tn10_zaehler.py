@@ -94,6 +94,8 @@ IPV6 = re.compile(r"\[[0-9a-fA-F:.]*:[0-9a-fA-F:.]*\]")
 TXID = re.compile(r"^[0-9a-f]{64}$")
 NICHT = "nicht messbar"
 NACHLAUF_S = 30
+STILLE_MS = 5000          # laengere empfangspause gilt als luecke, auch bei offener verbindung
+STILLE_RAND_MS = 2000
 SPUR_SEKUNDE = {"a": 5, "b": 35}
 MAX_DAUER = 21600
 MAX_SEGMENT = 11400
@@ -197,6 +199,8 @@ class Zaehler:
         self.kandidaten = []        # (annehmender block, tx-id), die letzten fuer die gebuehren-stichprobe
         self.form = {}              # datenform je ereignisart, nur schluessel
         self.unbekannte_form = 0
+        self.empfang_bloecke = []   # empfangszeiten, fuer stille verbindungen
+        self.empfang_kette = []
 
     def block(self, event, *_a, **_k):
         daten = event.get("data", event) if isinstance(event, dict) else {}
@@ -226,10 +230,12 @@ class Zaehler:
         self.bloecke[h] = {"ts": ts, "daa": zahl(feld(hdr, "daaScore")), "blau": zahl(feld(hdr, "blueScore")),
                            "n_tx": len(txs), "n_ohne_cb": ohne_cb, "masse": masse,
                            "empfangen": int(time.time() * 1000)}
+        self.empfang_bloecke.append(self.bloecke[h]["empfangen"])
 
     def kette(self, event, *_a, **_k):
         daten = event.get("data", event) if isinstance(event, dict) else {}
         self.form.setdefault("kette", schluessel(daten))
+        self.empfang_kette.append(int(time.time() * 1000))
         for h in feld(daten, "removedChainBlockHashes") or []:
             self.angenommen.pop(h, None)
         for eintrag in feld(daten, "acceptedTransactionIds") or []:
@@ -247,11 +253,25 @@ def beruehrt(luecken, a, e):
     return any(x < e and y > a for x, y in luecken)
 
 
+def stillen(zeiten, start_ms, ende_ms, grenze=STILLE_MS, rand=STILLE_RAND_MS):
+    """Empfangspausen ueber grenze als luecken, um rand verbreitert. Faengt
+    eine verbindung, die offen aussieht, aber nichts mehr liefert."""
+    raus, vor = [], start_ms
+    for t in sorted(t for t in zeiten if start_ms <= t <= ende_ms):
+        if t - vor > grenze:
+            raus.append((vor - rand, t + rand))
+        vor = t
+    if ende_ms - vor > grenze:
+        raus.append((vor - rand, ende_ms))
+    return raus
+
+
 def eimer(z, start_ms, ende_ms, luecken, status=None):
     """Minuten-Eimer nach Blockzeit fuer einen Knoten. voll heisst: die Minute
     liegt ganz im Fenster, keine Verbindungsluecke beruehrt sie, und der
     Knoten hat sich in der Minute nicht als unsynchron gemeldet."""
     status = status or {}
+    luecken = list(luecken) + stillen(z.empfang_bloecke, start_ms, ende_ms) + stillen(z.empfang_kette, start_ms, ende_ms)
     bl = sorted(z.bloecke.values(), key=lambda b: b["ts"])
     je, vor = {}, None
     for b in bl:
@@ -306,7 +326,7 @@ HAUPT = ["bloecke", "bloecke_pro_s", "bloecke_nach_empfang", "tx_in_bloecken", "
          "angenommen_pro_s", "daa_min", "daa_max", "blau_min", "blau_max", "verzug_ms_median"]
 SPALTEN = (["minute_utc", "voll", "quelle_knoten"] + HAUPT + ["mempool", "feerate_normal"]
            + ["k%d_%s" % (i, f) for i in (1, 2) for f in KN]
-           + ["diff_bloecke", "diff_angenommen", "daa_abstand"])
+           + ["diff_bloecke", "diff_angenommen", "knoten_gleich", "daa_abstand"])
 
 
 def vereinen(je_knoten, status_je_knoten, feerate):
@@ -345,6 +365,7 @@ def vereinen(je_knoten, status_je_knoten, feerate):
             r["diff_angenommen"] = reihen[0]["angenommen_tx"] - reihen[1]["angenommen_tx"]
         else:
             r["diff_bloecke"] = r["diff_angenommen"] = ""
+        r["knoten_gleich"] = "" if r["diff_bloecke"] == "" else int(r["diff_bloecke"] == 0 and r["diff_angenommen"] == 0)
         r["daa_abstand"] = ""
         raus.append(r)
     return raus
@@ -441,11 +462,14 @@ def knoten_zeilen(zeilen, voll):
     da = [num(r["diff_angenommen"]) for r in beide]
     ab = [abs(num(r["daa_abstand"])) for r in zeilen if num(r["daa_abstand"]) is not None]
     gleich = sum(1 for r in beide if num(r["diff_bloecke"]) == 0 and num(r["diff_angenommen"]) == 0)
+    voll_n = sum(1 for r in voll)
     ver1 = [num(r["k1_verzug_ms"]) for r in voll if num(r["k1_verzug_ms"]) is not None]
     ver2 = [num(r["k2_verzug_ms"]) for r in voll if num(r["k2_verzug_ms"]) is not None]
     raus.append(
-        ("abgleich k1 gegen k2 in %d minuten, beide voll: gleich in %d, bloecke k1 minus k2 von %d bis %d, "
-         "angenommen k1 minus k2 von %d bis %d" % (len(beide), gleich, min(db), max(db), min(da), max(da))
+        ("abgleich k1 gegen k2 in %d minuten, beide voll: gleich in %d (von zwei knoten bestaetigt %d von %d vollen "
+         "minuten), bloecke k1 minus k2 von %d bis %d, angenommen k1 minus k2 von %d bis %d" % (
+             len(beide), gleich, sum(1 for r in voll if num(r.get("knoten_gleich")) == 1), voll_n,
+             min(db), max(db), min(da), max(da))
          if beide else "abgleich k1 gegen k2 " + NICHT + " (keine minute, in der beide voll sind)")
         + ("; daa-abstand bereinigt median %s, max %s" % (statistics.median(ab), max(ab)) if ab else "")
         + ("; verzug empfang minus blockzeit median k1 %s ms, k2 %s ms" % (
@@ -832,6 +856,8 @@ def zusammenfuehren(teile, von_s, bis_s):
     raus, abgleich = [], []
     for m in range(von_s // 60, bis_s // 60):
         volle = [(t["meta"].get("teil", "?"), z[m]) for t, z in zip(teile, je_teil) if m in z and num(z[m]["voll"])]
+        # zuerst zeilen, in denen zwei knoten dasselbe zaehlen, dann die spur-reihenfolge
+        volle.sort(key=lambda x: 0 if num(x[1].get("knoten_gleich")) == 1 else 1)
         if volle:
             r = dict(volle[0][1])
             r["quelle"] = volle[0][0]
@@ -1052,6 +1078,8 @@ def selbsttest():
         {"acceptingBlockHash": "zz", "acceptedTransactionIds": ["q"]}]}})
     z.kette({"data": {"removedChainBlockHashes": ["a"], "acceptedTransactionIds": [
         {"acceptingBlockHash": "d", "acceptedTransactionIds": ["a-0", "a-1", "a-2", "d-0"]}]}})
+    puls = list(range(t0, t0 + 120001, 1000))      # empfang jede sekunde, keine stille
+    z.empfang_bloecke, z.empfang_kette = list(puls), list(puls)
     zl, extra = eimer(z, t0, t0 + 120000, [])
     m0, m1 = zl[t0 // 60000], zl[t0 // 60000 + 1]
     ok("bloecke je minute und je sekunde", m0["bloecke"] == 3 and m0["bloecke_pro_s"] == 0.05)
@@ -1070,6 +1098,16 @@ def selbsttest():
        eimer(z, t0, t0 + 120000, [(t0 + 70000, t0 + 75000)])[0][t0 // 60000 + 1]["voll"] == 0)
     ok("luecke ueber eine verbindungsluecke zaehlt nicht",
        eimer(z, t0, t0 + 120000, [(t0 + 2000, t0 + 3000)])[0][t0 // 60000 + 1]["groesste_luecke_ms"] == "")
+    z.empfang_bloecke = [t for t in puls if not t0 + 70000 < t < t0 + 90000]
+    ok("stille verbindung ohne bloecke macht die minute unvoll",
+       eimer(z, t0, t0 + 120000, [])[0][t0 // 60000 + 1]["voll"] == 0
+       and eimer(z, t0, t0 + 120000, [])[0][t0 // 60000]["voll"] == 1)
+    z.empfang_bloecke = list(puls)
+    z.empfang_kette = [t for t in puls if t < t0 + 100000]
+    ok("stille kette am ende macht die minute unvoll", eimer(z, t0, t0 + 120000, [])[0][t0 // 60000 + 1]["voll"] == 0)
+    z.empfang_kette = list(puls)
+    ok("stillen: pause ueber der grenze, um den rand verbreitert",
+       stillen([0, 1000, 8000, 9000], 0, 9500) == [(-1000, 10000)] and stillen([0, 1000], 0, 7000) == [(-1000, 7000)])
     ok("unsynchroner knoten macht die minute unvoll",
        eimer(z, t0, t0 + 120000, [], {t0 // 60000: {"synchron": False}})[0][t0 // 60000]["voll"] == 0)
 
@@ -1077,6 +1115,7 @@ def selbsttest():
     z2 = Zaehler()
     for e in (blk("a", t0 + 100, 3, 10), blk("b", t0 + 300, 0, 11), blk("c", t0 + 1300, 5, 12)):
         z2.block(e)
+    z2.empfang_bloecke, z2.empfang_kette = list(puls), list(puls)
     z2.kette({"data": {"acceptedTransactionIds": [
         {"acceptingBlockHash": "a", "acceptedTransactionIds": ["a-0", "a-1", "a-2"]}]}})
     st1 = {t0 // 60000: {"id": "aaa", "synchron": True, "daa": 1000, "lesung_ms": t0 + 5000},
@@ -1087,7 +1126,8 @@ def selbsttest():
     zl2, _ = eimer(z2, t0, t0 + 120000, [], st2)
     vz = vereinen([zl1, zl2], [st1, st2], [(t0 + 5000, 147, 200)])
     ok("hauptspalten von k1, wenn k1 voll", vz[0]["quelle_knoten"] == "k1" and vz[0]["angenommen_tx"] == 3)
-    ok("differenz beider knoten je minute", vz[0]["diff_bloecke"] == 0 and vz[0]["diff_angenommen"] == 0)
+    ok("differenz beider knoten je minute", vz[0]["diff_bloecke"] == 0 and vz[0]["diff_angenommen"] == 0
+       and vz[0]["knoten_gleich"] == 1 and vz[1]["knoten_gleich"] == "")
     ok("k2 fehlt die minute, k1 unsynchron, minute unvoll", vz[1]["voll"] == 0 and vz[1]["k1_synchron"] == 0)
     s = daa_abstand_setzen(vz)
     ok("daa-takt nach wanduhr und bereinigter abstand", s is not None and abs(s - 10.0) < 0.01
@@ -1132,6 +1172,9 @@ def selbsttest():
     ok("zusammengefuehrt ohne luecke aus der anderen spur",
        [r["quelle"] for r in rz[:2]] == ["a1", "b1"] and rz[2]["voll"] == 0 and len(rz) == 3)
     ok("doppelt volle minute wird verglichen", len(ab) == 1 and ab[0]["teil_1"] == "a1")
+    za[0]["knoten_gleich"] = 0
+    rz2, _ab = zusammenfuehren([teil("b1", "b", zb), teil("a1", "a", za)], t0 // 1000, t0 // 1000 + 180)
+    ok("von zwei knoten bestaetigte zeile geht vor", rz2[0]["quelle"] == "b1")
     zus = zusammenfassen(rz, [], {}, {"von_ms": t0, "bis_ms": t0 + 180000, "verbindung": "verbindung test"})
     ok("zusammenfassung aus csv-text", zus[1].startswith("bloecke 4 in vollen minuten") and "unvoll" in zus[0])
     ok("abgleich der knoten in der zusammenfassung", any(z.startswith("abgleich k1 gegen k2 in 1 minuten")
