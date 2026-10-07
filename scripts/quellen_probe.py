@@ -744,7 +744,7 @@ KASPA_API = "https://api.kaspa.org"
 KK_AB = dt.datetime(2026, 9, 15, tzinfo=dt.timezone.utc)
 # Stichtag der Veroeffentlichungszaehlung (Ben, 02.10.2026). Laeuft die Probe
 # frueher, gilt der Abrufzeitpunkt.
-KK_BIS = dt.datetime(2026, 10, 15, 12, 0, tzinfo=dt.timezone.utc)
+KK_BIS = dt.datetime(2026, 10, 21, 12, 0, tzinfo=dt.timezone.utc)
 # Mainnet-Start laut Repo, Commit c776bff, deploy/configmap.yaml
 KK_MAINNET = dt.datetime(2026, 9, 22, 22, 56, 45, tzinfo=dt.timezone.utc)
 # Eigene Adressen (Kaspa Pulse), getrennt ausgewiesen, damit sie im Post
