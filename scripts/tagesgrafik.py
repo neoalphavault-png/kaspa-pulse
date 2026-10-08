@@ -1207,6 +1207,8 @@ def textpruefung(s, form):
     # "worth watching" aus dem mail-satz ist kein wert
     if form == 2 and re.search(r"\$|usd|\bworth\b(?! watching)", " ".join(felder.values()), re.I):
         fehler.append("form 2 nennt einen dollarwert")
+    if "instagram" in s:
+        fehler += ig_pruefung(s["instagram"], form)
     return fehler
 
 
@@ -1218,6 +1220,53 @@ def textpruefung(s, form):
 # auf index.html noch in pulse-studio. Ben nennt sie Sonntagsmail; sie geht
 # montags 18:00 Berlin raus, deshalb sagt der Satz "weekly mail".
 MAIL_SATZ = "the weekly take and what is worth watching next are only in our weekly mail."
+
+
+# Instagram (Ben, 08.10.2026). Zeile 1 und 2 wie Discord, ohne den
+# 17:00-Satz, die Zahl mit Datum, eine Frage zum Mitmachen, die Credit-Zeile,
+# "link in bio" und hoechstens fuenf passende Hashtags. Kein Link, dieselbe
+# Wortwache wie Discord und X (pruefe_eine).
+IG_FRAGEN = ("what should we count next on kaspa?",
+             "which kaspa number do you want us to track next?",
+             "did you expect this number?",
+             "what number would you put next to this one?")
+IG_TAGS = ("#kaspa", "#kas", "#blockdag")
+IG_TAGS_FORM = {4: ("#proofofwork",), 5: ("#proofofwork",), 8: ("#proofofwork",)}
+IG_MAX_TAGS = 5
+IG_MAX_ZEICHEN = 2200
+
+
+def ig_caption(s, form, messzeit):
+    frage = IG_FRAGEN[messzeit.date().toordinal() % len(IG_FRAGEN)]
+    tags = (IG_TAGS + IG_TAGS_FORM.get(form, ()))[:IG_MAX_TAGS]
+    x1 = s["x1"].rstrip(".") + "."
+    x2 = s["x2"].rstrip(".") + "."
+    # das datum der zahl: bei einer fremden quelle ihr stichtag aus der
+    # herkunft, sonst der tag unserer messung
+    m = re.search(r"\b\d{1,2} (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec) \d{4}\b", s["herkunft"])
+    stand = m.group(0) if m and s["herkunft"] != SELBST else tag(messzeit.date())
+    return "%s\n%s\n\n%s, as of %s.\n\n%s\n\n%s\nlink in bio\n\n%s" % (
+        x1, x2, s["zahl"], stand, frage, s["herkunft"], " ".join(tags))
+
+
+def ig_pruefung(t, form):
+    """Regeln nur fuer die Caption, zusaetzlich zu pruefe_eine."""
+    fehler = pruefe_eine(t, form, "instagram")
+    if "it goes on x" in t:
+        fehler.append("instagram nennt den x-termin")
+    if "link in bio" not in t:
+        fehler.append("instagram ohne 'link in bio'")
+    tags = re.findall(r"#\w+", t)
+    if not 1 <= len(tags) <= IG_MAX_TAGS:
+        fehler.append("instagram hat %d hashtags, erlaubt 1 bis %d" % (len(tags), IG_MAX_TAGS))
+    if not DATUM.search(t):
+        fehler.append("instagram ohne datum")
+    absaetze = t.split("\n\n")
+    if len(absaetze) < 4 or not absaetze[2].endswith("?"):
+        fehler.append("instagram ohne frage zum mitmachen an ihrem platz")
+    if len(t) > IG_MAX_ZEICHEN:
+        fehler.append("instagram hat %d zeichen, erlaubt %d" % (len(t), IG_MAX_ZEICHEN))
+    return fehler
 
 
 def antwort_link(form):
@@ -1241,6 +1290,7 @@ def texte(s, form, messzeit):
     s["x"] = "%s\n%s\n%s" % (x1, x2, s["x3"])
     s["antwort"] = "%s %s %s" % (s["aufloesung"], MAIL_SATZ, antwort_link(form))
     s["discord"] = "%s\n%s\n\nshare it first, it goes on x at %s.\n%s" % (x1, x2, X_ZEIT, MAIL_SATZ)
+    s["instagram"] = ig_caption(s, form, messzeit)
     return s
 
 
@@ -1522,6 +1572,20 @@ def ops_senden(png, vorschau, s, form, grund, hook):
         "Content-Type": "multipart/form-data; boundary=%s" % grenze, "User-Agent": UA})
     with urllib.request.urlopen(req, timeout=60) as r:
         print("an ops geschickt, http %s" % r.status)
+    if s.get("instagram"):
+        text = ("INSTAGRAM, caption fuer den post nach 09:00 (nur wenn IG_MODUS scharf, "
+                "stoppen mit der variable IG_STOPP=%s)\n```\n%s\n```" % (heute_iso(s), s["instagram"]))
+        req = urllib.request.Request(hook, data=json.dumps({"content": text[:1990],
+                                     "allowed_mentions": {"parse": []}}).encode(), headers={
+                                     "Content-Type": "application/json", "User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=60) as r:
+            print("instagram-caption an ops geschickt, http %s" % r.status)
+
+
+def heute_iso(s):
+    """Das Datum der Seite als JJJJ-MM-TT, fuer den Stopp-Hinweis."""
+    d, mon, j = s["datum"].split()
+    return "%s-%02d-%02d" % (j, MONATE.index(mon) + 1, int(d))
 
 
 # ------------------------------------------------------------ ablauf
@@ -1649,6 +1713,13 @@ def main(argv=None):
             s["discord"], len(s["x"]), s["x"], s["antwort"], s["pruefung"]), encoding="utf-8")
     (out / (png.stem + ".json")).write_text(json.dumps(m, ensure_ascii=False, indent=1),
                                             encoding="utf-8")
+    # fuer den instagram-job um 09:00, der die datei aus dem artefakt holt
+    (out / (png.stem + "-instagram.json")).write_text(json.dumps({
+        "datum": heute.isoformat(), "form": form, "messzeit_utc": m["messzeit_utc"],
+        "caption": s["instagram"], "zahl": s["zahl"], "tag": s["datum"],
+        "herkunft": s["datumszeile"].split(" \u00b7 ")[-1]}, ensure_ascii=False, indent=1), encoding="utf-8")
+    with open(out / (png.stem + ".txt"), "a", encoding="utf-8") as fh:
+        fh.write("\nINSTAGRAM, %d zeichen\n%s\n" % (len(s["instagram"]), s["instagram"]))
     print("form %d (%s), %s\n%s\n%s" % (form, grund, png, vpng, (out / (png.stem + ".txt")).read_text()))
     if a.senden:
         hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
@@ -1712,6 +1783,27 @@ def selbsttest():
             ok("form %d x-text unter 240 (%d)" % (f, len(s["x"])), len(s["x"]) < 240)
         except Stop as exc:
             ok("form %d, %s" % (f, exc), False)
+    # instagram-caption (Ben, 08.10.2026)
+    for f in sorted(FAKE):
+        s = seite_bauen(f, FAKE[f], FAKE_NOW, log)
+        c = s["instagram"]
+        ok("form %d instagram gruen, %d zeichen, ohne x-termin, mit datum" % (f, len(c)),
+           not ig_pruefung(c, f) and "it goes on x" not in c and DATUM.search(c.split("\n\n")[1]))
+    ok("instagram form 11 mit dem stichtag der quelle", "50.58%, as of 28 sep 2026." in
+       seite_bauen(11, FAKE[11], FAKE_NOW, log)["instagram"])
+    s = seite_bauen(2, FAKE[2], FAKE_NOW, log)
+    ok("instagram fuehrt zeile 1 und 2 des discord-texts", s["instagram"].startswith(
+        "\n".join(s["discord"].split("\n")[:2])))
+    ok("instagram mit credit, link in bio, 3 hashtags", "counted by kaspa pulse\nlink in bio\n\n#kaspa #kas #blockdag"
+       in s["instagram"])
+    ok("instagram form 8 mit 4 hashtags", seite_bauen(8, FAKE[8], FAKE_NOW, log)["instagram"].endswith(
+        "#kaspa #kas #blockdag #proofofwork"))
+    ok("instagram faengt link, kaufwort, x-termin und zu viele tags", all(ig_pruefung(t, 2) for t in (
+        s["instagram"].replace("link in bio", "see https://kaspapulse.com"),
+        s["instagram"].replace("one wallet holds", "one wallet bought"),
+        s["instagram"] + "\nit goes on x at 17:00",
+        s["instagram"] + " #a #b #c")))
+    ok("stopp-datum aus der seite", heute_iso({"datum": "9 oct 2026"}) == "2026-10-09")
     # die regeln selbst
     probe = lambda t, form=None: pruefe_eine(t, form, "probe")    # noqa: E731
     ok("wortliste sold", bool(probe("entity x sold coins")))
