@@ -55,6 +55,11 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           LOOP_SECONDS: "20100"
           POLL_INTERVAL: "60"
+          # Nach einem Alarm sofort committen und pushen, nicht erst im
+          # Schritt am Jobende. Bricht der Lauf vorher ab, waere der
+          # Vergleichsstand sonst verloren und derselbe Zufluss ginge beim
+          # naechsten Lauf ein zweites Mal raus.
+          PERSIST_EACH: "1"
         run: python3 scripts/entity_x_alert.py
 
       - name: nachfolger anmelden
