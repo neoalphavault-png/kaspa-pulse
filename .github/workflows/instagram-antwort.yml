@@ -1,0 +1,62 @@
+# Kaspa Pulse - Antwort auf einen Instagram-Kommentar, nur von Hand (Ben, 08.10.2026)
+#
+# Die Freigabe: Ben startet diesen Workflow mit der Kommentar-ID aus der
+# Ops-Nachricht und dem (angepassten) Text. Der Text laeuft durch dieselbe
+# Wortwache wie Discord und X (kein Doppelpunkt, kein Gedankenstrich, kein
+# Link, kein Kaufwort, kein Kurs). Erst wenn er gruen ist, geht die Antwort
+# raus. Mit "nur pruefen" wird nichts gesendet. Es gibt keinen Zeitplan.
+
+name: instagram antwort
+
+on:
+  workflow_dispatch:
+    inputs:
+      kommentar_id:
+        description: "kommentar-id aus der ops-nachricht"
+        required: true
+      text:
+        description: "antwort, eine zeile"
+        required: true
+      nur_pruefen:
+        description: "nur die wortwache, nichts senden"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: instagram-antwort
+  cancel-in-progress: false
+
+jobs:
+  antwort:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: antworten
+        env:
+          INSTAGRAM_PAGE_TOKEN: ${{ secrets.INSTAGRAM_PAGE_TOKEN }}
+          IG_USER_ID: ${{ vars.IG_USER_ID }}
+          IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
+          KID: ${{ inputs.kommentar_id }}
+          TEXT: ${{ inputs.text }}
+          NUR: ${{ inputs.nur_pruefen && '--nur-pruefen' || '' }}
+        run: python3 scripts/instagram.py antworten --kommentar-id "$KID" --text "$TEXT" $NUR
+      - name: log sichern
+        if: success() && !inputs.nur_pruefen
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/instagram-antworten.json
+          if git diff --staged --quiet; then
+            echo "unveraendert, kein commit"
+          else
+            git commit -m "instagram antwort [bot]"
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            git push
+          fi
