@@ -49,6 +49,12 @@
    "form": 11,
    "grund": "rotation, 0 laeufe in 30 tagen, zahl des tages mined_left (vorab gerechnet), uebersprungen [7, 9, 10]",
    "messzeit_utc": "2026-10-07T06:39:14+00:00"
+  },
+  {
+   "datum": "2026-10-08",
+   "form": 2,
+   "grund": "entity-x-bewegung ab 500,000 KAS in 24 h, zahl des tages tvl_move (vorab gerechnet)",
+   "messzeit_utc": "2026-10-08T06:44:02+00:00"
   }
  ]
 }
