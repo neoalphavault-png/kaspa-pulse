@@ -31,7 +31,7 @@
  "description": "A Kaspa dashboard with DeFi TVL across both layer 2s, network usage, holder behaviour and mining power. Live where a feed exists, counted weekly where not.",
  "url": "https://kaspapulse.com/",
  "inLanguage": "en",
- "dateModified": "2026-10-06",
+ "dateModified": "2026-10-08",
  "isPartOf": {
   "@type": "WebSite",
   "name": "Kaspa Pulse",
@@ -186,6 +186,13 @@
   .sec .tag { border:1px solid var(--line); border-radius:999px; padding:3px 11px; font-size:10.5px; letter-spacing:1px; color:var(--dimmer); background:rgba(255,255,255,0.015); white-space:nowrap; }
   .sec .tag i { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--dimmer); margin-right:6px; vertical-align:1px; font-style:normal; }
   .sec .tag.lv i { background:var(--teal); animation:pulse 2s infinite; }
+  /* v2.3: karte for builders unter dem ersten block (Ben, 08.10.2026). Umrandeter knopf, damit der newsletter oben der haupt-cta bleibt */
+  .bcard { display:flex; align-items:center; justify-content:space-between; gap:16px 22px; flex-wrap:wrap; background:var(--card); border:1px solid rgba(73,234,203,0.28); border-radius:18px; padding:20px 24px; margin-top:22px; }
+  .bcard .bc-h { font-size:17px; font-weight:700; letter-spacing:-0.2px; color:var(--txt); }
+  .bcard .bc-s { font-size:13px; line-height:19px; color:var(--dim); margin-top:4px; }
+  .bcard .bc-btn { flex:none; display:inline-block; border:1px solid rgba(73,234,203,0.5); color:var(--teal); border-radius:999px; padding:11px 20px; font-size:13px; font-weight:700; text-decoration:none; white-space:nowrap; }
+  .bcard .bc-btn:hover { background:rgba(73,234,203,0.10); }
+  @media (max-width:520px){ .bcard{ padding:18px; text-align:center; justify-content:center; } .bcard .bc-btn{ width:100%; text-align:center; padding:12px 18px; } }
 </style>
 </head>
 <body>
@@ -197,6 +204,7 @@
     <div class="nc">
     <a href="/" class="on">dashboard</a>
     <a href="/kaspa-weekly.html">weekly</a>
+    <a href="/for-builders.html">for builders</a>
     <a href="/kaspa-hashrate.html">hashrate</a>
     <a href="/kaspa-mining.html">mining</a>
     <a href="/merged-mining.html">merged mining</a>
@@ -237,6 +245,13 @@
     <div class="read"><span class="rl">the read</span>throughput read <b>0.92 accepted transactions per second</b> on monday 5 october, down from 1.20 on monday 28 september, both standard transfers averaged over seven days. the peak day of the week was 2 october at 1.28. covenant transactions came to <b>245 a day</b> against 342, and active addresses to <b>6,119</b> against 7,170, down 14.7% week on week. the l2 split stays blank, the per-chain transaction counts still have no working source.</div>
     <div class="grid four" id="usageCards"></div>
   </section>
+  <div class="bcard">
+    <div>
+      <div class="bc-h">Building on Kaspa?</div>
+      <div class="bc-s">Independent reviews and testnet load tests. Your first look is free.</div>
+    </div>
+    <a class="bc-btn" href="/for-builders.html">See how it works</a>
+  </div>
   <section class="panel">
     <div class="sec"><div class="t"><span class="snum">02</span>DEX volume. <span>where KAS actually trades</span></div><div class="tag wk"><i></i><span>weekly</span></div></div>
     <div class="read"><span class="rl">the read</span>about <b>$143K a day</b> changed hands on kaspa DEXs in the week to monday 5 october, down 31.9% from $210K a week earlier. <b>kasplex $134K</b> fell 23.9% and <b>igra $9K</b> fell 73.3%, so kasplex is the larger venue by a factor of 15. locked value across both layers read <b>1.38 million dollars</b> against 1.93 million, down 28.6% week on week; igra holds 0.94 million of it and kasplex 0.44 million.</div>
@@ -291,7 +306,7 @@
   </div>
   <div class="cta">weekly breakdown with context every monday → <a href="https://x.com/gokugalax" target="_blank">@gokugalax on X</a> · a new video every thursday → <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">PulseHawk on YouTube</a></div>
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 6 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 8 October 2026<!--/AUTO:seitenstand--></div>
     <div class="brand">PULSEHAWK</div>
     <div class="src">data: <a href="https://defillama.com" target="_blank">defillama</a> · <a href="https://www.coingecko.com" target="_blank">coingecko</a> · <a href="https://kaspalytics.com" target="_blank">kaspalytics</a> · <a href="https://kaspa.stream" target="_blank">kaspa.stream</a></div>
     <div class="legal">not financial advice · <a href="https://www.youtube.com/@gokugalax3000" target="_blank" rel="noopener">youtube</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
