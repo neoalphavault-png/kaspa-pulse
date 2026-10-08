@@ -1,0 +1,79 @@
+# Kaspa Pulse - Instagram-Pflege (Ben, 08.10.2026)
+#
+# Einmal am Tag die Insights je Post der letzten 7 Tage (Reichweite, Likes,
+# Kommentare, Saves, Shares) nach data/instagram-insights.json. Alle drei
+# Stunden neue Kommentare unter unseren Posts, je einer mit Antwort-ENTWURF
+# an DISCORD_WEBHOOK_OPS. Es wird nichts beantwortet; die Freigabe laeuft
+# ueber instagram-antwort.yml. Im Repo stehen nur Zahlen und Kommentar-IDs,
+# kein Kommentartext, kein Name, nie ein Token.
+
+name: instagram pflege
+
+on:
+  schedule:
+    - cron: "40 5 * * *"
+    - cron: "15 */3 * * *"
+  workflow_dispatch:
+    inputs:
+      was:
+        description: "was laufen soll"
+        type: choice
+        options:
+          - beides
+          - insights
+          - kommentare
+        default: beides
+
+permissions:
+  contents: write
+
+concurrency:
+  group: instagram-pflege
+  cancel-in-progress: false
+
+jobs:
+  pflege:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      INSIGHTS: ${{ (github.event.schedule == '40 5 * * *' || (github.event_name == 'workflow_dispatch' && inputs.was != 'kommentare')) && '1' || '0' }}
+      KOMMENTARE: ${{ (github.event.schedule == '15 */3 * * *' || (github.event_name == 'workflow_dispatch' && inputs.was != 'insights')) && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: pillow fuer den selbsttest
+        run: "pip install --only-binary=:all: pillow==11.3.0"
+      - name: selbsttest
+        run: python3 scripts/instagram.py --selbsttest
+      - name: insights
+        if: env.INSIGHTS == '1'
+        env:
+          INSTAGRAM_PAGE_TOKEN: ${{ secrets.INSTAGRAM_PAGE_TOKEN }}
+          IG_USER_ID: ${{ vars.IG_USER_ID }}
+          IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
+        run: python3 scripts/instagram.py insights
+      - name: kommentare, entwuerfe an ops
+        if: env.KOMMENTARE == '1'
+        env:
+          INSTAGRAM_PAGE_TOKEN: ${{ secrets.INSTAGRAM_PAGE_TOKEN }}
+          IG_USER_ID: ${{ vars.IG_USER_ID }}
+          IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+        run: python3 scripts/instagram.py kommentare
+      - name: daten sichern
+        if: always()
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          for f in data/instagram-insights.json data/instagram-kommentare.json; do
+            [ -f "$f" ] && git add "$f"
+          done
+          if git diff --staged --quiet; then
+            echo "unveraendert, kein commit"
+          else
+            git commit -m "instagram pflege [bot]"
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            git push
+          fi

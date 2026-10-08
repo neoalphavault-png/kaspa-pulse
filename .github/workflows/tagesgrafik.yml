@@ -12,11 +12,24 @@ name: tagesgrafik
 # andere Termin endet gruen ohne Lieferung: im Winter ist 05:30 UTC erst
 # 06:30 Berlin, im Sommer steht der Tag um 06:30 UTC schon im Log. Faellt
 # der erste Termin aus, liefert der zweite.
+#
+# INSTAGRAM (Ben, 08.10.2026). Job "instagram" um 09:00 Berlin, wieder zwei
+# Termine: 07:00 UTC im Sommer, 08:00 UTC im Winter. scripts/instagram.py
+# faellig laesst nur zwischen 08:55 und 11:00 Berlin durch, nur wenn die
+# Grafik um 07:30 mit "senden" ausgeliefert wurde, nur einmal am Tag und nie,
+# wenn die Variable IG_STOPP auf heute (JJJJ-MM-TT) oder "immer" steht. Er
+# nimmt PNG und Caption aus dem Artefakt genau dieses Laufs, legt das JPEG
+# unter ig/ auf kaspapulse.com und schickt es an Instagram. Veroeffentlicht
+# wird nur, wenn die Variable IG_MODUS auf "scharf" steht, sonst bleibt der
+# Container unveroeffentlicht (Trockenlauf). Der Token kommt nur als Secret
+# INSTAGRAM_PAGE_TOKEN in die Umgebung des einen Schritts, der ihn braucht.
 
 on:
   schedule:
     - cron: "30 5 * * *"
     - cron: "30 6 * * *"
+    - cron: "0 7 * * *"
+    - cron: "0 8 * * *"
   workflow_dispatch:
     inputs:
       form:
@@ -27,6 +40,13 @@ on:
         description: "an #moderator-only schicken"
         type: boolean
         default: false
+      instagram:
+        description: "instagram von hand, nur trocken (grafik von heute aus dem 07:30-lauf)"
+        type: choice
+        options:
+          - aus
+          - trocken
+        default: aus
 
 permissions:
   contents: write
@@ -37,6 +57,7 @@ concurrency:
 
 jobs:
   grafik:
+    if: github.event_name != 'schedule' || (github.event.schedule != '0 7 * * *' && github.event.schedule != '0 8 * * *')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -103,6 +124,99 @@ jobs:
           import json, os, urllib.request
           hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
           text = "tagesgrafik ist rot, keine grafik heute\n" + os.environ.get("LAUF", "")
+          print(text)
+          if hook:
+              req = urllib.request.Request(hook, data=json.dumps({"content": text,
+                    "allowed_mentions": {"parse": []}}).encode(), headers={
+                    "Content-Type": "application/json", "User-Agent": "kaspa-pulse-bot"})
+              urllib.request.urlopen(req, timeout=30)
+          PY
+
+  instagram:
+    if: >-
+      (github.event_name == 'schedule' && (github.event.schedule == '0 7 * * *' || github.event.schedule == '0 8 * * *'))
+      || (github.event_name == 'workflow_dispatch' && inputs.instagram == 'trocken')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: read
+    env:
+      # scharf nur geplant und nur mit der variable, von hand immer trocken
+      IG_MODUS: ${{ (github.event_name == 'schedule' && vars.IG_MODUS == 'scharf') && 'scharf' || 'trocken' }}
+      IG_HAND: ${{ github.event_name == 'workflow_dispatch' && '--hand' || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: pillow
+        run: "pip install --only-binary=:all: pillow==11.3.0"
+      - name: selbsttest
+        run: python3 scripts/instagram.py --selbsttest
+      - name: faellig
+        id: f
+        env:
+          IG_STOPP: ${{ vars.IG_STOPP }}
+        run: python3 scripts/instagram.py faellig $IG_HAND --ziel out/ig
+      - name: grafik aus dem 07:30-lauf
+        id: a
+        if: steps.f.outputs.faellig == '1'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/instagram.py artefakt --ziel out/ig
+      - name: jpeg
+        id: j
+        if: steps.f.outputs.faellig == '1'
+        env:
+          PNG: ${{ steps.a.outputs.png }}
+        run: python3 scripts/instagram.py jpeg --png "$PNG" --ziel ig
+      - name: jpeg auf kaspapulse.com
+        if: steps.f.outputs.faellig == '1'
+        env:
+          JPEG: ${{ steps.j.outputs.jpeg }}
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add "$JPEG"
+          if git diff --staged --quiet; then
+            echo "jpeg schon im repo"
+          else
+            git commit -m "instagram bild [bot]"
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            git push
+          fi
+      - name: container, status, veroeffentlichen nur wenn scharf
+        if: steps.f.outputs.faellig == '1'
+        env:
+          INSTAGRAM_PAGE_TOKEN: ${{ secrets.INSTAGRAM_PAGE_TOKEN }}
+          IG_USER_ID: ${{ vars.IG_USER_ID }}
+          IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          JPEG: ${{ steps.j.outputs.jpeg }}
+          CAPTION: ${{ steps.a.outputs.caption }}
+        run: python3 scripts/instagram.py posten $IG_HAND --bild "$JPEG" --caption "$CAPTION" --modus "$IG_MODUS"
+      - name: log sichern
+        if: always() && steps.f.outputs.faellig == '1'
+        run: |
+          git add data/instagram-log.json || true
+          if git diff --staged --quiet; then
+            echo "log unveraendert, kein commit"
+          else
+            git commit -m "instagram log [bot]"
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            git push
+          fi
+      - name: ops bei rot
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
+          text = "instagram ist rot, heute kein post\n" + os.environ.get("LAUF", "")
           print(text)
           if hook:
               req = urllib.request.Request(hook, data=json.dumps({"content": text,
