@@ -44,7 +44,25 @@ jobs:
           BIS: ${{ inputs.bis }}
           VON: ${{ inputs.von }}
           BIS_PLAN: ${{ inputs.bis_plan }}
-        run: python3 scripts/tn10_zaehler.py --teil "$TEIL" --bis "$BIS" --von "$VON" --bis-plan "$BIS_PLAN" --out "out/tn10-$TEIL"
+        # k1 und k2 in zwei prozessen (TN10-Checkout 08.10.2026: ein prozess schaffte
+        # die vollen bloecke beider knoten unter rund 2.500 tx/s nicht). die
+        # partnerdatei mit host und kennung von k1 liegt unter RUNNER_TEMP, nie im artefakt.
+        run: |
+          mkdir -p out/einzeln
+          P="$RUNNER_TEMP/tn10-k1-partner.json"
+          ARGS=(--teil "$TEIL" --bis "$BIS" --von "$VON" --bis-plan "$BIS_PLAN" --partner "$P")
+          python3 scripts/tn10_zaehler.py "${ARGS[@]}" --rolle k1 --out "out/einzeln/tn10-$TEIL-k1" > out/einzeln/k1.log 2>&1 &
+          P1=$!
+          python3 scripts/tn10_zaehler.py "${ARGS[@]}" --rolle k2 --out "out/einzeln/tn10-$TEIL-k2" > out/einzeln/k2.log 2>&1 &
+          P2=$!
+          S=0
+          wait $P1 || S=1
+          wait $P2 || S=1
+          echo "=== k1, ende des logs"; tail -n 25 out/einzeln/k1.log
+          echo "=== k2, ende des logs"; tail -n 25 out/einzeln/k2.log
+          python3 scripts/tn10_zaehler.py --kombinieren "out/einzeln/tn10-$TEIL-k1" "out/einzeln/tn10-$TEIL-k2" \
+            --teil "$TEIL" --von "$VON" --bis-plan "$BIS_PLAN" --out "out/tn10-$TEIL"
+          exit $S
       - uses: actions/upload-artifact@v4
         if: always()
         with:

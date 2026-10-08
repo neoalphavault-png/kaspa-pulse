@@ -348,7 +348,9 @@ def vereinen(je_knoten, status_je_knoten, feerate):
              "feerate_normal": fr.get(m, "")}
         for f in HAUPT:
             r[f] = p[f]
-        for i, (zr, st) in enumerate(zip(reihen, status_je_knoten), 1):
+        # ein einzelprozess hat nur einen knoten, die k2-spalten bleiben leer
+        for i, (zr, st) in enumerate(zip(reihen + [None] * (2 - len(reihen)),
+                                         list(status_je_knoten) + [{}] * (2 - len(status_je_knoten))), 1):
             s = st.get(m, {})
             r["k%d_id" % i] = s.get("id", "")
             r["k%d_version" % i] = s.get("version", "")
@@ -636,11 +638,38 @@ class Knoten:
     def verbunden(self):
         return bool(self.rpc is not None and getattr(self.rpc, "is_connected", False))
 
+    def war_verbunden(self):
+        return bool(self.verbindungen)
 
-async def lauf(bis_s, out, spur, teil, plan_von, plan_bis):
+
+STILLE_NEU_MS = 60000     # so lange ohne block bei offener verbindung: neu verbinden
+
+
+def partner_lesen(pfad, warte_s=90):
+    """Host und p2p-Kennung des k1-Prozesses, nur im Speicher und in einer
+    Datei unter RUNNER_TEMP (nie im Artefakt)."""
+    ende = time.time() + warte_s
+    while pfad and time.time() < ende:
+        try:
+            with open(pfad, encoding="utf-8") as fh:
+                d = json.load(fh)
+            return d.get("wirt", ""), d.get("p2p", "")
+        except (OSError, ValueError):
+            time.sleep(1)
+    return "", ""
+
+
+async def lauf(bis_s, out, spur, teil, plan_von, plan_bis, rolle=None, partner=None):
+    """rolle None: beide knoten in einem prozess. rolle k1 oder k2: nur dieser
+    knoten, je ein eigener prozess (TN10-Checkout 08.10.2026: unter rund
+    2.500 tx/s schaffte ein prozess die vollen bloecke beider knoten nicht,
+    k2 lief bis 51 s hinterher und verstummte dann). k1 schreibt Host und
+    Kennung nach partner, k2 meidet diesen knoten. Gebuehren-Stichprobe und
+    Gebuehrenschaetzung macht nur k1."""
     import kaspa                                         # noqa: WPS433
     takt = Takt()
     k1, k2 = Knoten("k1"), Knoten("k2")
+    aktiv = [k1, k2] if rolle is None else [k1] if rolle == "k1" else [k2]
     meldungen, feerate, gebuehren, stichprobe_fehler = [], [], [], {}
     gesehen = set()
     resolver = kaspa.Resolver()
@@ -680,15 +709,33 @@ async def lauf(bis_s, out, spur, teil, plan_von, plan_bis):
             k.verbindungen.append({"zeit": iso_ms(jetzt), "knoten": ohne_ip(url), "kennung": kennung(p2p),
                                    "version": str(feld(info, "serverVersion") or ""),
                                    "gleich_wie_anderer": bool(anderer.p2p and p2p == anderer.p2p)})
+            if rolle == "k1" and partner:
+                with open(partner + ".neu", "w", encoding="utf-8") as fh:
+                    json.dump({"wirt": k.wirt, "p2p": k.p2p}, fh)
+                os.replace(partner + ".neu", partner)
             return
         raise RuntimeError("kein knoten")
 
     async def pruefe_verbindung(k, anderer):
+        if rolle == "k2":
+            anderer.wirt, anderer.p2p = await asyncio.to_thread(partner_lesen, partner, 90 if k.rpc is None else 2)
+        if k.verbunden() and k.z.empfang_bloecke:
+            # wache: offen, aber still. dann ist das abo tot, nicht das netz.
+            letzte = k.z.empfang_bloecke[-1]
+            jetzt = int(time.time() * 1000)
+            if jetzt - letzte > STILLE_NEU_MS:
+                meldungen.append("%s still seit %d ms bei offener verbindung, neu verbinden" % (k.name, jetzt - letzte))
+                k.weg_seit = letzte
+                try:
+                    await k.rpc.disconnect()
+                except Exception:                        # noqa: BLE001
+                    pass
+                k.rpc = None
         if k.verbunden():
             return
         if time.monotonic() < k.naechster_versuch:
             return
-        if k.weg_seit is None and k.rpc is not None:
+        if k.weg_seit is None and k.war_verbunden():
             k.weg_seit = int(time.time() * 1000)
         try:
             await verbinde(k, anderer)
@@ -777,25 +824,25 @@ async def lauf(bis_s, out, spur, teil, plan_von, plan_bis):
     # aufbau im eigenen zeitfenster der spur, damit er nicht mit den abfragen der anderen spur zusammenfaellt
     warten = (SPUR_SEKUNDE.get(spur, 5) + 7 - time.time()) % 60
     await asyncio.sleep(warten)
-    await pruefe_verbindung(k1, k2)
-    await pruefe_verbindung(k2, k1)
-    print("teil %s, spur %s, bis %s, k1 %s, k2 %s" % (
-        teil, spur, iso_ms(ende_ms), kennung(k1.p2p) or "-", kennung(k2.p2p) or "-"))
+    for k in aktiv:
+        await pruefe_verbindung(k, k2 if k is k1 else k1)
+    print("teil %s, spur %s, rolle %s, bis %s, k1 %s, k2 %s" % (
+        teil, spur, rolle or "beide", iso_ms(ende_ms), kennung(k1.p2p) or "-", kennung(k2.p2p) or "-"))
     tick = naechster_tick(time.time())
     while time.time() < bis_s + NACHLAUF_S:
         await asyncio.sleep(0.5)
-        await pruefe_verbindung(k1, k2)
-        await pruefe_verbindung(k2, k1)
+        for k in aktiv:
+            await pruefe_verbindung(k, k2 if k is k1 else k1)
         if time.time() < tick or time.time() >= bis_s:
             continue
         tick = naechster_tick(time.time())
-        for k in (k1, k2):
+        for k in aktiv:
             if k.verbunden():
                 await lesen(k)
-        haupt = k1 if k1.verbunden() else k2 if k2.verbunden() else None
-        if haupt:
+        haupt = next((k for k in aktiv if k.verbunden()), None)
+        if haupt and rolle != "k2":
             await minute(haupt)
-    for k in (k1, k2):
+    for k in aktiv:
         try:
             if k.rpc is not None:
                 await k.rpc.disconnect()
@@ -803,8 +850,8 @@ async def lauf(bis_s, out, spur, teil, plan_von, plan_bis):
             pass
         if k.weg_seit is not None:
             k.luecken.append((k.weg_seit, ende_ms))
-    return auswerten([k1, k2], ende_ms, meldungen, feerate, gebuehren, stichprobe_fehler, takt, out,
-                     {"spur": spur, "teil": teil, "plan_von": plan_von, "plan_bis": plan_bis})
+    return auswerten(aktiv, ende_ms, meldungen, feerate, gebuehren, stichprobe_fehler, takt, out,
+                     {"spur": spur, "teil": teil, "plan_von": plan_von, "plan_bis": plan_bis, "rolle": rolle})
 
 
 def bloecke_csv(z):
@@ -859,9 +906,94 @@ def auswerten(knoten, ende_ms, meldungen, feerate, gebuehren, fehler, takt, out,
 
 # ---------------------------------------------------------------- zusammenfuehren
 
+def einzel_lesen(basis):
+    """Minuten und Meta eines Einzelprozesses, fehlt er, leer."""
+    try:
+        with open(basis + "-meta.json", encoding="utf-8") as fh:
+            meta = json.load(fh)
+        with open(basis + "-minuten.csv", encoding="utf-8") as fh:
+            zeilen = {minute_aus_text(r["minute_utc"]): r for r in csv.DictReader(fh)}
+    except (OSError, ValueError):
+        return None, {}
+    return meta, zeilen
+
+
+def kombinieren(basis1, basis2, out, kopf_teil):
+    """Zwei Einzelprozesse (k1, k2) zu einem Teil mit beiden Knoten, in
+    derselben Form wie ein Lauf mit beiden Knoten in einem Prozess."""
+    m1, z1 = einzel_lesen(basis1)
+    m2, z2 = einzel_lesen(basis2)
+    zeilen = []
+    for m in sorted(set(z1) | set(z2)):
+        r1, r2 = z1.get(m), z2.get(m)
+        v1, v2 = bool(r1 and num(r1["voll"])), bool(r2 and num(r2["voll"]))
+        haupt, q = (r1, "k1") if v1 else (r2, "k2") if v2 else (r1 or r2, "")
+        r = {"minute_utc": minute_text(m), "voll": int(v1 or v2), "quelle_knoten": q,
+             "feerate_normal": (r1 or {}).get("feerate_normal", "") or (r2 or {}).get("feerate_normal", "")}
+        for f in HAUPT + ["mempool"]:
+            r[f] = haupt.get(f, "")
+        for i, quelle in ((1, r1), (2, r2)):
+            for f in KN:
+                r["k%d_%s" % (i, f)] = (quelle or {}).get("k1_%s" % f, "") if quelle else ("" if f != "voll" else 0)
+        if v1 and v2:
+            r["diff_bloecke"] = int(num(r1["bloecke"]) - num(r2["bloecke"]))
+            r["diff_angenommen"] = int(num(r1["angenommen_tx"]) - num(r2["angenommen_tx"]))
+            r["knoten_gleich"] = int(r["diff_bloecke"] == 0 and r["diff_angenommen"] == 0)
+        else:
+            r["diff_bloecke"] = r["diff_angenommen"] = r["knoten_gleich"] = ""
+        r["daa_abstand"] = ""
+        zeilen.append(r)
+    daa_abstand_setzen(zeilen)
+    metas = [m for m in (m1, m2) if m]
+    geb = []
+    if os.path.exists(basis1 + "-gebuehren.csv"):
+        with open(basis1 + "-gebuehren.csv", encoding="utf-8") as fh:
+            geb = [(0, r["tx"], int(r["gebuehr_sompi"])) for r in csv.DictReader(fh)]
+    knoten = {}
+    for name, m in (("k1", m1), ("k2", m2)):
+        if m and m.get("knoten"):
+            knoten[name] = next(iter(m["knoten"].values()))
+    luecken = {n: [y - x for x, y in v.get("luecken", [])] for n, v in knoten.items()}
+    von_ms = min([m["von_ms"] for m in metas] or [0])
+    bis_ms = max([m["bis_ms"] for m in metas] or [0])
+    kopf = {"von_ms": von_ms, "bis_ms": bis_ms,
+            "ohne_blockzeit": sum((m.get("extra") or [{}])[0].get("angenommen_ohne_blockzeit", 0) for m in metas),
+            "verbindung": "verbindung: %d aufbau(ten), luecken ms %s, abfragen %d, hoechstens %d je sekunde je "
+                          "prozess (k1 und k2 getrennt, verschiedene knoten), 429 %d mal%s" % (
+                              sum(len(v.get("verbindungen", [])) for v in knoten.values()), json.dumps(luecken),
+                              sum(m.get("abfragen", 0) for m in metas),
+                              max([m.get("max_je_sekunde", 0) for m in metas] or [0]),
+                              sum(m.get("n429", 0) for m in metas),
+                              "" if m2 else ", k2 FEHLT")}
+    zus = zusammenfassen(zeilen, geb, {}, kopf)
+    os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
+    minuten_csv = csv_text(zeilen, SPALTEN)
+    with open(out + "-minuten.csv", "w", encoding="utf-8") as fh:
+        fh.write(minuten_csv)
+    with open(out + "-zusammenfassung.txt", "w", encoding="utf-8") as fh:
+        fh.write("\n".join(zus) + "\n")
+    if os.path.exists(basis1 + "-gebuehren.csv"):
+        with open(basis1 + "-gebuehren.csv", encoding="utf-8") as fh, \
+                open(out + "-gebuehren.csv", "w", encoding="utf-8") as fo:
+            fo.write(fh.read())
+    meta = dict(kopf_teil)
+    meta.update({"von_ms": von_ms, "bis_ms": bis_ms, "knoten": knoten,
+                 "meldungen": [x for m in (m1, m2) if m for x in m.get("meldungen", [])][:80],
+                 "datenform": (m1 or m2 or {}).get("datenform", {}),
+                 "extra": [(m.get("extra") or [{}])[0] for m in metas],
+                 "abfragen": sum(m.get("abfragen", 0) for m in metas),
+                 "max_je_sekunde": max([m.get("max_je_sekunde", 0) for m in metas] or [0]),
+                 "n429": sum(m.get("n429", 0) for m in metas), "prozesse": len(metas)})
+    with open(out + "-meta.json", "w", encoding="utf-8") as fh:
+        json.dump(meta, fh, indent=1, ensure_ascii=False)
+    return zus, minuten_csv
+
+
 def teile_lesen(ordner):
     teile = []
     for mp in sorted(glob.glob(os.path.join(ordner, "**", "*-meta.json"), recursive=True)):
+        if os.sep + "einzeln" + os.sep in mp:
+            continue
         basis = mp[:-len("-meta.json")]
         with open(mp, encoding="utf-8") as fh:
             meta = json.load(fh)
@@ -1281,6 +1413,9 @@ def main(argv=None):
     ap.add_argument("--start", default="", help="datei mit der startzeit in utc, leer heisst sofort")
     ap.add_argument("--zusammenfuehren", metavar="ORDNER")
     ap.add_argument("--pruefe-ids", metavar="DATEI")
+    ap.add_argument("--rolle", choices=["k1", "k2"], help="nur dieser knoten, eigener prozess")
+    ap.add_argument("--partner", default="", help="datei unter RUNNER_TEMP, k1 schreibt, k2 liest")
+    ap.add_argument("--kombinieren", nargs=2, metavar=("K1", "K2"))
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args(argv)
     if a.selbsttest:
@@ -1292,6 +1427,15 @@ def main(argv=None):
                 start = startzeit(fh.read())
         for k, v in plan(a.plan, a.segment, time.time(), start).items():
             print("%s=%d" % (k, v))
+        return 0
+    if a.kombinieren:
+        zus, mcsv = kombinieren(a.kombinieren[0], a.kombinieren[1], a.out,
+                                {"spur": a.spur or a.teil[:1], "teil": a.teil, "plan_von": a.von,
+                                 "plan_bis": a.bis_plan})
+        print("=== teil %s, beide knoten, minuten csv" % a.teil)
+        print(mcsv)
+        print("=== zusammenfassung")
+        print("\n".join(zus))
         return 0
     if a.zusammenfuehren:
         teile = teile_lesen(a.zusammenfuehren)
@@ -1310,7 +1454,7 @@ def main(argv=None):
         return 0
     bis = a.bis or int(time.time()) + (a.dauer or 1800)
     spur = a.spur or a.teil[:1]
-    zus, mcsv, geb, meta = asyncio.run(lauf(bis, a.out, spur, a.teil, a.von, a.bis_plan))
+    zus, mcsv, geb, meta = asyncio.run(lauf(bis, a.out, spur, a.teil, a.von, a.bis_plan, a.rolle, a.partner))
     print("\n=== minuten, csv")
     print(mcsv)
     print("=== gebuehren-stichprobe, csv")
