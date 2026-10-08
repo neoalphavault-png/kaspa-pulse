@@ -1,0 +1,32 @@
+# Einmalige Sonde (08.10.2026), nur lesend, nur auf diesem pruefung-Branch.
+# Frage: liefert kaspapulse.com Dateien aus, die der Bot mit GITHUB_TOKEN
+# pusht, und mit welchem Content-Type?
+name: ig hosting probe
+on:
+  push:
+    branches:
+      - pruefung/ig-hosting-2026-10-08
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 200
+      - name: sonde
+        run: |
+          for f in graphics/number-of-day.png data/tagesgrafik-log.json; do
+            echo "== $f"
+            git log -3 --format='%cI %an %s' -- "$f"
+            curl -sS -I "https://kaspapulse.com/$f" | grep -iE '^(HTTP|content-type|last-modified|content-length|server|x-github)' || true
+          done
+          echo "== pages-build-deployment zuletzt"
+          curl -sS -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/${{ github.repository }}/actions/runs?per_page=100" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          for r in d['workflow_runs']:
+              if 'pages' in r['name'].lower(): print(r['name'], r['event'], r['created_at'], r['conclusion'], r['actor']['login'], r['head_commit']['message'][:50])
+          " | head -8
