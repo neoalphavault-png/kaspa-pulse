@@ -1241,12 +1241,35 @@ def ig_caption(s, form, messzeit):
     tags = (IG_TAGS + IG_TAGS_FORM.get(form, ()))[:IG_MAX_TAGS]
     x1 = s["x1"].rstrip(".") + "."
     x2 = s["x2"].rstrip(".") + "."
-    # das datum der zahl: bei einer fremden quelle ihr stichtag aus der
-    # herkunft, sonst der tag unserer messung
-    m = re.search(r"\b\d{1,2} (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec) \d{4}\b", s["herkunft"])
-    stand = m.group(0) if m and s["herkunft"] != SELBST else tag(messzeit.date())
+    stand = tag(ig_stichtag(s, messzeit))
     return "%s\n%s\n\n%s, as of %s.\n\n%s\n\n%s\nlink in bio\n\n%s" % (
         x1, x2, s["zahl"], stand, frage, s["herkunft"], " ".join(tags))
+
+
+def ig_stichtag(s, messzeit):
+    """Das Datum der Zahl. Eigene Zaehlung: der Tag unserer Messung. Fremde
+    Quelle: der spaeteste Tag, den Herkunft, Zeile 2, Zeile 1 oder der Zusatz
+    nennen und der nicht nach der Messung liegt (Form 9 am 08.10.2026 zeigte
+    sonst den Messtag statt des Stichtags der Quelle). Findet sich keiner,
+    wird nicht geraten."""
+    heute = messzeit.date()
+    if s["herkunft"] == SELBST:
+        return heute
+    text = " ".join(s.get(k, "") or "" for k in ("herkunft", "x2", "x1", "zusatz"))
+    tage = []
+    for m in re.finditer(r"\b(\d{1,2}) (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(?: (\d{4}))?\b", text):
+        jahr = int(m.group(3)) if m.group(3) else heute.year
+        try:
+            d = dt.date(jahr, MONATE.index(m.group(2)) + 1, int(m.group(1)))
+        except ValueError:
+            continue
+        if not m.group(3) and d > heute:
+            d = d.replace(year=jahr - 1)
+        if d <= heute:
+            tage.append(d)
+    if not tage:
+        raise Stop("instagram, kein stichtag fuer die fremde quelle %r" % s["herkunft"])
+    return max(tage)
 
 
 def ig_pruefung(t, form):
@@ -1547,7 +1570,9 @@ def variante(log, form):
 # ------------------------------------------------------------ ops
 
 def ops_senden(png, vorschau, s, form, grund, hook):
-    inhalt = ("tagesgrafik %s, form %d %s (%s)\nnicht oeffentlich. discord 09:00, x %s.\n\n"
+    inhalt = ("tagesgrafik %s, form %d %s (%s)\nnicht oeffentlich. discord 09:00, x %s.\n"
+              "bild 1, 1080x1350, ist die grafik zum posten (discord, x, instagram). bild 2, 390 px breit, "
+              "nur zur kontrolle, so klein erscheint sie im handy-feed, nicht posten.\n\n"
               "DISCORD\n```\n%s\n```\nX, %d zeichen\n```\n%s\n```\nANTWORT unter dem X-Post\n```\n%s\n```\n"
               "selbstpruefung, wuerde ein halter das reposten, um anzugeben? %s" % (
                   s["datum"], form, FORMEN[form][0], grund, X_ZEIT, s["discord"], len(s["x"]),
@@ -1789,8 +1814,20 @@ def selbsttest():
         c = s["instagram"]
         ok("form %d instagram gruen, %d zeichen, ohne x-termin, mit datum" % (f, len(c)),
            not ig_pruefung(c, f) and "it goes on x" not in c and DATUM.search(c.split("\n\n")[1]))
-    ok("instagram form 11 mit dem stichtag der quelle", "50.58%, as of 28 sep 2026." in
-       seite_bauen(11, FAKE[11], FAKE_NOW, log)["instagram"])
+    for f in (1, 5, 7, 8, 9, 11):
+        c = seite_bauen(f, FAKE[f], FAKE_NOW, log)["instagram"].split("\n\n")[1]
+        ok("instagram form %d mit dem stichtag der quelle, %s" % (f, c), c.endswith("as of 28 sep 2026."))
+    for f in (2, 3, 4, 6, 10):
+        c = seite_bauen(f, FAKE[f], FAKE_NOW, log)["instagram"].split("\n\n")[1]
+        ok("instagram form %d eigene zaehlung mit dem messtag" % f, c.endswith("as of 29 sep 2026."))
+    try:
+        ig_stichtag({"herkunft": "source x", "x1": "a", "x2": "b"}, FAKE_NOW)
+        ok("fremde quelle ohne datum wird nicht geraten", False)
+    except Stop:
+        ok("fremde quelle ohne datum wird nicht geraten", True)
+    ok("stichtag ueber den jahreswechsel", ig_stichtag({"herkunft": "source x", "x2": "30 dec, source x"},
+                                                      dt.datetime(2027, 1, 2, tzinfo=dt.timezone.utc))
+       == dt.date(2026, 12, 30))
     s = seite_bauen(2, FAKE[2], FAKE_NOW, log)
     ok("instagram fuehrt zeile 1 und 2 des discord-texts", s["instagram"].startswith(
         "\n".join(s["discord"].split("\n")[:2])))

@@ -82,6 +82,10 @@ class Fehler(Exception):
     pass
 
 
+class KeinArtefakt(Fehler):
+    """Kein Artefakt vom Morgen im neuen Format. Kein Fehler, nur nicht faellig."""
+
+
 # ---------------------------------------------------------------- token und bereinigung
 
 def token():
@@ -293,7 +297,7 @@ def artefakt(eintrag, ziel):
             cap.write_bytes(z.read(namen[stamm + "-instagram.json"]))
             ausgabe("artefakt aus lauf %d, %s" % (run["id"], png.name))
             return png, cap
-    raise Fehler("kein artefakt mit %s und messzeit %s gefunden" % (stamm, mz))
+    raise KeinArtefakt("kein artefakt mit %s und messzeit %s gefunden" % (stamm, mz))
 
 
 # ---------------------------------------------------------------- jpeg
@@ -644,6 +648,21 @@ def selbsttest():
     ok("von hand ohne fenster und tagessperre", faellig(t(12, 0), lg, {"posts": [{"datum": "2026-10-09"}]},
                                                          hand=True)[0] is not None)
     ok("von hand nie scharf", main(["posten", "--hand", "--modus", "scharf", "--bild", "x", "--caption", "x"]) == 1)
+    import tempfile as _tf
+    with _tf.TemporaryDirectory() as tmp:
+        Path(tmp, "eintrag.json").write_text(json.dumps({"form": 2, "messzeit_utc": "2026-10-08T06:44:02+00:00"}))
+        ausgang = Path(tmp, "out.txt")
+        global artefakt
+        echt = artefakt
+
+        def kein(e, ziel):
+            raise KeinArtefakt("kein artefakt mit tagesgrafik-2026-10-08-form02")
+        artefakt = kein
+        try:
+            rc = main(["artefakt", "--hand", "--ziel", tmp, "--github-output", str(ausgang)])
+        finally:
+            artefakt = echt
+        ok("fehlt das artefakt, gruen mit gefunden=0", rc == 0 and "gefunden=0" in ausgang.read_text())
     ok("winterzeit, 08:30 utc ist 09:30 berlin", faellig(dt.datetime(2026, 11, 2, 8, 30, tzinfo=dt.timezone.utc),
                                                           {"laeufe": [{"datum": "2026-11-02", "form": 1,
                                                                        "messzeit_utc": "x"}]}, {"posts": []})[0])
@@ -702,10 +721,20 @@ def main(argv=None):
                 Path(a.ziel, "eintrag.json").write_text(json.dumps(e), encoding="utf-8")
         elif a.befehl == "artefakt":
             e = json.loads(Path(a.ziel, "eintrag.json").read_text(encoding="utf-8"))
-            png, cap = artefakt(e, a.ziel)
+            try:
+                png, cap = artefakt(e, a.ziel)
+            except KeinArtefakt as exc:
+                # gruen bleiben, rot nur bei echten fehlern (Ben, 08.10.2026)
+                ausgabe("nicht faellig, kein artefakt vom morgen (%s)" % exc)
+                if a.github_output:
+                    with open(a.github_output, "a", encoding="utf-8") as fh:
+                        fh.write("gefunden=0\n")
+                if not a.hand:
+                    ops("instagram heute nicht faellig, kein artefakt vom morgen. %s" % exc)
+                return 0
             if a.github_output:
                 with open(a.github_output, "a", encoding="utf-8") as fh:
-                    fh.write("png=%s\ncaption=%s\n" % (png, cap))
+                    fh.write("gefunden=1\npng=%s\ncaption=%s\n" % (png, cap))
         elif a.befehl == "jpeg":
             out = jpeg(a.png, a.ziel)
             ausgabe("jpeg %s, %d bytes" % (out, out.stat().st_size))
