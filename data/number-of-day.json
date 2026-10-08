@@ -1,32 +1,44 @@
 {
-  "issue": "OCT 7 2026",
+  "issue": "OCT 8 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "96.65%",
-  "value_label": "of every KAS that will ever exist is already mined",
-  "headline": "the supply story is *almost over*.",
+  "value": "$1.21M",
+  "value_label": "locked across kasplex and igra",
+  "headline": "layer 2 tvl is *down 13 percent*\nagainst 4 weeks ago.",
   "panes": [
     {
-      "kind": "dots",
-      "title": "EVERY KAS THAT WILL EVER EXIST",
-      "sub": "one dot is one percent of the maximum",
-      "total": 100,
-      "lit": 96.65079749475642,
-      "tone": "teal",
-      "note": "*96.65 percent* mined, 3.35 percent still to come."
+      "kind": "compare",
+      "title": "TOTAL VALUE LOCKED",
+      "sub": "same measurement, two dates",
+      "rows": [
+        {
+          "label": "today",
+          "sub": "",
+          "value": "$1.21M",
+          "pct": 87.0968473840597,
+          "tone": "red"
+        },
+        {
+          "label": "4 weeks ago",
+          "sub": "",
+          "value": "$1.39M",
+          "pct": 100.0,
+          "tone": "grey"
+        }
+      ]
     },
     {
       "kind": "anchor",
-      "title": "WHAT IS LEFT",
+      "title": "WHAT THE NUMBER IS",
       "lines": [
-        "*961,356,280 KAS* are still to come.",
-        "99 percent is reached in june 2028."
+        "the difference is *$179K*.",
+        "*counted* from the same source."
       ]
     }
   ],
-  "sources": "api.kaspa.org",
+  "sources": "defillama.com",
   "site": "kaspapulse.com",
   "post": {
-    "x": "96.65 percent of every KAS that will ever exist is already mined. 961,356,280 KAS are still to come, and 99 percent is reached in june 2028 at the current schedule. what comes after keeps halving every twelve months.",
-    "reply": "the full emission schedule is on kaspapulse.com/kaspa-halving.html. the remaining amount shrinks and never quite reaches the maximum."
+    "x": "layer 2 tvl on kaspa is down 13 percent against 4 weeks ago. $1.21M today, $1.39M then, both read from the same source 31 days apart.",
+    "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
   }
 }
