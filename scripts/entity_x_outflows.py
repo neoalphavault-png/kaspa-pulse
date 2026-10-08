@@ -453,8 +453,8 @@ def main():
         "named_exchange_kas": named_kas,
         "named_exchange_share": (round(named_kas / total_out, 6)
                                  if total_out else 0),
-        "caveat": ("a deposit to an exchange address is not a sale. the chain "
-                   "shows the transfer, not the intent."),
+        "caveat": ("a deposit to an exchange address is a transfer. the "
+                   "chain shows the movement, not the intent."),
         "outflows": flows,
     }
     os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)

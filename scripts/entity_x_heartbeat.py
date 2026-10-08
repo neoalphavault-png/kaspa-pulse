@@ -168,17 +168,16 @@ def save_last(balance_kas):
                    "checked_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")}, f)
 
 
-# Wortregel (Ben, 27.09.2026): bei Entity X nie buy, bought, buying,
-# purchase. Erlaubt ist nur die Verneinung "not a proven buy". Bis zum
-# 27.09. titelte der gruene Fall "entity x bought more".
-WORTREGEL = re.compile(r"\b(buy|buys|bought|buying|purchase[sd]?|purchasing)\b", re.I)
-ERLAUBT = "not a proven buy"
+# Wortregel (Ben, 27.09. und 08.10.2026): bei Entity X nie buy, bought,
+# sold, sale, purchase, auch nicht verneint. Bis zum 27.09. titelte der
+# gruene Fall "entity x bought more".
+WORTREGEL = re.compile(r"\b(buy|buys|bought|buying|purchase[sd]?|purchasing|sold|sell|sells|selling|sales?)\b", re.I)
+HINWEIS_ZUFLUSS = "an inflow is a transfer, the chain shows the movement only."
 
 
 def wortregel(text):
-    """Gibt die verbotenen Woerter im Text zurueck, die erlaubte Verneinung
-    herausgenommen."""
-    return WORTREGEL.findall(text.replace(ERLAUBT, ""))
+    """Gibt die verbotenen Woerter im Text zurueck."""
+    return WORTREGEL.findall(text)
 
 
 def send_embed(title, description, color, price=None):
@@ -285,7 +284,7 @@ def main():
                 f"{usd_part(diff, price)}.\n"
                 f"the wallet now holds **{fmt(balance)} KAS**"
                 f"{usd_part(balance, price, lead=', about ')}.{pctline}\n"
-                "an inflow is a transfer, not a proven buy.\n"
+                f"{HINWEIS_ZUFLUSS}\n"
                 "this is a net figure. deposits and withdrawals inside the "
                 "same window cancel out before we see them.",
                 GREEN, price=price,
@@ -334,15 +333,16 @@ def selftest():
         v = wortregel(t + "\n" + d)
         ok = not v
         if name == "zufluss":
-            ok = ok and t == "🟢 daily check. coins came in" and ERLAUBT in d
+            ok = ok and t == "🟢 daily check. coins came in" and HINWEIS_ZUFLUSS in d
         if gestern is not None:
             ok = ok and "since the last check on 25 sep 2026" in d and "24 hours" not in d \
                 and "yesterday" not in d
         print("%-4s %-12s %s" % ("ok" if ok else "FEHL", name, t))
         fehler += 0 if ok else 1
-    ok = wortregel("entity x bought more") == ["bought"] and not wortregel(
-        "an inflow is a transfer, not a proven buy.")
-    print("%-4s %-12s %s" % ("ok" if ok else "FEHL", "wache", "bought faellt auf, verneinung nicht"))
+    ok = wortregel("entity x bought more") == ["bought"] and wortregel(
+        "an inflow is a transfer, not a proven buy.") == ["buy"] and wortregel(
+        "not a sale") == ["sale"] and not wortregel(HINWEIS_ZUFLUSS)
+    print("%-4s %-12s %s" % ("ok" if ok else "FEHL", "wache", "bought, buy und sale fallen auf, auch verneint"))
     fehler += 0 if ok else 1
     ok = seit(None) == "since the last check" and seit("28 sep 2026") == \
         "since the last check on 28 sep 2026"
