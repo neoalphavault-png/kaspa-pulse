@@ -9,10 +9,10 @@ ausgegeben, nie geschrieben und steht in keiner Fehlermeldung: jede Antwort
 der API laeuft durch sauber(), bevor sie irgendwo erscheint. IG_USER_ID und
 FB_PAGE_ID sind Variablen, keine Geheimnisse.
 
-ABLAUF UM 09:00 BERLIN (Job "instagram" in tagesgrafik.yml)
+ABLAUF UM 09:30 BERLIN, NACH DISCORD (Job "instagram" in tagesgrafik.yml)
     faellig     liefert die Grafik von heute, wenn 07:30 sie mit "senden"
                 ausgeliefert hat (Eintrag in data/tagesgrafik-log.json), wenn es
-                zwischen 08:55 und 11:00 Berlin ist, wenn heute noch nichts in
+                zwischen 09:25 und 11:30 Berlin ist, wenn heute noch nichts in
                 data/instagram-log.json steht und wenn IG_STOPP nicht auf heute
                 oder "immer" steht
     artefakt    holt PNG und Caption aus dem Artefakt genau des Laufs, der die
@@ -72,7 +72,7 @@ INSIGHTS = REPO / "data" / "instagram-insights.json"
 KOMMENTARE = REPO / "data" / "instagram-kommentare.json"
 ANTWORTEN = REPO / "data" / "instagram-antworten.json"
 METRIKEN = ("reach", "likes", "comments", "saved", "shares")
-FENSTER_BERLIN = ((8, 55), (11, 0))
+FENSTER_BERLIN = ((9, 25), (11, 30))   # Ben, 08.10.2026: Discord kommt immer zuerst
 INSIGHT_TAGE = 7
 KOMMENTAR_TAGE = 14
 JPEG_QUALITAET = 92
@@ -633,18 +633,18 @@ def selbsttest():
     # faellig
     lg = {"laeufe": [{"datum": "2026-10-09", "form": 4, "messzeit_utc": "2026-10-09T05:31:00+00:00"}]}
     t = lambda h, m: dt.datetime(2026, 10, 9, h, m, tzinfo=dt.timezone.utc)   # noqa: E731
-    ok("faellig um 09:05 berlin (07:05 utc, sommerzeit)", faellig(t(7, 5), lg, {"posts": []})[0] is not None)
-    ok("nicht faellig um 08:00 berlin", faellig(t(6, 0), lg, {"posts": []})[0] is None)
-    ok("nicht faellig ab 11:00 berlin", faellig(t(9, 0), lg, {"posts": []})[0] is None)
-    ok("nicht faellig ohne gesendete grafik", faellig(t(7, 5), {"laeufe": []}, {"posts": []})[0] is None)
-    ok("nicht doppelt am tag", faellig(t(7, 5), lg, {"posts": [{"datum": "2026-10-09"}]})[0] is None)
-    ok("IG_STOPP fuer heute und immer", faellig(t(7, 5), lg, {"posts": []}, "2026-10-09")[0] is None
-       and faellig(t(7, 5), lg, {"posts": []}, "immer")[0] is None
-       and faellig(t(7, 5), lg, {"posts": []}, "2026-10-08")[0] is not None)
+    ok("faellig um 09:35 berlin (07:35 utc, sommerzeit)", faellig(t(7, 35), lg, {"posts": []})[0] is not None)
+    ok("nicht faellig um 09:05 berlin, vor discord", faellig(t(7, 5), lg, {"posts": []})[0] is None)
+    ok("nicht faellig ab 11:30 berlin", faellig(t(9, 30), lg, {"posts": []})[0] is None)
+    ok("nicht faellig ohne gesendete grafik", faellig(t(7, 35), {"laeufe": []}, {"posts": []})[0] is None)
+    ok("nicht doppelt am tag", faellig(t(7, 35), lg, {"posts": [{"datum": "2026-10-09"}]})[0] is None)
+    ok("IG_STOPP fuer heute und immer", faellig(t(7, 35), lg, {"posts": []}, "2026-10-09")[0] is None
+       and faellig(t(7, 35), lg, {"posts": []}, "immer")[0] is None
+       and faellig(t(7, 35), lg, {"posts": []}, "2026-10-08")[0] is not None)
     ok("von hand ohne fenster und tagessperre", faellig(t(12, 0), lg, {"posts": [{"datum": "2026-10-09"}]},
                                                          hand=True)[0] is not None)
     ok("von hand nie scharf", main(["posten", "--hand", "--modus", "scharf", "--bild", "x", "--caption", "x"]) == 1)
-    ok("winterzeit, 08:00 utc ist 09:00 berlin", faellig(dt.datetime(2026, 11, 2, 8, 0, tzinfo=dt.timezone.utc),
+    ok("winterzeit, 08:30 utc ist 09:30 berlin", faellig(dt.datetime(2026, 11, 2, 8, 30, tzinfo=dt.timezone.utc),
                                                           {"laeufe": [{"datum": "2026-11-02", "form": 1,
                                                                        "messzeit_utc": "x"}]}, {"posts": []})[0])
     # jpeg

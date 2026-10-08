@@ -1573,7 +1573,7 @@ def ops_senden(png, vorschau, s, form, grund, hook):
     with urllib.request.urlopen(req, timeout=60) as r:
         print("an ops geschickt, http %s" % r.status)
     if s.get("instagram"):
-        text = ("INSTAGRAM, caption fuer den post nach 09:00 (nur wenn IG_MODUS scharf, "
+        text = ("INSTAGRAM, caption fuer den post um 09:30, nach discord (nur wenn IG_MODUS scharf, "
                 "stoppen mit der variable IG_STOPP=%s)\n```\n%s\n```" % (heute_iso(s), s["instagram"]))
         req = urllib.request.Request(hook, data=json.dumps({"content": text[:1990],
                                      "allowed_mentions": {"parse": []}}).encode(), headers={
