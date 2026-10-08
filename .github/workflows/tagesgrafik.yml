@@ -13,9 +13,9 @@ name: tagesgrafik
 # 06:30 Berlin, im Sommer steht der Tag um 06:30 UTC schon im Log. Faellt
 # der erste Termin aus, liefert der zweite.
 #
-# INSTAGRAM (Ben, 08.10.2026). Job "instagram" um 09:00 Berlin, wieder zwei
-# Termine: 07:00 UTC im Sommer, 08:00 UTC im Winter. scripts/instagram.py
-# faellig laesst nur zwischen 08:55 und 11:00 Berlin durch, nur wenn die
+# INSTAGRAM (Ben, 08.10.2026). Job "instagram" um 09:30 Berlin, nach Discord,
+# wieder zwei Termine: 07:30 UTC im Sommer, 08:30 UTC im Winter.
+# scripts/instagram.py faellig laesst nur zwischen 09:25 und 11:30 Berlin durch, nur wenn die
 # Grafik um 07:30 mit "senden" ausgeliefert wurde, nur einmal am Tag und nie,
 # wenn die Variable IG_STOPP auf heute (JJJJ-MM-TT) oder "immer" steht. Er
 # nimmt PNG und Caption aus dem Artefakt genau dieses Laufs, legt das JPEG
@@ -28,8 +28,8 @@ on:
   schedule:
     - cron: "30 5 * * *"
     - cron: "30 6 * * *"
-    - cron: "0 7 * * *"
-    - cron: "0 8 * * *"
+    - cron: "30 7 * * *"
+    - cron: "30 8 * * *"
   workflow_dispatch:
     inputs:
       form:
@@ -57,7 +57,7 @@ concurrency:
 
 jobs:
   grafik:
-    if: github.event_name != 'schedule' || (github.event.schedule != '0 7 * * *' && github.event.schedule != '0 8 * * *')
+    if: github.event_name != 'schedule' || (github.event.schedule != '30 7 * * *' && github.event.schedule != '30 8 * * *')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -134,7 +134,7 @@ jobs:
 
   instagram:
     if: >-
-      (github.event_name == 'schedule' && (github.event.schedule == '0 7 * * *' || github.event.schedule == '0 8 * * *'))
+      (github.event_name == 'schedule' && (github.event.schedule == '30 7 * * *' || github.event.schedule == '30 8 * * *'))
       || (github.event_name == 'workflow_dispatch' && inputs.instagram == 'trocken')
     runs-on: ubuntu-latest
     timeout-minutes: 30
