@@ -52,7 +52,7 @@
   },
   "named_exchange_kas": 1388861356.12,
   "named_exchange_share": 0.880633,
-  "caveat": "an inflow from an exchange wallet is a withdrawal, not a proven buy. a fresh unlabeled sender is consistent with consolidation, not proof of it. the chain shows the path.",
+  "caveat": "an inflow from an exchange wallet is a withdrawal from that exchange, the chain shows the movement only. a fresh unlabeled sender is consistent with consolidation, not proof of it. the chain shows the path.",
   "senders": [
     {
       "address": "kaspa:qrelgny7sr3vahq69yykxx36m65gvmhryxrlwngfzgu8xkdslum2yxjp3ap8m",

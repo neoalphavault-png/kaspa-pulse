@@ -55,7 +55,8 @@ FORBIDDEN = ["—", "–", " - ", ":", "→"]
 # Woerter, die dem Bot eine Absicht unterstellen, die er nicht messen kann.
 # Der Bot sieht einen Kontostand, sonst nichts. Er weiss nicht, wohin die
 # Coins gehen, von wem sie kommen oder warum sie sich bewegen.
-BANNED_CLAIMS = ["sold", "sell", "selling", "bought", "buying", "stacking",
+# Wortregel (Ben, 08.10.2026): auch buy, purchase und sale, ohne Ausnahme.
+BANNED_CLAIMS = ["sold", "sell", "selling", "bought", "buying", "buy", "purchase", "sale", "stacking",
                  "dumped", "accumulating", "whale is", "zero outflows",
                  "never sold", "first time"]
 
@@ -164,7 +165,7 @@ def build_inflow(balance, diff):
         "**ENTITY X INFLOW DETECTED**\n"
         f"balance up **{fmt(diff)} KAS** since the last checkpoint\n"
         f"now {fmt(balance)} KAS\n"
-        "coins arriving are not proof of a purchase.\n"
+        "an inflow is a transfer, the chain shows the movement only.\n"
         "check it yourself at <https://kaspapulse.com/entity-x.html>"
     )
 
@@ -408,6 +409,8 @@ def run_selftest():
     raises("die alte falschbehauptung faellt auf",
            "balance dropped\nthis address had zero outflows since tracking began")
     raises("verkauf wird abgefangen", "entity x sold a part of its stack")
+    raises("wortregel, purchase wird abgefangen", "this looks like a purchase")
+    raises("wortregel, sale wird abgefangen", "a deposit to an exchange is not a sale")
     raises("kauf wird abgefangen", "entity x keeps stacking")
     raises("doppelpunkt wird abgefangen", "balance: 1,442,000,000 KAS")
     raises("gedankenstrich wird abgefangen", "balance down — 2,396,922 KAS")

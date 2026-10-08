@@ -492,8 +492,9 @@ def main():
         "named_exchange_kas": named_kas,
         "named_exchange_share": (round(named_kas / total_in, 6)
                                  if total_in else 0),
-        "caveat": ("an inflow from an exchange wallet is a withdrawal, not "
-                   "a proven buy. a fresh unlabeled sender is consistent "
+        "caveat": ("an inflow from an exchange wallet is a withdrawal from "
+                   "that exchange, the chain shows the movement only. a "
+                   "fresh unlabeled sender is consistent "
                    "with consolidation, not proof of it. the chain shows "
                    "the path."),
         "senders": results,

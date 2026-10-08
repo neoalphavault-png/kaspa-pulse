@@ -56,7 +56,7 @@
   },
   "named_exchange_kas": 53304307.45,
   "named_exchange_share": 0.806445,
-  "caveat": "a deposit to an exchange address is not a sale. the chain shows the transfer, not the intent.",
+  "caveat": "a deposit to an exchange address is a transfer. the chain shows the movement, not the intent.",
   "outflows": [
     {
       "ts": 1709815872346,
