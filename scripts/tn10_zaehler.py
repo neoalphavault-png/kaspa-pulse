@@ -97,7 +97,10 @@ NACHLAUF_S = 30
 STILLE_MS = 5000          # laengere empfangspause gilt als luecke, auch bei offener verbindung
 STILLE_RAND_MS = 2000
 SPUR_SEKUNDE = {"a": 5, "b": 35}
-MAX_DAUER = 21600
+MAX_DAUER = 39600          # 11 h, drei segmente je spur
+WARTE_JOB_S = 20400        # ein wartejob schlaeft hoechstens 5 h 40 min
+WARTE_JOBS = 6
+VORLAUF_S = 240            # teil-laeufe starten so lange vor T0
 MAX_SEGMENT = 11400
 MAX_IDS = 3000
 
@@ -566,21 +569,46 @@ def wirt(url):
 
 # ---------------------------------------------------------------- plan fuer lange fenster
 
-def plan(dauer, segment, jetzt):
+def startzeit(text):
+    """Startzeit aus messung/tn10/start.txt, ISO in UTC wie 2026-10-09T21:25:00Z.
+    Leer oder nur Kommentar heisst: sofort."""
+    t = " ".join(z.split("#", 1)[0].strip() for z in (text or "").splitlines()).strip()
+    if not t:
+        return None
+    d = dt.datetime.strptime(t, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=dt.timezone.utc)
+    return int(d.timestamp())
+
+
+def plan(dauer, segment, jetzt, start=None):
     """Grenzen der Teil-Laeufe als Epoch-Sekunden, 0 heisst: entfaellt.
-    Spur a endet bei T0+S und T0+2S, Spur b bei T0+S/2, T0+3S/2 und T0+2S,
-    jeweils hoechstens am Fensterende. So liegt jede Uebergabe der einen Spur
-    mitten in einem Teil der anderen."""
+    Spur a endet bei T0+S, T0+2S und T0+3S, Spur b bei T0+S/2, T0+3S/2,
+    T0+5S/2 und T0+3S, jeweils hoechstens am Fensterende. So liegt jede
+    Uebergabe der einen Spur mitten in einem Teil der anderen.
+
+    Mit start beginnt das Fenster dort (auf die volle Minute). Bis dahin
+    schlafen Wartejobs ohne jede Abfrage; los ist der Zeitpunkt, zu dem die
+    ersten Teil-Laeufe anlaufen, wn die Zahl der noetigen Wartejobs."""
     if not 60 <= dauer <= MAX_DAUER:
         raise ValueError("dauer %d ausserhalb 60 bis %d" % (dauer, MAX_DAUER))
     if not 600 <= segment <= MAX_SEGMENT:
         raise ValueError("segment %d ausserhalb 600 bis %d" % (segment, MAX_SEGMENT))
-    if dauer > 2 * segment:
-        raise ValueError("dauer %d groesser als zwei segmente" % dauer)
-    t0 = (int(jetzt) // 60 + 1) * 60 + 180
+    if dauer > 3 * segment:
+        raise ValueError("dauer %d groesser als drei segmente" % dauer)
+    frueh = (int(jetzt) // 60 + 1) * 60 + 180
+    if start is None or start <= frueh:
+        if start is not None and start < int(jetzt) - 60:
+            raise ValueError("startzeit liegt in der vergangenheit")
+        t0 = frueh
+    else:
+        t0 = -(-int(start) // 60) * 60
+    rest = max(0, t0 - VORLAUF_S - int(jetzt))
+    wn = -(-rest // WARTE_JOB_S) if rest > 60 else 0
+    if wn > WARTE_JOBS:
+        raise ValueError("startzeit zu weit weg, hoechstens %d h warten" % (WARTE_JOBS * WARTE_JOB_S // 3600))
     e = t0 + dauer
-    out = {"t0": t0, "ende": e}
-    for spur, grenzen in (("a", [segment, 2 * segment]), ("b", [segment // 2, segment * 3 // 2, 2 * segment])):
+    out = {"t0": t0, "ende": e, "los": t0 - VORLAUF_S, "wn": wn}
+    for spur, grenzen in (("a", [segment, 2 * segment, 3 * segment]),
+                          ("b", [segment // 2, segment * 3 // 2, segment * 5 // 2, 3 * segment])):
         fertig = False
         for i, g in enumerate(grenzen, 1):
             if fertig:
@@ -1145,10 +1173,28 @@ def selbsttest():
     p = plan(1800, 900, 1_790_000_000)
     ok("plan probe mit uebergaben", p["a2"] == p["ende"] and p["b2"] == p["t0"] + 1350 and p["b3"] == p["ende"])
     ok("plan beginnt nach voller minute", p["t0"] % 60 == 0 and p["t0"] > 1_790_000_000 + 180)
-    for falsch, args in (("zu lang", (21660, 10800)), ("segment zu lang", (1800, 12000)),
-                         ("mehr als zwei segmente", (2000, 900))):
+    for falsch, args in (("zu lang", (39660, 13200)), ("segment zu lang", (1800, 12000)),
+                         ("mehr als drei segmente", (2800, 900))):
         try:
             plan(args[0], args[1], 0)
+            ok("plan lehnt ab: " + falsch, False)
+        except ValueError:
+            ok("plan lehnt ab: " + falsch, True)
+    p = plan(29400, 10800, 1_791_500_000)
+    t = p["t0"]
+    ok("plan acht stunden zehn, drei teile in a, vier in b",
+       p["a3"] == t + 29400 and p["b3"] == t + 27000 and p["b4"] == t + 29400 and p["a2"] == t + 21600)
+    st = startzeit("# kommentar\n2026-10-09T21:25:00Z\n")
+    p = plan(29400, 10800, st - 26 * 3600, st)
+    ok("startzeit: fenster ab start, wartejobs ohne abfragen",
+       p["t0"] == st and p["los"] == st - VORLAUF_S and p["wn"] == 5 and p["ende"] == st + 29400)
+    ok("startzeit leer heisst sofort", startzeit("# nur kommentar\n") is None and plan(1800, 900, 0, None)["wn"] == 0)
+    p = plan(7800, 10800, st - 300, st)
+    ok("startzeit kurz voraus, kein wartejob", p["wn"] == 0 and p["t0"] == st and p["a1"] == st + 7800)
+    for falsch, args in (("start in der vergangenheit", (1800, 900, st, st - 3600)),
+                         ("start zu weit weg", (1800, 900, st - 40 * 3600, st))):
+        try:
+            plan(*args)
             ok("plan lehnt ab: " + falsch, False)
         except ValueError:
             ok("plan lehnt ab: " + falsch, True)
@@ -1232,6 +1278,7 @@ def main(argv=None):
     ap.add_argument("--out", default="out/tn10")
     ap.add_argument("--plan", type=int, metavar="DAUER")
     ap.add_argument("--segment", type=int, default=10800)
+    ap.add_argument("--start", default="", help="datei mit der startzeit in utc, leer heisst sofort")
     ap.add_argument("--zusammenfuehren", metavar="ORDNER")
     ap.add_argument("--pruefe-ids", metavar="DATEI")
     ap.add_argument("--selbsttest", action="store_true")
@@ -1239,7 +1286,11 @@ def main(argv=None):
     if a.selbsttest:
         return selbsttest()
     if a.plan is not None:
-        for k, v in plan(a.plan, a.segment, time.time()).items():
+        start = None
+        if a.start and os.path.exists(a.start):
+            with open(a.start, encoding="utf-8") as fh:
+                start = startzeit(fh.read())
+        for k, v in plan(a.plan, a.segment, time.time(), start).items():
             print("%s=%d" % (k, v))
         return 0
     if a.zusammenfuehren:
