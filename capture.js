@@ -16,6 +16,7 @@
   var MENUE = [
     { t: "dashboard", h: "/" },
     { t: "weekly", h: "/kaspa-weekly.html" },
+    { t: "for builders", h: "/for-builders.html" },
     { t: "network", k: [
       ["hashrate", "/kaspa-hashrate.html"],
       ["mining", "/kaspa-mining.html"],
@@ -61,6 +62,11 @@
     + "text-decoration:none;white-space:nowrap;border:none;}"
     + ".nav .ndrop a:hover{color:#FFFFFF;background:rgba(255,255,255,0.05);}"
     + ".nav .ndrop a.cur{color:#49EACB;}"
+    // for builders steht als eigener punkt oben und ist leicht abgesetzt,
+    // damit teams die seite finden (Ben, 08.10.2026). Als aktuelle seite
+    // greift weiter das normale a.on.
+    + ".nav .nc > a[href='/for-builders.html']{color:#49EACB;border-color:rgba(73,234,203,0.28);}"
+    + ".nav .nc > a[href='/for-builders.html']:hover{background:rgba(73,234,203,0.08);}"
     + "@media(max-width:640px){"
     // das aufgeklappte menue ist hoeher als ein telefonbildschirm. es
     // bekommt deshalb einen eigenen scrollbereich statt die seite darunter

@@ -135,6 +135,13 @@
   td.n { text-align:right; color:var(--txt); font-variant-numeric:tabular-nums; font-weight:600; }
   @media (max-width:520px){ .tblwrap table{min-width:0;} table{font-size:12px;} th,td{padding-right:6px;}
     .chart{padding:16px 8px 8px 8px;} .chart .clbl{padding-left:8px;} .read .rt{font-size:19px;} }
+  /* for builders als kleine karte am seitenende (Ben, 08.10.2026), text unveraendert */
+  .bkarte { background:var(--card); border:1px solid rgba(73,234,203,0.28); border-radius:14px; padding:16px 18px; margin:28px 0 0; }
+  .bkarte p { margin:0; font-size:14px; line-height:22px; }
+  .bkarte b { display:block; color:var(--txt); font-size:15px; font-weight:700; margin-bottom:2px; }
+  .bkarte a { display:inline-block; padding:4px 0; color:var(--teal); text-decoration:none; font-weight:600; }
+  .bkarte a::after { content:" \2192"; }
+  .bkarte a:hover { text-decoration:underline; }
 </style>
 </head>
 <body>
@@ -146,6 +153,7 @@
     <div class="nc">
     <a href="/">dashboard</a>
     <a href="/kaspa-weekly.html">weekly</a>
+    <a href="/for-builders.html">for builders</a>
     <a href="/kaspa-hashrate.html">hashrate</a>
     <a href="/kaspa-mining.html">mining</a>
     <a href="/merged-mining.html">merged mining</a>
@@ -267,7 +275,7 @@
   <p>No. Covenant usage and the KAS chart are separate measurements and this page makes no price statement of any kind. It counts what is running on the upgrade and stops there.</p>
   </div>
 <!--/AUTO:faq-->
-  <p>Building on Kaspa? <a href="/for-builders.html">We review projects and run testnet load tests before launch.</a></p>
+  <div class="bkarte"><p><b>Building on Kaspa?</b> <a href="/for-builders.html">We review projects and run testnet load tests before launch.</a></p></div>
   <div class="subscribe">
     <div class="badge">free · instant</div>
     <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>

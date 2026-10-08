@@ -144,6 +144,13 @@
   @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
   footer { border-top:1px solid var(--line); margin-top:48px; padding-top:16px; text-align:center; font-size:11px; color:var(--dimmer); }
   footer a { color:var(--dim); text-decoration:none; }
+  /* for builders als kleine karte am seitenende (Ben, 08.10.2026), text unveraendert */
+  .bkarte { background:var(--card); border:1px solid rgba(73,234,203,0.28); border-radius:14px; padding:16px 18px; margin:28px 0 0; }
+  .bkarte p { margin:0; font-size:14px; line-height:22px; }
+  .bkarte b { display:block; color:var(--txt); font-size:15px; font-weight:700; margin-bottom:2px; }
+  .bkarte a { display:inline-block; padding:4px 0; color:var(--teal); text-decoration:none; font-weight:600; }
+  .bkarte a::after { content:" \2192"; }
+  .bkarte a:hover { text-decoration:underline; }
 </style>
 </head>
 <body>
@@ -155,6 +162,7 @@
     <div class="nc">
     <a href="/">dashboard</a>
     <a href="/kaspa-weekly.html">weekly</a>
+    <a href="/for-builders.html">for builders</a>
     <a href="/kaspa-hashrate.html">hashrate</a>
     <a href="/kaspa-mining.html">mining</a>
     <a href="/merged-mining.html">merged mining</a>
@@ -322,7 +330,7 @@
   <p>Not automatically. A specification describing state layout and template bytes is enough for a reader, so an explorer or wallet can recognise a token and display a balance. Constructing a transfer additionally requires witness framing, entrypoint selectors, input and output ordering, compatibility rules and practical mass limits. Without that exact recipe an independent wallet can display a token but cannot safely spend it.</p>
   </div>
 <!--/AUTO:faq-->
-  <p>Building on Kaspa? <a href="/for-builders.html">We review projects and run testnet load tests before launch.</a></p>
+  <div class="bkarte"><p><b>Building on Kaspa?</b> <a href="/for-builders.html">We review projects and run testnet load tests before launch.</a></p></div>
   <div class="subscribe">
     <div class="badge">free · instant</div>
     <div class="st">get the <b>Kaspa on-chain cheat sheet</b></div>
