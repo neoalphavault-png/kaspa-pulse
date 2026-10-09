@@ -431,26 +431,157 @@ def insights(now):
 
 # ---------------------------------------------------------------- kommentare
 
-def entwurf(text, post):
-    """Ein Antwort-ENTWURF nach unseren Regeln, mit der gezaehlten Zahl des
-    Posts. Ben passt ihn an, nichts geht automatisch raus."""
-    if not (post.get("zahl") and post.get("tag") and post.get("herkunft")):
-        return "thanks for reading. we count kaspa from the chain every day. what should we count next?"
-    zahl = "%s as of %s, %s" % (post["zahl"], post["tag"], post["herkunft"])
-    if "?" in text:
-        t = ("good question. what we can say is what we counted, %s. we only publish what we can count "
-             "ourselves or name the source for." % zahl)
+# ---------------------------------------------------------------- kommentar-entwuerfe
+# Ben, 09.10.2026. Je Kommentar eine Klasse, je Klasse mehrere Varianten,
+# nie zweimal derselbe Text an einem Tag, der Account-Name wo es passt, ein
+# Bezug auf den Kommentar. Spam und Promo werden nicht beantwortet, nur als
+# ignoriert an Ops gemeldet. Automatisch geantwortet wird nicht (AUTOMATIK).
+AUTOMATIK = False
+
+SPAM = re.compile(
+    r"send (me )?(this|the) post|dm (us |me )?(for|to)\b|\bdm me\b|\bpromo(te|tion)?\b|\bcollab|"
+    r"\bfeature(d)? (on|by|you|your|this)|\bshout ?out|check (my|our) (page|profile|bio|account)|"
+    r"\bfollow (me|us|back)\b|\bgiveaway|\bairdrop|link in (my|our) bio|whats ?app|\btelegram\b|"
+    r"\bsignals?\b|\binvest(ing|ment)? (with|plan)|earn \$|\bpaid partnership|\bsponsor", re.I)
+SPAM_NAME = re.compile(r"promo|feature|shoutout|collab|marketing|growth|_ads\b|ads_|crypto_?news|daily_?crypto", re.I)
+WUNSCH = re.compile(
+    r"(can|could|would|will) you (please )?(track|show|count|post|add|chart|do)\s+(?P<a>[^?.!]{3,60})|"
+    r"please (track|show|count|post|add|chart)\s+(?P<b>[^?.!]{3,60})|"
+    r"(would|i'?d) love to see\s+(?P<c>[^?.!]{3,60})|"
+    r"(do|make) (one|a post) (on|about)\s+(?P<d>[^?.!]{3,60})|"
+    r"what about\s+(?P<e>[^?.!]{3,60})", re.I)
+FRAGE_ANFANG = re.compile(r"^\s*(how|what|why|when|where|who|which|is|are|does|do|can|will|wie|was|warum|wann)\b", re.I)
+LOB = re.compile(r"great|love|nice|thanks|thank you|awesome|cool|amazing|good (work|job|stuff)|helpful|"
+                 r"newsletter|subscribed|signed up|\bfire\b|🔥|👏|💯|🙌|❤|💚|👍", re.I)
+KURS = re.compile(r"\b(price|moon|pump|target|ath|\$\d|buy|sell|bullish|bearish|when lambo)\b", re.I)
+THEMEN = (("hashrate", "hashrate"), ("hash rate", "hashrate"), ("supply", "supply"), ("entity x", "entity x"),
+          ("whale", "the largest address"), ("fee", "fees"), ("block", "blocks"), ("address", "addresses"),
+          ("holder", "addresses"), ("exchange", "exchange balances"), ("covenant", "covenants"),
+          ("halving", "the reward cut"), ("reward", "the reward cut"), ("mining", "mining"), ("miner", "mining"),
+          ("tps", "throughput"), ("transaction", "transactions"), ("tvl", "tvl"), ("token", "tokens"))
+
+VARIANTEN = {
+    "lob": [
+        "thanks {name}, glad it helps. we count kaspa from the chain every day. what should we count next?",
+        "appreciate it {name}. {zahl_satz} more of these every day.",
+        "thank you {name}. if a number is missing, tell us and we will see if the chain can answer it.",
+        "glad you like it {name}. the weekly mail has the take behind the numbers, link in bio.",
+        "thanks for reading {name}. every number here is counted or sourced, never guessed.",
+    ],
+    "frage": [
+        "good question {name}. {zahl_satz} we only publish what we count ourselves or can name a source for.",
+        "{name} fair question{thema_satz}. {zahl_satz} the method is on our site, link in bio.",
+        "{name} short answer{thema_satz}, {zahl_satz} if that does not cover it, ask again and we will dig in.",
+        "thanks for asking {name}. {zahl_satz} we stick to what the chain shows.",
+    ],
+    "wunsch": [
+        "noted {name}, {wunsch} goes on our list. if the chain can answer it, we will count it.",
+        "{name} good idea, {wunsch}. we will check whether we can count it ourselves before we post it.",
+        "thanks {name}, {wunsch} is on the list. we only post it once we can count it cleanly.",
+        "{name} we hear you on {wunsch}. give us a few days to see what the chain can tell us.",
+    ],
+    "kurs": [
+        "{name} we only count what the chain shows and leave the chart talk to others. {zahl_satz}",
+        "{name} no calls from us, just counts. {zahl_satz}",
+        "{name} we stay out of where it goes next and stick to what the chain records. {zahl_satz}",
+    ],
+    "sonstiges": [
+        "thanks for the comment {name}. {zahl_satz}",
+        "{name} noted. {zahl_satz} what should we count next?",
+        "appreciate you stopping by {name}. {zahl_satz}",
+    ],
+}
+
+
+def einordnen(text, username=""):
+    """(klasse, grund). Klassen lob, frage, wunsch, kurs, sonstiges, spam."""
+    t = (text or "").strip()
+    m = SPAM.search(t)
+    if m:
+        return "spam", "treffer %r" % m.group(0).lower()
+    if username and SPAM_NAME.search(username):
+        return "spam", "account-name %r" % SPAM_NAME.search(username).group(0).lower()
+    if WUNSCH.search(t):
+        return "wunsch", "wunsch"
+    if KURS.search(t):
+        return "kurs", "kurs oder kauf"
+    if "?" in t or FRAGE_ANFANG.search(t):
+        return "frage", "frage"
+    if LOB.search(t):
+        return "lob", "lob"
+    return "sonstiges", "ohne klasse"
+
+
+def wunsch_thema(text):
+    m = WUNSCH.search(text or "")
+    if not m:
+        return ""
+    w = next(g for g in (m.group(x) for x in "abcde") if g)
+    w = re.sub(r"https?://\S+|@\w+|#\w+", "", w)
+    w = re.sub(r"[^a-z0-9 %,']", " ", w.lower())
+    w = " ".join(w.split()[:7]).strip(" ,")
+    return w
+
+
+def thema(text):
+    k = (text or "").lower()
+    return next((name for wort, name in THEMEN if wort in k), "")
+
+
+def name_ok(username):
+    """Der Name nur, wenn er die Regeln nicht verletzt (kein Domain-Muster usw.)."""
+    from tagesgrafik import pruefe_eine
+    if not username or not re.fullmatch(r"[A-Za-z0-9._]{1,30}", username) or "kaspapulse" in username.lower():
+        return ""
+    return "" if pruefe_eine("@" + username, None, "name") else "@" + username
+
+
+def entwurf(text, post, username="", verwendet=None):
+    """(klasse, entwurf oder None). Der Entwurf haelt pruefe_eine ein und ist
+    heute noch nicht verwendet worden. Spam bekommt keinen Entwurf."""
+    from tagesgrafik import pruefe_eine
+    klasse, _ = einordnen(text, username)
+    if klasse == "spam":
+        return klasse, None
+    verwendet = verwendet if verwendet is not None else set()
+    if post.get("zahl") and post.get("tag") and post.get("herkunft"):
+        zahl_satz = "this one is %s as of %s, %s." % (post["zahl"], post["tag"], post["herkunft"])
     else:
-        t = "thanks for reading. this one is %s. what should we count next?" % zahl
-    return t
+        zahl_satz = "we count kaspa from the chain every day."
+    th = thema(text)
+    werte = {"zahl_satz": zahl_satz, "thema_satz": (" on %s" % th) if th else "",
+             "wunsch": wunsch_thema(text) or (th or "that")}
+    # erst die varianten, die heute in dieser klasse noch nicht dran waren,
+    # dann die uebrigen; derselbe text nie zweimal am tag
+    vorlagen = list(enumerate(VARIANTEN[klasse]))
+    vorlagen.sort(key=lambda iv: ("%s:%d" % (klasse, iv[0])) in verwendet)
+    for mit_name in (True, False):
+        werte["name"] = name_ok(username) if mit_name else ""
+        for i, vorlage in vorlagen:
+            t = " ".join(vorlage.format(**werte).split())
+            t = re.sub(r"\s+([,.?])", r"\1", t).strip()
+            t = t[0].lower() + t[1:] if t else t
+            h = hashlib.sha256(t.encode()).hexdigest()[:12]
+            if h in verwendet or pruefe_eine(t, post.get("form"), "entwurf"):
+                continue
+            verwendet.update({h, "%s:%d" % (klasse, i)})
+            return klasse, t
+    return klasse, None
 
 
 def kommentare(now):
-    from tagesgrafik import pruefe_eine
     stand = json_laden(KOMMENTARE, {"gesehen": {}})
+    # nur neue kommentare melden (Ben, 09.10.2026): was vor dem ersten lauf
+    # mit dieser regel geschrieben wurde, wird still als gesehen markiert
+    seit = stand.setdefault("seit_utc", now.isoformat(timespec="seconds"))
+    heute = now.date().isoformat()
+    verwendet_alle = stand.setdefault("entwuerfe_heute", {})
+    for tag in [t for t in verwendet_alle if t != heute]:
+        del verwendet_alle[tag]
+    verwendet = set(verwendet_alle.get(heute, []))
     log = {p.get("media"): p for p in json_laden(LOG_IG, {"posts": []}).get("posts", []) if p.get("media")}
     ich = graph("GET", ig_user(), {"fields": "username"}).get("username", "")
-    neu = 0
+    neu, ignoriert = 0, 0
     for m in eigene_medien(KOMMENTAR_TAGE, now):
         mid = str(m["id"])
         d = graph("GET", "%s/comments" % mid, {"fields": "id,text,timestamp,username", "limit": 50})
@@ -461,19 +592,26 @@ def kommentare(now):
             stand["gesehen"][kid] = {"media": mid, "zeit": k.get("timestamp")}
             if k.get("username") == ich:
                 continue
-            post = log.get(mid, {})
-            e = entwurf(k.get("text", ""), post)
-            regeln = pruefe_eine(e, post.get("form"), "entwurf")
-            ops("INSTAGRAM KOMMENTAR unter %s\nvon @%s, %s\n> %s\n\nENTWURF%s\n```\n%s\n```\n"
+            if not k.get("timestamp") or zeit(k["timestamp"]) < zeit(seit):
+                continue
+            text, wer = k.get("text") or "", k.get("username", "?")
+            klasse, e = entwurf(text, log.get(mid, {}), wer, verwendet)
+            stand["gesehen"][kid]["klasse"] = klasse
+            if klasse == "spam":
+                ops("instagram kommentar ignoriert, spam oder promo (%s), von @%s unter %s" % (
+                    einordnen(text, wer)[1], wer, m.get("permalink", mid)))
+                ignoriert += 1
+                continue
+            ops("INSTAGRAM KOMMENTAR (%s) unter %s\nvon @%s, %s\n> %s\n\nENTWURF\n```\n%s\n```\n"
                 "freigeben, workflow instagram antwort, kommentar_id %s, text anpassen und starten. "
                 "es geht nichts automatisch raus." % (
-                    m.get("permalink", mid), k.get("username", "?"), k.get("timestamp", ""),
-                    (k.get("text") or "").replace("\n", " ")[:600],
-                    "" if not regeln else " (verletzt regeln, %s)" % "; ".join(regeln), e, kid))
+                    klasse, m.get("permalink", mid), wer, k.get("timestamp", ""),
+                    text.replace("\n", " ")[:600], e or "kein entwurf, der die regeln einhaelt, bitte von hand", kid))
             neu += 1
+    verwendet_alle[heute] = sorted(verwendet)
     stand["stand_utc"] = now.isoformat(timespec="seconds")
     json_schreiben(KOMMENTARE, stand)
-    ausgabe("kommentare neu %d" % neu)
+    ausgabe("kommentare neu %d, ignoriert %d" % (neu, ignoriert))
     return neu
 
 
@@ -555,7 +693,13 @@ def selbsttest():
         if "/comments" in url:
             return Antwort(200, {"data": [{"id": "555001", "text": "how do you count this?",
                                            "timestamp": "2026-10-09T08:00:00+0000", "username": "fan"},
-                                          {"id": "555002", "text": "thanks", "username": "kaspapulse"}]})
+                                          {"id": "555002", "text": "thanks", "username": "kaspapulse"},
+                                          {"id": "555003", "text": "DM us for promo, we feature crypto pages",
+                                           "timestamp": "2026-10-09T09:00:00+0000", "username": "promo_page"},
+                                          {"id": "555004", "text": "can you track exchange balances next week?",
+                                           "timestamp": "2026-10-09T09:10:00+0000", "username": "whale_watcher"},
+                                          {"id": "555005", "text": "old one, how is this counted?",
+                                           "timestamp": "2026-10-08T07:00:00+0000", "username": "olduser"}]})
         if "/replies" in url:
             return Antwort(200, {"id": "777"})
         if "/fehler" in url:
@@ -588,6 +732,8 @@ def selbsttest():
                                                "herkunft": "counted by kaspa pulse"}]})
             now = dt.datetime(2026, 10, 10, 6, 0, tzinfo=dt.timezone.utc)
             ins = insights(now)
+            # erster lauf mit der neuen regel am 09.10. um 00:00, aeltere kommentare still
+            json_schreiben(KOMMENTARE, {"gesehen": {}, "seit_utc": "2026-10-09T00:00:00+00:00"})
             neu = kommentare(now)
             neu2 = kommentare(now)
             ant = antworten("555001", "thanks, we count it from the chain every day. what should we count next?",
@@ -612,15 +758,47 @@ def selbsttest():
            ins["medien"]["900"]["tage"]["2026-10-10"] == {"reach": 1, "likes": 2, "comments": 3, "saved": 4,
                                                           "shares": 5} and ins["medien"]["900"]["form"] == 4)
         ok("insights-datei ohne token", geheim not in INSIGHTS.read_text())
-        ok("kommentare, einer neu, eigener uebersprungen, zweiter lauf nichts neu", neu == 1 and neu2 == 0)
+        ok("kommentare, zwei neu, eigener und alter still, spam ignoriert, zweiter lauf nichts neu",
+           neu == 2 and neu2 == 0 and "olduser" not in log and "ignoriert, spam oder promo" in log
+           and "@promo_page" in log and "kommentar_id 555003" not in log)
+        ok("wunsch mit name und bezug auf den kommentar", "@whale_watcher" in log and "exchange balances next week" in log)
+        ok("keine automatische antwort aus kommentare", AUTOMATIK is False and sum(
+            1 for a in aufrufe if "/replies" in a[1]) == 1)
         kom = KOMMENTARE.read_text()
         ok("kommentar-datei nur ids, kein text, kein name", "555001" in kom and "how do you count" not in kom
            and "fan" not in kom)
         ok("entwurf an ops mit zahl und ohne automatik", "ENTWURF" in log and "281,000 as of 29 sep 2026" in log
            and "nichts automatisch" in log)
-        ok("entwurf haelt die regeln", not tg.pruefe_eine(entwurf("how?", {"zahl": "5.49%", "tag": "9 oct 2026",
-                                                                           "herkunft": "counted by kaspa pulse"}),
-                                                           None, "e") and not tg.pruefe_eine(entwurf("nice", {}), None, "e"))
+        post = {"zahl": "5.49%", "tag": "9 oct 2026", "herkunft": "counted by kaspa pulse", "form": 2}
+        beispiele = {
+            "lob": ["great work, love this 🔥", "signed up for the newsletter", "nice"],
+            "frage": ["how do you get this number?", "is this every address?", "where does the data come from"],
+            "wunsch": ["can you track miners next?", "would love to see fees per day", "what about covenants"],
+            "kurs": ["price target?", "when moon", "should I buy more"],
+            "spam": ["send me this post", "DM for promo", "collab?", "we feature crypto accounts, check our bio"],
+        }
+        richtig = all(einordnen(t, "user1")[0] == k for k, ts in beispiele.items() for t in ts)
+        ok("einordnen, lob frage wunsch kurs spam", richtig)
+        ok("spam am account-namen", einordnen("nice", "crypto_promo_daily")[0] == "spam")
+        heute, texte = set(), []
+        for k, ts in beispiele.items():
+            for t in ts:
+                kl, e = entwurf(t, post, "user1", heute)
+                if kl != "spam":
+                    texte.append(e)
+        ok("alle entwuerfe halten die regeln", all(e and not tg.pruefe_eine(e, 2, "e") for e in texte))
+        ok("nie zweimal derselbe text am tag", len(texte) == len(set(texte)))
+        v2 = set()
+        zwei = [entwurf(t, post, u, v2)[1] for t, u in (("great work", "a1"), ("love it", "b2"))]
+        ok("zweites lob am tag nimmt eine andere vorlage, nicht nur einen anderen namen",
+           zwei[0].replace("@a1", "") != zwei[1].replace("@b2", ""))
+        ok("spam bekommt keinen entwurf", entwurf("DM for promo", post, "x")[1] is None)
+        ok("name nur wenn er die regeln haelt", name_ok("fan_1") == "@fan_1" and name_ok("kaspapulse") == ""
+           and name_ok("shop.io") == "")
+        ok("kurs-frage ohne kurswort beantwortet", not tg.pruefe_eine(entwurf("price target?", post, "a")[1], 2, "e"))
+        mehr = set()
+        ok("fuenf lob-kommentare, fuenf verschiedene texte", len({entwurf("thanks", post, "a", mehr)[1]
+                                                                   for _ in range(5)}) == 5)
         ok("antwort geht raus und steht im log", ant == "777" and "777" in ANTWORTEN.read_text())
         ok("antwort mit kaufwort wird gestoppt", schlecht)
     # bereinigung
