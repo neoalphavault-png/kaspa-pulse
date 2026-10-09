@@ -1,0 +1,65 @@
+# Kaspa Pulse - nachtraegliche zaehlung eines vergangenen TN10-fensters (Ben, 09.10.2026)
+#
+# Liegt bewusst NUR auf dem Branch messung/tn10-zaehler. Nicht gemergt.
+# Eigene concurrency-gruppe und eigene pfade, beruehrt tn10-zaehler und
+# tn10-extra nicht. Nur lesend: zwei Knoten, keine Wallet, keine Schluessel,
+# keine Secrets, nichts ins Repo. Ergebnis im Log und als Artefakt.
+
+name: tn10 nachzaehlung
+
+on:
+  push:
+    branches:
+      - messung/tn10-zaehler
+    paths:
+      - messung/tn10/nach/fenster.txt
+      - .github/workflows/tn10-nachzaehlung.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tn10-nachzaehlung
+  cancel-in-progress: false
+
+jobs:
+  nachzaehlen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: sdk, version und pruefsumme fest
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+      - name: selbsttest
+        run: |
+          python3 scripts/tn10_zaehler.py --selbsttest | tail -n 1
+          python3 scripts/tn10_nachzaehlung.py --selbsttest
+      - name: zwei knoten, zwei prozesse
+        # die partnerdatei mit host und kennung von k1 liegt unter RUNNER_TEMP, nie im artefakt
+        run: |
+          mkdir -p out/einzeln
+          P="$RUNNER_TEMP/tn10-nach-partner.json"
+          F=messung/tn10/nach/fenster.txt
+          python3 scripts/tn10_nachzaehlung.py --fenster "$F" --rolle k1 --partner "$P" --out out/einzeln/nach-k1 > out/einzeln/k1.log 2>&1 &
+          P1=$!
+          sleep 20
+          python3 scripts/tn10_nachzaehlung.py --fenster "$F" --rolle k2 --partner "$P" --out out/einzeln/nach-k2 > out/einzeln/k2.log 2>&1 &
+          P2=$!
+          S=0
+          wait $P1 || S=1
+          wait $P2 || S=1
+          echo "=== k1"; tail -n 20 out/einzeln/k1.log
+          echo "=== k2"; tail -n 20 out/einzeln/k2.log
+          python3 scripts/tn10_nachzaehlung.py --kombinieren out/einzeln/nach-k1 out/einzeln/nach-k2 --out out/nach-gesamt
+          for n in k1 k2; do echo "=== $n einzeln"; cat out/einzeln/nach-$n.csv; python3 -c "import json,sys; m=json.load(open(sys.argv[1])); m.pop('datenform',None); print(json.dumps(m, ensure_ascii=False))" out/einzeln/nach-$n.json; done
+          exit $S
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tn10-nachzaehlung
+          path: out/
+          if-no-files-found: ignore
+          retention-days: 30
