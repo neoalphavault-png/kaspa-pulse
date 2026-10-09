@@ -41,7 +41,7 @@ on:
         type: boolean
         default: false
       instagram:
-        description: "instagram von hand, nur trocken (grafik von heute aus dem 07:30-lauf)"
+        description: "instagram von hand, nur trocken (grafik von heute aus dem 07:30-lauf, baut keine neue)"
         type: choice
         options:
           - aus
@@ -57,7 +57,10 @@ concurrency:
 
 jobs:
   grafik:
-    if: github.event_name != 'schedule' || (github.event.schedule != '30 7 * * *' && github.event.schedule != '30 8 * * *')
+    # nicht zu den instagram-terminen und nicht beim handstart nur fuer instagram (Ben, 08.10.2026)
+    if: >-
+      (github.event_name == 'schedule' && github.event.schedule != '30 7 * * *' && github.event.schedule != '30 8 * * *')
+      || (github.event_name == 'workflow_dispatch' && inputs.instagram != 'trocken')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -167,12 +170,12 @@ jobs:
         run: python3 scripts/instagram.py artefakt --ziel out/ig
       - name: jpeg
         id: j
-        if: steps.f.outputs.faellig == '1'
+        if: steps.f.outputs.faellig == '1' && steps.a.outputs.gefunden == '1'
         env:
           PNG: ${{ steps.a.outputs.png }}
         run: python3 scripts/instagram.py jpeg --png "$PNG" --ziel ig
       - name: jpeg auf kaspapulse.com
-        if: steps.f.outputs.faellig == '1'
+        if: steps.f.outputs.faellig == '1' && steps.a.outputs.gefunden == '1'
         env:
           JPEG: ${{ steps.j.outputs.jpeg }}
         run: |
@@ -187,7 +190,7 @@ jobs:
             git push
           fi
       - name: container, status, veroeffentlichen nur wenn scharf
-        if: steps.f.outputs.faellig == '1'
+        if: steps.f.outputs.faellig == '1' && steps.a.outputs.gefunden == '1'
         env:
           INSTAGRAM_PAGE_TOKEN: ${{ secrets.INSTAGRAM_PAGE_TOKEN }}
           IG_USER_ID: ${{ vars.IG_USER_ID }}
@@ -197,7 +200,7 @@ jobs:
           CAPTION: ${{ steps.a.outputs.caption }}
         run: python3 scripts/instagram.py posten $IG_HAND --bild "$JPEG" --caption "$CAPTION" --modus "$IG_MODUS"
       - name: log sichern
-        if: always() && steps.f.outputs.faellig == '1'
+        if: always() && steps.f.outputs.faellig == '1' && steps.a.outputs.gefunden == '1'
         run: |
           git add data/instagram-log.json || true
           if git diff --staged --quiet; then
