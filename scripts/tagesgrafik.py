@@ -1208,7 +1208,7 @@ def textpruefung(s, form):
     if form == 2 and re.search(r"\$|usd|\bworth\b(?! watching)", " ".join(felder.values()), re.I):
         fehler.append("form 2 nennt einen dollarwert")
     if "instagram" in s:
-        fehler += ig_pruefung(s["instagram"], form)
+        fehler += ig_pruefung(s["instagram"], form, s)
     return fehler
 
 
@@ -1232,18 +1232,73 @@ IG_FRAGEN = ("what should we count next on kaspa?",
              "what number would you put next to this one?")
 IG_TAGS = ("#kaspa", "#kas", "#blockdag")
 IG_TAGS_FORM = {4: ("#proofofwork",), 5: ("#proofofwork",), 8: ("#proofofwork",)}
+IG_MIN_TAGS = 3
 IG_MAX_TAGS = 5
 IG_MAX_ZEICHEN = 2200
 
 
+# Die Pflichtzeile am Fuss, dieselbe wie unter den Reels (Ben,
+# 09.10.2026). Instagram macht Links in der Caption ohnehin nicht
+# klickbar, also sagt die Zeile, wofuer die Bio gut ist.
+IG_ZEILE_BIO = "Weekly Kaspa numbers in our newsletter, link in bio."
+# Die Veraenderung steht als Teilsatz in "bedeutung", z. B.
+# "addresses hold at least 100 KAS, +369 in 7 days, one dot each".
+_IG_DELTA = re.compile(r"[+-]\s?[\d][\d,.]*\s?%?\s+in\s+\d+\s+(?:day|days|hours|weeks)\b",
+                       re.I)
+
+
+def _ig_kern(t):
+    """Nur die Ziffern einer Angabe, fuer den Vergleich zweier Zahlen."""
+    return re.sub(r"[^0-9]", "", t or "")
+
+
+def _ig_zahlmuster(zahl):
+    """Findet die Zahl der Seite auch dann, wenn die Caption die Einheit
+    ausschreibt: 553M steht dort als "553 million". Komma als Tausender-
+    trenner ist frei, Ziffern davor oder danach nicht."""
+    kern = re.match(r"[+-]?[\d][\d,.]*", (zahl or "").strip())
+    if not kern:
+        return None
+    ziffern = re.sub(r"[^0-9.]", "", kern.group(0))
+    teil = "[,]?".join(re.escape(z) for z in ziffern.split(".")[0])
+    rest = ziffern.split(".")[1:]
+    if rest:
+        teil += r"\." + re.escape(rest[0])
+    return re.compile(r"(?<![\d,.])" + teil + r"(?![\d])")
+
+
+def ig_veraenderung(s):
+    """Die Veraenderung der Form, wenn sie eine hat. Sonst leer."""
+    m = _IG_DELTA.search(s.get("bedeutung", "") or "")
+    return m.group(0).strip() if m else ""
+
+
 def ig_caption(s, form, messzeit):
+    """Fuenf Bloecke, jede Angabe genau einmal (Ben, 09.10.2026).
+
+        Zahl mit Einheit, dazu die Veraenderung, wenn die Form eine hat
+        die Frage
+        Stichtag und Quelle
+        die Newsletter-Zeile
+        drei bis fuenf Hashtags
+
+    Vorher standen Zahl und Quelle doppelt drin: einmal in den beiden
+    Zeilen des X-Texts, einmal in der eigenen Zeile darunter."""
     frage = IG_FRAGEN[messzeit.date().toordinal() % len(IG_FRAGEN)]
     tags = (IG_TAGS + IG_TAGS_FORM.get(form, ()))[:IG_MAX_TAGS]
-    x1 = s["x1"].rstrip(".") + "."
-    x2 = s["x2"].rstrip(".") + "."
-    stand = tag(ig_stichtag(s, messzeit))
-    return "%s\n%s\n\n%s, as of %s.\n\n%s\n\n%s\nlink in bio\n\n%s" % (
-        x1, x2, s["zahl"], stand, frage, s["herkunft"], " ".join(tags))
+    stand = s.get("ig_stand") or tag(ig_stichtag(s, messzeit))
+    # ig_zahl traegt Zahl UND Einheit. Fehlt sie der Form, traegt die
+    # erste Zeile des X-Texts dieselbe Aussage - geraten wird nichts.
+    kopf = (s.get("ig_zahl") or s["x1"]).rstrip(" .")
+    delta = ig_veraenderung(s)
+    # Keine Veraenderung anhaengen, die die Zahl der Seite wiederholt:
+    # bei Formen wie der Hashrate IST die Zahl schon die Veraenderung.
+    if delta and _ig_kern(delta) == _ig_kern(s["zahl"]):
+        delta = ""
+    if delta and delta.lower() not in kopf.lower():
+        kopf = "%s, %s" % (kopf, delta)
+    return "%s.\n\n%s\n\nas of %s, %s.\n\n%s\n\n%s" % (
+        kopf, frage, stand, s["herkunft"].rstrip(" ."), IG_ZEILE_BIO, " ".join(tags))
 
 
 def ig_zahl(s, form):
@@ -1295,23 +1350,42 @@ def ig_stichtag(s, messzeit):
     return max(tage)
 
 
-def ig_pruefung(t, form):
-    """Regeln nur fuer die Caption, zusaetzlich zu pruefe_eine."""
+def ig_pruefung(t, form, s=None):
+    """Regeln nur fuer die Caption, zusaetzlich zu pruefe_eine.
+
+    Die Bloecke stehen seit dem 09.10.2026 so: Zahl, Frage, Stichtag und
+    Quelle, Newsletter-Zeile, Hashtags. Wird s uebergeben, prueft die
+    Wache zusaetzlich, dass Zahl und Quelle GENAU EINMAL dastehen - genau
+    das stand vorher doppelt drin."""
     fehler = pruefe_eine(t, form, "instagram")
     if "it goes on x" in t:
         fehler.append("instagram nennt den x-termin")
-    if "link in bio" not in t:
-        fehler.append("instagram ohne 'link in bio'")
+    if IG_ZEILE_BIO not in t:
+        fehler.append("instagram ohne die newsletter-zeile")
     tags = re.findall(r"#\w+", t)
-    if not 1 <= len(tags) <= IG_MAX_TAGS:
-        fehler.append("instagram hat %d hashtags, erlaubt 1 bis %d" % (len(tags), IG_MAX_TAGS))
+    if not IG_MIN_TAGS <= len(tags) <= IG_MAX_TAGS:
+        fehler.append("instagram hat %d hashtags, erlaubt %d bis %d"
+                      % (len(tags), IG_MIN_TAGS, IG_MAX_TAGS))
     if not DATUM.search(t):
         fehler.append("instagram ohne datum")
     absaetze = t.split("\n\n")
-    if len(absaetze) < 4 or not absaetze[2].endswith("?"):
+    if len(absaetze) < 5 or not absaetze[1].endswith("?"):
         fehler.append("instagram ohne frage zum mitmachen an ihrem platz")
     if len(t) > IG_MAX_ZEICHEN:
         fehler.append("instagram hat %d zeichen, erlaubt %d" % (len(t), IG_MAX_ZEICHEN))
+    if s:
+        muster = _ig_zahlmuster(s.get("zahl"))
+        if muster and len(muster.findall(t)) != 1:
+            fehler.append("instagram nennt %s %d mal, genau einmal ist richtig"
+                          % (s["zahl"], len(muster.findall(t))))
+        quelle = (s.get("herkunft") or "").strip().rstrip(".")
+        if quelle and t.count(quelle) != 1:
+            fehler.append("instagram nennt die quelle %d mal, genau einmal ist richtig"
+                          % t.count(quelle))
+        datumszeilen = [z for z in absaetze if DATUM.search(z)]
+        if len(datumszeilen) != 1:
+            fehler.append("instagram traegt das datum in %d bloecken, genau einem ist richtig"
+                          % len(datumszeilen))
     return fehler
 
 
@@ -1336,10 +1410,11 @@ def texte(s, form, messzeit):
     s["x"] = "%s\n%s\n%s" % (x1, x2, s["x3"])
     s["antwort"] = "%s %s %s" % (s["aufloesung"], MAIL_SATZ, antwort_link(form))
     s["discord"] = "%s\n%s\n\nshare it first, it goes on x at %s.\n%s" % (x1, x2, X_ZEIT, MAIL_SATZ)
-    s["instagram"] = ig_caption(s, form, messzeit)
-    # fuer kommentar-entwuerfe, zahl mit einheit und datum der zahl
+    # Zahl mit Einheit und Datum der Zahl zuerst, die Caption fuehrt mit
+    # beidem (Ben, 09.10.2026) und die Kommentar-Entwuerfe nutzen sie auch.
     s["ig_zahl"] = ig_zahl(s, form)
     s["ig_stand"] = tag(ig_stichtag(s, messzeit))
+    s["instagram"] = ig_caption(s, form, messzeit)
     return s
 
 
@@ -1839,13 +1914,15 @@ def selbsttest():
         s = seite_bauen(f, FAKE[f], FAKE_NOW, log)
         c = s["instagram"]
         ok("form %d instagram gruen, %d zeichen, ohne x-termin, mit datum" % (f, len(c)),
-           not ig_pruefung(c, f) and "it goes on x" not in c and DATUM.search(c.split("\n\n")[1]))
+           not ig_pruefung(c, f, s) and "it goes on x" not in c and DATUM.search(c.split("\n\n")[2]))
+        ok("form %d instagram in fuenf bloecken, frage an platz zwei" % f,
+           len(c.split("\n\n")) == 5 and c.split("\n\n")[1].endswith("?"))
     for f in (1, 5, 7, 8, 9, 11):
-        c = seite_bauen(f, FAKE[f], FAKE_NOW, log)["instagram"].split("\n\n")[1]
-        ok("instagram form %d mit dem stichtag der quelle, %s" % (f, c), c.endswith("as of 28 sep 2026."))
+        c = seite_bauen(f, FAKE[f], FAKE_NOW, log)["instagram"].split("\n\n")[2]
+        ok("instagram form %d mit dem stichtag der quelle, %s" % (f, c), c.startswith("as of 28 sep 2026, "))
     for f in (2, 3, 4, 6, 10):
-        c = seite_bauen(f, FAKE[f], FAKE_NOW, log)["instagram"].split("\n\n")[1]
-        ok("instagram form %d eigene zaehlung mit dem messtag" % f, c.endswith("as of 29 sep 2026."))
+        c = seite_bauen(f, FAKE[f], FAKE_NOW, log)["instagram"].split("\n\n")[2]
+        ok("instagram form %d eigene zaehlung mit dem messtag" % f, c.startswith("as of 29 sep 2026, "))
     # zahl mit einheit und datum fuer kommentar-entwuerfe (Ben, 09.10.2026)
     for f in sorted(FAKE):
         s = seite_bauen(f, FAKE[f], FAKE_NOW, log)
@@ -1854,7 +1931,11 @@ def selbsttest():
         ok("form %d zahl mit einheit haelt die regeln" % f, z and not pruefe_eine(z, f, "ig_zahl")
            and z.strip() != s["zahl"].strip())
         ok("form %d datum der zahl wie in der caption, %s" % (f, s["ig_stand"]),
-           s["instagram"].split("\n\n")[1].endswith("as of %s." % s["ig_stand"]))
+           s["instagram"].split("\n\n")[2].startswith("as of %s, " % s["ig_stand"]))
+        ok("form %d caption nennt die zahl genau einmal" % f,
+           len(_ig_zahlmuster(s["zahl"]).findall(s["instagram"])) == 1)
+        ok("form %d caption nennt die quelle genau einmal" % f,
+           s["instagram"].count(s["herkunft"].rstrip(" .")) == 1)
     try:
         ig_stichtag({"herkunft": "source x", "x1": "a", "x2": "b"}, FAKE_NOW)
         ok("fremde quelle ohne datum wird nicht geraten", False)
@@ -1864,17 +1945,27 @@ def selbsttest():
                                                       dt.datetime(2027, 1, 2, tzinfo=dt.timezone.utc))
        == dt.date(2026, 12, 30))
     s = seite_bauen(2, FAKE[2], FAKE_NOW, log)
-    ok("instagram fuehrt zeile 1 und 2 des discord-texts", s["instagram"].startswith(
-        "\n".join(s["discord"].split("\n")[:2])))
-    ok("instagram mit credit, link in bio, 3 hashtags", "counted by kaspa pulse\nlink in bio\n\n#kaspa #kas #blockdag"
-       in s["instagram"])
+    ok("instagram fuehrt mit der zahl samt einheit", s["instagram"].startswith(s["ig_zahl"].rstrip(" .")))
+    ok("instagram mit quelle, newsletter-zeile, 3 hashtags",
+       "counted by kaspa pulse.\n\n%s\n\n#kaspa #kas #blockdag" % IG_ZEILE_BIO in s["instagram"])
     ok("instagram form 8 mit 4 hashtags", seite_bauen(8, FAKE[8], FAKE_NOW, log)["instagram"].endswith(
         "#kaspa #kas #blockdag #proofofwork"))
     ok("instagram faengt link, kaufwort, x-termin und zu viele tags", all(ig_pruefung(t, 2) for t in (
-        s["instagram"].replace("link in bio", "see https://kaspapulse.com"),
-        s["instagram"].replace("one wallet holds", "one wallet bought"),
+        s["instagram"].replace(IG_ZEILE_BIO, "see https://kaspapulse.com"),
+        s["instagram"] + "\nthe wallet bought more",
         s["instagram"] + "\nit goes on x at 17:00",
         s["instagram"] + " #a #b #c")))
+    ok("instagram faengt die doppelte zahl", any("genau einmal" in f for f in ig_pruefung(
+        s["instagram"] + "\n\n%s again" % s["zahl"], 2, s)))
+    ok("instagram faengt die doppelte quelle", any("quelle" in f for f in ig_pruefung(
+        s["instagram"] + "\n\n%s" % s["herkunft"], 2, s)))
+    ok("instagram faengt das datum im zweiten block", any("bloecken" in f for f in ig_pruefung(
+        s["instagram"] + "\n\nmeasured 29 sep 2026", 2, s)))
+    ok("instagram faengt die fehlende newsletter-zeile", any("newsletter" in f for f in ig_pruefung(
+        s["instagram"].replace(IG_ZEILE_BIO, "link in bio"), 2)))
+    ok("instagram faengt die verschobene frage", any("frage" in f for f in ig_pruefung(
+        "\n\n".join(s["instagram"].split("\n\n")[1:] + ["x"]), 2)))
+    ok("zahlmuster trennt 553 von 15530", len(_ig_zahlmuster("553M").findall("553 million, 15530")) == 1)
     ok("stopp-datum aus der seite", heute_iso({"datum": "9 oct 2026"}) == "2026-10-09")
     # die regeln selbst
     probe = lambda t, form=None: pruefe_eine(t, form, "probe")    # noqa: E731
