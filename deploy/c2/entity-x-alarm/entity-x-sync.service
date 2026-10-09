@@ -7,4 +7,5 @@ User=kpbot
 Group=kpbot
 Environment=PYTHONUNBUFFERED=1
 Environment=ABDECKUNG_FILE=/var/lib/kaspa-pulse/entity-x-abdeckung.json
+Environment=ENTITY_X_STATE_FILE=/var/lib/kaspa-pulse/entity_x_state.json
 ExecStart=/opt/kaspa-pulse/deploy/c2/entity-x-alarm/sync.sh
