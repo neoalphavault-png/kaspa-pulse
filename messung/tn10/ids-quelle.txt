@@ -1,0 +1,2 @@
+# URL, von der der Pruefmodus fremde Tx-IDs zur Laufzeit holt (eine ID je Zeile).
+# Leer heisst: IDs aus messung/tn10/ids.txt. Die IDs selbst kommen nie ins Repo.

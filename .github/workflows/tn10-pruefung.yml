@@ -5,6 +5,9 @@
 # Schreibt je ID, ob und wann sie angenommen ist: annehmender Block und
 # Blockzeit laut TN10-Indexer, Block bestaetigt von einem Knoten.
 # Nur lesend, hoechstens eine Abfrage je Sekunde, keine Secrets.
+# Fremde IDs (STP, 09.10.2026) kommen nie ins Repo: messung/tn10/ids-quelle.txt
+# nennt nur eine URL, der Lauf holt die IDs zur Laufzeit und gibt nur
+# Zaehlungen aus, je ID nichts, weder im Log noch im Artefakt.
 
 name: tn10 pruefung tx-ids
 
@@ -14,6 +17,7 @@ on:
       - messung/tn10-zaehler
     paths:
       - messung/tn10/ids.txt
+      - messung/tn10/ids-quelle.txt
       - .github/workflows/tn10-pruefung.yml
 
 permissions:
@@ -38,7 +42,10 @@ jobs:
         run: python3 scripts/tn10_zaehler.py --selbsttest
       - name: ids pruefen
         run: |
-          if grep -qE '^[[:space:]]*[0-9a-fA-F]{64}' messung/tn10/ids.txt; then
+          Q=$(grep -vE '^[[:space:]]*(#|$)' messung/tn10/ids-quelle.txt 2>/dev/null | head -n 1 | tr -d '[:space:]')
+          if [ -n "$Q" ]; then
+            python3 scripts/tn10_zaehler.py --ids-url "$Q" --nur-zaehlung --out out/tn10-ids
+          elif grep -qE '^[[:space:]]*[0-9a-fA-F]{64}' messung/tn10/ids.txt; then
             python3 scripts/tn10_zaehler.py --pruefe-ids messung/tn10/ids.txt --out out/tn10-ids
           else
             echo "keine tx-id in messung/tn10/ids.txt"

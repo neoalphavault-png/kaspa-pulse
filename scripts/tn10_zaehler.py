@@ -1112,15 +1112,28 @@ PRUEF_SPALTEN = ["tx_id", "gefunden", "angenommen", "annehmender_block", "blockz
                  "blockzeit_indexer_utc", "blau_score", "knoten_bestaetigt", "auf_kette", "aufnahme_blockzeit_utc", "in_bloecken", "anmerkung"]
 
 
-async def pruefe_ids(datei, out):
-    import kaspa                                         # noqa: WPS433
-    with open(datei, encoding="utf-8") as fh:
-        ids, falsch = ids_lesen(fh.read())
+def ids_holen(url):
+    """IDs zur Laufzeit von einer URL (STP, 09.10.2026): sie bleiben nur im
+    Speicher des Laufs, nie im Repo, nie im Log, nie im Artefakt."""
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return r.read(8_000_000).decode("utf-8", "replace")
+
+
+async def pruefe_ids(datei, out, url="", nur_zaehlung=False, ohne_knoten=False):
+    if url:
+        ids, falsch = ids_lesen(await asyncio.to_thread(ids_holen, url))
+    else:
+        with open(datei, encoding="utf-8") as fh:
+            ids, falsch = ids_lesen(fh.read())
     zu_viel = max(0, len(ids) - MAX_IDS)
     ids = ids[:MAX_IDS]
     takt = Takt()
     rpc, form, meldungen = None, {}, []
     try:
+        if ohne_knoten:
+            raise RuntimeError("selbsttest ohne knoten")
+        import kaspa                                     # noqa: WPS433
         await takt.warte()
         rpc = kaspa.RpcClient(resolver=kaspa.Resolver(), network_id=NETZ)
         await rpc.connect()
@@ -1187,9 +1200,13 @@ async def pruefe_ids(datei, out):
         except Exception:                                # noqa: BLE001
             pass
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
-    text = csv_text(zeilen, PRUEF_SPALTEN)
-    with open(out + "-pruefung.csv", "w", encoding="utf-8") as fh:
-        fh.write(text)
+    if nur_zaehlung:
+        # fremde ids: je id nichts, weder im log noch im artefakt, nur zaehlungen
+        text = ""
+    else:
+        text = csv_text(zeilen, PRUEF_SPALTEN)
+        with open(out + "-pruefung.csv", "w", encoding="utf-8") as fh:
+            fh.write(text)
     n_ang = sum(1 for r in zeilen if r["angenommen"] == 1)
     zus = ["ids %d gelesen, %d geprueft%s%s" % (
                len(ids) + zu_viel, len(zeilen), (", %d ueber der grenze %d nicht geprueft" % (zu_viel, MAX_IDS))
@@ -1368,6 +1385,27 @@ def selbsttest():
     ok("annahme aus dem indexer", a["angenommen"] is True and a["annehmender_block"] == "h"
        and a["in_bloecken"] == 2 and a["annahme_zeit_indexer_ms"] == 1_790_000_000_000)
     ok("unbekannte antwortform nicht geraten", annahme_aus_rest([1, 2]) is None)
+    # fremde ids (STP, 09.10.2026): von einer url, nur zaehlungen, nichts je id
+    import tempfile as _tf
+    global hole_rest
+    echt_rest = hole_rest
+    with _tf.TemporaryDirectory() as tmp:
+        quelle = os.path.join(tmp, "ids.txt")
+        with open(quelle, "w", encoding="utf-8") as fh:
+            fh.write("%s\n%s\n" % ("c" * 64, "d" * 64))
+        hole_rest = lambda pfad: {"transaction_id": "x", "is_accepted": True,        # noqa: E731
+                                  "accepting_block_hash": "h", "accepting_block_time": 1_790_000_000_000}
+        try:
+            zus_u, text_u = asyncio.run(pruefe_ids("", os.path.join(tmp, "out", "u"), "file://" + quelle,
+                                                   True, ohne_knoten=True))
+        finally:
+            hole_rest = echt_rest
+        dateien = " ".join(os.listdir(os.path.join(tmp, "out")))
+        meta_u = open(os.path.join(tmp, "out", "u-meta.json"), encoding="utf-8").read()
+    ok("ids von url, nur zaehlungen", text_u == "" and "pruefung.csv" not in dateien
+       and "angenommen 2" in " ".join(zus_u))
+    ok("keine id in zaehlung, meta oder dateinamen", all("c" * 64 not in t and "d" * 64 not in t
+                                                       for t in (" ".join(zus_u), meta_u, dateien)))
 
     ok("perzentil naechster rang", perzentil(list(range(1, 11)), 90) == 9 and perzentil([], 90) is None)
     ok("gebuehr aus eingaengen und ausgaengen", gebuehr_aus_rest(
@@ -1413,6 +1451,8 @@ def main(argv=None):
     ap.add_argument("--start", default="", help="datei mit der startzeit in utc, leer heisst sofort")
     ap.add_argument("--zusammenfuehren", metavar="ORDNER")
     ap.add_argument("--pruefe-ids", metavar="DATEI")
+    ap.add_argument("--ids-url", default="", help="ids zur laufzeit von dieser url, dann nur zaehlungen")
+    ap.add_argument("--nur-zaehlung", action="store_true", help="je id nichts ausgeben, nur zaehlungen")
     ap.add_argument("--rolle", choices=["k1", "k2"], help="nur dieser knoten, eigener prozess")
     ap.add_argument("--partner", default="", help="datei unter RUNNER_TEMP, k1 schreibt, k2 liest")
     ap.add_argument("--kombinieren", nargs=2, metavar=("K1", "K2"))
@@ -1445,10 +1485,11 @@ def main(argv=None):
         print("=== zusammenfassung")
         print("\n".join(zus))
         return 0
-    if a.pruefe_ids:
-        zus, text = asyncio.run(pruefe_ids(a.pruefe_ids, a.out))
-        print("=== pruefung, csv")
-        print(text)
+    if a.pruefe_ids or a.ids_url:
+        zus, text = asyncio.run(pruefe_ids(a.pruefe_ids, a.out, a.ids_url, a.nur_zaehlung or bool(a.ids_url)))
+        if text:
+            print("=== pruefung, csv")
+            print(text)
         print("=== zusammenfassung")
         print("\n".join(zus))
         return 0
