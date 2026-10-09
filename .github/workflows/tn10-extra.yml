@@ -1,0 +1,233 @@
+# Kaspa Pulse - zusaetzliches TN10-Fenster neben dem Hauptlauf (Ben, 09.10.2026)
+#
+# Wie tn10-zaehler.yml, aber mit eigener concurrency-Gruppe und eigenen
+# Dateien unter messung/tn10/extra/. So kann ein zweites Fenster laufen,
+# waehrend der Hauptlauf in tn10-zaehler.yml wartet, ohne ihn zu blockieren
+# oder abzubrechen. Ein Push hierher aendert keine Datei, auf die
+# tn10-zaehler.yml reagiert. Teil-Laeufe ueber dasselbe tn10-teil.yml.
+# Nur lesend, keine Secrets, nichts ins Repo.
+
+name: tn10 extra
+
+on:
+  push:
+    branches:
+      - messung/tn10-zaehler
+    paths:
+      - messung/tn10/extra/dauer.txt
+      - messung/tn10/extra/segment.txt
+      - messung/tn10/extra/start.txt
+      - .github/workflows/tn10-extra.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tn10-extra
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      t0: ${{ steps.p.outputs.t0 }}
+      ende: ${{ steps.p.outputs.ende }}
+      a1: ${{ steps.p.outputs.a1 }}
+      a2: ${{ steps.p.outputs.a2 }}
+      a3: ${{ steps.p.outputs.a3 }}
+      b1: ${{ steps.p.outputs.b1 }}
+      b2: ${{ steps.p.outputs.b2 }}
+      b3: ${{ steps.p.outputs.b3 }}
+      b4: ${{ steps.p.outputs.b4 }}
+      los: ${{ steps.p.outputs.los }}
+      wn: ${{ steps.p.outputs.wn }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: grenzen der teile
+        id: p
+        run: python3 scripts/tn10_zaehler.py --plan "$(cat messung/tn10/extra/dauer.txt)" --segment "$(cat messung/tn10/extra/segment.txt)" --start messung/tn10/extra/start.txt | tee -a "$GITHUB_OUTPUT"
+
+  w1:
+    needs: plan
+    if: ${{ !cancelled() && needs.plan.result == 'success' && fromJSON(needs.plan.outputs.wn) >= 1 }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: warten ohne abfragen
+        env:
+          LOS: ${{ needs.plan.outputs.los }}
+        run: |
+          rest=$(( LOS - $(date +%s) ))
+          if [ "$rest" -gt 20400 ]; then rest=20400; fi
+          if [ "$rest" -gt 0 ]; then echo "warte $rest s"; sleep "$rest"; else echo "nichts zu warten"; fi
+
+  w2:
+    needs: [plan, w1]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.w1.result == 'success' && fromJSON(needs.plan.outputs.wn) >= 2 }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: warten ohne abfragen
+        env:
+          LOS: ${{ needs.plan.outputs.los }}
+        run: |
+          rest=$(( LOS - $(date +%s) ))
+          if [ "$rest" -gt 20400 ]; then rest=20400; fi
+          if [ "$rest" -gt 0 ]; then echo "warte $rest s"; sleep "$rest"; else echo "nichts zu warten"; fi
+
+  w3:
+    needs: [plan, w2]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.w2.result == 'success' && fromJSON(needs.plan.outputs.wn) >= 3 }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: warten ohne abfragen
+        env:
+          LOS: ${{ needs.plan.outputs.los }}
+        run: |
+          rest=$(( LOS - $(date +%s) ))
+          if [ "$rest" -gt 20400 ]; then rest=20400; fi
+          if [ "$rest" -gt 0 ]; then echo "warte $rest s"; sleep "$rest"; else echo "nichts zu warten"; fi
+
+  w4:
+    needs: [plan, w3]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.w3.result == 'success' && fromJSON(needs.plan.outputs.wn) >= 4 }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: warten ohne abfragen
+        env:
+          LOS: ${{ needs.plan.outputs.los }}
+        run: |
+          rest=$(( LOS - $(date +%s) ))
+          if [ "$rest" -gt 20400 ]; then rest=20400; fi
+          if [ "$rest" -gt 0 ]; then echo "warte $rest s"; sleep "$rest"; else echo "nichts zu warten"; fi
+
+  w5:
+    needs: [plan, w4]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.w4.result == 'success' && fromJSON(needs.plan.outputs.wn) >= 5 }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: warten ohne abfragen
+        env:
+          LOS: ${{ needs.plan.outputs.los }}
+        run: |
+          rest=$(( LOS - $(date +%s) ))
+          if [ "$rest" -gt 20400 ]; then rest=20400; fi
+          if [ "$rest" -gt 0 ]; then echo "warte $rest s"; sleep "$rest"; else echo "nichts zu warten"; fi
+
+  w6:
+    needs: [plan, w5]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.w5.result == 'success' && fromJSON(needs.plan.outputs.wn) >= 6 }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: warten ohne abfragen
+        env:
+          LOS: ${{ needs.plan.outputs.los }}
+        run: |
+          rest=$(( LOS - $(date +%s) ))
+          if [ "$rest" -gt 20400 ]; then rest=20400; fi
+          if [ "$rest" -gt 0 ]; then echo "warte $rest s"; sleep "$rest"; else echo "nichts zu warten"; fi
+
+  a1:
+    needs: [plan, w6]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.w6.result != 'failure' }}
+    uses: ./.github/workflows/tn10-teil.yml
+    with:
+      teil: a1
+      bis: ${{ needs.plan.outputs.a1 }}
+      von: ${{ needs.plan.outputs.t0 }}
+      bis_plan: ${{ needs.plan.outputs.ende }}
+
+  a2:
+    needs: [plan, a1]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.a2 != '0' }}
+    uses: ./.github/workflows/tn10-teil.yml
+    with:
+      teil: a2
+      bis: ${{ needs.plan.outputs.a2 }}
+      von: ${{ needs.plan.outputs.t0 }}
+      bis_plan: ${{ needs.plan.outputs.ende }}
+
+  a3:
+    needs: [plan, a2]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.a3 != '0' }}
+    uses: ./.github/workflows/tn10-teil.yml
+    with:
+      teil: a3
+      bis: ${{ needs.plan.outputs.a3 }}
+      von: ${{ needs.plan.outputs.t0 }}
+      bis_plan: ${{ needs.plan.outputs.ende }}
+
+  b1:
+    needs: [plan, w6]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.w6.result != 'failure' }}
+    uses: ./.github/workflows/tn10-teil.yml
+    with:
+      teil: b1
+      bis: ${{ needs.plan.outputs.b1 }}
+      von: ${{ needs.plan.outputs.t0 }}
+      bis_plan: ${{ needs.plan.outputs.ende }}
+
+  b2:
+    needs: [plan, b1]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.b2 != '0' }}
+    uses: ./.github/workflows/tn10-teil.yml
+    with:
+      teil: b2
+      bis: ${{ needs.plan.outputs.b2 }}
+      von: ${{ needs.plan.outputs.t0 }}
+      bis_plan: ${{ needs.plan.outputs.ende }}
+
+  b3:
+    needs: [plan, b2]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.b3 != '0' }}
+    uses: ./.github/workflows/tn10-teil.yml
+    with:
+      teil: b3
+      bis: ${{ needs.plan.outputs.b3 }}
+      von: ${{ needs.plan.outputs.t0 }}
+      bis_plan: ${{ needs.plan.outputs.ende }}
+
+  b4:
+    needs: [plan, b3]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.b4 != '0' }}
+    uses: ./.github/workflows/tn10-teil.yml
+    with:
+      teil: b4
+      bis: ${{ needs.plan.outputs.b4 }}
+      von: ${{ needs.plan.outputs.t0 }}
+      bis_plan: ${{ needs.plan.outputs.ende }}
+
+  zusammen:
+    needs: [plan, a1, a2, a3, b1, b2, b3, b4]
+    if: ${{ !cancelled() && needs.plan.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: tn10-teil-*
+          path: out/teile
+      - name: minuten ohne luecke zusammenfuehren
+        env:
+          VON: ${{ needs.plan.outputs.t0 }}
+          BIS: ${{ needs.plan.outputs.ende }}
+        run: python3 scripts/tn10_zaehler.py --zusammenfuehren out/teile --von "$VON" --bis-plan "$BIS" --out out/gesamt/tn10-gesamt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tn10-gesamt
+          path: out/gesamt/
+          if-no-files-found: ignore
+          retention-days: 30
