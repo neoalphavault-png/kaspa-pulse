@@ -221,6 +221,15 @@ async def zaehle(rpc, takt, von_ms, bis_ms, rand_ms=RAND_MS):
     return aus, meta
 
 
+def fenster_lesen(text):
+    """Zwei Zeiten in UTC aus der Fensterdatei, Kommentarzeilen mit # zaehlen nicht."""
+    zeilen = [z.strip() for z in text.splitlines() if z.strip() and not z.strip().startswith("#")]
+    von, bis = zeilen[0], zeilen[1]
+    if utc_ms(bis) <= utc_ms(von):
+        raise ValueError("fensterende vor fensteranfang")
+    return von, bis
+
+
 def schreiben(basis, zeilen, meta):
     os.makedirs(os.path.dirname(basis) or ".", exist_ok=True)
     with open(basis + ".csv", "w", encoding="utf-8", newline="") as fh:
@@ -381,6 +390,14 @@ def selbsttest():
         text, zus = kombinieren(os.path.join(tmp, "k1"), os.path.join(tmp, "k2"))
     ok("kombinieren, beide knoten gleich", "minuten mit beiden knoten voll 3, davon gleich 3" in zus[-1])
     ok("keine adressen in der ausgabe", "://" not in text + " ".join(zus))
+    datei = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "messung", "tn10", "nach", "fenster.txt")
+    if os.path.exists(datei):
+        with open(datei, encoding="utf-8") as fh:
+            v, b = fenster_lesen(fh.read())
+        ok("fensterdatei lesbar, %s bis %s" % (v, b), utc_ms(v) < utc_ms(b))
+    ok("fenster mit kommentarzeile", fenster_lesen("# kommentar, mit worten\n2026-10-08T20:02:00Z\n"
+                                                    "2026-10-08T20:13:00Z\n") == ("2026-10-08T20:02:00Z",
+                                                                                    "2026-10-08T20:13:00Z"))
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 
@@ -411,8 +428,7 @@ def main(argv=None):
     von, bis = a.von, a.bis
     if a.fenster:
         with open(a.fenster, encoding="utf-8") as fh:
-            teile = [x.strip() for x in fh.read().split() if x.strip() and not x.startswith("#")]
-        von, bis = teile[0], teile[1]
+            von, bis = fenster_lesen(fh.read())
     return asyncio.run(lauf(utc_ms(von), utc_ms(bis), a.rolle, a.partner, a.out))
 
 
