@@ -480,6 +480,14 @@ VARIANTEN = {
         "thanks {name}, {wunsch} is on the list. we only post it once we can count it cleanly.",
         "{name} we hear you on {wunsch}. give us a few days to see what the chain can tell us.",
     ],
+    # ohne zitat, wenn der wunsch zu lang ist oder link, fremdes @, ticker,
+    # andere chain oder eine zahl enthaelt (Ben, 09.10.2026)
+    "wunsch_ohne": [
+        "noted {name}, that goes on our list. if the chain can answer it, we will count it.",
+        "{name} good idea. we will check whether we can count it ourselves before we post it.",
+        "thanks {name}, it is on the list. we only post it once we can count it cleanly.",
+        "{name} we hear you. give us a few days to see what the chain can tell us.",
+    ],
     "kurs": [
         "{name} we only count what the chain shows and leave the chart talk to others. {zahl_satz}",
         "{name} no calls from us, just counts. {zahl_satz}",
@@ -512,15 +520,35 @@ def einordnen(text, username=""):
     return "sonstiges", "ohne klasse"
 
 
+ZITAT_MAX_WOERTER = 8
+ZITAT_LINK = re.compile(r"https?://|www\.|\b[\w-]+\.(com|io|org|net|xyz|app|gg|me|co|finance|exchange)\b", re.I)
+ZITAT_TICKER = re.compile(r"\$[A-Za-z]{1,10}\b|\b(kas|btc|eth|sol|xrp|ada|bnb|doge|trx|avax|ltc|bch|xmr|usdt|usdc|"
+                          r"shib|pepe|matic|alph|erg|etc|hbar|icp|sui|apt|arb|atom)\b", re.I)
+ZITAT_CHAIN = re.compile(r"\b(bitcoin|ethereum|ether|solana|cardano|ripple|dogecoin|litecoin|polkadot|avalanche|"
+                         r"tron|polygon|monero|alephium|ergo|binance|bsc|arbitrum|optimism|cosmos|toncoin|"
+                         r"hedera|chainlink|layer ?2|l2)\b", re.I)
+
+
+def zitat_ok(w):
+    """Ein Stueck aus dem Kommentar darf in den Entwurf, wenn es hoechstens
+    acht Woerter hat und keinen Link, kein @, keinen Ticker, keine andere
+    Chain und keine Zahl enthaelt (Ben, 09.10.2026). Zahlen im Entwurf kommen
+    nur aus unseren Daten."""
+    return bool(w) and len(w.split()) <= ZITAT_MAX_WOERTER and not (
+        ZITAT_LINK.search(w) or "@" in w or "#" in w or ZITAT_TICKER.search(w)
+        or ZITAT_CHAIN.search(w) or re.search(r"\d", w))
+
+
 def wunsch_thema(text):
+    """Der Wunsch als kurzes Zitat, oder leer, dann eine Variante ohne Zitat."""
     m = WUNSCH.search(text or "")
     if not m:
         return ""
-    w = next(g for g in (m.group(x) for x in "abcde") if g)
-    w = re.sub(r"https?://\S+|@\w+|#\w+", "", w)
-    w = re.sub(r"[^a-z0-9 %,']", " ", w.lower())
-    w = " ".join(w.split()[:7]).strip(" ,")
-    return w
+    w = " ".join(next(g for g in (m.group(x) for x in "abcde") if g).split()).strip(" ,")
+    if not zitat_ok(w):
+        return ""
+    w = re.sub(r"[^a-z ',]", " ", w.lower())
+    return " ".join(w.split()).strip(" ,")
 
 
 def thema(text):
@@ -544,17 +572,21 @@ def entwurf(text, post, username="", verwendet=None):
     if klasse == "spam":
         return klasse, None
     verwendet = verwendet if verwendet is not None else set()
-    if post.get("zahl") and post.get("tag") and post.get("herkunft"):
-        zahl_satz = "this one is %s as of %s, %s." % (post["zahl"], post["tag"], post["herkunft"])
+    # eine zahl nur mit einheit und datum, nur aus unserem log (Ben, 09.10.2026);
+    # aeltere eintraege ohne zahl_text bekommen keine zahl
+    if post.get("zahl_text") and post.get("tag") and post.get("herkunft"):
+        zahl_satz = "the number in this post is %s, as of %s, %s." % (
+            post["zahl_text"], post["tag"], post["herkunft"])
     else:
         zahl_satz = "we count kaspa from the chain every day."
     th = thema(text)
-    werte = {"zahl_satz": zahl_satz, "thema_satz": (" on %s" % th) if th else "",
-             "wunsch": wunsch_thema(text) or (th or "that")}
+    wunsch = wunsch_thema(text)
+    klasse_v = "wunsch_ohne" if klasse == "wunsch" and not wunsch else klasse
+    werte = {"zahl_satz": zahl_satz, "thema_satz": (" on %s" % th) if th else "", "wunsch": wunsch}
     # erst die varianten, die heute in dieser klasse noch nicht dran waren,
     # dann die uebrigen; derselbe text nie zweimal am tag
-    vorlagen = list(enumerate(VARIANTEN[klasse]))
-    vorlagen.sort(key=lambda iv: ("%s:%d" % (klasse, iv[0])) in verwendet)
+    vorlagen = list(enumerate(VARIANTEN[klasse_v]))
+    vorlagen.sort(key=lambda iv: ("%s:%d" % (klasse_v, iv[0])) in verwendet)
     for mit_name in (True, False):
         werte["name"] = name_ok(username) if mit_name else ""
         for i, vorlage in vorlagen:
@@ -562,11 +594,20 @@ def entwurf(text, post, username="", verwendet=None):
             t = re.sub(r"\s+([,.?])", r"\1", t).strip()
             t = t[0].lower() + t[1:] if t else t
             h = hashlib.sha256(t.encode()).hexdigest()[:12]
-            if h in verwendet or pruefe_eine(t, post.get("form"), "entwurf"):
+            if h in verwendet or pruefe_eine(t, post.get("form"), "entwurf") or not zahlen_ok(t, zahl_satz, werte):
                 continue
-            verwendet.update({h, "%s:%d" % (klasse, i)})
+            verwendet.update({h, "%s:%d" % (klasse_v, i)})
             return klasse, t
     return klasse, None
+
+
+def zahlen_ok(t, zahl_satz, werte):
+    """Jede Zahl im Entwurf steht im Zahlsatz aus unserem Log, mit Einheit und
+    Datum. Ziffern im Account-Namen zaehlen nicht als Zahl."""
+    rest = t.replace(zahl_satz, " ")
+    if werte.get("name"):
+        rest = rest.replace(werte["name"], " ")
+    return not re.search(r"\d", rest)
 
 
 def kommentare(now):
@@ -581,7 +622,7 @@ def kommentare(now):
     verwendet = set(verwendet_alle.get(heute, []))
     log = {p.get("media"): p for p in json_laden(LOG_IG, {"posts": []}).get("posts", []) if p.get("media")}
     ich = graph("GET", ig_user(), {"fields": "username"}).get("username", "")
-    neu, ignoriert = 0, 0
+    neu, ignoriert, alt = 0, 0, 0
     for m in eigene_medien(KOMMENTAR_TAGE, now):
         mid = str(m["id"])
         d = graph("GET", "%s/comments" % mid, {"fields": "id,text,timestamp,username", "limit": 50})
@@ -593,6 +634,7 @@ def kommentare(now):
             if k.get("username") == ich:
                 continue
             if not k.get("timestamp") or zeit(k["timestamp"]) < zeit(seit):
+                alt += 1
                 continue
             text, wer = k.get("text") or "", k.get("username", "?")
             klasse, e = entwurf(text, log.get(mid, {}), wer, verwendet)
@@ -608,10 +650,12 @@ def kommentare(now):
                     klasse, m.get("permalink", mid), wer, k.get("timestamp", ""),
                     text.replace("\n", " ")[:600], e or "kein entwurf, der die regeln einhaelt, bitte von hand", kid))
             neu += 1
+    if alt:
+        ops("instagram, %d alte Kommentare als gesehen markiert" % alt)
     verwendet_alle[heute] = sorted(verwendet)
     stand["stand_utc"] = now.isoformat(timespec="seconds")
     json_schreiben(KOMMENTARE, stand)
-    ausgabe("kommentare neu %d, ignoriert %d" % (neu, ignoriert))
+    ausgabe("kommentare neu %d, ignoriert %d, alt %d" % (neu, ignoriert, alt))
     return neu
 
 
@@ -728,7 +772,8 @@ def selbsttest():
             except Fehler as exc:
                 fehlertext = str(exc)
             json_schreiben(LOG_IG, {"posts": [{"datum": "2026-10-09", "media": "900", "form": 4,
-                                               "zahl": "281,000", "tag": "29 sep 2026",
+                                               "zahl": "281,000", "zahl_text": "281,000 blocks while you slept",
+                                               "tag": "29 sep 2026",
                                                "herkunft": "counted by kaspa pulse"}]})
             now = dt.datetime(2026, 10, 10, 6, 0, tzinfo=dt.timezone.utc)
             ins = insights(now)
@@ -767,9 +812,12 @@ def selbsttest():
         kom = KOMMENTARE.read_text()
         ok("kommentar-datei nur ids, kein text, kein name", "555001" in kom and "how do you count" not in kom
            and "fan" not in kom)
-        ok("entwurf an ops mit zahl und ohne automatik", "ENTWURF" in log and "281,000 as of 29 sep 2026" in log
-           and "nichts automatisch" in log)
-        post = {"zahl": "5.49%", "tag": "9 oct 2026", "herkunft": "counted by kaspa pulse", "form": 2}
+        ok("entwurf an ops mit zahl, einheit, datum und ohne automatik", "ENTWURF" in log
+           and "281,000 blocks while you slept, as of 29 sep 2026" in log and "nichts automatisch" in log)
+        ok("alte kommentare als eine zeile an ops", log.count("alte Kommentare als gesehen markiert") == 1
+           and "instagram, 1 alte Kommentare als gesehen markiert" in log)
+        post = {"zahl": "5.49%", "zahl_text": "5.49% of all KAS in circulation at one address",
+                "tag": "9 oct 2026", "herkunft": "counted by kaspa pulse", "form": 2}
         beispiele = {
             "lob": ["great work, love this 🔥", "signed up for the newsletter", "nice"],
             "frage": ["how do you get this number?", "is this every address?", "where does the data come from"],
@@ -788,6 +836,29 @@ def selbsttest():
                     texte.append(e)
         ok("alle entwuerfe halten die regeln", all(e and not tg.pruefe_eine(e, 2, "e") for e in texte))
         ok("nie zweimal derselbe text am tag", len(texte) == len(set(texte)))
+        ok("jede zahl im entwurf mit einheit und datum", all(
+            not re.search(r"\d", e.replace("5.49% of all KAS in circulation at one address, as of 9 oct 2026", "")
+                          .replace("@user1", ""))
+            for e in texte) and any("5.49% of all KAS" in e for e in texte))
+        alt_post = {"zahl": "281,000", "tag": "29 sep 2026", "herkunft": "counted by kaspa pulse", "form": 4}
+        ohne = [entwurf(t, alt_post, "user1", set())[1] for ts in beispiele.values() for t in ts]
+        ok("eintrag ohne einheit, entwurf ohne zahl", all(e is None or not re.search(r"\d", e.replace("@user1", ""))
+                                                          for e in ohne)
+           and not any(e and "281,000" in e for e in ohne))
+        mit = entwurf("can you track exchange balances next week?", post, "a", set())[1]
+        ok("kurzes zitat bleibt", "exchange balances next week" in mit)
+        zitate = ("can you track the balances of every large exchange wallet over time?",
+                  "can you track kaspa.com flows?", "can you track https://x.io/abc please",
+                  "can you track @otheracct holdings", "can you track $BTC dominance",
+                  "can you track kas against bitcoin", "can you track the top 100 addresses",
+                  "would love to see eth gas next to fees", "what about solana style charts")
+        ok("zitat zu lang, link, @, ticker, andere chain oder zahl, variante ohne zitat", all(
+            (lambda e: e and not any(w in e for w in ("balances of every", "kaspa.com", "x.io", "otheracct",
+                                                      "btc", "bitcoin", "100", "eth gas", "solana")))(
+                entwurf(t, post, "a", set())[1]) for t in zitate))
+        ok("variante ohne zitat haelt die regeln", all(not tg.pruefe_eine(entwurf(t, post, "a", set())[1], 2, "e")
+                                                      for t in zitate))
+        ok("ziffern im namen sind keine zahl", entwurf("thanks", post, "fan_99", set())[1] is not None)
         v2 = set()
         zwei = [entwurf(t, post, u, v2)[1] for t, u in (("great work", "a1"), ("love it", "b2"))]
         ok("zweites lob am tag nimmt eine andere vorlage, nicht nur einen anderen namen",
@@ -932,7 +1003,8 @@ def main(argv=None):
             log["posts"].append({"datum": ig["datum"], "form": ig["form"], "modus": a.modus,
                                  "container": erg["container"], "status": erg["status"],
                                  "media": erg.get("media", ""), "permalink": erg.get("permalink", ""),
-                                 "bild": url, "zahl": ig.get("zahl"), "tag": ig.get("tag"),
+                                 "bild": url, "zahl": ig.get("zahl"), "zahl_text": ig.get("zahl_text"),
+                                 "tag": ig.get("tag"),
                                  "herkunft": ig.get("herkunft"), "caption": ig["caption"],
                                  "caption_sha": hashlib.sha256(ig["caption"].encode()).hexdigest()[:12],
                                  "zeit_utc": now.isoformat(timespec="seconds")})
