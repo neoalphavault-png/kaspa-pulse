@@ -197,20 +197,54 @@ def persist_now(grund):
     """
     if not os.environ.get("PERSIST_EACH"):
         return False
+    return festschreiben(grund)
+
+
+def abdeckung_vereinen(a, b):
+    """Je Tag und Minute beobachtet, wenn einer der beiden Staende sie
+    beobachtet hat. So geht keine Minute verloren, egal wer zuerst pusht."""
+    tage = {}
+    for tag in set(a["tage"]) | set(b["tage"]):
+        x = a["tage"].get(tag) or "." * 1440
+        y = b["tage"].get(tag) or "." * 1440
+        tage[tag] = "".join("1" if "1" in (p, q) else "." for p, q in zip(x, y))
+    return {"tage": tage}
+
+
+def festschreiben(grund, versuche=3):
+    """Vergleichsstand und Abdeckung nach origin/main, ohne Rebase-Konflikt
+    (Check-in 08.10.2026: jeder zweite Lauf scheiterte am Jobende an einem
+    Konflikt in der Abdeckungsdatei und verlor damit Abdeckung und Stand).
+
+    Der eigene Vergleichsstand ist der neueste, er gewinnt. Die Abdeckung
+    wird mit dem Stand auf main vereinigt. Dann wird auf den frischen
+    main-Stand committet und gepusht, bei Ablehnung von vorn."""
     _git("config", "user.name", "kaspa-pulse-bot")
     _git("config", "user.email", "bot@kaspapulse.com")
-    _git("add", "--", STATE_FILE, ABDECKUNG_FILE)
-    if _git("diff", "--staged", "--quiet").returncode == 0:
-        return False
-    _git("commit", "-m", "entity x state update, %s [bot]" % grund)
-    for _ in range(2):
-        if _git("push").returncode == 0:
-            print("vergleichsstand sofort festgeschrieben (%s)" % grund)
+    try:
+        with open(STATE_FILE) as f:
+            state_text = f.read()
+    except FileNotFoundError:
+        state_text = None
+    eigene = abdeckung_laden()
+    for n in range(versuche):
+        _git("rebase", "--abort")
+        if _git("fetch", "origin", "main").returncode != 0:
+            continue
+        _git("reset", "--hard", "origin/main")
+        abdeckung_speichern(abdeckung_vereinen(abdeckung_laden(), eigene))
+        if state_text is not None:
+            with open(STATE_FILE, "w") as f:
+                f.write(state_text)
+        _git("add", "--", STATE_FILE, ABDECKUNG_FILE)
+        if _git("diff", "--staged", "--quiet").returncode == 0:
+            print("stand und abdeckung schon auf main (%s)" % grund)
             return True
-        # Ein anderer Bot war schneller. Einmal nachziehen, dann nochmal.
-        _git("pull", "--rebase", "origin", "main")
-    print("WARN push des vergleichsstands fehlgeschlagen. der lauf macht "
-          "weiter, der schritt am jobende versucht es erneut", file=sys.stderr)
+        _git("commit", "-m", "entity x state update, %s [bot]" % grund)
+        if _git("push", "origin", "HEAD:main").returncode == 0:
+            print("stand und abdeckung festgeschrieben (%s)" % grund)
+            return True
+    print("WARN festschreiben nach %d versuchen gescheitert (%s)" % (versuche, grund), file=sys.stderr)
     return False
 
 
@@ -468,6 +502,48 @@ def run_selftest():
        or abdeckung_laden(tmp)["tage"] == ab["tage"])
     ok("naechste volle minute", naechste_minute(120.0) == 65 and naechste_minute(179.5) == 5.5)
 
+    # festschreiben gegen einen schnelleren push, ohne konflikt (08.10.2026)
+    import tempfile
+    global STATE_FILE, ABDECKUNG_FILE
+    alt = (STATE_FILE, ABDECKUNG_FILE, os.getcwd())
+    with tempfile.TemporaryDirectory() as tmp:
+        def g(cwd, *a):
+            return subprocess.run(("git",) + a, cwd=cwd, capture_output=True, text=True)
+        g(tmp, "init", "-q", "--bare", "-b", "main", "origin.git")
+        for wer in ("a", "b"):
+            g(tmp, "clone", "-q", "origin.git", wer)
+            g(os.path.join(tmp, wer), "config", "user.email", "t@t")
+            g(os.path.join(tmp, wer), "config", "user.name", "t")
+        a_dir, b_dir = os.path.join(tmp, "a"), os.path.join(tmp, "b")
+        os.makedirs(os.path.join(a_dir, "data"))
+        os.makedirs(os.path.join(a_dir, "scripts"))
+        STATE_FILE, ABDECKUNG_FILE = "scripts/entity_x_state.json", "data/entity-x-abdeckung.json"
+        os.chdir(a_dir)
+        abdeckung_speichern({"tage": {"2026-10-08": "." * 1440}})
+        open(STATE_FILE, "w").write('{"balance_kas": 1}')
+        g(a_dir, "add", "-A"); g(a_dir, "commit", "-qm", "start"); g(a_dir, "push", "-q", "origin", "HEAD:main")
+        g(b_dir, "pull", "-q", "origin", "main")
+        # a beobachtet minute 10 und pusht zuerst
+        ab = abdeckung_laden(); markiere(ab, dt.datetime(2026, 10, 8, 0, 10, tzinfo=dt.timezone.utc).timestamp())
+        abdeckung_speichern(ab); open(STATE_FILE, "w").write('{"balance_kas": 2}')
+        ok_a = festschreiben("test a")
+        # b hat den alten stand, beobachtet minute 20, neuerer vergleichsstand
+        os.chdir(b_dir)
+        ab = abdeckung_laden(); markiere(ab, dt.datetime(2026, 10, 8, 0, 20, tzinfo=dt.timezone.utc).timestamp())
+        abdeckung_speichern(ab); open(STATE_FILE, "w").write('{"balance_kas": 3}')
+        ok_b = festschreiben("test b")
+        g(tmp, "clone", "-q", "origin.git", "c")
+        os.chdir(os.path.join(tmp, "c"))
+        bits = abdeckung_laden()["tage"]["2026-10-08"]
+        ok("festschreiben ohne konflikt, minuten beider laeufe vereinigt, neuester stand gewinnt",
+           ok_a and ok_b and bits[10] == "1" and bits[20] == "1" and bits.count("1") == 2
+           and open(STATE_FILE).read() == '{"balance_kas": 3}')
+    STATE_FILE, ABDECKUNG_FILE = alt[0], alt[1]
+    os.chdir(alt[2])
+    ok("vereinen je minute", abdeckung_vereinen({"tage": {"t": "1.." + "." * 1437}},
+                                                {"tage": {"t": ".1." + "." * 1437, "u": "1" * 1440}})
+       == {"tage": {"t": "11." + "." * 1437, "u": "1" * 1440}})
+
     print("")
     if fails:
         print("%d fehlgeschlagen %s" % (len(fails), fails))
@@ -479,6 +555,8 @@ def run_selftest():
 if __name__ == "__main__":
     if "--selftest" in sys.argv:
         sys.exit(run_selftest())
+    if "--festschreiben" in sys.argv:
+        sys.exit(0 if festschreiben("jobende") else 1)
     if "--abdeckung" in sys.argv:
         print("\n".join(abdeckung_bericht(abdeckung_laden())) or "abdeckung, noch keine daten")
         sys.exit(0)

@@ -47,6 +47,10 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+        with:
+          # der neueste main-stand, nicht der beim anmelden des laufs. der
+          # vorgaenger pusht seinen stand erst nach dem anmelden (08.10.2026)
+          ref: main
 
       - name: watch entity x
         env:
@@ -62,6 +66,16 @@ jobs:
           PERSIST_EACH: "1"
         run: python3 scripts/entity_x_alert.py
 
+      - name: abdeckung ins log
+        if: always()
+        run: python3 scripts/entity_x_alert.py --abdeckung
+
+      # stand und abdeckung auf den frischen main-stand, abdeckung vereinigt,
+      # ohne rebase-konflikt. bis 08.10.2026 scheiterte hier jeder zweite lauf.
+      - name: persist state if changed
+        if: always()
+        run: python3 scripts/entity_x_alert.py --festschreiben
+
       - name: nachfolger anmelden
         if: always() && github.ref == 'refs/heads/main'
         env:
@@ -76,22 +90,4 @@ jobs:
             echo "nachfolger angemeldet, er startet, sobald dieser lauf fertig ist"
           else
             echo "nachfolger nicht angemeldet, der zeitplan alle 15 minuten faengt das auf"
-          fi
-
-      - name: abdeckung ins log
-        if: always()
-        run: python3 scripts/entity_x_alert.py --abdeckung
-
-      - name: persist state if changed
-        if: always()
-        run: |
-          git config user.name "kaspa-pulse-bot"
-          git config user.email "bot@kaspapulse.com"
-          git add scripts/entity_x_state.json data/entity-x-abdeckung.json
-          if git diff --staged --quiet; then
-            echo "state unveraendert, kein commit"
-          else
-            git commit -m "entity x state update [bot]"
-            git pull --rebase origin main
-            git push
           fi
