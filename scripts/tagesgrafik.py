@@ -1246,6 +1246,29 @@ def ig_caption(s, form, messzeit):
         x1, x2, s["zahl"], stand, frage, s["herkunft"], " ".join(tags))
 
 
+def ig_zahl(s, form):
+    """Die Zahl der Seite mit Einheit, fuer Kommentar-Entwuerfe (Ben,
+    09.10.2026, keine Zahl ohne Einheit). Leer, wenn die Form keine eindeutige
+    Einheit hat; dann nennt der Entwurf keine Zahl."""
+    z = s["zahl"]
+    if form == 1:
+        return "%s %s in one week" % (s["bedeutung"].split(",")[0], z)
+    if form == 7:
+        return s["x1"].rstrip(".") if s["x1"].startswith(z) else ""
+    if form == 6 and z.endswith("M"):
+        return "%s million blocks since nov 2021" % z[:-1]
+    muster = {2: "%s of all KAS in circulation at one address",
+              3: "%s to the next block reward cut",
+              4: "%s blocks while you slept",
+              5: "%s more KAS for miners from new coins than from fees",
+              8: "%s of hashrate",
+              9: "%s addresses holding at least 100 KAS",
+              10: "%s of all KAS that will ever exist already mined",
+              11: "%s of all KAS in circulation not moved in a year",
+              13: "%s reachable nodes"}
+    return muster[form] % z if form in muster else ""
+
+
 def ig_stichtag(s, messzeit):
     """Das Datum der Zahl. Eigene Zaehlung: der Tag unserer Messung. Fremde
     Quelle: der spaeteste Tag, den Herkunft, Zeile 2, Zeile 1 oder der Zusatz
@@ -1314,6 +1337,9 @@ def texte(s, form, messzeit):
     s["antwort"] = "%s %s %s" % (s["aufloesung"], MAIL_SATZ, antwort_link(form))
     s["discord"] = "%s\n%s\n\nshare it first, it goes on x at %s.\n%s" % (x1, x2, X_ZEIT, MAIL_SATZ)
     s["instagram"] = ig_caption(s, form, messzeit)
+    # fuer kommentar-entwuerfe, zahl mit einheit und datum der zahl
+    s["ig_zahl"] = ig_zahl(s, form)
+    s["ig_stand"] = tag(ig_stichtag(s, messzeit))
     return s
 
 
@@ -1741,7 +1767,7 @@ def main(argv=None):
     # fuer den instagram-job um 09:00, der die datei aus dem artefakt holt
     (out / (png.stem + "-instagram.json")).write_text(json.dumps({
         "datum": heute.isoformat(), "form": form, "messzeit_utc": m["messzeit_utc"],
-        "caption": s["instagram"], "zahl": s["zahl"], "tag": s["datum"],
+        "caption": s["instagram"], "zahl": s["zahl"], "zahl_text": s["ig_zahl"], "tag": s["ig_stand"],
         "herkunft": s["datumszeile"].split(" \u00b7 ")[-1]}, ensure_ascii=False, indent=1), encoding="utf-8")
     with open(out / (png.stem + ".txt"), "a", encoding="utf-8") as fh:
         fh.write("\nINSTAGRAM, %d zeichen\n%s\n" % (len(s["instagram"]), s["instagram"]))
@@ -1820,6 +1846,15 @@ def selbsttest():
     for f in (2, 3, 4, 6, 10):
         c = seite_bauen(f, FAKE[f], FAKE_NOW, log)["instagram"].split("\n\n")[1]
         ok("instagram form %d eigene zaehlung mit dem messtag" % f, c.endswith("as of 29 sep 2026."))
+    # zahl mit einheit und datum fuer kommentar-entwuerfe (Ben, 09.10.2026)
+    for f in sorted(FAKE):
+        s = seite_bauen(f, FAKE[f], FAKE_NOW, log)
+        z = s["ig_zahl"]
+        ok("form %d zahl mit einheit, %r" % (f, z), re.sub(r"[^0-9.,+%]", "", s["zahl"]) in z)
+        ok("form %d zahl mit einheit haelt die regeln" % f, z and not pruefe_eine(z, f, "ig_zahl")
+           and z.strip() != s["zahl"].strip())
+        ok("form %d datum der zahl wie in der caption, %s" % (f, s["ig_stand"]),
+           s["instagram"].split("\n\n")[1].endswith("as of %s." % s["ig_stand"]))
     try:
         ig_stichtag({"herkunft": "source x", "x1": "a", "x2": "b"}, FAKE_NOW)
         ok("fremde quelle ohne datum wird nicht geraten", False)
