@@ -18,6 +18,10 @@ ExecStart=/opt/kaspa-pulse/deploy/c2/entity-x-alarm/start.sh
 Restart=always
 RestartSec=5
 StateDirectory=kaspa-pulse
+# Ohne das steht die Ausgabe im Puffer: Python schreibt in eine Pipe
+# blockweise, und bei 62 byte je Minute dauert es gut zwei Stunden,
+# bis die erste Pruefzeile im Journal auftaucht (Ben, 09.10.2026).
+Environment=PYTHONUNBUFFERED=1
 Environment=LOOP_SECONDS=86400
 Environment=POLL_INTERVAL=60
 Environment=ENTITY_X_STATE_FILE=/var/lib/kaspa-pulse/entity_x_state.json

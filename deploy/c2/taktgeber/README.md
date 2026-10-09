@@ -36,9 +36,21 @@ Log steht es am 01.10. wörtlich: *„kein cron im fenster"*.
 | `takt-weeklynumbers` | Mo 18:40 | `weeklynumbers.yml` in kaspa-pulse |
 | `takt-number-of-day` | täglich 10:12 und 11:42 | `number-of-day.yml` in kaspa-pulse |
 
-Die Uhrzeiten stehen in Ortszeit in den Timern (`Timezone=Europe/Berlin`),
+Die Uhrzeiten stehen in Ortszeit, als Anhang an der Kalenderzeile:
+
+```
+OnCalendar=*-*-* 07:30:00 Europe/Berlin
+```
+
 systemd rechnet die Zeitumstellung selbst. Kein zweiter Termin je
 Jahreszeit mehr.
+
+> **Nicht `Timezone=`.** Die erste Fassung hatte eine eigene Zeile
+> `Timezone=Europe/Berlin` im Abschnitt `[Timer]`. **Diesen Schlüssel gibt
+> es nicht.** systemd überliest ihn mit „Unknown key name 'Timezone' in
+> section 'Timer', ignoring" und rechnet weiter in UTC — alle fünf Takte
+> liefen am 09.10.2026 auf c2 zwei Stunden zu spät. Die Zeitzone gehört an
+> die Kalenderzeile (`systemd-analyze calendar` zeigt, was gilt).
 
 **`Persistent=true`** holt einen verpassten Takt nach — außer beim Reel:
 ein Reel zwei Stunden nach dem Short ist kein Reel zur Short-Zeit, und
@@ -127,7 +139,14 @@ erscheinen — nicht in sieben Stunden.
 ```
 systemctl list-timers 'takt-*' --no-pager
 ```
-zeigt die nächsten Zeitpunkte in Ortszeit.
+zeigt die nächsten Zeitpunkte. `systemctl list-timers` schreibt sie in der
+Zeitzone des Servers (hier UTC) — das ist richtig, solange die Differenz
+stimmt: 07:30 Berlin steht dort im Sommer als 05:30 UTC, im Winter als
+06:30 UTC. Wer die Ortszeit sehen will:
+
+```
+systemd-analyze calendar '*-*-* 07:30:00 Europe/Berlin'
+```
 
 ## Wenn etwas nicht geht
 

@@ -4,7 +4,7 @@
 # Schreibt die Tagesabdeckung ins Journal.
 set -eu
 cd /opt/kaspa-pulse
-/usr/bin/python3 scripts/entity_x_alert.py --abdeckung
+/usr/bin/python3 -u scripts/entity_x_alert.py --abdeckung
 git pull --ff-only --quiet
 cp /var/lib/kaspa-pulse/entity_x_state.json scripts/entity_x_state.json
 cp /var/lib/kaspa-pulse/entity-x-abdeckung.json data/entity-x-abdeckung.json

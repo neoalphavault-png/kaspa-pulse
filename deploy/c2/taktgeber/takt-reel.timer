@@ -5,9 +5,8 @@ Description=Kaspa Pulse Takt, Reel zur Short-Zeit
 Unit=takt@reel.service
 # Dieselben Zeiten wie die Shorts auf YouTube: Di bis So 12:00, Mo 17:00
 # (sendezeit() in pulse-studio, docs/projekt/shorts-ledger.md).
-OnCalendar=Tue,Wed,Thu,Fri,Sat,Sun *-*-* 12:00:00
-OnCalendar=Mon *-*-* 17:00:00
-Timezone=Europe/Berlin
+OnCalendar=Tue,Wed,Thu,Fri,Sat,Sun *-*-* 12:00:00 Europe/Berlin
+OnCalendar=Mon *-*-* 17:00:00 Europe/Berlin
 # NICHT nachholen. Ein Reel, das zwei Stunden spaeter kommt, ist kein
 # Reel zur Short-Zeit - und das Faelligkeitsfenster im Skript (plus/minus
 # 20 Minuten) wuerde es ohnehin abweisen.
