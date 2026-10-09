@@ -1,0 +1,15 @@
+[Unit]
+Description=Kaspa Pulse Takt, Tagesgrafik 07:30 Berlin
+
+[Timer]
+Unit=takt@tagesgrafik.service
+OnCalendar=*-*-* 07:30:00
+Timezone=Europe/Berlin
+# Nach einem Neustart oder einem Ausfall nachholen, aber nur innerhalb
+# des Fensters der Tagesgrafik (07:00 bis 12:00 Berlin) - danach liefert
+# sie ohnehin nicht mehr.
+Persistent=true
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target
