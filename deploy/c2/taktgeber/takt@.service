@@ -1,0 +1,14 @@
+[Unit]
+Description=Kaspa Pulse Taktgeber, %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=kpbot
+WorkingDirectory=/opt/kaspa-pulse
+# Das Token ist an diesen Rechner gebunden verschluesselt und wird nur
+# hier entschluesselt. Es steht in keiner Datei im Repo.
+LoadCredentialEncrypted=gh_dispatch_token:/etc/credstore.encrypted/gh_dispatch_token
+EnvironmentFile=/opt/kaspa-pulse/deploy/c2/taktgeber/takt.conf
+ExecStart=/opt/kaspa-pulse/deploy/c2/taktgeber/ausloesen.sh %i

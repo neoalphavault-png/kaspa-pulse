@@ -1,0 +1,12 @@
+[Unit]
+Description=Kaspa Pulse Takt, Weekly Numbers Mo 18:40 Berlin
+
+[Timer]
+Unit=takt@weeklynumbers.service
+OnCalendar=Mon *-*-* 18:40:00
+Timezone=Europe/Berlin
+Persistent=true
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target
