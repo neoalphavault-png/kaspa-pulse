@@ -383,7 +383,8 @@ async def lauf(von_ms, bis_ms, rolle, partner, out, ziel_sha="", kette=True):
     except Exception:                                    # noqa: BLE001
         pass
     print("%s %s, %d minuten, %s abfragen" % (rolle, meta["status"], len(zeilen), meta.get("abfragen", "")))
-    return 0
+    # nichts gelesen ist ein fehler, der lauf wird rot (09.10.: websocket getrennt, lauf blieb gruen)
+    return 0 if meta["status"] == "gelesen" else 1
 
 
 # ---------------------------------------------------------------- selbsttest
