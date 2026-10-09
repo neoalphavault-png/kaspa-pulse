@@ -13,6 +13,7 @@
 #   sudo ./setup.sh hostkey           die Zeile fuer SERVER_HOST_KEY zeigen
 #   sudo ./setup.sh haerten           sshd: keine Passwoerter, kein root-Login
 #   sudo ./setup.sh units             Units verlinken und starten
+#   sudo ./setup.sh nachziehen        Update holen, neu einlesen, neu starten
 #   sudo ./setup.sh pruefen           Gegenprobe, zeigt keine Werte
 #
 # Reihenfolge: grundlage, Deploy Key auf GitHub eintragen, klonen,
@@ -242,6 +243,47 @@ units() {
   hinweis "journalctl -u entity-x-alarm -f  zeigt jede Minute eine Zeile"
 }
 
+# --------------------------------------------------------------- nachziehen
+# Ein Update aus dem Repo uebernehmen: holen, neu einlesen, die Units
+# neu starten, Kontrolle zeigen. Ein Befehl, damit nichts vergessen wird.
+nachziehen() {
+  root_sein
+  meldung "Stand holen"
+  sudo -u "$DIENSTNUTZER" git -C "$ZIEL" pull --ff-only
+  hinweis "$(sudo -u "$DIENSTNUTZER" git -C "$ZIEL" log --oneline -1)"
+
+  meldung "Units neu einlesen"
+  systemctl daemon-reload
+
+  meldung "Timer neu starten"
+  # Einzeln aufgezaehlt, nicht als Muster: ein Muster trifft nur Units,
+  # die systemd gerade geladen hat.
+  for t in tagesgrafik instagram-bild reel weeklynumbers number-of-day; do
+    systemctl restart "takt-$t.timer"
+  done
+  meldung "Alarm neu starten"
+  # Setzt die 24-Stunden-Schleife zurueck, das ist in Ordnung: der Stand
+  # liegt in /var/lib/kaspa-pulse und wird nicht neu angefangen.
+  systemctl restart entity-x-alarm.service
+  systemctl restart entity-x-sync.timer
+
+  meldung "Kontrolle: naechste Zeitpunkte"
+  systemctl list-timers 'takt-*' 'entity-x-*' --no-pager || true
+  echo
+  hinweis "list-timers schreibt in der Zeitzone des Servers. Zum Vergleich"
+  hinweis "in Ortszeit, so wie die Timer es jetzt rechnen:"
+  for e in "*-*-* 07:30:00" "*-*-* 09:30:00" "*-*-* 10:12:00" \
+           "*-*-* 11:42:00" "Tue..Sun *-*-* 12:00:00" "Mon *-*-* 17:00:00" \
+           "Mon *-*-* 18:40:00"; do
+    printf '   %-28s -> ' "$e"
+    systemd-analyze calendar "$e Europe/Berlin" | awk -F': +' '/Next elapse/ {print $2}'
+  done
+
+  meldung "Kontrolle: zeigt der Alarm jede Minute eine Zeile?"
+  hinweis "journalctl -u entity-x-alarm -f  (die erste Zeile kommt binnen"
+  hinweis "einer Minute, nicht erst nach zwei Stunden)"
+}
+
 # ------------------------------------------------------------------ pruefen
 pruefen() {
   root_sein
@@ -277,6 +319,7 @@ case "$BEFEHL" in
   hostkey)   hostkey ;;
   haerten)   haerten ;;
   units)     units ;;
+  nachziehen) nachziehen ;;
   pruefen)   pruefen ;;
   *) sed -n '2,20p' "$0"; exit 1 ;;
 esac

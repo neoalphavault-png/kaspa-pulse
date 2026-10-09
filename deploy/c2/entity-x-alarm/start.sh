@@ -15,4 +15,6 @@ fi
 if [ ! -f "$ABDECKUNG_FILE" ] && [ -f /opt/kaspa-pulse/data/entity-x-abdeckung.json ]; then
   cp /opt/kaspa-pulse/data/entity-x-abdeckung.json "$ABDECKUNG_FILE"
 fi
-exec /usr/bin/python3 /opt/kaspa-pulse/scripts/entity_x_alert.py
+# -u zusaetzlich zu PYTHONUNBUFFERED in der Unit, damit auch ein
+# Handstart von start.sh sofort Zeilen zeigt.
+exec /usr/bin/python3 -u /opt/kaspa-pulse/scripts/entity_x_alert.py

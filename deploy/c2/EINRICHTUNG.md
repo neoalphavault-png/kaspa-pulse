@@ -374,6 +374,41 @@ journalctl -u entity-x-sync --since "48 hours ago" | tail -40
 
 ---
 
+## Nach jedem Update im Repo
+
+Ein Befehl, der nichts vergisst:
+
+```sh
+sudo /opt/kaspa-pulse/deploy/c2/setup.sh nachziehen
+```
+
+Er holt `main`, liest die Units neu ein (`daemon-reload`), startet die fünf
+Takt-Timer, den Alarm und den Sync neu und zeigt danach zur Kontrolle die
+nächsten Zeitpunkte — einmal wie `list-timers` sie schreibt (Zeitzone des
+Servers) und einmal, was `systemd-analyze calendar` für Ortszeit rechnet.
+
+Der Neustart des Alarms setzt dessen 24-Stunden-Schleife zurück. Das ist in
+Ordnung: Stand und Abdeckung liegen in `/var/lib/kaspa-pulse` und fangen
+nicht neu an.
+
+**Die Zeitzone steht an der Kalenderzeile, nicht in einer eigenen Zeile:**
+
+```
+OnCalendar=*-*-* 07:30:00 Europe/Berlin
+```
+
+`Timezone=` im Abschnitt `[Timer]` gibt es nicht — systemd überliest es und
+rechnet in UTC weiter. Prüfen mit
+
+```sh
+systemd-analyze verify /opt/kaspa-pulse/deploy/c2/taktgeber/takt-tagesgrafik.timer
+```
+
+Eine Zeile „Unknown key name" heißt: die Uhrzeit gilt nicht so, wie sie
+dasteht.
+
+---
+
 ## Zurück, wenn etwas nicht stimmt
 
 | Lage | Handgriff |

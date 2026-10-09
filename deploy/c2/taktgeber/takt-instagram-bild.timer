@@ -4,8 +4,7 @@ Description=Kaspa Pulse Takt, Instagram-Bild 09:30 Berlin
 [Timer]
 Unit=takt@instagram-bild.service
 # Nach dem Discord-Post, im Fenster 09:25 bis 11:30 Berlin.
-OnCalendar=*-*-* 09:30:00
-Timezone=Europe/Berlin
+OnCalendar=*-*-* 09:30:00 Europe/Berlin
 Persistent=true
 AccuracySec=30s
 

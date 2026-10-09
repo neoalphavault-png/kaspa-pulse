@@ -5,9 +5,8 @@ Description=Kaspa Pulse Takt, Zahl des Tages
 Unit=takt@number-of-day.service
 # Zwei Termine wie bisher auf GitHub (08:12 und 09:42 utc), hier in
 # Ortszeit. Der zweite faengt den ersten auf.
-OnCalendar=*-*-* 10:12:00
-OnCalendar=*-*-* 11:42:00
-Timezone=Europe/Berlin
+OnCalendar=*-*-* 10:12:00 Europe/Berlin
+OnCalendar=*-*-* 11:42:00 Europe/Berlin
 Persistent=true
 AccuracySec=30s
 
