@@ -1,0 +1,29 @@
+#!/bin/sh
+# kp-credstore-ssh  -  der erzwungene Befehl fuer den Actions-Schluessel.
+#
+# In der authorized_keys von kpdeploy steht
+#   restrict,command="/usr/local/sbin/kp-credstore-ssh" ssh-ed25519 AAAA...
+# Damit kann dieser Schluessel KEINE Shell bekommen, kein Port- und kein
+# Agent-Forwarding, kein Terminal. Er kann genau zwei Dinge:
+#
+#   put <name>   einen Wert von stdin als Credential ablegen
+#   liste        Namen, Groessen und Datum der Credentials zeigen
+#
+# Mehr nicht. Selbst wenn der private Schluessel aus den GitHub-Secrets
+# abhanden kommt, bekommt niemand damit eine Shell auf c2.
+set -eu
+
+BEFEHL="${SSH_ORIGINAL_COMMAND:-}"
+case "$BEFEHL" in
+  "put discord_webhook"|"put telegram_bot_token"|"put telegram_chat_id")
+    exec sudo -n /usr/local/sbin/kp-credstore-put "${BEFEHL#put }"
+    ;;
+  "liste")
+    # Nur Namen, Groessen, Datum. Kein Inhalt.
+    exec sudo -n /usr/bin/ls -l --time-style=long-iso /etc/credstore.encrypted
+    ;;
+  *)
+    echo "kp-credstore-ssh: nicht erlaubt" >&2
+    exit 2
+    ;;
+esac

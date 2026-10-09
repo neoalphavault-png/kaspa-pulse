@@ -1,5 +1,9 @@
 # Entity-X-Alarm auf c2
 
+> **Die vollständige Schrittliste zum Einrichten steht in [../EINRICHTUNG.md](../EINRICHTUNG.md)** — in der Reihenfolge, in der sie
+> abgearbeitet wird, mit `setup.sh`, Deploy Key, `server-secrets.yml` und dem
+> Token von Hand. Die Abschnitte hier erklären das Warum.
+
 Ben, 07.10.2026. Umzug am Freitag, Einrichtung gemeinsam mit Ben. Ab dann prüft der Alarm auf c2 an jeder vollen Minute. GitHub bleibt als Rückfall.
 
 In diesem Ordner steht kein Wert, keine IP und kein Hostname. Die Secrets kommen so, wie es der Server-Vorschlag beschreibt: Sie werden aus GitHub übertragen, mit `systemd-creds` an den Rechner gebunden verschlüsselt und über `LoadCredentialEncrypted` gelesen.

@@ -1,5 +1,9 @@
 # Taktgeber auf c2
 
+> **Die vollständige Schrittliste zum Einrichten steht in [../EINRICHTUNG.md](../EINRICHTUNG.md)** — in der Reihenfolge, in der sie
+> abgearbeitet wird, mit `setup.sh`, Deploy Key, `server-secrets.yml` und dem
+> Token von Hand. Die Abschnitte hier erklären das Warum.
+
 **Der Server gibt den Takt, der Code bleibt auf GitHub.** c2 löst die
 Workflows per `workflow_dispatch` zur festen Uhrzeit aus; gerechnet,
 gebaut und gepostet wird weiter in den Actions-Läufen.

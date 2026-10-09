@@ -1,0 +1,39 @@
+#!/bin/sh
+# kp-credstore-put <name>  -  legt den Wert von stdin als Credential ab,
+# an DIESEN Rechner gebunden verschluesselt. Liegt nach der Einrichtung
+# unter /usr/local/sbin/, Besitzer root, Modus 755.
+#
+# Der Wert wird nie gedruckt, nie geloggt und steht in keiner Datei im
+# Klartext. Ausgegeben wird nur der Name und die Groesse der
+# verschluesselten Datei.
+#
+# Die Liste der erlaubten Namen ist abschliessend. gh_dispatch_token
+# steht ABSICHTLICH nicht darin: das Token wird einmal auf dem Server
+# eingetippt (systemd-ask-password) und kommt nie durch eine Leitung.
+set -eu
+
+NAME="${1:?name fehlt}"
+case "$NAME" in
+  discord_webhook|telegram_bot_token|telegram_chat_id) ;;
+  gh_dispatch_token)
+    echo "kp-credstore-put: $NAME wird nur von Hand eingegeben, siehe deploy/c2/taktgeber/README.md" >&2
+    exit 2 ;;
+  *)
+    echo "kp-credstore-put: $NAME ist nicht erlaubt" >&2
+    exit 2 ;;
+esac
+
+ZIEL="/etc/credstore.encrypted/$NAME"
+umask 077
+TMP="$(mktemp "/etc/credstore.encrypted/.$NAME.XXXXXX")"
+trap 'rm -f "$TMP"' EXIT HUP INT TERM
+
+# systemd-creds liest stdin und bindet den Namen mit ein. Ein Credential
+# mit falschem Namen laesst sich spaeter nicht laden.
+systemd-creds encrypt --name="$NAME" - "$TMP"
+chmod 600 "$TMP"
+chown root:root "$TMP"
+mv "$TMP" "$ZIEL"
+trap - EXIT HUP INT TERM
+
+echo "kp-credstore-put: $NAME abgelegt, $(wc -c < "$ZIEL") byte verschluesselt"
