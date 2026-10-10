@@ -200,6 +200,32 @@ def has_link(text):
     return bool(LINK_RE.search(text or ""))
 
 
+# Schalter gegen automatische Antworten mit Link (Ben, 09.10.2026, nachdem
+# X ein temporaeres Label gesetzt hat). STANDARD IST AUS: fehlt die
+# Variable, wird keine Selbstantwort gepostet und kein Link von uns geht
+# nach X. Nichts ist geloescht, nur abgeschaltet.
+#
+# Gesetzt wird sie als Repository-Variable X_LINKANTWORT und von den
+# Workflows als Umgebungsvariable weitergegeben. Nur diese Werte schalten
+# ein, alles andere (auch ein Tippfehler) bleibt aus.
+LINKANTWORT_AN = ("an", "ja", "true", "1", "on", "ein")
+
+
+def linkantwort_an():
+    return (os.environ.get("X_LINKANTWORT") or "aus").strip().lower() in LINKANTWORT_AN
+
+
+def linkantwort_sperre(was, text):
+    """Druckt, warum nicht gepostet wird, und gibt True zurueck, wenn der
+    Schalter aus ist. Eine Zeile im Log, damit im Lauf sichtbar ist, dass
+    hier etwas absichtlich fehlt."""
+    if linkantwort_an():
+        return False
+    print("X_LINKANTWORT steht auf aus: %s wird NICHT gepostet (%r). "
+          "Der Hauptpost geht normal raus." % (was, (text or "")[:60]))
+    return True
+
+
 def check_text(text, what):
     text = (text or "").strip()
     if not text:
@@ -311,7 +337,11 @@ def run_weekly(args):
 
     log = load_log(args.log)
     entry = find(log, key)
-    if entry and entry.get("id") and entry.get("reply_id") and entry.get("reply2_id"):
+    # Steht der Schalter auf aus, ist der Faden mit dem Hauptpost fertig -
+    # sonst wuerde jeder weitere Lauf die beiden Antworten erneut versuchen.
+    fertig = entry and entry.get("id") and (
+        not linkantwort_an() or (entry.get("reply_id") and entry.get("reply2_id")))
+    if fertig:
         print("schon gepostet (key %s, id %s), nichts zu tun" % (key, entry["id"]))
         return 0
     creds = creds_from_env()
@@ -326,18 +356,25 @@ def run_weekly(args):
         entry["image"] = os.path.basename(image)
         save_log(args.log, log)      # sofort merken, bevor irgendetwas anderes passiert
         print("gepostet: %s (key %s)" % (entry["id"], key))
-    if not entry.get("reply_id"):
-        entry["reply_id"] = post(r_video, creds, reply_to=entry["id"])
-        entry["reply_has_link"] = True
-        save_log(args.log, log)
-        print("antwort 1 (videolink): %s" % entry["reply_id"])
-    if not entry.get("reply2_id"):
-        # haengt an der ersten antwort, damit ein faden entsteht und nicht
-        # zwei lose antworten am hauptpost
-        entry["reply2_id"] = post(r_news, creds, reply_to=entry["reply_id"])
-        entry["reply2_has_link"] = True
-        save_log(args.log, log)
-        print("antwort 2 (anmeldelink): %s" % entry["reply2_id"])
+    if linkantwort_an():
+        if not entry.get("reply_id"):
+            entry["reply_id"] = post(r_video, creds, reply_to=entry["id"])
+            entry["reply_has_link"] = True
+            save_log(args.log, log)
+            print("antwort 1 (videolink): %s" % entry["reply_id"])
+        if not entry.get("reply2_id"):
+            # haengt an der ersten antwort, damit ein faden entsteht und nicht
+            # zwei lose antworten am hauptpost
+            entry["reply2_id"] = post(r_news, creds, reply_to=entry["reply_id"])
+            entry["reply2_has_link"] = True
+            save_log(args.log, log)
+            print("antwort 2 (anmeldelink): %s" % entry["reply2_id"])
+    else:
+        # Kein return: ein Testlauf mit --delete-after muss den Hauptpost
+        # noch loeschen koennen.
+        linkantwort_sperre("Antwort 1 (Videolink)", r_video)
+        linkantwort_sperre("Antwort 2 (Anmeldelink)", r_news)
+        print("Montagsfaden bleibt beim Hauptpost.")
     if args.delete_after:
         for pid in [entry.get("reply2_id"), entry.get("reply_id"), entry.get("id")]:
             if pid:
@@ -389,6 +426,8 @@ def run(args):
         if reply and not has_link(reply):
             print("Selbstantwort ohne Link, wird nicht gepostet: %r" % reply[:80])
             reply = ""
+        if reply and linkantwort_sperre("die Selbstantwort mit Link", reply):
+            reply = ""
         key = args.key or "nod-%s" % (nod.get("date") or dt.date.today().isoformat())
     else:
         text, reply, key = args.text, args.reply, args.key
@@ -396,6 +435,10 @@ def run(args):
         sys.exit("--text oder --from-nod fehlt")
     text = check_text(text, "Text")
     if has_link(text):
+        if not linkantwort_an():
+            sys.exit("Der Hauptpost traegt einen Link, und X_LINKANTWORT steht auf aus. "
+                     "Nichts gepostet. Entweder den Link aus dem Text nehmen oder "
+                     "X_LINKANTWORT bewusst auf 'an' setzen.")
         print("HINWEIS: der Hauptpost traegt einen Link (0,20 $ statt 0,015 $).")
     if reply:
         reply = check_text(reply, "Selbstantwort")
@@ -481,10 +524,32 @@ def selftest():
             pass
         else:
             raise AssertionError("haette abbrechen muessen: %s" % why)
+    # Schalter X_LINKANTWORT (Ben, 09.10.2026). Standard ist aus, und nur
+    # die Werte aus LINKANTWORT_AN schalten ein.
+    alt_wert = os.environ.pop("X_LINKANTWORT", None)
+    try:
+        assert not linkantwort_an(), "ohne Variable muss der Schalter aus sein"
+        for wert in ("", "aus", "off", "nein", "false", "0", "An ", "jaa", "vielleicht"):
+            os.environ["X_LINKANTWORT"] = wert
+            if wert.strip().lower() in LINKANTWORT_AN:
+                assert linkantwort_an(), wert
+            else:
+                assert not linkantwort_an(), "%r darf nicht einschalten" % wert
+        for wert in ("an", "AN", " an ", "ja", "true", "1", "on", "ein"):
+            os.environ["X_LINKANTWORT"] = wert
+            assert linkantwort_an(), "%r muss einschalten" % wert
+        os.environ["X_LINKANTWORT"] = "aus"
+        assert linkantwort_sperre("Antwort", "see kaspapulse.com") is True
+        os.environ["X_LINKANTWORT"] = "an"
+        assert linkantwort_sperre("Antwort", "see kaspapulse.com") is False
+    finally:
+        os.environ.pop("X_LINKANTWORT", None)
+        if alt_wert is not None:
+            os.environ["X_LINKANTWORT"] = alt_wert
     assert berlin_offset(dt.datetime(2026, 9, 14, 14, 0, tzinfo=dt.timezone.utc)) == dt.timedelta(hours=2)
     assert berlin_offset(dt.datetime(2026, 11, 2, 14, 0, tzinfo=dt.timezone.utc)) == dt.timedelta(hours=1)
     print("selftest ok: Signatur stimmt mit dem erfundenen Testvektor ueberein, Link-Erkennung ok, "
-          "Montagsfaden prueft Videolink und Kosten")
+          "Montagsfaden prueft Videolink und Kosten, X_LINKANTWORT steht ohne Variable auf aus")
 
 
 def main():
