@@ -33,7 +33,7 @@ concurrency:
 
 jobs:
   pflege:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
       INSIGHTS: ${{ (github.event.schedule == '40 5 * * *' || (github.event_name == 'workflow_dispatch' && inputs.was != 'kommentare')) && '1' || '0' }}

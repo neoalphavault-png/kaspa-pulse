@@ -35,7 +35,7 @@ concurrency:
 
 jobs:
   messung:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     permissions:
       contents: read
@@ -60,7 +60,7 @@ jobs:
 
   trocken:
     if: inputs.modus == 'trocken'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -82,7 +82,7 @@ jobs:
 
   zahlungen:
     if: inputs.modus == 'probe' || inputs.modus == 'lauf'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     # der einzige job mit dem environment, also der einzige mit dem schluessel.
     # nur lesen, er pusht nichts.
@@ -113,7 +113,7 @@ jobs:
   bericht:
     needs: [messung, trocken, zahlungen]
     if: always() && needs.messung.result != 'cancelled'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     # der einzige job, der schreiben darf. ohne environment, also ohne zugriff
     # auf das secret. er pusht nur auf fix/maschinenzahlungen-<datum>.

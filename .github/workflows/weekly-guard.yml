@@ -40,7 +40,7 @@ concurrency:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     outputs:
       live: ${{ steps.yt.outputs.live }}
@@ -181,7 +181,7 @@ jobs:
   veto:
     needs: [check, cancel]
     if: always() && needs.check.outputs.live != 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: write
@@ -235,7 +235,7 @@ jobs:
   hinweis:
     needs: [check, newsletter_test]
     if: always() && needs.check.outputs.live == 'true' && needs.check.outputs.auto != 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: was jetzt noch fehlt
         run: |
