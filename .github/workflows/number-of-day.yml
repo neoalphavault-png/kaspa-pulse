@@ -22,7 +22,7 @@ permissions:
 jobs:
   x-test:
     if: github.event_name == 'workflow_dispatch' && inputs.x_test != ''
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -46,7 +46,7 @@ jobs:
 
   render:
     if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.x_test != '') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: sperre gegen doppellauf
