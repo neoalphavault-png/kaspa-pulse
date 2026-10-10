@@ -211,6 +211,32 @@ def git(*args, binaer=False):
     return r.stdout if binaer else r.stdout.decode("utf-8", "replace")
 
 
+# ------------------------------------------------- Wache gegen ubuntu-latest
+# Ben, 10.10.2026. "ubuntu-latest" wandert ab dem 19.10.2026 auf Ubuntu 26
+# und wuerde uns mitten im Betrieb ein neues Image unterschieben: Playwright
+# braucht andere Systempakete, das Pillow-Rad muss es erst geben, apt-Pakete
+# heissen anders. Alle Workflows sind darum auf ubuntu-24.04 gepinnt. Diese
+# Wache haelt das fest, damit es nicht beim naechsten neuen Workflow
+# zurueckfaellt. Begruendung: docs/runner-image.md in kaspa-pulse.
+#
+# Kein Secret, deshalb kein Fingerabdruck und keine Ausnahme ueber
+# .secret-scan-allow - die Zeile ist einfach falsch oder nicht da.
+WF_ORDNER = ".github/workflows/"
+WF_ART = "ubuntu-latest statt gepinntem image"
+# Nur echte runs-on-Zeilen. Ein Kommentar oder eine Doku, die ubuntu-latest
+# erwaehnt, ist in Ordnung - sonst koennte man es nicht mehr erklaeren.
+_WF_LATEST = re.compile(r"""runs-on:\s*\[?\s*["']?ubuntu-latest""")
+
+
+def in_workflows(pfad):
+    return (pfad or "").replace("\\", "/").startswith(WF_ORDNER)
+
+
+def workflow_zeile(pfad, zeile):
+    """True, wenn diese Zeile in dieser Datei ubuntu-latest festlegt."""
+    return bool(in_workflows(pfad) and _WF_LATEST.search(zeile))
+
+
 def diff_pruefen(diff, ok, quelle):
     """Nur hinzugefuegte Zeilen eines Diffs. Zeilennummer in der neuen Datei."""
     funde, pfad, nr, lauf = [], None, 0, SeedLauf()
@@ -229,6 +255,8 @@ def diff_pruefen(diff, ok, quelle):
         if pfad is None:
             continue
         if z.startswith("+"):
+            if workflow_zeile(pfad, z[1:]):
+                funde.append((pfad, nr, WF_ART, "-"))
             for art, fp in zeile_pruefen(z[1:]):
                 if fp not in ok:
                     funde.append((pfad, nr, art, fp))
@@ -261,7 +289,11 @@ def baum_pruefen(ok, dateien=None):
         daten = f.read_bytes()
         if ist_binaer(daten):
             continue
-        funde += text_pruefen(p, daten.decode("utf-8", "replace"), ok)
+        text = daten.decode("utf-8", "replace")
+        if in_workflows(p):
+            funde += [(p, i, WF_ART, "-") for i, z in enumerate(text.splitlines(), 1)
+                      if _WF_LATEST.search(z)]
+        funde += text_pruefen(p, text, ok)
     return funde
 
 
@@ -318,9 +350,14 @@ def melden(funde, titel):
             p, nr, art, fp, erst, drin = f
             print("  %s:%s  %s  fp=%s  eingefuehrt %s  heute auf %s"
                   % (p, nr, art, fp, erst, ", ".join(drin) if drin else "keiner branch-spitze"))
-    print("\nNicht pushen. Den Wert aus der Datei nehmen, als GitHub Secret ablegen und")
-    print("im Code aus der Umgebung lesen (os.environ). War er schon auf GitHub, gilt er")
-    print("als verbrannt und wird neu erzeugt.")
+    if any(f[2] != WF_ART for f in funde):
+        print("\nNicht pushen. Den Wert aus der Datei nehmen, als GitHub Secret ablegen und")
+        print("im Code aus der Umgebung lesen (os.environ). War er schon auf GitHub, gilt er")
+        print("als verbrannt und wird neu erzeugt.")
+    if any(f[2] == WF_ART for f in funde):
+        print("\nKein Secret, aber auch nicht erwuenscht: runs-on gehoert auf ein gepinntes")
+        print("Image, runs-on: ubuntu-24.04. ubuntu-latest wandert ab dem 19.10.2026 auf")
+        print("Ubuntu 26. Begruendung: docs/runner-image.md in kaspa-pulse.")
     if os.environ.get("GITHUB_ACTIONS"):
         for f in funde:
             print("::error file=%s,line=%s::secret-scan %s (fp=%s)" % (
@@ -405,6 +442,20 @@ def selbsttest():
                  "kaspa cuts its block reward again in two days, once a month, and twelve steps halve it",
                  "Die Rotation hat Form 3 zum zweiten Tag in Folge gewaehlt, das ist gegen die Wochenregel."):
         ok("text bleibt still: %s" % satz[:30], text_pruefen("t.md", satz, set()) == [])
+    # Wache gegen ubuntu-latest (Ben, 10.10.2026)
+    wf = ".github/workflows/beispiel.yml"
+    ok("ubuntu-latest in einem workflow wird gefangen",
+       workflow_zeile(wf, "    runs-on: ubuntu-latest"))
+    ok("auch in anfuehrungszeichen und als liste",
+       workflow_zeile(wf, 'runs-on: "ubuntu-latest"')
+       and workflow_zeile(wf, "runs-on: [ubuntu-latest]"))
+    ok("gepinntes image bleibt still", not workflow_zeile(wf, "    runs-on: ubuntu-24.04"))
+    ok("ein kommentar darf ubuntu-latest nennen",
+       not workflow_zeile(wf, "      # frueher stand hier ubuntu-latest"))
+    ok("eine doku darf ubuntu-latest nennen",
+       not workflow_zeile("docs/runner-image.md", "`ubuntu-latest` wandert auf Ubuntu 26"))
+    ok("ausserhalb von .github/workflows zaehlt es nicht",
+       not workflow_zeile("deploy/beispiel.yml", "runs-on: ubuntu-latest"))
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 
