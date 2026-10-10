@@ -40,5 +40,28 @@ Reparatur: `actions/checkout`, `actions/setup-python` und
 
 ## Neue Workflows
 
-`runs-on: ubuntu-24.04`. Wer `ubuntu-latest` schreibt, nimmt den Sprung
-wieder in Kauf.
+`runs-on: ubuntu-24.04`. Das muss man sich nicht merken: **`secret_scan.py`
+wacht darüber** (Ben, 10.10.2026, in allen drei Repos). Eine `runs-on`-Zeile
+mit `ubuntu-latest` unter `.github/workflows/` macht den Lauf rot — im
+Baumlauf, im Commit-Bereich und lokal schon vor dem Commit über die Hooks
+in `.githooks/`.
+
+Die Meldung nennt Datei und Zeile und sagt, was stattdessen dasteht:
+
+```
+secret-scan: alle dateien im checkout, 1 fund(e). Werte werden nie gezeigt.
+  .github/workflows/zz-probe.yml:5  ubuntu-latest statt gepinntem image  fp=-
+
+Kein Secret, aber auch nicht erwuenscht: runs-on gehoert auf ein gepinntes
+Image, runs-on: ubuntu-24.04. ubuntu-latest wandert ab dem 19.10.2026 auf
+Ubuntu 26. Begruendung: docs/runner-image.md in kaspa-pulse.
+```
+
+Es zählt **nur eine echte `runs-on`-Zeile**. Ein Kommentar in einem Workflow
+darf `ubuntu-latest` nennen, und diese Datei hier darf es auch — sonst
+ließe sich die Regel nicht mehr erklären. Weil es kein Secret ist, gibt es
+keinen Fingerabdruck und keine Ausnahme über `.secret-scan-allow`: die Zeile
+ist entweder richtig oder nicht da.
+
+Beim Wechsel auf Ubuntu 26 wird diese Wache als Erstes angepasst, nicht
+umgangen.
