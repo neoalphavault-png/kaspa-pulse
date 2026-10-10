@@ -1,8 +1,8 @@
 # Kaspa Pulse - miner-anteil nachtraeglich, in stuecken (Ben, 09.10.2026)
 #
 # Liegt bewusst NUR auf dem Branch messung/tn10-zaehler. Nicht gemergt.
-# Eigene concurrency-gruppe, eigener pfad. Nur lesend, nur bloecke (keine
-# kette), zwei knoten je stueck, hoechstens zwei stuecke gleichzeitig.
+# Eigene concurrency-gruppe, eigener pfad. Nur lesend, nur bloecke (mit
+# dritter spalte "kette" auch die kette), zwei knoten je stueck, hoechstens zwei stuecke gleichzeitig.
 # Ziel nur als hash in messung/tn10/nach/ziel.sha256, nie adresse oder script.
 # Keine Wallet, keine Schluessel, keine Secrets, nichts ins Repo.
 
@@ -35,7 +35,7 @@ jobs:
           python3 -c "
           import json
           z=[l.split() for l in open('messung/tn10/nach/stuecke.txt') if l.strip() and not l.startswith('#')]
-          print('stuecke='+json.dumps([{'n':i+1,'von':a,'bis':b} for i,(a,b) in enumerate(z)]))
+          print('stuecke='+json.dumps([{'n':i+1,'von':x[0],'bis':x[1],'modus':('' if len(x)>2 and x[2]=='kette' else '--nur-bloecke')} for i,x in enumerate(z)]))
           " | tee -a "$GITHUB_OUTPUT"
 
   stueck:
@@ -61,14 +61,15 @@ jobs:
           VON: ${{ matrix.s.von }}
           BIS: ${{ matrix.s.bis }}
           N: ${{ matrix.s.n }}
+          MODUS: ${{ matrix.s.modus }}
         run: |
           mkdir -p out/einzeln
           P="$RUNNER_TEMP/tn10-miner-partner.json"
           Z=messung/tn10/nach/ziel.sha256
-          python3 scripts/tn10_nachzaehlung.py --von "$VON" --bis "$BIS" --nur-bloecke --rolle k1 --partner "$P" --ziel-datei "$Z" --out "out/einzeln/s$N-k1" > out/einzeln/k1.log 2>&1 &
+          python3 scripts/tn10_nachzaehlung.py --von "$VON" --bis "$BIS" $MODUS --rolle k1 --partner "$P" --ziel-datei "$Z" --out "out/einzeln/s$N-k1" > out/einzeln/k1.log 2>&1 &
           P1=$!
           sleep 20
-          python3 scripts/tn10_nachzaehlung.py --von "$VON" --bis "$BIS" --nur-bloecke --rolle k2 --partner "$P" --ziel-datei "$Z" --out "out/einzeln/s$N-k2" > out/einzeln/k2.log 2>&1 &
+          python3 scripts/tn10_nachzaehlung.py --von "$VON" --bis "$BIS" $MODUS --rolle k2 --partner "$P" --ziel-datei "$Z" --out "out/einzeln/s$N-k2" > out/einzeln/k2.log 2>&1 &
           P2=$!
           S=0
           wait $P1 || S=1
