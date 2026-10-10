@@ -5,7 +5,21 @@ set -eu
 HIER="$(dirname "$0")"
 case "$1" in
   tagesgrafik)
-    "$HIER/takt.sh" "$REPO_PULSE" tagesgrafik.yml
+    # ACHTUNG, hier lag der Fehler am 10.10.2026: ein Takt OHNE Eingaben
+    # nimmt die Vorbelegungen von tagesgrafik.yml - und senden steht dort
+    # absichtlich auf false. Lauf 37 hat die Grafik gebaut und das Artefakt
+    # hochgeladen, aber nichts nach #moderator-only geschickt und nichts ins
+    # Log geschrieben. Darum stehen alle drei Eingaben ausdruecklich da,
+    # genau wie bei Bens Handstart:
+    #   senden=true     Grafik, Texte und Selbstpruefung nach #moderator-only
+    #   form=           leer heisst Rotation, keine Form von Hand
+    #   instagram=aus   der Instagram-Job laeuft zu seiner eigenen Zeit
+    #
+    # senden geht als Text "true" raus, nicht als JSON-Wahrheitswert. Beide
+    # Wege waeren richtig, aber den Text prueft der Workflow ohnehin genau
+    # so ([ "$SENDEN" = "true" ]), und diese Form hat der Dispatch schon
+    # verschickt. Ein 422 morgen um 07:30 waere teurer als die Eleganz.
+    "$HIER/takt.sh" "$REPO_PULSE" tagesgrafik.yml senden=true form= instagram=aus
     ;;
   instagram-bild)
     # Der Job "instagram" in tagesgrafik.yml, von Hand immer trocken.

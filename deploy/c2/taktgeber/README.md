@@ -52,6 +52,29 @@ Jahreszeit mehr.
 > liefen am 09.10.2026 auf c2 zwei Stunden zu spät. Die Zeitzone gehört an
 > die Kalenderzeile (`systemd-analyze calendar` zeigt, was gilt).
 
+## Eingaben: ein Takt ohne Eingaben ist nicht derselbe Lauf
+
+**Ein `workflow_dispatch` ohne Eingaben nimmt die Vorbelegungen aus der
+Workflow-Datei — und die sind absichtlich zurückhaltend.** Am 10.10.2026
+hat Lauf 37 die Tagesgrafik gebaut und das Artefakt hochgeladen, aber
+nichts nach #moderator-only geschickt und nichts ins Log geschrieben:
+`senden` steht in `tagesgrafik.yml` auf `false`, damit ein versehentlicher
+Handstart nicht sendet.
+
+Was jeder Takt deshalb ausdrücklich mitschickt:
+
+| Takt | Eingaben |
+| --- | --- |
+| `tagesgrafik` | `senden=true`, `form=` (leer = Rotation), `instagram=aus` |
+| `instagram-bild` | `instagram=trocken` |
+| `reel` | `live=` aus `REEL_LIVE` in `takt.conf` |
+| `weeklynumbers` | `dry_run=` aus `WN_DRY_RUN` in `takt.conf` |
+| `number-of-day` | keine, der Workflow hat keine, die zählt |
+
+Wer einen Takt dazunimmt, liest zuerst den `workflow_dispatch`-Abschnitt
+des Zielworkflows und schickt jede Eingabe mit, die der Lauf braucht.
+`ausloesen.sh` ist die eine Stelle dafür.
+
 **`Persistent=true`** holt einen verpassten Takt nach — außer beim Reel:
 ein Reel zwei Stunden nach dem Short ist kein Reel zur Short-Zeit, und
 das Fälligkeitsfenster im Skript würde es ohnehin abweisen.
