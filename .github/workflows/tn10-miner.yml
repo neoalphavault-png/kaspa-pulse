@@ -1,0 +1,116 @@
+# Kaspa Pulse - miner-anteil nachtraeglich, in stuecken (Ben, 09.10.2026)
+#
+# Liegt bewusst NUR auf dem Branch messung/tn10-zaehler. Nicht gemergt.
+# Eigene concurrency-gruppe, eigener pfad. Nur lesend, nur bloecke (keine
+# kette), zwei knoten je stueck, hoechstens zwei stuecke gleichzeitig.
+# Ziel nur als hash in messung/tn10/nach/ziel.sha256, nie adresse oder script.
+# Keine Wallet, keine Schluessel, keine Secrets, nichts ins Repo.
+
+name: tn10 miner
+
+on:
+  push:
+    branches:
+      - messung/tn10-zaehler
+    paths:
+      - messung/tn10/nach/stuecke.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tn10-miner
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      stuecke: ${{ steps.p.outputs.stuecke }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        run: |
+          python3 -c "
+          import json
+          z=[l.split() for l in open('messung/tn10/nach/stuecke.txt') if l.strip() and not l.startswith('#')]
+          print('stuecke='+json.dumps([{'n':i+1,'von':a,'bis':b} for i,(a,b) in enumerate(z)]))
+          " | tee -a "$GITHUB_OUTPUT"
+
+  stueck:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        s: ${{ fromJSON(needs.plan.outputs.stuecke) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: sdk, version und pruefsumme fest
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+      - name: selbsttest
+        run: python3 scripts/tn10_nachzaehlung.py --selbsttest | tail -n 1
+      - name: zwei knoten, nur bloecke
+        env:
+          VON: ${{ matrix.s.von }}
+          BIS: ${{ matrix.s.bis }}
+          N: ${{ matrix.s.n }}
+        run: |
+          mkdir -p out/einzeln
+          P="$RUNNER_TEMP/tn10-miner-partner.json"
+          Z=messung/tn10/nach/ziel.sha256
+          python3 scripts/tn10_nachzaehlung.py --von "$VON" --bis "$BIS" --nur-bloecke --rolle k1 --partner "$P" --ziel-datei "$Z" --out "out/einzeln/s$N-k1" > out/einzeln/k1.log 2>&1 &
+          P1=$!
+          sleep 20
+          python3 scripts/tn10_nachzaehlung.py --von "$VON" --bis "$BIS" --nur-bloecke --rolle k2 --partner "$P" --ziel-datei "$Z" --out "out/einzeln/s$N-k2" > out/einzeln/k2.log 2>&1 &
+          P2=$!
+          S=0
+          wait $P1 || S=1
+          wait $P2 || S=1
+          tail -n 3 out/einzeln/k1.log out/einzeln/k2.log
+          python3 scripts/tn10_nachzaehlung.py --kombinieren "out/einzeln/s$N-k1" "out/einzeln/s$N-k2" --out "out/s$N-gesamt"
+          rm -f out/einzeln/*.log
+          exit $S
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tn10-miner-s${{ matrix.s.n }}
+          path: out/
+          if-no-files-found: ignore
+          retention-days: 30
+
+  zusammen:
+    needs: [plan, stueck]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: tn10-miner-s*
+          path: out/stuecke
+      - name: minuten aller stuecke
+        run: |
+          python3 - <<'PY'
+          import csv, glob
+          rows = {}
+          for p in sorted(glob.glob("out/stuecke/*/s*-gesamt.csv")):
+              for r in csv.DictReader(open(p)):
+                  rows[r["minute_utc"]] = r
+          spalten = ["minute_utc", "k1_voll", "k2_voll", "k1_bloecke", "k2_bloecke", "k1_ziel_bloecke", "k2_ziel_bloecke", "ziel_anteil_pct", "miner_verschieden"]
+          print(",".join(spalten))
+          for m in sorted(rows):
+              print(",".join(str(rows[m].get(s, "")) for s in spalten))
+          voll = [r for r in rows.values() if r.get("k1_voll") == "1" and r.get("k2_voll") == "1"]
+          gleich = [r for r in voll if r.get("k1_bloecke") == r.get("k2_bloecke") and r.get("k1_ziel_bloecke") == r.get("k2_ziel_bloecke")]
+          zb = sum(int(r["k1_ziel_bloecke"] or 0) for r in voll); bb = sum(int(r["k1_bloecke"] or 0) for r in voll)
+          print("=== zusammenfassung")
+          print("minuten %d, beide knoten voll %d, davon gleich %d" % (len(rows), len(voll), len(gleich)))
+          print("ziel-bloecke %d von %d bloecken in vollen minuten, %.2f %%" % (zb, bb, 100.0 * zb / bb if bb else 0))
+          PY
