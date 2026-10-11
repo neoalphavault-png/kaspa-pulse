@@ -126,6 +126,7 @@ EX_EREIGNIS = 500000                 # KAS in 24 h, dann Form 2
 CUT_EREIGNIS_TAGE = 3                # Reward-Senkung in hoechstens 3 Tagen, dann Form 3
 GEB_MIN_TAGE = 25                    # weniger Gebuehrentage in 30, dann ist die Reihe gebrochen
 GEB_FRIST_TAGE = 10                  # aelter nimmt der Monatsbau keinen Wert
+GEB_ERINNERUNG_TAGE = 7              # so lange gebrochen, dann einmal erinnern
 FREIGESCHALTET = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}   # 13 erst nach Bens Beschluss
 
 
@@ -1739,29 +1740,50 @@ def gebuehren_reihe(now, werte=None):
     return aus
 
 
-def gebuehren_bruch(log, heute, geb, frist=GEB_FRIST_TAGE):
-    """Eine Zeile nach #moderator-only, am Tag des Bruchs (Ben, 11.10.2026).
-    Nicht an jedem Tag danach: gemeldet wird der Wechsel von heiler zu
-    gebrochener Reihe, den liest das Tageslog selbst aus. Ohne Bruch leer."""
+def gebuehren_bruch(log, heute, geb, frist=GEB_FRIST_TAGE, erinnern=GEB_ERINNERUNG_TAGE):
+    """Eine Zeile nach #moderator-only, am Tag des Bruchs (Ben, 11.10.2026),
+    und eine einzige Erinnerung `erinnern` Tage nach dem letzten guten Wert
+    (Ben, 12.10.2026). Dazwischen und danach still. Beides liest das
+    Tageslog selbst aus, es braucht keinen eigenen Zustand daneben."""
     if not geb.get("ausfall"):
         return ""
     mit = [e for e in sorted(log.get("laeufe", []), key=lambda e: e["datum"])
            if e["datum"] <= heute.isoformat()
            and isinstance((e.get("messwerte") or {}).get("gebuehren"), dict)]
-    letzte = mit[-1] if mit else None
-    if letzte and letzte["messwerte"]["gebuehren"].get("ausfall"):
-        return ""                                  # steht schon im log, einmal reicht
+    gut = [e for e in mit if not e["messwerte"]["gebuehren"].get("ausfall")]
+    letzte, letzter_gut = (mit[-1] if mit else None), (gut[-1] if gut else None)
+    if letzte is None or not letzte["messwerte"]["gebuehren"].get("ausfall"):
+        return gebuehren_bruch_text(geb, letzter_gut, frist)
+    # Der Bruch steht schon im Log, gemeldet ist er auch. Einmal noch, wenn
+    # die Frist in Sicht kommt. Ohne guten Wert im Log gibt es keine Frist,
+    # dann sagt die Zeile vom Tag des Bruchs schon alles.
+    if letzter_gut is None:
+        return ""
+    gut_tag = dt.date.fromisoformat(letzter_gut["datum"])
+    alter = (heute - gut_tag).days
+    vorher = [e for e in mit if e["datum"] < heute.isoformat()]
+    gestern = (dt.date.fromisoformat(vorher[-1]["datum"]) - gut_tag).days if vorher else 0
+    if alter < erinnern or gestern >= erinnern:
+        return ""                                  # noch zu frueh, oder schon erinnert
+    rest, frist_tag = frist - alter, (gut_tag + dt.timedelta(days=frist)).isoformat()
+    if rest <= 0:
+        return ("gebuehrenreihe seit %d tagen gebrochen, die frist am %s ist vorbei,"
+                " der monatsbau bricht ab." % (alter, frist_tag))
+    return ("gebuehrenreihe seit %d tagen gebrochen, noch %d tage bis zur frist am %s."
+            % (alter, rest, frist_tag))
+
+
+def gebuehren_bruch_text(geb, letzter_gut, frist=GEB_FRIST_TAGE):
+    """Die Zeile am Tag des Bruchs, mit dem letzten guten Wert und der Frist."""
     text = "gebuehrenreihe gebrochen, %s." % geb["ausfall"]
-    if letzte:
-        g = letzte["messwerte"]["gebuehren"]
-        bis = dt.date.fromisoformat(letzte["datum"]) + dt.timedelta(days=frist)
-        text += (" letzter guter wert im tageslog %s, %sx, fenster bis %s."
-                 " der monatsbau nimmt keinen wert, der aelter als %d tage ist,"
-                 " frisch gebraucht bis %s." % (letzte["datum"], ganz(g["verhaeltnis"]),
-                                                tag(g["bis"]), frist, bis.isoformat()))
-    else:
-        text += " im tageslog steht noch kein guter wert."
-    return text
+    if letzter_gut is None:
+        return text + " im tageslog steht noch kein guter wert."
+    g = letzter_gut["messwerte"]["gebuehren"]
+    bis = dt.date.fromisoformat(letzter_gut["datum"]) + dt.timedelta(days=frist)
+    return text + (" letzter guter wert im tageslog %s, %sx, fenster bis %s."
+                   " der monatsbau nimmt keinen wert, der aelter als %d tage ist,"
+                   " frisch gebraucht bis %s." % (letzter_gut["datum"], ganz(g["verhaeltnis"]),
+                                                  tag(g["bis"]), frist, bis.isoformat()))
 
 
 def log_eintragen(log, eintrag):
@@ -2031,6 +2053,26 @@ def selbsttest():
     ok("ohne guten wert im log sagt die meldung genau das",
        gebuehren_bruch({"laeufe": [{"datum": "2026-10-05", "form": 9}]},
                        dt.date(2026, 10, 6), bruch).endswith("noch kein guter wert."))
+    # Eine einzige Erinnerung, Tag 7 des Bruchs (Ben, 12.10.2026)
+    def gebrochen(bis_tag, ab_tag=6):
+        return {"laeufe": heil["laeufe"] + [
+            {"datum": "2026-10-%02d" % d, "form": 4, "messwerte": {"gebuehren": bruch}}
+            for d in range(ab_tag, bis_tag + 1)]}
+    ok("tag 6 des bruchs, noch keine erinnerung",
+       gebuehren_bruch(gebrochen(10), dt.date(2026, 10, 11), bruch) == "")
+    ok("tag 7 des bruchs, eine erinnerung mit frist",
+       gebuehren_bruch(gebrochen(11), dt.date(2026, 10, 12), bruch)
+       == "gebuehrenreihe seit 7 tagen gebrochen, noch 3 tage bis zur frist am 2026-10-15.")
+    ok("tag 8, keine zweite erinnerung",
+       gebuehren_bruch(gebrochen(12), dt.date(2026, 10, 13), bruch) == "")
+    ok("fehlende logtage holen die erinnerung nach, ohne negative frist",
+       gebuehren_bruch(gebrochen(6), dt.date(2026, 10, 16), bruch)
+       == "gebuehrenreihe seit 11 tagen gebrochen, die frist am 2026-10-15 ist vorbei,"
+          " der monatsbau bricht ab.")
+    ok("ohne guten wert im log keine erinnerung",
+       gebuehren_bruch({"laeufe": [{"datum": "2026-10-06", "form": 4,
+                                    "messwerte": {"gebuehren": bruch}}]},
+                       dt.date(2026, 10, 20), bruch) == "")
     ok("form 4 legt die blockrate samt messfenster ab",
        messwerte_fuer_log(4, FAKE[4]) == {"bps": FAKE[4]["bps"], "blockrate_sek": BLOCKRATE_SEK,
                                           "daa": FAKE[4]["daa"]})
