@@ -23,7 +23,7 @@ In Edition 1 standen die Achsengrenzen, die Quadratzahl im Gebuehrenraster,
 der aktuelle Reward und das 7-Tage-Mittel als Zahl im Quelltext. Hier wird
 alles gerechnet, siehe achse() und die vorlagen. Der Selbsttest baut mit den
 Daten vom 11.10.2026 und prueft, dass dieselben Zahlen herauskommen wie in
-Fassung 2.
+Fassung 2.1, der veroeffentlichten Ausgabe.
 
 AUFRUFE
     --probe [--aus datei]   nur messen, probe als json auf stdout
@@ -1195,7 +1195,7 @@ def selbsttest():
        f.count("@font-face"))
     ok("keine schrift aus dem netz", "http" not in f)
 
-    # der ganze bau aus den daten vom 11.10.2026 muss Fassung 2 ergeben
+    # der ganze bau aus den daten vom 11.10.2026 muss Fassung 2.1 ergeben
     s = html(p, 1, fonts="")
     ok("zehn seiten", s.count('<section class="pg') == 10, s.count('<section class="pg'))
     muss = [
@@ -1241,9 +1241,10 @@ def selbsttest():
         "edition 1 · october 2026 · not financial advice",
     ]
     fehlt = [m for m in muss if m not in s]
-    ok("jeder satz und jede zahl aus Fassung 2 steht in der seite", not fehlt, fehlt)
-    # die eine stelle, an der Edition 1 anders rechnete: dort stand die
-    # 90-tage-differenz gegen den 07.07. (89 tage), streng sind es 90 tage
+    ok("jeder satz und jede zahl aus Fassung 2.1 steht in der seite", not fehlt, fehlt)
+    # streng gegen den 90. tag, wie in Fassung 2.1. Fassung 2 stand auf
+    # -637, gezaehlt gegen den 07.07. und damit gegen 89 tage; die
+    # veroeffentlichte datei ist am 12.10.2026 nachgezogen worden
     ok("90-tage-differenz streng gegen den 90. tag", "−718 in 90" in s
        and "−637" not in s)
     ok("kein platzhalter und kein None in der seite",
