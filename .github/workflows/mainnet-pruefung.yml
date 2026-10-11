@@ -1,0 +1,40 @@
+# Kaspa Pulse - Mainnet, wie weit reichen zwei Knoten zurueck (11.10.2026)
+#
+# Liegt nur auf dem Arbeitsbranch, nicht gemergt. Nur lesend: zwei
+# unabhaengige Mainnet-Knoten ueber den Resolver, je Knoten Version,
+# synchron, UTXO-Index und Pruning-Punkt. Gibt keine Adresse, keine Tx-ID
+# und keinen Covenant aus. Keine Wallet, keine Schluessel, keine Secrets.
+
+name: mainnet pruefung
+
+on:
+  push:
+    branches:
+      - claude/kaspa-covenants-distribution-5d7aqz
+    paths:
+      - messung/mainnet/auftrag.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mainnet-pruefung
+  cancel-in-progress: false
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: sdk, version und pruefsumme fest
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+      - name: selbsttest
+        run: python3 scripts/mainnet_pruefung.py --selbsttest | tail -n 1
+      - name: zwei knoten
+        run: |
+          VOR=$(grep -v '^#' messung/mainnet/auftrag.txt | head -n 1 | tr -d '[:space:]')
+          python3 scripts/mainnet_pruefung.py --vor "$VOR"
