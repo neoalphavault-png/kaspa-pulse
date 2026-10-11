@@ -330,7 +330,6 @@ const DATA = {
   "circ_supply_as_of": "2026-10-05T06:45:07Z",
   "emission": {
     "block_reward": 2.06,
-    "next_reduction_at": "2026-09-04T16:45:44Z",
     "annual_inflation_pct": 2.6
   },
   "hashrate_windows": {
@@ -709,9 +708,20 @@ const wRow = (label, pct) => { if(pct==null) return `<div class="tr"><span class
   const cls = pct>0.5?"up":(pct<-0.5?"down":"flat");
   return `<div class="tr"><span class="win">${label}</span><span class="${cls}">${pct>0?'▲ +':'▼ '}${Math.abs(pct)}%</span></div>`; };
 // Countdown bis zur naechsten Reward-Reduktion, kalendertaggenau in UTC.
+// Der Termin wird GERECHNET, nicht gepflegt (Ben, 11.10.2026). Vorher stand
+// er als Handwert im Datenblock und war zwei Stufen alt: die Startseite
+// zeigte fuenf Wochen lang "just happened" statt eines Countdowns. Der
+// Datenblock kommt nur montags frisch, die Stufen liegen 30,4 Tage
+// auseinander - gepflegt geht das nicht gut.
+// Dieselben Konstanten wie scripts/number_of_day_data.py, dort steht die
+// Wahrheit: Anker, Schrittweite 365,25/12 Tage, zwoelf Stufen halbieren.
+const EMISSION_ANKER = 1783280744, EMISSION_STUFE = (365.25 / 12) * 86400;
+const nextRedTs = (() => {
+  const k = Math.floor((Date.now() / 1000 - EMISSION_ANKER) / EMISSION_STUFE);
+  return (EMISSION_ANKER + (k + 1) * EMISSION_STUFE) * 1000;
+})();
 const nextRedTxt = (() => {
-  const iso = DATA.emission.next_reduction_at; if(!iso) return "—";
-  const t = new Date(iso), n = new Date();
+  const t = new Date(nextRedTs), n = new Date();
   const day = d => Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
   const d = Math.round((day(t) - day(n)) / 86400000);
   return d > 1 ? "in " + d + " days" : d === 1 ? "tomorrow" : d === 0 ? "today" : "just happened";
