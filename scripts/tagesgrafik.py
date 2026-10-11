@@ -1665,6 +1665,39 @@ def falke_lesen(pfad=None):
     raise Stop("falke fehlt (graphics/falcon.b64)")
 
 
+# Welche gemessenen Werte je Form mit ins Tageslog gehen (Ben, 10.10.2026,
+# fuer das Cheat Sheet). Bisher stand im Log nur, WELCHE Form lief, nie WAS
+# sie gemessen hat. Die Werte lagen damit allein im Artefakt des Laufs, und
+# das haelt 14 Tage - nach zwei Wochen war keine Zahl mehr belegbar.
+#
+# Nur Rohwerte, nichts Gerechnetes und kein Text. Die Verhaeltniszahl bei
+# Form 5 ist die eine Ausnahme, weil genau sie veroeffentlicht wird und
+# sonst niemand sie nachrechnen kann, ohne beide Rohwerte zu haben.
+LOG_MESSWERTE = {5: ("tage", "von", "bis", "fees", "emission")}
+
+
+def messwerte_fuer_log(form, w):
+    """Die gemessenen Werte dieses Laufs, so weit sie belegbar sind."""
+    if not isinstance(w, dict):
+        return {}
+    aus = {k: w[k] for k in LOG_MESSWERTE.get(form, ()) if w.get(k) is not None}
+    # Die Blockrate wird je Lauf BLOCKRATE_SEK lang gemessen und von jeder
+    # Form genutzt, die sie braucht. Gemessen ist gemessen, also kommt sie
+    # ins Log, egal welche Form gelaufen ist. Aus einer gespeicherten
+    # Messung (--aus) steht sie in w, aus einem frischen Lauf im
+    # Zwischenspeicher.
+    bps = w.get("bps") if w.get("bps") is not None else _BLOCKRATE.get("bps")
+    daa = w.get("daa") if w.get("daa") is not None else _BLOCKRATE.get("daa")
+    if bps is not None:
+        aus["bps"] = bps
+        aus["blockrate_sek"] = BLOCKRATE_SEK
+    if daa is not None:
+        aus["daa"] = daa
+    if form == 5 and w.get("fees") and w.get("emission"):
+        aus["verhaeltnis"] = round(w["emission"] / w["fees"], 2)
+    return aus
+
+
 def log_eintragen(log, eintrag):
     """Ein Eintrag je Tag. Liefert ein Handlauf nach dem Cron noch einmal,
     zaehlt die spaetere Lieferung, sonst steht der Tag doppelt in der
@@ -1778,8 +1811,13 @@ def main(argv=None):
             raise SystemExit("ABBRUCH kein DISCORD_WEBHOOK_OPS, nichts geschickt")
         ops_senden(png, vpng, s, form, grund, hook)
     if a.log_schreiben:
-        log_eintragen(log, {"datum": heute.isoformat(), "form": form,
-                            "grund": grund, "messzeit_utc": m["messzeit_utc"]})
+        eintrag = {"datum": heute.isoformat(), "form": form,
+                   "grund": grund, "messzeit_utc": m["messzeit_utc"]}
+        mw = messwerte_fuer_log(form, m["werte"])
+        if mw:
+            eintrag["messwerte"] = mw
+            print("messwerte ins log: %s" % json.dumps(mw, ensure_ascii=False))
+        log_eintragen(log, eintrag)
         LOG.write_text(json.dumps(log, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     return 0
 
@@ -1875,6 +1913,26 @@ def selbsttest():
         s["instagram"].replace("one wallet holds", "one wallet bought"),
         s["instagram"] + "\nit goes on x at 17:00",
         s["instagram"] + " #a #b #c")))
+    # Messwerte im Tageslog (Ben, 10.10.2026)
+    _BLOCKRATE.clear()
+    ok("form 5 legt beide rohwerte und das verhaeltnis ab",
+       messwerte_fuer_log(5, FAKE[5]) == {"tage": 30, "von": "2026-08-30", "bis": "2026-09-28",
+                                          "fees": 73020.31, "emission": 57213980.47,
+                                          "verhaeltnis": 783.54})
+    ok("form 4 legt die blockrate samt messfenster ab",
+       messwerte_fuer_log(4, FAKE[4]) == {"bps": FAKE[4]["bps"], "blockrate_sek": BLOCKRATE_SEK,
+                                          "daa": FAKE[4]["daa"]})
+    ok("eine form ohne messwert legt nichts ab", messwerte_fuer_log(7, FAKE[7]) == {})
+    ok("die blockrate kommt auch aus dem zwischenspeicher", (
+        _BLOCKRATE.update({"bps": 10.16, "daa": 553000000}),
+        messwerte_fuer_log(10, {"circ": 1, "max": 2}) == {"bps": 10.16, "daa": 553000000,
+                                                          "blockrate_sek": BLOCKRATE_SEK})[1])
+    _BLOCKRATE.clear()
+    ok("nichts gemessen, nichts im log", messwerte_fuer_log(10, {"circ": 1, "max": 2}) == {})
+    ok("ein eintrag mit messwerten bleibt einer je tag", (lambda lg: (
+        log_eintragen(lg, {"datum": "2026-10-10", "form": 5, "messwerte": {"fees": 1.0}}),
+        len(lg["laeufe"]) == 1 and lg["laeufe"][0]["messwerte"] == {"fees": 1.0})[1])(
+            {"laeufe": [{"datum": "2026-10-10", "form": 4}]}))
     ok("stopp-datum aus der seite", heute_iso({"datum": "9 oct 2026"}) == "2026-10-09")
     # die regeln selbst
     probe = lambda t, form=None: pruefe_eine(t, form, "probe")    # noqa: E731
