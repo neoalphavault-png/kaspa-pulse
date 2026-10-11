@@ -232,14 +232,15 @@ units() {
   meldung "Units verlinken"
   systemctl link "$A/entity-x-alarm.service" "$A/entity-x-sync.service" "$A/entity-x-sync.timer"
   systemctl link "$T/takt@.service"
-  for t in tagesgrafik instagram-bild reel weeklynumbers number-of-day; do
+  for t in tagesgrafik instagram-bild reel weeklynumbers number-of-day cheat-sheet; do
     systemctl link "$T/takt-$t.timer"
   done
   systemctl daemon-reload
   meldung "Starten"
   systemctl enable --now entity-x-alarm.service entity-x-sync.timer
   systemctl enable --now takt-tagesgrafik.timer takt-instagram-bild.timer \
-    takt-reel.timer takt-weeklynumbers.timer takt-number-of-day.timer
+    takt-reel.timer takt-weeklynumbers.timer takt-number-of-day.timer \
+    takt-cheat-sheet.timer
   hinweis "journalctl -u entity-x-alarm -f  zeigt jede Minute eine Zeile"
 }
 
@@ -258,7 +259,7 @@ nachziehen() {
   meldung "Timer neu starten"
   # Einzeln aufgezaehlt, nicht als Muster: ein Muster trifft nur Units,
   # die systemd gerade geladen hat.
-  for t in tagesgrafik instagram-bild reel weeklynumbers number-of-day; do
+  for t in tagesgrafik instagram-bild reel weeklynumbers number-of-day cheat-sheet; do
     systemctl restart "takt-$t.timer"
   done
   meldung "Alarm neu starten"

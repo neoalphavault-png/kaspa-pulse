@@ -34,6 +34,7 @@ Log steht es am 01.10. wörtlich: *„kein cron im fenster"*.
 | `takt-instagram-bild` | täglich 09:30 | `tagesgrafik.yml`, Eingabe `instagram=trocken` |
 | `takt-reel` | Di–So 12:00, Mo 17:00 | `instagram-reel.yml` in pulse-studio |
 | `takt-weeklynumbers` | Mo 18:40 | `weeklynumbers.yml` in kaspa-pulse |
+| `takt-cheat-sheet` | am 1. im Monat 09:00 | `cheat-sheet.yml` in kaspa-pulse |
 | `takt-number-of-day` | täglich 10:12 und 11:42 | `number-of-day.yml` in kaspa-pulse |
 
 Die Uhrzeiten stehen in Ortszeit, als Anhang an der Kalenderzeile:

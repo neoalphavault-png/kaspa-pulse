@@ -36,6 +36,14 @@ case "$1" in
     # in takt.conf, bewusst und an einer Stelle.
     "$HIER/takt.sh" "$REPO_PULSE" weeklynumbers.yml "dry_run=${WN_DRY_RUN:-true}"
     ;;
+  cheat-sheet)
+    # Einmal im Monat. Der Workflow baut und schickt PDF und Deckblatt nach
+    # #moderator-only; die Datei der Webseite ersetzt er nur, wenn die
+    # Variable CHEAT_SHEET_LIVE auf "scharf" steht. Der Takt gibt dazu
+    # nichts mit, damit hier keine zweite Stelle entsteht, an der das
+    # Veroeffentlichen haengt.
+    "$HIER/takt.sh" "$REPO_PULSE" cheat-sheet.yml
+    ;;
   number-of-day)
     "$HIER/takt.sh" "$REPO_PULSE" number-of-day.yml
     ;;

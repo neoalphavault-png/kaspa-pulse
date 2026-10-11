@@ -11,3 +11,7 @@ __pycache__/
 credentials*.json
 token*.json
 client_secret*.json
+
+# Bauausgabe des Cheat Sheets. Veroeffentlicht wird nur
+# kaspa-pulse-cheat-sheet.pdf im Wurzelverzeichnis.
+graphics/cheat-sheet/
