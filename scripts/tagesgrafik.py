@@ -124,6 +124,8 @@ MONATE = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", 
 X_ZEIT = "17:00"                     # Ben plant X um 17:00 Berlin
 EX_EREIGNIS = 500000                 # KAS in 24 h, dann Form 2
 CUT_EREIGNIS_TAGE = 3                # Reward-Senkung in hoechstens 3 Tagen, dann Form 3
+GEB_MIN_TAGE = 25                    # weniger Gebuehrentage in 30, dann ist die Reihe gebrochen
+GEB_FRIST_TAGE = 10                  # aelter nimmt der Monatsbau keinen Wert
 FREIGESCHALTET = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}   # 13 erst nach Bens Beschluss
 
 
@@ -720,8 +722,8 @@ def messen_5(now):
     tage = [(bis - dt.timedelta(days=i)).isoformat() for i in range(30)]
     fees = m_kl_reihe("transactions/accepted/fees/total", None, "fluss")
     mit = sorted(d for d in tage if d in fees)
-    if len(mit) < 25:
-        raise Stop("nur %d von 30 tagen mit gebuehr" % len(mit))
+    if len(mit) < GEB_MIN_TAGE:
+        raise Stop("nur %d von 30 tagen mit gebuehr, %d gebraucht" % (len(mit), GEB_MIN_TAGE))
     f = sum(fees[d] for d in mit)
     e = sum(neue_kas(d, d)[0] for d in mit)
     return {"tage": len(mit), "von": mit[0], "bis": mit[-1], "fees": f, "emission": e}
@@ -1624,13 +1626,18 @@ def ops_senden(png, vorschau, s, form, grund, hook):
     with urllib.request.urlopen(req, timeout=60) as r:
         print("an ops geschickt, http %s" % r.status)
     if s.get("instagram"):
-        text = ("INSTAGRAM, caption fuer den post um 09:30, nach discord (nur wenn IG_MODUS scharf, "
-                "stoppen mit der variable IG_STOPP=%s)\n```\n%s\n```" % (heute_iso(s), s["instagram"]))
-        req = urllib.request.Request(hook, data=json.dumps({"content": text[:1990],
-                                     "allowed_mentions": {"parse": []}}).encode(), headers={
-                                     "Content-Type": "application/json", "User-Agent": UA})
-        with urllib.request.urlopen(req, timeout=60) as r:
-            print("instagram-caption an ops geschickt, http %s" % r.status)
+        ops_text(hook, "INSTAGRAM, caption fuer den post um 09:30, nach discord (nur wenn IG_MODUS "
+                 "scharf, stoppen mit der variable IG_STOPP=%s)\n```\n%s\n```" % (
+                     heute_iso(s), s["instagram"]), "instagram-caption")
+
+
+def ops_text(hook, text, was="meldung"):
+    """Eine reine Textzeile nach #moderator-only."""
+    req = urllib.request.Request(hook, data=json.dumps({"content": text[:1990],
+                                 "allowed_mentions": {"parse": []}}).encode(), headers={
+                                 "Content-Type": "application/json", "User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        print("%s an ops geschickt, http %s" % (was, r.status))
 
 
 def heute_iso(s):
@@ -1670,13 +1677,17 @@ def falke_lesen(pfad=None):
 # sie gemessen hat. Die Werte lagen damit allein im Artefakt des Laufs, und
 # das haelt 14 Tage - nach zwei Wochen war keine Zahl mehr belegbar.
 #
-# Nur Rohwerte, nichts Gerechnetes und kein Text. Die Verhaeltniszahl bei
-# Form 5 ist die eine Ausnahme, weil genau sie veroeffentlicht wird und
-# sonst niemand sie nachrechnen kann, ohne beide Rohwerte zu haben.
-LOG_MESSWERTE = {5: ("tage", "von", "bis", "fees", "emission")}
+# Nur Rohwerte, nichts Gerechnetes und kein Text. Die Verhaeltniszahl der
+# Gebuehrenreihe ist die eine Ausnahme, weil genau sie veroeffentlicht wird
+# und sonst niemand sie nachrechnen kann, ohne beide Rohwerte zu haben.
+#
+# Form 5 steht hier nicht mehr (Ben, 11.10.2026): ihre Rohwerte sind die
+# Gebuehrenreihe, und die messen wir jeden Tag, siehe gebuehren_reihe. Sie
+# steht unter "gebuehren" im Eintrag, an form-5-Tagen wie an allen anderen.
+LOG_MESSWERTE = {}
 
 
-def messwerte_fuer_log(form, w):
+def messwerte_fuer_log(form, w, geb=None):
     """Die gemessenen Werte dieses Laufs, so weit sie belegbar sind."""
     if not isinstance(w, dict):
         return {}
@@ -1693,9 +1704,64 @@ def messwerte_fuer_log(form, w):
         aus["blockrate_sek"] = BLOCKRATE_SEK
     if daa is not None:
         aus["daa"] = daa
-    if form == 5 and w.get("fees") and w.get("emission"):
-        aus["verhaeltnis"] = round(w["emission"] / w["fees"], 2)
+    if geb:
+        aus["gebuehren"] = geb
     return aus
+
+
+# --------------------------------------------------- die gebuehrenreihe
+#
+# "Neue Coins zu Gebuehren" ist eine der acht Zahlen im Cheat Sheet. Gemessen
+# hat sie bisher nur Form 5, und Form 5 ist eine von elf Formen in der
+# Rotation, zuletzt ein Lauf in 30 Tagen. Der Monatsbau nimmt aber keinen
+# Wert, der aelter als GEB_FRIST_TAGE ist. Also messen wir die Reihe jeden
+# Tag, unabhaengig davon, welche Form heute das Bild bekommt.
+#
+# Die Messung kostet einen Abruf bei kaspalytics, die neuen Coins kommen aus
+# dem Emissionsplan, also ohne Netz. An form-5-Tagen rechnen wir nichts
+# zweimal, da liegen die Werte schon vor.
+
+def gebuehren_reihe(now, werte=None):
+    """Die Gebuehrenreihe fuer das Tageslog, entweder die Rohwerte oder der
+    Grund des Bruchs. Wirft nie: eine gebrochene Reihe darf den Lauf nicht
+    rot machen, sie soll im Log stehen und gemeldet werden."""
+    if isinstance(werte, dict) and werte.get("fees") and werte.get("emission"):
+        w = werte
+    else:
+        try:
+            w = messen_5(now)
+        except Stop as exc:
+            return {"ausfall": str(exc)}
+        except Exception as exc:                   # noqa: BLE001
+            return {"ausfall": "%s, %s" % (type(exc).__name__, exc)}
+    aus = {k: w[k] for k in ("tage", "von", "bis", "fees", "emission")}
+    aus["verhaeltnis"] = round(w["emission"] / w["fees"], 2)
+    return aus
+
+
+def gebuehren_bruch(log, heute, geb, frist=GEB_FRIST_TAGE):
+    """Eine Zeile nach #moderator-only, am Tag des Bruchs (Ben, 11.10.2026).
+    Nicht an jedem Tag danach: gemeldet wird der Wechsel von heiler zu
+    gebrochener Reihe, den liest das Tageslog selbst aus. Ohne Bruch leer."""
+    if not geb.get("ausfall"):
+        return ""
+    mit = [e for e in sorted(log.get("laeufe", []), key=lambda e: e["datum"])
+           if e["datum"] <= heute.isoformat()
+           and isinstance((e.get("messwerte") or {}).get("gebuehren"), dict)]
+    letzte = mit[-1] if mit else None
+    if letzte and letzte["messwerte"]["gebuehren"].get("ausfall"):
+        return ""                                  # steht schon im log, einmal reicht
+    text = "gebuehrenreihe gebrochen, %s." % geb["ausfall"]
+    if letzte:
+        g = letzte["messwerte"]["gebuehren"]
+        bis = dt.date.fromisoformat(letzte["datum"]) + dt.timedelta(days=frist)
+        text += (" letzter guter wert im tageslog %s, %sx, fenster bis %s."
+                 " der monatsbau nimmt keinen wert, der aelter als %d tage ist,"
+                 " frisch gebraucht bis %s." % (letzte["datum"], ganz(g["verhaeltnis"]),
+                                                tag(g["bis"]), frist, bis.isoformat()))
+    else:
+        text += " im tageslog steht noch kein guter wert."
+    return text
 
 
 def log_eintragen(log, eintrag):
@@ -1805,15 +1871,25 @@ def main(argv=None):
     with open(out / (png.stem + ".txt"), "a", encoding="utf-8") as fh:
         fh.write("\nINSTAGRAM, %d zeichen\n%s\n" % (len(s["instagram"]), s["instagram"]))
     print("form %d (%s), %s\n%s\n%s" % (form, grund, png, vpng, (out / (png.stem + ".txt")).read_text()))
+    # die gebuehrenreihe nur, wenn dieser lauf auch etwas damit tut. eine
+    # probe (ohne senden, ohne log) ruft nichts ab und meldet nichts.
+    geb = gebuehren_reihe(messzeit, m.get("werte")) if (a.senden or a.log_schreiben) else {}
+    if geb.get("ausfall"):
+        print("gebuehrenreihe gebrochen, %s" % geb["ausfall"])
+    bruch = gebuehren_bruch(log, heute, geb)
     if a.senden:
         hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
         if not hook:
             raise SystemExit("ABBRUCH kein DISCORD_WEBHOOK_OPS, nichts geschickt")
         ops_senden(png, vpng, s, form, grund, hook)
+        if bruch:
+            ops_text(hook, bruch, "gebuehren-bruch")
+    elif bruch:
+        print("meldung nach ops (nicht geschickt, kein --senden): %s" % bruch)
     if a.log_schreiben:
         eintrag = {"datum": heute.isoformat(), "form": form,
                    "grund": grund, "messzeit_utc": m["messzeit_utc"]}
-        mw = messwerte_fuer_log(form, m["werte"])
+        mw = messwerte_fuer_log(form, m["werte"], geb)
         if mw:
             eintrag["messwerte"] = mw
             print("messwerte ins log: %s" % json.dumps(mw, ensure_ascii=False))
@@ -1915,10 +1991,46 @@ def selbsttest():
         s["instagram"] + " #a #b #c")))
     # Messwerte im Tageslog (Ben, 10.10.2026)
     _BLOCKRATE.clear()
-    ok("form 5 legt beide rohwerte und das verhaeltnis ab",
-       messwerte_fuer_log(5, FAKE[5]) == {"tage": 30, "von": "2026-08-30", "bis": "2026-09-28",
-                                          "fees": 73020.31, "emission": 57213980.47,
-                                          "verhaeltnis": 783.54})
+    # Die Gebuehrenreihe, jeden Tag ins Log (Ben, 11.10.2026)
+    geb_ok = {"tage": 30, "von": "2026-08-30", "bis": "2026-09-28", "fees": 73020.31,
+           "emission": 57213980.47, "verhaeltnis": 783.54}
+    ok("an form-5-tagen wird die reihe nicht zweimal gemessen",
+       gebuehren_reihe(FAKE_NOW, FAKE[5]) == geb_ok)
+    ok("die reihe liegt unter gebuehren, auch wenn eine andere form lief",
+       messwerte_fuer_log(3, FAKE[3], geb_ok)["gebuehren"] == geb_ok)
+    ok("ohne reihe steht kein leerer schluessel im log",
+       "gebuehren" not in messwerte_fuer_log(3, FAKE[3], {}))
+    echt_5 = messen_5
+    try:
+        globals()["messen_5"] = lambda now: (_ for _ in ()).throw(
+            Stop("nur 18 von 30 tagen mit gebuehr, 25 gebraucht"))
+        ok("eine gebrochene reihe wirft nicht, sie wird zum ausfall",
+           gebuehren_reihe(FAKE_NOW) == {"ausfall": "nur 18 von 30 tagen mit gebuehr, 25 gebraucht"})
+        bruch = gebuehren_reihe(FAKE_NOW)
+        globals()["messen_5"] = lambda now: 1 / 0
+        ok("auch ein fehler beim abruf wird zum ausfall, nicht zum abbruch",
+           gebuehren_reihe(FAKE_NOW).get("ausfall", "").startswith("ZeroDivisionError, "))
+    finally:
+        globals()["messen_5"] = echt_5
+    heil = {"laeufe": [{"datum": "2026-10-05", "form": 9, "messwerte": {"gebuehren": geb_ok}}]}
+    ok("heile reihe, keine meldung", gebuehren_bruch(heil, dt.date(2026, 10, 6), geb_ok) == "")
+    meldung = gebuehren_bruch(heil, dt.date(2026, 10, 6), bruch)
+    ok("am tag des bruchs eine meldung mit frist und letztem wert",
+       meldung.startswith("gebuehrenreihe gebrochen, nur 18 von 30 tagen")
+       and "784x" in meldung and "fenster bis 28 sep 2026" in meldung
+       and "frisch gebraucht bis 2026-10-15" in meldung)
+    schon = {"laeufe": heil["laeufe"] + [{"datum": "2026-10-06", "form": 4,
+                                          "messwerte": {"gebuehren": bruch}}]}
+    ok("am tag danach keine zweite meldung",
+       gebuehren_bruch(schon, dt.date(2026, 10, 7), bruch) == "")
+    ok("ein spaeterer eintrag zaehlt nicht fuer heute",
+       "2026-10-15" in gebuehren_bruch(
+           {"laeufe": heil["laeufe"] + [{"datum": "2026-10-20", "form": 4,
+                                         "messwerte": {"gebuehren": bruch}}]},
+           dt.date(2026, 10, 6), bruch))
+    ok("ohne guten wert im log sagt die meldung genau das",
+       gebuehren_bruch({"laeufe": [{"datum": "2026-10-05", "form": 9}]},
+                       dt.date(2026, 10, 6), bruch).endswith("noch kein guter wert."))
     ok("form 4 legt die blockrate samt messfenster ab",
        messwerte_fuer_log(4, FAKE[4]) == {"bps": FAKE[4]["bps"], "blockrate_sek": BLOCKRATE_SEK,
                                           "daa": FAKE[4]["daa"]})
