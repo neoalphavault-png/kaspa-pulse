@@ -1,0 +1,14 @@
+[Unit]
+Description=Kaspa Pulse Takt, Cheat Sheet am 1. im Monat 09:00 Berlin
+
+[Timer]
+Unit=takt@cheat-sheet.service
+OnCalendar=*-*-01 09:00:00 Europe/Berlin
+# Nachholen, wenn c2 am 1. aus war. Der Bau prueft selbst, ob jede Zahl
+# frisch genug ist, und bricht sonst ab - ein spaeter Nachholer ist also
+# entweder richtig oder er sagt, was fehlt.
+Persistent=true
+AccuracySec=1m
+
+[Install]
+WantedBy=timers.target

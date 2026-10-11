@@ -1,0 +1,136 @@
+name: cheat sheet
+
+# Das Cheat Sheet "the 8 kaspa numbers whales watch", einmal im Monat neu
+# gebaut aus unseren eigenen Reihen (Ben, 11.10.2026). Edition 1 ist von Hand
+# entstanden, ab Edition 2 baut scripts/cheat_sheet.py.
+#
+# Der Workflow veroeffentlicht NICHTS. PDF und Deckblatt gehen ueber
+# DISCORD_WEBHOOK_OPS nach #moderator-only, dazu je Zahl ihr Stichtag und
+# wie alt er ist. Ben sieht nach und stellt die Variable CHEAT_SHEET_LIVE auf
+# "scharf", wenn die Datei unter kaspapulse.com/kaspa-pulse-cheat-sheet.pdf
+# ersetzt werden soll. Erst dann wird committet und erst dann verbraucht der
+# Lauf eine Ausgabe-Nummer.
+#
+# Am 1. jeden Monats, 09:00 Berlin, sommer- und winterzeitfest wie die
+# Tagesgrafik: zwei Termine, 07:00 UTC und 08:00 UTC. Der Lauf prueft die
+# Berliner Stunde und endet gruen ohne Bau, wenn er der falsche Termin ist.
+# Den Takt gibt sonst c2 (deploy/c2/taktgeber), dieser Cron ist der Ersatz.
+#
+# Ein Lauf bricht ab, wenn eine der acht Zahlen fehlt oder ihr Stichtag
+# aelter als zehn Tage ist. Das ist gewollt: lieber kein PDF als eines mit
+# neuem Monat und alter Zahl.
+
+on:
+  schedule:
+    - cron: "0 7 1 * *"
+    - cron: "0 8 1 * *"
+  workflow_dispatch:
+    inputs:
+      veroeffentlichen:
+        description: "die datei der webseite ersetzen (braucht CHEAT_SHEET_LIVE=scharf)"
+        type: boolean
+        default: false
+      edition:
+        description: "ausgabe-nummer erzwingen, leer = log + 1"
+        required: false
+        default: ""
+      aus_probe:
+        description: "aus der festen probe bauen, ohne netz (nur zum pruefen)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cheat-sheet
+  cancel-in-progress: false
+
+jobs:
+  bauen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    env:
+      # scharf nur mit der variable UND nur wenn der lauf es verlangt
+      SCHARF: ${{ (vars.CHEAT_SHEET_LIVE == 'scharf' && (github.event_name == 'schedule' || inputs.veroeffentlichen)) && 'ja' || 'nein' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: playwright
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: selbsttest
+        run: python3 scripts/cheat_sheet.py --selbsttest
+      - name: termin pruefen
+        id: t
+        run: |
+          STUNDE=$(TZ=Europe/Berlin date +%H)
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$STUNDE" != "09" ]; then
+            echo "es ist $STUNDE:00 Berlin, gebaut wird um 09:00. nichts zu tun"
+            echo "dran=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "dran=1" >> "$GITHUB_OUTPUT"
+          fi
+      - name: bauen und melden
+        if: steps.t.outputs.dran == '1'
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          EDITION: ${{ inputs.edition }}
+          AUS_PROBE: ${{ inputs.aus_probe }}
+        run: |
+          ARGS="--bauen --melden"
+          if [ "$SCHARF" = "ja" ]; then ARGS="--veroeffentlichen --melden"; fi
+          if [ -n "$EDITION" ]; then
+            case "$EDITION" in ''|*[!0-9]*) echo "edition muss eine zahl sein"; exit 1;; esac
+            ARGS="$ARGS --edition $EDITION"
+          fi
+          # eine probe ist zum pruefen da, nie fuer die webseite
+          if [ "$AUS_PROBE" = "true" ]; then
+            ARGS="--bauen --melden --aus scripts/cheat-sheet-probe.json"
+            if [ -n "$EDITION" ]; then ARGS="$ARGS --edition $EDITION"; fi
+          fi
+          python3 scripts/cheat_sheet.py $ARGS
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.t.outputs.dran == '1'
+        with:
+          name: cheat-sheet
+          path: graphics/cheat-sheet/
+          if-no-files-found: ignore
+          retention-days: 90
+      - name: webseite und log sichern
+        if: steps.t.outputs.dran == '1' && env.SCHARF == 'ja'
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add kaspa-pulse-cheat-sheet.pdf data/cheat-sheet-log.json
+          if git diff --staged --quiet; then
+            echo "unveraendert, kein commit"
+          else
+            git commit -m "cheat sheet neu gebaut [bot]"
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            git push
+          fi
+      - name: ops bei rot
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
+          text = ("cheat sheet ist rot, kein neues pdf. meist ist eine zahl zu alt, "
+                  "der grund steht im lauf\n" + os.environ.get("LAUF", ""))
+          print(text)
+          if hook:
+              req = urllib.request.Request(hook, data=json.dumps({"content": text,
+                    "allowed_mentions": {"parse": []}}).encode(), headers={
+                    "Content-Type": "application/json", "User-Agent": "kaspa-pulse-bot"})
+              urllib.request.urlopen(req, timeout=30)
+          PY

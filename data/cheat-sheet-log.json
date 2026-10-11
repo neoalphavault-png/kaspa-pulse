@@ -1,0 +1,22 @@
+{
+ "hinweis": "eine zeile je ausgabe des cheat sheets. die nummer der naechsten ausgabe ist die hoechste hier plus eins, ein zweiter lauf im selben monat behaelt seine nummer. geschrieben wird nur beim veroeffentlichen, siehe scripts/cheat_sheet.py.",
+ "editionen": [
+  {
+   "n": 1,
+   "monat": "2026-10",
+   "gebaut_utc": "2026-10-11T10:44:00+00:00",
+   "stand": "2026-10-11",
+   "stichtage": {
+    "entityx": "2026-10-10",
+    "boersen": "2026-10-04",
+    "unbewegt": "2026-10-06",
+    "halter": "2026-10-04",
+    "senkung": "2026-10-11",
+    "gebuehren": "2026-10-02",
+    "hashrate": "2026-10-10",
+    "covenants": "2026-10-09"
+   },
+   "herkunft": "von hand gebaut, fassung 2, freigegeben von Ben am 11.10.2026"
+  }
+ ]
+}
