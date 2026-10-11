@@ -18,7 +18,8 @@ damit ein zweiter Lauf nichts aendert:
 WANN EINE SEITE ALS GEAENDERT GILT
   Datum ist der Tag, an dem sich der sichtbare Inhalt zuletzt geaendert hat.
   Gemessen wird ein Hash ueber den Text des <body> ohne Navigation, ohne
-  Skripte, ohne die Zeile "how we fund this" und ohne die Stand-Zeile selbst.
+  Skripte, ohne die Zeile "how we fund this", ohne den Anmeldeblock
+  (div class="subscribe") und ohne die Stand-Zeile selbst.
   Ein neuer Menuepunkt oder ein neuer Titel macht eine Seite also nicht
   "neu", ein neuer Absatz oder eine neue Zahl schon. Hash und Datum stehen in
   data/seiten-stand.json. Der erste Stand kam mit --init aus der Git-Historie,
@@ -170,11 +171,40 @@ def fuss(s, iso):
     return s.replace("  <footer>\n", '  <footer>\n    <div class="stand">%s</div>\n' % zeile, 1)
 
 
+def ohne_div(s, muster):
+    """Schneidet jeden Block heraus, dessen oeffnendes div auf muster passt,
+    samt verschachtelten divs. Ein nicht-greediges .*?</div> reicht dafuer
+    nicht: der Anmeldeblock enthaelt selbst mehrere divs und ein form."""
+    auf = re.compile(muster)
+    tag = re.compile(r"(?i)<(/?)div\b")
+    while True:
+        m = auf.search(s)
+        if not m:
+            return s
+        tiefe, i = 0, m.start()
+        for t in tag.finditer(s, m.start()):
+            tiefe += -1 if t.group(1) else 1
+            if tiefe == 0:
+                ende = s.find(">", t.end())
+                s = s[:m.start()] + " " + s[(ende + 1 if ende > 0 else t.end()):]
+                break
+        else:
+            # kein schliessendes div gefunden, Rest wegschneiden statt haengen
+            return s[:m.start()] + " "
+
+
 def inhalt_hash(s):
     b = s[s.find("<body"):] if "<body" in s else s
     b = re.sub(r"(?s)<nav\b.*?</nav>", " ", b)
     b = re.sub(r"(?s)<(script|style|noscript|template)\b.*?</\1>", " ", b)
     b = re.sub(r'(?s)<div class="fund"[^>]*>.*?</div>', " ", b)
+    # Der Anmeldeblock zaehlt nicht zum Seiteninhalt (Ben, 11.10.2026): am
+    # 11.10. hat eine einzige CTA-Zeile alle 21 Seiten als "aktualisiert"
+    # markiert und damit lastmod fuer Google verwaessert. Der Block ist auf
+    # jeder Seite derselbe und sagt nichts ueber den Inhalt der Seite.
+    # Kein \b nach dem Anfuehrungszeichen: zwischen " und Leerzeichen gibt es
+    # keine Wortgrenze, das Muster wuerde nie treffen.
+    b = ohne_div(b, r'<div class="subscribe"(?=[\s>])')
     b = FUSS.sub(" ", b)
     b = re.sub(r"(?s)<!--.*?-->", " ", b)
     b = re.sub(r"(?s)<[^>]+>", " ", b)
@@ -320,6 +350,21 @@ def selbsttest():
     ok("stand-zeile wiederholbar", fuss(fuss(g, "2026-10-07"), "2026-10-07").count("seitenstand-->page") == 1)
     ok("hash ohne nav, fund, stand", inhalt_hash(seite) == inhalt_hash(g) == inhalt_hash(fuss(g, "2026-10-07")))
     ok("hash sieht neuen text", inhalt_hash(seite) != inhalt_hash(seite.replace("Inhalt", "Inhalt neu")))
+    # Anmeldeblock zaehlt nicht mit (Ben, 11.10.2026), auch nicht mit
+    # verschachtelten divs und einem form darin
+    block = ('<div class="subscribe" id="subscribe">\n<div class="badge">free</div>\n'
+             '<div class="st">get the <b>8 kaspa numbers whales watch</b></div>\n'
+             '<form><input name="EMAIL"><button>get it</button></form>\n'
+             '<div class="fine">unsubscribe anytime</div>\n</div>\n')
+    mit = seite.replace("<p>Inhalt</p>", "<p>Inhalt</p>\n" + block)
+    anders = seite.replace("<p>Inhalt</p>", "<p>Inhalt</p>\n" + block.replace("get it", "jetzt holen"))
+    ok("hash ohne anmeldeblock", inhalt_hash(seite) == inhalt_hash(mit) == inhalt_hash(anders))
+    ok("text des anmeldeblocks ist wirklich weg",
+       "unsubscribe anytime" not in ohne_div(mit, r'<div class="subscribe"(?=[\s>])'))
+    ok("zwei anmeldebloecke auf einer seite", inhalt_hash(seite) == inhalt_hash(
+        seite.replace("<p>Inhalt</p>", block + "<p>Inhalt</p>\n" + block)))
+    ok("ein block ohne schliessendes div haengt nicht",
+       inhalt_hash(seite + '<div class="subscribe" id="subscribe"><p>kaputt</p>') == inhalt_hash(seite))
     st = {"a.html": {"datum": "2026-08-01", "hash": "h1"}}
     ok("gleicher hash, altes datum", stand_neu(st, "a.html", "h1", "2026-10-06") == "2026-08-01")
     ok("neuer hash, heutiges datum", stand_neu(st, "a.html", "h2", "2026-10-06") == "2026-10-06"
