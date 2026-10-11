@@ -31,7 +31,7 @@ import json
 import os
 import re
 import sys
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 
 MONATE = {"january": 1, "february": 2, "march": 3, "april": 4, "may": 5,
           "june": 6, "july": 7, "august": 8, "september": 9, "october": 10,
@@ -163,6 +163,21 @@ def hole_woche(extra_dir):
         return ""
 
 
+def naechster_schnitt(heute):
+    """Datum des naechsten Reward-Schnitts, aus dem Emissionsplan gerechnet.
+    Die Konstanten kommen aus scripts/number_of_day_data.py, damit es sie
+    nur an einer Stelle gibt."""
+    hier = os.path.dirname(os.path.abspath(__file__))
+    if hier not in sys.path:
+        sys.path.insert(0, hier)
+    from number_of_day_data import reward_state
+    # Mittags gerechnet, damit die Zeitzone des Laufs den Kalendertag nicht
+    # kippt. Der Schnitt selbst liegt auf einem Block, nicht auf der Uhr.
+    mitte = datetime.combine(heute, time(12), timezone.utc)
+    _, _, nxt_ts = reward_state(mitte.timestamp())
+    return datetime.fromtimestamp(nxt_ts, timezone.utc).date()
+
+
 def pruefe(html, heute=None, extra_dir=None, wirklich_heute=None):
     data = hole_data(html)
     reads = hole_reads(html)
@@ -170,11 +185,12 @@ def pruefe(html, heute=None, extra_dir=None, wirklich_heute=None):
     woche = hole_woche(extra_dir)
     stand = data.get("updated") or ""
     heute = heute or (date.fromisoformat(stand) if stand else date.today())
-    naechste = (data.get("emission") or {}).get("next_reduction_at") or ""
-    n_mon, n_tag = (0, 0)
-    if naechste:
-        d = date.fromisoformat(naechste[:10])
-        n_mon, n_tag = d.month, d.day
+    # Der naechste Reward-Schnitt wird GERECHNET, nicht aus dem Datenblock
+    # gelesen (Ben, 11.10.2026). Dort stand er als Handwert und war zwei
+    # Stufen alt; ein Lesetext mit dem richtigen Termin waere als "liegt in
+    # der zukunft und steht nicht im datenblock" durchgefallen.
+    d = naechster_schnitt(heute)
+    n_mon, n_tag = d.month, d.day
 
     fehler = []
 
@@ -216,7 +232,6 @@ def run_selftest():
     import tempfile
 
     basis = ('<!-- WEEKLY-DATA-START -->{"updated":"2026-08-17",'
-             '"emission":{"next_reduction_at":"2026-09-04T16:45:44Z"},'
              '"history":['
              '{"date":"2026-07-27","m":{"tps":0.75,"hashrate":262.3}},'
              '{"date":"2026-08-10","m":{"tps":2.67,"hashrate":290.4}},'
