@@ -22,12 +22,18 @@
  */
 (function () {
   "use strict";
-  var KEYS = ["utm_source", "utm_medium", "utm_campaign"];
+  var KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_medium_raw"];
+  /* Spiegel von MEDIEN in scripts/utm.py (Ben, 12.10.2026). Dort ist die
+     Liste zuhause, hier braucht sie der Browser. utm.py --selftest liest
+     diese Zeile und vergleicht beide, damit sie nicht auseinanderlaufen. */
+  var MEDIEN = ["shorts", "video", "post", "chat", "mail", "email", "site", "reply",
+                "bio", "description", "channel"];
   var STORE = "kp_utm";
   var FELD = {
     utm_source: "utmSource",
     utm_medium: "utmMedium",
-    utm_campaign: "utmCampaign"
+    utm_campaign: "utmCampaign",
+    utm_medium_raw: "utmMediumRaw"
   };
 
   function sauber(v) {
@@ -41,7 +47,7 @@
     var out = null;
     try {
       var q = new URLSearchParams(window.location.search);
-      KEYS.forEach(function (k) {
+      ["utm_source", "utm_medium", "utm_campaign"].forEach(function (k) {
         var v = sauber(q.get(k));
         if (v) { out = out || {}; out[k] = v; }
       });
@@ -67,10 +73,19 @@
        Aussage. Gilt fuer alle drei, auch wenn eine Quelle da ist: wer
        ?utm_source=yt-description ohne Rest aufruft, ist
        yt-description / none / none, nicht yt-description / / . */
+    /* Eine Gattung, die nicht in MEDIEN steht, eroeffnet in der Auswertung
+       eine eigene Zeile - genau das, was die Liste verhindern soll. Sie
+       zaehlt deshalb als "other", und was im Link stand, bleibt daneben in
+       UTM_MEDIUM_RAW lesbar (Ben, 12.10.2026, Anlass: utm_medium=social).
+       RAW traegt immer das Original, auch wenn es bekannt war - so
+       beantwortet das Feld eine Frage und nicht zwei. */
+    var roh = utm.utm_medium || "";
+    var gattung = !roh ? "none" : (MEDIEN.indexOf(roh) >= 0 ? roh : "other");
     var werte = {
       utm_source: utm.utm_source || "direct",
-      utm_medium: utm.utm_medium || "none",
-      utm_campaign: utm.utm_campaign || "none"
+      utm_medium: gattung,
+      utm_campaign: utm.utm_campaign || "none",
+      utm_medium_raw: roh || "none"
     };
     KEYS.forEach(function (k) {
       var el = document.getElementById(FELD[k]);
