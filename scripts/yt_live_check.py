@@ -8,8 +8,8 @@ Liest den oeffentlichen Kanal-Feed von YouTube
 neueste Video HEUTE veroeffentlicht wurde, plus dessen URL. Nur
 Standardbibliothek, kein OAuth, kein API-Key, keine Quota.
 
-    python3 scripts/yt_live_check.py                       # Kanal aus YT_CHANNEL_ID oder Handle
-    python3 scripts/yt_live_check.py --channel-id UC...    # Kanal fest
+    python3 scripts/yt_live_check.py                       # unser Kanal, siehe KANAL_ID
+    python3 scripts/yt_live_check.py --channel-id UC...    # ein anderer Kanal
     python3 scripts/yt_live_check.py --date 2026-09-14     # gegen ein anderes Datum pruefen
     python3 scripts/yt_live_check.py --selftest            # ohne Netz
 
@@ -39,8 +39,12 @@ import urllib.error
 import urllib.request
 
 FEED = "https://www.youtube.com/feeds/videos.xml?channel_id=%s"
-CHANNEL_PAGE = "https://www.youtube.com/%s"
-DEFAULT_HANDLE = "@gokugalax3000"        # Kaspa Pulse, wie in monday_briefing.py
+# Die Kanal-ID, nicht der Alias (Ben, 12.10.2026). Ein Alias kann
+# umgezogen werden, die ID nicht. Vorher hat dieses Skript
+# die ID aus dem HTML der Kanalseite gefischt, mit einem regex auf
+# "channelId" - ein Abruf mehr, und er bricht, sobald YouTube sein Markup
+# aendert. Die ID steht in keinem Geheimnis, sie steht in jedem Feed-Link.
+KANAL_ID = "UCLheLoijZUZOE79vRtJtJ9Q"    # Kaspa Pulse / PulseHawk
 UA = {"User-Agent": "kaspa-pulse-bot/1.0 (+https://kaspapulse.com)"}
 TIMEOUT = 30
 
@@ -75,16 +79,6 @@ def fetch(url):
     req = urllib.request.Request(url, headers=UA)
     with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
         return r.read().decode("utf-8", "replace")
-
-
-def resolve_channel_id(handle):
-    """Kanal-ID aus der oeffentlichen Kanalseite, falls YT_CHANNEL_ID fehlt."""
-    html = fetch(CHANNEL_PAGE % handle.lstrip("/"))
-    m = (re.search(r'"channelId"\s*:\s*"(UC[\w-]{20,})"', html)
-         or re.search(r'"externalId"\s*:\s*"(UC[\w-]{20,})"', html))
-    if not m:
-        raise RuntimeError("keine Kanal-ID auf der Seite von %s gefunden" % handle)
-    return m.group(1)
 
 
 # ---------------------------------------------------------------- Feed
@@ -158,8 +152,7 @@ def selftest():
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--channel-id", default="", help="UC..., sonst aus dem Handle geholt")
-    ap.add_argument("--handle", default=DEFAULT_HANDLE, help="Fallback, wenn keine Kanal-ID gesetzt ist")
+    ap.add_argument("--channel-id", default="", help="UC..., leer heisst KANAL_ID")
     ap.add_argument("--date", default="", help="Tag, gegen den geprueft wird (Berlin), Vorgabe heute")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
@@ -169,10 +162,10 @@ def main():
     now = dt.datetime.now(dt.timezone.utc)
     day = dt.date.fromisoformat(a.date) if a.date else berlin_date(now)
     out = {"date": str(day), "live_today": False, "video_id": None, "video_url": None,
-           "title": None, "published": None, "channel_id": a.channel_id or None,
+           "title": None, "published": None, "channel_id": a.channel_id.strip() or KANAL_ID,
            "error": None}
     try:
-        cid = a.channel_id.strip() or resolve_channel_id(a.handle)
+        cid = a.channel_id.strip() or KANAL_ID
         out["channel_id"] = cid
         out.update(check(cid, day))
     except (urllib.error.URLError, RuntimeError, ValueError, OSError) as exc:
