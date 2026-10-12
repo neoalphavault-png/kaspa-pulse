@@ -29,6 +29,12 @@ Ab dem 16.09.2026 traegt JEDER Newsletter-Link drei Parameter:
                    site    eine eigene Seite
                    reply   eine Selbstantwort unter einem Post (Tagesgrafik,
                            seit 30.09.2026, campaign form1 bis form10)
+                   bio     die dauerhafte Stelle in einem Profil, also der
+                           Kurzlink in einer Biografie (seit 12.10.2026,
+                           scripts/kurzlinks.py)
+                   description  die Beschreibung unter einem Video, als
+                           Dauerlink, nicht unter einem einzelnen Stueck
+                   channel die feste Stelle in einem Discord-Kanal
     utm_campaign   WELCHE Serie oder Ausgabe ihn gebracht hat.
 
 Und die Seite reicht utm_source ins Brevo-Formular durch (scripts/utm_fields.py
@@ -67,11 +73,24 @@ QUELLEN = {
     "tg": "chat",
     "newsletter": "mail",
     "site": "site",
+    # Die Profile selbst (Ben, 12.10.2026, fuer die Kurzlinks in
+    # scripts/kurzlinks.py). Ein Klick aus einer Biografie ist etwas anderes
+    # als einer unter einem einzelnen Stueck, darum eigene Quellen und eigene
+    # Gattungen. x, discord und youtube gab es schon; dort unterscheidet erst
+    # das medium den Biografie-Klick vom Klick unter einem Beitrag.
+    "instagram": "bio",
+    "threads": "bio",
 }
 
 # Gattungen, die es gibt. Ein Tippfehler im medium ist genauso teuer wie
 # einer in der Quelle: er eroeffnet eine zweite Zeile in der Auswertung.
-MEDIEN = ("shorts", "video", "post", "chat", "mail", "email", "site", "reply")
+#
+# bio, description und channel kamen am 12.10.2026 mit den Kurzlinks dazu:
+# die dauerhafte Stelle im Profil, in der Videobeschreibung und im
+# Discord-Kanal. Sie sind absichtlich nicht "post" oder "video" - ein
+# Biografie-Link liegt Monate, ein Beitrag einen Tag.
+MEDIEN = ("shorts", "video", "post", "chat", "mail", "email", "site", "reply",
+          "bio", "description", "channel")
 
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 
@@ -96,8 +115,11 @@ def link(source, medium=None, campaign=None):
 
 def selftest():
     schlecht = 0
+    gezaehlt = 0
 
     def pruefe(name, ist, soll):
+        nonlocal gezaehlt
+        gezaehlt += 1
         nonlocal schlecht
         if ist != soll:
             schlecht += 1
@@ -144,6 +166,7 @@ def selftest():
     for falsch, was in ((("youtube-shorts",), "unbekannte quelle"),
                         (("yt-description", "reel"), "unbekannte gattung"),
                         (("x", None, "Weekly Numbers"), "campaign kein slug")):
+        gezaehlt += 1
         try:
             link(*falsch)
             schlecht += 1
@@ -151,7 +174,10 @@ def selftest():
         except ValueError:
             print("  ok   %s faellt auf" % was)
 
-    print("%d von 17 faellen falsch" % schlecht)
+    # gezaehlt statt einer Zahl im Text: hier stand 17, tatsaechlich sind
+    # es 16 Faelle (gesehen am 12.10.2026). Eine Pruefzahl, die nicht
+    # zaehlt, ist eine Behauptung.
+    print("%d von %d faellen falsch" % (schlecht, gezaehlt))
     return 1 if schlecht else 0
 
 
