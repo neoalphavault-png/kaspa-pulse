@@ -36,7 +36,12 @@ import urllib.request
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HISTORY_PATH = os.path.join(ROOT, "data", "channels-history.json")
 
-YOUTUBE_URL = "https://www.youtube.com/@gokugalax3000/about"
+# Die Kanal-ID, nicht der Alias (Ben, 12.10.2026). Ein Alias kann
+# umgezogen werden, die ID nicht, und beide Adressen darunter bauen sich
+# daraus. Dieselbe ID steht in scripts/yt_live_check.py.
+KANAL_ID = "UCLheLoijZUZOE79vRtJtJ9Q"    # Kaspa Pulse / PulseHawk
+YOUTUBE_URL = "https://www.youtube.com/channel/%s/about" % KANAL_ID
+YOUTUBE_FEED = "https://www.youtube.com/feeds/videos.xml?channel_id=%s" % KANAL_ID
 DISCORD_INVITE = "h33JBhrPP7"
 BREVO_URL = "https://api.brevo.com/v3/contacts?limit=1"
 
@@ -85,18 +90,18 @@ def get_youtube():
         if m:
             subs = human_to_int(m.group(1))
             break
+    # Die Kanal-ID stand bis zum 12.10.2026 als regex auf "channelId" im
+    # HTML dieser Seite. Lief der regex ins Leere, fielen die views
+    # stillschweigend aus. Jetzt steht die ID oben, und der Feed wird
+    # direkt geholt.
     views = None
-    m = (re.search(r'"channelId"\s*:\s*"(UC[\w-]{20,})"', html)
-         or re.search(r'"externalId"\s*:\s*"(UC[\w-]{20,})"', html))
-    if m:
-        xml = fetch("https://www.youtube.com/feeds/videos.xml?channel_id="
-                    + m.group(1))
-        counts = re.findall(r'views="(\d+)"', xml)
-        if counts:
-            views = sum(int(v) for v in counts)
-            if len(counts) >= 15:
-                print("WARNUNG: rss-feed randvoll (15 videos), views-summe "
-                      "bald unvollstaendig, auf youtube data api umstellen")
+    xml = fetch(YOUTUBE_FEED)
+    counts = re.findall(r'views="(\d+)"', xml)
+    if counts:
+        views = sum(int(v) for v in counts)
+        if len(counts) >= 15:
+            print("WARNUNG: rss-feed randvoll (15 videos), views-summe "
+                  "bald unvollstaendig, auf youtube data api umstellen")
     return subs, views
 
 
