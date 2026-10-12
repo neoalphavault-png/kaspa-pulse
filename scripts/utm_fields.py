@@ -7,6 +7,14 @@ Wer die Felder von Hand einbaut, hat sie beim naechsten Mal auf sechzehn.
 Dieses Skript baut sie ueberall ein, wo ein Formular mit id="subForm" steht,
 und bindet utm.js ein, das sie vor dem Absenden fuellt.
 
+DAS SKRIPT GEHOERT AUF JEDE SEITE, DIE FELDER NUR ZUM FORMULAR
+(Ben, 12.10.2026). utm.js merkt sich die Herkunft beim ERSTEN Aufruf im
+sessionStorage; gefuellt wird das Formular erst dort, wo es steht. Lag das
+Skript nur auf den Seiten MIT Formular, verlor jeder die Herkunft, der auf
+datenschutz.html oder impressum.html landete und dann weiterklickte - im
+Browser gemessen: aus tg/chat/weekly6 wurde direct/none/none. Auf einer
+Seite ohne Formular findet utm.js keine Felder und tut nichts weiter.
+
 Der Lauf ist wiederholbar: was schon da ist, bleibt unveraendert.
 
 ⚠️ EINE HAND MUSS BEN ANLEGEN
@@ -92,9 +100,9 @@ def main(argv=None):
         pfad = os.path.join(REPO, datei)
         with open(pfad, encoding="utf-8") as fh:
             alt = fh.read()
-        if not FORM.search(alt):
-            continue
-        mit_formular += 1
+        hat_formular = bool(FORM.search(alt))
+        if hat_formular:
+            mit_formular += 1
         neu, nf = setz_felder(alt)
         neu, ns = setz_skript(neu)
         if neu == alt:
@@ -104,7 +112,8 @@ def main(argv=None):
             fh.write(neu)
         geaendert += 1
         print("  neu  %-32s %d formular(e), skript %s" % (datei, nf, "ja" if ns else "war da"))
-    print("\n%d Seiten mit Formular, %d geaendert" % (mit_formular, geaendert))
+    print("\n%d Seiten, davon %d mit Formular, %d geaendert"
+          % (len(seiten()), mit_formular, geaendert))
     if mit_formular == 0:
         print("FEHL kein Formular gefunden, id=subForm umbenannt?")
         return 1
