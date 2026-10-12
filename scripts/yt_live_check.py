@@ -81,6 +81,15 @@ def fetch(url):
         return r.read().decode("utf-8", "replace")
 
 
+def kanal(arg):
+    """Die Kanal-ID aus dem Argument, sonst unsere. Kein Argument, leer und
+    nur Leerzeichen sind dasselbe: nicht gesetzt (Ben, 12.10.2026). Die
+    Workflows haben bis heute --channel-id "$YT_CHANNEL_ID" uebergeben; war
+    die Variable leer, kam ein leerer String an. Das Argument ist jetzt
+    draussen, aber die Regel bleibt gepruefte Zusage und nicht Zufall."""
+    return (arg or "").strip() or KANAL_ID
+
+
 # ---------------------------------------------------------------- Feed
 
 def newest_entry(xml):
@@ -131,6 +140,12 @@ SAMPLE = """<?xml version="1.0" encoding="UTF-8"?>
 
 
 def selftest():
+    # ein leeres oder fehlendes --channel-id ist "nicht gesetzt"
+    assert kanal("") == KANAL_ID
+    assert kanal("   ") == KANAL_ID
+    assert kanal(None) == KANAL_ID
+    assert kanal("UCfremderkanal") == "UCfremderkanal"
+    assert kanal("  UCfremderkanal  ") == "UCfremderkanal"
     e = newest_entry(SAMPLE)
     assert e["video_id"] == "bbbbbbbbbbb", e
     assert e["title"] == "kaspa weekly", e
@@ -161,12 +176,10 @@ def main():
 
     now = dt.datetime.now(dt.timezone.utc)
     day = dt.date.fromisoformat(a.date) if a.date else berlin_date(now)
+    cid = kanal(a.channel_id)
     out = {"date": str(day), "live_today": False, "video_id": None, "video_url": None,
-           "title": None, "published": None, "channel_id": a.channel_id.strip() or KANAL_ID,
-           "error": None}
+           "title": None, "published": None, "channel_id": cid, "error": None}
     try:
-        cid = a.channel_id.strip() or KANAL_ID
-        out["channel_id"] = cid
         out.update(check(cid, day))
     except (urllib.error.URLError, RuntimeError, ValueError, OSError) as exc:
         # fail closed: ohne Beweis kein Video, der Aufrufer bricht ab
