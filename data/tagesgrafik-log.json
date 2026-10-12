@@ -73,6 +73,22 @@
    "form": 3,
    "grund": "rotation, 1 laeufe in 30 tagen, zahl des tages emission_vs_btc (vorab gerechnet), uebersprungen [5, 7]",
    "messzeit_utc": "2026-10-11T05:30:32+00:00"
+  },
+  {
+   "datum": "2026-10-12",
+   "form": 1,
+   "grund": "montag, zahl des tages tvl_move (vorab gerechnet)",
+   "messzeit_utc": "2026-10-12T05:30:44+00:00",
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-09-12",
+     "bis": "2026-10-11",
+     "fees": 68492.80491634,
+     "emission": 55848455.00696133,
+     "verhaeltnis": 815.39
+    }
+   }
   }
  ]
 }
