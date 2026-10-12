@@ -1,0 +1,44 @@
+name: weekly pruefung
+
+# kaspa-weekly.html rechnet im Browser, und zwei Angaben derselben Karte
+# sind am 12.10.2026 auseinandergelaufen: "17.0% above" neben "5 weeks in a
+# row closing below". Die Zahl war richtig, das Wort daneben nicht - ein
+# Selbsttest in Python findet so etwas nie.
+#
+# Dieser Lauf rendert die Seite in Chromium, einmal mit erfundenen Kursen
+# in beide Richtungen (--selbsttest) und einmal mit data/kas-candles.json
+# (--live), und vergleicht die Aussagen gegeneinander. Dazu die
+# Navigation: genau ein Punkt darf aktiv aussehen.
+
+on:
+  pull_request:
+    paths:
+      - "kaspa-weekly.html"
+      - "for-builders.html"
+      - "capture.js"
+      - "data/kas-candles.json"
+      - "scripts/weekly_pruefung.py"
+      - ".github/workflows/weekly-pruefung.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: playwright
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: erfundene kurse, beide richtungen
+        run: python3 scripts/weekly_pruefung.py --selbsttest
+      - name: mit den echten kursen
+        run: python3 scripts/weekly_pruefung.py --live
