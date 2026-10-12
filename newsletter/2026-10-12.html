@@ -20,6 +20,11 @@
   Unterlagen. Ben liefert ihn nach, dann Knopf "watch this week's episode"
   eintragen und neue Testmail.
 
+  Aenderungen 12.10. (Ben): Kanal-Buttons mit Kurzlinks (PR 84, bei Versand muss er auf main
+  sein), Tonregel (keine Saetze ueber das, was wir nicht tun), "%" statt "percent",
+  keine zweite Grosszahl in der Grafik. Wallet Alerts: "checked several times a day",
+  nicht "every minute" (Alarme laufen alle 10 bis 15 Minuten, "every minute" waere falsch).
+
   Ausgabennummer: scripts/newsletter_issue.py (letzte Ausgabe 13 plus eins).
   Wochengrafik: graphics/weekly-2026-10-12.png, 600x3 (1800x1200).
   UTM: utm_source=newsletter, utm_medium=mail, utm_campaign=weekly7.
@@ -31,7 +36,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="x-subject" content="12.59 percent above the 50 week line">
+<meta name="x-subject" content="12.59% above the 50 week line">
+<style>@media only screen and (max-width:480px){.kb{width:50% !important;}}</style>
 <title>Kaspa Pulse Weekly, issue 14</title>
 </head>
 <body style="margin:0; padding:0; background:#050608;">
@@ -50,8 +56,8 @@
   </td></tr>
 
   <tr><td style="padding:30px 28px 6px 28px; text-align:center;">
-    <div style="font-size:64px; line-height:64px; color:#49EACB; font-weight:700;">12.59</div>
-    <div style="font-size:13px; letter-spacing:1px; color:#9BA3AB; text-transform:uppercase; padding-top:10px;">percent above kaspa's 50 week average on saturday 10 october, the 4th close above it in the 49 weeks the line has existed in our series (since 2 november 2025)</div>
+    <div style="font-size:64px; line-height:64px; color:#49EACB; font-weight:700;">12.59%</div>
+    <div style="font-size:13px; letter-spacing:1px; color:#9BA3AB; text-transform:uppercase; padding-top:10px;">above kaspa's 50 week average on saturday 10 october, the 4th close above it in the 49 weeks the line has existed in our series (since 2 november 2025)</div>
   </td></tr>
 
   <tr><td style="padding:18px 28px 4px 28px;">
@@ -67,7 +73,7 @@
       </tr>
       <tr>
         <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">week against saturday 3 oct</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">down 5.43 percent, 14.86 percent below saturday 26 sep</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">down 5.43%, 14.86% below saturday 26 sep</td>
       </tr>
       <tr>
         <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">50 week average, 10 oct</td>
@@ -75,7 +81,7 @@
       </tr>
       <tr>
         <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">close against the 50 week line</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">12.59 percent above, down from 17.88 percent a week earlier</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">12.59% above, down from 17.88% a week earlier</td>
       </tr>
       <tr>
         <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">21 week average, 10 oct</td>
@@ -83,11 +89,11 @@
       </tr>
       <tr>
         <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">close against the 21 week line</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">16.97 percent above, down from 25.81 percent a week earlier</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">16.97% above, down from 25.81% a week earlier</td>
       </tr>
       <tr>
         <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">weekly volume, 4 oct to 10 oct</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">6.80M units, 33.18 percent below the week before</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">6.80M units, 33.18% below the week before</td>
       </tr>
       <tr>
         <td style="padding:9px 0; color:#9BA3AB;">one kas in satoshis, 10 oct</td>
@@ -99,15 +105,14 @@
   <tr><td style="padding:22px 28px 4px 28px;">
     <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">the take</div>
     <div style="font-size:15px; line-height:24px; color:#9BA3AB; padding-top:10px;">
-      kaspa closed the week 5.43 percent lower, saturday 3 october to saturday 10 october, after 9.98 percent lower
-      a week earlier, so 14.86 percent down across the 2 weeks. the weekly move is the 37th weakest of the 97 in our
-      series, which starts on 19 november 2024. it still closed 12.59 percent above the 50 week average. our series
+      kaspa closed the week 5.43% lower, saturday 3 october to saturday 10 october, after 9.98% lower
+      a week earlier, so 14.86% down across the 2 weeks. the weekly move is the 37th weakest of the 97 in our
+      series, which starts on 19 november 2024. it still closed 12.59% above the 50 week average. our series
       carries that line for 49 weeks, the first 45 closed below it, and the last 4 closed above it, in a row. a week
-      earlier the gap was 17.88 percent, so it lost 29.6 percent of its width and stayed positive. the close sits
-      16.97 percent above the 21 week average, which it has closed above in 11 of 78 weeks. hashrate read 362.36 PH/s
+      earlier the gap was 17.88%, so it lost 29.6% of its width and stayed positive. the close sits
+      16.97% above the 21 week average, which it has closed above in 11 of 78 weeks. hashrate read 362.36 PH/s
       on saturday 10 october, the highest of the 56 days in our own log, which starts on 13 august 2026, and averaged
-      339.06 PH/s from 4 to 10 october, against 343.92 from 27 september to 3 october. every claim here is measured
-      inside our window, not against kaspa's history since 2022.
+      339.06 PH/s from 4 to 10 october, against 343.92 from 27 september to 3 october.
     </div>
   </td></tr>
 
@@ -116,7 +121,7 @@
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px; color:#FFFFFF; margin-top:10px;">
       <tr>
         <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">block reward, since the monthly step of monday 5 oct</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">2.0602 kas, 5.61 percent below the 2.1827 before; daily emission 1,779,989 kas</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">2.0602 kas, 5.61% below the 2.1827 before; daily emission 1,779,989 kas</td>
       </tr>
       <tr>
         <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">next cut</td>
@@ -124,7 +129,7 @@
       </tr>
       <tr>
         <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">threshold to hold both lines next week</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">a close above $0.035874, 12.03 percent below this close</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">a close above $0.035874, 12.03% below this close</td>
       </tr>
       <tr>
         <td style="padding:9px 0; color:#9BA3AB;">largest known wallet, 4 oct 18:05 to 10 oct 18:29 utc</td>
@@ -143,9 +148,8 @@
       come from our own chain reader against kaspa's fixed anchor and monthly step; for the next cut we print
       the date only, because the step lands on a block score and not on a clock, so the minute moves. hashrate is our own daily
       reading, averaged over seven days per window. the fee share is our own count across 1 to 25 september 2026,
-      0.1338 percent of miner revenue, fees and reward over the same 25 days; that count is 17 days old today and
-      there is no fee reading for last week. the wallet figures are daily balances on the dates given, two
-      endpoints, no transaction list.
+      0.1338% of miner revenue, fees and reward over the same 25 days; that count is 17 days old today. the wallet figures are daily balances on the dates given, two
+      daily readings.
     </div>
   </td></tr>
 
@@ -167,7 +171,7 @@
       <tr><td style="padding:18px 20px;">
         <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">wallet alerts</div>
         <div style="font-size:13px; line-height:21px; color:#9BA3AB; padding-top:10px;">
-          reward cuts and the chain's largest wallet moving get checked several times a day, not once a week, and posted when a check finds one.
+          reward cuts and the chain's largest wallet moving get checked several times a day and posted when a check finds one.
           join <a href="https://discord.gg/h33JBhrPP7" style="color:#49EACB; text-decoration:none;">discord.gg/h33JBhrPP7</a>
           or <a href="https://t.me/kaspapulse" style="color:#49EACB; text-decoration:none;">t.me/kaspapulse</a>.
         </div>
@@ -185,6 +189,18 @@
     </div>
     <div style="font-size:15px; line-height:24px; color:#FFFFFF; font-weight:700; padding-top:16px;">week 50, above or below the 50 week line? hit reply with your call.</div>
     <div style="font-size:11px; line-height:18px; color:#7A828C; padding-top:12px;">not financial advice.</div>
+  </td></tr>
+
+  <tr><td style="padding:22px 28px 4px 28px;">
+    <div style="font-size:13px; line-height:21px; color:#FFFFFF; font-weight:700; padding-bottom:8px;">follow the numbers where you are</div>
+    <div style="font-size:0; line-height:0; margin:0 -4px;">
+      <div class="kb" style="display:inline-block; width:33.33%; box-sizing:border-box; padding:4px; vertical-align:top;"><a href="https://kaspapulse.com/yt" style="display:block; background:#0F1319; border:1px solid #1A1D21; border-radius:8px; color:#49EACB; font-size:13px; font-weight:700; line-height:18px; text-decoration:none; text-align:center; padding:12px 4px;">YouTube</a></div>
+      <div class="kb" style="display:inline-block; width:33.33%; box-sizing:border-box; padding:4px; vertical-align:top;"><a href="https://kaspapulse.com/x" style="display:block; background:#0F1319; border:1px solid #1A1D21; border-radius:8px; color:#49EACB; font-size:13px; font-weight:700; line-height:18px; text-decoration:none; text-align:center; padding:12px 4px;">X</a></div>
+      <div class="kb" style="display:inline-block; width:33.33%; box-sizing:border-box; padding:4px; vertical-align:top;"><a href="https://kaspapulse.com/ig" style="display:block; background:#0F1319; border:1px solid #1A1D21; border-radius:8px; color:#49EACB; font-size:13px; font-weight:700; line-height:18px; text-decoration:none; text-align:center; padding:12px 4px;">Instagram</a></div>
+      <div class="kb" style="display:inline-block; width:33.33%; box-sizing:border-box; padding:4px; vertical-align:top;"><a href="https://kaspapulse.com/threads" style="display:block; background:#0F1319; border:1px solid #1A1D21; border-radius:8px; color:#49EACB; font-size:13px; font-weight:700; line-height:18px; text-decoration:none; text-align:center; padding:12px 4px;">Threads</a></div>
+      <div class="kb" style="display:inline-block; width:33.33%; box-sizing:border-box; padding:4px; vertical-align:top;"><a href="https://kaspapulse.com/discord" style="display:block; background:#0F1319; border:1px solid #1A1D21; border-radius:8px; color:#49EACB; font-size:13px; font-weight:700; line-height:18px; text-decoration:none; text-align:center; padding:12px 4px;">Discord</a></div>
+      <div class="kb" style="display:inline-block; width:33.33%; box-sizing:border-box; padding:4px; vertical-align:top;"><a href="https://t.me/kaspapulse" style="display:block; background:#0F1319; border:1px solid #1A1D21; border-radius:8px; color:#49EACB; font-size:13px; font-weight:700; line-height:18px; text-decoration:none; text-align:center; padding:12px 4px;">Telegram</a></div>
+    </div>
   </td></tr>
 
   <tr><td style="padding:22px 28px 26px 28px; border-top:1px solid #1A1D21; margin-top:20px;">
