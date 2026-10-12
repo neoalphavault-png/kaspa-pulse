@@ -1,0 +1,40 @@
+name: kurzlinks
+
+# Die fuenf Kurzlinks fuer die Profile (Ben, 12.10.2026): /ig, /yt, /x,
+# /threads und /discord. Jede der fuenf index.html wird von
+# scripts/kurzlinks.py gebaut; wer eine von Hand aendert, aendert einen
+# Messwert in Brevo, ohne dass es jemand sieht.
+#
+# Darum hier ein eigener, kleiner Lauf statt eines Schritts in der
+# seo-pruefung: die Kurzlinks liegen in Ordnern und nicht im
+# Wurzelverzeichnis, die seo-pruefung sieht sie gar nicht, und ihr
+# Seiten-Stempel haengt an Dingen, die mit den Kurzlinks nichts zu tun
+# haben.
+
+on:
+  pull_request:
+    paths:
+      - "scripts/kurzlinks.py"
+      - "scripts/utm.py"
+      - "*/index.html"
+      - ".github/workflows/kurzlinks.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: selbsttest
+        run: |
+          python3 scripts/utm.py --selftest
+          python3 scripts/kurzlinks.py --selbsttest
+      - name: dateien auf stand
+        run: python3 scripts/kurzlinks.py --pruefen
