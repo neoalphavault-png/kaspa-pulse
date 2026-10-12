@@ -73,20 +73,21 @@ von Edition 1 heraus, siehe Selbsttest.
 ## Unterschiede zu Edition 1
 
 Der Selbsttest baut aus `scripts/cheat-sheet-probe.json`, den Daten vom
-11.10.2026, mit denen Ben Fassung 2 gebaut hat. Das Ergebnis ist
-zeichengleich zur veroeffentlichten Datei, bis auf drei Stellen:
+11.10.2026, mit denen Ben Fassung 2.1 gebaut hat. Das Ergebnis ist
+zeichengleich zur veroeffentlichten Datei, bis auf zwei Stellen:
 
-1. **Seite 5, Veraenderung ueber 90 Tage.** Edition 1 nennt `-637`, gezaehlt
-   gegen den 07.07. Das sind 89 Tage. Streng gegen den 90. Tag (06.07.) sind
-   es `-718`. Der Generator rechnet streng, die 7- und 30-Tage-Werte
-   stimmen in beiden.
-2. **Seite 8, mittlere Datumsmarke.** `11 sep` statt `12 sep`: die Marke
-   sitzt jetzt genau in der Mitte der Reihe.
-3. **Seite 9, mittlere Datumsmarke.** `19 aug` statt `15 aug`, aus demselben
-   Grund.
+1. **Seite 8, mittlere Datumsmarke.** `11 sep` statt `12 sep`: die Marke
+   sitzt genau in der Mitte der Reihe, statt nach Augenmass.
+2. **Seite 9, mittlere Datumsmarke.** `19 aug` statt `15 aug`, aus demselben
+   Grund. Beides von Ben freigegeben am 12.10.2026.
 
 Format, Titel, Seitenzahl und MediaBox sind gleich: 10 Seiten,
 810 x 1013.04 pt, Titel `The 8 Kaspa numbers whales watch`.
+
+Die dritte Abweichung ist weg, weil die veroeffentlichte Datei nachgezogen
+wurde: Fassung 2 nannte als Veraenderung ueber 90 Tage `-637`, gezaehlt
+gegen den 07.07. und damit gegen 89 Tage. Fassung 2.1 nennt `-718`, streng
+gegen den 90. Tag. Die 7- und 30-Tage-Werte stimmten in beiden.
 
 ## Schriften
 
