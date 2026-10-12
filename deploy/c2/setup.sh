@@ -32,8 +32,21 @@ CRED=/etc/credstore.encrypted
 # GitHub - dann nicht weitermachen.
 GITHUB_ED25519="SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU"
 
+# Die Takte an EINER Stelle (Ben, 12.10.2026). Vorher stand die Liste
+# dreimal da, und ein neuer Takt fehlte genau in nachziehen - also dort, wo
+# er auf c2 ankommen muesste. Wer einen Takt hinzufuegt, legt die
+# .timer-Datei unter taktgeber/ ab und schreibt den Namen hier hin.
+TAKTE="tagesgrafik instagram-bild reel weeklynumbers number-of-day cheat-sheet"
+ALARM_UNITS="entity-x-alarm.service entity-x-sync.service entity-x-sync.timer"
+
 meldung() { printf '\n== %s\n' "$*"; }
 hinweis() { printf '   %s\n' "$*"; }
+warnung() { printf '   ACHTUNG: %s\n' "$*" >&2; }
+
+# Kennt systemd diese Unit schon? Nur so laesst sich ein neuer Timer von
+# einem bestehenden unterscheiden, und nur das entscheidet, ob er verlinkt
+# und aktiviert oder einfach neu gestartet wird.
+bekannt() { systemctl cat "$1" >/dev/null 2>&1; }
 
 root_sein() {
   [ "$(id -u)" = "0" ] || { echo "setup.sh braucht sudo" >&2; exit 1; }
@@ -230,43 +243,109 @@ units() {
   A="$ZIEL/deploy/c2/entity-x-alarm"
   T="$ZIEL/deploy/c2/taktgeber"
   meldung "Units verlinken"
-  systemctl link "$A/entity-x-alarm.service" "$A/entity-x-sync.service" "$A/entity-x-sync.timer"
+  for u in $ALARM_UNITS; do
+    systemctl link "$A/$u"
+  done
   systemctl link "$T/takt@.service"
-  for t in tagesgrafik instagram-bild reel weeklynumbers number-of-day cheat-sheet; do
+  for t in $TAKTE; do
     systemctl link "$T/takt-$t.timer"
   done
   systemctl daemon-reload
   meldung "Starten"
   systemctl enable --now entity-x-alarm.service entity-x-sync.timer
-  systemctl enable --now takt-tagesgrafik.timer takt-instagram-bild.timer \
-    takt-reel.timer takt-weeklynumbers.timer takt-number-of-day.timer \
-    takt-cheat-sheet.timer
+  for t in $TAKTE; do
+    systemctl enable --now "takt-$t.timer"
+  done
   hinweis "journalctl -u entity-x-alarm -f  zeigt jede Minute eine Zeile"
 }
 
 # --------------------------------------------------------------- nachziehen
-# Ein Update aus dem Repo uebernehmen: holen, neu einlesen, die Units
-# neu starten, Kontrolle zeigen. Ein Befehl, damit nichts vergessen wird.
+# Ein Update aus dem Repo uebernehmen: holen, NEUE Units einrichten, neu
+# einlesen, starten, Kontrolle zeigen. Ein Befehl, damit nichts vergessen
+# wird.
+#
+# DIE REIHENFOLGE IST DER GANZE PUNKT (Ben, 12.10.2026). Vorher hat
+# nachziehen die Timer sofort neu gestartet. Ein Timer, der mit dem Update
+# NEU dazukam, war systemd aber nie bekannt gemacht worden - systemctl
+# restart antwortete "Unit takt-cheat-sheet.timer not found", und weil das
+# Skript mit "set -e" laeuft, war danach Schluss: der Alarm wurde nicht neu
+# gestartet und die Kontrolle lief nicht mehr.
+#
+# Darum jetzt: erst verlinken, was neu ist, dann einmal einlesen, dann
+# starten. Und kein einzelner Fehlschlag beendet den Lauf mehr. Was nicht
+# anlief, steht am Ende gesammelt da, und der Rueckgabewert bleibt rot.
 nachziehen() {
   root_sein
+  A="$ZIEL/deploy/c2/entity-x-alarm"
+  T="$ZIEL/deploy/c2/taktgeber"
+  FEHLER=""
+  NEU=""
+  OHNE=""
+
   meldung "Stand holen"
   sudo -u "$DIENSTNUTZER" git -C "$ZIEL" pull --ff-only
   hinweis "$(sudo -u "$DIENSTNUTZER" git -C "$ZIEL" log --oneline -1)"
 
+  meldung "Neue Units einrichten"
+  for u in $ALARM_UNITS takt@.service; do
+    d="$A/$u"
+    [ -f "$d" ] || d="$T/$u"
+    if [ ! -f "$d" ]; then
+      FEHLER="$FEHLER $u(fehlt im repo)"
+      continue
+    fi
+    bekannt "$u" && continue
+    hinweis "$u ist neu, wird verlinkt"
+    systemctl link "$d" || FEHLER="$FEHLER $u(link)"
+  done
+  for t in $TAKTE; do
+    d="$T/takt-$t.timer"
+    if [ ! -f "$d" ]; then
+      # Steht der Name in TAKTE, fehlt die Datei aber, ist der Verweis
+      # eines Updates kaputt. Dann auch nicht starten versuchen, sonst
+      # steht derselbe Timer zweimal im Fehlerbericht.
+      FEHLER="$FEHLER takt-$t.timer(fehlt im repo)"
+      OHNE="$OHNE $t"
+      continue
+    fi
+    bekannt "takt-$t.timer" && continue
+    hinweis "takt-$t.timer ist neu, wird verlinkt"
+    if systemctl link "$d"; then
+      NEU="$NEU $t"
+    else
+      FEHLER="$FEHLER takt-$t.timer(link)"
+    fi
+  done
+  [ -n "$NEU" ] || hinweis "keine neue Unit in diesem Update"
+
   meldung "Units neu einlesen"
   systemctl daemon-reload
 
-  meldung "Timer neu starten"
+  meldung "Timer starten"
   # Einzeln aufgezaehlt, nicht als Muster: ein Muster trifft nur Units,
-  # die systemd gerade geladen hat.
-  for t in tagesgrafik instagram-bild reel weeklynumbers number-of-day cheat-sheet; do
-    systemctl restart "takt-$t.timer"
+  # die systemd gerade geladen hat. Ein neuer Timer wird aktiviert, ein
+  # bekannter neu gestartet.
+  for t in $TAKTE; do
+    case " $OHNE " in
+      *" $t "*) continue ;;
+    esac
+    case " $NEU " in
+      *" $t "*)
+        systemctl enable --now "takt-$t.timer" || FEHLER="$FEHLER takt-$t.timer(enable)"
+        ;;
+      *)
+        systemctl restart "takt-$t.timer" || FEHLER="$FEHLER takt-$t.timer(restart)"
+        ;;
+    esac
   done
+
+  # Laeuft auch, wenn oben ein Timer gemeckert hat: der Alarm ist der
+  # Dienst, auf den es im Minutentakt ankommt.
   meldung "Alarm neu starten"
   # Setzt die 24-Stunden-Schleife zurueck, das ist in Ordnung: der Stand
   # liegt in /var/lib/kaspa-pulse und wird nicht neu angefangen.
-  systemctl restart entity-x-alarm.service
-  systemctl restart entity-x-sync.timer
+  systemctl restart entity-x-alarm.service || FEHLER="$FEHLER entity-x-alarm.service"
+  systemctl restart entity-x-sync.timer || FEHLER="$FEHLER entity-x-sync.timer"
 
   meldung "Kontrolle: naechste Zeitpunkte"
   systemctl list-timers 'takt-*' 'entity-x-*' --no-pager || true
@@ -275,7 +354,7 @@ nachziehen() {
   hinweis "in Ortszeit, so wie die Timer es jetzt rechnen:"
   for e in "*-*-* 07:30:00" "*-*-* 09:30:00" "*-*-* 10:12:00" \
            "*-*-* 11:42:00" "Tue..Sun *-*-* 12:00:00" "Mon *-*-* 17:00:00" \
-           "Mon *-*-* 18:40:00"; do
+           "Mon *-*-* 18:40:00" "*-*-01 09:00:00"; do
     printf '   %-28s -> ' "$e"
     systemd-analyze calendar "$e Europe/Berlin" | awk -F': +' '/Next elapse/ {print $2}'
   done
@@ -283,6 +362,15 @@ nachziehen() {
   meldung "Kontrolle: zeigt der Alarm jede Minute eine Zeile?"
   hinweis "journalctl -u entity-x-alarm -f  (die erste Zeile kommt binnen"
   hinweis "einer Minute, nicht erst nach zwei Stunden)"
+
+  if [ -n "$FEHLER" ]; then
+    echo >&2
+    warnung "diese Units liefen nicht an:$FEHLER"
+    warnung "alles andere ist durch. Einzeln nachsehen mit"
+    warnung "systemctl status <unit> und journalctl -u <unit> -n 30"
+    return 1
+  fi
+  meldung "nachziehen fertig, nichts offen"
 }
 
 # ------------------------------------------------------------------ pruefen

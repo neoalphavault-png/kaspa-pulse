@@ -180,6 +180,22 @@ systemd-analyze calendar '*-*-* 07:30:00 Europe/Berlin'
 | `http 403` | Token hat *Actions: Read and write* nicht, oder das Repo ist nicht in seiner Liste |
 | `http 404` | Workflow-Datei heißt anders, oder sie liegt nicht auf `main`. GitHub kennt `workflow_dispatch` nur vom Default-Branch |
 | `http 422` | Eine Eingabe, die der Workflow nicht hat |
+| `Unit takt-X.timer not found` beim Nachziehen | Der Takt ist neu und war systemd nie bekannt gemacht. `setup.sh nachziehen` verlinkt neue Timer seit dem 12.10.2026 selbst, vorher brach es an dieser Stelle ab |
+
+## Einen Takt hinzufügen
+
+Drei Stellen, in dieser Reihenfolge:
+
+1. `takt-<name>.timer` hier ablegen, mit `OnCalendar=... Europe/Berlin`.
+2. Den Namen in `ausloesen.sh` eintragen, mit den Eingaben, die auch ein
+   Handstart setzen würde. Ein Takt ohne Eingaben ist nicht derselbe Lauf,
+   siehe oben.
+3. Den Namen in `TAKTE` in `deploy/c2/setup.sh` eintragen. Das ist die eine
+   Liste, aus der `units` und `nachziehen` arbeiten.
+
+Nach dem Merge auf c2 einmal `sudo ./setup.sh nachziehen`. Der Lauf
+verlinkt und aktiviert den neuen Timer selbst und zeigt ihn danach in
+`list-timers`.
 
 ## Zurück auf GitHub
 
