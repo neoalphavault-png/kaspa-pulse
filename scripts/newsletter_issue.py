@@ -46,6 +46,41 @@ NUMMER_RE = re.compile(r"(issue\s+)(\d+)", re.I)
 PLATZHALTER = "{{ISSUE}}"
 
 
+# Kanal-Buttons am Ende jeder Ausgabe (Ben, 12.10.2026): direkt auf die Kanaele,
+# ohne UTM. NICHT die Kurzlinks kaspapulse.com/yt, /x, /ig, /threads, /discord,
+# die fuehren zur Anmeldung, und wer den Newsletter liest, ist schon angemeldet.
+# Steht die Zeile "follow the numbers where you are" in der Ausgabe, muss jeder
+# dieser Links mindestens einmal drinstehen (Discord und Telegram stehen auch im Wallet-Alerts-Kasten). Neue Ausgaben ab der Vorlage uebernehmen
+# die Buttons, dieser Waechter haelt sie gleich.
+KANAELE = (
+    ("YouTube", "https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q"),
+    ("X", "https://x.com/gokugalax"),
+    ("Instagram", "https://www.instagram.com/kaspapulse/"),
+    ("Threads", "https://www.threads.net/@kaspapulse"),
+    ("Discord", "https://discord.gg/h33JBhrPP7"),
+    ("Telegram", "https://t.me/kaspapulse"),
+)
+KANAL_MARKE = "follow the numbers where you are"
+KURZLINK_RE = re.compile(r'href="https://kaspapulse\.com/(?:yt|x|ig|threads|discord)/?[^"]*"')
+
+
+def kanaele_fehler(text):
+    """Liste der Abweichungen bei den Kanal-Buttons, leer wenn alles stimmt
+    oder die Ausgabe keine Buttons traegt."""
+    inhalt = nur_inhalt(text)
+    if KANAL_MARKE not in inhalt:
+        return []
+    out = []
+    for name, url in KANAELE:
+        n = inhalt.count('href="%s"' % url)
+        if n < 1:
+            out.append("%s: %s steht %dmal als href drin, erwartet mindestens 1" % (name, url, n))
+    if KURZLINK_RE.search(inhalt):
+        out.append("ein Kurzlink (kaspapulse.com/yt, x, ig, threads, discord) steht drin, "
+                   "die Buttons fuehren direkt auf die Kanaele")
+    return out
+
+
 KOMMENTAR_RE = re.compile(r"(?s)<!--.*?-->")
 
 
@@ -160,6 +195,11 @@ def pruefe(pfad, verz=None):
               % (pfad, ist, soll,
                  os.path.basename(v[1]) if v else "keine fruehere ausgabe",
                  v[2] if v else "-"), file=sys.stderr)
+        return 1
+    fehler = kanaele_fehler(text)
+    if fehler:
+        for f in fehler:
+            print("FEHLER %s: kanal-buttons, %s" % (pfad, f), file=sys.stderr)
         return 1
     print("ok, %s ist ausgabe %d, eine mehr als die letzte davor" % (os.path.basename(pfad), ist))
     return 0
