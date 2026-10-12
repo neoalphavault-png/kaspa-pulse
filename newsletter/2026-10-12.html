@@ -23,6 +23,9 @@
   Ausgabennummer: scripts/newsletter_issue.py (letzte Ausgabe 13 plus eins).
   Wochengrafik: graphics/weekly-2026-10-12.png, 600x3 (1800x1200).
   UTM: utm_source=newsletter, utm_medium=mail, utm_campaign=weekly7.
+  Weiterleiten-Zeile oben: utm_source=newsletter, utm_medium=email, utm_campaign=forward
+  (scripts/utm.py, MEDIEN um "email" ergaenzt). Wallet-Uhrzeiten aus der
+  Sonntagsdatei (entity_x_daily.json, Commits 4afac18 und d240974).
 -->
 <html lang="en">
 <head>
@@ -40,6 +43,10 @@
   <tr><td style="padding:26px 28px 6px 28px; border-bottom:1px solid #1A1D21;">
     <div style="font-size:12px; letter-spacing:5px; font-weight:700; color:#FFFFFF;">KASPA PULSE</div>
     <div style="font-size:12px; color:#7A828C; padding:8px 0 18px 0;">weekly numbers &middot; issue 14 &middot; monday 12 october 2026</div>
+  </td></tr>
+
+  <tr><td style="padding:14px 28px 0 28px; text-align:center;">
+    <div style="font-size:12px; line-height:18px; color:#9BA3AB;">got this forwarded? <a href="https://kaspapulse.com/?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=forward#subscribe" style="color:#49EACB; text-decoration:none;">get the free kaspa cheat sheet and these numbers every monday</a></div>
   </td></tr>
 
   <tr><td style="padding:30px 28px 6px 28px; text-align:center;">
@@ -120,7 +127,7 @@
         <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">a close above $0.035874, 12.03 percent below this close</td>
       </tr>
       <tr>
-        <td style="padding:9px 0; color:#9BA3AB;">largest known wallet, 4 oct to 10 oct daily readings</td>
+        <td style="padding:9px 0; color:#9BA3AB;">largest known wallet, 4 oct 18:05 to 10 oct 18:29 utc</td>
         <td style="padding:9px 0; text-align:right; color:#49EACB;">1,524,397,554 to 1,527,589,469 kas, 3,191,915 more</td>
       </tr>
     </table>

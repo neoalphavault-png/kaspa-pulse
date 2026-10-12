@@ -20,6 +20,12 @@ Ab dem 16.09.2026 traegt JEDER Newsletter-Link drei Parameter:
                    post    ein Beitrag auf X
                    chat    Discord und Telegram
                    mail    eine Newsletter-Ausgabe
+                   email   die Weiterleiten-Zeile oben in einer Ausgabe
+                           (seit 12.10.2026, source newsletter, campaign
+                           forward). Bewusst neben "mail": so trennt die
+                           Auswertung weitergeleitete Mails von den
+                           Abonnenten, die den Link in der eigenen Ausgabe
+                           anklicken.
                    site    eine eigene Seite
                    reply   eine Selbstantwort unter einem Post (Tagesgrafik,
                            seit 30.09.2026, campaign form1 bis form10)
@@ -65,7 +71,7 @@ QUELLEN = {
 
 # Gattungen, die es gibt. Ein Tippfehler im medium ist genauso teuer wie
 # einer in der Quelle: er eroeffnet eine zweite Zeile in der Auswertung.
-MEDIEN = ("shorts", "video", "post", "chat", "mail", "site", "reply")
+MEDIEN = ("shorts", "video", "post", "chat", "mail", "email", "site", "reply")
 
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 
@@ -121,6 +127,9 @@ def selftest():
     pruefe("telegram", link("tg", campaign="weekly"),
            "https://kaspapulse.com/?utm_source=tg&utm_medium=chat"
            "&utm_campaign=weekly#subscribe")
+    pruefe("newsletter, weiterleiten-zeile", link("newsletter", "email", "forward"),
+           "https://kaspapulse.com/?utm_source=newsletter&utm_medium=email"
+           "&utm_campaign=forward#subscribe")
     pruefe("ohne campaign", link("site"),
            "https://kaspapulse.com/?utm_source=site&utm_medium=site#subscribe")
     pruefe("gattung ueberschreiben geht", link("x", "mail", "weekly"),
