@@ -18,12 +18,18 @@ Seite ohne Formular findet utm.js keine Felder und tut nichts weiter.
 Der Lauf ist wiederholbar: was schon da ist, bleibt unveraendert.
 
 ⚠️ EINE HAND MUSS BEN ANLEGEN
-Brevo nimmt nur Felder an, die im Formular selbst angelegt sind. Die drei
-Kontaktattribute UTM_SOURCE, UTM_MEDIUM und UTM_CAMPAIGN (Typ Text) muessen
-einmal in Brevo unter Kontakte > Einstellungen > Attribute angelegt und im
-Formular-Editor als versteckte Felder ergaenzt werden. Bis dahin schickt die
-Seite die Werte mit und Brevo verwirft sie still. Das Formular funktioniert
-in beiden Faellen; gemessen wird erst danach.
+Brevo nimmt nur Felder an, die im Formular selbst angelegt sind. Die
+Kontaktattribute UTM_SOURCE, UTM_MEDIUM, UTM_CAMPAIGN und UTM_MEDIUM_RAW
+(Typ Text) muessen einmal in Brevo unter Kontakte > Einstellungen >
+Attribute angelegt und im Formular-Editor als versteckte Felder ergaenzt
+werden. Bis dahin schickt die Seite die Werte mit und Brevo verwirft sie
+still. Das Formular funktioniert in beiden Faellen; gemessen wird erst
+danach.
+
+UTM_MEDIUM_RAW kam am 12.10.2026 dazu. utm.js zaehlt eine Gattung, die
+nicht in MEDIEN steht, als "other" und legt das Original daneben. Fehlt das
+Attribut in Brevo, verwirft Brevo nur dieses eine Feld; "other" kommt
+trotzdem an, und die Liste bleibt sauber.
 
     python3 scripts/utm_fields.py
     python3 scripts/utm_fields.py --selftest
@@ -45,7 +51,13 @@ FELDER = (
     '<input type="hidden" name="UTM_SOURCE" id="utmSource" value="direct">',
     '<input type="hidden" name="UTM_MEDIUM" id="utmMedium" value="none">',
     '<input type="hidden" name="UTM_CAMPAIGN" id="utmCampaign" value="none">',
+    '<input type="hidden" name="UTM_MEDIUM_RAW" id="utmMediumRaw" value="none">',
 )
+# Nachzuegler: die ersten drei Felder stehen auf 22 Seiten schon, und
+# setz_felder() haelt sich an MARKE und ruehrt eine fertige Seite nicht an.
+# Ein spaeter dazugekommenes Feld braucht darum seinen eigenen Einsatz,
+# sonst kommt es auf keiner bestehenden Seite an.
+NACH = re.compile(r'(\n(\s*))(<input type="hidden" name="UTM_CAMPAIGN"[^>]*>)')
 
 
 def setz_felder(html):
@@ -66,6 +78,21 @@ def setz_felder(html):
 
     html = EMAIL.sub(ersatz, html)
     return html, n[0]
+
+
+def setz_nachzuegler(html):
+    """Ergaenzt Felder, die nach den ersten drei dazugekommen sind, hinter
+    UTM_CAMPAIGN. Wiederholbar: was schon steht, bleibt."""
+    n = [0]
+
+    def ersatz(m):
+        fehlt = [f for f in FELDER if ('name="%s"' % f.split('name="')[1].split('"')[0]) not in html]
+        if not fehlt:
+            return m.group(0)
+        n[0] += 1
+        return m.group(1) + m.group(3) + "".join("\n" + m.group(2) + f for f in fehlt)
+
+    return NACH.sub(ersatz, html), n[0]
 
 
 def setz_skript(html):
@@ -104,7 +131,9 @@ def main(argv=None):
         if hat_formular:
             mit_formular += 1
         neu, nf = setz_felder(alt)
+        neu, nn = setz_nachzuegler(neu)
         neu, ns = setz_skript(neu)
+        nf += nn
         if neu == alt:
             print("  ok   %-32s unveraendert" % datei)
             continue

@@ -163,6 +163,21 @@ def selftest():
            all(q in QUELLEN for q in ("yt-description", "yt-pinned", "x", "discord", "tg")),
            True)
 
+    # Die Liste steht zweimal: hier und als Spiegel in utm.js, weil der
+    # Browser sie braucht. Zweimal heisst irgendwann auseinander, also
+    # liest der Selbsttest die js-Zeile und vergleicht (Ben, 12.10.2026).
+    import pathlib
+    js = (pathlib.Path(__file__).resolve().parent.parent / "utm.js").read_text(encoding="utf-8")
+    m = re.search(r"var MEDIEN = \[(.*?)\];", js, re.S)
+    if m:
+        aus_js = tuple(x.strip().strip('"') for x in m.group(1).replace("\n", " ").split(",")
+                       if x.strip())
+        pruefe("MEDIEN in utm.js gleich der liste hier", aus_js, MEDIEN)
+    else:
+        schlecht += 1
+        gezaehlt += 1
+        print("  FEHL MEDIEN in utm.js nicht gefunden, spiegel geprueft?")
+
     for falsch, was in ((("youtube-shorts",), "unbekannte quelle"),
                         (("yt-description", "reel"), "unbekannte gattung"),
                         (("x", None, "Weekly Numbers"), "campaign kein slug")):
