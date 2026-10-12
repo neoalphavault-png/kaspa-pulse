@@ -118,15 +118,36 @@ jobs:
             --from-nod data/number-of-day.json \
             --image graphics/number-of-day.png \
             --log data/x-post-log.json
+      # SEITENSTEMPEL, taeglich (Ben, 12.10.2026). Die Startseite aendert
+      # sich jeden Tag, also gehoert ihr lastmod jeden Tag nachgezogen.
+      # Dieser Lauf ist der einzige, der taeglich und unabhaengig von einem
+      # PR laeuft - er ist damit auch die Stelle, an der ein Stempel wieder
+      # stimmt, den irgendwer sonst stehen gelassen hat. Am 12.10. war das
+      # eine Handarbeit an den Lesetexten des Dashboards (9b32810): sie hat
+      # index.html geaendert und den Stempel nicht, und seo_seiten.py
+      # --pruefen war seitdem auf main rot.
+      #
+      # seo_seiten.py datiert nur um, wo sich der Text wirklich geaendert
+      # hat (Hash je Seite in data/seiten-stand.json). An einem Tag ohne
+      # Textaenderung ist der Schritt ein Leerlauf, und nichts wird
+      # committet. Der Anmeldeblock zaehlt nicht mit (Ben, 11.10.2026).
+      - name: seitenstand und sitemap
+        if: always() && steps.guard.outputs.done != '1'
+        run: |
+          python3 scripts/seo_seiten.py --selbsttest
+          python3 scripts/seo_seiten.py
       # laeuft auch an tagen ohne post und auch, wenn discord oder x rot
       # waren. sonst geht das gedaechtnis verloren, gegen das die
       # sperrfristen rechnen, und der x-post-log haette die id nicht.
+      #
+      # *.html und sitemap.xml muessen mit dazu, sonst laeuft der Stempel
+      # oben und nichts davon kommt an (data/ deckt nur seiten-stand.json).
       - name: commit
         if: always() && steps.guard.outputs.done != '1'
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
-          git add graphics/ data/
+          git add graphics/ data/ *.html sitemap.xml
           if git diff --staged --quiet; then
             echo "nothing changed"
           else
