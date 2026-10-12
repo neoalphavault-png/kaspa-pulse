@@ -65,8 +65,17 @@
     // for builders steht als eigener punkt oben und ist leicht abgesetzt,
     // damit teams die seite finden (Ben, 08.10.2026). Als aktuelle seite
     // greift weiter das normale a.on.
-    + ".nav .nc > a[href='/for-builders.html']{color:#49EACB;border-color:rgba(73,234,203,0.28);}"
-    + ".nav .nc > a[href='/for-builders.html']:hover{background:rgba(73,234,203,0.08);}"
+    // "for builders" soll auffallen, aber nicht wie die aktuelle Seite
+    // aussehen (Ben, 12.10.2026). Bis dahin trug der Eintrag Tealschrift
+    // UND einen Tealrahmen, also genau die Zeichen der Markierung .on - auf
+    // zwanzig von dreiundzwanzig Seiten sahen damit zwei Punkte aktiv aus.
+    // Jetzt weiss und halbfett: deutlich heller als die uebrigen Punkte
+    // (--dim), aber ohne Teal und ohne Rahmen.
+    // :not(.on) ist Pflicht, nicht Zierde: ohne das ueberschreibt diese
+    // Regel auf for-builders.html die Markierung der eigenen Seite, weil
+    // sie dieselbe Spezifitaet hat und spaeter eingefuegt wird.
+    + ".nav .nc > a[href='/for-builders.html']:not(.on){color:#FFFFFF;font-weight:600;}"
+    + ".nav .nc > a[href='/for-builders.html']:not(.on):hover{background:rgba(255,255,255,0.06);}"
     + "@media(max-width:640px){"
     // das aufgeklappte menue ist hoeher als ein telefonbildschirm. es
     // bekommt deshalb einen eigenen scrollbereich statt die seite darunter

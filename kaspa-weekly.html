@@ -208,20 +208,20 @@
     <div class="split">
       <div><div class="v" id="v21">—</div><div class="k">21 week average · the close sits <span id="g21">—</span> it</div></div>
       <div><div class="v" id="v50">—</div><div class="k">50 week average · the close sits <span id="g50">—</span> it</div></div>
-      <div><div class="v" id="vStreak">—</div><div class="k">weeks in a row closing below the 21 week average</div></div>
+      <div><div class="v" id="vStreak">—</div><div class="k">weeks in a row closing <span id="streakSide">—</span> the 21 week average</div></div>
     </div>
   </div>
   <p class="note">Every number on this page is computed in your browser from <a href="/kaspa-data-sources.html">our own candle file</a>, the same file the video is built from. Nothing here is typed in by hand, which is why it can never drift away from the video.</p>
 
   <div class="answer">
     <div class="lbl">what this format is</div>
-    <p>A weekly chart breakdown for Kaspa that never tells you where the price is going. We show where the close sits against two mechanical lines, what one KAS buys in bitcoin, and the price bands where trading actually happened. Then one sentence on what would change our read. Published every Monday at 16:00 CET, the same hour as the dashboard and the newsletter.</p>
+    <p>A weekly chart breakdown for Kaspa that never tells you where the price is going. We show where the close sits against two mechanical lines, what one KAS buys in bitcoin, and the price bands where trading actually happened. Then one sentence on what would change our read. Published every Monday at 16:00 Berlin time, the same hour as the dashboard and the newsletter.</p>
   </div>
 
   <h2>The two lines</h2>
   <p>Both lines are mechanical. Nothing is drawn by hand, because a line dragged with a cursor cannot be checked by anyone.</p>
   <h3>The 21 week average</h3>
-  <p>The average of the last 21 weekly closes, weighted so recent weeks count more (an exponential average, seeded with the plain average of the first 21 weeks). It reacts within a few weeks, so it answers a short question: is this week trading above or below where the last few months traded? Right now the close sits <b><span id="g21b">—</span></b> it, and Kaspa has closed below this line <b><span id="streakB">—</span> weeks in a row</b>. The last weekly close above it was <b><span id="lastAbove">—</span></b>.</p>
+  <p>The average of the last 21 weekly closes, weighted so recent weeks count more (an exponential average, seeded with the plain average of the first 21 weeks). It reacts within a few weeks, so it answers a short question: is this week trading above or below where the last few months traded? Right now the close sits <b><span id="g21b">—</span></b> it, and Kaspa has closed <span id="streakSideB">—</span> this line <b><span id="streakB">—</span> weeks in a row</b>. The last weekly close above it was <b><span id="lastAbove">—</span></b>.</p>
   <h3>The 50 week average</h3>
   <p>The plain average of the last 50 weekly closes. Longer memory, slower to turn, so it answers the year-shaped question. The close sits <b><span id="g50b">—</span></b> it. In our data window, Kaspa has closed a week above that line <b><span id="above50">—</span></b>.</p>
 
@@ -270,13 +270,13 @@
       <div><div class="t">55 weeks below the line</div><div class="d">The first episode. The close 10.3 percent under the 21 week average for the 55th straight week, one KAS buying 35 sats after a 55 percent fall against bitcoin in a year, and the heaviest volume band in the whole window.</div></div>
     </a>
     <div class="next">
-      <div class="t">next episode · monday, 16:00 CET</div>
+      <div class="t">next episode · monday, 16:00 Berlin time</div>
       <div class="d">Built from the weekly close that lands the Saturday before. <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener">Subscribe on YouTube</a> so you do not miss it, or take the email below and get the numbers before the video.</div>
     </div>
   </div>
 
   <div class="ytbox">
-    <div class="ytbadge">free · every monday 16:00 CET</div>
+    <div class="ytbadge">free · every monday 16:00 Berlin time</div>
     <div class="ytt">watch <span>Kaspa Weekly</span> on YouTube</div>
     <div class="ytd">every episode, plus a new Kaspa explainer every Thursday. the chart, the chain, and the definition of every number we say out loud.</div>
     <a class="ytcta" href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q?sub_confirmation=1" target="_blank" rel="noopener">subscribe to kaspa pulse</a>
@@ -293,7 +293,7 @@
   <div class="faq">
   <h2>Questions people ask</h2>
   <h3>What is the Kaspa 21 week average and where does the price sit?</h3>
-  <p>The 21 week average is the exponential average of the last 21 weekly closes, seeded with the plain average of the first 21 weeks in the window. It is mechanical, so anyone can rebuild it. This page shows the current value, how far the last weekly close sits from it, and how many weeks in a row Kaspa has closed below it, computed live from our own Kraken candle file.</p>
+  <p>The 21 week average is the exponential average of the last 21 weekly closes, seeded with the plain average of the first 21 weeks in the window. It is mechanical, so anyone can rebuild it. This page shows the current value, how far the last weekly close sits from it, and how many weeks in a row the close has stayed on the same side of it, computed live from our own Kraken candle file.</p>
   <h3>How many satoshis does one KAS buy?</h3>
   <p>The page divides the Kaspa weekly close by the bitcoin close from the same log and shows the result in satoshis, alongside the readings from twelve weeks and one year earlier. Pricing Kaspa in bitcoin answers whether holding KAS instead of BTC has paid, which the dollar chart alone cannot answer.</p>
   <h3>Does Kaspa Pulse give Kaspa price predictions or targets?</h3>
@@ -301,7 +301,7 @@
   <h3>What are the Kaspa support and resistance levels?</h3>
   <p>Instead of drawing lines, we count volume into price bands half a cent wide across the whole data window. The bands with the largest share of traded volume are the prices where the most coins actually changed hands. This page lists the heaviest bands and marks the band the current close sits in. Heavy volume marks where positions were built, not where a price must stop.</p>
   <h3>When does a new Kaspa Weekly episode come out?</h3>
-  <p>Every Monday at 16:00 CET on the Kaspa Pulse YouTube channel, built from the weekly close that lands the Saturday before. The dashboard and the newsletter are refreshed the same morning, so the video, the page and the email always carry the same numbers.</p>
+  <p>Every Monday at 16:00 Berlin time on the Kaspa Pulse YouTube channel, built from the weekly close that lands the Saturday before. The dashboard and the newsletter are refreshed the same morning, so the video, the page and the email always carry the same numbers.</p>
   </div>
 <!--/AUTO:faq-->
   <div class="subscribe">
@@ -345,7 +345,7 @@
     {
       "@type": "Question",
       "name": "What is the Kaspa 21 week average and where does the price sit?",
-      "acceptedAnswer": { "@type": "Answer", "text": "The 21 week average is the exponential average of the last 21 weekly closes, seeded with the plain average of the first 21 weeks in the window. It is mechanical, so anyone can rebuild it. This page shows the current value, how far the last weekly close sits from it, and how many weeks in a row Kaspa has closed below it, computed live from our own Kraken candle file." }
+      "acceptedAnswer": { "@type": "Answer", "text": "The 21 week average is the exponential average of the last 21 weekly closes, seeded with the plain average of the first 21 weeks in the window. It is mechanical, so anyone can rebuild it. This page shows the current value, how far the last weekly close sits from it, and how many weeks in a row the close has stayed on the same side of it, computed live from our own Kraken candle file." }
     },
     {
       "@type": "Question",
@@ -365,7 +365,7 @@
     {
       "@type": "Question",
       "name": "When does a new Kaspa Weekly episode come out?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Every Monday at 16:00 CET on the Kaspa Pulse YouTube channel, built from the weekly close that lands the Saturday before. The dashboard and the newsletter are refreshed the same morning, so the video, the page and the email always carry the same numbers." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Every Monday at 16:00 Berlin time on the Kaspa Pulse YouTube channel, built from the weekly close that lands the Saturday before. The dashboard and the newsletter are refreshed the same morning, so the video, the page and the email always carry the same numbers." }
     }
   ]
 }
@@ -425,9 +425,17 @@
     $("g21").textContent = side(g21); $("g50").textContent = side(g50);
     $("g21b").textContent = side(g21); $("g50b").textContent = side(g50);
 
+    // Der Zaehler zaehlt die LAUFENDE strecke, also die wochen auf der
+    // seite, auf der der schluss gerade steht - nicht die wochen unter der
+    // linie. Bis zum 12.10.2026 stand daneben fest "below", und bei einem
+    // schluss ueber der linie widersprachen sich die beiden angaben (Ben:
+    // 17.0% above neben 5 weeks in a row closing below). Das wort kommt
+    // jetzt aus derselben groesse wie die luecke oben.
     var streak = 0, below = c < e21[i];
     for (var j=i; j>=0 && e21[j]!=null; j--){ if ((closes[j] < e21[j]) === below) streak++; else break; }
     $("vStreak").textContent = streak; $("streakB").textContent = streak;
+    var wort = below ? "below" : "above";
+    $("streakSide").textContent = wort; $("streakSideB").textContent = wort;
     var la = "not in this window";
     for (var k=i; k>=0; k--){ if (e21[k]!=null && closes[k] > e21[k]) { la = nice(satDay(k)) + ", at " + fmtP(closes[k]); break; } }
     $("lastAbove").textContent = la;
