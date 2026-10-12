@@ -80,16 +80,18 @@ jobs:
             git pull --rebase origin main && git push origin HEAD:main
           fi
 
+      # Die Kanal-ID steht in scripts/yt_live_check.py (KANAL_ID, seit
+      # 12.10.2026). Hier stand sie ein zweites Mal, als Repo-Variable
+      # YT_CHANNEL_ID: war sie gesetzt, gewann sie, und niemand sah es.
+      # Eine ID, eine Stelle.
       - name: ist die montagsfolge live
         id: yt
-        env:
-          YT_CHANNEL_ID: ${{ vars.YT_CHANNEL_ID }}
         run: |
           set -e
           if [ "${{ inputs.pretend_no_video }}" = "true" ]; then
             echo '{"live_today": false, "error": "trockenlauf, pretend_no_video"}' > /tmp/yt.json
           else
-            python3 scripts/yt_live_check.py --channel-id "$YT_CHANNEL_ID" > /tmp/yt.json
+            python3 scripts/yt_live_check.py > /tmp/yt.json
           fi
           cat /tmp/yt.json
           python3 - <<'PY' >> "$GITHUB_OUTPUT"

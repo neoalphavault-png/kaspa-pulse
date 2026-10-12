@@ -36,17 +36,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      # Kanal-ID nur in scripts/yt_live_check.py, siehe weekly-guard.yml
       - name: veto und video pruefen
         id: plan
-        env:
-          YT_CHANNEL_ID: ${{ vars.YT_CHANNEL_ID }}
         run: |
           set -e
           if [ -f data/weekly-veto ]; then
             echo "::error::data/weekly-veto liegt vor: $(cat data/weekly-veto). Erst das Veto raeumen."
             exit 1
           fi
-          python3 scripts/yt_live_check.py --channel-id "$YT_CHANNEL_ID" > /tmp/yt.json
+          python3 scripts/yt_live_check.py > /tmp/yt.json
           cat /tmp/yt.json
           LIVE=$(python3 -c "import json;print(json.load(open('/tmp/yt.json'))['live_today'])")
           if [ "$LIVE" != "True" ]; then
