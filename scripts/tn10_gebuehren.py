@@ -125,11 +125,15 @@ async def lesen(von, bis, rolle, partner, out):
     zeilen, meta = [], {"rolle": rolle, "verbindungen": [], "meldungen": []}
     rpc, p2p = None, ""
 
+    andere_rolle = "k2" if rolle == "k1" else "k1"
+    je_minute = {}
+
     def meiden():
-        if rolle != "k2" or not partner:
+        """p2p-id des anderen prozesses, beide meiden sich gegenseitig."""
+        if not partner:
             return ""
         try:
-            with open(partner, encoding="utf-8") as fh:
+            with open("%s.%s" % (partner, andere_rolle), encoding="utf-8") as fh:
                 return json.load(fh).get("p2p", "")
         except (OSError, ValueError):
             return ""
@@ -151,10 +155,11 @@ async def lesen(von, bis, rolle, partner, out):
             meta["verbindungen"].append({"zeit": iso(int(time.time())), "kennung": kennung(pid),
                                          "version": str(feld(info, "serverVersion") or ""),
                                          "gleich_wie_partner": bool(andere and pid == andere)})
-            if rolle == "k1" and partner:
-                with open(partner + ".neu", "w", encoding="utf-8") as fh:
+            if partner:
+                eigene = "%s.%s" % (partner, rolle)
+                with open(eigene + ".neu", "w", encoding="utf-8") as fh:
                     json.dump({"p2p": pid}, fh)
-                os.replace(partner + ".neu", partner)
+                os.replace(eigene + ".neu", eigene)
             return
         raise RuntimeError("kein knoten")
 
@@ -215,6 +220,7 @@ async def lesen(von, bis, rolle, partner, out):
                     st += ", synchron nicht gelesen"
                 zeilen.append({"utc_minute": iso(gelesen), "priority": zahl_text(p), "normal": zahl_text(n),
                                "low": zahl_text(lo), "status": st})
+                je_minute[iso(m)[:16]] = kennung(p2p)
             except Exception as exc:                     # noqa: BLE001
                 grund = "fehlt: get_fee_estimate %s" % type(exc).__name__
                 await trennen()
@@ -226,6 +232,7 @@ async def lesen(von, bis, rolle, partner, out):
             await nachverbinden(m)                       # luecke vor der naechsten sekunde 0 nutzen
     await trennen()
     meta["kennung"] = kennung(p2p)
+    meta["knoten_je_minute"] = je_minute
     os.makedirs(out, exist_ok=True)
     with open(os.path.join(out, "gebuehren-%s.csv" % rolle), "w", encoding="utf-8") as fh:
         fh.write(csv_text(zeilen, SPALTEN))
@@ -254,7 +261,15 @@ def nebeneinander(ordner, von, bis):
                 for z in csv.DictReader(fh):
                     zeilen.setdefault(minute_von(z["utc_minute"]), z)
         je[r] = (os.path.exists(pfad), zeilen)
-    spalten = ["minute_utc"] + ["%s_%s" % (r, s) for r in ("k1", "k2") for s in SPALTEN]
+    knoten = {}
+    for r in ("k1", "k2"):
+        try:
+            with open(os.path.join(ordner, "gebuehren-%s.json" % r), encoding="utf-8") as fh:
+                knoten[r] = json.load(fh).get("knoten_je_minute", {})
+        except (OSError, ValueError):
+            knoten[r] = {}
+    spalten = (["minute_utc"] + ["%s_%s" % (r, s) for r in ("k1", "k2") for s in SPALTEN]
+               + ["k1_knoten", "k2_knoten", "gleicher_knoten"])
     aus = []
     m = t0
     while m < bis:
@@ -268,12 +283,16 @@ def nebeneinander(ordner, von, bis):
             else:
                 for s in SPALTEN:
                     z["%s_%s" % (r, s)] = q.get(s, "")
+            z["%s_knoten" % r] = knoten[r].get(key, "")
+        z["gleicher_knoten"] = ("ja" if z["k1_knoten"] and z["k1_knoten"] == z["k2_knoten"]
+                                else "nein" if z["k1_knoten"] and z["k2_knoten"] else "")
         aus.append(z)
         m += 60
     with open(os.path.join(ordner, "gebuehren-nebeneinander.csv"), "w", encoding="utf-8") as fh:
         fh.write(csv_text(aus, spalten))
     beide = sum(1 for z in aus if z.get("k1_status", "").startswith("ok") and z.get("k2_status", "").startswith("ok"))
-    print("nebeneinander: minuten %d, beide mit werten %d" % (len(aus), beide))
+    gleich = sum(1 for z in aus if z.get("gleicher_knoten") == "ja")
+    print("nebeneinander: minuten %d, beide mit werten %d, davon auf demselben knoten %d" % (len(aus), beide, gleich))
     return aus
 
 
@@ -312,7 +331,12 @@ def selbsttest():
                                 "low": "1.0", "status": "ok"},
                                {"utc_minute": "2026-10-16T13:31:00Z", "status": "fehlt: get_fee_estimate Exception"}],
                               SPALTEN))
+        with open(os.path.join(d, "gebuehren-k1.json"), "w", encoding="utf-8") as fh:
+            json.dump({"knoten_je_minute": {"2026-10-16T13:30": "aaaa"}}, fh)
+        with open(os.path.join(d, "gebuehren-k2.json"), "w", encoding="utf-8") as fh:
+            json.dump({"knoten_je_minute": {"2026-10-16T13:30": "aaaa"}}, fh)
         aus = nebeneinander(d, t0, t0 + 180)
+        ok("derselbe knoten wird markiert", aus[0]["gleicher_knoten"] == "ja" and aus[1]["gleicher_knoten"] == "")
         ok("drei minuten im fenster", len(aus) == 3)
         ok("k1 wert uebernommen", aus[0]["k1_normal"] == "1.0")
         ok("k1 grund uebernommen, nichts aufgefuellt",
