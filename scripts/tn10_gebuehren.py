@@ -88,6 +88,16 @@ def feld(d, *namen):
     return None
 
 
+def ohne_adressen(text):
+    """fehlertext ohne url, hostname oder ip, hoechstens 120 zeichen."""
+    import re
+    t = re.sub(r"[a-z]+://\S+", "<url>", str(text))
+    t = re.sub(r"\b\d{1,3}(\.\d{1,3}){3}(:\d+)?\b", "<ip>", t)
+    t = re.sub(r"\[?[0-9a-fA-F:]{6,}\]?(:\d+)?", "<ip>", t)
+    t = re.sub(r"\b[\w-]+(\.[\w-]+)+\.[a-z]{2,}\b", "<host>", t)
+    return t.strip()[:120]
+
+
 def kennung(p2p):
     return hashlib.sha256(str(p2p).encode()).hexdigest()[:10] if p2p else ""
 
@@ -204,12 +214,26 @@ async def lesen(von, bis, rolle, partner, out):
                 await verbinde()
             except Exception as exc:                     # noqa: BLE001
                 grund = "fehlt: kein knoten, verbinden gescheitert (%s)" % type(exc).__name__
+        versuch2 = ""
         if not grund:
             try:
-                fe = await asyncio.wait_for(rpc.get_fee_estimate(), ABFRAGE_TIMEOUT_S)
+                try:
+                    fe = await asyncio.wait_for(rpc.get_fee_estimate(), ABFRAGE_TIMEOUT_S)
+                except Exception as exc1:                # noqa: BLE001
+                    # einmal neu verbinden und in derselben minute noch einmal lesen
+                    versuch2 = type(exc1).__name__
+                    meta["meldungen"].append("%s erster versuch %s: %s" % (
+                        iso(m), versuch2, ohne_adressen(exc1)))
+                    await trennen()
+                    await nachverbinden(m + 45)
+                    if rpc is None:
+                        raise RuntimeError("kein knoten fuer den zweiten versuch")
+                    fe = await asyncio.wait_for(rpc.get_fee_estimate(), ABFRAGE_TIMEOUT_S)
                 gelesen = int(time.time())
                 p, n, lo, fehlend = werte(fe)
                 st = "ok" if not fehlend else "fehlt: " + ", ".join(fehlend) + " nicht in der antwort"
+                if versuch2:
+                    st += ", zweiter versuch nach %s" % versuch2
                 if gelesen - m > SPAET_S:
                     st += ", spaet %d s" % (gelesen - m)
                 try:
@@ -222,7 +246,8 @@ async def lesen(von, bis, rolle, partner, out):
                                "low": zahl_text(lo), "status": st})
                 je_minute[iso(m)[:16]] = kennung(p2p)
             except Exception as exc:                     # noqa: BLE001
-                grund = "fehlt: get_fee_estimate %s" % type(exc).__name__
+                grund = "fehlt: get_fee_estimate %s%s" % (type(exc).__name__, ", auch im zweiten versuch" if versuch2 else "")
+                meta["meldungen"].append("%s %s: %s" % (iso(m), type(exc).__name__, ohne_adressen(exc)))
                 await trennen()
         if grund:
             zeilen.append({"utc_minute": iso(m), "status": grund})
@@ -323,6 +348,9 @@ def selbsttest():
     ok("werte aus der antwort", werte(fe) == (1.0, 1.0, 1.0, []))
     ok("fehlende eimer werden benannt", werte({"priorityBucket": {"feerate": 2}})[3] == ["normal", "low"])
     ok("zahl ungerundet", zahl_text(1.0000123) == "1.0000123" and zahl_text(None) == "")
+    ok("fehlertext ohne url, ip und host", ohne_adressen(
+        "Unable to connect to wss://node.example.net:17210/x at 10.1.2.3:16110 or abc.kaspa.red") ==
+        "Unable to connect to <url> at <ip> or <host>")
     ok("kennung kurz und nicht die id", len(kennung("abc")) == 10 and kennung("abc") != "abc")
     with tempfile.TemporaryDirectory() as d:
         t0 = int(dt.datetime(2026, 10, 16, 13, 30, tzinfo=dt.timezone.utc).timestamp())
