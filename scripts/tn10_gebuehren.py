@@ -174,10 +174,16 @@ async def lesen(von, bis, rolle, partner, out):
             if meiden():
                 break
             await asyncio.sleep(1)
-    try:
-        await verbinde()
-    except Exception as exc:                             # noqa: BLE001
-        meta["meldungen"].append("%s verbinden vor dem start: %s" % (iso(int(time.time())), type(exc).__name__))
+    async def nachverbinden(bis_s):
+        """verbinden versuchen, solange vor bis_s noch zeit ist, alle 10 s."""
+        while rpc is None and time.time() < bis_s - 5:
+            try:
+                await asyncio.wait_for(verbinde(), bis_s - time.time() - 2)
+            except Exception as exc:                     # noqa: BLE001
+                meta["meldungen"].append("%s verbinden: %s" % (iso(int(time.time())), type(exc).__name__))
+                await asyncio.sleep(10)
+
+    await nachverbinden(t0)
     m = t0
     while m < bis:
         rest = m - time.time()
@@ -216,6 +222,8 @@ async def lesen(von, bis, rolle, partner, out):
             zeilen.append({"utc_minute": iso(m), "status": grund})
             meta["meldungen"].append("%s %s" % (iso(m), grund))
         m += 60
+        if m < bis:
+            await nachverbinden(m)                       # luecke vor der naechsten sekunde 0 nutzen
     await trennen()
     meta["kennung"] = kennung(p2p)
     os.makedirs(out, exist_ok=True)
