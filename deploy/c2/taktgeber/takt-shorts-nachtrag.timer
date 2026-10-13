@@ -1,0 +1,19 @@
+[Unit]
+Description=Kaspa Pulse Takt, Mittwochs-Nachtrag im Short
+
+[Timer]
+Unit=takt@shorts-nachtrag.service
+# Die Zahl des Tages steht um 10:12. Der Nachtrag setzt sie ins Bild des
+# Mittwochs-Shorts, bevor der Reel-Takt um 12:00 laeuft.
+OnCalendar=Wed *-*-* 10:30:00 Europe/Berlin
+# Einmal nachfassen, falls number-of-day.json um 10:30 noch den Stand von
+# gestern hatte. Danach nicht mehr: der Lauf selbst bricht ab und meldet,
+# und ein dritter Versuch wuerde nur dieselbe Meldung wiederholen.
+OnCalendar=Wed *-*-* 11:00:00 Europe/Berlin
+# Kein Persistent: ein Nachtrag nach 12:00 kommt zu spaet fuer den Reel,
+# und der Lauf wuerde ein Bild bauen, das niemand mehr abholt.
+Persistent=false
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

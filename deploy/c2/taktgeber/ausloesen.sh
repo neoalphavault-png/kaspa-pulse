@@ -47,6 +47,13 @@ case "$1" in
   number-of-day)
     "$HIER/takt.sh" "$REPO_PULSE" number-of-day.yml
     ;;
+  shorts-nachtrag)
+    # Mittwochs 10:30 und, falls noetig, 11:00. Der Workflow sucht sich
+    # Woche und Schluessel selbst (die laufende Woche, Schluessel "mi")
+    # und bricht ab, wenn number-of-day.json noch nicht von heute ist.
+    # Keine Eingaben: shorts-nachtrag.yml hat keine, die zaehlt.
+    "$HIER/takt.sh" "$REPO_STUDIO" shorts-nachtrag.yml
+    ;;
   *)
     echo "unbekannter takt: $1" >&2
     exit 1

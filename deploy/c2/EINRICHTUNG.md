@@ -356,6 +356,11 @@ von GitHub im öffentlichen Kanal.
 Der Taktgeber darf dabei schon takten: er löst nur Läufe aus, die selbst
 trocken sind.
 
+Der Parallelbetrieb ist vorbei. **Stand 13.10.2026:** `REEL_LIVE` steht in
+`takt.conf` auf `true` und `REELS_LIVE` ist in `pulse-studio` gesetzt, der
+Reel geht also ab dem 14.10. zur Short-Zeit wirklich raus. `WN_DRY_RUN`
+und `IG_MODUS` stehen weiter auf der sicheren Seite.
+
 **Das Ziel für die 48 h:** mindestens 95 % beobachtete Minuten je
 UTC-Tag, größte Lücke unter 30 Minuten.
 

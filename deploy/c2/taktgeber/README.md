@@ -71,19 +71,29 @@ Was jeder Takt deshalb ausdrücklich mitschickt:
 | `reel` | `live=` aus `REEL_LIVE` in `takt.conf` |
 | `weeklynumbers` | `dry_run=` aus `WN_DRY_RUN` in `takt.conf` |
 | `number-of-day` | keine, der Workflow hat keine, die zählt |
+| `shorts-nachtrag` | keine. Der Workflow nimmt die laufende Woche und den Schlüssel `mi` selbst |
 
 Wer einen Takt dazunimmt, liest zuerst den `workflow_dispatch`-Abschnitt
 des Zielworkflows und schickt jede Eingabe mit, die der Lauf braucht.
 `ausloesen.sh` ist die eine Stelle dafür.
 
-**`Persistent=true`** holt einen verpassten Takt nach — außer beim Reel:
-ein Reel zwei Stunden nach dem Short ist kein Reel zur Short-Zeit, und
-das Fälligkeitsfenster im Skript würde es ohnehin abweisen.
+**`Persistent=true`** holt einen verpassten Takt nach — außer bei zwei:
+beim Reel, weil ein Reel zwei Stunden nach dem Short kein Reel zur
+Short-Zeit ist und das Fälligkeitsfenster im Skript es ohnehin abweisen
+würde, und beim Mittwochs-Nachtrag, weil ein Bild nach 12:00 niemand mehr
+abholt. Der Nachtrag hat dafür zwei Termine, 10:30 und 11:00.
 
-**Die cron-Einträge auf GitHub bleiben stehen.** Sie sind der Rückfall,
-und ihre Verspätung ist harmlos: jeder der vier Läufe prüft sein eigenes
-Zeitfenster und endet grün ohne Lieferung, wenn er zu spät kommt. Es muss
-dafür **keine Workflow-Datei geändert werden**.
+**Die cron-Einträge auf GitHub bleiben stehen**, mit einer Ausnahme. Sie
+sind der Rückfall, und ihre Verspätung ist harmlos: jeder Lauf prüft sein
+eigenes Zeitfenster und endet grün ohne Lieferung, wenn er zu spät kommt.
+
+Die Ausnahme ist `instagram-reel.yml`: seit der Reel scharf läuft, kann
+sein eigener `schedule` nichts mehr leisten. Ein `schedule`-Lauf hat keine
+Eingaben, `live` ist dort also leer, und der Lauf geht immer trocken —
+er baut im Fenster um 12:00 einen zweiten Container und eine zweite
+Ops-Meldung, ohne je zu veröffentlichen. Die vier `cron`-Zeilen kommen
+deshalb in einem eigenen PR in `pulse-studio` heraus. Der Reel hängt
+danach allein am Takt von c2.
 
 ## Zwei Schalter, die scharf stellen
 
@@ -91,7 +101,7 @@ Beide stehen bewusst auf der sicheren Seite und werden einzeln umgelegt:
 
 | Schalter | wo | Wirkung |
 | --- | --- | --- |
-| `REEL_LIVE` | `takt.conf` auf c2 | `false` schickt den Reel-Lauf trocken los. Zusätzlich muss die Repository-Variable `REELS_LIVE` auf `ja` stehen — zwei Schalter, wie abgesprochen |
+| `REEL_LIVE` | `takt.conf` auf c2 | **steht seit 13.10.2026 auf `true`.** `false` schickt den Reel-Lauf wieder trocken los. Zusätzlich muss die Repository-Variable `REELS_LIVE` gesetzt sein — zwei Schalter, wie abgesprochen. Erkannt werden dort `ja`, `yes`, `true` und `1` (`instagram_reel.py`, `lauf()`) |
 | `WN_DRY_RUN` | `takt.conf` auf c2 | `true` lässt Weekly Numbers nur rechnen. Auf GitHub ist `dry_run` ebenfalls auf `true` vorbelegt, ein Takt ohne dieses Feld postet also nie |
 
 ## Einrichtung
