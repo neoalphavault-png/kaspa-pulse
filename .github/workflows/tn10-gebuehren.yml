@@ -121,10 +121,88 @@ jobs:
           rest=$(( LOS - $(date +%s) ))
           if [ "$rest" -gt 20400 ]; then rest=20400; fi
           if [ "$rest" -gt 0 ]; then echo "warte $rest s"; sleep "$rest"; else echo "nichts zu warten"; fi
+  w7:
+    needs: [plan, w6]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.w6.result == 'success' && fromJSON(needs.plan.outputs.wn) >= 7 }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - name: warten ohne abfragen
+        env:
+          LOS: ${{ needs.plan.outputs.los }}
+        run: |
+          rest=$(( LOS - $(date +%s) ))
+          if [ "$rest" -gt 20400 ]; then rest=20400; fi
+          if [ "$rest" -gt 0 ]; then echo "warte $rest s"; sleep "$rest"; else echo "nichts zu warten"; fi
+  w8:
+    needs: [plan, w7]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.w7.result == 'success' && fromJSON(needs.plan.outputs.wn) >= 8 }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - name: warten ohne abfragen
+        env:
+          LOS: ${{ needs.plan.outputs.los }}
+        run: |
+          rest=$(( LOS - $(date +%s) ))
+          if [ "$rest" -gt 20400 ]; then rest=20400; fi
+          if [ "$rest" -gt 0 ]; then echo "warte $rest s"; sleep "$rest"; else echo "nichts zu warten"; fi
+  w9:
+    needs: [plan, w8]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.w8.result == 'success' && fromJSON(needs.plan.outputs.wn) >= 9 }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - name: warten ohne abfragen
+        env:
+          LOS: ${{ needs.plan.outputs.los }}
+        run: |
+          rest=$(( LOS - $(date +%s) ))
+          if [ "$rest" -gt 20400 ]; then rest=20400; fi
+          if [ "$rest" -gt 0 ]; then echo "warte $rest s"; sleep "$rest"; else echo "nichts zu warten"; fi
+  w10:
+    needs: [plan, w9]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.w9.result == 'success' && fromJSON(needs.plan.outputs.wn) >= 10 }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - name: warten ohne abfragen
+        env:
+          LOS: ${{ needs.plan.outputs.los }}
+        run: |
+          rest=$(( LOS - $(date +%s) ))
+          if [ "$rest" -gt 20400 ]; then rest=20400; fi
+          if [ "$rest" -gt 0 ]; then echo "warte $rest s"; sleep "$rest"; else echo "nichts zu warten"; fi
+  w11:
+    needs: [plan, w10]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.w10.result == 'success' && fromJSON(needs.plan.outputs.wn) >= 11 }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - name: warten ohne abfragen
+        env:
+          LOS: ${{ needs.plan.outputs.los }}
+        run: |
+          rest=$(( LOS - $(date +%s) ))
+          if [ "$rest" -gt 20400 ]; then rest=20400; fi
+          if [ "$rest" -gt 0 ]; then echo "warte $rest s"; sleep "$rest"; else echo "nichts zu warten"; fi
+  w12:
+    needs: [plan, w11]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.w11.result == 'success' && fromJSON(needs.plan.outputs.wn) >= 12 }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - name: warten ohne abfragen
+        env:
+          LOS: ${{ needs.plan.outputs.los }}
+        run: |
+          rest=$(( LOS - $(date +%s) ))
+          if [ "$rest" -gt 20400 ]; then rest=20400; fi
+          if [ "$rest" -gt 0 ]; then echo "warte $rest s"; sleep "$rest"; else echo "nichts zu warten"; fi
 
   lesen:
-    needs: [plan, w6]
-    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.w6.result != 'failure' }}
+    needs: [plan, w12]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.w12.result != 'failure' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 350
     steps:
@@ -155,6 +233,8 @@ jobs:
           python3 scripts/tn10_gebuehren.py --nebeneinander out/gebuehren --von "$VON" --bis "$BIS"
           echo "=== gebuehren nebeneinander, csv"
           cat out/gebuehren/gebuehren-nebeneinander.csv
+          echo "=== meldungen, fehlertexte ohne adressen"
+          python3 -c "import json,sys; [print(r, m) for r in ('k1','k2') for m in json.load(open('out/gebuehren/gebuehren-%s.json' % r)).get('meldungen', [])]" || true
           rm -f out/*.log
           exit $S
       - uses: actions/upload-artifact@v4

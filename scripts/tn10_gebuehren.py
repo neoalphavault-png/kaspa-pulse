@@ -45,7 +45,7 @@ import time
 NETZ = "testnet-10"
 SPALTEN = ["utc_minute", "priority", "normal", "low", "status"]
 WARTE_JOB_S = 20400       # ein wartejob schlaeft hoechstens so lange
-WARTE_JOBS = 6
+WARTE_JOBS = 12
 VORLAUF_S = 240           # so viel vor dem start verbinden
 MAX_DAUER = 6 * 3600 - 1800
 ABFRAGE_TIMEOUT_S = 15
