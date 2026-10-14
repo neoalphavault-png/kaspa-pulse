@@ -225,6 +225,29 @@ def berlin(now):
         return now + dt.timedelta(hours=2 if beginn <= now < ende else 1)
 
 
+def start_art(hand, takt):
+    """Woher der Lauf kommt: "hand", "takt" oder "geplant".
+
+    DREI WEGE, NICHT ZWEI (Ben, 14.10.2026). Bis heute gab es nur "von
+    Hand" und "geplant", und weil der Takt von c2 technisch ein
+    workflow_dispatch ist, galt er als Handstart - also nie scharf. Das
+    war richtig, solange ein Dispatch immer ein Mensch war. Der Takt ist
+    keiner: er kommt zur festen Uhrzeit und darf deshalb veroeffentlichen.
+
+    Was ihn vom Handstart trennt, ist nicht das Vertrauen, sondern die
+    Pruefung: --takt laesst Zeitfenster und Tagessperre GELTEN, --hand
+    schaltet beide ab. Deshalb darf --takt scharf sein und --hand nie."""
+    if hand and takt:
+        raise Fehler("--hand und --takt zusammen ergeben keinen sinn")
+    return "hand" if hand else ("takt" if takt else "geplant")
+
+
+def scharf_erlaubt(start, modus):
+    """Von Hand nie scharf. Der Lauf von Hand kennt kein Zeitfenster und
+    keine Tagessperre, er koennte dasselbe Bild dreimal posten."""
+    return not (start == "hand" and modus == "scharf")
+
+
 def faellig(now, log_grafik, log_ig, stopp="", hand=False):
     """(eintrag der grafik, None) oder (None, grund). hand (nur trocken, von
     Hand gestartet) laesst Zeitfenster und Tagessperre weg."""
@@ -897,6 +920,23 @@ def selbsttest():
     ok("von hand ohne fenster und tagessperre", faellig(t(12, 0), lg, {"posts": [{"datum": "2026-10-09"}]},
                                                          hand=True)[0] is not None)
     ok("von hand nie scharf", main(["posten", "--hand", "--modus", "scharf", "--bild", "x", "--caption", "x"]) == 1)
+    # die drei wege
+    ok("ohne schalter ist der lauf geplant", start_art(False, False) == "geplant")
+    ok("--hand heisst hand", start_art(True, False) == "hand")
+    ok("--takt heisst takt", start_art(False, True) == "takt")
+    try:
+        start_art(True, True)
+        ok("hand und takt zusammen faellt auf", False)
+    except Fehler:
+        ok("hand und takt zusammen faellt auf", True)
+    ok("hand darf nicht scharf", scharf_erlaubt("hand", "scharf") is False)
+    ok("hand darf trocken", scharf_erlaubt("hand", "trocken") is True)
+    ok("takt darf scharf", scharf_erlaubt("takt", "scharf") is True)
+    ok("geplant darf scharf", scharf_erlaubt("geplant", "scharf") is True)
+    # der takt behaelt fenster und tagessperre, anders als der handstart
+    ok("takt ohne fenster nicht faellig", faellig(t(12, 0), lg, {"posts": []})[0] is None)
+    ok("takt nicht zweimal am tag",
+       faellig(t(7, 35), lg, {"posts": [{"datum": "2026-10-09"}]})[0] is None)
     import tempfile as _tf
     with _tf.TemporaryDirectory() as tmp:
         Path(tmp, "eintrag.json").write_text(json.dumps({"form": 2, "messzeit_utc": "2026-10-08T06:44:02+00:00"}))
@@ -951,6 +991,8 @@ def main(argv=None):
     ap.add_argument("--text", default="")
     ap.add_argument("--nur-pruefen", action="store_true")
     ap.add_argument("--hand", action="store_true", help="faellig ohne zeitfenster und tagessperre, nur trocken")
+    ap.add_argument("--takt", action="store_true",
+                    help="vom taktgeber gestartet: zeitfenster und tagessperre gelten, scharf erlaubt")
     ap.add_argument("--github-output", default=os.environ.get("GITHUB_OUTPUT", ""))
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args(argv)
@@ -958,6 +1000,9 @@ def main(argv=None):
         return selbsttest()
     now = dt.datetime.now(dt.timezone.utc)
     try:
+        # Frueh, nicht erst beim Posten: ein Lauf mit beiden Schaltern soll
+        # nicht erst nach dem Hochladen auffallen.
+        start = start_art(a.hand, a.takt)
         if a.befehl == "faellig":
             e, grund = faellig(now, json_laden(LOG_GRAFIK, {"laeufe": []}), json_laden(LOG_IG, {"posts": []}),
                                os.environ.get("IG_STOPP", ""), a.hand)
@@ -991,7 +1036,7 @@ def main(argv=None):
                 with open(a.github_output, "a", encoding="utf-8") as fh:
                     fh.write("jpeg=%s\n" % out)
         elif a.befehl == "posten":
-            if a.hand and a.modus == "scharf":
+            if not scharf_erlaubt(start, a.modus):
                 raise Fehler("von hand nur trocken")
             ig = json.loads(Path(a.caption).read_text(encoding="utf-8"))
             bild = Path(a.bild)
@@ -1001,6 +1046,7 @@ def main(argv=None):
             erg = posten(url, ig["caption"], a.modus)
             log = json_laden(LOG_IG, {"posts": []})
             log["posts"].append({"datum": ig["datum"], "form": ig["form"], "modus": a.modus,
+                                 "start": start,
                                  "container": erg["container"], "status": erg["status"],
                                  "media": erg.get("media", ""), "permalink": erg.get("permalink", ""),
                                  "bild": url, "zahl": ig.get("zahl"), "zahl_text": ig.get("zahl_text"),
@@ -1009,8 +1055,8 @@ def main(argv=None):
                                  "caption_sha": hashlib.sha256(ig["caption"].encode()).hexdigest()[:12],
                                  "zeit_utc": now.isoformat(timespec="seconds")})
             json_schreiben(LOG_IG, log)
-            ops("instagram %s, form %s, container %s, status %s%s" % (
-                a.modus, ig["form"], erg["container"], erg["status"],
+            ops("instagram %s (%s), form %s, container %s, status %s%s" % (
+                a.modus, start, ig["form"], erg["container"], erg["status"],
                 (", " + erg.get("permalink", "")) if erg.get("media") else ", nicht veroeffentlicht"))
         elif a.befehl == "insights":
             insights(now)

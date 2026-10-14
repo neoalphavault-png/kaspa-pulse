@@ -23,6 +23,18 @@ name: tagesgrafik
 # wird nur, wenn die Variable IG_MODUS auf "scharf" steht, sonst bleibt der
 # Container unveroeffentlicht (Trockenlauf). Der Token kommt nur als Secret
 # INSTAGRAM_PAGE_TOKEN in die Umgebung des einen Schritts, der ihn braucht.
+#
+# DER TAKT VON C2 (Ben, 14.10.2026). GitHubs geplante Laeufe kommen in diesem
+# Konto sechs bis sieben Stunden zu spaet, und instagram.py laesst nur zwischen
+# 09:25 und 11:30 Berlin durch - der geplante Weg liefert also meist nichts.
+# Der Takt kommt deshalb von c2 (takt-instagram-bild.timer, 09:30 Berlin) und
+# schickt instagram=scharf mit, gesteuert von IG_LIVE in takt.conf.
+#
+# Ein Dispatch mit instagram=scharf laeuft als --takt: Zeitfenster und
+# Tagessperre GELTEN, und veroeffentlicht wird nur, wenn ZUSAETZLICH die
+# Variable IG_MODUS auf "scharf" steht. Zwei Schalter, wie beim Reel.
+# Ein Dispatch mit instagram=trocken bleibt der Handstart: --hand, ohne
+# Fenster, ohne Tagessperre und damit nie scharf.
 
 on:
   schedule:
@@ -41,11 +53,12 @@ on:
         type: boolean
         default: false
       instagram:
-        description: "instagram von hand, nur trocken (grafik von heute aus dem 07:30-lauf, baut keine neue)"
+        description: "instagram aus dem 07:30-lauf, baut keine neue grafik. trocken = von hand, scharf = takt"
         type: choice
         options:
           - aus
           - trocken
+          - scharf
         default: aus
 
 permissions:
@@ -57,10 +70,13 @@ concurrency:
 
 jobs:
   grafik:
-    # nicht zu den instagram-terminen und nicht beim handstart nur fuer instagram (Ben, 08.10.2026)
+    # nicht zu den instagram-terminen und nicht bei einem start nur fuer
+    # instagram (Ben, 08.10.2026). "!= trocken" liess den scharfen Takt vom
+    # 14.10. durch und haette die Grafik um 09:30 neu gebaut - der
+    # Instagram-Job nimmt sie aber aus dem Artefakt des 07:30-Laufs.
     if: >-
       (github.event_name == 'schedule' && github.event.schedule != '30 7 * * *' && github.event.schedule != '30 8 * * *')
-      || (github.event_name == 'workflow_dispatch' && inputs.instagram != 'trocken')
+      || (github.event_name == 'workflow_dispatch' && inputs.instagram == 'aus')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -138,16 +154,31 @@ jobs:
   instagram:
     if: >-
       (github.event_name == 'schedule' && (github.event.schedule == '30 7 * * *' || github.event.schedule == '30 8 * * *'))
-      || (github.event_name == 'workflow_dispatch' && inputs.instagram == 'trocken')
+      || (github.event_name == 'workflow_dispatch' && inputs.instagram != 'aus')
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       contents: write
       actions: read
     env:
-      # scharf nur geplant und nur mit der variable, von hand immer trocken
-      IG_MODUS: ${{ (github.event_name == 'schedule' && vars.IG_MODUS == 'scharf') && 'scharf' || 'trocken' }}
-      IG_HAND: ${{ github.event_name == 'workflow_dispatch' && '--hand' || '' }}
+      # Scharf nur mit der Variable, und nur auf zwei Wegen: geplant, oder als
+      # Takt (instagram=scharf). Der Handstart (instagram=trocken) bleibt
+      # trocken, auch wenn die Variable scharf steht.
+      IG_MODUS: >-
+        ${{ (vars.IG_MODUS == 'scharf'
+             && (github.event_name == 'schedule'
+                 || (github.event_name == 'workflow_dispatch' && inputs.instagram == 'scharf')))
+            && 'scharf' || 'trocken' }}
+      # --hand laesst Zeitfenster und Tagessperre weg und darf nie scharf
+      # sein. --takt behaelt beide. Geplante Laeufe brauchen keinen Schalter.
+      # ACHTUNG, REIHENFOLGE. Ein leerer String ist in GitHub-Ausdruecken
+      # falsch, also faellt "bedingung && '' || rest" immer auf rest durch.
+      # Der leere Fall muss deshalb hinten stehen, sonst bekaeme ein
+      # geplanter Lauf --hand und koennte nicht mehr scharf sein.
+      IG_HAND: >-
+        ${{ github.event_name == 'workflow_dispatch'
+            && (inputs.instagram == 'scharf' && '--takt' || '--hand')
+            || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

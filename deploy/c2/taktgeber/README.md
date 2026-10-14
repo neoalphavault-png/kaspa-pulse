@@ -67,7 +67,7 @@ Was jeder Takt deshalb ausdrücklich mitschickt:
 | Takt | Eingaben |
 | --- | --- |
 | `tagesgrafik` | `senden=true`, `form=` (leer = Rotation), `instagram=aus` |
-| `instagram-bild` | `instagram=trocken` |
+| `instagram-bild` | `instagram=` aus `IG_LIVE` in `takt.conf` |
 | `reel` | `live=` aus `REEL_LIVE` in `takt.conf` |
 | `weeklynumbers` | `dry_run=` aus `WN_DRY_RUN` in `takt.conf` |
 | `number-of-day` | keine, der Workflow hat keine, die zählt |
@@ -95,13 +95,14 @@ Ops-Meldung, ohne je zu veröffentlichen. Die vier `cron`-Zeilen kommen
 deshalb in einem eigenen PR in `pulse-studio` heraus. Der Reel hängt
 danach allein am Takt von c2.
 
-## Zwei Schalter, die scharf stellen
+## Drei Schalter, die scharf stellen
 
-Beide stehen bewusst auf der sicheren Seite und werden einzeln umgelegt:
+Jeder wird einzeln umgelegt:
 
 | Schalter | wo | Wirkung |
 | --- | --- | --- |
 | `REEL_LIVE` | `takt.conf` auf c2 | **steht seit 13.10.2026 auf `true`.** `false` schickt den Reel-Lauf wieder trocken los. Zusätzlich muss die Repository-Variable `REELS_LIVE` gesetzt sein — zwei Schalter, wie abgesprochen. Erkannt werden dort `ja`, `yes`, `true` und `1` (`instagram_reel.py`, `lauf()`) |
+| `IG_LIVE` | `takt.conf` auf c2 | **steht seit 14.10.2026 auf `scharf`.** Schickt `instagram=scharf` an `tagesgrafik.yml`, der Lauf gilt dann als Takt und nicht als Handstart: Zeitfenster 09:25 bis 11:30 Berlin und Tagessperre gelten weiter. Zusätzlich muss die Repository-Variable `IG_MODUS` auf `scharf` stehen |
 | `WN_DRY_RUN` | `takt.conf` auf c2 | `true` lässt Weekly Numbers nur rechnen. Auf GitHub ist `dry_run` ebenfalls auf `true` vorbelegt, ein Takt ohne dieses Feld postet also nie |
 
 ## Einrichtung
