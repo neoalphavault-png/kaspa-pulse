@@ -22,8 +22,11 @@ case "$1" in
     "$HIER/takt.sh" "$REPO_PULSE" tagesgrafik.yml senden=true form= instagram=aus
     ;;
   instagram-bild)
-    # Der Job "instagram" in tagesgrafik.yml, von Hand immer trocken.
-    "$HIER/takt.sh" "$REPO_PULSE" tagesgrafik.yml instagram=trocken
+    # Der Job "instagram" in tagesgrafik.yml. scharf steuert IG_LIVE hier,
+    # der zweite Schalter ist die Repository-Variable IG_MODUS. trocken
+    # laeuft als Handstart (ohne Zeitfenster, ohne Tagessperre, nie
+    # scharf), scharf als Takt (Fenster und Tagessperre gelten).
+    "$HIER/takt.sh" "$REPO_PULSE" tagesgrafik.yml "instagram=${IG_LIVE:-trocken}"
     ;;
   reel)
     # Leere Eingaben: der Lauf nimmt den Short, der jetzt faellig ist.
