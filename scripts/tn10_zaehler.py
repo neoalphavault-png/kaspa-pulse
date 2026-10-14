@@ -706,7 +706,7 @@ async def lauf(bis_s, out, spur, teil, plan_von, plan_bis, rolle=None, partner=N
             jetzt = int(time.time() * 1000)
             if k.start_ms is None:
                 k.start_ms = jetzt
-            k.verbindungen.append({"zeit": iso_ms(jetzt), "knoten": ohne_ip(url), "kennung": kennung(p2p),
+            k.verbindungen.append({"zeit": iso_ms(jetzt), "kennung": kennung(p2p),
                                    "version": str(feld(info, "serverVersion") or ""),
                                    "gleich_wie_anderer": bool(anderer.p2p and p2p == anderer.p2p)})
             if rolle == "k1" and partner:
