@@ -300,6 +300,74 @@ def post_block(text, reply):
 # ankerkacheln hoechstens zwei kurze zeilen, note genau ein satz. was mehr
 # zu sagen ist, gehoert in den posttext. der renderer bricht bei ueberlauf
 # ab, gekuerzt wird also hier und nicht dort.
+# ------------------------------------------- kennzahl auf abruf (Ben, 14.10.2026)
+# Der Mittwochs-Short erklaert eine Kennzahl, die Routine 4 eine Woche vorher
+# festnagelt. Was die ZAHL DES TAGES zeigt, entscheidet dagegen choose() am
+# Morgen. Am 14.10.2026 fiel das auseinander: die Automatik zeigte
+# whale_weight, das Skript erklaerte die Hashrate, und der Short fiel aus.
+#
+# Der Ausweg steht schon im Repo. append_log() schreibt jeden Tag die
+# Tagesmesswerte mit, egal welcher Kandidat gewinnt. Diese Tabelle holt den
+# Wert einer Kennzahl von dort - unabhaengig von der Auswahl des Tages und
+# ohne die Fuenf-Prozent-Huerde der Vergleichskandidaten, denn der Short will
+# den Stand, keine Bewegung.
+#
+# FORMAT UND BESCHRIFTUNG STEHEN HIER, und die Kandidaten lesen sie von hier.
+# Zwei Quellen fuer dieselbe Zeile waeren eine zu viel: sonst sagt der Short
+# "338 PH" und die Grafik "338 PH/s".
+KENNZAHLEN = {
+    "hashrate_move": {
+        "mess": ("hashrate",),
+        "fmt": lambda v: "%.0f PH" % float(v),
+        "label": "petahash per second securing the network right now",
+        "quelle": "api.kaspa.org",
+    },
+    "tvl_move": {
+        "mess": ("tvl_total",),
+        "fmt": lambda v: fmt_money(float(v)),
+        "label": "locked across kasplex and igra",
+        "quelle": "defillama.com",
+    },
+    "mined_left": {
+        "mess": ("mined_pct",),
+        "fmt": lambda v: "%.2f%%" % float(v),
+        "label": "of every KAS that will ever exist is already mined",
+        "quelle": "api.kaspa.org",
+    },
+    "whale_weight": {
+        "mess": ("whale_kas", "circ"),
+        "fmt": lambda w, c: "%.2f%%" % (100.0 * float(w) / float(c)),
+        "label": "of every kaspa in circulation sits in one address",
+        "quelle": "api.kaspa.org",
+    },
+}
+
+
+def kennzahl_heute(kid, log=None, tag=None):
+    """Der heutige Wert einer Kennzahl aus der Tagesmessreihe, oder None.
+
+    None heisst: kenne ich nicht, habe ich heute nicht, oder der Messwert
+    fehlt in der Zeile. Nie ein Ersatzwert und nie der von gestern - ein
+    falsches Datum im Bild ist schlimmer als kein Short."""
+    k = KENNZAHLEN.get((kid or "").strip())
+    if not k:
+        return None
+    if log is None:
+        log = load_json(LOG_PATH, [])
+    tag = tag or str(dt.datetime.now(dt.timezone.utc).date())
+    zeile = next((r for r in reversed(log or []) if r.get("date") == tag), None)
+    if not zeile:
+        return None
+    werte = [zeile.get(m) for m in k["mess"]]
+    if any(not isinstance(v, (int, float)) or isinstance(v, bool) for v in werte):
+        return None
+    if k["mess"][-1] == "circ" and not werte[-1]:
+        return None
+    return {"value": k["fmt"](*werte), "value_label": k["label"],
+            "sources": k["quelle"] + ", read from our own daily log",
+            "date": tag, "kennzahl": kid}
+
+
 def cand_cut_today(ctx):
     """Der Schnitt landet heute. Schlaegt alles andere."""
     nxt_ts = ctx["next_cut_ts"]
@@ -444,8 +512,8 @@ def cand_mined_left(ctx):
         "payload": {
             "issue": issue_line(ctx["today"]),
             "eyebrow": "NUMBER OF THE DAY",
-            "value": "%.2f%%" % pct,
-            "value_label": "of every KAS that will ever exist is already mined",
+            "value": KENNZAHLEN["mined_left"]["fmt"](pct),
+            "value_label": KENNZAHLEN["mined_left"]["label"],
             "headline": "the supply story is *almost over*.",
             "panes": [                {
                     # anteil am ganzen. hundert punkte, davon 96 hell. das
@@ -538,17 +606,15 @@ def _move_candidate(ctx, key, title, unit_fmt, label, headline_word,
         },
     }
 def cand_hashrate_move(ctx):
+    k = KENNZAHLEN["hashrate_move"]
     return _move_candidate(
         ctx, "hashrate", "NETWORK HASHRATE",
-        lambda v: "%.0f PH" % float(v),
-        "petahash per second securing the network right now",
-        "hashrate", 30.0, "api.kaspa.org")
+        k["fmt"], k["label"], "hashrate", 30.0, k["quelle"])
 def cand_tvl_move(ctx):
+    k = KENNZAHLEN["tvl_move"]
     return _move_candidate(
         ctx, "tvl_total", "TOTAL VALUE LOCKED",
-        fmt_money,
-        "locked across kasplex and igra",
-        "layer 2 tvl", 28.0, "defillama.com")
+        k["fmt"], k["label"], "layer 2 tvl", 28.0, k["quelle"])
 def cand_emission_vs_btc(ctx):
     """Wie viel neues geld beide netze pro tag drucken, in dollar."""
     pk, pb = ctx.get("price_kas"), ctx.get("price_btc")
@@ -619,8 +685,8 @@ def cand_whale_weight(ctx):
         "payload": {
             "issue": issue_line(ctx["today"]),
             "eyebrow": "NUMBER OF THE DAY",
-            "value": "%.2f%%" % share,
-            "value_label": "of every kaspa in circulation sits in one address",
+            "value": KENNZAHLEN["whale_weight"]["fmt"](whale, circ),
+            "value_label": KENNZAHLEN["whale_weight"]["label"],
             "headline": "*%d days* of supply\nin one address." % round(days),
             "panes": [                {
                     # derselbe anteilsgedanke. sechs von hundert kaspa liegen
@@ -1044,7 +1110,10 @@ def build_context(now_ts=None, live=None, history=None, candles=None):
     }
     ctx.update(live)
     return ctx
-LOG_READINGS = ["hashrate", "tvl_total", "mined_pct", "price_kas", "whale_kas"]
+# circ steht seit 14.10.2026 mit drin: kennzahl_heute("whale_weight") braucht
+# den Anteil, und der ist whale_kas geteilt durch circ.
+LOG_READINGS = ["hashrate", "tvl_total", "mined_pct", "price_kas", "whale_kas",
+                "circ"]
 def append_log(log, name, ctx=None):
     """
     Schreibt die auswahl fort und legt die tagesmesswerte daneben.
@@ -1083,7 +1152,19 @@ def main():
     ap.add_argument("--force", default=None, help="kandidat erzwingen")
     ap.add_argument("--dry-run", action="store_true",
                     help="nur zeigen, welcher kandidat gewinnt")
+    ap.add_argument("--kennzahl", default=None,
+                    help="nur den heutigen wert einer kennzahl ausgeben, als json")
+    ap.add_argument("--tag", default=None, help="mit --kennzahl: ein anderer tag")
     args = ap.parse_args()
+    if args.kennzahl:
+        k = kennzahl_heute(args.kennzahl, tag=args.tag)
+        if not k:
+            print("kein wert fuer %r%s" % (args.kennzahl,
+                                           " am " + args.tag if args.tag else " heute"),
+                  file=sys.stderr)
+            return 1
+        print(json.dumps(k, ensure_ascii=False))
+        return 0
     log = load_json(LOG_PATH, [])
     # der nachzuegler um 09.42 utc laeuft, wenn github den ersten start
     # verschluckt hat. hat sich der erste lauf heute bewusst zurueckgehalten,
@@ -1170,6 +1251,50 @@ def run_selftest():
        emission_per_day(ANCHOR_REWARD))
     gone = emission_per_day(ANCHOR_REWARD) - emission_per_day(ANCHOR_REWARD * R)
     ok("wegfallende tagesmenge ist 118.805", abs(gone - 118805) < 2.0, gone)
+    print("kennzahl auf abruf")
+    flog = [{"date": "2026-10-13", "hashrate": 342.185592, "tvl_total": 1200515.22,
+             "mined_pct": 96.687879, "whale_kas": 1527589468.96, "circ": 27700000000.0},
+            {"date": "2026-10-14", "candidate": "whale_weight", "hashrate": 338.317177,
+             "tvl_total": 1120143.08, "mined_pct": 96.694078,
+             "whale_kas": 1527589468.96, "circ": 27716000000.0}]
+    k = kennzahl_heute("hashrate_move", flog, "2026-10-14")
+    ok("hashrate von heute kommt aus dem tageslog", k and k["value"] == "338 PH", k)
+    ok("die beschriftung ist die des kandidaten",
+       k and k["value_label"] == KENNZAHLEN["hashrate_move"]["label"])
+    ok("die quelle nennt das eigene log", k and "own daily log" in k["sources"])
+    ok("das datum steht dabei", k and k["date"] == "2026-10-14")
+    ok("gestern geht auch, wenn man danach fragt",
+       kennzahl_heute("hashrate_move", flog, "2026-10-13")["value"] == "342 PH")
+    ok("ein fehlender tag gibt None",
+       kennzahl_heute("hashrate_move", flog, "2026-10-15") is None)
+    ok("eine unbekannte kennzahl gibt None",
+       kennzahl_heute("gibt_es_nicht", flog, "2026-10-14") is None)
+    ok("ein leerer name gibt None", kennzahl_heute("", flog, "2026-10-14") is None)
+    ok("ein fehlender messwert gibt None",
+       kennzahl_heute("hashrate_move", [{"date": "2026-10-14"}], "2026-10-14") is None)
+    ok("whale_weight rechnet den anteil",
+       kennzahl_heute("whale_weight", flog, "2026-10-14")["value"] == "5.51%",
+       kennzahl_heute("whale_weight", flog, "2026-10-14"))
+    ok("ohne circ kein anteil",
+       kennzahl_heute("whale_weight", [{"date": "2026-10-14",
+                                        "whale_kas": 1.0}], "2026-10-14") is None)
+    ok("circ null gibt None",
+       kennzahl_heute("whale_weight", [{"date": "2026-10-14", "whale_kas": 1.0,
+                                        "circ": 0}], "2026-10-14") is None)
+    ok("tvl nimmt das geldformat",
+       kennzahl_heute("tvl_move", flog, "2026-10-14")["value"] == fmt_money(1120143.08))
+    ok("mined_left nimmt zwei stellen",
+       kennzahl_heute("mined_left", flog, "2026-10-14")["value"] == "96.69%")
+    ok("circ steht in der tagesmessreihe", "circ" in LOG_READINGS)
+    # Die Tabelle und die Kandidaten muessen dieselbe Zeile sagen.
+    fctx = build_context(now_ts=ANCHOR_TS + 10, live=FAKE_LIVE, history=FAKE_HISTORY)
+    res = cand_whale_weight(fctx)
+    ok("kandidat und tabelle sagen dasselbe label",
+       res and res["payload"]["value_label"] == KENNZAHLEN["whale_weight"]["label"])
+    ok("kandidat und tabelle rechnen gleich",
+       res and res["payload"]["value"] == KENNZAHLEN["whale_weight"]["fmt"](
+           FAKE_LIVE["whale_kas"], FAKE_LIVE["circ"]))
+
     print("kandidat am schnitttag")
     ctx = build_context(now_ts=ANCHOR_TS + STEP - 3600,
                         live=FAKE_LIVE, history=FAKE_HISTORY)
