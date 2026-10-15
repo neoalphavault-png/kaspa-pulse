@@ -1,0 +1,74 @@
+# Zcash NU7 Testnet: unabhängige Zählung, Stand 2026-10-15
+
+**Stichtag:** 2026-10-15 10:00:00 UTC · **Blockbereich:** 4.465.026 bis 4.504.434 (39.409 Blöcke, 2026-10-04 18:21:45 bis 2026-10-15 09:59:28 UTC) · **Abruf:** 2026-10-15T10:15:41Z
+
+Nur Zahlen. Kein Kurs, keine Bewertung.
+
+## Methode und Quelle
+
+- Blockköpfe direkt aus dem P2P-Netz des Zcash-Testnets (`getheaders`), Peers über die DNS-Seeds, kein Explorer, keine API, kein Konto. Skript: `scripts/zcash/testnet_koepfe.py`.
+- Startpunkt: Checkpoint 4.414.585 aus Zebras `test-checkpoints.txt`. Geprüft: Verkettung über den Vorgänger-Hash, Hash ≤ Ziel aus nBits, 0 spätere Checkpoints. Die Equihash-Lösung prüfen wir nicht.
+- Gegenprobe mit weiteren Peers: keine
+- Software der Peers: /Zebra:7.0.0-rc.0/
+- Abstand = Zeitstempel minus Zeitstempel des Vorgängers, erster Abstand bei 4.465.027. Zeitstempel setzt der Miner; null und negative Abstände bleiben drin.
+- Schwierigkeit wie in der RPC: Ziel(powLimit 0x2007ffff) / Ziel(nBits). Tage in UTC.
+- Auswertung: `scripts/zcash/nu7_auswertung.py`, Rohdaten: `data/zcash/testnet-koepfe.csv.gz`.
+
+## A. Abstände zwischen Blöcken
+
+|  | gemessen | Erwartung exponentiell, 25 s |
+| --- | --- | --- |
+| Abstände | 39.408 |  |
+| Mittel | 23,35 s | 25,0 s |
+| Median | 17,0 s | 17,3 s |
+| p90 | 51,0 s | 57,6 s |
+| p99 | 108,0 s | 115,1 s |
+| längste Lücke | 451 s (Höhe 4.495.487) | ≈ 279 s (Erwartungswert des Maximums) |
+| über 75 s | 3,48 % (1.370) | 4,98 % |
+| über 150 s | 0,203 % (80) | 0,248 % |
+| Abstand 0 s / negativ | 426 / 0 |  |
+
+Zum Vergleich vor der Aktivierung (50.439 Abstände, Höhe 4.414.586 bis 4.465.025): Mittel 9,0 s, Median 2,0 s, über 150 s 1,46 % (Erwartung bei 75 s: Median 52,0 s, über 150 s 13,53 %).
+
+## B. Je Tag (UTC)
+
+| Tag | Blöcke | Höhen | mittl. Abstand | Schwierigkeit Mittel | min | max |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-04 | 685 | 4.465.026–4.465.710 | 29,2 s | 1.779,0 | 1.263,7 | 2.114,3 |
+| 2026-10-05 | 3.334 | 4.465.711–4.469.044 | 26,0 s | 918,0 | 604,7 | 1.334,8 |
+| 2026-10-06 | 4.047 | 4.469.045–4.473.091 | 21,3 s | 7.362,2 | 611,5 | 11.878,0 |
+| 2026-10-07 | 3.444 | 4.473.092–4.476.535 | 25,1 s | 11.609,4 | 10.452,9 | 13.566,8 |
+| 2026-10-08 | 3.445 | 4.476.536–4.479.980 | 25,1 s | 12.614,2 | 10.598,0 | 19.457,1 |
+| 2026-10-09 | 3.453 | 4.479.981–4.483.433 | 25,0 s | 11.780,3 | 9.927,2 | 16.143,1 |
+| 2026-10-10 | 3.467 | 4.483.434–4.486.900 | 24,9 s | 11.502,7 | 10.554,1 | 12.604,1 |
+| 2026-10-11 | 3.463 | 4.486.901–4.490.363 | 25,0 s | 12.081,6 | 10.061,7 | 21.531,1 |
+| 2026-10-12 | 3.457 | 4.490.364–4.493.820 | 25,0 s | 11.346,0 | 10.273,6 | 12.431,2 |
+| 2026-10-13 | 5.714 | 4.493.821–4.499.534 | 15,1 s | 50.070,8 | 1,0 | 720.736,5 |
+| 2026-10-14 | 3.485 | 4.499.535–4.503.019 | 24,8 s | 10.655,9 | 9.020,4 | 12.573,0 |
+| 2026-10-15 | 1.415 | 4.503.020–4.504.434 | 25,4 s | 11.127,8 | 10.201,2 | 12.366,7 |
+
+Erster und letzter Tag sind angeschnitten (Aktivierung 18:21:45 UTC, Stichtag).
+
+**Wie schnell folgt die Schwierigkeit?** Fenster 100 Bloecke, Sprung ab Faktor 2.0 (vom folgenden Fenster bestaetigt), eingeholt bei +-15 % des Gleichgewichts (Hashrate nach dem Sprung * 25 s). Sprünge: 6; eingeholt im Median nach 242,5 Blöcken bzw. 69,8 min, längstens 656 Blöcke; nicht eingeholt in 2.000 Blöcken: 2.
+
+| Höhe | Zeit UTC | Faktor Hashrate | Schwierigkeit davor | Gleichgewicht | eingeholt nach Blöcken | min |
+| --- | --- | --- | --- | --- | --- | --- |
+| 4.469.626 | 2026-10-06 04:00:07 | 2,45 | 625,0 | 1.619,5 | 271 | 39,7 |
+| 4.480.926 | 2026-10-09 06:01:32 | 0,28 | 15.396,4 | 10.847,4 | 179 | 99,9 |
+| 4.488.026 | 2026-10-11 07:51:35 | 5,27 | 11.592,7 | 59.430,2 | – | – |
+| 4.488.226 | 2026-10-11 08:11:57 | 0,17 | 20.911,8 | 11.143,1 | 214 | 144,0 |
+| 4.494.176 | 2026-10-13 02:28:02 | 9,20 | 12.008,4 | 118.490,2 | 656 | 31,5 |
+| 4.495.476 | 2026-10-13 04:15:27 | 0,23 | 717.246,1 | 226.993,2 | – | – |
+
+## C. Zeitstempel
+
+- Rückwärts (Zeitstempel kleiner als der des Vorgängers): **0**, größter Schritt 0 s.
+- Auffällig weit voraus (Zeitstempel mehr als 600 s nach dem Median der 11 folgenden Bloecke): **0**.
+- Zeitstempel nach unserer Abrufzeit: 0. Verstöße gegen die Median-Regel der 11 Vorgänger: 0 (Konsensregel, Gegenprobe).
+
+## D. Was wir nicht messen konnten
+
+- **Verwaiste Blöcke und Reorg-Tiefe:** nicht gemessen. Dafür braucht es einen eigenen Knoten, der ab der Aktivierung mitläuft und jeden empfangenen Block protokolliert. Die Köpfe aus `getheaders` zeigen nur die Kette, die die Peers zum Abrufzeitpunkt für die beste halten.
+- **Ankunftsabstand desselben Blocks auf zwei Knoten (Zebra, Zakura):** nicht gemessen, kein eigener Knoten.
+- **Equihash-Lösungen und Blockinhalt:** nicht geprüft, nur Kopf, Verkettung, Arbeitsnachweis gegen nBits und Checkpoints.
+- **Echte Hashrate:** nur relativ über Schwierigkeit und Abstände; Zeitstempel kommen vom Miner.

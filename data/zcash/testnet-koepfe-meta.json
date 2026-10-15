@@ -1,0 +1,25 @@
+{
+  "quelle": "Zcash-Testnet P2P (getheaders), Peers aus DNS-Seeds",
+  "abruf_utc": "2026-10-15T10:15:41Z",
+  "start_checkpoint": 4414585,
+  "erste_hoehe": 4414586,
+  "spitze_hoehe": 4504466,
+  "spitze_hash": "00000269b750e0492e585e877abf104b5eb6415665957c5d46d2ea001b287f71",
+  "checkpoints_quelle": "https://raw.githubusercontent.com/ZcashFoundation/zebra/main/zebra-chain/src/parameters/checkpoint/test-checkpoints.txt",
+  "checkpoints_geprueft": 0,
+  "peer_software": [
+    "/Zebra:7.0.0-rc.0/"
+  ],
+  "peer_fehler": 0,
+  "gegenproben": [],
+  "pruefungen": [
+    "prev-hash-kette",
+    "hash <= ziel aus nbits",
+    "zebra-checkpoints"
+  ],
+  "nicht_geprueft": [
+    "equihash-loesung",
+    "block-inhalt",
+    "konsensregeln jenseits des kopfes"
+  ]
+}
