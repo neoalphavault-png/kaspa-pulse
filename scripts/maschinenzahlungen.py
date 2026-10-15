@@ -35,6 +35,7 @@ auf A.
 import argparse
 import asyncio
 import datetime as dt
+import hashlib
 import json
 import os
 import re
@@ -63,6 +64,7 @@ SDK = "kaspa 2.1.0 (pypi, wheel cp312 manylinux_2_28 x86_64, sha256 1f12fc7467..
 DEFINITION = ("bestaetigt heisst von der kette angenommen (accepted by a selected chain block), "
               "nicht final")
 IPV4 = re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b")
+KNOTEN_URL = re.compile(r"wss?://[^\s'\"<>]+", re.I)
 
 
 def jetzt():
@@ -74,8 +76,15 @@ def iso(t):
 
 
 def ohne_ip(text):
-    """Bens Regel: keine IP-Adressen in irgendeiner Ausgabe."""
-    return IPV4.sub("[ip]", str(text or ""))
+    """Bens Regel: keine IP-Adressen und keine Knotenadresse in irgendeiner
+    Ausgabe. Eine ws-URL fliegt ganz raus, mit Host, Port und Pfad."""
+    return IPV4.sub("[ip]", KNOTEN_URL.sub("[knoten]", str(text or "")))
+
+
+def kennung(p2p):
+    """Bens Regel (15.10.2026): vom Knoten steht nur die zehnstellige
+    Kennung in Log und Artefakt, sha256 der p2pId, nie Host oder IP."""
+    return hashlib.sha256(str(p2p).encode()).hexdigest()[:10] if p2p else "unbekannt"
 
 
 def payload_text(nr, anzahl):
@@ -124,6 +133,8 @@ def schreibe_json(pfad, daten, geheim=None):
         geheim.pruefe(text)
     if IPV4.search(text):
         raise SystemExit("ABBRUCH eine ip-adresse stuende in der ausgabe, nichts geschrieben")
+    if KNOTEN_URL.search(text):
+        raise SystemExit("ABBRUCH eine knotenadresse stuende in der ausgabe, nichts geschrieben")
     Path(pfad).parent.mkdir(parents=True, exist_ok=True)
     Path(pfad).write_text(text, encoding="utf-8")
 
@@ -234,7 +245,12 @@ class Verbindung:
     async def auf(self):
         self.rpc = self.fabrik()
         await self.rpc.connect()
-        self.knoten.append({"zeit_utc": iso(jetzt()), "knoten": ohne_ip(getattr(self.rpc, "url", "") or "")})
+        try:
+            info = await self.rpc.get_info()
+            p2p = info.get("p2pId") if isinstance(info, dict) else getattr(info, "p2pId", None)
+        except Exception:                                # noqa: BLE001
+            p2p = None
+        self.knoten.append({"zeit_utc": iso(jetzt()), "kennung": kennung(p2p)})
         if self.annahme is not None:
             self.rpc.add_event_listener(sdk().NotificationEvent.VirtualChainChanged, self.annahme.ereignis)
             await self.rpc.subscribe_virtual_chain_changed(True)
@@ -784,7 +800,19 @@ def selbsttest():
         ok("schreibsperre bei ip", False)
     except SystemExit:
         ok("schreibsperre bei ip", True)
-    ok("ohne_ip schwaerzt", ohne_ip("wss://" + ".".join(["10", "1", "2", "3"])) == "wss://[ip]")
+    ok("ohne_ip schwaerzt", ohne_ip("wss://" + ".".join(["10", "1", "2", "3"])) == "[knoten]"
+       and ohne_ip("x " + ".".join(["10", "1", "2", "3"])) == "x [ip]")
+    BEISPIEL = "wss://" + ".".join(["knoten", "beispiel", "invalid"])
+    ok("fehlertext ohne knotenadresse", "beispiel.invalid" not in sauber(
+        RuntimeError("connect to " + BEISPIEL + ":17110/x failed")) and "[knoten]" in sauber(
+        RuntimeError("connect to " + BEISPIEL + ":17110/x failed")))
+    try:
+        schreibe_json(tmp, {"fehler": BEISPIEL + ":17110"})
+        ok("schreibsperre bei knotenadresse", False)
+    except SystemExit:
+        ok("schreibsperre bei knotenadresse", True)
+    ok("kennung zehnstellig, ohne p2pId unbekannt", re.fullmatch(r"[0-9a-f]{10}", kennung("abc"))
+       is not None and kennung(None) == "unbekannt")
     ok("repr verraet nichts", "Geheim(***)" == repr(geheim) and geheim.wert() not in repr(geheim))
     ok("sauber schwaerzt", "[geschwaerzt]" in sauber(ValueError("x" + geheim.wert()), geheim))
     alt = os.environ.get("KASPA_TESTWALLET_PRIVKEY")
@@ -842,6 +870,9 @@ def abbruch_test(ok):
         async def disconnect(self):
             self.is_connected = False
 
+        async def get_info(self):
+            return {"p2pId": "fake-p2p-%d" % zustand["clients"], "serverVersion": "0"}
+
         def add_event_listener(self, _ev, cb):
             self.cb = cb
 
@@ -896,6 +927,10 @@ def abbruch_test(ok):
     ok("abbruch: die anderen ueber das ereignis", all(z["zeitquelle"] == "ereignis" for i, z in enumerate(zl) if i != 3))
     ok("abbruch: rueckgabe gesendet und angenommen", erg["rueckgabe"].get("angenommen") is True)
     ok("abbruch: schluessel danach nicht mehr in der umgebung", "KASPA_TESTWALLET_PRIVKEY" not in os.environ)
+    alles = json.dumps(erg, ensure_ascii=False) + bericht(dict(erg, modus="echt"), {"knoten": erg["knoten"]}, "2026-10-15")
+    ok("knoten nur als zehnstellige kennung, nie host oder ip",
+       all(set(k) == {"zeit_utc", "kennung"} and re.fullmatch(r"[0-9a-f]{10}", k["kennung"]) for k in erg["knoten"])
+       and "knoten-1.example" not in alles and "://knoten" not in alles and not IPV4.search(alles))
 
 
 # ------------------------------------------------------------ main
