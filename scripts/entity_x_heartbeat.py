@@ -174,10 +174,22 @@ def save_last(balance_kas):
 WORTREGEL = re.compile(r"\b(buy|buys|bought|buying|purchase[sd]?|purchasing|sold|sell|sells|selling|sales?)\b", re.I)
 HINWEIS_ZUFLUSS = "an inflow is a transfer, the chain shows the movement only."
 
+# Schreibregel (Ben, 15.10.2026): in oeffentlichen Texten steht "%", nie
+# "percent". Bis heute stand im Tagescheck "5.51 percent" - die Regel gab
+# es schon in scripts/tagesgrafik.py fuer die Tagesgrafik, nur hier nicht.
+# Eine Regel, die an einer Stelle geprueft wird und an der anderen nicht,
+# ist keine Regel.
+PROZENTREGEL = re.compile(r"\bpercent(?:s|age)?\b", re.I)
+
 
 def wortregel(text):
     """Gibt die verbotenen Woerter im Text zurueck."""
     return WORTREGEL.findall(text)
+
+
+def prozentregel(text):
+    """Gibt die Treffer auf "percent" zurueck, leer heisst sauber."""
+    return PROZENTREGEL.findall(text)
 
 
 def send_embed(title, description, color, price=None):
@@ -190,6 +202,11 @@ def send_embed(title, description, color, price=None):
     if price:
         foot = (f"kaspa pulse · daily check · KAS at {fmt_price(price)} · "
                 "kaspapulse.com/entity-x.html")
+    prozent = prozentregel("\n".join((title, description, foot)))
+    if prozent:
+        print("ERROR: schreibregel verletzt, %s statt %% in %r"
+              % (prozent, title), file=sys.stderr)
+        sys.exit(1)
     payload = {"embeds": [{
         "title": title,
         "description": description,
@@ -243,7 +260,7 @@ def main():
     zuletzt = seit(load_last_check())
     pct = fetch_supply_pct(balance)
     price = fetch_price_usd()
-    pctline = f" that is **{pct:.2f} percent** of everything in circulation." if pct else ""
+    pctline = f" that is **{pct:.2f}%** of everything in circulation." if pct else ""
 
     # Beim ruhigen Tag sagen wir ausdruecklich, dass nur der Preis den
     # Dollarwert bewegt. Sonst liest jemand ein Plus in die Zahl hinein,
@@ -331,7 +348,7 @@ def selftest():
             send_embed.__globals__["send_embed"] = alt
         t, d = gesendet[0]
         v = wortregel(t + "\n" + d)
-        ok = not v
+        ok = not v and not prozentregel(t + "\n" + d)
         if name == "zufluss":
             ok = ok and t == "🟢 daily check. coins came in" and HINWEIS_ZUFLUSS in d
         if gestern is not None:
@@ -343,6 +360,20 @@ def selftest():
         "an inflow is a transfer, not a proven buy.") == ["buy"] and wortregel(
         "not a sale") == ["sale"] and not wortregel(HINWEIS_ZUFLUSS)
     print("%-4s %-12s %s" % ("ok" if ok else "FEHL", "wache", "bought, buy und sale fallen auf, auch verneint"))
+    fehler += 0 if ok else 1
+    ok = (prozentregel("that is 5.51 percent of everything") == ["percent"]
+          and prozentregel("5.51 percentage points") == ["percentage"]
+          and prozentregel("Percent") == ["Percent"]
+          and not prozentregel("that is **5.51%** of everything")
+          and not prozentregel("the percentile is not a word we use")
+          and not prozentregel("100 percentpoints"))
+    print("%-4s %-12s %s" % ("ok" if ok else "FEHL", "prozent",
+                             "percent faellt auf, % geht durch"))
+    fehler += 0 if ok else 1
+    # Die Zahl im Tagescheck selbst, nicht nur die Wache.
+    ok = " that is **5.50%** of everything in circulation." == (
+        f" that is **{5.5:.2f}%** of everything in circulation.")
+    print("%-4s %-12s %s" % ("ok" if ok else "FEHL", "anteilzeile", "steht mit % im text"))
     fehler += 0 if ok else 1
     ok = seit(None) == "since the last check" and seit("28 sep 2026") == \
         "since the last check on 28 sep 2026"

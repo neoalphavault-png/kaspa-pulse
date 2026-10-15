@@ -9,6 +9,7 @@
 import datetime as dt
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -38,6 +39,19 @@ OUTFLOW_EPSILON_KAS = 1_000        # Abfluss-Alarm ab 1.000 KAS unter letztem St
 INFLOW_STEP_KAS = 500_000          # Zufluss-Alarm ab 500.000 KAS ueber letztem Stand
 NOISE_KAS = 1                      # darunter gilt der Stand als unveraendert
 
+# @EVERYONE HAENGT AN DER GROESSE, NICHT AN DER RICHTUNG (Ben, 15.10.2026).
+# Bis heute pingte jeder Abfluss @everyone und kein Zufluss. Das war kein
+# Mass, das war ein Vorzeichen, und es las sich wie eine Warnung: derselbe
+# Betrag war in einer Richtung ein Alarm und in der anderen eine Notiz.
+# Der Bot sieht einen Kontostand. Wie gross die Bewegung ist, kann er
+# messen; ob sie gut oder schlecht ist, nicht.
+#
+# 3.000.000 KAS, aus unseren eigenen Zahlen: das trifft 11 der 27 Abfluesse
+# seit 03/2024 und 11 der 50 Zufluesse aus 06-09/2026, also beide Male
+# ueber dem Median, und kommt auf etwa vier Pings im Monat. Ein Ping, der
+# oefter kommt, wird stummgeschaltet und ist dann keiner mehr.
+PING_AB_KAS = 3_000_000
+
 # KORREKTUR 27.09.2026. Bis hierher wurde der Vergleichsstand NUR bei einem
 # Alarm gespeichert. Ein Zufluss unter der Schwelle blieb deshalb liegen und
 # verdeckte den naechsten Abfluss: am 23.09. kamen 2.477.625 KAS herein (unter
@@ -51,6 +65,12 @@ NOISE_KAS = 1                      # darunter gilt der Stand als unveraendert
 # ausgenommen, deshalb wird vor der Pruefung alles in spitzen Klammern
 # und jede Ziffernuhrzeit entfernt.
 FORBIDDEN = ["—", "–", " - ", ":", "→"]
+
+# Schreibregel (Ben, 15.10.2026): in oeffentlichen Texten steht "%", nie
+# "percent". Die Alarmtexte tragen heute keinen Anteil, aber die Regel
+# gehoert an die Stelle, die jeden Text prueft, bevor er rausgeht - sonst
+# steht sie nur im Kopf desjenigen, der den naechsten Satz schreibt.
+PROZENTREGEL = re.compile(r"\bpercent(?:s|age)?\b", re.I)
 
 # Woerter, die dem Bot eine Absicht unterstellen, die er nicht messen kann.
 # Der Bot sieht einen Kontostand, sonst nichts. Er weiss nicht, wohin die
@@ -94,6 +114,9 @@ def assert_text(msg):
         raise ValueError(
             "der text behauptet etwas, das der bot nicht misst, %r. er liest "
             "einen kontostand und sonst nichts" % claims)
+    prozent = PROZENTREGEL.findall(probe)
+    if prozent:
+        raise ValueError("schreibregel verletzt, %r statt %% im text" % prozent)
     return msg
 
 
@@ -149,9 +172,15 @@ def fmt(n):
 # ein Abfluss sich wie ein Verkauf und ein Zufluss wie ein Kauf, und beides
 # steht nirgends in der Kette.
 
+def ping(diff):
+    """Der Ping haengt allein an der Groesse der Bewegung. Ein Zufluss von
+    4 Mio pingt, ein Abfluss von 4 Mio pingt, ein Abfluss von 2 Mio nicht."""
+    return "@everyone " if abs(diff) >= PING_AB_KAS else ""
+
+
 def build_outflow(balance, last, diff):
     return (
-        "@everyone **ENTITY X OUTFLOW DETECTED**\n"
+        f"{ping(diff)}**ENTITY X OUTFLOW DETECTED**\n"
         f"balance dropped by **{fmt(-diff)} KAS**\n"
         f"now {fmt(balance)} KAS, was {fmt(last)} KAS\n"
         "we see the movement and not the destination. coins leaving a wallet "
@@ -162,12 +191,63 @@ def build_outflow(balance, last, diff):
 
 def build_inflow(balance, diff):
     return (
-        "**ENTITY X INFLOW DETECTED**\n"
+        f"{ping(diff)}**ENTITY X INFLOW DETECTED**\n"
         f"balance up **{fmt(diff)} KAS** since the last checkpoint\n"
         f"now {fmt(balance)} KAS\n"
         "an inflow is a transfer, the chain shows the movement only.\n"
         "check it yourself at <https://kaspapulse.com/entity-x.html>"
     )
+
+
+def ops_senden(text):
+    """Nur nach #moderator-only, nie in den oeffentlichen Kanal. Fuer den
+    Testlauf: der Text soll gelesen werden, nicht gesendet wirken."""
+    url = os.environ.get("DISCORD_WEBHOOK_OPS", "").strip()
+    if not url:
+        print("kein DISCORD_WEBHOOK_OPS, der testlauf steht nur hier")
+        return False
+    # @everyone darf im Testlauf niemanden anpingen, auch nicht in
+    # #moderator-only. Der Ping steht als Text da, als "(at)everyone".
+    probe = text.replace("@everyone", "(at)everyone")
+    req = urllib.request.Request(
+        url, data=json.dumps({"content": probe[:1990],
+                              "allowed_mentions": {"parse": []}}).encode(),
+        headers={"Content-Type": "application/json", "User-Agent": "kaspapulse-alert/1.0"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        r.read()
+    print("testlauf an #moderator-only abgesetzt")
+    return True
+
+
+def testlauf():
+    """Die vier Faelle, mit echten Betraegen aus unseren Daten, ohne Netz
+    und ohne einen Post im oeffentlichen Kanal."""
+    faelle = (
+        ("abfluss 6.377.601 KAS, groesster gemessener (01.10.2026)",
+         build_outflow(1_438_019_321, 1_444_396_922, -6_377_601)),
+        ("abfluss 2.396.922 KAS, der median",
+         build_outflow(1_442_000_000, 1_444_396_922, -2_396_922)),
+        ("zufluss 13.999.995 KAS, groesster gemessener (15.06.2026)",
+         build_inflow(1_458_396_917, 13_999_995)),
+        ("zufluss 568.127 KAS, knapp ueber der alarmschwelle",
+         build_inflow(1_444_965_049, 568_127)),
+    )
+    zeilen = ["entity x, testlauf der neuen ping-regel",
+              "@everyone ab %s KAS Bewegung, in beide Richtungen" % fmt(PING_AB_KAS),
+              ""]
+    for name, msg in faelle:
+        assert_text(msg)
+        zeilen.append("%s %s" % ("PING " if msg.startswith("@everyone ") else "still",
+                                 name))
+    zeilen.append("")
+    for name, msg in faelle:
+        zeilen.append("--- %s" % name)
+        zeilen.append(msg)
+        zeilen.append("")
+    text = "\n".join(zeilen)
+    print(text)
+    ops_senden(text)
+    return 0
 
 
 def _git(*args):
@@ -439,6 +519,34 @@ def run_selftest():
     ok("beide texte verlinken die pruefseite",
        "entity-x.html" in out and "entity-x.html" in inn)
 
+    # @everyone, beide Richtungen gleich (Ben, 15.10.2026)
+    ok("ping ab der schwelle", ping(PING_AB_KAS) == "@everyone ")
+    ok("ping auch nach unten, gleiche groesse", ping(-PING_AB_KAS) == "@everyone ")
+    ok("ein kas darunter pingt nicht",
+       ping(PING_AB_KAS - 1) == "" and ping(-(PING_AB_KAS - 1)) == "")
+    ok("die richtung aendert den ping nie",
+       all(ping(x) == ping(-x) for x in (0, 1, 999, 500_000, 2_999_999,
+                                         3_000_000, 6_377_601, 13_999_995)))
+    gross_ab = build_outflow(1_438_019_321, 1_444_396_922, -6_377_601)
+    klein_ab = build_outflow(1_442_000_000, 1_444_396_922, -2_396_922)
+    gross_zu = build_inflow(1_458_396_917, 13_999_995)
+    klein_zu = build_inflow(1_444_965_049, 568_127)
+    ok("grosser abfluss pingt", gross_ab.startswith("@everyone "))
+    ok("grosser zufluss pingt genauso", gross_zu.startswith("@everyone "))
+    ok("kleiner abfluss pingt nicht mehr", not klein_ab.startswith("@everyone "))
+    ok("kleiner zufluss pingt weiter nicht", not klein_zu.startswith("@everyone "))
+    ok("derselbe betrag pingt in beide richtungen gleich",
+       build_outflow(1, 1, -4_000_000).startswith("@everyone ")
+       == build_inflow(1, 4_000_000).startswith("@everyone "))
+    for name, msg in (("grosser abflusstext", gross_ab), ("grosser zuflusstext", gross_zu),
+                      ("kleiner zuflusstext", klein_zu)):
+        try:
+            assert_text(msg)
+            print("  ok   %s haelt schreibregel und doktrin" % name)
+        except ValueError as exc:
+            fails.append(name)
+            print("  FEHL %s %s" % (name, exc))
+
     # der eigentliche punkt. genau dieser satz lief zweimal oeffentlich.
     raises("die alte falschbehauptung faellt auf",
            "balance dropped\nthis address had zero outflows since tracking began")
@@ -446,6 +554,11 @@ def run_selftest():
     raises("wortregel, purchase wird abgefangen", "this looks like a purchase")
     raises("wortregel, sale wird abgefangen", "a deposit to an exchange is not a sale")
     raises("kauf wird abgefangen", "entity x keeps stacking")
+    raises("percent statt prozentzeichen wird abgefangen",
+           "that is 5.51 percent of everything in circulation")
+    raises("auch percentage wird abgefangen", "down 3 percentage points")
+    ok("das prozentzeichen selbst geht durch",
+       assert_text("that is **5.51%** of everything in circulation") is not None)
     raises("doppelpunkt wird abgefangen", "balance: 1,442,000,000 KAS")
     raises("gedankenstrich wird abgefangen", "balance down — 2,396,922 KAS")
     ok("eine url in klammern stoert die pruefung nicht",
@@ -555,6 +668,8 @@ def run_selftest():
 if __name__ == "__main__":
     if "--selftest" in sys.argv:
         sys.exit(run_selftest())
+    if "--testlauf" in sys.argv:
+        sys.exit(testlauf())
     if "--festschreiben" in sys.argv:
         sys.exit(0 if festschreiben("jobende") else 1)
     if "--abdeckung" in sys.argv:
