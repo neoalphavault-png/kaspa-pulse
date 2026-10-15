@@ -11,18 +11,33 @@
   },
   "quelle": {
     "quelle": "Zcash-Testnet P2P (getheaders), Peers aus DNS-Seeds",
-    "abruf_utc": "2026-10-15T10:15:41Z",
+    "abruf_utc": "2026-10-15T10:19:57Z",
     "start_checkpoint": 4414585,
     "erste_hoehe": 4414586,
-    "spitze_hoehe": 4504466,
-    "spitze_hash": "00000269b750e0492e585e877abf104b5eb6415665957c5d46d2ea001b287f71",
+    "spitze_hoehe": 4504476,
+    "spitze_hash": "0000157ab64d3e8f2f262e7341d13595c3b462efb342fa2c34da084fbf2fc741",
     "checkpoints_quelle": "https://raw.githubusercontent.com/ZcashFoundation/zebra/main/zebra-chain/src/parameters/checkpoint/test-checkpoints.txt",
     "checkpoints_geprueft": 0,
     "peer_software": [
-      "/Zebra:7.0.0-rc.0/"
+      "/Zebra:7.0.0-rc.0/",
+      "/Zakura:1.7.0-rc0/",
+      "/Zakura:1.6.0/"
     ],
     "peer_fehler": 0,
-    "gegenproben": [],
+    "gegenproben": [
+      {
+        "agent": "/Zebra:7.0.0-rc.0/",
+        "verglichen": 500,
+        "gleich": 500,
+        "spitze_peer": 4504476
+      },
+      {
+        "agent": "/Zebra:7.0.0-rc.0/",
+        "verglichen": 500,
+        "gleich": 500,
+        "spitze_peer": 4504476
+      }
+    ],
     "pruefungen": [
       "prev-hash-kette",
       "hash <= ziel aus nbits",
@@ -96,6 +111,7 @@
       "tag_utc": "2026-10-04",
       "bloecke": 685,
       "erste_hoehe": 4465026,
+      "mindestschwierigkeit": 0,
       "letzte_hoehe": 4465710,
       "mittlerer_abstand_s": 29.18,
       "schwierigkeit_mittel": 1778.98,
@@ -107,6 +123,7 @@
       "tag_utc": "2026-10-05",
       "bloecke": 3334,
       "erste_hoehe": 4465711,
+      "mindestschwierigkeit": 0,
       "letzte_hoehe": 4469044,
       "mittlerer_abstand_s": 26.01,
       "schwierigkeit_mittel": 918.024,
@@ -118,6 +135,7 @@
       "tag_utc": "2026-10-06",
       "bloecke": 4047,
       "erste_hoehe": 4469045,
+      "mindestschwierigkeit": 0,
       "letzte_hoehe": 4473091,
       "mittlerer_abstand_s": 21.33,
       "schwierigkeit_mittel": 7362.238,
@@ -129,6 +147,7 @@
       "tag_utc": "2026-10-07",
       "bloecke": 3444,
       "erste_hoehe": 4473092,
+      "mindestschwierigkeit": 0,
       "letzte_hoehe": 4476535,
       "mittlerer_abstand_s": 25.11,
       "schwierigkeit_mittel": 11609.398,
@@ -140,6 +159,7 @@
       "tag_utc": "2026-10-08",
       "bloecke": 3445,
       "erste_hoehe": 4476536,
+      "mindestschwierigkeit": 0,
       "letzte_hoehe": 4479980,
       "mittlerer_abstand_s": 25.06,
       "schwierigkeit_mittel": 12614.158,
@@ -151,6 +171,7 @@
       "tag_utc": "2026-10-09",
       "bloecke": 3453,
       "erste_hoehe": 4479981,
+      "mindestschwierigkeit": 0,
       "letzte_hoehe": 4483433,
       "mittlerer_abstand_s": 25.03,
       "schwierigkeit_mittel": 11780.297,
@@ -162,6 +183,7 @@
       "tag_utc": "2026-10-10",
       "bloecke": 3467,
       "erste_hoehe": 4483434,
+      "mindestschwierigkeit": 0,
       "letzte_hoehe": 4486900,
       "mittlerer_abstand_s": 24.93,
       "schwierigkeit_mittel": 11502.666,
@@ -173,6 +195,7 @@
       "tag_utc": "2026-10-11",
       "bloecke": 3463,
       "erste_hoehe": 4486901,
+      "mindestschwierigkeit": 0,
       "letzte_hoehe": 4490363,
       "mittlerer_abstand_s": 24.96,
       "schwierigkeit_mittel": 12081.571,
@@ -184,6 +207,7 @@
       "tag_utc": "2026-10-12",
       "bloecke": 3457,
       "erste_hoehe": 4490364,
+      "mindestschwierigkeit": 0,
       "letzte_hoehe": 4493820,
       "mittlerer_abstand_s": 24.99,
       "schwierigkeit_mittel": 11345.967,
@@ -195,6 +219,7 @@
       "tag_utc": "2026-10-13",
       "bloecke": 5714,
       "erste_hoehe": 4493821,
+      "mindestschwierigkeit": 1,
       "letzte_hoehe": 4499534,
       "mittlerer_abstand_s": 15.12,
       "schwierigkeit_mittel": 50070.797,
@@ -206,6 +231,7 @@
       "tag_utc": "2026-10-14",
       "bloecke": 3485,
       "erste_hoehe": 4499535,
+      "mindestschwierigkeit": 0,
       "letzte_hoehe": 4503019,
       "mittlerer_abstand_s": 24.8,
       "schwierigkeit_mittel": 10655.928,
@@ -217,6 +243,7 @@
       "tag_utc": "2026-10-15",
       "bloecke": 1415,
       "erste_hoehe": 4503020,
+      "mindestschwierigkeit": 0,
       "letzte_hoehe": 4504434,
       "mittlerer_abstand_s": 25.42,
       "schwierigkeit_mittel": 11127.764,
@@ -225,6 +252,19 @@
       "hashrate_relativ": 437.7356
     }
   ],
+  "mindestschwierigkeit": {
+    "anzahl": 1,
+    "bloecke": [
+      {
+        "hoehe": 4495487,
+        "zeit_utc": "2026-10-13 04:25:14",
+        "luecke_davor_s": 451
+      }
+    ],
+    "kleinste_luecke_davor_s": 451,
+    "groesste_luecke_ohne_mindestschwierigkeit_s": 434
+  },
+  "mindestschwierigkeit_vorher": 517,
   "nachfuehrung": {
     "methode": "Fenster 100 Bloecke, Sprung ab Faktor 2.0 (vom folgenden Fenster bestaetigt), eingeholt bei +-15 % des Gleichgewichts (Hashrate nach dem Sprung * 25 s)",
     "spruenge": 6,
