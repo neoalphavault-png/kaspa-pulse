@@ -1055,6 +1055,15 @@ def main(argv=None):
                                  "caption_sha": hashlib.sha256(ig["caption"].encode()).hexdigest()[:12],
                                  "zeit_utc": now.isoformat(timespec="seconds")})
             json_schreiben(LOG_IG, log)
+            if erg.get("media"):
+                # Reichweiten-Uhrwerk: eine Zeile ins Manifest, bevor irgendeine
+                # Zahl dazukommt. Scheitert das, lebt der Post trotzdem weiter.
+                from post_manifest import eintragen_still, hashtags_zaehlen
+                eintragen_still(kanal="instagram", post_id=erg["media"], format_="bild",
+                                look="tagesgrafik-form%02d" % int(ig["form"]),
+                                hook=ig["caption"], hashtags=hashtags_zaehlen(ig["caption"]),
+                                quelle="auto", variante=ig.get("variante", "-") or "-",
+                                permalink=erg.get("permalink", ""), now=now)
             ops("instagram %s (%s), form %s, container %s, status %s%s" % (
                 a.modus, start, ig["form"], erg["container"], erg["status"],
                 (", " + erg.get("permalink", "")) if erg.get("media") else ", nicht veroeffentlicht"))
