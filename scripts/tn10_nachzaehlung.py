@@ -32,13 +32,14 @@ import hashlib
 import io
 import json
 import os
+import re
 import sys
 import tempfile
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from tn10_zaehler import (NETZ, Takt, Zaehler, eimer, feld, iso_ms, kennung, schluessel,  # noqa: E402
-                          wirt, zahl)
+from tn10_zaehler import (NETZ, Takt, Zaehler, adressfrei, eimer, fake_kaspa, feld, iso_ms,  # noqa: E402
+                          kennung, ohne_adresse, schluessel, wirt, zahl)
 
 RAND_MS = 60000            # so weit vor und nach dem fenster wird gelesen
 MAX_ABFRAGEN = 4000        # sicherung, je knoten
@@ -269,7 +270,7 @@ async def zaehle(rpc, takt, von_ms, bis_ms, rand_ms=RAND_MS, ziel_sha="", kette=
         return [], meta
     except Exception as exc:                             # noqa: BLE001
         meta["status"] = "fehler, %s" % type(exc).__name__
-        meta["meldungen"].append(str(exc)[:300])
+        meta["meldungen"].append(ohne_adresse(str(exc))[:300])
         return [], meta
     # nachtraeglich gibt es keine empfangspausen; voll ist eine minute, wenn
     # bloecke und kette lueckenlos ueber sie hinaus gelesen sind
@@ -495,6 +496,29 @@ def selbsttest():
                                                     "2026-10-08T20:13:00Z\n") == ("2026-10-08T20:02:00Z",
                                                                                     "2026-10-08T20:13:00Z", False))
     ok("fenster nur bloecke", fenster_lesen("2026-10-08T20:02:00Z\n2026-10-08T20:13:00Z\nnur-bloecke\n")[2])
+    # Bens Regel 15.10.2026: vom knoten nur die zehnstellige kennung in log und
+    # artefakt, auch wenn der knoten mit seiner adresse im fehlertext scheitert
+    import contextlib
+    fk, alt = fake_kaspa(fehler_bei="get_block_dag_info"), (sys.modules.get("kaspa"), Takt.__init__.__defaults__)
+    sys.modules["kaspa"], Takt.__init__.__defaults__ = fk, (0.01,)
+    puffer = io.StringIO()
+    try:
+        with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(puffer):
+            rc = asyncio.run(lauf(utc_ms("2026-10-08T20:02:00Z"), utc_ms("2026-10-08T20:13:00Z"), "k1",
+                                  os.path.join(tmp, "p.json"), os.path.join(tmp, "k1")))
+            texte = {n: open(os.path.join(tmp, n), encoding="utf-8").read() for n in ("k1.csv", "k1.json")}
+    finally:
+        Takt.__init__.__defaults__ = alt[1]
+        if alt[0] is None:
+            sys.modules.pop("kaspa", None)
+        else:
+            sys.modules["kaspa"] = alt[0]
+    m = json.loads(texte["k1.json"])
+    alles = texte["k1.csv"] + texte["k1.json"] + puffer.getvalue()
+    ok("lauf gegen erfundenen knoten: nur kennung, nie host oder ip in dateien und ausgabe",
+       rc == 1 and fk.zustand["hosts"] and adressfrei(alles) and "beispiel" not in alles
+       and re.fullmatch(r"[0-9a-f]{10}", m.get("kennung", "")) is not None
+       and "[knoten]" in " ".join(m.get("meldungen", [])))
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 

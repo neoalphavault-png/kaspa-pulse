@@ -109,6 +109,71 @@ def ohne_ip(t):
     return IPV6.sub("[ip]", IPV4.sub("[ip]", str(t or "")))
 
 
+KNOTEN_URL = re.compile(r"(?:wss?|grpc)://[^\s'\"<>,]+", re.I)
+
+
+def ohne_adresse(t):
+    """Bens Regel (15.10.2026): vom Knoten steht nur die zehnstellige
+    Kennung in Log und Artefakt, nie Host oder IP. Fuer Fehlertexte."""
+    return ohne_ip(KNOTEN_URL.sub("[knoten]", str(t or "")))
+
+
+def adressfrei(text):
+    """Wahr, wenn kein Knoten-URL, keine IPv4 und keine IPv6 im Text steht."""
+    return not (KNOTEN_URL.search(text) or IPV4.search(text) or IPV6.search(text))
+
+
+def fake_kaspa(fehler_bei=None):
+    """Erfundenes kaspa-Modul fuer den Selbsttest. Jeder Resolver-Aufruf
+    nennt einen anderen erfundenen Host, jeder Client eine andere p2pId.
+    fehler_bei: Name einer RPC-Methode, die mit der URL im Text scheitert."""
+    import types
+    zustand = {"n": 0, "hosts": []}
+    m = types.ModuleType("kaspa")
+
+    def host():
+        zustand["n"] += 1
+        h = "wss://" + ".".join(["knoten-%d" % zustand["n"], "beispiel", "invalid"]) + ":17210"
+        zustand["hosts"].append(h)
+        return h
+
+    class Resolver:
+        async def get_url(self, *_a):
+            return host()
+
+    class Client:
+        def __init__(self, url=None, resolver=None, network_id=None):
+            self.url, self.is_connected = url or host(), False
+            self.p2p = "fake-p2p-%d" % zustand["n"]
+
+        async def connect(self):
+            self.is_connected = True
+
+        async def disconnect(self):
+            self.is_connected = False
+
+        def add_event_listener(self, *_a):
+            return None
+
+        def __getattr__(self, name):
+            async def rufe(*_a):
+                if name == fehler_bei:
+                    raise RuntimeError("websocket to %s closed" % self.url)
+                return {"get_info": {"p2pId": self.p2p, "serverVersion": "0", "isSynced": True, "mempoolSize": 0},
+                        "get_block_dag_info": {"virtualDaaScore": 1, "difficulty": 1.0},
+                        "get_fee_estimate": {"estimate": {"priorityBucket": {"feerate": 1.0},
+                                                          "normalBuckets": [{"feerate": 1.0}],
+                                                          "lowBuckets": [{"feerate": 1.0}]}}}.get(name, {})
+            if name.startswith(("get_", "subscribe_")):
+                return rufe
+            raise AttributeError(name)
+
+    m.Resolver, m.RpcClient, m.NetworkId = Resolver, Client, (lambda x: x)
+    m.NotificationEvent = types.SimpleNamespace(BlockAdded="block", VirtualChainChanged="kette")
+    m.zustand = zustand
+    return m
+
+
 def iso_ms(ms):
     return dt.datetime.fromtimestamp(ms / 1000, dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")[:-4] + "Z"
 
@@ -1226,6 +1291,7 @@ async def pruefe_ids(datei, out, url="", nur_zaehlung=False, ohne_knoten=False):
 # ---------------------------------------------------------------- selbsttest
 
 def selbsttest():
+    global NACHLAUF_S
     f = []
 
     def ok(name, bed):
@@ -1425,6 +1491,34 @@ def selbsttest():
        and ohne_ip("wss://[2001:db8::1]:443") == "wss://[ip]:443")
     ok("kennung aus p2p, leer ohne", len(kennung("abc")) == 10 and kennung("") == "")
     ok("unbekannte datenform wird gezaehlt, nicht geraten", (Zaehler().block({"data": {}}) or True))
+    # Bens Regel 15.10.2026: ein ganzer lauf gegen erfundene knoten, danach
+    # steht in dateien und ausgabe nur die zehnstellige kennung, nie host oder ip
+    import contextlib
+    import tempfile
+    fk, alt = fake_kaspa(), (sys.modules.get("kaspa"), Takt.__init__.__defaults__, NACHLAUF_S)
+    sys.modules["kaspa"], Takt.__init__.__defaults__, NACHLAUF_S = fk, (0.01,), 0
+    SPUR_SEKUNDE["selbsttest"] = (int(time.time()) - 6) % 60
+    puffer = io.StringIO()
+    try:
+        with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(puffer):
+            _z, _c, _g, meta_f = asyncio.run(lauf(time.time() + 2.5, os.path.join(tmp, "t"), "selbsttest",
+                                                   "x", "", ""))
+            texte = [open(d, encoding="utf-8").read() for d in glob.glob(os.path.join(tmp, "*"))]
+    finally:
+        SPUR_SEKUNDE.pop("selbsttest", None)
+        Takt.__init__.__defaults__, NACHLAUF_S = alt[1], alt[2]
+        if alt[0] is None:
+            sys.modules.pop("kaspa", None)
+        else:
+            sys.modules["kaspa"] = alt[0]
+    alles = "\n".join(texte + [puffer.getvalue(), json.dumps(meta_f)])
+    verb = [v for kn in meta_f["knoten"].values() for v in kn["verbindungen"]]
+    ok("lauf gegen erfundene knoten: nur kennung, nie host oder ip in dateien und ausgabe",
+       len(fk.zustand["hosts"]) >= 2 and len(verb) == 2 and len(texte) >= 5 and adressfrei(alles)
+       and "beispiel" not in alles and all(re.fullmatch(r"[0-9a-f]{10}", v["kennung"]) for v in verb)
+       and all(set(v) == {"zeit", "kennung", "version", "gleich_wie_anderer"} for v in verb))
+    ok("ohne_adresse und adressfrei", ohne_adresse("x " + fk.zustand["hosts"][0] + "/y z") == "x [knoten] z"
+       and not adressfrei("a 192.0.2.1 b") and not adressfrei(fk.zustand["hosts"][0]) and adressfrei("a1b2c3d4e5"))
     out = "/tmp/tn10-selbsttest"
     k = Knoten("k1")
     k.z, k.start_ms, k.status = z, t0, st1
