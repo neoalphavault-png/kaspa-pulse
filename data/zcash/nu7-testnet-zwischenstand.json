@@ -1,21 +1,21 @@
 {
   "titel": "Zcash NU7 Testnet, unabhaengige Zaehlung",
-  "stichtag_utc": "2026-10-15 10:00:00 UTC",
+  "stichtag_utc": "2026-10-15 11:00:00 UTC",
   "bereich": {
     "von_hoehe": 4465026,
-    "bis_hoehe": 4504434,
-    "bloecke": 39409,
+    "bis_hoehe": 4504573,
+    "bloecke": 39548,
     "von_zeit_utc": "2026-10-04 18:21:45",
-    "bis_zeit_utc": "2026-10-15 09:59:28",
+    "bis_zeit_utc": "2026-10-15 10:59:36",
     "regel": "ab 4.465.026 bis zum hoechsten Block mit Zeitstempel <= Stichtag"
   },
   "quelle": {
     "quelle": "Zcash-Testnet P2P (getheaders), Peers aus DNS-Seeds",
-    "abruf_utc": "2026-10-15T10:52:44Z",
+    "abruf_utc": "2026-10-15T11:09:56Z",
     "start_checkpoint": 4414585,
     "erste_hoehe": 4414586,
-    "spitze_hoehe": 4504563,
-    "spitze_hash": "00001c3e73f319447d0174c21eedbf167ce5457e1db54b9c16e98f3edd1ad47a",
+    "spitze_hoehe": 4504598,
+    "spitze_hash": "0000155196fa97a5b2469de61eaf63a1a142500ccac22c0fbecf19c71bfc9fac",
     "checkpoints_quelle": "https://raw.githubusercontent.com/ZcashFoundation/zebra/main/zebra-chain/src/parameters/checkpoint/test-checkpoints.txt",
     "checkpoints_geprueft": 0,
     "peer_software": [
@@ -29,13 +29,13 @@
         "agent": "/Zebra:7.0.0-rc.0/",
         "verglichen": 500,
         "gleich": 500,
-        "spitze_peer": 4504563
+        "spitze_peer": 4504598
       },
       {
         "agent": "/Zebra:7.0.0-rc.0/",
         "verglichen": 500,
         "gleich": 500,
-        "spitze_peer": 4504563
+        "spitze_peer": 4504598
       }
     ],
     "gegenproben_ohne_antwort": [
@@ -52,7 +52,7 @@
         "fehler": "TimeoutError"
       },
       {
-        "agent": "/Zakura:1.7.0-rc0/",
+        "agent": "/Zakura:1.6.0/",
         "fehler": "TimeoutError"
       }
     ],
@@ -68,8 +68,8 @@
     ]
   },
   "abstaende": {
-    "anzahl_abstaende": 39408,
-    "mittel_s": 23.352,
+    "anzahl_abstaende": 39547,
+    "mittel_s": 23.361,
     "median_s": 17.0,
     "p90_s": 51.0,
     "p99_s": 108.0,
@@ -80,11 +80,11 @@
       "vorgaenger_zeit_utc": "2026-10-13 04:17:43",
       "zeit_utc": "2026-10-13 04:25:14"
     },
-    "anteil_ueber_75s": 0.03476,
-    "anteil_ueber_150s": 0.00203,
-    "anzahl_ueber_75s": 1370,
-    "anzahl_ueber_150s": 80,
-    "anzahl_null": 426,
+    "anteil_ueber_75s": 0.03484,
+    "anteil_ueber_150s": 0.00205,
+    "anzahl_ueber_75s": 1378,
+    "anzahl_ueber_150s": 81,
+    "anzahl_null": 427,
     "anzahl_negativ": 0,
     "erwartung_exponentiell": {
       "mittel_s": 25.0,
@@ -93,7 +93,7 @@
       "p99_s": 115.13,
       "anteil_ueber_75s": 0.04979,
       "anteil_ueber_150s": 0.00248,
-      "laengste_luecke_erwartet_s": 279.0
+      "laengste_luecke_erwartet_s": 279.1
     }
   },
   "vorher_75s": {
@@ -259,15 +259,15 @@
     },
     {
       "tag_utc": "2026-10-15",
-      "bloecke": 1415,
+      "bloecke": 1554,
       "erste_hoehe": 4503020,
       "mindestschwierigkeit": 0,
-      "letzte_hoehe": 4504434,
-      "mittlerer_abstand_s": 25.42,
-      "schwierigkeit_mittel": 11127.764,
+      "letzte_hoehe": 4504573,
+      "mittlerer_abstand_s": 25.47,
+      "schwierigkeit_mittel": 11087.601,
       "schwierigkeit_min": 10201.206,
       "schwierigkeit_max": 12366.659,
-      "hashrate_relativ": 437.7356
+      "hashrate_relativ": 435.3352
     }
   ],
   "mindestschwierigkeit": {
@@ -364,6 +364,11 @@
     "nach_abrufzeit_anzahl": 0,
     "verletzt_median_der_11_vorgaenger": 0
   },
+  "zakura_und_andere_ohne_antwort": {
+    "/Zakura:1.6.0/": 3,
+    "/Zakura:1.7.0-rc0/": 1
+  },
+  "lauscher": null,
   "nicht_gemessen": [
     "verwaiste Bloecke und Reorg-Tiefe (kein eigener Knoten)",
     "Ankunftsabstand desselben Blocks auf zwei Knoten (kein eigener Knoten)",
