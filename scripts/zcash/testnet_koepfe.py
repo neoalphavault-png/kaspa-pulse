@@ -163,11 +163,11 @@ class Peer:
             elif cmd == "reject":
                 raise ConnectionError("version abgelehnt")
 
-    def koepfe(self, locator_hash_intern):
+    def koepfe(self, locator_hash_intern, warten=60):
         """getheaders ab einem Hash; liefert Liste roher Koepfe (ohne tx-count)."""
         payload = struct.pack("<I", PROTOKOLL) + varint(1) + locator_hash_intern + b"\0" * 32
         self.senden("getheaders", payload)
-        frist = time.time() + 60
+        frist = time.time() + warten
         while time.time() < frist:
             cmd, p = self.empfangen()
             if cmd != "headers":
@@ -323,7 +323,10 @@ def main():
     proben, fehlversuche = [], []
     benutzt.add(addr)
     versuche = 0
-    while len(proben) < args.gegenproben + 1 and versuche < 25:
+    # Lauf 4 (15.10.2026) hing ueber 20 min in der Suche nach Zakura-Peers, die
+    # auf getheaders nicht antworten. Deshalb ein festes Zeitbudget.
+    budget_ende = time.time() + 360
+    while len(proben) < args.gegenproben + 1 and versuche < 25 and time.time() < budget_ende:
         versuche += 1
         a2, p2 = verbinden(adressen, benutzt, mindesthoehe=letzte_h - 50)
         if p2 is None:
@@ -337,7 +340,7 @@ def main():
             roh = []
             h_hash = gp_hash
             for _ in range(5):
-                stueck = p2.koepfe(h_hash)
+                stueck = p2.koepfe(h_hash, warten=20)
                 if not stueck:
                     break
                 roh += stueck
