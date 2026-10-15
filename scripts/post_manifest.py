@@ -29,6 +29,14 @@ FELDER (Ben, 15.10.2026)
     quelle        auto | hand
 Dazu permalink (wenn bekannt) und eingetragen (UTC, wann die Zeile kam).
 
+DIESELBE DATEI LIEGT IN BEIDEN REPOS
+kaspa-pulse postet das Tagesbild und Threads, pulse-studio das Reel. Beide
+brauchen dieselbe Zeile im selben Format, darum liegt dieses Skript in
+kaspa-pulse/scripts/ und in pulse-studio/scripts/ - Wort fuer Wort gleich,
+wie x_post.py. Geaendert wird es in kaspa-pulse und dann hierher kopiert.
+Geschrieben wird immer in das eigene Repo; der Sammler in kaspa-pulse liest
+beide Dateien (UHRWERK_MANIFEST, siehe kaspa-pulse/docs/uhrwerk.md).
+
 GEHEIMNISSE
 Im Manifest steht nie ein Token. Jede Zeile laeuft vor dem Schreiben durch
 sauber(); findet sich darin trotzdem etwas, das wie ein Token aussieht,

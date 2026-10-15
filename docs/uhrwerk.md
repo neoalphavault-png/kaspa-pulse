@@ -331,6 +331,34 @@ jobs:
           fi
 ```
 
+### Reel-Workflow, eine Zeile mehr (`pulse-studio/.github/workflows/instagram-reel.yml`)
+
+`instagram-reel.yml` committet bisher nichts. Der Reel-Lauf schreibt seine
+Manifest-Zeile also auf den Laeufer, und mit dem Laeufer ist sie weg.
+Dieser Schritt ans Ende des Jobs, nach dem Reel-Schritt:
+
+```yaml
+      # Reichweiten-Uhrwerk: die Manifest-Zeile des Reels sichern. Auch
+      # nach einem roten Lauf - ein veroeffentlichtes Reel ohne Zeile im
+      # Manifest taucht in keiner Auswertung auf.
+      - name: manifest sichern
+        if: always()
+        run: |
+          git config user.name "pulse-studio-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/insights/
+          if git diff --staged --quiet; then
+            echo "nothing changed"
+          else
+            git commit -m "uhrwerk manifest, reel $(date -u +%Y-%m-%d)"
+            git pull --rebase origin main
+            git push
+          fi
+```
+
+Dazu braucht der Job `permissions: contents: write`, falls das noch nicht
+dort steht.
+
 ## Trockenlauf, zwei Tage
 
 `UHRWERK_LIVE=trocken` schreibt die Schnappschuesse und schickt die Meldung
