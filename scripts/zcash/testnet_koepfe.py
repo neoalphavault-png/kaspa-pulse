@@ -46,8 +46,8 @@ from datetime import datetime, timezone
 MAGIC = bytes.fromhex("fa1af9bf")  # Zcash Testnet
 PORT = 18233
 SEEDS = ["testnet.seeder.zfnd.org", "dnsseed.testnet.z.cash", "testnet.is.yolo.money"]
-# Hoeher als jede uns bekannte Mindestversion; Knoten verhandeln auf das Minimum.
-PROTOKOLL = int(os.environ.get("ZC_PROTOKOLL", "170200"))
+# Die Version, die Zebra 7.0.0-rc.0 selbst meldet (Lauf 1, 15.10.2026).
+PROTOKOLL = int(os.environ.get("ZC_PROTOKOLL", "170180"))
 USER_AGENT = b"/kaspa-pulse-zaehler:0.1/"
 CHECKPOINTS_URL = os.environ.get(
     "ZC_CHECKPOINTS_URL",
@@ -93,7 +93,7 @@ def ziel_aus_nbits(bits):
 
 
 class Peer:
-    def __init__(self, addr, timeout=30):
+    def __init__(self, addr, timeout=12):
         fam = socket.AF_INET6 if ":" in addr[0] else socket.AF_INET
         self.s = socket.socket(fam, socket.SOCK_STREAM)
         self.s.settimeout(timeout)
@@ -102,6 +102,7 @@ class Peer:
         self.agent = "?"
         self.version = 0
         self.hoehe = 0
+        self.gesehen = []  # Befehle in Reihenfolge, fuer die Diagnose
 
     def senden(self, cmd, payload=b""):
         kopf = MAGIC + cmd.encode().ljust(12, b"\0") + struct.pack("<I", len(payload)) + sha256d(payload)[:4]
@@ -125,6 +126,7 @@ class Peer:
         if laenge > 8 << 20:
             raise ConnectionError("nachricht zu gross")
         payload = self._lesen(laenge)
+        self.gesehen.append(cmd)
         if sha256d(payload)[:4] != kopf[20:24]:
             raise ConnectionError("pruefsumme falsch")
         if cmd == "ping":
@@ -237,7 +239,7 @@ def verbinden(adressen, ausschluss=()):
             log(f"peer verbunden: agent {p.agent}, version {p.version}, meldet hoehe {p.hoehe}")
             return addr, p
         except (OSError, ConnectionError, TimeoutError, struct.error, IndexError) as e:
-            log(f"peer abgelehnt ({type(e).__name__})")
+            log(f"peer abgelehnt ({type(e).__name__}: {str(e)[:60] if not isinstance(e, OSError) else ''})")
     return None, None
 
 
@@ -270,11 +272,11 @@ def main():
         try:
             roh = peer.koepfe(letzter_hash)
         except (OSError, ConnectionError, TimeoutError) as e:
-            log(f"peer abgebrochen ({type(e).__name__}), wechsle")
+            log(f"peer abgebrochen ({type(e).__name__}: {e}), empfangen: {peer.gesehen[-12:]}, wechsle")
             peer.zu()
             benutzt.add(addr)
             fehler += 1
-            if fehler > 20:
+            if fehler > 12:
                 sys.exit("zu viele peer-fehler")
             addr, peer = verbinden(adressen, benutzt)
             continue
