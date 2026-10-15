@@ -46,6 +46,13 @@
      "comments": 1,
      "saved": 1,
      "shares": 0
+    },
+    "2026-10-15": {
+     "reach": 75,
+     "likes": 9,
+     "comments": 1,
+     "saved": 1,
+     "shares": 0
     }
    }
   },
@@ -92,6 +99,13 @@
     "2026-10-14": {
      "reach": 1628,
      "likes": 14,
+     "comments": 3,
+     "saved": 2,
+     "shares": 3
+    },
+    "2026-10-15": {
+     "reach": 1628,
+     "likes": 15,
      "comments": 3,
      "saved": 2,
      "shares": 3
@@ -424,6 +438,13 @@
      "comments": 0,
      "saved": 4,
      "shares": 2
+    },
+    "2026-10-15": {
+     "reach": 1789,
+     "likes": 14,
+     "comments": 0,
+     "saved": 4,
+     "shares": 2
     }
    }
   },
@@ -459,6 +480,13 @@
      "comments": 0,
      "saved": 3,
      "shares": 0
+    },
+    "2026-10-15": {
+     "reach": 31,
+     "likes": 6,
+     "comments": 0,
+     "saved": 3,
+     "shares": 0
     }
    }
   },
@@ -487,6 +515,13 @@
      "comments": 0,
      "saved": 4,
      "shares": 3
+    },
+    "2026-10-15": {
+     "reach": 59,
+     "likes": 6,
+     "comments": 0,
+     "saved": 4,
+     "shares": 3
     }
    }
   },
@@ -504,6 +539,13 @@
     },
     "2026-10-14": {
      "reach": 1372,
+     "likes": 19,
+     "comments": 3,
+     "saved": 4,
+     "shares": 1
+    },
+    "2026-10-15": {
+     "reach": 1818,
      "likes": 19,
      "comments": 3,
      "saved": 4,
@@ -529,6 +571,13 @@
      "comments": 0,
      "saved": 2,
      "shares": 3
+    },
+    "2026-10-15": {
+     "reach": 36,
+     "likes": 6,
+     "comments": 0,
+     "saved": 2,
+     "shares": 3
     }
    }
   },
@@ -550,9 +599,47 @@
      "comments": 1,
      "saved": 3,
      "shares": 1
+    },
+    "2026-10-15": {
+     "reach": 100,
+     "likes": 9,
+     "comments": 1,
+     "saved": 3,
+     "shares": 1
+    }
+   }
+  },
+  "18347497789252471": {
+   "gepostet_utc": "2026-10-15T10:06:30+0000",
+   "typ": "VIDEO",
+   "permalink": "https://www.instagram.com/reel/DegtDABlHh8/",
+   "tage": {
+    "2026-10-15": {
+     "reach": 0,
+     "likes": 1,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    }
+   }
+  },
+  "18132659116796681": {
+   "gepostet_utc": "2026-10-15T07:31:12+0000",
+   "typ": "IMAGE",
+   "permalink": "https://www.instagram.com/p/DegbV33GM20/",
+   "form": 2,
+   "caption_sha": "0e576948ce2d",
+   "frage": null,
+   "tage": {
+    "2026-10-15": {
+     "reach": 11,
+     "likes": 1,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   }
  },
- "stand_utc": "2026-10-14T10:35:57+00:00"
+ "stand_utc": "2026-10-15T10:17:28+00:00"
 }
