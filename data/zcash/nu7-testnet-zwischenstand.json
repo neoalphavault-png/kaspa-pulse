@@ -11,17 +11,17 @@
   },
   "quelle": {
     "quelle": "Zcash-Testnet P2P (getheaders), Peers aus DNS-Seeds",
-    "abruf_utc": "2026-10-15T10:19:57Z",
+    "abruf_utc": "2026-10-15T10:52:44Z",
     "start_checkpoint": 4414585,
     "erste_hoehe": 4414586,
-    "spitze_hoehe": 4504476,
-    "spitze_hash": "0000157ab64d3e8f2f262e7341d13595c3b462efb342fa2c34da084fbf2fc741",
+    "spitze_hoehe": 4504563,
+    "spitze_hash": "00001c3e73f319447d0174c21eedbf167ce5457e1db54b9c16e98f3edd1ad47a",
     "checkpoints_quelle": "https://raw.githubusercontent.com/ZcashFoundation/zebra/main/zebra-chain/src/parameters/checkpoint/test-checkpoints.txt",
     "checkpoints_geprueft": 0,
     "peer_software": [
       "/Zebra:7.0.0-rc.0/",
-      "/Zakura:1.7.0-rc0/",
-      "/Zakura:1.6.0/"
+      "/Zakura:1.6.0/",
+      "/Zakura:1.7.0-rc0/"
     ],
     "peer_fehler": 0,
     "gegenproben": [
@@ -29,13 +29,31 @@
         "agent": "/Zebra:7.0.0-rc.0/",
         "verglichen": 500,
         "gleich": 500,
-        "spitze_peer": 4504476
+        "spitze_peer": 4504563
       },
       {
         "agent": "/Zebra:7.0.0-rc.0/",
         "verglichen": 500,
         "gleich": 500,
-        "spitze_peer": 4504476
+        "spitze_peer": 4504563
+      }
+    ],
+    "gegenproben_ohne_antwort": [
+      {
+        "agent": "/Zakura:1.6.0/",
+        "fehler": "TimeoutError"
+      },
+      {
+        "agent": "/Zakura:1.6.0/",
+        "fehler": "TimeoutError"
+      },
+      {
+        "agent": "/Zakura:1.7.0-rc0/",
+        "fehler": "TimeoutError"
+      },
+      {
+        "agent": "/Zakura:1.7.0-rc0/",
+        "fehler": "TimeoutError"
       }
     ],
     "pruefungen": [
@@ -266,66 +284,73 @@
   },
   "mindestschwierigkeit_vorher": 517,
   "nachfuehrung": {
-    "methode": "Fenster 100 Bloecke, Sprung ab Faktor 2.0 (vom folgenden Fenster bestaetigt), eingeholt bei +-15 % des Gleichgewichts (Hashrate nach dem Sprung * 25 s)",
+    "methode": "Fenster 100 Bloecke, Sprung ab Faktor 2.0 (vom folgenden Fenster bestaetigt); eingeholt, wenn die Schwierigkeit innerhalb +-15 % der Hashrate der folgenden 100 Bloecke mal 25 s liegt",
     "spruenge": 6,
-    "nicht_eingeholt_in_2000_bloecken": 2,
-    "median_bloecke": 242.5,
-    "median_min": 69.80000000000001,
-    "max_bloecke": 656,
+    "abgeloest_vor_dem_einholen": 1,
+    "nicht_eingeholt_in_2000_bloecken": 0,
+    "median_bloecke": 960,
+    "median_min": 159.7,
+    "max_bloecke": 1839,
     "ereignisse": [
       {
         "grenze_hoehe": 4469626,
         "zeit_utc": "2026-10-06 04:00:07",
         "faktor_hashrate": 2.45,
         "schwierigkeit_an_grenze": 624.977,
-        "gleichgewicht": 1619.522,
-        "eingeholt_nach_bloecken": 271,
-        "eingeholt_nach_min": 39.7
+        "eingeholt_nach_bloecken": 960,
+        "eingeholt_nach_min": 182.2,
+        "schwierigkeit_eingeholt": 8116.746,
+        "abgeloest": false
       },
       {
         "grenze_hoehe": 4480926,
         "zeit_utc": "2026-10-09 06:01:32",
         "faktor_hashrate": 0.28,
         "schwierigkeit_an_grenze": 15396.409,
-        "gleichgewicht": 10847.385,
-        "eingeholt_nach_bloecken": 179,
-        "eingeholt_nach_min": 99.9
+        "eingeholt_nach_bloecken": 169,
+        "eingeholt_nach_min": 96.2,
+        "schwierigkeit_eingeholt": 12549.929,
+        "abgeloest": false
       },
       {
         "grenze_hoehe": 4488026,
         "zeit_utc": "2026-10-11 07:51:35",
         "faktor_hashrate": 5.27,
         "schwierigkeit_an_grenze": 11592.704,
-        "gleichgewicht": 59430.189,
         "eingeholt_nach_bloecken": null,
-        "eingeholt_nach_min": null
+        "eingeholt_nach_min": null,
+        "schwierigkeit_eingeholt": null,
+        "abgeloest": true
       },
       {
         "grenze_hoehe": 4488226,
         "zeit_utc": "2026-10-11 08:11:57",
         "faktor_hashrate": 0.17,
         "schwierigkeit_an_grenze": 20911.798,
-        "gleichgewicht": 11143.093,
-        "eingeholt_nach_bloecken": 214,
-        "eingeholt_nach_min": 144.0
+        "eingeholt_nach_bloecken": 249,
+        "eingeholt_nach_min": 159.7,
+        "schwierigkeit_eingeholt": 12032.678,
+        "abgeloest": false
       },
       {
         "grenze_hoehe": 4494176,
         "zeit_utc": "2026-10-13 02:28:02",
         "faktor_hashrate": 9.2,
         "schwierigkeit_an_grenze": 12008.438,
-        "gleichgewicht": 118490.16,
-        "eingeholt_nach_bloecken": 656,
-        "eingeholt_nach_min": 31.5
+        "eingeholt_nach_bloecken": 1239,
+        "eingeholt_nach_min": 91.1,
+        "schwierigkeit_eingeholt": 628067.21,
+        "abgeloest": false
       },
       {
         "grenze_hoehe": 4495476,
         "zeit_utc": "2026-10-13 04:15:27",
         "faktor_hashrate": 0.23,
         "schwierigkeit_an_grenze": 717246.067,
-        "gleichgewicht": 226993.213,
-        "eingeholt_nach_bloecken": null,
-        "eingeholt_nach_min": null
+        "eingeholt_nach_bloecken": 1839,
+        "eingeholt_nach_min": 257.9,
+        "schwierigkeit_eingeholt": 10138.537,
+        "abgeloest": false
       }
     ]
   },

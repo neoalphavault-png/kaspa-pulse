@@ -1,6 +1,6 @@
 # Zcash NU7 Testnet: unabhängige Zählung, Stand 2026-10-15
 
-**Stichtag:** 2026-10-15 10:00:00 UTC · **Blockbereich:** 4.465.026 bis 4.504.434 (39.409 Blöcke, 2026-10-04 18:21:45 bis 2026-10-15 09:59:28 UTC) · **Abruf:** 2026-10-15T10:19:57Z
+**Stichtag:** 2026-10-15 10:00:00 UTC · **Blockbereich:** 4.465.026 bis 4.504.434 (39.409 Blöcke, 2026-10-04 18:21:45 bis 2026-10-15 09:59:28 UTC) · **Abruf:** 2026-10-15T10:52:44Z
 
 Nur Zahlen. Kein Kurs, keine Bewertung.
 
@@ -9,7 +9,8 @@ Nur Zahlen. Kein Kurs, keine Bewertung.
 - Blockköpfe direkt aus dem P2P-Netz des Zcash-Testnets (`getheaders`), Peers über die DNS-Seeds, kein Explorer, keine API, kein Konto. Skript: `scripts/zcash/testnet_koepfe.py`.
 - Startpunkt: Checkpoint 4.414.585 aus Zebras `test-checkpoints.txt`. Geprüft: Verkettung über den Vorgänger-Hash, Hash ≤ Ziel aus nBits, 0 spätere Checkpoints. Die Equihash-Lösung prüfen wir nicht.
 - Gegenprobe mit weiteren Peers: /Zebra:7.0.0-rc.0/: 500/500 Hashes gleich, /Zebra:7.0.0-rc.0/: 500/500 Hashes gleich
-- Software der Peers: /Zebra:7.0.0-rc.0/, /Zakura:1.7.0-rc0/, /Zakura:1.6.0/
+- Gegenprobe ohne verwertbare Antwort: /Zakura:1.6.0/ (TimeoutError), /Zakura:1.6.0/ (TimeoutError), /Zakura:1.7.0-rc0/ (TimeoutError), /Zakura:1.7.0-rc0/ (TimeoutError)
+- Software der Peers: /Zebra:7.0.0-rc.0/, /Zakura:1.6.0/, /Zakura:1.7.0-rc0/
 - Abstand = Zeitstempel minus Zeitstempel des Vorgängers, erster Abstand bei 4.465.027. Zeitstempel setzt der Miner; null und negative Abstände bleiben drin.
 - Schwierigkeit wie in der RPC: Ziel(powLimit 0x2007ffff) / Ziel(nBits). Tage in UTC.
 - Auswertung: `scripts/zcash/nu7_auswertung.py`, Rohdaten: `data/zcash/testnet-koepfe.csv.gz`.
@@ -51,16 +52,16 @@ Vor der Aktivierung (50.439 Abstände, Höhe 4.414.586 bis 4.465.025): Mittel 9,
 
 Erster und letzter Tag sind angeschnitten (Aktivierung 18:21:45 UTC, Stichtag).
 
-**Wie schnell folgt die Schwierigkeit?** Fenster 100 Bloecke, Sprung ab Faktor 2.0 (vom folgenden Fenster bestaetigt), eingeholt bei +-15 % des Gleichgewichts (Hashrate nach dem Sprung * 25 s). Sprünge: 6; eingeholt im Median nach 242,5 Blöcken bzw. 69,8 min, längstens 656 Blöcke; nicht eingeholt in 2.000 Blöcken: 2.
+**Wie schnell folgt die Schwierigkeit?** Fenster 100 Bloecke, Sprung ab Faktor 2.0 (vom folgenden Fenster bestaetigt); eingeholt, wenn die Schwierigkeit innerhalb +-15 % der Hashrate der folgenden 100 Bloecke mal 25 s liegt. Sprünge: 6; eingeholt im Median nach 960 Blöcken bzw. 159,7 min, längstens 1.839 Blöcke; vom nächsten Sprung abgelöst, bevor eingeholt: 1; nicht eingeholt in 2.000 Blöcken: 0.
 
-| Höhe | Zeit UTC | Faktor Hashrate | Schwierigkeit davor | Gleichgewicht | eingeholt nach Blöcken | min |
+| Höhe | Zeit UTC | Faktor Hashrate | Schwierigkeit an der Grenze | eingeholt nach Blöcken | min | Schwierigkeit dann |
 | --- | --- | --- | --- | --- | --- | --- |
-| 4.469.626 | 2026-10-06 04:00:07 | 2,45 | 625,0 | 1.619,5 | 271 | 39,7 |
-| 4.480.926 | 2026-10-09 06:01:32 | 0,28 | 15.396,4 | 10.847,4 | 179 | 99,9 |
-| 4.488.026 | 2026-10-11 07:51:35 | 5,27 | 11.592,7 | 59.430,2 | – | – |
-| 4.488.226 | 2026-10-11 08:11:57 | 0,17 | 20.911,8 | 11.143,1 | 214 | 144,0 |
-| 4.494.176 | 2026-10-13 02:28:02 | 9,20 | 12.008,4 | 118.490,2 | 656 | 31,5 |
-| 4.495.476 | 2026-10-13 04:15:27 | 0,23 | 717.246,1 | 226.993,2 | – | – |
+| 4.469.626 | 2026-10-06 04:00:07 | 2,45 | 625,0 | 960 | 182,2 | 8.116,7 |
+| 4.480.926 | 2026-10-09 06:01:32 | 0,28 | 15.396,4 | 169 | 96,2 | 12.549,9 |
+| 4.488.026 | 2026-10-11 07:51:35 | 5,27 | 11.592,7 | abgelöst | – | – |
+| 4.488.226 | 2026-10-11 08:11:57 | 0,17 | 20.911,8 | 249 | 159,7 | 12.032,7 |
+| 4.494.176 | 2026-10-13 02:28:02 | 9,20 | 12.008,4 | 1.239 | 91,1 | 628.067,2 |
+| 4.495.476 | 2026-10-13 04:15:27 | 0,23 | 717.246,1 | 1.839 | 257,9 | 10.138,5 |
 
 ## C. Zeitstempel
 
