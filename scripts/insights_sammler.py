@@ -53,7 +53,7 @@ HIER = Path(__file__).resolve().parent
 if str(HIER) not in sys.path:
     sys.path.insert(0, str(HIER))
 
-from post_manifest import MANIFEST, lesen, sauber, berlin_offset   # noqa: E402
+from post_manifest import MANIFEST, MANIFESTE, alle, lesen, sauber, berlin_offset   # noqa: E402
 
 REPO = HIER.parent
 INSIGHTS = Path(os.environ.get("UHRWERK_INSIGHTS") or REPO / "data" / "insights")
@@ -362,9 +362,10 @@ def follower_zum(kanal, zeit_berlin, reihe):
 
 # ---------------------------------------------------------------- sammeln
 
-def sammeln(now=None, modus="trocken", messer=None, folgen=True, zaehler=None):
+def sammeln(now=None, modus="trocken", messer=None, folgen=True, zaehler=None,
+            manifeste=None):
     now = now or jetzt()
-    eintraege, kaputt = lesen(MANIFEST)
+    eintraege, kaputt = alle(manifeste)
     bericht, neue = [], []
     if kaputt:
         bericht.append("manifest: %d kaputte zeile(n)" % kaputt)
@@ -454,7 +455,7 @@ def alarm_text(a, link=""):
 
 
 def link_zu(post_id, kanal):
-    for e in lesen(MANIFEST)[0]:
+    for e in alle()[0]:
         if str(e.get("post_id")) == str(post_id) and e.get("kanal") == kanal:
             return e.get("permalink", "")
     return ""
@@ -541,7 +542,9 @@ def selbsttest():
     with tempfile.TemporaryDirectory() as tmp:
         INSIGHTS = Path(tmp)
         MANIFEST = Path(tmp, "manifest.jsonl")
+        ZWEITES = Path(tmp, "manifest-studio.jsonl")
         post_manifest.MANIFEST = MANIFEST
+        post_manifest.MANIFESTE = [MANIFEST, ZWEITES]
         globals()["MANIFEST"] = MANIFEST
         now = dt.datetime(2026, 10, 20, 10, 0, tzinfo=dt.timezone.utc)
 
@@ -594,6 +597,22 @@ def selbsttest():
         ok("alter_h steht in der zeile", erg["neu"][0]["alter_h"] == 26.0)
         zweiter = sammeln(now=now, messer={"instagram": falscher_messer}, folgen=False)
         ok("derselbe lauf noch einmal misst nichts doppelt", zweiter["neu"] == [])
+
+        # zweites manifest, wie es das reel in pulse-studio schreibt
+        post_manifest.eintragen(kanal="instagram", post_id="r1", format_="reel",
+                                look="kp-nod", hook="this week's number", hashtags=3,
+                                variante="B", laenge_s=31,
+                                zeit_berlin=(now - dt.timedelta(hours=30)).astimezone(
+                                    dt.timezone(dt.timedelta(hours=2))).isoformat(timespec="seconds"),
+                                pfad=ZWEITES, now=now)
+        erg = sammeln(now=now, messer={"instagram": falscher_messer}, folgen=False)
+        ok("ein post aus dem zweiten manifest wird mitgemessen",
+           [s["post_id"] for s in erg["neu"]] == ["r1"])
+        ok("die laenge kommt aus dem manifest des anderen repos",
+           erg["neu"][0]["format"] == "reel" and erg["neu"][0]["look"] == "kp-nod")
+        ok("derselbe post in beiden dateien wird einmal gezaehlt",
+           len([e for e in post_manifest.alle([MANIFEST, MANIFEST])[0]
+                if e["post_id"] == "p26"]) == 1)
 
         ok("follower werden je kanal geschrieben",
            len(follower_messen(now, ("instagram",), {"instagram": lambda: 1234})[0]) == 1)

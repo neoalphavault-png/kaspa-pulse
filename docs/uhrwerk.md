@@ -46,9 +46,23 @@ Angeschlossen ist bisher der Instagram-Tagespost
 kommen aus `pulse-studio/scripts/instagram_reel.py` und werden dort
 angeschlossen; Threads postet noch nicht, nur Container.
 
-Eine Datei fuer beide Repos: auf c2 zeigt `UHRWERK_MANIFEST` (aus
-`takt.conf`) auf die Datei in kaspa-pulse. Ohne die Variable schreibt jedes
-Repo in sein eigenes `data/insights/`.
+### Zwei Dateien, ein Manifest
+
+Geschrieben wird immer nur in die eigene Datei, gelesen aus allen. Der
+Tagespost schreibt nach `kaspa-pulse/data/insights/manifest.jsonl`, das
+Reel nach `pulse-studio/data/insights/manifest.jsonl`. Ein Lauf auf GitHub
+kann nicht in das andere Repo schreiben, und ein zweiter Schreibweg waere
+ein zweiter Weg, auf dem etwas schiefgeht.
+
+Der Sammler liest beide. `UHRWERK_MANIFEST` nennt die Dateien, getrennt wie
+ein Suchpfad:
+
+    UHRWERK_MANIFEST=data/insights/manifest.jsonl:studio/data/insights/manifest.jsonl
+
+Dafuer holt `uhrwerk.yml` pulse-studio als zweite, nur lesende Auscheckung
+nach `studio/` (siehe den Workflow unten). Steht die Variable nicht, liest
+der Sammler nur die eigene Datei - dann fehlen die Reels in der
+Auswertung, und nichts geht kaputt.
 
 Bens Handposts traegt die Montagsroutine nach:
 
@@ -261,6 +275,14 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      # Nur lesen: die Reels tragen ihr Manifest in pulse-studio ein, der
+      # Sammler braucht die Zeilen, schreibt dort aber nichts.
+      - uses: actions/checkout@v4
+        with:
+          repository: neoalphavault-png/pulse-studio
+          token: ${{ secrets.MEDIA_REPO_TOKEN }}
+          path: studio
+          sparse-checkout: data/insights
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -272,6 +294,7 @@ jobs:
           python3 scripts/uhrwerk_proben.py --selbsttest
       - name: schnappschuesse
         env:
+          UHRWERK_MANIFEST: "data/insights/manifest.jsonl:studio/data/insights/manifest.jsonl"
           INSTAGRAM_PAGE_TOKEN: ${{ secrets.INSTAGRAM_PAGE_TOKEN }}
           IG_USER_ID: ${{ vars.IG_USER_ID }}
           IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}

@@ -52,10 +52,23 @@ from pathlib import Path
 
 HIER = Path(__file__).resolve().parent
 REPO = HIER.parent
-# Die Datei liegt in kaspa-pulse. pulse-studio postet die Reels und traegt in
-# dieselbe Datei ein; auf c2 zeigt UHRWERK_MANIFEST aus takt.conf darauf.
-# Ohne die Variable schreibt jedes Repo in sein eigenes data/insights/.
-MANIFEST = Path(os.environ.get("UHRWERK_MANIFEST") or REPO / "data" / "insights" / "manifest.jsonl")
+# GESCHRIEBEN WIRD IMMER NUR IN DIE ERSTE DATEI, GELESEN AUS ALLEN.
+# Jedes Repo schreibt in sein eigenes data/insights/manifest.jsonl: der
+# Tagespost in kaspa-pulse, das Reel in pulse-studio. Ein Lauf auf GitHub
+# kann nicht in das andere Repo schreiben, und ein zweiter Schreibweg waere
+# ein zweiter Weg, auf dem etwas schiefgeht. Der Sammler liest darum beide
+# Dateien. UHRWERK_MANIFEST nennt sie, getrennt wie ein Suchpfad
+# (":" unter Linux); auf c2, wo beide Repos liegen, steht dort die eigene
+# zuerst und die andere dahinter.
+def _manifeste():
+    roh = os.environ.get("UHRWERK_MANIFEST", "").strip()
+    if roh:
+        return [Path(t) for t in roh.split(os.pathsep) if t.strip()]
+    return [REPO / "data" / "insights" / "manifest.jsonl"]
+
+
+MANIFESTE = _manifeste()
+MANIFEST = MANIFESTE[0]
 LOG_IG = REPO / "data" / "instagram-log.json"
 LOG_THREADS = REPO / "data" / "threads-post-log.json"
 
@@ -139,6 +152,22 @@ def lesen(pfad=None):
             zeilen.append(d)
         else:
             kaputt += 1
+    return zeilen, kaputt
+
+
+def alle(pfade=None):
+    """Alle Zeilen aus allen Manifesten, der Post nur einmal. Die erste
+    Datei gewinnt, wenn dieselbe id zweimal auftaucht."""
+    zeilen, kaputt, gesehen = [], 0, set()
+    for p in (pfade or MANIFESTE):
+        z, k = lesen(p)
+        kaputt += k
+        for e in z:
+            schl = (e.get("kanal"), str(e.get("post_id")))
+            if schl in gesehen:
+                continue
+            gesehen.add(schl)
+            zeilen.append(e)
     return zeilen, kaputt
 
 
