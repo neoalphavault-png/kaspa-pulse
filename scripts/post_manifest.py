@@ -58,8 +58,8 @@ REPO = HIER.parent
 # kann nicht in das andere Repo schreiben, und ein zweiter Schreibweg waere
 # ein zweiter Weg, auf dem etwas schiefgeht. Der Sammler liest darum beide
 # Dateien. UHRWERK_MANIFEST nennt sie, getrennt wie ein Suchpfad
-# (":" unter Linux); auf c2, wo beide Repos liegen, steht dort die eigene
-# zuerst und die andere dahinter.
+# (":" unter Linux); in uhrwerk.yml steht dort die eigene Datei zuerst und
+# die aus der zweiten Auscheckung dahinter.
 def _manifeste():
     roh = os.environ.get("UHRWERK_MANIFEST", "").strip()
     if roh:
