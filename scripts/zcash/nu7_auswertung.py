@@ -148,49 +148,64 @@ def je_tag(hoehen, zeiten, diffs):
 def nachfuehrung(hoehen, zeiten, diffs):
     """Spruenge der Hashrate und wie schnell die Schwierigkeit folgt.
 
-    Hashrate eines Fensters = Summe Schwierigkeit / Summe Abstaende
-    (Arbeit je Sekunde). Ein Sprung: das Fenster nach einer Grenze hat das
-    SPRUNG-fache (oder 1/SPRUNG) des Fensters davor. Gleichgewicht nach dem
-    Sprung: Schwierigkeit = Hashrate danach * 25 s. Gezaehlt wird, wie viele
-    Bloecke und Minuten ab der Grenze vergehen, bis die Schwierigkeit
-    innerhalb +-NAEHE des Gleichgewichts liegt.
+    Hashrate eines Fensters = Summe Schwierigkeit / Summe Abstaende (Arbeit je
+    Sekunde). Ein Sprung: das Fenster nach einer Grenze hat das SPRUNG-fache
+    (oder 1/SPRUNG) des Fensters davor, und das Fenster danach bestaetigt es.
+    Eingeholt: die Schwierigkeit eines Blocks liegt innerhalb +-NAEHE der
+    Hashrate der folgenden FENSTER Bloecke mal 25 s (mitlaufendes
+    Gleichgewicht), an diesem Block und FENSTER/4 Bloecke spaeter. Kommt der
+    naechste Sprung vorher, ist der Sprung "abgeloest", nicht "eingeholt".
     """
     W = FENSTER
+    n = len(hoehen)
 
     def rate(a, b):  # Bloecke a+1..b
         dt = zeiten[b] - zeiten[a]
         return sum(diffs[a + 1:b + 1]) / dt if dt > 0 else None
 
-    ereignisse = []
+    def passt(j):
+        if j + W >= n:
+            return False
+        h = rate(j, j + W)
+        return bool(h) and abs(diffs[j] / (h * ZIEL_S) - 1) <= NAEHE
+
+    grenzen = []
     b = W
-    while b + 2 * W < len(hoehen):
+    while b + 2 * W < n:
         vor, nach, danach = rate(b - W, b), rate(b, b + W), rate(b + W, b + 2 * W)
         # Bestaetigung: auch das zweite Fenster danach liegt mindestens halb so
         # weit weg. Sonst ist es Rauschen, kein Sprung.
-        bestaetigt = danach and (math.log(danach / vor) / math.log(nach / vor) >= 0.5) if vor and nach and nach != vor else False
-        if vor and nach and bestaetigt and (nach / vor >= SPRUNG or vor / nach >= SPRUNG):
-            gg = nach * ZIEL_S
-            k = next((j for j in range(b, min(b + 2000, len(hoehen)))
-                      if abs(diffs[j] / gg - 1) <= NAEHE), None)
-            ereignisse.append({
-                "grenze_hoehe": hoehen[b],
-                "zeit_utc": utc(zeiten[b]),
-                "faktor_hashrate": round(nach / vor, 2),
-                "schwierigkeit_an_grenze": round(diffs[b], 3),
-                "gleichgewicht": round(gg, 3),
-                "eingeholt_nach_bloecken": (k - b) if k is not None else None,
-                "eingeholt_nach_min": round((zeiten[k] - zeiten[b]) / 60, 1) if k is not None else None,
-            })
+        bestaetigt = (vor and nach and danach and nach != vor
+                      and math.log(danach / vor) / math.log(nach / vor) >= 0.5)
+        if bestaetigt and (nach / vor >= SPRUNG or vor / nach >= SPRUNG):
+            grenzen.append((b, nach / vor))
             b += 2 * W
         else:
             b += W // 2
+
+    ereignisse = []
+    for i, (b, faktor) in enumerate(grenzen):
+        ende = grenzen[i + 1][0] if i + 1 < len(grenzen) else n
+        k = next((j for j in range(b, min(b + 2000, ende)) if passt(j) and passt(j + W // 4)), None)
+        ereignisse.append({
+            "grenze_hoehe": hoehen[b],
+            "zeit_utc": utc(zeiten[b]),
+            "faktor_hashrate": round(faktor, 2),
+            "schwierigkeit_an_grenze": round(diffs[b], 3),
+            "eingeholt_nach_bloecken": (k - b) if k is not None else None,
+            "eingeholt_nach_min": round((zeiten[k] - zeiten[b]) / 60, 1) if k is not None else None,
+            "schwierigkeit_eingeholt": round(diffs[k], 3) if k is not None else None,
+            "abgeloest": k is None and ende < n and ende < b + 2000,
+        })
     eingeholt = [e["eingeholt_nach_bloecken"] for e in ereignisse if e["eingeholt_nach_bloecken"] is not None]
     minuten = [e["eingeholt_nach_min"] for e in ereignisse if e["eingeholt_nach_min"] is not None]
     return {
-        "methode": (f"Fenster {W} Bloecke, Sprung ab Faktor {SPRUNG} (vom folgenden Fenster bestaetigt), eingeholt bei +-{int(NAEHE*100)} % "
-                    "des Gleichgewichts (Hashrate nach dem Sprung * 25 s)"),
+        "methode": (f"Fenster {W} Bloecke, Sprung ab Faktor {SPRUNG} (vom folgenden Fenster bestaetigt); "
+                    f"eingeholt, wenn die Schwierigkeit innerhalb +-{int(NAEHE*100)} % der Hashrate der "
+                    f"folgenden {W} Bloecke mal 25 s liegt"),
         "spruenge": len(ereignisse),
-        "nicht_eingeholt_in_2000_bloecken": sum(1 for e in ereignisse if e["eingeholt_nach_bloecken"] is None),
+        "abgeloest_vor_dem_einholen": sum(1 for e in ereignisse if e["abgeloest"]),
+        "nicht_eingeholt_in_2000_bloecken": sum(1 for e in ereignisse if e["eingeholt_nach_bloecken"] is None and not e["abgeloest"]),
         "median_bloecke": statistics.median(eingeholt) if eingeholt else None,
         "median_min": statistics.median(minuten) if minuten else None,
         "max_bloecke": max(eingeholt) if eingeholt else None,
@@ -263,6 +278,8 @@ def bericht(r):
         f"{de(r['quelle']['checkpoints_geprueft'])} spätere Checkpoints. Die Equihash-Lösung prüfen wir nicht.",
         f"- Gegenprobe mit weiteren Peers: " + (", ".join(
             f"{g['agent']}: {g['gleich']}/{g['verglichen']} Hashes gleich" for g in r["quelle"]["gegenproben"]) or "keine"),
+        "- Gegenprobe ohne verwertbare Antwort: " + (", ".join(
+            f"{g['agent']} ({g['fehler']})" for g in r["quelle"].get("gegenproben_ohne_antwort", [])) or "keine"),
         f"- Software der Peers: {', '.join(r['quelle']['peer_software'])}",
         "- Abstand = Zeitstempel minus Zeitstempel des Vorgängers, erster Abstand bei 4.465.027. "
         "Zeitstempel setzt der Miner; null und negative Abstände bleiben drin.",
@@ -308,15 +325,17 @@ def bericht(r):
         "**Wie schnell folgt die Schwierigkeit?** " + r["nachfuehrung"]["methode"] + ". "
         f"Sprünge: {r['nachfuehrung']['spruenge']}; eingeholt im Median nach "
         f"{de(r['nachfuehrung']['median_bloecke'])} Blöcken bzw. {de(r['nachfuehrung']['median_min'])} min, "
-        f"längstens {de(r['nachfuehrung']['max_bloecke'])} Blöcke; nicht eingeholt in 2.000 Blöcken: "
+        f"längstens {de(r['nachfuehrung']['max_bloecke'])} Blöcke; vom nächsten Sprung abgelöst, bevor eingeholt: "
+        f"{r['nachfuehrung']['abgeloest_vor_dem_einholen']}; nicht eingeholt in 2.000 Blöcken: "
         f"{r['nachfuehrung']['nicht_eingeholt_in_2000_bloecken']}.",
         "",
     ]
     if r["nachfuehrung"]["ereignisse"]:
-        zeilen += [tabelle(["Höhe", "Zeit UTC", "Faktor Hashrate", "Schwierigkeit davor", "Gleichgewicht",
-                            "eingeholt nach Blöcken", "min"], [
+        zeilen += [tabelle(["Höhe", "Zeit UTC", "Faktor Hashrate", "Schwierigkeit an der Grenze",
+                            "eingeholt nach Blöcken", "min", "Schwierigkeit dann"], [
             [de(x["grenze_hoehe"]), x["zeit_utc"], de(x["faktor_hashrate"], 2), de(x["schwierigkeit_an_grenze"], 1),
-             de(x["gleichgewicht"], 1), de(x["eingeholt_nach_bloecken"]), de(x["eingeholt_nach_min"])]
+             "abgelöst" if x["abgeloest"] else de(x["eingeholt_nach_bloecken"]), de(x["eingeholt_nach_min"]),
+             de(x["schwierigkeit_eingeholt"], 1)]
             for x in r["nachfuehrung"]["ereignisse"][:15]]), ""]
     z = r["zeitstempel"]
     zeilen += [

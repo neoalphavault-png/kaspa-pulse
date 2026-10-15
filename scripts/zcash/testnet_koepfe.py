@@ -320,7 +320,7 @@ def main():
     nach_h = {h: k["hash"] for h, k in kette}
     gp_h = max(start_h, letzte_h - 500)
     gp_hash = nach_h.get(gp_h, start_hash)
-    proben = []
+    proben, fehlversuche = [], []
     benutzt.add(addr)
     versuche = 0
     while len(proben) < args.gegenproben + 1 and versuche < 25:
@@ -349,6 +349,7 @@ def main():
             log(f"gegenprobe {p2.agent}: {gleich}/{ueberlapp} gleich, spitze peer {gp_h + len(roh)}")
         except (OSError, ConnectionError, TimeoutError) as e:
             log(f"gegenprobe abgebrochen ({type(e).__name__})")
+            fehlversuche.append({"agent": p2.agent, "fehler": type(e).__name__})
         p2.zu()
         if p2.agent not in agents:
             agents.append(p2.agent)
@@ -378,6 +379,7 @@ def main():
         "peer_software": agents,
         "peer_fehler": fehler,
         "gegenproben": proben,
+        "gegenproben_ohne_antwort": fehlversuche,
         "pruefungen": ["prev-hash-kette", "hash <= ziel aus nbits", "zebra-checkpoints"],
         "nicht_geprueft": ["equihash-loesung", "block-inhalt", "konsensregeln jenseits des kopfes"],
     }

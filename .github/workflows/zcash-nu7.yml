@@ -1,7 +1,8 @@
 # zcash-nu7.yml - unabhaengige Zaehlung des Zcash-NU7-Testnets.
 #
 # Laeuft nur auf dem Branch messung/zcash-nu7, bei jedem Push, der die
-# Skripte, diese Datei oder data/zcash/stichtag.txt aendert. Geplante Laeufe
+# Skripte, diese Datei, data/zcash/stichtag.txt oder data/zcash/anstoss.txt
+# aendert. Geplante Laeufe
 # gibt es fuer Nicht-Default-Branches nicht; ein neuer Lauf = ein Push.
 #
 # Der Runner holt die Blockkoepfe direkt aus dem P2P-Netz des Testnets
@@ -19,6 +20,7 @@ on:
     paths:
       - "scripts/zcash/**"
       - "data/zcash/stichtag.txt"
+      - "data/zcash/anstoss.txt"
       - ".github/workflows/zcash-nu7.yml"
 
 permissions:
