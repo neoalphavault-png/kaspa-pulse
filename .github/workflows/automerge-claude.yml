@@ -8,6 +8,12 @@
 # - Konflikt: Branch bleibt stehen, Lauf rot, Ben merged von Hand.
 # - Aendert der Branch .github/workflows/, bleibt er ebenfalls stehen:
 #   GITHUB_TOKEN darf keine Workflow-Dateien pushen (kein workflows-Recht).
+# - Gesperrte Pfade (Ben, 15.10.2026): ausserdem .githooks/, deploy/,
+#   scripts/secret_scan.py und scripts/marker_scan.py. Dasselbe Verhalten:
+#   Lauf rot, Branch bleibt stehen, Ben merged von Hand. Das sind die Hooks,
+#   die Server-Einrichtung und die Scanner selbst; die sollen nie ungesehen
+#   auf main landen. Die Liste steht EINMAL, in SPERRE unten, und ein
+#   Selbsttest prueft sie vor jedem Merge.
 # - Pushes, die eine Action mit GITHUB_TOKEN macht (z. B. number-of-day.yml),
 #   loesen diese Action nicht aus; das ist GitHubs Schleifenschutz und hier
 #   egal, weil die Bots auf main committen.
@@ -35,11 +41,47 @@ jobs:
   merge:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    env:
+      # Gesperrte Pfade als ein regulaerer Ausdruck ueber die Pfade im Repo.
+      # Ordner mit Schraegstrich am Ende, einzelne Dateien mit $.
+      SPERRE: '^(\.github/workflows/|\.githooks/|deploy/|scripts/secret_scan\.py$|scripts/marker_scan\.py$)'
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
+
+      # Selbsttest der Sperre, bevor irgendetwas gemergt wird. Bricht er,
+      # merged dieser Lauf nichts.
+      - name: sperre selbsttest
+        run: |
+          set -eu
+          gesperrt() { grep -E "$SPERRE" || true; }
+          fehler=0
+          for p in .github/workflows/x.yml .githooks/pre-commit .githooks/pre-push \
+                   deploy/c2/setup.sh deploy/c2/taktgeber/takt.sh \
+                   scripts/secret_scan.py scripts/marker_scan.py; do
+            [ -n "$(printf '%s\n' "$p" | gesperrt)" ] || { echo "::error::selbsttest: $p muesste gesperrt sein"; fehler=1; }
+          done
+          for p in scripts/zcash/nu7_auswertung.py scripts/secret_scan.py.alt scripts/marker_scan.pyc \
+                   docs/deploy.md data/deploy/x.json .github/CODEOWNERS index.html; do
+            [ -z "$(printf '%s\n' "$p" | gesperrt)" ] || { echo "::error::selbsttest: $p duerfte nicht gesperrt sein"; fehler=1; }
+          done
+          # Umbenennung aus einem gesperrten Ordner heraus muss auffallen:
+          # ohne --no-renames nennt git diff nur den neuen Pfad.
+          t=$(mktemp -d)
+          git -C "$t" init -q
+          git -C "$t" -c user.name=t -c user.email=t@t commit -q --allow-empty -m basis
+          mkdir -p "$t/deploy/c2" && echo a > "$t/deploy/c2/setup.sh"
+          git -C "$t" add -A && git -C "$t" -c user.name=t -c user.email=t@t commit -q -m mit-deploy
+          b=$(git -C "$t" rev-parse HEAD)
+          mkdir -p "$t/anders" && git -C "$t" mv deploy/c2/setup.sh anders/setup.sh
+          git -C "$t" -c user.name=t -c user.email=t@t commit -q -m umbenannt
+          [ -n "$(git -C "$t" diff --no-renames --name-only "$b" HEAD | gesperrt)" ] \
+            || { echo "::error::selbsttest: umbenennung aus deploy/ heraus faellt nicht auf"; fehler=1; }
+          rm -rf "$t"
+          [ "$fehler" = 0 ] && echo "selbsttest sperre: ok"
+          exit "$fehler"
 
       - name: nach main bringen
         env:
@@ -57,8 +99,12 @@ jobs:
             echo "$BRANCH ist schon in main enthalten"
           else
             BASE=$(git merge-base main "origin/$BRANCH")
-            if [ -n "$(git diff --name-only "$BASE" "origin/$BRANCH" -- .github/workflows)" ]; then
-              echo "::error::$BRANCH aendert .github/workflows/. GITHUB_TOKEN darf das nicht pushen; Ben merged den Branch von Hand."
+            # --no-renames: eine Umbenennung zaehlt als Loeschen + Anlegen,
+            # sonst faellt ein Verschieben aus einem gesperrten Ordner nicht auf.
+            TREFFER=$(git diff --no-renames --name-only "$BASE" "origin/$BRANCH" | grep -E "$SPERRE" || true)
+            if [ -n "$TREFFER" ]; then
+              echo "$TREFFER" | sed 's/^/   gesperrt: /'
+              echo "::error::$BRANCH aendert gesperrte Pfade (.github/workflows/, .githooks/, deploy/, scripts/secret_scan.py, scripts/marker_scan.py). Branch bleibt stehen, Ben merged von Hand."
               exit 1
             fi
             # Secret-Sperre (Ben, 02.10.2026): kein Merge, solange ein Commit
