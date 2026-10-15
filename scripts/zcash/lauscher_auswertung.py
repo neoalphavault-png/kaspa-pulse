@@ -146,6 +146,12 @@ def main():
     out = {
         "art": "ein Zuhoerer, kein eigener Knoten",
         "fenster_utc": [meta["start_utc"], meta["ende_utc"]],
+        # Tatsaechlich abgedeckt: erste bis letzte Ankuendigung. Faellt der
+        # Zuhoerer still aus, ist das kuerzer als das Fenster (Pruefung im
+        # Endlauf, Ben 15.10.2026: unter 2 h zaehlt D als nicht gemessen).
+        "erste_ankuendigung_utc": utc(min(e["t_ms"] for e in ev) / 1000) if ev else None,
+        "letzte_ankuendigung_utc": utc(max(e["t_ms"] for e in ev) / 1000) if ev else None,
+        "abgedeckt_min": round((max(e["t_ms"] for e in ev) - min(e["t_ms"] for e in ev)) / 60000, 1) if ev else 0,
         "peers_je_software": dict(peers_sw),
         "ankuendigungen_je_software": dict(ank_sw),
         "peer_software": sorted({p["software"] for p in meta["peers"]}),

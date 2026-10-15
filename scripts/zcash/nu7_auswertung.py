@@ -265,7 +265,29 @@ def pz(x, nk=2):
     return de(x * 100, nk) + " %"
 
 
-def d_abschnitt(L):
+LAUSCHER_MINDEST_MIN = 120
+
+
+def lauscher_pruefen(L):
+    """Ben, 15.10.2026: faellt der Zuhoerer aus oder laeuft er weniger als 2 h,
+    steht D als "nicht gemessen" im Bericht. Ein kuerzerer Lauf (etwa die
+    15-min-Probe vom 15.10.) wird nicht verwendet. Geprueft wird das Fenster
+    und die tatsaechlich abgedeckte Zeit (erste bis letzte Ankuendigung).
+    Rueckgabe: (verwendbar, Grund)."""
+    if not L:
+        return False, "kein Lauf des Zuhoerers vorhanden"
+    fmt = "%Y-%m-%dT%H:%M:%SZ"
+    a, b = (datetime.strptime(x, fmt) for x in L["fenster_utc"])
+    fenster = (b - a).total_seconds() / 60
+    abgedeckt = L.get("abgedeckt_min") or 0
+    if fenster < LAUSCHER_MINDEST_MIN:
+        return False, f"Zuhoerer-Fenster nur {fenster:.0f} min (Mindestmass {LAUSCHER_MINDEST_MIN} min)"
+    if abgedeckt < LAUSCHER_MINDEST_MIN:
+        return False, f"Ankuendigungen nur ueber {abgedeckt:.0f} min (Mindestmass {LAUSCHER_MINDEST_MIN} min)"
+    return True, f"Fenster {fenster:.0f} min, Ankuendigungen ueber {abgedeckt:.0f} min"
+
+
+def d_abschnitt(L, grund=None):
     """Abschnitt D. Mit Zuhoerer-Daten: Ersatzmessung, klar als ein Zuhoerer
     gekennzeichnet. Ohne: nicht gemessen."""
     fest = [
@@ -281,7 +303,7 @@ def d_abschnitt(L):
             "ab der Aktivierung mitläuft und jeden empfangenen Block protokolliert. Die Köpfe aus `getheaders` "
             "zeigen nur die Kette, die die Peers zum Abrufzeitpunkt für die beste halten.",
             "- **Ankunftsabstand desselben Blocks auf zwei Knoten (Zebra, Zakura):** nicht gemessen, kein eigener Knoten.",
-        ] + fest
+        ] + ([f"- **Ersatzmessung mit einem Zuhörer:** nicht verwendet, {grund}." ] if grund else []) + fest
     zk = L["zakura_minus_zebra_ms"]
     st = L["streuung_alle_peers_ms"]
     ps = ", ".join(f"{k}: {v}" for k, v in sorted(L["peers_je_software"].items()))
@@ -420,7 +442,7 @@ def bericht(r):
     if z["voraus_beispiele"]:
         zeilen += ["Beispiele voraus:", "", tabelle(["Höhe", "vor Median der Nachfolger", "Zeit UTC"], [
             [de(x["hoehe"]), f"{x['vor_median_nachfolger_s']} s", x["zeit_utc"]] for x in z["voraus_beispiele"]]), ""]
-    zeilen += d_abschnitt(r.get("lauscher"))
+    zeilen += d_abschnitt(r.get("lauscher"), r.get("lauscher_pruefung"))
     return "\n".join(zeilen)
 
 
@@ -436,6 +458,10 @@ def main():
 
     meta = json.load(open(args.meta))
     lauscher = json.load(open(args.lauscher)) if args.lauscher else None
+    lauscher_ok, lauscher_grund = lauscher_pruefen(lauscher)
+    print(f"zuhoerer: {'verwendet' if lauscher_ok else 'nicht verwendet'}, {lauscher_grund}")
+    if not lauscher_ok:
+        lauscher = None
     stichtag = datetime.strptime(args.stichtag, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
     st = int(stichtag.timestamp())
     abruf = int(datetime.strptime(meta["abruf_utc"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc).timestamp())
@@ -484,6 +510,7 @@ def main():
         "zeitstempel": zeitstempel(hoehen, zeiten, abruf),
         "zakura_und_andere_ohne_antwort": ohne_antwort(meta),
         "lauscher": lauscher,
+        "lauscher_pruefung": lauscher_grund,
         "nicht_gemessen": ([] if lauscher else [
             "verwaiste Bloecke und Reorg-Tiefe (kein eigener Knoten)",
             "Ankunftsabstand desselben Blocks auf zwei Knoten (kein eigener Knoten)",
