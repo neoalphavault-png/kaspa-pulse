@@ -239,6 +239,14 @@ def zeitstempel(hoehen, zeiten, abruf_ts):
     }
 
 
+def ohne_antwort(meta):
+    """Peers ohne verwertbare Antwort auf getheaders, je Software-Version gezaehlt."""
+    n = {}
+    for g in meta.get("gegenproben_ohne_antwort", []):
+        n[g["agent"]] = n.get(g["agent"], 0) + 1
+    return n
+
+
 def tabelle(kopf, zeilen):
     out = ["| " + " | ".join(kopf) + " |", "|" + "|".join(" --- " for _ in kopf) + "|"]
     out += ["| " + " | ".join("" if x is None else str(x) for x in z) + " |" for z in zeilen]
@@ -255,6 +263,61 @@ def de(x, nk=1):
 
 def pz(x, nk=2):
     return de(x * 100, nk) + " %"
+
+
+def d_abschnitt(L):
+    """Abschnitt D. Mit Zuhoerer-Daten: Ersatzmessung, klar als ein Zuhoerer
+    gekennzeichnet. Ohne: nicht gemessen."""
+    fest = [
+        "- **Equihash-Lösungen und Blockinhalt:** nicht geprüft, nur Kopf, Verkettung, Arbeitsnachweis gegen nBits und Checkpoints.",
+        "- **Echte Hashrate:** nur relativ über Schwierigkeit und Abstände; Zeitstempel kommen vom Miner.",
+        "",
+    ]
+    if not L:
+        return [
+            "## D. Was wir nicht messen konnten",
+            "",
+            "- **Verwaiste Blöcke und Reorg-Tiefe:** nicht gemessen. Dafür braucht es einen eigenen Knoten, der "
+            "ab der Aktivierung mitläuft und jeden empfangenen Block protokolliert. Die Köpfe aus `getheaders` "
+            "zeigen nur die Kette, die die Peers zum Abrufzeitpunkt für die beste halten.",
+            "- **Ankunftsabstand desselben Blocks auf zwei Knoten (Zebra, Zakura):** nicht gemessen, kein eigener Knoten.",
+        ] + fest
+    zk = L["zakura_minus_zebra_ms"]
+    st = L["streuung_alle_peers_ms"]
+    ps = ", ".join(f"{k}: {v}" for k, v in sorted(L["peers_je_software"].items()))
+    ak = ", ".join(f"{k}: {de(v)}" for k, v in sorted(L["ankuendigungen_je_software"].items()))
+    zeilen = [
+        "## D. Ersatzmessung: ein Zuhörer, kein eigener Knoten",
+        "",
+        f"**Ein Zuhörer** an einem Ort (GitHub-Runner), {L['fenster_utc'][0]} bis {L['fenster_utc'][1]} UTC. "
+        "Er hielt Verbindungen zu Testnet-Knoten und schrieb jede Block-Ankündigung mit Ankunftszeit mit. "
+        "Er sieht nur, was ihm angekündigt wird; die Ankunftszeit enthält den Weg vom Knoten zu ihm. "
+        "Das ersetzt keinen eigenen Knoten und gilt nur für dieses Fenster, nicht seit der Aktivierung. "
+        "Skripte: `scripts/zcash/testnet_lauscher.py`, `scripts/zcash/lauscher_auswertung.py`.",
+        "",
+        f"- Verbindungen je Software: {ps}; Ankündigungen je Software: {ak}. "
+        f"Software: {', '.join(L['peer_software'])}",
+        f"- Kettenblöcke mit Zeitstempel im Fenster: {de(L['kettenbloecke_im_fenster'])}, davon angekündigt gesehen: "
+        f"{de(L['davon_angekuendigt_gesehen'])}",
+        f"- **Abgehängte Blöcke** (angekündigt, aber nicht in der später abgerufenen Kette): "
+        f"**{de(L['abgehaengt_anzahl'])}**, in {de(L['zweige'])} Zweigen; größte Zweigtiefe {de(L['groesste_tiefe'])}"
+        + (f"; ohne Kopf (Block nicht mehr abrufbar): {de(L['abgehaengt_ohne_kopf'])}" if L["abgehaengt_ohne_kopf"] else ""),
+        f"- **Ankunft Zakura minus Zebra** (erste Ankündigung je Software, {de(zk['bloecke'])} Blöcke): "
+        f"Median {de(zk['median'])} ms, p10 {de(zk['p10'])} ms, p90 {de(zk['p90'])} ms; "
+        f"Zakura zuerst bei {de(zk['zakura_zuerst'])} Blöcken"
+        if zk["bloecke"] else "- **Ankunft Zakura minus Zebra:** keine Blöcke, die beide angekündigt haben.",
+        f"- Streuung über alle Peers (letzte minus erste Ankündigung, {de(st['bloecke'])} Blöcke): "
+        f"Median {de(st['median'])} ms, p90 {de(st['p90'])} ms, max {de(st['max'])} ms",
+        f"- Erste Ankunft minus Zeitstempel des Blocks: Median {de(L['erste_ankunft_minus_zeitstempel_s']['median'])} s, "
+        f"p90 {de(L['erste_ankunft_minus_zeitstempel_s']['p90'])} s (Zeitstempel setzt der Miner)",
+        "",
+    ]
+    if L["abgehaengt_beispiele"]:
+        zeilen += [tabelle(["Höhe", "erste Ankündigung UTC", "angekündigt von", "Peers"], [
+            [de(a.get("hoehe")), a["erste_ankuendigung_utc"], ", ".join(a["angekuendigt_von"]), a["anzahl_peers"]]
+            for a in L["abgehaengt_beispiele"]]), ""]
+    return zeilen + ["## Was wir nicht messen konnten", "",
+                     "- **Verwaiste Blöcke und Reorg-Tiefe seit der Aktivierung:** nur im Fenster des Zuhörers, siehe D."] + fest
 
 
 def bericht(r):
@@ -279,7 +342,10 @@ def bericht(r):
         f"- Gegenprobe mit weiteren Peers: " + (", ".join(
             f"{g['agent']}: {g['gleich']}/{g['verglichen']} Hashes gleich" for g in r["quelle"]["gegenproben"]) or "keine"),
         "- Gegenprobe ohne verwertbare Antwort: " + (", ".join(
-            f"{g['agent']} ({g['fehler']})" for g in r["quelle"].get("gegenproben_ohne_antwort", [])) or "keine"),
+            f"{agent}: {n} Versuche" for agent, n in r["zakura_und_andere_ohne_antwort"].items()) or "keine")
+        + (". Handschlag jeweils erfolgreich, auf `getheaders` kam innerhalb von 20 s keine Antwort. "
+           "Das kann auch an unserem Client liegen; wir haben es nicht weiter eingegrenzt."
+           if r["zakura_und_andere_ohne_antwort"] else ""),
         f"- Software der Peers: {', '.join(r['quelle']['peer_software'])}",
         "- Abstand = Zeitstempel minus Zeitstempel des Vorgängers, erster Abstand bei 4.465.027. "
         "Zeitstempel setzt der Miner; null und negative Abstände bleiben drin.",
@@ -354,17 +420,7 @@ def bericht(r):
     if z["voraus_beispiele"]:
         zeilen += ["Beispiele voraus:", "", tabelle(["Höhe", "vor Median der Nachfolger", "Zeit UTC"], [
             [de(x["hoehe"]), f"{x['vor_median_nachfolger_s']} s", x["zeit_utc"]] for x in z["voraus_beispiele"]]), ""]
-    zeilen += [
-        "## D. Was wir nicht messen konnten",
-        "",
-        "- **Verwaiste Blöcke und Reorg-Tiefe:** nicht gemessen. Dafür braucht es einen eigenen Knoten, der "
-        "ab der Aktivierung mitläuft und jeden empfangenen Block protokolliert. Die Köpfe aus `getheaders` "
-        "zeigen nur die Kette, die die Peers zum Abrufzeitpunkt für die beste halten.",
-        "- **Ankunftsabstand desselben Blocks auf zwei Knoten (Zebra, Zakura):** nicht gemessen, kein eigener Knoten.",
-        "- **Equihash-Lösungen und Blockinhalt:** nicht geprüft, nur Kopf, Verkettung, Arbeitsnachweis gegen nBits und Checkpoints.",
-        "- **Echte Hashrate:** nur relativ über Schwierigkeit und Abstände; Zeitstempel kommen vom Miner.",
-        "",
-    ]
+    zeilen += d_abschnitt(r.get("lauscher"))
     return "\n".join(zeilen)
 
 
@@ -375,9 +431,11 @@ def main():
     ap.add_argument("--stichtag", required=True, help="ISO UTC, z. B. 2026-10-18T06:00:00Z")
     ap.add_argument("--json", required=True)
     ap.add_argument("--md", required=True)
+    ap.add_argument("--lauscher", help="Zusammenfassung aus lauscher_auswertung.py, optional")
     args = ap.parse_args()
 
     meta = json.load(open(args.meta))
+    lauscher = json.load(open(args.lauscher)) if args.lauscher else None
     stichtag = datetime.strptime(args.stichtag, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
     st = int(stichtag.timestamp())
     abruf = int(datetime.strptime(meta["abruf_utc"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc).timestamp())
@@ -424,11 +482,12 @@ def main():
         "mindestschwierigkeit_vorher": sum(1 for r in vor if r[2] == POW_LIMIT_BITS),
         "nachfuehrung": nachfuehrung(hoehen, zeiten, diffs),
         "zeitstempel": zeitstempel(hoehen, zeiten, abruf),
-        "nicht_gemessen": [
+        "zakura_und_andere_ohne_antwort": ohne_antwort(meta),
+        "lauscher": lauscher,
+        "nicht_gemessen": ([] if lauscher else [
             "verwaiste Bloecke und Reorg-Tiefe (kein eigener Knoten)",
             "Ankunftsabstand desselben Blocks auf zwei Knoten (kein eigener Knoten)",
-            "Equihash-Loesungen und Blockinhalt",
-        ],
+        ]) + ["Equihash-Loesungen und Blockinhalt"],
     }
     with open(args.json, "w") as f:
         json.dump(r, f, indent=2, ensure_ascii=False)

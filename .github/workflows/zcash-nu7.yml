@@ -61,12 +61,15 @@ jobs:
             ST="$STICHTAG"; NAME="${STICHTAG%%T*}"
           fi
           echo "stichtag $ST, ausgabe $NAME"
+          # Ersatzmessung D (Zuhoerer), falls schon gelaufen.
+          L=""; [ -f data/zcash/lauscher-zusammenfassung.json ] && L=data/zcash/lauscher-zusammenfassung.json
           python3 scripts/zcash/nu7_auswertung.py \
             --koepfe data/zcash/testnet-koepfe.csv.gz \
             --meta data/zcash/testnet-koepfe-meta.json \
             --stichtag "$ST" \
             --json "data/zcash/nu7-testnet-$NAME.json" \
-            --md "docs/zcash-nu7-testnet-$NAME.md"
+            --md "docs/zcash-nu7-testnet-$NAME.md" \
+            ${L:+--lauscher "$L"}
           {
             echo "## Zcash NU7 Testnet, $NAME"
             cat "docs/zcash-nu7-testnet-$NAME.md"
