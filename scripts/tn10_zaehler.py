@@ -123,12 +123,13 @@ def adressfrei(text):
     return not (KNOTEN_URL.search(text) or IPV4.search(text) or IPV6.search(text))
 
 
-def fake_kaspa(fehler_bei=None):
+def fake_kaspa(fehler_bei=None, nur_einmal=False):
     """Erfundenes kaspa-Modul fuer den Selbsttest. Jeder Resolver-Aufruf
     nennt einen anderen erfundenen Host, jeder Client eine andere p2pId.
-    fehler_bei: Name einer RPC-Methode, die mit der URL im Text scheitert."""
+    fehler_bei: Name einer RPC-Methode, die mit der URL im Text scheitert,
+    mit nur_einmal nur beim ersten Aufruf im ganzen Modul."""
     import types
-    zustand = {"n": 0, "hosts": []}
+    zustand = {"n": 0, "hosts": [], "fehler": 0}
     m = types.ModuleType("kaspa")
 
     def host():
@@ -157,7 +158,8 @@ def fake_kaspa(fehler_bei=None):
 
         def __getattr__(self, name):
             async def rufe(*_a):
-                if name == fehler_bei:
+                if name == fehler_bei and not (nur_einmal and zustand["fehler"]):
+                    zustand["fehler"] += 1
                     raise RuntimeError("websocket to %s closed" % self.url)
                 return {"get_info": {"p2pId": self.p2p, "serverVersion": "0", "isSynced": True, "mempoolSize": 0},
                         "get_block_dag_info": {"virtualDaaScore": 1, "difficulty": 1.0},

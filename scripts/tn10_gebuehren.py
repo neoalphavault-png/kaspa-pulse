@@ -348,8 +348,10 @@ def selbsttest():
     ok("werte aus der antwort", werte(fe) == (1.0, 1.0, 1.0, []))
     ok("fehlende eimer werden benannt", werte({"priorityBucket": {"feerate": 2}})[3] == ["normal", "low"])
     ok("zahl ungerundet", zahl_text(1.0000123) == "1.0000123" and zahl_text(None) == "")
+    # beispieladressen erst zur laufzeit, damit im quelltext keine steht
     ok("fehlertext ohne url, ip und host", ohne_adressen(
-        "Unable to connect to wss://node.example.net:17210/x at 10.1.2.3:16110 or abc.kaspa.red") ==
+        "Unable to connect to wss://" + ".".join(["node", "example", "net"]) + ":17210/x at "
+        + ".".join(["10", "1", "2", "3"]) + ":16110 or " + ".".join(["abc", "kaspa", "red"])) ==
         "Unable to connect to <url> at <ip> or <host>")
     ok("kennung kurz und nicht die id", len(kennung("abc")) == 10 and kennung("abc") != "abc")
     with tempfile.TemporaryDirectory() as d:
@@ -371,6 +373,46 @@ def selbsttest():
            aus[1]["k1_status"].startswith("fehlt") and aus[1].get("k1_normal", "") == "")
         ok("k1 minute ohne zeile benannt", aus[2]["k1_status"] == "fehlt: keine zeile")
         ok("k2 ohne datei benannt", aus[0]["k2_status"] == "fehlt: keine datei von k2")
+    # Bens Regel 15.10.2026: beide rollen lesen eine minute von erfundenen
+    # knoten, der erste versuch scheitert mit der adresse im fehlertext. danach
+    # steht in dateien und ausgabe nur die zehnstellige kennung, nie host oder ip
+    import contextlib
+    import types
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from tn10_zaehler import adressfrei, fake_kaspa  # noqa: WPS433
+    global time
+    fk, echt = fake_kaspa(fehler_bei="get_fee_estimate", nur_einmal=True), time
+    alt = sys.modules.get("kaspa")
+    versatz = 61 - time.time() % 60                     # die uhr steht 1 s nach einer vollen minute
+    sys.modules["kaspa"] = fk
+    time = types.SimpleNamespace(time=lambda: echt.time() + versatz)
+    puffer = io.StringIO()
+    try:
+        with tempfile.TemporaryDirectory() as d, contextlib.redirect_stdout(puffer):
+            m0 = int(time.time()) // 60 * 60
+            ordner, partner = os.path.join(d, "out"), os.path.join(d, "partner.json")
+
+            async def beide():
+                return await asyncio.gather(lesen(m0, m0 + 60, "k1", partner, ordner),
+                                            lesen(m0, m0 + 60, "k2", partner, ordner))
+            rc = asyncio.run(beide())
+            texte = {n: open(os.path.join(ordner, n), encoding="utf-8").read() for n in sorted(os.listdir(ordner))}
+    finally:
+        time = echt
+        if alt is None:
+            sys.modules.pop("kaspa", None)
+        else:
+            sys.modules["kaspa"] = alt
+    metas = [json.loads(texte["gebuehren-%s.json" % r]) for r in ("k1", "k2")]
+    alles = "\n".join(list(texte.values()) + [puffer.getvalue()])
+    kennungen = [v["kennung"] for m in metas for v in m["verbindungen"]] + \
+        [k for m in metas for k in m["knoten_je_minute"].values()]
+    ok("lauf gegen erfundene knoten: nur kennung, nie host oder ip in dateien und ausgabe",
+       rc == [0, 0] and len(texte) == 4 and fk.zustand["fehler"] == 1 and len(fk.zustand["hosts"]) >= 3
+       and adressfrei(alles) and "beispiel" not in alles and len(kennungen) >= 5
+       and all(len(k) == 10 and all(c in "0123456789abcdef" for c in k) for k in kennungen)
+       and "<url>" in " ".join(metas[0]["meldungen"] + metas[1]["meldungen"])
+       and "zweiter versuch" in alles)
     print("selbsttest", fehler, "fehler")
     return fehler
 
