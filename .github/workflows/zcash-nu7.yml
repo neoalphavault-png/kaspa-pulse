@@ -83,4 +83,7 @@ jobs:
           git add data/zcash docs/zcash-nu7-testnet-*.md
           if git diff --cached --quiet; then echo "nichts neu"; exit 0; fi
           git commit -m "zcash nu7 testnet: koepfe und zaehlung [bot]"
+          # Kam waehrend des Laufs ein Commit auf den Branch, setzen wir uns
+          # darauf; die Ausgaben gehoeren nur diesem Lauf.
+          git pull --rebase -X theirs origin messung/zcash-nu7
           git push origin HEAD:messung/zcash-nu7
