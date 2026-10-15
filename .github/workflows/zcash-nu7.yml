@@ -1,0 +1,84 @@
+# zcash-nu7.yml - unabhaengige Zaehlung des Zcash-NU7-Testnets.
+#
+# Laeuft nur auf dem Branch messung/zcash-nu7, bei jedem Push, der die
+# Skripte, diese Datei oder data/zcash/stichtag.txt aendert. Geplante Laeufe
+# gibt es fuer Nicht-Default-Branches nicht; ein neuer Lauf = ein Push.
+#
+# Der Runner holt die Blockkoepfe direkt aus dem P2P-Netz des Testnets
+# (scripts/zcash/testnet_koepfe.py), wertet sie aus und committet Daten und
+# Bericht auf denselben Branch. Kein Secret, kein Konto, keine API.
+#
+# Stichtag: data/zcash/stichtag.txt. Liegt der Abruf vor dem Stichtag, heissen
+# die Ausgaben "zwischenstand" und der Stichtag ist die Abrufzeit (auf die
+# volle Stunde abgerundet). Ab dem Stichtag tragen sie dessen Datum.
+name: zcash nu7 testnet
+
+on:
+  push:
+    branches: ["messung/zcash-nu7"]
+    paths:
+      - "scripts/zcash/**"
+      - "data/zcash/stichtag.txt"
+      - ".github/workflows/zcash-nu7.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: zcash-nu7
+  cancel-in-progress: false
+
+jobs:
+  zaehlen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: messung/zcash-nu7
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: koepfe holen
+        run: |
+          set -eu
+          python3 scripts/zcash/testnet_koepfe.py \
+            --aus data/zcash/testnet-koepfe.csv.gz \
+            --meta data/zcash/testnet-koepfe-meta.json
+
+      - name: auswerten
+        run: |
+          set -eu
+          STICHTAG=$(tr -d ' \n' < data/zcash/stichtag.txt)
+          ABRUF=$(python3 -c 'import json;print(json.load(open("data/zcash/testnet-koepfe-meta.json"))["abruf_utc"])')
+          if [ "$ABRUF" \< "$STICHTAG" ]; then
+            ST="${ABRUF%:*:*}:00:00Z"; NAME=zwischenstand
+          else
+            ST="$STICHTAG"; NAME="${STICHTAG%%T*}"
+          fi
+          echo "stichtag $ST, ausgabe $NAME"
+          python3 scripts/zcash/nu7_auswertung.py \
+            --koepfe data/zcash/testnet-koepfe.csv.gz \
+            --meta data/zcash/testnet-koepfe-meta.json \
+            --stichtag "$ST" \
+            --json "data/zcash/nu7-testnet-$NAME.json" \
+            --md "docs/zcash-nu7-testnet-$NAME.md"
+          {
+            echo "## Zcash NU7 Testnet, $NAME"
+            cat "docs/zcash-nu7-testnet-$NAME.md"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: secret-scan
+        run: python3 scripts/secret_scan.py --baum
+
+      - name: committen
+        run: |
+          set -eu
+          git config user.name "zcash nu7 bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/zcash docs/zcash-nu7-testnet-*.md
+          if git diff --cached --quiet; then echo "nichts neu"; exit 0; fi
+          git commit -m "zcash nu7 testnet: koepfe und zaehlung [bot]"
+          git push origin HEAD:messung/zcash-nu7

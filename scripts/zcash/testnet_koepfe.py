@@ -1,0 +1,366 @@
+#!/usr/bin/env python3
+"""testnet_koepfe.py - holt Blockkoepfe des Zcash-Testnets direkt aus dem P2P-Netz.
+
+Wozu: unabhaengige Zaehlung des NU7-Testnets (Aktivierung bei Hoehe 4.465.026,
+04.10.2026 18:21:45 UTC). Wir brauchen Hoehe, Hash, Zeitstempel und nBits
+jedes Blocks seit der Aktivierung. Kein Explorer, kein Konto, keine API: wir
+fragen Testnet-Knoten mit derselben Nachricht, mit der sich Knoten
+untereinander synchronisieren (getheaders/headers).
+
+Ablauf:
+  1. Peers ueber die DNS-Seeds des Testnets finden.
+  2. Startpunkt: der hoechste Checkpoint aus Zebras test-checkpoints.txt
+     unterhalb von --ab minus --vorlauf. Checkpoints sind Hoehe + Hash, von
+     der Zcash Foundation veroeffentlicht; damit kennen wir einen Hash zu
+     einer Hoehe, ohne einem Explorer zu glauben.
+  3. Ab dort getheaders, je Antwort bis 160 Koepfe, bis kein neuer mehr kommt.
+  4. Jeder Kopf wird geprueft: prev-Hash = Hash des Vorgaengers, Hash <= Ziel
+     aus nBits (Arbeitsnachweis; die Equihash-Loesung selbst pruefen wir
+     nicht), spaetere Checkpoints muessen passen.
+  5. Gegenprobe: zwei weitere Peers liefern das letzte Stueck der Kette, die
+     Hashes muessen uebereinstimmen.
+
+Ausgabe: CSV (gzip) mit hoehe,hash,zeit,nbits,version und eine kleine
+JSON-Datei mit Abrufzeit, Spitze und Peer-Zahl.
+
+IPs und Hostnamen von Peers stehen in keiner Ausgabe und in keinem Log.
+Wir nennen nur Anzahl und User-Agent (die Software, z. B. /Zebra:7.0.0/).
+
+  python3 scripts/zcash/testnet_koepfe.py --aus data/zcash/testnet-koepfe.csv.gz
+"""
+import argparse
+import csv
+import gzip
+import hashlib
+import io
+import json
+import os
+import random
+import socket
+import struct
+import sys
+import time
+import urllib.request
+from datetime import datetime, timezone
+
+MAGIC = bytes.fromhex("fa1af9bf")  # Zcash Testnet
+PORT = 18233
+SEEDS = ["testnet.seeder.zfnd.org", "dnsseed.testnet.z.cash", "testnet.is.yolo.money"]
+# Hoeher als jede uns bekannte Mindestversion; Knoten verhandeln auf das Minimum.
+PROTOKOLL = int(os.environ.get("ZC_PROTOKOLL", "170200"))
+USER_AGENT = b"/kaspa-pulse-zaehler:0.1/"
+CHECKPOINTS_URL = os.environ.get(
+    "ZC_CHECKPOINTS_URL",
+    "https://raw.githubusercontent.com/ZcashFoundation/zebra/main/"
+    "zebra-chain/src/parameters/checkpoint/test-checkpoints.txt",
+)
+NU7_HOEHE = 4_465_026
+
+
+def log(*a):
+    print(*a, file=sys.stderr, flush=True)
+
+
+def sha256d(b):
+    return hashlib.sha256(hashlib.sha256(b).digest()).digest()
+
+
+def varint(n):
+    if n < 0xFD:
+        return bytes([n])
+    if n <= 0xFFFF:
+        return b"\xfd" + struct.pack("<H", n)
+    if n <= 0xFFFFFFFF:
+        return b"\xfe" + struct.pack("<I", n)
+    return b"\xff" + struct.pack("<Q", n)
+
+
+def lies_varint(b, i):
+    v = b[i]
+    if v < 0xFD:
+        return v, i + 1
+    if v == 0xFD:
+        return struct.unpack_from("<H", b, i + 1)[0], i + 3
+    if v == 0xFE:
+        return struct.unpack_from("<I", b, i + 1)[0], i + 5
+    return struct.unpack_from("<Q", b, i + 1)[0], i + 9
+
+
+def ziel_aus_nbits(bits):
+    exp = bits >> 24
+    mant = bits & 0x007FFFFF
+    return mant >> (8 * (3 - exp)) if exp <= 3 else mant << (8 * (exp - 3))
+
+
+class Peer:
+    def __init__(self, addr, timeout=30):
+        fam = socket.AF_INET6 if ":" in addr[0] else socket.AF_INET
+        self.s = socket.socket(fam, socket.SOCK_STREAM)
+        self.s.settimeout(timeout)
+        self.s.connect(addr)
+        self.puffer = b""
+        self.agent = "?"
+        self.version = 0
+        self.hoehe = 0
+
+    def senden(self, cmd, payload=b""):
+        kopf = MAGIC + cmd.encode().ljust(12, b"\0") + struct.pack("<I", len(payload)) + sha256d(payload)[:4]
+        self.s.sendall(kopf + payload)
+
+    def _lesen(self, n):
+        while len(self.puffer) < n:
+            d = self.s.recv(1 << 16)
+            if not d:
+                raise ConnectionError("peer hat getrennt")
+            self.puffer += d
+        out, self.puffer = self.puffer[:n], self.puffer[n:]
+        return out
+
+    def empfangen(self):
+        kopf = self._lesen(24)
+        if kopf[:4] != MAGIC:
+            raise ConnectionError("falsches netz-magic")
+        cmd = kopf[4:16].rstrip(b"\0").decode(errors="replace")
+        laenge = struct.unpack("<I", kopf[16:20])[0]
+        if laenge > 8 << 20:
+            raise ConnectionError("nachricht zu gross")
+        payload = self._lesen(laenge)
+        if sha256d(payload)[:4] != kopf[20:24]:
+            raise ConnectionError("pruefsumme falsch")
+        if cmd == "ping":
+            self.senden("pong", payload)
+        return cmd, payload
+
+    def handschlag(self):
+        leer_addr = struct.pack("<Q", 0) + b"\0" * 10 + b"\xff\xff" + b"\0" * 4 + struct.pack(">H", 0)
+        payload = (
+            struct.pack("<iQq", PROTOKOLL, 0, int(time.time()))
+            + leer_addr + leer_addr
+            + struct.pack("<Q", random.getrandbits(64))
+            + varint(len(USER_AGENT)) + USER_AGENT
+            + struct.pack("<i", 0) + b"\0"
+        )
+        self.senden("version", payload)
+        hat_version = hat_verack = False
+        frist = time.time() + 30
+        while not (hat_version and hat_verack):
+            if time.time() > frist:
+                raise TimeoutError("handschlag dauert zu lange")
+            cmd, p = self.empfangen()
+            if cmd == "version":
+                self.version = struct.unpack_from("<i", p, 0)[0]
+                i = 4 + 8 + 8 + 26 + 26 + 8
+                n, i = lies_varint(p, i)
+                self.agent = p[i:i + n].decode(errors="replace")
+                i += n
+                self.hoehe = struct.unpack_from("<i", p, i)[0]
+                self.senden("verack")
+                hat_version = True
+            elif cmd == "verack":
+                hat_verack = True
+            elif cmd == "reject":
+                raise ConnectionError("version abgelehnt")
+
+    def koepfe(self, locator_hash_intern):
+        """getheaders ab einem Hash; liefert Liste roher Koepfe (ohne tx-count)."""
+        payload = struct.pack("<I", PROTOKOLL) + varint(1) + locator_hash_intern + b"\0" * 32
+        self.senden("getheaders", payload)
+        frist = time.time() + 60
+        while time.time() < frist:
+            cmd, p = self.empfangen()
+            if cmd != "headers":
+                continue
+            n, i = lies_varint(p, 0)
+            out = []
+            for _ in range(n):
+                start = i
+                i += 4 + 32 + 32 + 32 + 4 + 4 + 32
+                sl, i = lies_varint(p, i)
+                i += sl
+                out.append(p[start:i])
+                _, i = lies_varint(p, i)  # tx-count, immer 0
+            # Ein unverlangter headers (Ankuendigung eines neuen Blocks) haengt
+            # nicht an unserem Locator; den ueberlesen wir.
+            if out and out[0][4:36] != locator_hash_intern:
+                continue
+            return out
+        raise TimeoutError("keine headers-antwort")
+
+    def zu(self):
+        try:
+            self.s.close()
+        except OSError:
+            pass
+
+
+def kopf_lesen(raw):
+    version, = struct.unpack_from("<i", raw, 0)
+    prev = raw[4:36]
+    zeit, bits = struct.unpack_from("<II", raw, 4 + 32 + 32 + 32)
+    h = sha256d(raw)
+    return {"version": version, "prev": prev, "zeit": zeit, "bits": bits, "hash": h}
+
+
+def peers_finden():
+    gesehen = set()
+    for seed in SEEDS:
+        try:
+            for fam, _, _, _, sa in socket.getaddrinfo(seed, PORT, proto=socket.IPPROTO_TCP):
+                gesehen.add((sa[0], sa[1]))
+        except OSError as e:
+            log(f"seed nicht aufloesbar ({type(e).__name__})")
+    liste = list(gesehen)
+    random.shuffle(liste)
+    log(f"{len(liste)} peer-adressen aus {len(SEEDS)} seeds")
+    return liste
+
+
+def checkpoints_laden():
+    with urllib.request.urlopen(CHECKPOINTS_URL, timeout=60) as r:
+        text = r.read().decode()
+    cps = {}
+    for zeile in text.splitlines():
+        teile = zeile.split()
+        if len(teile) == 2 and teile[0].isdigit():
+            cps[int(teile[0])] = teile[1]
+    log(f"{len(cps)} checkpoints, hoechster {max(cps)}")
+    return cps
+
+
+def verbinden(adressen, ausschluss=()):
+    for addr in adressen:
+        if addr in ausschluss:
+            continue
+        try:
+            p = Peer(addr)
+            p.handschlag()
+            log(f"peer verbunden: agent {p.agent}, version {p.version}, meldet hoehe {p.hoehe}")
+            return addr, p
+        except (OSError, ConnectionError, TimeoutError, struct.error, IndexError) as e:
+            log(f"peer abgelehnt ({type(e).__name__})")
+    return None, None
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--ab", type=int, default=NU7_HOEHE)
+    ap.add_argument("--vorlauf", type=int, default=3000, help="Bloecke vor --ab mitnehmen (Vergleich 75 s)")
+    ap.add_argument("--aus", required=True)
+    ap.add_argument("--meta", required=True)
+    ap.add_argument("--gegenproben", type=int, default=2)
+    args = ap.parse_args()
+
+    cps = checkpoints_laden()
+    start_h = max(h for h in cps if h <= args.ab - args.vorlauf)
+    start_hash = bytes.fromhex(cps[start_h])[::-1]
+    log(f"start bei checkpoint {start_h}")
+
+    adressen = peers_finden()
+    if not adressen:
+        sys.exit("keine peers")
+
+    kette = []  # (hoehe, kopf)
+    letzter_hash, letzte_h = start_hash, start_h
+    benutzt, agents = set(), []
+    addr, peer = verbinden(adressen)
+    fehler = 0
+    while True:
+        if peer is None:
+            sys.exit("kein peer mehr erreichbar")
+        try:
+            roh = peer.koepfe(letzter_hash)
+        except (OSError, ConnectionError, TimeoutError) as e:
+            log(f"peer abgebrochen ({type(e).__name__}), wechsle")
+            peer.zu()
+            benutzt.add(addr)
+            fehler += 1
+            if fehler > 20:
+                sys.exit("zu viele peer-fehler")
+            addr, peer = verbinden(adressen, benutzt)
+            continue
+        if peer.agent not in agents:
+            agents.append(peer.agent)
+        if not roh:
+            break
+        for r in roh:
+            k = kopf_lesen(r)
+            if k["prev"] != letzter_hash:
+                sys.exit(f"kette bricht bei hoehe {letzte_h + 1}: prev passt nicht")
+            if int.from_bytes(k["hash"], "little") > ziel_aus_nbits(k["bits"]):
+                sys.exit(f"arbeitsnachweis fehlt bei hoehe {letzte_h + 1}")
+            letzte_h += 1
+            letzter_hash = k["hash"]
+            if letzte_h in cps and cps[letzte_h] != k["hash"][::-1].hex():
+                sys.exit(f"checkpoint {letzte_h} passt nicht")
+            kette.append((letzte_h, k))
+        if len(kette) % 8000 < len(roh):
+            log(f"... hoehe {letzte_h}")
+    peer.zu()
+    abruf = datetime.now(timezone.utc)
+    log(f"spitze {letzte_h}, {len(kette)} koepfe")
+    if letzte_h < args.ab:
+        sys.exit("kette endet vor der aktivierung, peer ist nicht auf dem nu7-zweig")
+
+    # Gegenprobe: andere Peers, ab 500 Bloecke vor der Spitze.
+    nach_h = {h: k["hash"] for h, k in kette}
+    gp_h = max(start_h, letzte_h - 500)
+    gp_hash = nach_h.get(gp_h, start_hash)
+    proben = []
+    benutzt.add(addr)
+    for _ in range(args.gegenproben):
+        a2, p2 = verbinden(adressen, benutzt)
+        if p2 is None:
+            break
+        benutzt.add(a2)
+        try:
+            roh = []
+            h_hash = gp_hash
+            for _ in range(5):
+                stueck = p2.koepfe(h_hash)
+                if not stueck:
+                    break
+                roh += stueck
+                h_hash = sha256d(stueck[-1])
+            gleich = sum(1 for i, r in enumerate(roh) if nach_h.get(gp_h + 1 + i) == sha256d(r))
+            proben.append({"agent": p2.agent, "verglichen": len(roh), "gleich": gleich,
+                           "spitze_peer": gp_h + len(roh)})
+            log(f"gegenprobe {p2.agent}: {gleich}/{len(roh)} gleich")
+        except (OSError, ConnectionError, TimeoutError) as e:
+            log(f"gegenprobe abgebrochen ({type(e).__name__})")
+        p2.zu()
+        if p2.agent not in agents:
+            agents.append(p2.agent)
+
+    os.makedirs(os.path.dirname(args.aus) or ".", exist_ok=True)
+    buf = io.StringIO()
+    w = csv.writer(buf, lineterminator="\n")
+    w.writerow(["hoehe", "hash", "zeit", "nbits", "version"])
+    for h, k in kette:
+        w.writerow([h, k["hash"][::-1].hex(), k["zeit"], f"{k['bits']:08x}", k["version"]])
+    # mtime=0: dieselben Koepfe ergeben dieselbe Datei.
+    with open(args.aus, "wb") as f:
+        with gzip.GzipFile(fileobj=f, mode="wb", mtime=0) as g:
+            g.write(buf.getvalue().encode())
+    meta = {
+        "quelle": "Zcash-Testnet P2P (getheaders), Peers aus DNS-Seeds",
+        "abruf_utc": abruf.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "start_checkpoint": start_h,
+        "erste_hoehe": kette[0][0],
+        "spitze_hoehe": letzte_h,
+        "spitze_hash": letzter_hash[::-1].hex(),
+        "checkpoints_quelle": CHECKPOINTS_URL,
+        "checkpoints_geprueft": sum(1 for h, _ in kette if h in cps),
+        "peer_software": agents,
+        "peer_fehler": fehler,
+        "gegenproben": proben,
+        "pruefungen": ["prev-hash-kette", "hash <= ziel aus nbits", "zebra-checkpoints"],
+        "nicht_geprueft": ["equihash-loesung", "block-inhalt", "konsensregeln jenseits des kopfes"],
+    }
+    with open(args.meta, "w") as f:
+        json.dump(meta, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+    print(json.dumps({"spitze": letzte_h, "seit_nu7": letzte_h - args.ab + 1, "abruf": meta["abruf_utc"]}))
+
+
+if __name__ == "__main__":
+    main()
