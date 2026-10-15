@@ -229,7 +229,12 @@ def checkpoints_laden():
     return cps
 
 
-def verbinden(adressen, ausschluss=()):
+def verbinden(adressen, ausschluss=(), mindesthoehe=0):
+    """Erster erreichbarer Peer, der mindestens bis mindesthoehe synchron ist.
+
+    Lauf 2 (15.10.2026): Peers, die selbst noch synchronisieren (gemeldete
+    Hoehe 3,1 Mio.), kennen unseren Locator nicht und antworten nie.
+    """
     for addr in adressen:
         if addr in ausschluss:
             continue
@@ -237,6 +242,12 @@ def verbinden(adressen, ausschluss=()):
             p = Peer(addr)
             p.handschlag()
             log(f"peer verbunden: agent {p.agent}, version {p.version}, meldet hoehe {p.hoehe}")
+            if p.hoehe < mindesthoehe:
+                log(f"peer liegt zurueck (unter {mindesthoehe}), naechster")
+                p.zu()
+                if isinstance(ausschluss, set):
+                    ausschluss.add(addr)
+                continue
             return addr, p
         except (OSError, ConnectionError, TimeoutError, struct.error, IndexError) as e:
             log(f"peer abgelehnt ({type(e).__name__}: {str(e)[:60] if not isinstance(e, OSError) else ''})")
@@ -264,7 +275,7 @@ def main():
     kette = []  # (hoehe, kopf)
     letzter_hash, letzte_h = start_hash, start_h
     benutzt, agents = set(), []
-    addr, peer = verbinden(adressen)
+    addr, peer = verbinden(adressen, mindesthoehe=args.ab)
     fehler = 0
     while True:
         if peer is None:
@@ -278,7 +289,7 @@ def main():
             fehler += 1
             if fehler > 12:
                 sys.exit("zu viele peer-fehler")
-            addr, peer = verbinden(adressen, benutzt)
+            addr, peer = verbinden(adressen, benutzt, mindesthoehe=args.ab)
             continue
         if peer.agent not in agents:
             agents.append(peer.agent)
@@ -303,17 +314,25 @@ def main():
     if letzte_h < args.ab:
         sys.exit("kette endet vor der aktivierung, peer ist nicht auf dem nu7-zweig")
 
-    # Gegenprobe: andere Peers, ab 500 Bloecke vor der Spitze.
+    # Gegenprobe: andere Peers, ab 500 Bloecke vor der Spitze. Nur Peers nahe
+    # der Spitze; wir suchen weiter, bis --gegenproben gelungen sind, und
+    # nehmen einen Peer anderer Software (Zakura) mit, wenn einer erreichbar ist.
     nach_h = {h: k["hash"] for h, k in kette}
     gp_h = max(start_h, letzte_h - 500)
     gp_hash = nach_h.get(gp_h, start_hash)
     proben = []
     benutzt.add(addr)
-    for _ in range(args.gegenproben):
-        a2, p2 = verbinden(adressen, benutzt)
+    versuche = 0
+    while len(proben) < args.gegenproben + 1 and versuche < 25:
+        versuche += 1
+        a2, p2 = verbinden(adressen, benutzt, mindesthoehe=letzte_h - 50)
         if p2 is None:
             break
         benutzt.add(a2)
+        software = {g["agent"].split(":")[0] for g in proben}
+        if len(proben) >= args.gegenproben and p2.agent.split(":")[0] in software | {peer.agent.split(":")[0]}:
+            p2.zu()
+            continue  # genug Proben dieser Software, wir suchen nur noch eine andere
         try:
             roh = []
             h_hash = gp_hash
@@ -324,14 +343,18 @@ def main():
                 roh += stueck
                 h_hash = sha256d(stueck[-1])
             gleich = sum(1 for i, r in enumerate(roh) if nach_h.get(gp_h + 1 + i) == sha256d(r))
-            proben.append({"agent": p2.agent, "verglichen": len(roh), "gleich": gleich,
+            ueberlapp = sum(1 for i in range(len(roh)) if gp_h + 1 + i in nach_h)
+            proben.append({"agent": p2.agent, "verglichen": ueberlapp, "gleich": gleich,
                            "spitze_peer": gp_h + len(roh)})
-            log(f"gegenprobe {p2.agent}: {gleich}/{len(roh)} gleich")
+            log(f"gegenprobe {p2.agent}: {gleich}/{ueberlapp} gleich, spitze peer {gp_h + len(roh)}")
         except (OSError, ConnectionError, TimeoutError) as e:
             log(f"gegenprobe abgebrochen ({type(e).__name__})")
         p2.zu()
         if p2.agent not in agents:
             agents.append(p2.agent)
+    abweichend = [g for g in proben if g["gleich"] < g["verglichen"]]
+    if abweichend:
+        log(f"WARNUNG: {len(abweichend)} gegenproben weichen ab")
 
     os.makedirs(os.path.dirname(args.aus) or ".", exist_ok=True)
     buf = io.StringIO()

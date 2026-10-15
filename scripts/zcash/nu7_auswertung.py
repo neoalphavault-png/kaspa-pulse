@@ -103,6 +103,22 @@ def erwartung(m, n):
     }
 
 
+def mindestschwierigkeit(hoehen, zeiten, bits):
+    """Bloecke mit nBits = powLimit. Das Testnet erlaubt sie nach einer langen
+    Luecke (Testnet-Sonderregel). Wir zaehlen sie und die Luecke davor."""
+    treffer = [{"hoehe": hoehen[i], "zeit_utc": utc(zeiten[i]),
+                "luecke_davor_s": zeiten[i] - zeiten[i - 1] if i else None}
+               for i in range(len(hoehen)) if bits[i] == POW_LIMIT_BITS]
+    luecken = [zeiten[i] - zeiten[i - 1] for i in range(1, len(zeiten))]
+    ohne = [l for i, l in enumerate(luecken, 1) if bits[i] != POW_LIMIT_BITS]
+    return {
+        "anzahl": len(treffer),
+        "bloecke": treffer[:20],
+        "kleinste_luecke_davor_s": min((t["luecke_davor_s"] for t in treffer if t["luecke_davor_s"] is not None), default=None),
+        "groesste_luecke_ohne_mindestschwierigkeit_s": max(ohne) if ohne else None,
+    }
+
+
 def je_tag(hoehen, zeiten, diffs):
     tage = OrderedDict()
     for i, h in enumerate(hoehen):
@@ -117,6 +133,7 @@ def je_tag(hoehen, zeiten, diffs):
             "tag_utc": tag,
             "bloecke": len(idx),
             "erste_hoehe": hoehen[min(idx)],
+        "mindestschwierigkeit": sum(1 for i in idx if diffs[i] == 1.0),
             "letzte_hoehe": hoehen[max(idx)],
             "mittlerer_abstand_s": round(sum(ab) / len(ab), 2) if ab else None,
             "schwierigkeit_mittel": round(statistics.fmean(ds), 3),
@@ -267,18 +284,24 @@ def bericht(r):
             ["Abstand 0 s / negativ", f"{de(a['anzahl_null'])} / {de(a['anzahl_negativ'])}", ""],
         ]),
         "",
-        f"Zum Vergleich vor der Aktivierung ({de(v['anzahl_abstaende'])} Abstände, Höhe "
-        f"{de(r['vorher_bereich'][0])} bis {de(r['vorher_bereich'][1])}): Mittel {de(v['mittel_s'], 1)} s, "
-        f"Median {de(float(v['median_s']), 1)} s, über 150 s {pz(v['anteil_ueber_150s'])} "
-        f"(Erwartung bei 75 s: Median {de(v['erwartung_exponentiell']['median_s'], 1)} s, "
-        f"über 150 s {pz(v['erwartung_exponentiell']['anteil_ueber_150s'])}).",
+        f"Vor der Aktivierung ({de(v['anzahl_abstaende'])} Abstände, Höhe {de(r['vorher_bereich'][0])} bis "
+        f"{de(r['vorher_bereich'][1])}): Mittel {de(v['mittel_s'], 1)} s, Median {de(float(v['median_s']), 1)} s, "
+        f"{de(r['mindestschwierigkeit_vorher'])} Blöcke mit Mindestschwierigkeit. Das Testnet lief dort weit "
+        "schneller als das 75-s-Ziel; als Vergleich für das alte Ziel taugt dieser Abschnitt nicht.",
+        "",
+        f"**Blöcke mit Mindestschwierigkeit seit der Aktivierung:** {de(r['mindestschwierigkeit']['anzahl'])}"
+        + (f", kleinste Lücke davor {de(r['mindestschwierigkeit']['kleinste_luecke_davor_s'])} s"
+           if r['mindestschwierigkeit']['anzahl'] else "")
+        + f"; größte Lücke ohne Mindestschwierigkeit {de(r['mindestschwierigkeit']['groesste_luecke_ohne_mindestschwierigkeit_s'])} s"
+        + f"; Lücken über 150 s (6 × 25 s) insgesamt: {de(a['anzahl_ueber_150s'])}.",
         "",
         "## B. Je Tag (UTC)",
         "",
-        tabelle(["Tag", "Blöcke", "Höhen", "mittl. Abstand", "Schwierigkeit Mittel", "min", "max"], [
+        tabelle(["Tag", "Blöcke", "Höhen", "mittl. Abstand", "Schwierigkeit Mittel", "min", "max", "Mindest-Schw."], [
             [t["tag_utc"], de(t["bloecke"]), f"{de(t['erste_hoehe'])}–{de(t['letzte_hoehe'])}",
              de(t["mittlerer_abstand_s"], 1) + " s", de(t["schwierigkeit_mittel"], 1),
-             de(t["schwierigkeit_min"], 1), de(t["schwierigkeit_max"], 1)] for t in r["je_tag"]]),
+             de(t["schwierigkeit_min"], 1), de(t["schwierigkeit_max"], 1), de(t["mindestschwierigkeit"])]
+            for t in r["je_tag"]]),
         "",
         "Erster und letzter Tag sind angeschnitten (Aktivierung 18:21:45 UTC, Stichtag).",
         "",
@@ -357,6 +380,7 @@ def main():
     hoehen = [r[0] for r in sel]
     zeiten = [r[1] for r in sel]
     diffs = [schwierigkeit(r[2]) for r in sel]
+    bits = [r[2] for r in sel]
 
     vor = rows[:ab]
     a, _ = abstands_statistik(hoehen, zeiten, ZIEL_S)
@@ -377,6 +401,8 @@ def main():
         "vorher_75s": v,
         "vorher_bereich": [vor[0][0], vor[-1][0]],
         "je_tag": je_tag(hoehen, zeiten, diffs),
+        "mindestschwierigkeit": mindestschwierigkeit(hoehen, zeiten, bits),
+        "mindestschwierigkeit_vorher": sum(1 for r in vor if r[2] == POW_LIMIT_BITS),
         "nachfuehrung": nachfuehrung(hoehen, zeiten, diffs),
         "zeitstempel": zeitstempel(hoehen, zeiten, abruf),
         "nicht_gemessen": [
