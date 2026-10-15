@@ -57,6 +57,17 @@ case "$1" in
     # Keine Eingaben: shorts-nachtrag.yml hat keine, die zaehlt.
     "$HIER/takt.sh" "$REPO_STUDIO" shorts-nachtrag.yml
     ;;
+  uhrwerk)
+    # Reichweiten-Uhrwerk, alle 6 Stunden. Der Takt kommt von hier, die
+    # Zahlen holt der Lauf auf GitHub, weil dort die Tokens liegen und
+    # nirgends sonst. modus steuert UHRWERK_LIVE in takt.conf: trocken
+    # schreibt die Schnappschuesse und meldet nur nach #moderator-only.
+    "$HIER/takt.sh" "$REPO_PULSE" uhrwerk.yml "modus=${UHRWERK_LIVE:-trocken}"
+    ;;
+  uhrwerk-trichter)
+    # Montags: Anmeldungen je Kanal aus Brevo, dazu die Rohtabelle.
+    "$HIER/takt.sh" "$REPO_PULSE" uhrwerk.yml "modus=${UHRWERK_LIVE:-trocken}" trichter=true
+    ;;
   *)
     echo "unbekannter takt: $1" >&2
     exit 1
