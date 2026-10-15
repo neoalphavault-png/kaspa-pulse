@@ -122,6 +122,22 @@
      "verhaeltnis": 943.89
     }
    }
+  },
+  {
+   "datum": "2026-10-15",
+   "form": 2,
+   "grund": "entity-x-bewegung ab 500,000 KAS in 24 h, zahl des tages mined_left (vorab gerechnet), uebersprungen [10]",
+   "messzeit_utc": "2026-10-15T05:30:44+00:00",
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-09-15",
+     "bis": "2026-10-14",
+     "fees": 59316.59717597,
+     "emission": 55530924.07907234,
+     "verhaeltnis": 936.18
+    }
+   }
   }
  ]
 }
