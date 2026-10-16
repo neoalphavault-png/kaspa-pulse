@@ -19,7 +19,7 @@ nachtrag true daneben - eine spaet gemessene 24-Stunden-Zahl ist keine
     data/insights/threads.jsonl
     data/insights/x.jsonl
     data/insights/follower.jsonl     Followerzahl je Kanal, bei jedem Lauf
-    data/insights/trichter.jsonl     Anmeldungen je Kanal, woechentlich
+    reports/uhrwerk-roh-<datum>.md   Montags-Rohtabelle, committet
 
 GEHEIMNISSE
 Tokens kommen nur aus der Umgebung. Sie stehen in keiner Datei, in keiner
@@ -58,9 +58,17 @@ from post_manifest import MANIFEST, MANIFESTE, alle, lesen, sauber, berlin_offse
 REPO = HIER.parent
 INSIGHTS = Path(os.environ.get("UHRWERK_INSIGHTS") or REPO / "data" / "insights")
 FOLLOWER = "follower.jsonl"
-TRICHTER = "trichter.jsonl"
 
 FENSTER = (("24h", 24), ("7d", 168))
+# EINE STORY IST NACH 24 STUNDEN WEG, MITSAMT IHREN ZAHLEN (Ben, 16.10.2026).
+# Ein Fenster bei 24 h haette sie deshalb nie erwischt: faellig waere sie
+# genau in dem Moment, in dem Graph sie nicht mehr hergibt. Gemessen wird
+# darum bei 20 h, und das Fenster heisst auch so - eine bei 20 h gemessene
+# Zahl ist keine 24-Stunden-Zahl, und das soll in den Daten stehen.
+# Rechenprobe mit dem Takt 00:40, 06:40, 12:40, 18:40 Berlin: ein Post um
+# 09:30 ist beim Lauf am Folgetag um 06:40 genau 21:10 h alt, also ueber
+# 20 und unter 24.
+FENSTER_STORY = (("20h", 20),)
 # Dieselbe Version wie in instagram.py, aus derselben Variable.
 GRAPH = "https://graph.facebook.com/%s" % os.environ.get("IG_GRAPH_VERSION", "v24.0")
 THREADS = "https://graph.threads.net/v1.0"
@@ -334,9 +342,8 @@ def faellig(eintraege, vorhanden, now):
         if not e.get("zeit_berlin"):
             continue
         alt = alter_h(e["zeit_berlin"], now)
-        for name, stunden in FENSTER:
-            if e.get("format") == "story" and name != "24h":
-                continue
+        for name, stunden in (FENSTER_STORY if e.get("format") == "story"
+                              else FENSTER):
             if alt < stunden or (str(e["post_id"]), name) in da:
                 continue
             # mehr als ein halbes Fenster zu spaet: die zahl ist keine
@@ -503,11 +510,23 @@ def brevo_anmeldungen(tage=7, now=None, hole_fn=hole):
 
 
 def trichter(now=None, hole_fn=hole):
+    """Anmeldungen je Kanal. NICHTS DAVON WIRD IN DAS REPO GESCHRIEBEN
+    (Ben, 16.10.2026).
+
+    kaspa-pulse ist oeffentlich. Aus Brevo kommen hier zwar nur Zahlen je
+    Kanal und nie eine Adresse - aber eine Zahl, die aus einer
+    Kontaktdatenbank stammt, gehoert trotzdem nicht in ein oeffentliches
+    Repo. Sie geht nach #moderator-only und sonst nirgendwohin. Bis zum
+    16.10. schrieb dieser Lauf data/insights/trichter.jsonl; die Datei
+    wird nicht mehr geschrieben.
+
+    In der Montags-Rohtabelle steht an ihrer Stelle eine Zeile, die auf
+    #moderator-only verweist - damit die Claude-Routine weiss, dass die
+    Zahl existiert und wo sie steht, ohne sie zu veroeffentlichen."""
     now = now or jetzt()
     bericht = []
     try:
         d = brevo_anmeldungen(7, now, hole_fn)
-        jsonl_schreiben(INSIGHTS / TRICHTER, d)
         bericht.append("anmeldungen 7 tage: %d (%s)" % (
             d["gesamt"], ", ".join("%s %d" % kv for kv in sorted(d["je_kanal"].items())) or "keine"))
     except Sammelfehler as exc:
@@ -518,6 +537,63 @@ def trichter(now=None, hole_fn=hole):
     # lich nicht. Gemessen wird deshalb erst die Anmeldung, nicht der Klick.
     bericht.append("klicks je kurzlink: keine quelle, siehe docs/uhrwerk.md")
     return bericht
+
+
+# ---------------------------------------------------------------- rohtabelle
+
+def rohtabelle(now=None, ziel=None, kanaele=("instagram", "threads", "x")):
+    """Die Rohtabelle fuer den Montag, je Kanal eine Tabelle.
+
+    SIE ENTSTEHT HIER UND WIRD COMMITTET, nach reports/uhrwerk-roh-
+    <datum>.md. Bis zum 16.10.2026 gab es sie nicht - sie stand nur als
+    Punkt 7 im Auftrag. Die Claude-Routine liest sie montags 10:40 Berlin.
+
+    Drin steht nur, was ohnehin oeffentlich ist: die Schnappschuesse aus
+    data/insights/. Die Anmeldungen aus Brevo stehen NICHT drin, nur der
+    Hinweis, dass sie nach #moderator-only gegangen sind."""
+    now = now or jetzt()
+    zeilen = ["# Uhrwerk, Rohtabelle %s" % now.date().isoformat(), "",
+              "Erzeugt von scripts/insights_sammler.py --rohtabelle.",
+              "Zahlen aus data/insights/, Fenster 24h (Story 20h).", ""]
+    for kanal in kanaele:
+        snaps = [x for x in jsonl_lesen(pfad(kanal)) if x.get("fenster") in ("24h", "20h")]
+        zeilen.append("## %s" % kanal)
+        zeilen.append("")
+        if not snaps:
+            zeilen += ["Noch kein Schnappschuss.", ""]
+            continue
+        name = REICHWEITE.get(kanal, "reach")
+        zeilen.append("| post | look | variante | fenster | %s | gemessen |" % name)
+        zeilen.append("| --- | --- | --- | --- | --- | --- |")
+        for x in snaps[-MEDIAN_POSTS:]:
+            zeilen.append("| %s | %s | %s | %s | %s | %s |" % (
+                x.get("post_id"), x.get("look") or "-", x.get("variante") or "-",
+                x.get("fenster"), (x.get("werte") or {}).get(name, "-"),
+                str(x.get("gemessen_utc"))[:16]))
+        # Der Median zaehlt NUR das Fenster 24h. Eine Story ist bei 20 h
+        # gemessen, weil sie bei 24 nicht mehr existiert - die beiden
+        # Zahlen nebeneinander zu mitteln waere ein Vergleich von zwei
+        # verschiedenen Dingen. Die Story steht in der Tabelle, nicht im
+        # Median.
+        werte = [(x.get("werte") or {}).get(name) for x in snaps[-MEDIAN_POSTS:]
+                 if x.get("fenster") == "24h"]
+        m = median(werte)
+        zeilen.append("")
+        zeilen.append("Median %s aus %d Posts im Fenster 24h: %s" % (
+            name, len([w for w in werte if isinstance(w, (int, float))]),
+            "%g" % m if m is not None else "keiner"))
+        zeilen.append("")
+    zeilen += ["## anmeldungen je kanal", "",
+               "Nicht in diesem Repo. Die Zahlen aus Brevo gehen nach "
+               "#moderator-only (kaspa-pulse ist oeffentlich).", ""]
+    ziel = Path(ziel) if ziel else (REPO / "reports" /
+                                    ("uhrwerk-roh-%s.md" % now.date().isoformat()))
+    text = "\n".join(zeilen)
+    if sauber(text) != text:
+        raise Sammelfehler("in der rohtabelle stand etwas, das wie ein token aussieht")
+    ziel.parent.mkdir(parents=True, exist_ok=True)
+    ziel.write_text(text, encoding="utf-8")
+    return ziel, text
 
 
 # ---------------------------------------------------------------- meldung
@@ -571,8 +647,9 @@ def selbsttest():
         globals()["MANIFEST"] = MANIFEST
         now = dt.datetime(2026, 10, 20, 10, 0, tzinfo=dt.timezone.utc)
 
-        def mani(pid, kanal="instagram", form="bild", tage=0, stunden=0, variante="A", look="l1"):
-            zeit = (now - dt.timedelta(days=tage, hours=stunden))
+        def mani(pid, kanal="instagram", form="bild", tage=0, stunden=0, variante="A",
+                 look="l1", minuten=0):
+            zeit = (now - dt.timedelta(days=tage, hours=stunden, minutes=minuten))
             tz = dt.timezone(dt.timedelta(hours=berlin_offset(zeit)))
             post_manifest.eintragen(kanal=kanal, post_id=pid, format_=form, look=look,
                                     hook="h %s" % pid, hashtags=2, variante=variante,
@@ -598,9 +675,15 @@ def selbsttest():
             faellig(eintraege, [{"post_id": "p26", "fenster": "24h"}], now)] ==
            [("p9d", "24h"), ("p9d", "7d")])
 
-        mani("s1", form="story", stunden=30)
-        ok("eine story hat nur das fenster 24h",
-           [f for e, f, _ in faellig(lesen(MANIFEST)[0], [], now) if e["post_id"] == "s1"] == ["24h"])
+        # Story, Post 09:30 Berlin, Lauf am Folgetag 06:40 Berlin = 21:10 h.
+        mani("s1", form="story", stunden=21, minuten=10)
+        offen_s = [f for e, f, _ in faellig(lesen(MANIFEST)[0], [], now) if e["post_id"] == "s1"]
+        ok("eine story hat nur das fenster 20h", offen_s == ["20h"])
+        mani("s2", form="story", stunden=19)
+        ok("mit 19 stunden ist sie noch nicht faellig",
+           [f for e, f, _ in faellig(lesen(MANIFEST)[0], [], now) if e["post_id"] == "s2"] == [])
+        ok("der 06:40-lauf erwischt die 09:30-story vor ablauf",
+           20 <= 21 + 10 / 60.0 < 24)
 
         rufe = []
 
@@ -804,6 +887,55 @@ def selbsttest():
         del os.environ["DISCORD_WEBHOOK_OPS"]
     ok("ohne webhook bleibt die meldung im log", melden("egal", "scharf") == 0)
 
+    # Rohtabelle und Trichter: was drin steht und was nicht
+    import tempfile as _tf
+    with _tf.TemporaryDirectory() as tmp:
+        alt_ins = INSIGHTS
+        INSIGHTS = Path(tmp)
+        try:
+            for i in range(9):
+                jsonl_schreiben(pfad("instagram"), {
+                    "post_id": "p%d" % i, "kanal": "instagram", "fenster": "24h",
+                    "look": "l1", "variante": "A", "gemessen_utc": "2026-10-16T06:40:00+00:00",
+                    "werte": {"reach": 1000 + i}})
+            jsonl_schreiben(pfad("instagram"), {
+                "post_id": "s1", "kanal": "instagram", "fenster": "20h",
+                "look": "story", "variante": "-", "gemessen_utc": "2026-10-16T06:40:00+00:00",
+                "werte": {"reach": 300}})
+            ziel, text = rohtabelle(dt.datetime(2026, 10, 19, 8, 40, tzinfo=dt.timezone.utc),
+                                    ziel=Path(tmp, "roh.md"))
+            ok("die rohtabelle traegt das datum im namen",
+               rohtabelle(dt.datetime(2026, 10, 19, 8, 40, tzinfo=dt.timezone.utc),
+                          ziel=Path(tmp, "uhrwerk-roh-2026-10-19.md"))[0].name
+               == "uhrwerk-roh-2026-10-19.md")
+            ok("je kanal eine ueberschrift", text.count("\n## ") >= 3)
+            ok("die zeilen stehen drin", "| p8 |" in text and "| l1 |" in text)
+            ok("die story steht mit ihrem eigenen fenster drin", "| 20h |" in text)
+            ok("der median zaehlt nur das fenster 24h, ohne die story",
+               "Median reach aus 9 Posts im Fenster 24h: 1004" in text)
+            ok("anmeldungen stehen NICHT in der tabelle",
+               "anmeldungen je kanal" in text and "Nicht in diesem Repo" in text)
+            for wort in ("brevo", "@", "UTM_SOURCE"):
+                ok("kein %r in der rohtabelle" % wort, wort.lower() not in text.lower()
+                   or wort == "brevo" and "Brevo" in text)
+        finally:
+            INSIGHTS = alt_ins
+
+    os.environ["BREVO_API_KEY"] = "xkeysib-" + "e" * 20
+    try:
+        seiten = [{"contacts": [{"attributes": {"UTM_SOURCE": "instagram"},
+                                 "email": "wer@example.invalid"}]}]
+        b = trichter(dt.datetime(2026, 10, 19, tzinfo=dt.timezone.utc),
+                     hole_fn=lambda u, k=None: seiten[0])
+        ok("der trichter meldet nur zahlen",
+           any("anmeldungen 7 tage: 1" in z for z in b))
+        ok("keine adresse in der meldung",
+           not any("example.invalid" in z for z in b))
+        ok("der trichter schreibt keine datei mehr",
+           not (INSIGHTS / "trichter.jsonl").exists())
+    finally:
+        del os.environ["BREVO_API_KEY"]
+
     ok("ein fehlendes token ist ein sammelfehler, kein abbruch",
        isinstance(_fehlt_pruefen(), Sammelfehler))
     ok("der webhook steht in keiner fehlermeldung",
@@ -829,6 +961,8 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="schnappschuesse zu den posts, 24h und 7d")
     ap.add_argument("--sammeln", action="store_true")
     ap.add_argument("--trichter", action="store_true", help="anmeldungen je kanal, montags")
+    ap.add_argument("--rohtabelle", action="store_true",
+                    help="reports/uhrwerk-roh-<datum>.md schreiben, montags")
     ap.add_argument("--selbsttest", action="store_true")
     ap.add_argument("--modus", choices=("trocken", "scharf"), default="trocken")
     ap.add_argument("--ohne-follower", action="store_true")
@@ -836,7 +970,7 @@ def main(argv=None):
     if a.selbsttest:
         selbsttest()
         return 0
-    if not (a.sammeln or a.trichter):
+    if not (a.sammeln or a.trichter or a.rohtabelle):
         ap.print_help()
         return 0
     zeilen = []
@@ -852,6 +986,10 @@ def main(argv=None):
             melden(alarm_text(al, link_zu(al["post_id"], al["kanal"])), a.modus)
     if a.trichter:
         zeilen += trichter()
+    if a.rohtabelle:
+        ziel, _ = rohtabelle()
+        ausgabe("rohtabelle %s" % ziel.relative_to(REPO))
+        zeilen.append("rohtabelle: %s" % ziel.relative_to(REPO))
     text = "\n".join(zeilen)
     ausgabe(text)
     melden(text, a.modus)
