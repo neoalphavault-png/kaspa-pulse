@@ -21,7 +21,7 @@ Automatik heraus - nicht spaeter aus der Erinnerung.
 | `data/insights/manifest.jsonl` | eine Zeile je Post |
 | `data/insights/<kanal>.jsonl` | ein Schnappschuss je Zeile |
 | `data/insights/follower.jsonl` | Followerzahl je Kanal, bei jedem Lauf |
-| `data/insights/trichter.jsonl` | Anmeldungen je Kanal, woechentlich |
+| `reports/uhrwerk-roh-<datum>.md` | Montags-Rohtabelle fuer die Claude-Routine |
 
 Jedes Skript hat `--selbsttest`. Stand 15.10.2026: 40 + 36 + 24 + 17
 Pruefungen, alle gruen.
@@ -177,11 +177,11 @@ Weiterleitung mit `meta refresh` absichtlich nicht - sie wuerde genau die
 Besucher verlieren, fuer die der Kurzlink gemacht ist (App-Browser,
 abgeschaltetes Skript).
 
-Gemessen wird deshalb erst die Anmeldung, nicht der Klick:
-`UTM_SOURCE` steht als Kontaktattribut in Brevo, der Sammler zaehlt die
-Anmeldungen der letzten sieben Tage je Kanal nach
-`data/insights/trichter.jsonl`. Das ist die Zahl, die zaehlt, aber es ist
-nicht die Klickzahl.
+Gemessen wird deshalb erst die Anmeldung, nicht der Klick: `UTM_SOURCE`
+steht als Kontaktattribut in Brevo, der Sammler zaehlt die Anmeldungen der
+letzten sieben Tage je Kanal und meldet sie nach #moderator-only. **In kein
+Repo** (Ben, 16.10.2026, siehe unten). Das ist die Zahl, die zaehlt, aber
+es ist nicht die Klickzahl.
 
 Drei Wege zu echten Klicks, Bens Entscheidung, nichts davon ist gebaut:
 
@@ -279,6 +279,11 @@ name: reichweiten-uhrwerk
 # LAUF. Sie stehen in keiner Datei im Repo, und die Skripte blenden alles
 # aus, was wie ein Token aussieht - auch aus Fehlermeldungen und aus jeder
 # Zeile, die geschrieben wird.
+#
+# DIE EINGABEN GEHEN UEBER env:, NICHT DIREKT IN run: (Ben, 16.10.2026).
+# Ein ${{ ... }} mitten im Shell-Befehl wird vor der Shell ersetzt; wer
+# eine Eingabe schickt, schreibt damit Shell-Code. Ueber env: ist sie
+# eine Variable, und der erste Schritt jedes Jobs prueft ihren Wert.
 
 on:
   workflow_dispatch:
@@ -312,6 +317,10 @@ on:
 permissions:
   contents: write
 
+env:
+  MODUS: ${{ inputs.modus || 'trocken' }}
+  TRICHTER: ${{ inputs.trichter || 'false' }}
+
 concurrency:
   group: uhrwerk
   cancel-in-progress: false
@@ -324,6 +333,19 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
+      # Erst die Eingaben, dann alles andere. Ein falscher Wert bricht hier
+      # ab und nicht erst mitten im Lauf, wo schon gemessen wurde.
+      - name: eingaben pruefen
+        run: |
+          case "$MODUS" in
+            trocken|scharf) echo "modus $MODUS" ;;
+            *) echo "::error::modus muss trocken oder scharf sein, nicht '$MODUS'"; exit 1 ;;
+          esac
+          case "$TRICHTER" in
+            true|false) echo "trichter $TRICHTER" ;;
+            *) echo "::error::trichter muss true oder false sein, nicht '$TRICHTER'"; exit 1 ;;
+          esac
+
       - uses: actions/checkout@v4
 
       # Das Reel postet aus pulse-studio und traegt seine Manifest-Zeile
@@ -368,15 +390,26 @@ jobs:
           X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
         run: |
-          python3 scripts/insights_sammler.py --sammeln --modus "${{ inputs.modus || 'trocken' }}"
+          python3 scripts/insights_sammler.py --sammeln --modus "$MODUS"
 
+      # Montags. Die Zahlen aus Brevo gehen NUR nach #moderator-only, sie
+      # werden in kein Repo geschrieben - kaspa-pulse ist oeffentlich.
       - name: anmeldungen je kanal
-        if: inputs.trichter == 'true'
+        if: env.TRICHTER == 'true'
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
         run: |
-          python3 scripts/insights_sammler.py --trichter --modus "${{ inputs.modus || 'trocken' }}"
+          python3 scripts/insights_sammler.py --trichter --modus "$MODUS"
+
+      # Montags. Die Rohtabelle fuer die Claude-Routine um 10:40 Berlin.
+      # Sie traegt nur, was ohnehin oeffentlich ist, und wird committet.
+      - name: rohtabelle
+        if: env.TRICHTER == 'true'
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+        run: |
+          python3 scripts/insights_sammler.py --rohtabelle --modus "$MODUS"
 
       # IMMER committen, auch nach einem roten Schritt: ein Fenster, das
       # gemessen und nicht gesichert wurde, wird nie wieder gemessen.
@@ -387,8 +420,13 @@ jobs:
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
+          # reports/ gibt es erst nach dem ersten Montagslauf. Ein
+          # "git add -- reports/" auf einen Pfad, den es nicht gibt, bricht
+          # das ganze add ab - dann waere nichts vorgemerkt und der Lauf
+          # haette still nichts committet.
           git add -- data/insights/
-          if git diff --staged --quiet -- data/insights/; then
+          if [ -d reports ]; then git add -- reports/; fi
+          if git diff --staged --quiet; then
             echo "nichts gemessen, nichts zu committen"
             exit 0
           fi
@@ -396,7 +434,9 @@ jobs:
           # Die gemessenen Dateien ZUERST beiseitelegen, aus dem sauberen
           # Stand nach dem Commit. Nach einem gescheiterten Rebase stehen
           # Konfliktmarken in der Datei - eine Kopie von dann waere Muell.
-          rm -rf /tmp/ins-eigen && cp -r data/insights /tmp/ins-eigen
+          rm -rf /tmp/uhrwerk-eigen && mkdir -p /tmp/uhrwerk-eigen
+          cp -r data/insights /tmp/uhrwerk-eigen/insights
+          if [ -d reports ]; then cp -r reports /tmp/uhrwerk-eigen/reports; fi
           OK=nein
           for N in 1 2 3; do
             if git pull --rebase --autostash -q origin main; then
@@ -404,14 +444,17 @@ jobs:
             else
               # Dateien, die nur wachsen: beide Seiten behalten, Zeilen
               # ohne Dopplung vereinen. Ein Rebase kann das nicht wissen.
+              # Die Rohtabelle traegt das Datum im Namen und kollidiert
+              # darum nicht; sie wird einfach wieder hingelegt.
               echo "rebase-konflikt, zeilen werden vereint"
               git rebase --abort 2>/dev/null || true
               git reset --hard -q origin/main 2>/dev/null || true
               python3 - <<'EOF'
-          import pathlib
-          eigen, ziel = pathlib.Path("/tmp/ins-eigen"), pathlib.Path("data/insights")
+          import pathlib, shutil
+          eigen = pathlib.Path("/tmp/uhrwerk-eigen")
+          ziel = pathlib.Path("data/insights")
           ziel.mkdir(parents=True, exist_ok=True)
-          for q in sorted(eigen.glob("*.jsonl")):
+          for q in sorted((eigen / "insights").glob("*.jsonl")):
               z = ziel / q.name
               kennt = set(z.read_text(encoding="utf-8").splitlines() if z.exists() else [])
               neu = [l for l in q.read_text(encoding="utf-8").splitlines()
@@ -420,9 +463,15 @@ jobs:
                   with open(z, "a", encoding="utf-8") as fh:
                       fh.write("\n".join(neu) + "\n")
               print("%s: %d zeilen dazu" % (q.name, len(neu)))
+          eigene_berichte = (eigen / "reports")
+          for q in sorted(eigene_berichte.glob("*.md")) if eigene_berichte.exists() else []:
+              pathlib.Path("reports").mkdir(exist_ok=True)
+              shutil.copy2(q, pathlib.Path("reports") / q.name)
+              print("%s wieder hingelegt" % q.name)
           EOF
               git add -- data/insights/
-              git diff --staged --quiet -- data/insights/ || \
+              if [ -d reports ]; then git add -- reports/; fi
+              git diff --staged --quiet || \
                 git commit -q -m "uhrwerk schnappschuesse $(date -u +%Y-%m-%dT%H:%M) [skip ci]"
             fi
             if git push -q origin HEAD:main; then OK=ja; break; fi
@@ -433,15 +482,15 @@ jobs:
             echo "schnappschuesse sind auf main"
           else
             echo "::warning::schnappschuesse nicht auf main, sie liegen als artefakt bereit"
-            mkdir -p artefakt && cp -r /tmp/ins-eigen artefakt/insights || true
+            mkdir -p artefakt && cp -r /tmp/uhrwerk-eigen artefakt/uhrwerk || true
           fi
 
       - name: nicht gesicherte zeilen als artefakt
-        if: always() && hashFiles('artefakt/insights/*') != ''
+        if: always() && hashFiles('artefakt/uhrwerk/**') != ''
         uses: actions/upload-artifact@v4
         with:
           name: uhrwerk-nicht-gesichert
-          path: artefakt/insights
+          path: artefakt/uhrwerk
           retention-days: 30
 
   proben:
@@ -451,7 +500,18 @@ jobs:
     if: inputs.proben == 'x-metriken' || inputs.proben == 'trial-reels' || inputs.proben == 'beide'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    # Dieser Job liest nur. Er schreibt nichts ins Repo, also bekommt er
+    # auch kein Schreibrecht.
+    permissions:
+      contents: read
     steps:
+      - name: eingaben pruefen
+        run: |
+          case "$MODUS" in
+            trocken|scharf) echo "modus $MODUS" ;;
+            *) echo "::error::modus muss trocken oder scharf sein, nicht '$MODUS'"; exit 1 ;;
+          esac
+
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
@@ -486,17 +546,16 @@ jobs:
 
       # Der Bericht steht in uhrwerk_proben.py und nicht mehr hier. Genau
       # an dieser Stelle fehlte der User-Agent, und Discord lehnt einen
-      # Aufruf ohne ihn mit http 403 ab (gemessen an der ersten Probe,
-      # 16.10.2026). Im Skript geht er durch insights_sammler.hole, und
-      # dort prueft der Selbsttest den Kopf an der Anfrage selbst.
+      # Aufruf ohne ihn mit http 403 ab (gemessen am 16.10.2026, Lauf #2).
+      # Im Skript geht er durch insights_sammler.hole, und dort prueft der
+      # Selbsttest den Kopf an der Anfrage selbst.
       - name: ergebnis nach ops
         if: always()
         env:
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
           LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          python3 scripts/uhrwerk_proben.py --melden --ordner proben \
-            --modus "${{ inputs.modus || 'trocken' }}"
+          python3 scripts/uhrwerk_proben.py --melden --ordner proben --modus "$MODUS"
 
       - name: proben als artefakt
         if: always()
@@ -605,6 +664,45 @@ herausgeloest und gegen echte Repos gelaufen. Ein fremder Push dazwischen
 (Rebase-Konflikt in einer Datei, die nur waechst), ein sauberer Push,
 nichts zu committen und dreimal kein Netz - in allen vier Faellen bleibt
 der Lauf gruen, und keine Zeile geht verloren oder steht doppelt.
+
+## Fuenf Dinge, die der erste Lauf gezeigt hat
+
+Ben, 16.10.2026, nach den Laeufen #1 und #2.
+
+**Die Eingaben gehen ueber `env:`, nicht in `run:`.** Ein `${{ inputs.x }}`
+mitten im Shell-Befehl wird vor der Shell ersetzt - wer eine Eingabe
+schickt, schreibt damit Shell-Code in unseren Lauf. Ueber `env:` ist sie
+eine Variable, und der erste Schritt jedes Jobs prueft den Wert: `modus`
+muss `trocken` oder `scharf` sein, `trichter` `true` oder `false`, sonst
+bricht der Lauf ab, bevor irgendetwas gemessen wurde.
+
+**Der Job `proben` bekommt `permissions: contents: read`.** Er liest nur.
+Ein Job, der nichts ins Repo schreibt, braucht kein Schreibrecht, und der
+Lauf-Token traegt dann auch keines.
+
+**Aus Brevo kommt nichts ins Repo.** kaspa-pulse ist oeffentlich. Der
+Trichter zaehlt nur Anmeldungen je Kanal, nie eine Adresse - aber auch
+eine Zahl aus einer Kontaktdatenbank gehoert nicht in ein oeffentliches
+Repo. Sie geht nach #moderator-only und sonst nirgendwohin;
+`data/insights/trichter.jsonl` wird nicht mehr geschrieben. In der
+Rohtabelle steht an ihrer Stelle eine Zeile, die auf #moderator-only
+verweist.
+
+**Die Rohtabelle entsteht jetzt wirklich.** Bis zum 16.10. stand sie nur
+als Punkt 7 im Auftrag. `insights_sammler.py --rohtabelle` schreibt
+`reports/uhrwerk-roh-<datum>.md`, der Montagslauf ruft es auf, und der
+Sicherungsschritt committet `reports/` mit - er nahm vorher nur
+`data/insights/`. Drin steht je Kanal eine Tabelle aus den
+Schnappschuessen und der Median im Fenster 24h, also nur, was ohnehin
+oeffentlich ist. Die Claude-Routine liest die Datei montags 10:40 Berlin.
+
+**Stories werden bei 20 Stunden gemessen, nicht bei 24.** Eine Story ist
+nach 24 Stunden weg, mitsamt ihren Zahlen; ein Fenster bei 24 h haette sie
+genau dann faellig gemacht, wenn Graph sie nicht mehr hergibt. Das Fenster
+heisst `20h` und nicht `24h`, weil eine bei 20 h gemessene Zahl keine
+24-Stunden-Zahl ist, und aus demselben Grund zaehlt sie nicht in den
+Median der Feed-Posts. Rechenprobe: ein Post um 09:30 Berlin ist beim Lauf
+am Folgetag um 06:40 genau 21:10 h alt, also ueber 20 und unter 24.
 
 ## Trockenlauf, zwei Tage
 
