@@ -1,0 +1,272 @@
+name: reichweiten-uhrwerk
+
+# WER IHN STARTET. Der Takt auf c2 (takt-uhrwerk.timer, alle 6 Stunden,
+# und takt-uhrwerk-trichter.timer montags). Hier steht absichtlich KEIN
+# schedule: GitHubs geplante Laeufe kommen in diesem Konto sechs bis sieben
+# Stunden zu spaet, und ein schedule-Lauf hat keine Eingaben - modus waere
+# dort leer.
+#
+# DIE TOKENS KOMMEN AUS DEN GITHUB SECRETS UND GEHEN NUR ALS env: IN DEN
+# LAUF. Sie stehen in keiner Datei im Repo, und die Skripte blenden alles
+# aus, was wie ein Token aussieht - auch aus Fehlermeldungen und aus jeder
+# Zeile, die geschrieben wird.
+
+on:
+  workflow_dispatch:
+    inputs:
+      modus:
+        description: "trocken = schreiben und melden, scharf = auch der Ausreisser-Alarm"
+        required: false
+        default: "trocken"
+        type: string
+      trichter:
+        description: "true = Anmeldungen je Kanal aus Brevo (montags)"
+        required: false
+        default: "false"
+        type: string
+      sammeln:
+        description: "nein = nur die Proben laufen lassen"
+        required: false
+        default: "ja"
+        type: string
+      proben:
+        description: "einmalige Proben: was liefert X, kennt Graph Trial Reels"
+        required: false
+        default: "aus"
+        type: choice
+        options:
+          - aus
+          - x-metriken
+          - trial-reels
+          - beide
+
+permissions:
+  contents: write
+
+concurrency:
+  group: uhrwerk
+  cancel-in-progress: false
+
+jobs:
+  sammeln:
+    # Leere Eingabe heisst sammeln. Nur ein ausdrueckliches "nein" laesst
+    # den Job aus - sonst waere ein Takt ohne Felder ein stiller Leerlauf.
+    if: inputs.sammeln != 'nein'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # Das Reel postet aus pulse-studio und traegt seine Manifest-Zeile
+      # dort ein. Hier wird sie nur GELESEN. pulse-studio ist privat, der
+      # mitgelieferte Token reicht dafuer nicht - STUDIO_READ_TOKEN ist ein
+      # fein eingestellter Token mit Contents: Read, nur auf dieses eine
+      # Repo. Fehlt oder verfaellt er, bleibt der Schritt rot und der Lauf
+      # geht weiter: der Sammler liest dann nur das eigene Manifest, die
+      # Reels fehlen in der Auswertung, nichts geht kaputt.
+      - name: manifest aus pulse-studio, nur lesen
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          repository: neoalphavault-png/pulse-studio
+          token: ${{ secrets.STUDIO_READ_TOKEN }}
+          path: studio
+          sparse-checkout: data/insights
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Erst die Selbsttests, dann an die Daten. Ein Sammler, der sich
+      # selbst nicht traut, soll nichts in die Dateien schreiben.
+      - name: selbsttests
+        run: |
+          python3 scripts/post_manifest.py --selbsttest
+          python3 scripts/insights_sammler.py --selbsttest
+          python3 scripts/x_analytics_csv.py --selbsttest
+          python3 scripts/uhrwerk_proben.py --selbsttest
+
+      - name: schnappschuesse
+        env:
+          UHRWERK_MANIFEST: "data/insights/manifest.jsonl:studio/data/insights/manifest.jsonl"
+          INSTAGRAM_PAGE_TOKEN: ${{ secrets.INSTAGRAM_PAGE_TOKEN }}
+          IG_USER_ID: ${{ vars.IG_USER_ID }}
+          IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
+          THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+        run: |
+          python3 scripts/insights_sammler.py --sammeln --modus "${{ inputs.modus || 'trocken' }}"
+
+      - name: anmeldungen je kanal
+        if: inputs.trichter == 'true'
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+        run: |
+          python3 scripts/insights_sammler.py --trichter --modus "${{ inputs.modus || 'trocken' }}"
+
+      # IMMER committen, auch nach einem roten Schritt: ein Fenster, das
+      # gemessen und nicht gesichert wurde, wird nie wieder gemessen.
+      # [skip ci] ist Guertel und Hosentraeger - ein Push mit GITHUB_TOKEN
+      # loest ohnehin keine Action aus.
+      - name: schnappschuesse sichern
+        if: always()
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add -- data/insights/
+          if git diff --staged --quiet -- data/insights/; then
+            echo "nichts gemessen, nichts zu committen"
+            exit 0
+          fi
+          git commit -q -m "uhrwerk schnappschuesse $(date -u +%Y-%m-%dT%H:%M) [skip ci]"
+          # Die gemessenen Dateien ZUERST beiseitelegen, aus dem sauberen
+          # Stand nach dem Commit. Nach einem gescheiterten Rebase stehen
+          # Konfliktmarken in der Datei - eine Kopie von dann waere Muell.
+          rm -rf /tmp/ins-eigen && cp -r data/insights /tmp/ins-eigen
+          OK=nein
+          for N in 1 2 3; do
+            if git pull --rebase --autostash -q origin main; then
+              :
+            else
+              # Dateien, die nur wachsen: beide Seiten behalten, Zeilen
+              # ohne Dopplung vereinen. Ein Rebase kann das nicht wissen.
+              echo "rebase-konflikt, zeilen werden vereint"
+              git rebase --abort 2>/dev/null || true
+              git reset --hard -q origin/main 2>/dev/null || true
+              python3 - <<'EOF'
+          import pathlib
+          eigen, ziel = pathlib.Path("/tmp/ins-eigen"), pathlib.Path("data/insights")
+          ziel.mkdir(parents=True, exist_ok=True)
+          for q in sorted(eigen.glob("*.jsonl")):
+              z = ziel / q.name
+              kennt = set(z.read_text(encoding="utf-8").splitlines() if z.exists() else [])
+              neu = [l for l in q.read_text(encoding="utf-8").splitlines()
+                     if l.strip() and l not in kennt]
+              if neu:
+                  with open(z, "a", encoding="utf-8") as fh:
+                      fh.write("\n".join(neu) + "\n")
+              print("%s: %d zeilen dazu" % (q.name, len(neu)))
+          EOF
+              git add -- data/insights/
+              git diff --staged --quiet -- data/insights/ || \
+                git commit -q -m "uhrwerk schnappschuesse $(date -u +%Y-%m-%dT%H:%M) [skip ci]"
+            fi
+            if git push -q origin HEAD:main; then OK=ja; break; fi
+            echo "push $N fehlgeschlagen"
+            sleep "$N"
+          done
+          if [ "$OK" = "ja" ]; then
+            echo "schnappschuesse sind auf main"
+          else
+            echo "::warning::schnappschuesse nicht auf main, sie liegen als artefakt bereit"
+            mkdir -p artefakt && cp -r /tmp/ins-eigen artefakt/insights || true
+          fi
+
+      - name: nicht gesicherte zeilen als artefakt
+        if: always() && hashFiles('artefakt/insights/*') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: uhrwerk-nicht-gesichert
+          path: artefakt/insights
+          retention-days: 30
+
+  proben:
+    # Laeuft nur, wenn Ben sie ausdruecklich anstoesst. Eine leere Eingabe
+    # ist hier kein "beide": der Vergleich mit dem Namen ist absichtlich
+    # ausgeschrieben, contains() waere bei einer leeren Eingabe wahr.
+    if: inputs.proben == 'x-metriken' || inputs.proben == 'trial-reels' || inputs.proben == 'beide'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: mkdir -p proben
+
+      # continue-on-error: eine Probe, die "kein Zugang" meldet, hat
+      # geantwortet. Das Ergebnis soll ankommen, auch wenn der Aufruf
+      # abbricht.
+      - name: was liefert x
+        if: inputs.proben == 'x-metriken' || inputs.proben == 'beide'
+        continue-on-error: true
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+        run: |
+          python3 scripts/uhrwerk_proben.py --x-metriken | tee proben/x-metriken.json
+
+      # OHNE --container: es wird nur gelesen. Nichts wird angelegt und
+      # nichts veroeffentlicht.
+      - name: kennt graph trial reels
+        if: inputs.proben == 'trial-reels' || inputs.proben == 'beide'
+        continue-on-error: true
+        env:
+          INSTAGRAM_PAGE_TOKEN: ${{ secrets.INSTAGRAM_PAGE_TOKEN }}
+          IG_USER_ID: ${{ vars.IG_USER_ID }}
+          IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
+        run: |
+          python3 scripts/uhrwerk_proben.py --ig-trial-reels | tee proben/trial-reels.json
+
+      - name: ergebnis nach ops
+        if: always()
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 - <<'EOF'
+          import glob, json, os, urllib.request
+          zeilen = []
+          for pfad in sorted(glob.glob("proben/*.json")):
+              try:
+                  d = json.load(open(pfad, encoding="utf-8"))
+              except (OSError, ValueError) as exc:
+                  zeilen.append("%s: nicht lesbar, %s" % (os.path.basename(pfad), exc))
+                  continue
+              zeilen.append("%s: %s" % (os.path.basename(pfad), d.get("ergebnis", "ohne ergebnis")))
+              for name, g in sorted((d.get("gruppen") or {}).items()):
+                  zeilen.append("  %s: %s%s" % (name, "da" if g.get("da") else "nein",
+                                                "" if g.get("da") else " (%s)" % g.get("lesart", "unklar")))
+              if "csv_noetig" in d:
+                  zeilen.append("  csv-export noetig: %s" % ("ja" if d["csv_noetig"] else "nein"))
+              f = d.get("feld_an_medien")
+              if f:
+                  zeilen.append("  is_trial an unseren medien: %s%s"
+                                % ("ja" if f.get("da") else "nein",
+                                   "" if f.get("da") else " (%s)" % f.get("lesart", "unklar")))
+              con = d.get("container")
+              if con:
+                  zeilen.append("  container: %s, beweis %s"
+                                % ("angelegt" if con.get("angelegt") else "nicht angelegt",
+                                   "ja" if con.get("beweis") else "nein"))
+          if not zeilen:
+              zeilen = ["keine probe hat eine datei geschrieben, siehe lauf"]
+          text = "uhrwerk-proben\n" + "\n".join(zeilen) + "\n" + os.environ.get("LAUF", "")
+          print(text)
+          hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
+          if not hook:
+              print("kein DISCORD_WEBHOOK_OPS, meldung nur im log")
+          else:
+              req = urllib.request.Request(
+                  hook, data=json.dumps({"content": text[:1990],
+                                         "allowed_mentions": {"parse": []}}).encode(),
+                  headers={"Content-Type": "application/json"}, method="POST")
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  print("an ops, http", r.status)
+          EOF
+
+      - name: proben als artefakt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uhrwerk-proben
+          path: proben
+          if-no-files-found: ignore
+          retention-days: 30
