@@ -10,6 +10,11 @@ name: reichweiten-uhrwerk
 # LAUF. Sie stehen in keiner Datei im Repo, und die Skripte blenden alles
 # aus, was wie ein Token aussieht - auch aus Fehlermeldungen und aus jeder
 # Zeile, die geschrieben wird.
+#
+# DIE EINGABEN GEHEN UEBER env:, NICHT DIREKT IN run: (Ben, 16.10.2026).
+# Ein ${{ ... }} mitten im Shell-Befehl wird vor der Shell ersetzt; wer
+# eine Eingabe schickt, schreibt damit Shell-Code. Ueber env: ist sie
+# eine Variable, und der erste Schritt jedes Jobs prueft ihren Wert.
 
 on:
   workflow_dispatch:
@@ -43,6 +48,10 @@ on:
 permissions:
   contents: write
 
+env:
+  MODUS: ${{ inputs.modus || 'trocken' }}
+  TRICHTER: ${{ inputs.trichter || 'false' }}
+
 concurrency:
   group: uhrwerk
   cancel-in-progress: false
@@ -55,6 +64,19 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
+      # Erst die Eingaben, dann alles andere. Ein falscher Wert bricht hier
+      # ab und nicht erst mitten im Lauf, wo schon gemessen wurde.
+      - name: eingaben pruefen
+        run: |
+          case "$MODUS" in
+            trocken|scharf) echo "modus $MODUS" ;;
+            *) echo "::error::modus muss trocken oder scharf sein, nicht '$MODUS'"; exit 1 ;;
+          esac
+          case "$TRICHTER" in
+            true|false) echo "trichter $TRICHTER" ;;
+            *) echo "::error::trichter muss true oder false sein, nicht '$TRICHTER'"; exit 1 ;;
+          esac
+
       - uses: actions/checkout@v4
 
       # Das Reel postet aus pulse-studio und traegt seine Manifest-Zeile
@@ -99,15 +121,26 @@ jobs:
           X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
         run: |
-          python3 scripts/insights_sammler.py --sammeln --modus "${{ inputs.modus || 'trocken' }}"
+          python3 scripts/insights_sammler.py --sammeln --modus "$MODUS"
 
+      # Montags. Die Zahlen aus Brevo gehen NUR nach #moderator-only, sie
+      # werden in kein Repo geschrieben - kaspa-pulse ist oeffentlich.
       - name: anmeldungen je kanal
-        if: inputs.trichter == 'true'
+        if: env.TRICHTER == 'true'
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
         run: |
-          python3 scripts/insights_sammler.py --trichter --modus "${{ inputs.modus || 'trocken' }}"
+          python3 scripts/insights_sammler.py --trichter --modus "$MODUS"
+
+      # Montags. Die Rohtabelle fuer die Claude-Routine um 10:40 Berlin.
+      # Sie traegt nur, was ohnehin oeffentlich ist, und wird committet.
+      - name: rohtabelle
+        if: env.TRICHTER == 'true'
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+        run: |
+          python3 scripts/insights_sammler.py --rohtabelle --modus "$MODUS"
 
       # IMMER committen, auch nach einem roten Schritt: ein Fenster, das
       # gemessen und nicht gesichert wurde, wird nie wieder gemessen.
@@ -118,8 +151,13 @@ jobs:
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
+          # reports/ gibt es erst nach dem ersten Montagslauf. Ein
+          # "git add -- reports/" auf einen Pfad, den es nicht gibt, bricht
+          # das ganze add ab - dann waere nichts vorgemerkt und der Lauf
+          # haette still nichts committet.
           git add -- data/insights/
-          if git diff --staged --quiet -- data/insights/; then
+          if [ -d reports ]; then git add -- reports/; fi
+          if git diff --staged --quiet; then
             echo "nichts gemessen, nichts zu committen"
             exit 0
           fi
@@ -127,7 +165,9 @@ jobs:
           # Die gemessenen Dateien ZUERST beiseitelegen, aus dem sauberen
           # Stand nach dem Commit. Nach einem gescheiterten Rebase stehen
           # Konfliktmarken in der Datei - eine Kopie von dann waere Muell.
-          rm -rf /tmp/ins-eigen && cp -r data/insights /tmp/ins-eigen
+          rm -rf /tmp/uhrwerk-eigen && mkdir -p /tmp/uhrwerk-eigen
+          cp -r data/insights /tmp/uhrwerk-eigen/insights
+          if [ -d reports ]; then cp -r reports /tmp/uhrwerk-eigen/reports; fi
           OK=nein
           for N in 1 2 3; do
             if git pull --rebase --autostash -q origin main; then
@@ -135,14 +175,17 @@ jobs:
             else
               # Dateien, die nur wachsen: beide Seiten behalten, Zeilen
               # ohne Dopplung vereinen. Ein Rebase kann das nicht wissen.
+              # Die Rohtabelle traegt das Datum im Namen und kollidiert
+              # darum nicht; sie wird einfach wieder hingelegt.
               echo "rebase-konflikt, zeilen werden vereint"
               git rebase --abort 2>/dev/null || true
               git reset --hard -q origin/main 2>/dev/null || true
               python3 - <<'EOF'
-          import pathlib
-          eigen, ziel = pathlib.Path("/tmp/ins-eigen"), pathlib.Path("data/insights")
+          import pathlib, shutil
+          eigen = pathlib.Path("/tmp/uhrwerk-eigen")
+          ziel = pathlib.Path("data/insights")
           ziel.mkdir(parents=True, exist_ok=True)
-          for q in sorted(eigen.glob("*.jsonl")):
+          for q in sorted((eigen / "insights").glob("*.jsonl")):
               z = ziel / q.name
               kennt = set(z.read_text(encoding="utf-8").splitlines() if z.exists() else [])
               neu = [l for l in q.read_text(encoding="utf-8").splitlines()
@@ -151,9 +194,15 @@ jobs:
                   with open(z, "a", encoding="utf-8") as fh:
                       fh.write("\n".join(neu) + "\n")
               print("%s: %d zeilen dazu" % (q.name, len(neu)))
+          eigene_berichte = (eigen / "reports")
+          for q in sorted(eigene_berichte.glob("*.md")) if eigene_berichte.exists() else []:
+              pathlib.Path("reports").mkdir(exist_ok=True)
+              shutil.copy2(q, pathlib.Path("reports") / q.name)
+              print("%s wieder hingelegt" % q.name)
           EOF
               git add -- data/insights/
-              git diff --staged --quiet -- data/insights/ || \
+              if [ -d reports ]; then git add -- reports/; fi
+              git diff --staged --quiet || \
                 git commit -q -m "uhrwerk schnappschuesse $(date -u +%Y-%m-%dT%H:%M) [skip ci]"
             fi
             if git push -q origin HEAD:main; then OK=ja; break; fi
@@ -164,15 +213,15 @@ jobs:
             echo "schnappschuesse sind auf main"
           else
             echo "::warning::schnappschuesse nicht auf main, sie liegen als artefakt bereit"
-            mkdir -p artefakt && cp -r /tmp/ins-eigen artefakt/insights || true
+            mkdir -p artefakt && cp -r /tmp/uhrwerk-eigen artefakt/uhrwerk || true
           fi
 
       - name: nicht gesicherte zeilen als artefakt
-        if: always() && hashFiles('artefakt/insights/*') != ''
+        if: always() && hashFiles('artefakt/uhrwerk/**') != ''
         uses: actions/upload-artifact@v4
         with:
           name: uhrwerk-nicht-gesichert
-          path: artefakt/insights
+          path: artefakt/uhrwerk
           retention-days: 30
 
   proben:
@@ -182,7 +231,18 @@ jobs:
     if: inputs.proben == 'x-metriken' || inputs.proben == 'trial-reels' || inputs.proben == 'beide'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    # Dieser Job liest nur. Er schreibt nichts ins Repo, also bekommt er
+    # auch kein Schreibrecht.
+    permissions:
+      contents: read
     steps:
+      - name: eingaben pruefen
+        run: |
+          case "$MODUS" in
+            trocken|scharf) echo "modus $MODUS" ;;
+            *) echo "::error::modus muss trocken oder scharf sein, nicht '$MODUS'"; exit 1 ;;
+          esac
+
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
@@ -215,52 +275,18 @@ jobs:
         run: |
           python3 scripts/uhrwerk_proben.py --ig-trial-reels | tee proben/trial-reels.json
 
+      # Der Bericht steht in uhrwerk_proben.py und nicht mehr hier. Genau
+      # an dieser Stelle fehlte der User-Agent, und Discord lehnt einen
+      # Aufruf ohne ihn mit http 403 ab (gemessen am 16.10.2026, Lauf #2).
+      # Im Skript geht er durch insights_sammler.hole, und dort prueft der
+      # Selbsttest den Kopf an der Anfrage selbst.
       - name: ergebnis nach ops
         if: always()
         env:
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
           LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          python3 - <<'EOF'
-          import glob, json, os, urllib.request
-          zeilen = []
-          for pfad in sorted(glob.glob("proben/*.json")):
-              try:
-                  d = json.load(open(pfad, encoding="utf-8"))
-              except (OSError, ValueError) as exc:
-                  zeilen.append("%s: nicht lesbar, %s" % (os.path.basename(pfad), exc))
-                  continue
-              zeilen.append("%s: %s" % (os.path.basename(pfad), d.get("ergebnis", "ohne ergebnis")))
-              for name, g in sorted((d.get("gruppen") or {}).items()):
-                  zeilen.append("  %s: %s%s" % (name, "da" if g.get("da") else "nein",
-                                                "" if g.get("da") else " (%s)" % g.get("lesart", "unklar")))
-              if "csv_noetig" in d:
-                  zeilen.append("  csv-export noetig: %s" % ("ja" if d["csv_noetig"] else "nein"))
-              f = d.get("feld_an_medien")
-              if f:
-                  zeilen.append("  is_trial an unseren medien: %s%s"
-                                % ("ja" if f.get("da") else "nein",
-                                   "" if f.get("da") else " (%s)" % f.get("lesart", "unklar")))
-              con = d.get("container")
-              if con:
-                  zeilen.append("  container: %s, beweis %s"
-                                % ("angelegt" if con.get("angelegt") else "nicht angelegt",
-                                   "ja" if con.get("beweis") else "nein"))
-          if not zeilen:
-              zeilen = ["keine probe hat eine datei geschrieben, siehe lauf"]
-          text = "uhrwerk-proben\n" + "\n".join(zeilen) + "\n" + os.environ.get("LAUF", "")
-          print(text)
-          hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
-          if not hook:
-              print("kein DISCORD_WEBHOOK_OPS, meldung nur im log")
-          else:
-              req = urllib.request.Request(
-                  hook, data=json.dumps({"content": text[:1990],
-                                         "allowed_mentions": {"parse": []}}).encode(),
-                  headers={"Content-Type": "application/json"}, method="POST")
-              with urllib.request.urlopen(req, timeout=30) as r:
-                  print("an ops, http", r.status)
-          EOF
+          python3 scripts/uhrwerk_proben.py --melden --ordner proben --modus "$MODUS"
 
       - name: proben als artefakt
         if: always()
