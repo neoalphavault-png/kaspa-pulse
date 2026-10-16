@@ -38,6 +38,7 @@ Tokens kommen nur aus der Umgebung und stehen in keiner Ausgabe.
 """
 import argparse
 import json
+import os
 import sys
 import urllib.parse
 from pathlib import Path
@@ -47,7 +48,7 @@ if str(HIER) not in sys.path:
     sys.path.insert(0, str(HIER))
 
 from insights_sammler import (GRAPH, X_API, X_GRUPPEN, Sammelfehler, ausgabe,  # noqa: E402
-                              hole, ig_konto, umgebung)
+                              hole, ig_konto, melden, umgebung)
 
 ZUGANG = {403: "zugangsstufe reicht nicht", 400: "anfrage abgelehnt",
           401: "token nicht gueltig", 429: "zu viele anfragen"}
@@ -165,6 +166,44 @@ def _trial_urteil(erg):
     return "kein hinweis auf trial reels in dieser api-version"
 
 
+# ---------------------------------------------------------------- bericht
+
+def bericht(ordner="proben"):
+    """Eine Zeile je Gruppe, aus den Dateien, die die Proben geschrieben
+    haben. Der Text ging bis zum 16.10.2026 als eingebautes Python im
+    Workflow raus - und genau dort fehlte der User-Agent, mit dem Discord
+    den Aufruf annimmt (http 403, gemessen an der ersten Probe). Jetzt
+    steht er hier, wird geprueft, und der Workflow ruft nur noch auf."""
+    zeilen = []
+    for pfad in sorted(Path(ordner).glob("*.json")):
+        try:
+            d = json.loads(pfad.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            zeilen.append("%s: nicht lesbar, %s" % (pfad.name, exc))
+            continue
+        zeilen.append("%s: %s" % (pfad.name, d.get("ergebnis", "ohne ergebnis")))
+        for name, g in sorted((d.get("gruppen") or {}).items()):
+            zeilen.append("  %s: %s%s" % (name, "da" if g.get("da") else "nein",
+                                          "" if g.get("da") else " (%s)"
+                                          % g.get("lesart", "unklar")))
+        if "csv_noetig" in d:
+            zeilen.append("  csv-export noetig: %s" % ("ja" if d["csv_noetig"] else "nein"))
+        f = d.get("feld_an_medien")
+        if f:
+            zeilen.append("  is_trial an unseren medien: %s%s"
+                          % ("ja" if f.get("da") else "nein",
+                             "" if f.get("da") else " (%s)" % f.get("lesart", "unklar")))
+        con = d.get("container")
+        if con:
+            zeilen.append("  container: %s, beweis %s"
+                          % ("angelegt" if con.get("angelegt") else "nicht angelegt",
+                             "ja" if con.get("beweis") else "nein"))
+    if not zeilen:
+        zeilen = ["keine probe hat eine datei geschrieben, siehe lauf"]
+    lauf = os.environ.get("LAUF", "")
+    return "uhrwerk-proben\n" + "\n".join(zeilen) + (("\n" + lauf) if lauf else "")
+
+
 # ---------------------------------------------------------------- selbsttest
 
 def selbsttest():
@@ -274,6 +313,53 @@ def selbsttest():
            os.environ["INSTAGRAM_PAGE_TOKEN"] not in json.dumps(e))
     finally:
         del os.environ["INSTAGRAM_PAGE_TOKEN"], os.environ["IG_USER_ID"]
+
+    # der bericht, der nach #moderator-only geht
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        Path(tmp, "x-metriken.json").write_text(json.dumps({
+            "ergebnis": "x liefert: public_metrics, non_public_metrics, organic_metrics",
+            "csv_noetig": False,
+            "gruppen": {"public_metrics": {"da": True},
+                        "non_public_metrics": {"da": True},
+                        "organic_metrics": {"da": False,
+                                            "lesart": "zugangsstufe reicht nicht"}}}),
+            encoding="utf-8")
+        Path(tmp, "trial-reels.json").write_text(json.dumps({
+            "ergebnis": "das feld is_trial gibt es an unseren medien",
+            "feld_an_medien": {"da": True}}), encoding="utf-8")
+        Path(tmp, "kaputt.json").write_text("{", encoding="utf-8")
+        os.environ["LAUF"] = "https://github.com/x/y/actions/runs/1"
+        try:
+            t = bericht(tmp)
+        finally:
+            del os.environ["LAUF"]
+        ok("jede gruppe steht einzeln im bericht",
+           t.count("  public_metrics: da") == 1 and "  organic_metrics: nein" in t)
+        ok("die lesart steht bei der abgelehnten gruppe",
+           "zugangsstufe reicht nicht" in t)
+        ok("csv-zeile ist dabei", "csv-export noetig: nein" in t)
+        ok("is_trial steht im bericht", "is_trial an unseren medien: ja" in t)
+        ok("eine kaputte datei wird genannt, nicht verschluckt",
+           "kaputt.json: nicht lesbar" in t)
+        ok("die adresse des laufs haengt unten dran",
+           t.rstrip().endswith("/actions/runs/1"))
+        ok("ohne dateien sagt der bericht das",
+           "keine probe" in bericht(str(Path(tmp, "leer"))))
+
+    # DER USER-AGENT. Discord lehnt einen Aufruf ohne ihn mit http 403 ab.
+    # Der Bericht geht durch insights_sammler.melden, und das prueft der
+    # Selbsttest dort an der Anfrage selbst; hier nur, dass dieses Skript
+    # wirklich denselben Weg nimmt und nicht wieder selbst baut.
+    import insights_sammler
+    ok("der bericht geht ueber melden aus insights_sammler",
+       melden is insights_sammler.melden)
+    quelle = Path(__file__).read_text(encoding="utf-8")
+    # Die Suchwoerter werden zusammengesetzt, sonst findet die Pruefung
+    # sich selbst in dieser Zeile.
+    verboten = ["urlo" + "pen", "web" + "hooks"]
+    ok("dieses skript baut keine eigene discord-anfrage",
+       not [w for w in verboten if w in quelle])
     print("%d pruefungen, alle gruen" % n[0])
 
 
@@ -287,11 +373,19 @@ def main(argv=None):
                     help="legt einen reel-container an, veroeffentlicht nichts")
     ap.add_argument("--video-url", default="")
     ap.add_argument("--cover-url", default="")
+    ap.add_argument("--melden", action="store_true",
+                    help="die ergebnisse aus proben/*.json nach #moderator-only")
+    ap.add_argument("--ordner", default="proben")
+    ap.add_argument("--modus", choices=("trocken", "scharf"), default="trocken")
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args(argv)
     try:
         if a.selbsttest:
             selbsttest()
+        elif a.melden:
+            text = bericht(a.ordner)
+            ausgabe(text)
+            melden(text, a.modus)
         elif a.x_metriken:
             ausgabe(json.dumps(x_probe(), ensure_ascii=False, indent=1, sort_keys=True))
         elif a.ig_trial_reels:

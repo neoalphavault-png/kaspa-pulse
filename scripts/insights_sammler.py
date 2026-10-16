@@ -103,13 +103,22 @@ def jetzt():
 
 # ---------------------------------------------------------------- http
 
-def hole(url, kopf=None, daten=None, methode="GET"):
+def hole(url, kopf=None, daten=None, methode="GET", oeffner=None):
+    """DER USER-AGENT STEHT HIER UND NIRGENDS SONST.
+
+    Discord lehnt einen urllib-Aufruf ohne User-Agent mit http 403 ab -
+    gemessen am 16.10.2026 an der Probe. urllib schickt von sich aus
+    "Python-urllib/3.x", und das reicht Discord nicht. Jeder Aufruf dieses
+    Moduls geht durch diese Funktion, also traegt jeder Aufruf den Kopf;
+    der Selbsttest prueft es an der Meldung selbst.
+
+    oeffner ist zum Pruefen da, sonst urllib."""
     req = urllib.request.Request(url, data=daten, method=methode)
     req.add_header("User-Agent", UA)
     for k, v in (kopf or {}).items():
         req.add_header(k, v)
     try:
-        with urllib.request.urlopen(req, timeout=FRIST) as r:
+        with (oeffner or urllib.request.urlopen)(req, timeout=FRIST) as r:
             roh = r.read().decode("utf-8", "replace")
             return json.loads(roh) if roh.strip() else {}
     except urllib.error.HTTPError as e:
@@ -124,8 +133,12 @@ def hole(url, kopf=None, daten=None, methode="GET"):
 
 
 def _weg(url):
-    """Nur Wirt und Pfad in die Meldung, nie die Parameter - dort steht das Token."""
+    """Nur Wirt und Pfad in die Meldung, nie die Parameter - dort steht das
+    Token. Beim Discord-Webhook ist der PFAD das Geheimnis, der faellt
+    deshalb ganz weg."""
     t = urllib.parse.urlsplit(url)
+    if "discord" in t.netloc and "/api/webhooks/" in t.path:
+        return t.netloc + "/api/webhooks/***"
     return t.netloc + t.path
 
 
@@ -509,15 +522,25 @@ def trichter(now=None, hole_fn=hole):
 
 # ---------------------------------------------------------------- meldung
 
-def melden(text, modus="trocken"):
+def melden(text, modus="trocken", oeffner=None):
+    """Eine Meldung nach #moderator-only.
+
+    AUCH IM TROCKENLAUF (Ben, 15.10.2026: "zwei Tage Trockenlauf nur nach
+    #moderator-only"). Das Uhrwerk schreibt ohnehin nirgendwo anders hin;
+    eine Meldung, die zwei Tage lang nur im Lauf-Log steht, sieht niemand,
+    und genau das soll der Trockenlauf ja zeigen. Trocken steht als
+    Kennzeichen davor, damit niemand eine Probe fuer den Ernstfall haelt.
+
+    Ohne Webhook bleibt die Meldung im Log und der Lauf bleibt gruen."""
     hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
-    if modus != "scharf" or not hook:
-        ausgabe("[%s] %s" % ("trocken" if modus != "scharf" else "kein webhook", text))
+    voll = text if modus == "scharf" else "[trockenlauf] %s" % text
+    if not hook:
+        ausgabe("[kein webhook] %s" % voll)
         return 0
-    leib = json.dumps({"content": sauber(text)[:1990],
+    leib = json.dumps({"content": sauber(voll)[:1990],
                        "allowed_mentions": {"parse": []}}).encode()
     try:
-        hole(hook, {"Content-Type": "application/json"}, leib, "POST")
+        hole(hook, {"Content-Type": "application/json"}, leib, "POST", oeffner)
     except Sammelfehler as exc:
         ausgabe("meldung nicht abgesetzt, %s" % exc)
         return 1
@@ -734,8 +757,58 @@ def selbsttest():
     finally:
         del os.environ["BREVO_API_KEY"]
 
+    # DIE MELDUNG AN DISCORD, mit Kopf. Ohne User-Agent antwortet Discord
+    # mit http 403, dann kommt kein Alarm an.
+    os.environ["DISCORD_WEBHOOK_OPS"] = "https://discord.com/api/webhooks/1/geheim"
+    try:
+        gesehen = []
+
+        class Antwort:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+
+            def read(self):
+                return b"{}"
+
+        def faenger(req, timeout=None):
+            gesehen.append(req)
+            return Antwort()
+
+        melden("reichweite 4100, faktor 3.4x", "scharf", faenger)
+        req = gesehen[-1]
+        kopf = {k.lower(): v for k, v in req.header_items()}
+        ok("die meldung traegt einen user-agent",
+           kopf.get("User-agent".lower()) == UA)
+        ok("und den inhaltstyp", kopf.get("content-type") == "application/json")
+        ok("sie geht als POST", req.get_method() == "POST")
+        ok("der text steht drin",
+           "4100" in json.loads(req.data.decode())["content"])
+        ok("niemand wird angepingt",
+           json.loads(req.data.decode())["allowed_mentions"] == {"parse": []})
+        ok("scharf traegt kein kennzeichen",
+           not json.loads(req.data.decode())["content"].startswith("["))
+        melden("reichweite 4100", "trocken", faenger)
+        ok("der trockenlauf meldet auch, nur gekennzeichnet",
+           json.loads(gesehen[-1].data.decode())["content"].startswith("[trockenlauf] "))
+        ok("beide meldungen sind wirklich rausgegangen", len(gesehen) == 2)
+
+        def kaputt(req, timeout=None):
+            raise urllib.error.URLError("kein netz")
+
+        ok("eine meldung, die nicht rausgeht, ist kein abbruch",
+           melden("egal", "scharf", kaputt) == 1)
+    finally:
+        del os.environ["DISCORD_WEBHOOK_OPS"]
+    ok("ohne webhook bleibt die meldung im log", melden("egal", "scharf") == 0)
+
     ok("ein fehlendes token ist ein sammelfehler, kein abbruch",
        isinstance(_fehlt_pruefen(), Sammelfehler))
+    ok("der webhook steht in keiner fehlermeldung",
+       _weg("https://discord.com/api/webhooks/1234/geheimerteil")
+       == "discord.com/api/webhooks/***")
     ok("parameter stehen nie in einer fehlermeldung",
        _weg("https://graph.facebook.com/v21.0/9/insights?access_token=EAxyz")
        == "graph.facebook.com/v21.0/9/insights")
