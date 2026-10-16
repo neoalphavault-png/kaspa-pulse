@@ -19,6 +19,11 @@ on:
 permissions:
   contents: read
 
+# pipefail, damit ein fehlgeschlagener selbsttest vor "| tail" den lauf stoppt (Ben, 15.10.2026)
+defaults:
+  run:
+    shell: bash --noprofile --norc -eo pipefail {0}
+
 concurrency:
   group: tn10-gebuehren
   cancel-in-progress: false

@@ -22,6 +22,11 @@ on:
 permissions:
   contents: read
 
+# pipefail, damit ein fehlgeschlagener selbsttest vor "| tail" den lauf stoppt (Ben, 15.10.2026)
+defaults:
+  run:
+    shell: bash --noprofile --norc -eo pipefail {0}
+
 concurrency:
   group: tn10-extra
   cancel-in-progress: false
@@ -47,6 +52,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: selbsttest
+        run: python3 scripts/tn10_zaehler.py --selbsttest | tail -n 1
       - name: grenzen der teile
         id: p
         run: python3 scripts/tn10_zaehler.py --plan "$(cat messung/tn10/extra/dauer.txt)" --segment "$(cat messung/tn10/extra/segment.txt)" --start messung/tn10/extra/start.txt | tee -a "$GITHUB_OUTPUT"
