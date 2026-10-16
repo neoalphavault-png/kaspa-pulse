@@ -319,7 +319,7 @@ KENNZAHLEN = {
     "hashrate_move": {
         "mess": ("hashrate",),
         "fmt": lambda v: "%.0f PH" % float(v),
-        "label": "petahash per second securing the network right now",
+        "label": "petahash per second securing the network",
         "quelle": "api.kaspa.org",
     },
     "tvl_move": {
@@ -435,7 +435,7 @@ def cand_cut_today(ctx):
                 "to %s."
                 % (verb, pct, when, fmt_int(gone),
                    fmt_millions(e_before), fmt_millions(e_after)),
-                "the live emission numbers are on " + HALVING_URL + ". the exact "
+                "the emission numbers are on " + HALVING_URL + ". the exact "
                 "minute drifts, the cut lands on a block score, not a clock."),
         },
     }
@@ -493,7 +493,7 @@ def cand_cut_countdown(ctx):
                 % (d, word, fmt_int(btc_days), int(btc_days / (STEP / DAY)),
                    fmt_millions(e_now), fmt_millions(e_next),
                    ctx["reward"], ctx["next_reward"]),
-                "the countdown runs live on " + HALVING_URL + ". the kaspa date "
+                "the countdown runs on " + HALVING_URL + ". the kaspa date "
                 "is arithmetic, the bitcoin date is an estimate."),
         },
     }
@@ -974,7 +974,7 @@ def cand_hashrate_consequence(ctx):
             "issue": issue_line(ctx["today"]),
             "eyebrow": "NUMBER OF THE DAY",
             "value": "%.0f PH" % now,
-            "value_label": "petahash per second securing the network right now",
+            "value_label": "petahash per second securing the network",
             "headline": "hashrate *up %.0f%%*.\nthe reward fell."
                         % change,
             "panes": [
