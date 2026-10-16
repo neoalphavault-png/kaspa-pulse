@@ -135,16 +135,55 @@ jobs:
         if: always() && steps.guard.outputs.stop != '1'
         run: |
           set -e
-          if git diff --quiet -- data/x-post-log.json; then
+          if git diff --quiet -- data/x-post-log.json data/insights/manifest.jsonl; then
             echo "log unveraendert"
             exit 0
           fi
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
-          git add data/x-post-log.json
+          # JE DATEI EIN git add: ein gemeinsames add bricht ganz ab, sobald
+          # eine der Dateien fehlt, und dann waere NICHTS vorgemerkt.
+          git add data/x-post-log.json 2>/dev/null || true
+          git add data/insights/manifest.jsonl 2>/dev/null || true
           git commit -m "weekly x post $(TZ=Europe/Berlin date +%F)"
+          rm -rf /tmp/x-eigen && mkdir -p /tmp/x-eigen
+          cp data/x-post-log.json /tmp/x-eigen/ 2>/dev/null || true
+          cp data/insights/manifest.jsonl /tmp/x-eigen/ 2>/dev/null || true
           for i in 1 2 3; do
-            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            if ! git pull --rebase --autostash origin main; then
+              echo "rebase-konflikt, eintraege werden vereint"
+              git rebase --abort 2>/dev/null || true
+              git reset --hard -q origin/main 2>/dev/null || true
+              python3 - <<'EOF'
+          import json, pathlib
+          eigen = pathlib.Path("/tmp/x-eigen")
+          q = eigen / "manifest.jsonl"
+          if q.exists():
+              z = pathlib.Path("data/insights/manifest.jsonl")
+              z.parent.mkdir(parents=True, exist_ok=True)
+              kennt = set(z.read_text(encoding="utf-8").splitlines() if z.exists() else [])
+              neu = [l for l in q.read_text(encoding="utf-8").splitlines()
+                     if l.strip() and l not in kennt]
+              if neu:
+                  with open(z, "a", encoding="utf-8") as fh:
+                      fh.write("\n".join(neu) + "\n")
+              print("manifest.jsonl: %d zeilen dazu" % len(neu))
+          q = eigen / "x-post-log.json"
+          if q.exists():
+              z = pathlib.Path("data/x-post-log.json")
+              fern = json.loads(z.read_text(encoding="utf-8")) if z.exists() else []
+              da = {e.get("key") for e in fern if e.get("key")}
+              dazu = [e for e in json.loads(q.read_text(encoding="utf-8"))
+                      if e.get("key") and e["key"] not in da]
+              fern.extend(dazu)
+              z.write_text(json.dumps(fern, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+              print("x-post-log.json: %d eintrag(e) dazu" % len(dazu))
+          EOF
+              git add data/x-post-log.json 2>/dev/null || true
+              git add data/insights/manifest.jsonl 2>/dev/null || true
+              git diff --staged --quiet || git commit -m "weekly x post $(TZ=Europe/Berlin date +%F)"
+            fi
+            git push origin HEAD:main && exit 0
             sleep $((i * 5))
           done
           echo "::error::x-log konnte nicht gepusht werden"; exit 1
