@@ -1229,11 +1229,57 @@ FAKE_LIVE_BARE = {
     "price_btc": None,
     "whale_kas": None,
 }
+def _feste_kerzen(tage=800, wochen=120):
+    """Eine feste Kerzenreihe fuer den Selbsttest.
+
+    EIN TEST DARF NICHT VOM TAGESWERT ABHAENGEN (Ben, 16.10.2026). Bis
+    hierher prueften die beiden Kerzenkandidaten gegen die echte
+    data/kas-candles.json. Am 16.10. rutschte der Abstand zu bitcoin auf
+    14,8 Prozent, die Schwelle im Kandidaten liegt bei 15 - und der
+    Selbsttest war rot, ohne dass sich eine Zeile Code geaendert hatte.
+    Ein Test, der an einem Tageswert haengt, prueft nicht den Code.
+
+    Die Reihe ist bewusst glatt und monoton: bitcoin steht fest, kas
+    faellt gleichmaessig von 60 auf gut 40 Satoshi. Daraus folgt alles,
+    was die beiden Kandidaten brauchen - ein Jahresabstand weit ueber
+    der Schwelle, zwoelf Monatspunkte, mehr als 52 Wochenschluesse und
+    eine Straehne unter der Linie."""
+    anfang = dt.date(2024, 5, 1)
+    btc = 100000.0
+
+    def sats(i, n):
+        return 60.0 - 20.0 * i / n
+
+    kas_daily, btc_daily = [], []
+    for i in range(tage):
+        tag = (anfang + dt.timedelta(days=i)).isoformat()
+        kas_daily.append([tag, round(sats(i, tage) * btc / 1e8, 8)])
+        btc_daily.append([tag, btc])
+    kas_weekly = []
+    for w in range(wochen):
+        tag = (anfang + dt.timedelta(days=7 * w)).isoformat()
+        kas_weekly.append([tag, round(sats(w, wochen) * btc / 1e8, 8)])
+    return {"kas_daily": kas_daily, "btc_daily": btc_daily,
+            "kas_weekly": kas_weekly}
+
+
+FAKE_CANDLES = _feste_kerzen()
 FAKE_HISTORY = [
     {"week": "2026-06-01", "hashrate": 250.0, "tvl_total": 900000.0},
     {"week": "2026-08-03", "hashrate": 342.5, "tvl_total": 1832947.0},
 ]
 def run_selftest():
+    # Jeder Kontext in diesem Selbsttest bekommt die feste Kerzenreihe.
+    # Nicht an den einzelnen Stellen, sondern hier an einer: ein spaeter
+    # dazugekommener Aufruf soll nicht stillschweigend wieder die echte
+    # Datei lesen. Wer ausdruecklich etwas anderes mitgibt (candles={}),
+    # behaelt es.
+    _echt_build_context = globals()["build_context"]
+
+    def build_context(*a, **kw):          # noqa: F811
+        kw.setdefault("candles", FAKE_CANDLES)
+        return _echt_build_context(*a, **kw)
+
     fails = []
     def ok(what, cond, extra=""):
         if cond:
@@ -1431,6 +1477,18 @@ def run_selftest():
            len(pane["bars"]))
         ok("der letzte monat ist hervorgehoben",
            pane["highlight"] == len(pane["bars"]) - 1)
+    # Die echte Kerzendatei wird trotzdem angefasst, nur ohne Erwartung an
+    # den Tageswert: sie muss lesbar sein und genug Zeilen tragen. Wird sie
+    # kurz oder kaputt, faellt es hier auf, und nicht erst morgens um 10:12.
+    echt = _echt_build_context(now_ts=ANCHOR_TS + 3 * DAY, live=FAKE_LIVE,
+                               history=FAKE_HISTORY)
+    ok("die echte kerzendatei ist lesbar und lang genug",
+       len(_weekly(echt)) >= EMA_WEEKS + 2
+       and len(_daily(echt, "kas_daily")) >= 400
+       and len(_daily(echt, "btc_daily")) >= 400,
+       "%d wochen, %d kas-tage, %d btc-tage" % (len(_weekly(echt)),
+                                                len(_daily(echt, "kas_daily")),
+                                                len(_daily(echt, "btc_daily"))))
     leer = build_context(now_ts=ANCHOR_TS + 3 * DAY, live=FAKE_LIVE,
                          history=FAKE_HISTORY, candles={})
     ok("ohne kerzendatei schweigt die wochenlinie",
