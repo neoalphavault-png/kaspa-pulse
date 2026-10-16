@@ -479,6 +479,7 @@ def o_flaeche_linie(x, y, w, h, werte):
     """Flaeche ab null im Resteton, Linie in Akzent, letzter Punkt markiert."""
     hi = max(werte) * 1.08
     n = len(werte)
+    w = w - 10                       # der endpunkt (r 10) bleibt aus dem rand
     pts = [(x + w * i / (n - 1), y + h - h * v / hi) for i, v in enumerate(werte)]
     linie = " ".join("%.1f,%.1f" % p for p in pts)
     return ("<polygon points='%.1f,%.1f %s %.1f,%.1f' fill='%s'/>"
@@ -1468,17 +1469,17 @@ CSS = """
 *{margin:0;padding:0;box-sizing:border-box}
 body{width:1080px;height:1350px;background:%(grund)s;position:relative;overflow:hidden;
   font-family:'IBM Plex Sans',sans-serif;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
-.kopf{position:absolute;left:60px;right:60px;top:60px;font-family:'Archivo',sans-serif;font-weight:800;
+.kopf{position:absolute;left:60px;right:60px;top:66px;font-family:'Archivo',sans-serif;font-weight:800;
   font-size:64px;line-height:1;letter-spacing:1px;color:%(text)s;white-space:nowrap}
-.zahl{position:absolute;left:56px;top:146px;font-family:'Archivo',sans-serif;font-weight:900;color:%(text)s;
+.zahl{position:absolute;left:60px;top:146px;font-family:'Archivo',sans-serif;font-weight:900;color:%(text)s;
   line-height:0.86;letter-spacing:-4px;white-space:nowrap}
 .zahl .einheit{font-size:0.36em;font-weight:800;letter-spacing:0;margin-left:18px}
 .bed{position:absolute;left:60px;right:60px;font-weight:500;font-size:44px;line-height:1.18;color:%(akzent)s}
 .bed.fett{font-family:'Archivo',sans-serif;font-weight:800;font-size:64px;line-height:1.05}
 .datum{position:absolute;left:60px;right:60px;bottom:132px;font-family:'IBM Plex Mono',monospace;
   font-weight:400;font-size:34px;line-height:1.28;color:%(text2)s;letter-spacing:-0.5px}
-.sig{position:absolute;left:0;right:0;bottom:60px;height:48px;display:flex;align-items:center;
-  justify-content:center;gap:16px}
+.sig{position:absolute;left:50%%;transform:translateX(-50%%);bottom:60px;height:48px;display:flex;
+  align-items:center;gap:16px}
 .sig img{width:38px;height:auto;display:block;filter:%(falke)s}
 .sig span{font-weight:600;font-size:34px;letter-spacing:4px;color:%(text)s;white-space:nowrap}
 .sig svg{width:170px;height:48px;display:block}
@@ -1534,9 +1535,10 @@ def html(s, falke, look=None):
     else:
         ziffern, einheit = zahl_teilen(s["zahl"])
         zahl = ("<div class='zahl' data-rolle='zahl' style='font-size:%dpx'>%s%s</div>"
-                % (zg, esc(ziffern), "<span class='einheit'>%s</span>" % esc(einheit) if einheit else ""))
+                % (zg, esc(ziffern), "<span class='einheit' data-rolle='einheit'>%s</span>" % esc(einheit)
+                   if einheit else ""))
     obj = s["objekt"](x, y, w, h)
-    sig = ("<div class='sig'><img src='%s' alt=''><span>KASPA PULSE</span>"
+    sig = ("<div class='sig' data-rolle='fuss'><img src='%s' alt=''><span>KASPA PULSE</span>"
            "<svg viewBox='0 0 230 48'><path d='%s' fill='none' "
            "stroke='%s' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'/></svg></div>"
            % (falke, PULS, MARK))
@@ -1588,15 +1590,17 @@ LAYOUT_JS = """() => {
   return f; }""" % {"rechts": 1080 - RAND, "rand": RAND}
 
 
-def rendern(seite, out, vorschau=VORSCHAU, browser=None):
+def rendern(seite, out, vorschau=VORSCHAU, browser=None, kanal="instagram"):
     """Rendert eine Seite. vorschau=0 laesst die kleine Vorschau weg. Mit
-    browser wird ein offener Chromium genutzt (Kontaktbogen, mehrere Kanaele)."""
+    browser wird ein offener Chromium genutzt (Kontaktbogen, mehrere Kanaele).
+    Nach dem Screenshot misst content_wache das Bild fuer den Kanal, ein
+    Verstoss stoppt den Lauf."""
     if browser is None:
         from playwright.sync_api import sync_playwright
         with sync_playwright() as p:
             b = chromium_start(p)
             try:
-                return rendern(seite, out, vorschau, b)
+                return rendern(seite, out, vorschau, b, kanal)
             finally:
                 b.close()
     out = Path(out)
@@ -1617,6 +1621,10 @@ def rendern(seite, out, vorschau=VORSCHAU, browser=None):
         if ueber or breit:
             raise Stop("inhalt ist %d px zu hoch und %d px zu breit, text kuerzen" % (ueber, breit))
         pg.screenshot(path=str(out))
+        import content_wache
+        verstoesse = content_wache.pruefe_seite(pg, kanal, out)
+        if verstoesse:
+            raise Stop("wache %s, %s" % (out.name, "; ".join(verstoesse)))
     finally:
         pg.close()
     if vpfad:
@@ -1978,12 +1986,12 @@ def kanaele_rendern(s, falke, png, heute, speicher=None):
     with sync_playwright() as p:
         b = chromium_start(p)
         try:
-            png, vpng = rendern(html(s, falke, looks["instagram"]), png, VORSCHAU, b)
+            png, vpng = rendern(html(s, falke, looks["instagram"]), png, VORSCHAU, b, "instagram")
             for k in look_takt.KANAELE:
                 if k == "instagram":
                     continue
                 kanalbilder[k], _ = rendern(html(s, falke, looks[k]),
-                                            png.with_name("%s-%s.png" % (png.stem, k)), 0, b)
+                                            png.with_name("%s-%s.png" % (png.stem, k)), 0, b, k)
         finally:
             b.close()
             look_setzen("dunkel")

@@ -126,10 +126,10 @@ body{
 .value-label{font-size:42px;color:var(--dim);margin-top:8px;line-height:1.2}
 h1{font-family:'Archivo',sans-serif;font-weight:800;font-size:64px;letter-spacing:-1px;line-height:1.03;margin:12px 0 0}
 em{font-style:normal;color:var(--teal);font-weight:inherit}
-.panes{display:flex;flex-direction:column;gap:12px;flex:1;margin-top:14px}
+.panes{display:flex;flex-direction:column;gap:12px;flex:1 1 auto;min-height:0;margin-top:14px}
 .p{background:var(--card);border:2px solid var(--line);border-radius:20px;
    padding:16px 24px 16px;display:flex;flex-direction:column}
-.p.grow{flex:1}
+.p.grow{flex:1 1 auto;min-height:0}
 .lbl{font-size:34px;letter-spacing:2px;color:var(--dimmer);margin-bottom:2px;font-weight:600}
 .lbl2{font-size:34px;color:var(--dimmer);margin-bottom:12px;line-height:1.22}
 /* horizontale balken. der laengere balken ist bewusst der langweilige,
@@ -391,13 +391,13 @@ def chromium_start(p):
     return p.chromium.launch(**launch)
 
 
-def shoot(html: str, out_png: Path, browser=None) -> None:
+def shoot(html: str, out_png: Path, browser=None, kanal: str = "x") -> None:
     if browser is None:
         from playwright.sync_api import sync_playwright
         with sync_playwright() as p:
             b = chromium_start(p)
             try:
-                return shoot(html, out_png, b)
+                return shoot(html, out_png, b, kanal)
             finally:
                 b.close()
     tmp = out_png.with_suffix(".html")
@@ -423,6 +423,10 @@ def shoot(html: str, out_png: Path, browser=None) -> None:
                 f"do not shrink the fonts."
             )
         page.screenshot(path=str(out_png))
+        # die gemeinsame wache misst das fertige bild (groessen, rand,
+        # sichtbarer text), ein verstoss stoppt den lauf
+        import content_wache
+        content_wache.stoppen(content_wache.pruefe_seite(page, kanal, out_png), out_png.name)
     finally:
         page.close()
 
@@ -453,7 +457,7 @@ def kanaele_rendern(d: dict, out: Path, tag: str, speicher=None, merken=False):
         try:
             for k in KANAELE:
                 ziel = kanal_pfad(out, k)
-                shoot(render_html(d, looks[k]), ziel, b)
+                shoot(render_html(d, looks[k]), ziel, b, k)
                 ziel.with_suffix(".html").unlink(missing_ok=True)
                 aus[k] = (ziel, looks[k])
         finally:
