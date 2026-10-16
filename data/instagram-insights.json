@@ -53,6 +53,13 @@
      "comments": 1,
      "saved": 1,
      "shares": 0
+    },
+    "2026-10-16": {
+     "reach": 76,
+     "likes": 9,
+     "comments": 1,
+     "saved": 1,
+     "shares": 0
     }
    }
   },
@@ -445,6 +452,13 @@
      "comments": 0,
      "saved": 4,
      "shares": 2
+    },
+    "2026-10-16": {
+     "reach": 1791,
+     "likes": 14,
+     "comments": 0,
+     "saved": 4,
+     "shares": 2
     }
    }
   },
@@ -487,6 +501,13 @@
      "comments": 0,
      "saved": 3,
      "shares": 0
+    },
+    "2026-10-16": {
+     "reach": 31,
+     "likes": 6,
+     "comments": 0,
+     "saved": 3,
+     "shares": 0
     }
    }
   },
@@ -522,6 +543,13 @@
      "comments": 0,
      "saved": 4,
      "shares": 3
+    },
+    "2026-10-16": {
+     "reach": 59,
+     "likes": 6,
+     "comments": 0,
+     "saved": 4,
+     "shares": 3
     }
    }
   },
@@ -550,6 +578,13 @@
      "comments": 3,
      "saved": 4,
      "shares": 1
+    },
+    "2026-10-16": {
+     "reach": 1823,
+     "likes": 20,
+     "comments": 3,
+     "saved": 4,
+     "shares": 1
     }
    }
   },
@@ -574,6 +609,13 @@
     },
     "2026-10-15": {
      "reach": 36,
+     "likes": 6,
+     "comments": 0,
+     "saved": 2,
+     "shares": 3
+    },
+    "2026-10-16": {
+     "reach": 40,
      "likes": 6,
      "comments": 0,
      "saved": 2,
@@ -606,6 +648,13 @@
      "comments": 1,
      "saved": 3,
      "shares": 1
+    },
+    "2026-10-16": {
+     "reach": 102,
+     "likes": 10,
+     "comments": 1,
+     "saved": 3,
+     "shares": 1
     }
    }
   },
@@ -617,6 +666,13 @@
     "2026-10-15": {
      "reach": 0,
      "likes": 1,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    },
+    "2026-10-16": {
+     "reach": 48,
+     "likes": 4,
      "comments": 0,
      "saved": 0,
      "shares": 0
@@ -637,9 +693,33 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-16": {
+     "reach": 29,
+     "likes": 3,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    }
+   }
+  },
+  "17945726256343481": {
+   "gepostet_utc": "2026-10-16T07:31:12+0000",
+   "typ": "IMAGE",
+   "permalink": "https://www.instagram.com/p/DejAIzem70g/",
+   "form": 10,
+   "caption_sha": null,
+   "frage": null,
+   "tage": {
+    "2026-10-16": {
+     "reach": 5,
+     "likes": 1,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   }
  },
- "stand_utc": "2026-10-15T10:17:28+00:00"
+ "stand_utc": "2026-10-16T10:06:19+00:00"
 }
