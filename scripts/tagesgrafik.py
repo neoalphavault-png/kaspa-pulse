@@ -13,10 +13,16 @@ wird. Der Rahmen ist bei allen gleich, nur das Objekt wechselt: Kopfzeile
 oben links, die eine Zahl, das Objekt, eine Bedeutungszeile, eine kleine
 Datumszeile mit Messzeit und Herkunft, unten die Signatur (Falke, KASPA
 PULSE, Pulslinie mit einer EKG-Zacke in #49EACB). Das Logo steht nur unten.
-Hoechstens vier Texte. Farben #080B0F, Akzent #49EACB, dritter Ton #2B7A6C
-fuer den Rest der Daten, Weiss nur fuer Kopf und Zahl. Keine Verlaeufe, kein
-Glow, keine Rahmen, Balken ab null. Hausschrift wie number_of_day.py
-(Liberation Sans auf dem Runner). 1080x1350, Vorschau 390 px.
+Hoechstens vier Texte. Keine Verlaeufe, kein Glow, keine Rahmen, Balken ab
+null. 1080x1350, Vorschau 390 px.
+
+LOOK-TAKT SEIT 15.10.2026 (Ben). Drei Looks, dunkel, hell und teal, Farben
+in look_takt.LOOKS. Je Kanal (instagram, threads, x, discord) ein eigenes
+Bild im Look aus seinem Takt dunkel, hell, teal, hell; der Speicher ist
+data/look-takt.json. Die Form kommt weiter aus dem Wochentag. Schriften
+eingebettet (Archivo, IBM Plex Mono, IBM Plex Sans). Groessen nach der
+Feed-Tabelle: Kopf 64, grosse Zahl ab 200, alles Kleine ab 34, Rand 60,
+Fusszeile mittig. Zwei Diagramme nie nebeneinander (GERUEST).
 
 ELF FORMEN, jede mit eigener Vorlage (FORMEN unten) und eigener Messung:
 
@@ -83,7 +89,8 @@ derselben Kennzahl (NOTD_KENNZAHL, FORM_KENNZAHL). Ereignisse eingeschlossen.
 GEGEN WAS? (v5). Jedes Objekt zeigt den Vergleich selbst: eine zweite Groesse
 im selben Massstab, den Rest einer Flaeche oder vorher gegen nachher.
 
-AUSGABE: PNG 1080x1350, Vorschau 390 px, Discord-Text, X-Text, die
+AUSGABE: PNG 1080x1350 je Kanal (das Instagram-Bild ohne Kanal im Namen,
+dazu -threads, -x, -discord), Vorschau 390 px, Discord-Text, X-Text, die
 Antwort unter dem X-Post und eine Zeile Selbstpruefung. Mit --senden geht alles an DISCORD_WEBHOOK_OPS
 (#moderator-only). Es gibt keinen oeffentlichen Post aus diesem Skript.
 
@@ -345,6 +352,27 @@ DATUMSZEILE_MAX = 140
 # Farben (Hausnorm seit 29.09.2026): Hintergrund, Akzent, und genau ein
 # dritter Ton fuer den "Rest" der Daten. Weiss nur fuer Kopf und Zahl.
 BG, AK, RESTTON, WEISS = "#080B0F", "#49EACB", "#2B7A6C", "#FFFFFF"
+# Seit dem Look-Takt (Ben, 15.10.2026) setzt look_setzen() diese Farben je
+# Bild aus look_takt.LOOKS. TEXT2 ist die zweite Textfarbe (Datum, kleine
+# Beschriftung), MARK die Markierung (Pulslinie).
+TEXT2, MARK, FALKE_FILTER, LOOK = "#A9B7B4", "#49EACB", "none", "dunkel"
+
+
+def look_setzen(name):
+    """Stellt alle Farben auf einen Look. Die Vorlagen lesen die Farben beim
+    Zeichnen, also gilt der Look fuer das naechste html()."""
+    global BG, AK, RESTTON, WEISS, AK_DUNKEL, TEXT2, MARK, FALKE_FILTER, LOOK
+    import look_takt
+    lk = look_takt.look(name)
+    BG, AK, RESTTON, WEISS = lk["grund"], lk["akzent"], lk["rest"], lk["text"]
+    AK_DUNKEL, TEXT2, MARK, FALKE_FILTER, LOOK = (lk["akzent2"], lk["text2"], lk["markierung"],
+                                                  lk["falke"], name)
+
+
+def schrift(farbe):
+    """Textfarbe zu einer Datenfarbe. Der Resteton ist im hellen und im
+    Teal-Look zu blass fuer Schrift, dort steht TEXT2."""
+    return TEXT2 if farbe == RESTTON else farbe
 
 # Eine Blockrate je Lauf, fuer jede Form, die eine braucht, ueber 10 Minuten
 # gemessen (Ben, 30.09.2026). 60 Sekunden schwankten zwischen 9.75 und 9.93.
@@ -374,9 +402,10 @@ def gestern(now):
 
 # --------------------------------------------------------------- objekte
 
-def o_punkte(x, y, w, h, n, farbe=AK, hervor=0, hervor_farbe=AK, r=0.36):
+def o_punkte(x, y, w, h, n, farbe=None, hervor=0, hervor_farbe=None, r=0.36):
     """n Punkte im Raster, so gross wie das Feld es erlaubt. Die letzten
     `hervor` Punkte in hervor_farbe."""
+    farbe, hervor_farbe = farbe or AK, hervor_farbe or AK
     if n <= 0:
         return ""
     best = None
@@ -441,8 +470,8 @@ def o_zwei_saeulen(x, y, w, h, links, rechts):
         hs = max((h - unter) * v / hi, 4)
         s += ("<rect x='%.1f' y='%.1f' width='%.1f' height='%.1f' rx='4' fill='%s'/>"
               % (x0 + i * (bw + gap), y + h - unter - hs, bw, hs, farbe))
-        s += ("<text x='%.1f' y='%.1f' fill='%s' font-size='30' text-anchor='middle'>%s</text>"
-              % (x0 + i * (bw + gap) + bw / 2, y + h - 12, farbe, text))
+        s += ("<text x='%.1f' y='%.1f' fill='%s' font-size='34' text-anchor='middle'>%s</text>"
+              % (x0 + i * (bw + gap) + bw / 2, y + h - 12, schrift(farbe), text))
     return s
 
 
@@ -513,8 +542,8 @@ def vorlage_1(w, now):
             hs = (hh - unter) * v / hi
             s += ("<rect x='%.1f' y='%.1f' width='%.1f' height='%.1f' rx='4' fill='%s'/>"
                   % (x0 + i * (bw + gap), y + hh - unter - hs, bw, hs, farbe))
-            s += ("<text x='%.1f' y='%.1f' fill='%s' font-size='30' text-anchor='middle'>%s</text>"
-                  % (x0 + i * (bw + gap) + bw / 2, y + hh - 10, farbe, tag_kurz(t[-1 if i else 0])))
+            s += ("<text x='%.1f' y='%.1f' fill='%s' font-size='34' text-anchor='middle'>%s</text>"
+                  % (x0 + i * (bw + gap) + bw / 2, y + hh - 10, schrift(farbe), tag_kurz(t[-1 if i else 0])))
         return s
     ganzzahl = abs(round(k["pct"]))
     wie = "rose" if k["pct"] > 0 else "fell"
@@ -651,9 +680,9 @@ def vorlage_3(w, now):
         # die zahl steht neben der naechsten stufe, nicht darueber
         xs = x + len(w["stufen"]) * (bw + gap) + 24
         ys = y + hh - hh * w["stufen"][-1] / max(w["stufen"])
-        s += ("<text x='%.1f' y='%.1f' fill='%s' font-weight='700' font-size='200' "
-              "letter-spacing='-6'>%d</text><text x='%.1f' y='%.1f' fill='%s' font-weight='700' "
-              "font-size='64'>day%s</text>" % (xs, ys + 150, WEISS, tage, xs + 6, ys + 222, WEISS,
+        s += ("<text x='%.1f' y='%.1f' fill='%s' font-family='Archivo' font-weight='900' "
+              "font-size='220' letter-spacing='-6' data-rolle='zahl'>%d</text><text x='%.1f' y='%.1f' "
+              "fill='%s' font-family='Archivo' font-weight='800' font-size='64'>day%s</text>" % (xs, ys + 150, WEISS, tage, xs + 6, ys + 222, WEISS,
                                               "" if tage == 1 else "s"))
         # die beiden letzten stufen tragen ihren wert, klein ueber der saeule
         # (Ben, 02.10.2026). kein eigenes textelement der seite, die zahl
@@ -661,9 +690,9 @@ def vorlage_3(w, now):
         n = len(w["stufen"])
         for i, farbe in ((n - 2, RESTTON), (n - 1, AK)):
             v = w["stufen"][i]
-            s += ("<text x='%.1f' y='%.1f' fill='%s' font-size='30' font-weight='700' "
+            s += ("<text x='%.1f' y='%.1f' fill='%s' font-size='34' font-weight='600' "
                   "text-anchor='middle'>%.2f</text>" % (x + i * (bw + gap) + bw / 2,
-                                                       y + hh - hh * v / max(w["stufen"]) - 14, farbe, v))
+                                                       y + hh - hh * v / max(w["stufen"]) - 14, schrift(farbe), v))
         return s
     return {"kopf": "NEXT REWARD CUT", "zahl": zahl, "zahl_im_objekt": True,
             "bedeutung": "KAS per block, one step a month. the next step, %s, %s" % (tag(t.date()), uhr(t)),
@@ -790,13 +819,14 @@ def vorlage_6(w, now):
             s.append("<rect x='%.1f' y='%.1f' width='6' height='80' rx='3' fill='%s'/>"
                      % (mx - (0 if k == 0 else 3), ym - 40, RESTTON))
         s.append("<text x='%.1f' y='%.1f' fill='%s' font-size='34'>nov 2021</text>"
-                 % (x, ym + 96, RESTTON))
+                 % (x, ym + 96, TEXT2))
         s.append("<rect x='%.1f' y='%.1f' width='6' height='120' rx='3' fill='%s'/>"
                  % (xc - 3, ym - 60, AK))
         s.append("<text x='%.1f' y='%.1f' fill='%s' font-size='34' text-anchor='middle'>may 2025</text>"
                  % (xc, ym - 84, AK))
         s.append("<circle cx='%.1f' cy='%.1f' r='18' fill='%s'/>" % (x_ende, ym, AK))
-        s.append("<text x='%.1f' y='%.1f' fill='%s' font-size='64' font-weight='700'>%dM</text>"
+        s.append("<text x='%.1f' y='%.1f' fill='%s' font-size='64' font-family='Archivo' "
+                 "font-weight='800'>%dM</text>"
                  % (x_ende + 40, ym + 23, AK, mio))
         return "".join(s)
     jahre = (now - dt.datetime(2021, 11, 7, tzinfo=dt.timezone.utc)).days / 365.25
@@ -941,8 +971,8 @@ def o_tagesspalten(x, y, w, h, werte, beschriftung):
             else:
                 cy, farbe = yl + luft / 2 + (j // k) * pz + pz / 2, RESTTON
             s.append("<circle cx='%.1f' cy='%.1f' r='%.1f' fill='%s'/>" % (cx, cy, pz * 0.36, farbe))
-        s.append("<text x='%.1f' y='%.1f' fill='%s' font-size='30' text-anchor='middle'>%s</text>"
-                 % (x + i * (cw + gap) + cw / 2, y + h - 10, RESTTON, beschriftung[i]))
+        s.append("<text x='%.1f' y='%.1f' fill='%s' font-size='34' text-anchor='middle'>%s</text>"
+                 % (x + i * (cw + gap) + cw / 2, y + h - 10, TEXT2, beschriftung[i]))
     return "".join(s)
 
 
@@ -1045,8 +1075,8 @@ def vorlage_11(w, now):
                                            (RESTTON, "moved within a year, %.2f%%" % (100 - p1)))):
             yl = yb + bh + 60 + i * 50
             s += ("<rect x='%.1f' y='%.1f' width='26' height='26' rx='4' fill='%s'/>"
-                  "<text x='%.1f' y='%.1f' fill='%s' font-size='30'>%s</text>"
-                  % (x, yl - 23, farbe, x + 42, yl, farbe, text))
+                  "<text x='%.1f' y='%.1f' fill='%s' font-size='34'>%s</text>"
+                  % (x, yl - 25, farbe, x + 42, yl, schrift(farbe), text))
         return s
     return {"kopf": "SLEEPING COINS", "zahl": "%.2f%%" % p1, "bedeutung": bed,
             "zusatz": "", "herkunft": "source kaspalytics, age estimated by daa score, %s" % tag(d),
@@ -1422,30 +1452,41 @@ def texte(s, form, messzeit):
 
 
 # ------------------------------------------------------------ rendern
-# Hausschrift wie number_of_day.py. Auf dem Runner und lokal ist das
-# Liberation Sans, deren Ziffern gleich breit sind.
+# Schriften seit dem Look-Takt (Ben, 15.10.2026) eingebettet, aus
+# graphics/fonts: Archivo 800/900 fuer Kopf und Zahl, IBM Plex Mono fuer die
+# Datumszeile, IBM Plex Sans fuer Bedeutung, Beschriftung und Fusszeile.
+# Damit misst der Runner dieselben Breiten wie ein Lauf von Hand.
+#
+# Groessen nach der Tabelle fuer den Instagram-Feed: Kopf 64, grosse Zahl ab
+# 200, alles Kleine ab 34, Inhalt mindestens 60 px vom Rand, die Fusszeile
+# mittig, nicht in einer Ecke. data-rolle markiert Kopf und Zahl fuer die
+# Groessenwache.
 
-HAUS = "'Helvetica Neue',Helvetica,Arial,sans-serif"
+RAND = 60
+HAUS = "IBM Plex Sans"
 CSS = """
 *{margin:0;padding:0;box-sizing:border-box}
-body{width:1080px;height:1350px;background:%s;position:relative;overflow:hidden;
-  font-family:%s;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
-.kopf{position:absolute;left:64px;top:56px;font-weight:700;font-size:40px;letter-spacing:5px;color:%s}
-.zahl{position:absolute;left:60px;top:118px;font-weight:700;color:%s;line-height:0.86;
-  letter-spacing:-5px;white-space:nowrap}
-.bed{position:absolute;left:64px;right:64px;font-weight:400;font-size:44px;line-height:1.18;color:%s}
-.bed.fett{font-weight:700;font-size:60px}
-.datum{position:absolute;left:64px;right:64px;bottom:100px;font-weight:400;font-size:30px;
-  line-height:1.3;color:%s;letter-spacing:0.3px}
-.sig{position:absolute;left:64px;right:0;bottom:36px;height:44px;display:flex;align-items:center;gap:14px}
-.sig img{width:34px;height:auto;display:block}
-.sig span{font-weight:700;font-size:28px;letter-spacing:3px;color:%s;white-space:nowrap}
-.sig svg{flex:1;height:44px;display:block}
+body{width:1080px;height:1350px;background:%(grund)s;position:relative;overflow:hidden;
+  font-family:'IBM Plex Sans',sans-serif;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
+.kopf{position:absolute;left:60px;right:60px;top:60px;font-family:'Archivo',sans-serif;font-weight:800;
+  font-size:64px;line-height:1;letter-spacing:1px;color:%(text)s;white-space:nowrap}
+.zahl{position:absolute;left:56px;top:146px;font-family:'Archivo',sans-serif;font-weight:900;color:%(text)s;
+  line-height:0.86;letter-spacing:-4px;white-space:nowrap}
+.zahl .einheit{font-size:0.36em;font-weight:800;letter-spacing:0;margin-left:18px}
+.bed{position:absolute;left:60px;right:60px;font-weight:500;font-size:44px;line-height:1.18;color:%(akzent)s}
+.bed.fett{font-family:'Archivo',sans-serif;font-weight:800;font-size:64px;line-height:1.05}
+.datum{position:absolute;left:60px;right:60px;bottom:132px;font-family:'IBM Plex Mono',monospace;
+  font-weight:400;font-size:34px;line-height:1.28;color:%(text2)s;letter-spacing:-0.5px}
+.sig{position:absolute;left:0;right:0;bottom:60px;height:48px;display:flex;align-items:center;
+  justify-content:center;gap:16px}
+.sig img{width:38px;height:auto;display:block;filter:%(falke)s}
+.sig span{font-weight:600;font-size:34px;letter-spacing:4px;color:%(text)s;white-space:nowrap}
+.sig svg{width:170px;height:48px;display:block}
 .obj{position:absolute;left:0;top:0}
-""" % (BG, HAUS, WEISS, WEISS, AK, RESTTON, AK)
+"""
 
-# eine ekg-zacke, duenn, sonst flach. breite folgt dem flex-rest.
-PULS = "M0,30 L120,30 L140,30 L152,10 L166,44 L178,4 L190,34 L200,30 L2000,30"
+# eine ekg-zacke, duenn, sonst flach.
+PULS = "M0,30 L60,30 L80,30 L92,10 L106,44 L118,4 L130,34 L140,30 L230,30"
 
 
 def esc(t):
@@ -1454,99 +1495,139 @@ def esc(t):
 
 
 def zahlgroesse(z):
-    n = len(z)
-    return 210 if n <= 6 else 180 if n <= 8 else 150 if n <= 10 else 120
+    """Nie unter 200 (Feed). Was dort nicht passt, bekommt die Einheit
+    kleiner daneben (zahl_teilen), die Ziffern bleiben gross."""
+    n = len(zahl_teilen(z)[0])
+    return 240 if n <= 6 else 220 if n <= 7 else 200
 
 
-# Zonen: Zahl 118 bis ~310, Objekt bis 1020, Bedeutung ab 1046,
-# Datumszeile ueber der Signatur. Das Objekt hat bei allen Formen dieselbe Zone.
-OBJ = (64, 350, 952, 720)
+def zahl_teilen(z):
+    """("344.5", "PH/s") fuer eine Zahl mit Einheit aus Buchstaben, sonst
+    (z, ""). Prozent und ein x bleiben an der Zahl."""
+    m = re.match(r"^([+\-]?[\d.,]+[%x]?)\s+([A-Za-z/][A-Za-z/ ]*)$", z)
+    return (m.group(1), m.group(2)) if m else (z, "")
+
+
+# Zonen: Zahl ab 146, Objekt darunter bis Y_OBJ_ENDE, Bedeutung ab Y_BED
+# (hoechstens zwei Zeilen), die Datumszeile von unten ueber der Fusszeile
+# (hoechstens drei Zeilen). Das Objekt hat bei allen Formen dieselbe Zone.
+Y_BED, Y_OBJ_ENDE = 962, 922
+OBJ = (RAND, 380, 1080 - 2 * RAND, Y_OBJ_ENDE - 380)
 
 
 def objektzone(zg, zahl_im_objekt=False):
     x, _, w, _ = OBJ
     if zahl_im_objekt:
-        return x, 150, w, 870
-    y = 118 + zg * 0.86 + 50
-    return x, y, w, 1020 - y
+        return x, 160, w, Y_OBJ_ENDE - 160
+    y = 146 + zg * 0.86 + 44
+    return x, y, w, Y_OBJ_ENDE - y
 
 
-def html(s, falke):
+def html(s, falke, look=None):
+    if look:
+        look_setzen(look)
+    import look_takt
     zg = zahlgroesse(s["zahl"])
     x, y, w, h = objektzone(zg, s.get("zahl_im_objekt"))
     if s.get("zahl_im_objekt"):
         zahl = ""
     else:
-        zahl = "<div class='zahl' style='font-size:%dpx'>%s</div>" % (zg, esc(s["zahl"]))
+        ziffern, einheit = zahl_teilen(s["zahl"])
+        zahl = ("<div class='zahl' data-rolle='zahl' style='font-size:%dpx'>%s%s</div>"
+                % (zg, esc(ziffern), "<span class='einheit'>%s</span>" % esc(einheit) if einheit else ""))
     obj = s["objekt"](x, y, w, h)
     sig = ("<div class='sig'><img src='%s' alt=''><span>KASPA PULSE</span>"
-           "<svg viewBox='0 0 900 44' preserveAspectRatio='xMinYMid slice'><path d='%s' fill='none' "
+           "<svg viewBox='0 0 230 48'><path d='%s' fill='none' "
            "stroke='%s' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'/></svg></div>"
-           % (falke, PULS, AK))
-    return ("<!DOCTYPE html><html><head><meta charset='utf-8'><style>%s</style></head><body>"
-            "<div class='kopf'>%s</div>%s"
+           % (falke, PULS, MARK))
+    css = look_takt.schriften_css() + CSS % {
+        "grund": BG, "text": WEISS, "text2": TEXT2, "akzent": AK, "falke": FALKE_FILTER}
+    return ("<!DOCTYPE html><html><head><meta charset='utf-8'><style>%s</style></head><body data-look='%s'>"
+            "<div class='kopf' data-rolle='titel'>%s</div>%s"
             "<svg class='obj' width='1080' height='1350' viewBox='0 0 1080 1350' "
             "font-family=\"%s\">%s</svg>"
-            "<div class='bed%s' style='top:1046px'>%s</div>"
+            "<div class='bed%s' style='top:%dpx'>%s</div>"
             "<div class='datum'>%s</div>%s</body></html>") % (
-        CSS, esc(s["kopf"]), zahl, HAUS.replace("'", ""), obj,
-        " fett" if s.get("bedeutung_fett") else "", esc(s["bedeutung"]), esc(s["datumszeile"]), sig)
+        css, LOOK, esc(s["kopf"]), zahl, HAUS, obj,
+        " fett" if s.get("bedeutung_fett") else "", Y_BED, esc(s["bedeutung"]),
+        esc(s["datumszeile"]), sig)
 
 
-def rendern(seite, out, vorschau=VORSCHAU):
-    from playwright.sync_api import sync_playwright
+def chromium_start(p):
     launch = {}
     for c in ("/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
               "/opt/pw-browsers/chromium/chrome-linux/chrome"):
         if os.path.exists(c):
             launch["executable_path"] = c
             break
+    return p.chromium.launch(**launch)
+
+
+LAYOUT_JS = """() => {
+  const r = s => { const e = document.querySelector(s); return e ? e.getBoundingClientRect() : null; };
+  const bed = r('.bed'), dat = r('.datum'), sig = r('.sig'), zahl = r('.zahl');
+  const f = [];
+  if (bed && dat && bed.bottom > dat.top - 14) f.push('bedeutung stoesst an die datumszeile');
+  if (dat && sig && dat.bottom > sig.top - 8) f.push('datumszeile stoesst an die signatur');
+  if (zahl && zahl.right > %(rechts)d) f.push('zahl laeuft rechts hinaus (' + Math.round(zahl.right) + ' px)');
+  for (const [sel, name] of [['.bed', 'bedeutung'], ['.datum', 'datumszeile'], ['.kopf', 'kopf']]) {
+    const e = document.querySelector(sel);
+    if (!e) continue;
+    const rg = document.createRange(); rg.selectNodeContents(e);
+    const rs = [...rg.getClientRects()];
+    const rechts = Math.max(...rs.map(q => q.right));
+    const zeilen = new Set(rs.map(q => Math.round(q.top))).size;
+    window.__mass = (window.__mass || []).concat([name + ' ' + zeilen + ' zeile(n), rechts ' + Math.round(rechts) + ' px']);
+    if (rechts > %(rechts)d + 2) f.push(name + ' laeuft rechts hinaus (' + Math.round(rechts) + ' px)');
+    if (name == 'kopf' && zeilen > 1) f.push('kopf bricht um');
+  }
+  for (const t of document.querySelectorAll('svg.obj text')) {
+    const q = t.getBoundingClientRect();
+    if (q.left < %(rand)d - 2 || q.right > %(rechts)d + 2) f.push('beschriftung "' + t.textContent + '" ausserhalb des rands');
+  }
+  return f; }""" % {"rechts": 1080 - RAND, "rand": RAND}
+
+
+def rendern(seite, out, vorschau=VORSCHAU, browser=None):
+    """Rendert eine Seite. vorschau=0 laesst die kleine Vorschau weg. Mit
+    browser wird ein offener Chromium genutzt (Kontaktbogen, mehrere Kanaele)."""
+    if browser is None:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            b = chromium_start(p)
+            try:
+                return rendern(seite, out, vorschau, b)
+            finally:
+                b.close()
     out = Path(out)
     tmp = out.with_suffix(".html")
     tmp.write_text(seite, encoding="utf-8")
-    vpfad = out.with_name(out.stem + "-vorschau-%d.png" % vorschau)
-    with sync_playwright() as p:
-        b = p.chromium.launch(**launch)
-        pg = b.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
+    vpfad = out.with_name(out.stem + "-vorschau-%d.png" % vorschau) if vorschau else None
+    pg = browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
+    try:
         pg.goto(tmp.resolve().as_uri())
-        pg.wait_for_timeout(400)
-        kollision = pg.evaluate("""() => {
-          const r = s => { const e = document.querySelector(s); return e ? e.getBoundingClientRect() : null; };
-          const bed = r('.bed'), dat = r('.datum'), sig = r('.sig'), zahl = r('.zahl');
-          const f = [];
-          if (bed && dat && bed.bottom > dat.top - 6) f.push('bedeutung stoesst an die datumszeile');
-          if (dat && sig && dat.bottom > sig.top + 4) f.push('datumszeile stoesst an die signatur');
-          if (bed && bed.top < 1040) f.push('bedeutung zu hoch');
-          // jede textzeile einzeln: rechts hoechstens bis zum rand von 64 px (+2)
-          for (const [sel, name] of [['.bed', 'bedeutung'], ['.datum', 'datumszeile'], ['.kopf', 'kopf']]) {
-            const e = document.querySelector(sel);
-            if (!e) continue;
-            const rg = document.createRange(); rg.selectNodeContents(e);
-            const rs = [...rg.getClientRects()];
-            const rechts = Math.max(...rs.map(q => q.right));
-            const zeilen = new Set(rs.map(q => Math.round(q.top))).size;
-            window.__mass = (window.__mass || []).concat([name + ' ' + zeilen + ' zeile(n), rechts ' + Math.round(rechts) + ' px']);
-            if (rechts > 1080 - 62) f.push(name + ' laeuft rechts hinaus (' + Math.round(rechts) + ' px)');
-          }
-          return f; }""")
-        print("layout, " + "; ".join(pg.evaluate("window.__mass || []")))
+        pg.evaluate("document.fonts.ready")
+        pg.wait_for_timeout(200)
+        kollision = pg.evaluate(LAYOUT_JS)
+        print("layout %s, %s" % (out.name, "; ".join(pg.evaluate("window.__mass || []"))))
         if kollision:
-            b.close()
             raise Stop("layout, %s. text kuerzen" % ", ".join(kollision))
         ueber = pg.evaluate("Math.max(0, document.body.scrollHeight - %d)" % H)
         breit = pg.evaluate("Math.max(0, document.body.scrollWidth - %d)" % W)
         if ueber or breit:
-            b.close()
             raise Stop("inhalt ist %d px zu hoch und %d px zu breit, text kuerzen" % (ueber, breit))
         pg.screenshot(path=str(out))
-        v = b.new_page(viewport={"width": vorschau, "height": round(vorschau * H / W)},
-                       device_scale_factor=1)
+    finally:
+        pg.close()
+    if vpfad:
+        v = browser.new_page(viewport={"width": vorschau, "height": round(vorschau * H / W)},
+                             device_scale_factor=1)
         v.set_content("<html><body style='margin:0;background:#000'><img src='data:image/png;base64,%s'"
                       " style='width:%dpx;display:block'></body></html>"
                       % (base64.b64encode(out.read_bytes()).decode(), vorschau))
         v.wait_for_timeout(200)
         v.screenshot(path=str(vpfad))
-        b.close()
+        v.close()
     tmp.unlink()
     return out, vpfad
 
@@ -1638,6 +1719,14 @@ def cut_lage(heute, tage_bis, nxt_ts, prev_ts, log):
     return im_fenster and not schon, cut_tag, gesperrt, ", ".join(text)
 
 
+# Das Geruest je Form (Ben, 15.10.2026). Zwei Diagramme nie nebeneinander:
+# nach einem Diagramm-Tag nimmt die Rotation keins, und am Sonntag auch
+# nicht, weil montags Form 1 fest kommt. Ereignisse und der Montag gehen vor.
+GERUEST = {1: "diagramm", 2: "zahl", 3: "countdown", 4: "vergleich", 5: "diagramm",
+           6: "zahl", 7: "frage", 8: "diagramm", 9: "diagramm", 10: "zahl", 11: "zahl",
+           13: "zahl"}
+
+
 def waehle_form(heute, log, ereignis_cut=False, ereignis_ex=False, verfuegbar=None, cut_tag=False):
     """Gibt (form, grund) zurueck. heute ist ein date in Berlin. Ereignisse
     halten die Wochenregel wie die Rotation (Ben, 03.10.2026)."""
@@ -1657,6 +1746,10 @@ def waehle_form(heute, log, ereignis_cut=False, ereignis_ex=False, verfuegbar=No
     kand = [f for f in sorted(verfuegbar) if f != 1 and f not in diese_woche]
     if not kand:
         kand = [f for f in sorted(verfuegbar) if f != 1]
+    vortag = [f for d, f in laeufe if d == heute - dt.timedelta(days=1)]
+    if (vortag and GERUEST.get(vortag[-1]) == "diagramm") or heute.weekday() == 6:
+        ohne = [f for f in kand if GERUEST.get(f) != "diagramm"]
+        kand = ohne or kand
     monat = heute - dt.timedelta(days=30)
 
     def rang(f):
@@ -1673,14 +1766,23 @@ def variante(log, form):
 
 # ------------------------------------------------------------ ops
 
-def ops_senden(png, vorschau, s, form, grund, hook):
-    inhalt = ("tagesgrafik %s, form %d %s (%s)\nnicht oeffentlich. discord 09:00, x %s.\n"
-              "bild 1, 1080x1350, ist die grafik zum posten (discord, x, instagram). bild 2, 390 px breit, "
-              "nur zur kontrolle, so klein erscheint sie im handy-feed, nicht posten.\n\n"
+def ops_senden(png, vorschau, s, form, grund, hook, kanalbilder=None, looks=None):
+    """kanalbilder: {kanal: png} fuer threads, x und discord, je im eigenen
+    Look. png ist das Instagram-Bild."""
+    import look_takt
+    kanalbilder = kanalbilder or {}
+    looks = looks or {}
+    weitere = ["bild %d %s (%s)" % (i + 3, k, looks.get(k, "?")) for i, k in enumerate(kanalbilder)]
+    inhalt = ("%stagesgrafik %s, form %d %s (%s)\nnicht oeffentlich. discord 09:00, x %s.\n"
+              "bild 1 instagram (%s), 1080x1350. bild 2, 390 px breit, nur zur kontrolle, so klein "
+              "erscheint sie im handy-feed, nicht posten. %s. jeder kanal hat seinen eigenen look-takt, "
+              "bitte je kanal das passende bild posten.\n\n"
               "DISCORD\n```\n%s\n```\nX, %d zeichen\n```\n%s\n```\nANTWORT unter dem X-Post\n```\n%s\n```\n"
               "selbstpruefung, wuerde ein halter das reposten, um anzugeben? %s" % (
-                  s["datum"], form, FORMEN[form][0], grund, X_ZEIT, s["discord"], len(s["x"]),
-                  s["x"], s["antwort"], s["pruefung"]))
+                  "TROCKENLAUF (ZIEL=moderator), heute nichts posten.\n" if look_takt.trockenlauf() else "",
+                  s["datum"], form, FORMEN[form][0], grund, X_ZEIT, looks.get("instagram", "?"),
+                  ", ".join(weitere) or "keine weiteren bilder",
+                  s["discord"], len(s["x"]), s["x"], s["antwort"], s["pruefung"]))
     if len(inhalt) > 1990:
         inhalt = inhalt[:1990]
     grenze = "----tg" + uuid.uuid4().hex
@@ -1696,6 +1798,8 @@ def ops_senden(png, vorschau, s, form, grund, hook):
          typ="application/json")
     feld("files[0]", Path(png).read_bytes(), Path(png).name, "image/png")
     feld("files[1]", Path(vorschau).read_bytes(), Path(vorschau).name, "image/png")
+    for i, k in enumerate(kanalbilder):
+        feld("files[%d]" % (i + 2), Path(kanalbilder[k]).read_bytes(), Path(kanalbilder[k]).name, "image/png")
     body = b"".join(teile) + ("--%s--\r\n" % grenze).encode()
     req = urllib.request.Request(hook, data=body, headers={
         "Content-Type": "multipart/form-data; boundary=%s" % grenze, "User-Agent": UA})
@@ -1861,6 +1965,51 @@ def gebuehren_bruch_text(geb, letzter_gut, frist=GEB_FRIST_TAGE):
                                                   tag(g["bis"]), frist, bis.isoformat()))
 
 
+def kanaele_rendern(s, falke, png, heute, speicher=None):
+    """Ein Bild je Kanal, jedes im Look aus seinem Takt. Das Instagram-Bild
+    behaelt den alten Namen (instagram.py holt es so aus dem Artefakt), die
+    anderen tragen den Kanal im Namen. Bis die eigenen Formate kommen, sind
+    alle 1080x1350. Gibt (png, vorschau, {kanal: png}, {kanal: look})."""
+    import look_takt
+    from playwright.sync_api import sync_playwright
+    looks = look_takt.looks_fuer(look_takt.lesen() if speicher is None else speicher, "tagesgrafik", heute)
+    png = Path(png)
+    kanalbilder = {}
+    with sync_playwright() as p:
+        b = chromium_start(p)
+        try:
+            png, vpng = rendern(html(s, falke, looks["instagram"]), png, VORSCHAU, b)
+            for k in look_takt.KANAELE:
+                if k == "instagram":
+                    continue
+                kanalbilder[k], _ = rendern(html(s, falke, looks[k]),
+                                            png.with_name("%s-%s.png" % (png.stem, k)), 0, b)
+        finally:
+            b.close()
+            look_setzen("dunkel")
+    return png, vpng, kanalbilder, looks
+
+
+def kontaktbogen_bilder(ziel, browser, looks=("dunkel", "hell", "teal")):
+    """Alle Formen aus dem Selbsttest in allen Looks, fuer den Kontaktbogen.
+    Gibt [(beschriftung, png)]. Eine Form, die die Layoutpruefung nicht
+    besteht, steht als Fehler in der Liste statt als Bild."""
+    falke = falke_lesen()
+    aus = []
+    Path(ziel).mkdir(parents=True, exist_ok=True)
+    for f in sorted(FAKE):
+        s = seite_bauen(f, FAKE[f], FAKE_NOW, {"laeufe": []})
+        for lk in looks:
+            name = "tagesgrafik f%d %s %s" % (f, GERUEST.get(f, ""), lk)
+            try:
+                png, _ = rendern(html(s, falke, lk), Path(ziel) / ("tg-f%02d-%s.png" % (f, lk)), 0, browser)
+                aus.append((name, png))
+            except Stop as exc:
+                aus.append((name + " FEHLER " + str(exc), None))
+    look_setzen("dunkel")
+    return aus
+
+
 def log_eintragen(log, eintrag):
     """Ein Eintrag je Tag. Liefert ein Handlauf nach dem Cron noch einmal,
     zaehlt die spaetere Lieferung, sonst steht der Tag doppelt in der
@@ -1952,8 +2101,9 @@ def main(argv=None):
     s = seite_bauen(form, m["werte"], messzeit, log)
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    png, vpng = rendern(html(s, falke_lesen(a.falke)),
-                        out / ("tagesgrafik-%s-form%02d.png" % (messzeit.date().isoformat(), form)))
+    png, vpng, kanalbilder, looks = kanaele_rendern(
+        s, falke_lesen(a.falke), out / ("tagesgrafik-%s-form%02d.png" % (messzeit.date().isoformat(), form)),
+        heute)
     (out / (png.stem + ".txt")).write_text(
         "DISCORD\n%s\n\nX (%d zeichen)\n%s\n\nANTWORT unter dem X-Post\n%s\n\nSELBSTPRUEFUNG\n"
         "wuerde ein halter das reposten, um anzugeben? %s\n" % (
@@ -1978,14 +2128,19 @@ def main(argv=None):
         hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
         if not hook:
             raise SystemExit("ABBRUCH kein DISCORD_WEBHOOK_OPS, nichts geschickt")
-        ops_senden(png, vpng, s, form, grund, hook)
+        ops_senden(png, vpng, s, form, grund, hook, kanalbilder, looks)
         if bruch:
             ops_text(hook, bruch, "gebuehren-bruch")
     elif bruch:
         print("meldung nach ops (nicht geschickt, kein --senden): %s" % bruch)
     if a.log_schreiben:
         eintrag = {"datum": heute.isoformat(), "form": form,
-                   "grund": grund, "messzeit_utc": m["messzeit_utc"]}
+                   "grund": grund, "messzeit_utc": m["messzeit_utc"], "looks": looks}
+        import look_takt
+        sp = look_takt.lesen()
+        for k in look_takt.KANAELE:
+            look_takt.merken(sp, "tagesgrafik", k, heute)
+        look_takt.schreiben(sp)
         mw = messwerte_fuer_log(form, m["werte"], geb)
         if mw:
             eintrag["messwerte"] = mw
@@ -2278,7 +2433,7 @@ def selbsttest():
     for f in sorted(FAKE):
         sf = seite_bauen(f, FAKE[f], FAKE_NOW, log)
         of = sf["objekt"](*objektzone(zahlgroesse(sf["zahl"])))
-        farben = {c for c in (AK, RESTTON, AK_DUNKEL) if c in of}
+        farben = {c for c in (AK, RESTTON, AK_DUNKEL, TEXT2) if c in of}
         ok("form %d, gegen was, mindestens zwei toene im objekt" % f, len(farben) >= 2)
     # form 3 (Ben, 02.10.2026): die beiden letzten stufen tragen ihren wert,
     # die datumszeile bleibt kurz
@@ -2433,6 +2588,41 @@ def selbsttest():
     ok("emission am tag mit senkung geteilt",
        abs(emission_am_tag("2026-10-05") - (2.18268 * 10 * 11744 + 2.06023 * 10 * (86400 - 11744)))
        < 20000)
+    # look-takt und geruest (Ben, 15.10.2026)
+    nach_diagramm = {"laeufe": [{"datum": "2026-10-06", "form": 8}]}
+    f, _ = waehle_form(dt.date(2026, 10, 7), nach_diagramm)
+    ok("nach einem diagramm kein diagramm (form %d)" % f, GERUEST[f] != "diagramm")
+    f, _ = waehle_form(dt.date(2026, 10, 11), {"laeufe": []})
+    ok("sonntag kein diagramm, montag kommt form 1 (form %d)" % f, GERUEST[f] != "diagramm")
+    ok("montag bleibt form 1 auch nach einem diagramm",
+       waehle_form(dt.date(2026, 10, 12), {"laeufe": [{"datum": "2026-10-11", "form": 9}]})[0] == 1)
+    ok("jede freigeschaltete form hat ein geruest", FREIGESCHALTET <= set(GERUEST))
+    ok("zahl mit einheit wird geteilt", zahl_teilen("344.5 PH/s") == ("344.5", "PH/s")
+       and zahl_teilen("96.60%") == ("96.60%", "") and zahl_teilen("6 days") == ("6", "days"))
+    ok("grosse zahl nie unter 200", all(zahlgroesse(z) >= 200 for z in
+                                        ("1", "293,501", "1,234,567,890", "344.5 PH/s")))
+    for lk in ("dunkel", "hell", "teal"):
+        h = html(seite_bauen(8, FAKE[8], FAKE_NOW, log), "data:,", lk)
+        import look_takt
+        ok("html im look %s, grund und schriften eingebettet" % lk,
+           look_takt.LOOKS[lk]["grund"] in h and "@font-face" in h and "fonts.googleapis" not in h)
+    look_setzen("dunkel")
+    try:
+        import playwright  # noqa: F401
+        import tempfile
+        import look_takt
+        with tempfile.TemporaryDirectory() as td:
+            sp = {"kanaele": {"tagesgrafik/x": [{"datum": "2026-09-28", "schritt": 0, "look": "dunkel"}]}}
+            png, vpng, kb, looks = kanaele_rendern(seite_bauen(8, FAKE[8], FAKE_NOW, log), falke_lesen(),
+                                                   Path(td) / "tagesgrafik-2026-09-29-form08.png",
+                                                   dt.date(2026, 9, 29), sp)
+            ok("vier kanaele gerendert, instagram unter dem alten namen",
+               png.name == "tagesgrafik-2026-09-29-form08.png" and sorted(kb) == ["discord", "threads", "x"]
+               and all(Path(q).exists() for q in kb.values()) and vpng.exists())
+            ok("jeder kanal aus seinem takt (x %s)" % looks["x"],
+               looks["x"] == "hell" and looks["instagram"] == "dunkel")
+    except ImportError:
+        print("     playwright fehlt, render-probe uebersprungen")
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 

@@ -459,6 +459,12 @@ def find(log, key):
 # ---------------------------------------------------------------- Ablauf
 
 def run(args):
+    # Trockenlauf (Ben, 16.10.2026): die Zahl des Tages geht dann nur nach
+    # #moderator-only (post_number_of_day.py), nichts auf X, nichts ins Log.
+    import look_takt
+    if args.from_nod and look_takt.trockenlauf():
+        print("trockenlauf, ZIEL=moderator, nichts auf x gepostet")
+        return 0
     if args.from_nod:
         with open(args.from_nod, encoding="utf-8") as fh:
             nod = json.load(fh)
