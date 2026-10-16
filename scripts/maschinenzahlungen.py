@@ -667,7 +667,8 @@ def covenants(pfad=COVENANTS):
             "bestand_stand_utc": e.get("stand_utc"), "zugang_am_tag": e.get("outputs_created"),
             "erzeugt_seit_fork": sum(x["outputs_created"] for x in created),
             "erzeugt_bis_datum": e["datum"], "fork": log.get("toccata_aktiv_seit"),
-            "formulierung": "%s covenant outputs unspent on chain at the end of %s" % (
+            # Bens Regel 16.10.2026: Kaspalytics-Reihen tragen "source kaspalytics"
+            "formulierung": "%s covenant outputs unspent on chain at the end of %s, source kaspalytics" % (
                 "{:,}".format(e["utxo_count"]), e["datum"]),
             "quelle": "data/covenants-log.json, kaspalytics"}
 
@@ -842,6 +843,9 @@ def selbsttest():
     ok("covenants aus dem log, bestand mit datum", "bestand_unverbraucht" in c and "erzeugt_seit_fork" in c)
     abbruch_test(ok)
     tmp.unlink()
+    co = covenants()
+    ok("covenant-satz fuers video nennt source kaspalytics, nicht counted",
+       "source kaspalytics" in co.get("formulierung", "") and "counted" not in co.get("formulierung", ""))
     print("%d fehler" % len(fehler))
     return 1 if fehler else 0
 

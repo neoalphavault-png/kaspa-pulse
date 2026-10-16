@@ -320,8 +320,30 @@ def apply_input(data, inp, today):
 
 # ---------------------------------------------------------------- schreiben
 
+# Bens Regel (16.10.2026): Kaspalytics-Reihen tragen immer "source kaspalytics",
+# "counted" steht nur bei eigenen Zaehlungen. Diese Karten zeigen Kaspalytics-
+# Reihen (herkunft in data/weekly-notes.md). Fehlt die Quelle in ihrer
+# Erklaerzeile, schreibt das Skript die Seite nicht.
+KASPALYTICS_KARTEN = ("Real network usage", "Smart-contract activity", "Active addresses",
+                      "Long-term holders", "Addresses holding KAS", "KAS on exchanges")
+
+
+def quellen_pruefen(html):
+    """Namen der Kaspalytics-Karten, deren Erklaerzeile die Quelle nicht nennt."""
+    fehlt = []
+    for name in KASPALYTICS_KARTEN:
+        m = re.search(r'<div class="name">%s</div><div class="expl">(.*?)</div>' % re.escape(name), html)
+        if not m or "source kaspalytics" not in m.group(1):
+            fehlt.append(name)
+    return fehlt
+
+
 def render_index(data):
     src = open(INDEX_PATH, encoding="utf-8").read()
+    fehlt = quellen_pruefen(src)
+    if fehlt:
+        raise SystemExit("ABBRUCH diese karten nennen ihre quelle nicht (source kaspalytics): %s"
+                         % ", ".join(fehlt))
     a = src.index(MARK_START)
     b = src.index(MARK_END) + len(MARK_END)
     block = (MARK_START + "  wird von scripts/dashboard_weekly.py erzeugt.\n"
@@ -432,6 +454,16 @@ def run_selftest():
     ok("montagszeilen ueberleben das aufraeumen",
        [r["date"] for r in data["history"]]
        == ["2026-07-13", "2026-08-03", "2026-08-10"])
+
+    karte = '<div class="name">%s</div><div class="expl">* x &middot; source kaspalytics</div>'
+    alle = "".join(karte % n for n in KASPALYTICS_KARTEN)
+    ok("alle kaspalytics-karten mit quelle gehen durch", quellen_pruefen(alle) == [])
+    ohne = alle.replace("* x &middot; source kaspalytics</div>", "* x</div>", 1)
+    ok("eine karte ohne quelle wird benannt", quellen_pruefen(ohne) == [KASPALYTICS_KARTEN[0]],
+       quellen_pruefen(ohne))
+    ok("index.html nennt bei allen kaspalytics-karten die quelle",
+       quellen_pruefen(open(INDEX_PATH, encoding="utf-8").read()) == [],
+       quellen_pruefen(open(INDEX_PATH, encoding="utf-8").read()))
 
     print("")
     if fails:

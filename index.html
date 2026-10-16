@@ -242,7 +242,7 @@
   <div class="modeline"><div class="mi"><span class="lvw">live</span> <b>numbers above refresh on every visit</b> · the panels below are the <b>fixed monday reading</b>, kept still all week so the trends compare like with like · <b id="modeDate"></b></div></div>
   <section class="panel">
     <div class="sec"><div class="t"><span class="snum">01</span>Usage. <span>is anyone actually using it?</span></div><div class="tag wk" id="weeklyTag"><i></i><span>weekly</span></div></div>
-    <div class="read"><span class="rl">the read</span>throughput read <b>0.78 accepted transactions per second</b> on monday 12 october, down from 0.92 on monday 5 october, both standard transfers averaged over seven days. the peak day of the week was 8 october at 0.81. covenant transactions came to <b>219 a day</b> against 245, and active addresses to <b>5,553</b> against 6,119, down 9.2% week on week. the l2 split stays blank, the per-chain transaction counts still have no working source.</div>
+    <div class="read"><span class="rl">the read</span>throughput read <b>0.78 accepted transactions per second</b> on monday 12 october, down from 0.92 on monday 5 october, both standard transfers averaged over seven days, source kaspalytics. the peak day of the week was 8 october at 0.81. covenant transactions came to <b>219 a day</b> against 245, and active addresses to <b>5,553</b> against 6,119, down 9.2% week on week, both source kaspalytics. the l2 split stays blank, the per-chain transaction counts still have no working source.</div>
     <div class="grid four" id="usageCards"></div>
   </section>
   <div class="bcard">
@@ -844,7 +844,7 @@ $("supplyCards").innerHTML = `
   <div class="card"><div class="name">Annual inflation</div><div class="expl">* new supply added per year at current rate</div>
     <div class="val">~${DATA.emission.annual_inflation_pct}%</div>
     <div class="trends"><div class="tr"><span class="win">trend</span><span class="up">▼ falling</span></div></div></div>
-  <div class="card"><div class="name">KAS on exchanges</div><div class="expl">* coins on known exchange wallets — potential sell-side supply</div>
+  <div class="card"><div class="name">KAS on exchanges</div><div class="expl">* coins on known exchange wallets, potential sell-side supply &middot; source kaspalytics</div>
     <div class="val">${fmtKas(cur.exchange_kas)}</div>
     <div class="trends">
       ${invRow("vs last week", cur.exchange_kas, exPrev ? exPrev.exchange_kas : null)}
@@ -853,11 +853,11 @@ $("supplyCards").innerHTML = `
     </div></div>`;
 // --- weekly cards ---
 $("usageCards").innerHTML = `
-  <div class="card"><div class="name">Real network usage</div><div class="expl">* standard transactions per second, 7 day average, coinbase excluded</div>
+  <div class="card"><div class="name">Real network usage</div><div class="expl">* standard transactions per second, 7 day average, coinbase excluded &middot; source kaspalytics</div>
     <div class="val">${cur.tps!=null?cur.tps+" TPS":"—"}</div><div class="trends">${trendBlock("tps")}</div></div>
-  <div class="card"><div class="name">Smart-contract activity</div><div class="expl">* covenant transactions per day (live since June) &middot; <a href="/kaspa-token-standard.html" style="color:var(--teal); text-decoration:underline;">token standards, explained &rarr;</a></div>
+  <div class="card"><div class="name">Smart-contract activity</div><div class="expl">* covenant transactions per day since June &middot; source kaspalytics &middot; <a href="/kaspa-token-standard.html" style="color:var(--teal); text-decoration:underline;">token standards, explained &rarr;</a></div>
     <div class="val">${fmtN(cur.covenant_tx)}/day</div><div class="trends">${trendBlock("covenant_tx")}</div></div>
-  <div class="card"><div class="name">Active addresses</div><div class="expl">* unique addresses transacting per day (kaspalytics) — the honest count, not the inflated one</div>
+  <div class="card"><div class="name">Active addresses</div><div class="expl">* unique addresses transacting per day &middot; source kaspalytics &middot; the honest count, not the inflated one</div>
     <div class="val">${fmtN(cur.active_addr)}</div><div class="trends">${trendBlock("active_addr")}</div></div>
   <div class="card"><div class="name">L2 activity split</div><div class="expl">* transactions per day on each L2</div>
     <div class="val">${(cur.igra_tx!=null&&cur.kasplex_tx!=null)?(cur.igra_tx/(cur.igra_tx+cur.kasplex_tx)*100).toFixed(0)+"% Igra":"—"}</div>
@@ -867,9 +867,9 @@ $("usageCards").innerHTML = `
 const hbRow = (label, base) => { const d = deltaTxt(cur.holder_addr, base);
   return `<div class="tr"><span class="win">${label}</span><span class="${d?d.cls:'flat'}">${d?d.txt:'—'}</span></div>`; };
 $("baseCards").innerHTML = `
-  <div class="card"><div class="name">Long-term holders</div><div class="expl">* share of all KAS untouched for over a year</div>
+  <div class="card"><div class="name">Long-term holders</div><div class="expl">* share of all KAS untouched for over a year &middot; source kaspalytics</div>
     <div class="val">${cur.holders!=null?cur.holders.toFixed(1)+"%":"—"}</div><div class="trends">${trendBlock("holders")}</div></div>
-  <div class="card"><div class="name">Addresses holding KAS</div><div class="expl">* wallets holding at least 0.01 KAS — addresses, not people</div>
+  <div class="card"><div class="name">Addresses holding KAS</div><div class="expl">* wallets holding at least 0.01 KAS &middot; addresses, not people &middot; source kaspalytics</div>
     <div class="val">${fmtN(cur.holder_addr)}</div>
     <div class="trends">
       ${trRow("holder_addr",1,"vs last week")}
