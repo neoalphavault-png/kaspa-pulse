@@ -356,6 +356,8 @@ def run_weekly(args):
         entry["image"] = os.path.basename(image)
         save_log(args.log, log)      # sofort merken, bevor irgendetwas anderes passiert
         print("gepostet: %s (key %s)" % (entry["id"], key))
+        if not args.delete_after:        # ein testpost gehoert nicht ins manifest
+            manifest_zeile(entry["id"], main, "weekly-grafik", image)
     if linkantwort_an():
         if not entry.get("reply_id"):
             entry["reply_id"] = post(r_video, creds, reply_to=entry["id"])
@@ -383,6 +385,50 @@ def run_weekly(args):
         save_log(args.log, log)
         print("test beendet, der faden ist wieder geloescht.")
     return 0
+
+
+# ------------------------------------------------------- Reichweiten-Uhrwerk
+
+def manifest_look(nod_pfad, standard="number-of-day"):
+    """Der Look eines Tagespostens ist der Kandidat, der gewonnen hat.
+
+    Er steht nicht in number-of-day.json, sondern daneben im Log. Ohne
+    Log oder ohne Eintrag fuer den Tag bleibt es beim Standard - geraten
+    wird nicht."""
+    if not nod_pfad:
+        return standard
+    pfad = os.path.join(os.path.dirname(os.path.abspath(nod_pfad)),
+                        "number-of-day-log.json")
+    try:
+        with open(pfad, encoding="utf-8") as fh:
+            log = json.load(fh)
+    except (OSError, ValueError):
+        return standard
+    heute = dt.date.today().isoformat()
+    eintrag = next((r for r in reversed(log or []) if r.get("date") == heute), None)
+    name = (eintrag or {}).get("candidate")
+    return ("nod-%s" % name) if name else standard
+
+
+def manifest_zeile(post_id, text, look, bild=None, quelle="auto"):
+    """Eine Zeile ins Manifest des Reichweiten-Uhrwerks.
+
+    NUR DER HAUPTPOST. Die Selbstantworten eines Fadens sind technisch
+    eigene Posts, aber sie tragen keine eigene Reichweite im Sinn der
+    Auswertung; drei Zeilen je Faden wuerden den Median verschieben.
+
+    Scheitert das, scheitert nicht der Post: er ist schon draussen, und
+    die Zeile holt die Montagsroutine nach."""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from post_manifest import eintragen_still, hashtags_zaehlen
+    except ImportError as exc:      # pragma: no cover - nur ohne die datei
+        print("manifest nicht geschrieben, post_manifest.py fehlt: %s" % exc)
+        return None
+    return eintragen_still(kanal="x", post_id=post_id,
+                           format_="bild" if bild else "text",
+                           look=look, hook=text,
+                           hashtags=hashtags_zaehlen(text), quelle=quelle)
 
 
 # ---------------------------------------------------------------- Log
@@ -472,6 +518,8 @@ def run(args):
         log.append(entry)
         save_log(args.log, log)          # sofort merken, bevor irgendetwas anderes passiert
         print("gepostet: %s (key %s)" % (pid, key))
+        if not args.delete_after:        # ein testpost gehoert nicht ins manifest
+            manifest_zeile(pid, text, manifest_look(args.from_nod), args.image)
     if reply and not entry.get("reply_id"):
         rid = post(reply, creds, reply_to=entry["id"])
         entry["reply_id"] = rid
@@ -546,10 +594,52 @@ def selftest():
         os.environ.pop("X_LINKANTWORT", None)
         if alt_wert is not None:
             os.environ["X_LINKANTWORT"] = alt_wert
+    # Reichweiten-Uhrwerk: die Manifest-Zeile des Hauptpostens
+    import tempfile
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import post_manifest
+    with tempfile.TemporaryDirectory() as tmp:
+        alt_pfade = post_manifest.MANIFESTE, post_manifest.MANIFEST
+        post_manifest.MANIFESTE = [os.path.join(tmp, "manifest.jsonl")]
+        post_manifest.MANIFEST = post_manifest.MANIFESTE[0]
+        try:
+            e = manifest_zeile("1800000000000000001",
+                               "one kas buys 46 sats today.\n\n#kaspa #kas",
+                               "nod-sats_divergence", bild="number-of-day.png")
+            assert e["kanal"] == "x", e
+            assert e["format"] == "bild", e
+            assert e["look"] == "nod-sats_divergence", e
+            assert e["hook"] == "one kas buys 46 sats today.", e
+            assert e["hashtags"] == 2, e
+            assert e["quelle"] == "auto" and e["variante"] == "-", e
+            # ohne bild ist es ein textpost
+            e = manifest_zeile("1800000000000000002", "no image here", "weekly-grafik")
+            assert e["format"] == "text", e
+            # derselbe post kommt nicht zweimal
+            assert manifest_zeile("1800000000000000002", "no image here", "weekly-grafik") is None
+            # eine unmoegliche zeile meldet und laesst den post leben
+            assert manifest_zeile("mit leerzeichen", "x", "y") is None
+        finally:
+            post_manifest.MANIFESTE, post_manifest.MANIFEST = alt_pfade
+        # der look kommt aus dem log neben der datei, sonst der standard
+        nod = os.path.join(tmp, "number-of-day.json")
+        open(nod, "w").write("{}")
+        assert manifest_look(nod) == "number-of-day"
+        heute = dt.date.today().isoformat()
+        with open(os.path.join(tmp, "number-of-day-log.json"), "w") as fh:
+            json.dump([{"date": "2026-01-01", "candidate": "alt"},
+                       {"date": heute, "candidate": "hashrate_move"}], fh)
+        assert manifest_look(nod) == "nod-hashrate_move"
+        with open(os.path.join(tmp, "number-of-day-log.json"), "w") as fh:
+            json.dump([{"date": "2026-01-01", "candidate": "alt"}], fh)
+        assert manifest_look(nod) == "number-of-day", "ohne eintrag fuer heute der standard"
+        assert manifest_look(None) == "number-of-day"
+
     assert berlin_offset(dt.datetime(2026, 9, 14, 14, 0, tzinfo=dt.timezone.utc)) == dt.timedelta(hours=2)
     assert berlin_offset(dt.datetime(2026, 11, 2, 14, 0, tzinfo=dt.timezone.utc)) == dt.timedelta(hours=1)
     print("selftest ok: Signatur stimmt mit dem erfundenen Testvektor ueberein, Link-Erkennung ok, "
-          "Montagsfaden prueft Videolink und Kosten, X_LINKANTWORT steht ohne Variable auf aus")
+          "Montagsfaden prueft Videolink und Kosten, X_LINKANTWORT steht ohne Variable auf aus, "
+          "Manifest-Zeile traegt Kanal, Format, Look, Haken und Hashtags")
 
 
 def main():
