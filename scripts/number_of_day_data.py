@@ -420,7 +420,7 @@ def cand_cut_today(ctx):
                     "kind": "anchor",
                     "title": "WHAT THAT MEANS",
                     "lines": [
-                        "twelve small steps, the *same 50 percent*.",
+                        "twelve small steps, the *same 50%*.",
                         tail,
                     ],
                 },
@@ -428,9 +428,9 @@ def cand_cut_today(ctx):
             "sources": "api.kaspa.org",
             "site": "kaspapulse.com",
             "post": post_block(
-                "the kaspa block reward %s %.2f percent %s. bitcoin does 50 "
-                "percent once every four years. kaspa does one small step every "
-                "month, and twelve of them land on the same 50 percent. the "
+                "the kaspa block reward %s %.2f%% %s. bitcoin does 50%% "
+                "once every four years. kaspa does one small step every "
+                "month, and twelve of them land on the same 50%%. the "
                 "network now mints %s fewer KAS per day, emission went from %s "
                 "to %s."
                 % (verb, pct, when, fmt_int(gone),
@@ -520,9 +520,9 @@ def cand_mined_left(ctx):
                     # sieht man in einer sekunde und kann es nachzaehlen.
                     "kind": "dots",
                     "title": "EVERY KAS THAT WILL EVER EXIST",
-                    "sub": "one dot is one percent of the maximum",
+                    "sub": "one dot is 1% of the maximum",
                     "total": 100, "lit": pct, "tone": "teal",
-                    "note": "*%.2f percent* mined, %.2f percent still to come."
+                    "note": "*%.2f%%* mined, %.2f%% still to come."
                             % (pct, 100.0 - pct),
                 },
                 {
@@ -530,7 +530,7 @@ def cand_mined_left(ctx):
                     "title": "WHAT IS LEFT",
                     "lines": [
                         "*%s KAS* are still to come." % fmt_int(left),
-                        "99 percent is reached in %s."
+                        "99%% is reached in %s."
                         % when99.strftime("%B %Y").lower(),
                     ],
                 },
@@ -538,8 +538,8 @@ def cand_mined_left(ctx):
             "sources": "api.kaspa.org",
             "site": "kaspapulse.com",
             "post": post_block(
-                "%.2f percent of every KAS that will ever exist is already mined. "
-                "%s KAS are still to come, and 99 percent is reached in %s at the "
+                "%.2f%% of every KAS that will ever exist is already mined. "
+                "%s KAS are still to come, and 99%% is reached in %s at the "
                 "current schedule. what comes after keeps halving every twelve "
                 "months."
                 % (pct, fmt_int(left), when99.strftime("%B %Y").lower()),
@@ -570,7 +570,7 @@ def _move_candidate(ctx, key, title, unit_fmt, label, headline_word,
             "eyebrow": "NUMBER OF THE DAY",
             "value": unit_fmt(now),
             "value_label": label,
-            "headline": "%s is *%s %.0f percent*\nagainst %s."
+            "headline": "%s is *%s %.0f%%*\nagainst %s."
                         % (headline_word, direction, abs(change), age_phrase(age)),
             "panes": [
                 {
@@ -597,7 +597,7 @@ def _move_candidate(ctx, key, title, unit_fmt, label, headline_word,
             "sources": sources,
             "site": "kaspapulse.com",
             "post": post_block(
-                "%s on kaspa is %s %.0f percent against %s. %s today, %s then, "
+                "%s on kaspa is %s %.0f%% against %s. %s today, %s then, "
                 "both read from the same source %d days apart."
                 % (headline_word, direction, abs(change), age_phrase(age),
                    unit_fmt(now), unit_fmt(then), age),
@@ -694,7 +694,7 @@ def cand_whale_weight(ctx):
                     # kein balken.
                     "kind": "dots",
                     "title": "EVERY 100 KAS IN CIRCULATION",
-                    "sub": "one dot is one percent of the circulating supply",
+                    "sub": "one dot is 1% of the circulating supply",
                     "total": 100, "lit": share, "tone": "teal",
                     "note": "*%.1f of every 100* sit in one address." % share,
                 },
@@ -709,7 +709,7 @@ def cand_whale_weight(ctx):
             "sources": "api.kaspa.org",
             "site": "kaspapulse.com",
             "post": post_block(
-                "one address holds %.2f percent of every kaspa in circulation, "
+                "one address holds %.2f%% of every kaspa in circulation, "
                 "about %s. at the current emission rate the entire network "
                 "needs %d days to mine that much. it has never been named."
                 % (share, fmt_kas(whale), round(days)),
@@ -843,7 +843,7 @@ def cand_weekly_line(ctx):
             "value": "%.1f%%" % abs(dist),
             "value_label": "%s the 21 week average of its own weekly closes"
                            % ("below" if below else "above"),
-            "headline": "kas closed *%.1f percent*\n%s the weekly line."
+            "headline": "kas closed *%.1f%%*\n%s the weekly line."
                         % (abs(dist), "below" if below else "above"),
             "panes": [
                 {
@@ -871,7 +871,7 @@ def cand_weekly_line(ctx):
             "site": "kaspapulse.com",
             "post": post_block(
                 "kas closed the week at $%.5f. the 21 week average of its own "
-                "weekly closes sits at $%.5f, so the close is %.1f percent %s it. "
+                "weekly closes sits at $%.5f, so the close is %.1f%% %s it. "
                 "that has now been true for %d weeks in a row. one weekly close "
                 "either way settles it."
                 % (close, line, abs(dist), "below" if below else "above", streak),
@@ -915,7 +915,7 @@ def cand_sats_divergence(ctx):
             "eyebrow": "NUMBER OF THE DAY",
             "value": "%.0f" % now,
             "value_label": "satoshis buy one kas today, priced from daily closes",
-            "headline": "kas is *%s %.0f percent*\nagainst bitcoin this year."
+            "headline": "kas is *%s %.0f%%*\nagainst bitcoin this year."
                         % ("up" if change > 0 else "down", abs(change)),
             "panes": [
                 {
@@ -940,7 +940,7 @@ def cand_sats_divergence(ctx):
             "site": "kaspapulse.com",
             "post": post_block(
                 "one kas buys %.0f satoshis today. a year ago it bought %.0f. "
-                "that is %s %.0f percent against bitcoin, on the same days the "
+                "that is %s %.0f%% against bitcoin, on the same days the "
                 "dollar chart tells its own story. both are true at once, and "
                 "almost nobody posts the second one."
                 % (now, then, "up" if change > 0 else "down", abs(change)),
@@ -975,7 +975,7 @@ def cand_hashrate_consequence(ctx):
             "eyebrow": "NUMBER OF THE DAY",
             "value": "%.0f PH" % now,
             "value_label": "petahash per second securing the network right now",
-            "headline": "hashrate *up %.0f percent*.\nthe reward fell."
+            "headline": "hashrate *up %.0f%%*.\nthe reward fell."
                         % change,
             "panes": [
                 {
@@ -995,7 +995,7 @@ def cand_hashrate_consequence(ctx):
                     "kind": "anchor",
                     "title": "WHAT MINERS ARE PAID",
                     "lines": [
-                        "the block reward fell *%.2f percent*" % pay,
+                        "the block reward fell *%.2f%%*" % pay,
                         "over the same days.",
                     ],
                 },
@@ -1003,8 +1003,8 @@ def cand_hashrate_consequence(ctx):
             "sources": "api.kaspa.org, emission from the schedule",
             "site": "kaspapulse.com",
             "post": post_block(
-                "kaspa's hashrate is up %.0f percent against %s. over the same "
-                "days the block reward fell %.2f percent, as it does every month "
+                "kaspa's hashrate is up %.0f%% against %s. over the same "
+                "days the block reward fell %.2f%%, as it does every month "
                 "by design. more machines securing the chain, less new supply "
                 "paying for them. that gap is the whole security question."
                 % (change, age_phrase(age), pay),

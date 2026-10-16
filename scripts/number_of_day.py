@@ -39,6 +39,13 @@ FORBIDDEN = {
     " - ": "hyphen as punctuation",
     ":": "colon",
 }
+# schreibregel (ben, 15.10.2026): in oeffentlichen texten steht "%", nie
+# "percent". die regel gab es schon in scripts/tagesgrafik.py fuer die
+# tagesgrafik, nur hier nicht, und die zahl des tages hat sie an 22 stellen
+# gebrochen. sie steht jetzt in derselben wache wie die zeichenregel, weil
+# jeder text dort ohnehin vorbeikommt, der grafik UND post einschliesst.
+# ganze woerter: "percentile" oder "percentpoints" sind keine verstoesse.
+_PERCENT = re.compile(r"\bpercent(?:s|age)?\b", re.I)
 _URL = re.compile(r"\b[\w.-]+\.(?:com|org|io|net|stream|xyz|app|dev)\b\S*", re.I)
 _TIME = re.compile(r"\b\d{1,2}:\d{2}(?::\d{2})?\b")
 _PROTO = re.compile(r"https?://\S+", re.I)
@@ -54,6 +61,12 @@ def assert_punctuation(text: str, where: str) -> None:
             raise ValueError(
                 f"punctuation rule violated in {where}: {name} found in {text!r}"
             )
+    hit = _PERCENT.search(probe)
+    if hit:
+        raise ValueError(
+            f"spelling rule violated in {where}: {hit.group(0)!r} instead of % "
+            f"in {text!r}"
+        )
 def walk_and_check(node, path="root"):
     if isinstance(node, str):
         assert_punctuation(node, path)
@@ -376,12 +389,61 @@ def shoot(html: str, out_png: Path) -> None:
             )
         page.screenshot(path=str(out_png))
         browser.close()
+def selbsttest() -> int:
+    """Die beiden Wachen, ohne Netz und ohne Chromium."""
+    fehler = []
+
+    def ok(was, bedingung):
+        print(("  ok   " if bedingung else "  FEHL ") + was)
+        if not bedingung:
+            fehler.append(was)
+
+    def hebt(was, text):
+        try:
+            assert_punctuation(text, "test")
+        except ValueError as exc:
+            print("  ok   %s (%s)" % (was, str(exc)[:60]))
+            return
+        print("  FEHL " + was + "  kein abbruch, obwohl erwartet")
+        fehler.append(was)
+
+    print("number of the day, wachen")
+    hebt("percent faellt auf", "hashrate up 42 percent against june")
+    hebt("auch percentage faellt auf", "down 3 percentage points")
+    hebt("auch gross geschrieben", "Percent of the supply")
+    hebt("auch in der mitte eines satzes", "that is 99 percent, counted")
+    ok("das prozentzeichen geht durch",
+       assert_punctuation("hashrate up 42% against june", "test") is None)
+    ok("percentile bleibt erlaubt",
+       assert_punctuation("the 90th percentile of all blocks", "test") is None)
+    ok("percentpoints bleibt erlaubt",
+       assert_punctuation("up 3 percentpoints", "test") is None)
+    hebt("gedankenstrich faellt weiter auf", "hashrate up — the reward fell")
+    hebt("doppelpunkt faellt weiter auf", "balance: 1,442 KAS")
+    ok("eine uhrzeit stoert nicht",
+       assert_punctuation("the close at 23:59 utc", "test") is None)
+    ok("eine adresse stoert nicht",
+       assert_punctuation("more on kaspapulse.com/halving.html", "test") is None)
+    # die wache greift auch tief im payload, nicht nur an der oberflaeche
+    try:
+        walk_and_check({"panes": [{"kind": "dots",
+                                   "note": "*96 percent* mined."}]})
+        ok("die wache greift tief im payload", False)
+    except ValueError as exc:
+        ok("die wache greift tief im payload", "panes[0].note" in str(exc))
+    print("%d fehler" % len(fehler))
+    return len(fehler)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", default="data/number-of-day.json")
     ap.add_argument("--output", default="graphics/number-of-day.png")
     ap.add_argument("--keep-html", action="store_true")
+    ap.add_argument("--selbsttest", action="store_true")
     args = ap.parse_args()
+    if args.selbsttest:
+        return 1 if selbsttest() else 0
     src = Path(args.input)
     d = json.loads(src.read_text(encoding="utf-8"))
     walk_and_check(d)
