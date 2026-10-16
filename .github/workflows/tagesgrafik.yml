@@ -95,6 +95,7 @@ jobs:
         if: github.event_name == 'schedule'
         env:
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          ZIEL: ${{ vars.ZIEL }}
         run: python3 scripts/tagesgrafik.py --zeitplan --senden --log-schreiben --out graphics/tagesgrafik
       - name: grafik, von hand
         if: github.event_name == 'workflow_dispatch'
@@ -123,14 +124,18 @@ jobs:
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
-          git add data/tagesgrafik-log.json
+          # JE DATEI EIN EIGENES git add (Ben, 16.10.2026): ein gemeinsames
+          # add bricht ganz ab, sobald eine Datei fehlt, und dann ist NICHTS
+          # vorgemerkt. look-takt.json ist der Speicher des Look-Takts.
+          git add data/tagesgrafik-log.json 2>/dev/null || true
+          git add data/look-takt.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "log unveraendert, kein commit"
           else
             git commit -m "tagesgrafik log [bot]"
             # der eigene branch, nicht main: ein handlauf von einem fix-branch
             # lief sonst am 03.10. in einen add/add-konflikt (lauf 37119999946)
-            git pull --rebase origin "$GITHUB_REF_NAME"
+            git pull --rebase --autostash origin "$GITHUB_REF_NAME"
             git push
           fi
       - name: ops bei rot
@@ -179,6 +184,9 @@ jobs:
         ${{ github.event_name == 'workflow_dispatch'
             && (inputs.instagram == 'scharf' && '--takt' || '--hand')
             || '' }}
+      # ZIEL=moderator (Design-Runde, 16.10.2026): Trockenlauf, gepostet
+      # wird nur nach #moderator-only. Leer = normal.
+      ZIEL: ${{ vars.ZIEL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -217,7 +225,7 @@ jobs:
             echo "jpeg schon im repo"
           else
             git commit -m "instagram bild [bot]"
-            git pull --rebase origin "$GITHUB_REF_NAME"
+            git pull --rebase --autostash origin "$GITHUB_REF_NAME"
             git push
           fi
       - name: container, status, veroeffentlichen nur wenn scharf
@@ -233,13 +241,70 @@ jobs:
       - name: log sichern
         if: always() && steps.f.outputs.faellig == '1' && steps.a.outputs.gefunden == '1'
         run: |
-          git add data/instagram-log.json || true
+          # JE DATEI EIN EIGENES git add. Ein gemeinsames "git add a b"
+          # bricht ganz ab, sobald eine der beiden fehlt, und dann ist
+          # NICHTS vorgemerkt: der Schritt committet still nichts.
+          git add data/instagram-log.json 2>/dev/null || true
+          git add data/insights/manifest.jsonl 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "log unveraendert, kein commit"
+            exit 0
+          fi
+          git commit -m "instagram log [bot]"
+          # Beide Dateien ZUERST beiseitelegen, aus dem sauberen Stand nach
+          # dem Commit. Nach einem gescheiterten Rebase stehen Konfliktmarken
+          # drin, eine Kopie von dann waere Muell.
+          rm -rf /tmp/ig-eigen && mkdir -p /tmp/ig-eigen
+          cp data/instagram-log.json /tmp/ig-eigen/ 2>/dev/null || true
+          cp data/insights/manifest.jsonl /tmp/ig-eigen/ 2>/dev/null || true
+          OK=nein
+          for N in 1 2 3; do
+            if git pull --rebase --autostash -q origin "$GITHUB_REF_NAME"; then
+              :
+            else
+              echo "rebase-konflikt, eintraege werden vereint"
+              git rebase --abort 2>/dev/null || true
+              git reset --hard -q "origin/$GITHUB_REF_NAME" 2>/dev/null || true
+              python3 - <<'EOF'
+          import json, pathlib
+          eigen = pathlib.Path("/tmp/ig-eigen")
+          # manifest.jsonl waechst nur, also beide seiten behalten, ohne dopplung
+          q = eigen / "manifest.jsonl"
+          if q.exists():
+              z = pathlib.Path("data/insights/manifest.jsonl")
+              z.parent.mkdir(parents=True, exist_ok=True)
+              kennt = set(z.read_text(encoding="utf-8").splitlines() if z.exists() else [])
+              neu = [l for l in q.read_text(encoding="utf-8").splitlines()
+                     if l.strip() and l not in kennt]
+              if neu:
+                  with open(z, "a", encoding="utf-8") as fh:
+                      fh.write("\n".join(neu) + "\n")
+              print("manifest.jsonl: %d zeilen dazu" % len(neu))
+          # instagram-log.json ist ein objekt mit einer liste, vereint nach media
+          q = eigen / "instagram-log.json"
+          if q.exists():
+              z = pathlib.Path("data/instagram-log.json")
+              fern = json.loads(z.read_text(encoding="utf-8")) if z.exists() else {"posts": []}
+              da = {p.get("media") for p in fern.get("posts", []) if p.get("media")}
+              dazu = [p for p in json.loads(q.read_text(encoding="utf-8")).get("posts", [])
+                      if p.get("media") and p["media"] not in da]
+              fern.setdefault("posts", []).extend(dazu)
+              z.write_text(json.dumps(fern, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+              print("instagram-log.json: %d eintrag(e) dazu" % len(dazu))
+          EOF
+              git add data/instagram-log.json 2>/dev/null || true
+              git add data/insights/manifest.jsonl 2>/dev/null || true
+              git diff --staged --quiet || git commit -m "instagram log [bot]"
+            fi
+            if git push -q origin "HEAD:$GITHUB_REF_NAME"; then OK=ja; break; fi
+            echo "push $N fehlgeschlagen"
+            sleep "$N"
+          done
+          if [ "$OK" = "ja" ]; then
+            echo "log und manifest sind auf $GITHUB_REF_NAME"
           else
-            git commit -m "instagram log [bot]"
-            git pull --rebase origin "$GITHUB_REF_NAME"
-            git push
+            echo "::warning::log und manifest nicht gepusht, sie liegen als artefakt bereit"
+            mkdir -p artefakt && cp -r /tmp/ig-eigen artefakt/instagram || true
           fi
       - name: ops bei rot
         if: failure()
