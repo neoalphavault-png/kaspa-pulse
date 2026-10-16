@@ -1,0 +1,12 @@
+[Unit]
+Description=Kaspa Pulse Takt, Uhrwerk Montagszahlen
+
+[Timer]
+Unit=takt@uhrwerk-trichter.service
+# Montags 07:26, vor der Montagsroutine.
+OnCalendar=Mon *-*-* 07:26:00 Europe/Berlin
+Persistent=true
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target
