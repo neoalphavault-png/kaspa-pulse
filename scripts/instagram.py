@@ -259,6 +259,11 @@ def faellig(now, log_grafik, log_ig, stopp="", hand=False):
             b.hour, b.minute, h0, m0, h1, m1)
     if stopp.strip() in (heute, "immer"):
         return None, "IG_STOPP steht auf %s" % stopp.strip()
+    # Trockenlauf (Ben, 16.10.2026): bauen wie scharf, posten nur nach
+    # #moderator-only. Das Instagram-Bild liegt dort schon aus der Tagesgrafik.
+    import look_takt
+    if not hand and look_takt.trockenlauf():
+        return None, "trockenlauf, ZIEL=moderator, das bild liegt in #moderator-only"
     if not hand and any(e.get("datum") == heute for e in log_ig.get("posts", [])):
         return None, "heute (%s) schon an instagram" % heute
     eintrag = next((e for e in reversed(log_grafik.get("laeufe", [])) if e.get("datum") == heute), None)
@@ -385,7 +390,8 @@ def posten(bild_url, caption, modus, warte_takt=10, warte_max=300):
     erg = {"container": cid, "status": status, "modus": modus}
     if status != "FINISHED":
         raise Fehler("container %s endet mit status %s, nicht veroeffentlicht" % (cid, status or "-"))
-    if modus != "scharf":
+    import look_takt
+    if modus != "scharf" or look_takt.trockenlauf():
         ausgabe("trocken, container %s bleibt unveroeffentlicht" % cid)
         return erg
     m = graph("POST", "%s/media_publish" % u, {"creation_id": cid})
@@ -710,6 +716,9 @@ def antworten(kommentar_id, text, nur_pruefen=False, now=None):
 def selbsttest():
     import contextlib
     import tempfile
+    # der selbsttest prueft den scharfen weg, auch wenn der lauf im
+    # trockenlauf steht (ZIEL=moderator, Ben 16.10.2026)
+    os.environ.pop("ZIEL", None)
     fehler = []
 
     def ok(name, bed):

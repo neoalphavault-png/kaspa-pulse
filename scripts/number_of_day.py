@@ -79,102 +79,125 @@ def walk_and_check(node, path="root"):
         for i, v in enumerate(node):
             walk_and_check(v, f"{path}[{i}]")
 # ---------------------------------------------------------------- template
-# groessen in px bei 1080 breite. als anteil gelesen, damit die regel auch
-# gilt, falls jemand die leinwand aendert. heldenzahl 190 (17.6%),
-# ueberschrift 78 (7.2%), fliesstext 40 bis 52 (3.7 bis 4.8%),
-# kopf und fusszeile 30 (2.8%). nichts darunter.
-CSS = """
-:root{
-  --bg:#080B0F; --card:#0E141A; --line:#1C242D;
-  --teal:#49EACB; --teal-dk:#1E9E88; --red:#E36A6A;
-  --txt:#FFFFFF; --dim:#9AA2AA; --dimmer:#7C858F; --faint:#4A535E;
+# groessen in px bei 1080 breite. seit dem look-takt (Ben, 15.10.2026) nach
+# der tabelle fuer den instagram-feed: grosse zahl ab 200, ueberschrift ab 64,
+# alles kleine ab 34, inhalt mindestens 60 px vom rand. die farben kommen je
+# look aus LOOK_FARBEN, die schriften eingebettet aus graphics/fonts
+# (look_takt.schriften_css), nichts wird zur laufzeit geladen.
+LOOK_FARBEN = {
+    "dunkel": {"bg": "#080B0F", "card": "#11181D", "line": "#1B252B", "teal": "#49EACB",
+               "teal-dk": "#49EACB", "red": "#E36A6A", "txt": "#F2F5F4", "dim": "#A9B7B4",
+               "dimmer": "#A9B7B4", "faint": "#2B3A40", "grid": "#1B252B", "ctx": "#7E8A94",
+               "bar": "#2B3A40", "dot": "#1B252B", "track": "#1B252B"},
+    "hell":   {"bg": "#EEF3F1", "card": "#F8FBFA", "line": "#D3DFDB", "teal": "#0F9A80",
+               "teal-dk": "#0F9A80", "red": "#B83F3F", "txt": "#0B1A17", "dim": "#4F625D",
+               "dimmer": "#4F625D", "faint": "#B4CCC5", "grid": "#D3DFDB", "ctx": "#7A8D88",
+               "bar": "#C9D9D4", "dot": "#D3DFDB", "track": "#DCE6E2"},
+    "teal":   {"bg": "#49EACB", "card": "#3BD3B6", "line": "#2FBFA3", "teal": "#04211C",
+               "teal-dk": "#04211C", "red": "#7A1414", "txt": "#04211C", "dim": "#0F4A40",
+               "dimmer": "#0F4A40", "faint": "#9AF5E3", "grid": "#2FBFA3", "ctx": "#0F4A40",
+               "bar": "#9AF5E3", "dot": "#2FBFA3", "track": "#2FBFA3"},
 }
+
+
+def look_css(look: str = "dunkel") -> str:
+    import look_takt
+    f = LOOK_FARBEN[look]
+    return (look_takt.schriften_css() + ":root{"
+            + "".join("--%s:%s;" % (k, v) for k, v in f.items()) + "}")
+
+
+CSS = """
 *{margin:0;padding:0;box-sizing:border-box}
 body{
   width:1080px;height:1350px;background:var(--bg);color:var(--txt);
-  font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
-  padding:46px 52px 38px;display:flex;flex-direction:column;
+  font-family:'IBM Plex Sans',sans-serif;
+  padding:60px 60px 60px;display:flex;flex-direction:column;
   -webkit-font-smoothing:antialiased;
 }
 .top{display:flex;justify-content:space-between;align-items:baseline;
-     border-bottom:1px solid var(--line);padding-bottom:14px}
-.brand{font-size:30px;letter-spacing:6px;font-weight:700}
+     border-bottom:2px solid var(--line);padding-bottom:12px}
+.brand{font-family:'Archivo',sans-serif;font-size:34px;letter-spacing:5px;font-weight:800}
 .brand span{color:var(--teal)}
-.iss{font-size:26px;letter-spacing:2px;color:var(--dimmer)}
-.eyebrow{font-size:30px;letter-spacing:5px;color:var(--teal-dk);
-         margin:22px 0 10px;font-weight:700}
-.value{font-size:190px;font-weight:700;letter-spacing:-7px;line-height:0.88}
-.value-label{font-size:44px;color:var(--dim);margin-top:14px;line-height:1.25}
-h1{font-size:78px;letter-spacing:-2px;line-height:1.04;margin:20px 0 0}
-em{font-style:normal;color:var(--teal);font-weight:700}
-.panes{display:flex;flex-direction:column;gap:14px;flex:1;margin-top:24px}
-.p{background:var(--card);border:1px solid var(--line);border-radius:20px;
-   padding:20px 26px 18px;display:flex;flex-direction:column}
+.iss{font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0;color:var(--dimmer)}
+.eyebrow{font-size:34px;letter-spacing:4px;color:var(--teal-dk);
+         margin:12px 0 4px;font-weight:600}
+.value{font-family:'Archivo',sans-serif;font-size:200px;font-weight:900;letter-spacing:-6px;line-height:0.88}
+.value-label{font-size:42px;color:var(--dim);margin-top:8px;line-height:1.2}
+h1{font-family:'Archivo',sans-serif;font-weight:800;font-size:64px;letter-spacing:-1px;line-height:1.03;margin:12px 0 0}
+em{font-style:normal;color:var(--teal);font-weight:inherit}
+.panes{display:flex;flex-direction:column;gap:12px;flex:1;margin-top:14px}
+.p{background:var(--card);border:2px solid var(--line);border-radius:20px;
+   padding:16px 24px 16px;display:flex;flex-direction:column}
 .p.grow{flex:1}
-.lbl{font-size:30px;letter-spacing:3px;color:var(--dimmer);margin-bottom:2px}
-.lbl2{font-size:34px;color:var(--dimmer);margin-bottom:14px;line-height:1.25}
+.lbl{font-size:34px;letter-spacing:2px;color:var(--dimmer);margin-bottom:2px;font-weight:600}
+.lbl2{font-size:34px;color:var(--dimmer);margin-bottom:12px;line-height:1.22}
 /* horizontale balken. der laengere balken ist bewusst der langweilige,
    damit das auge zuerst den unterschied sieht und dann erst die frequenz liest. */
-.rows{display:flex;flex-direction:column;gap:18px;justify-content:center}
-.row{display:flex;flex-direction:column;gap:7px}
+.rows{display:flex;flex-direction:column;gap:14px;justify-content:center}
+.row{display:flex;flex-direction:column;gap:6px}
 .rhead{display:flex;justify-content:space-between;align-items:baseline}
-.rname{font-size:46px;font-weight:700}
+.rname{font-size:44px;font-weight:600}
 .rsub{font-size:34px;color:var(--dimmer);margin-left:12px;font-weight:400}
-.rval{font-size:52px;font-weight:700}
+.rval{font-family:'Archivo',sans-serif;font-size:50px;font-weight:800}
 
 /* diagrammkacheln, neu am 08.09. eine betonungsfarbe, alles andere grau.
    keine zweite achse, kein raster ausser zwei stillen hilfslinien, und
    beschriftet wird nur der endpunkt, nie jeder punkt. */
 .chart{width:100%;display:block}
-.chart .grid{stroke:#1C242D;stroke-width:2}
-.chart .ctx{fill:none;stroke:#7E8A94;stroke-width:5;stroke-dasharray:14 10;stroke-linejoin:round;stroke-linecap:round}
+.chart .grid{stroke:var(--grid);stroke-width:2}
+.chart .ctx{fill:none;stroke:var(--ctx);stroke-width:5;stroke-dasharray:14 10;stroke-linejoin:round;stroke-linecap:round}
 .chart .ser{fill:none;stroke-width:6;stroke-linejoin:round;stroke-linecap:round}
 .chart .ser.teal{stroke:var(--teal)} .chart .ser.red{stroke:var(--red)}
 .chart .band{stroke:none}
+.chart .band.teal{fill:var(--teal)} .chart .band.red{fill:var(--red)}
 .chart .dot{stroke:var(--card);stroke-width:5}
 .chart .dot.teal{fill:var(--teal)} .chart .dot.red{fill:var(--red)}
-.chart text{font-family:inherit;font-weight:700}
-.chart .tag{font-size:34px;fill:#FFFFFF}
-.chart .tag.dim{fill:#8C97A2;font-weight:600}
-.bars{display:flex;align-items:flex-end;gap:8px;height:198px;margin-top:12px}
-.bars .b{flex:1;background:#2A3038;border-radius:8px 8px 0 0;min-height:6px}
+.chart text{font-family:inherit;font-weight:600}
+.chart .tag{font-size:36px;fill:var(--txt)}
+.chart .tag.dim{fill:var(--dim);font-weight:500}
+.bars{display:flex;align-items:flex-end;gap:8px;height:190px;margin-top:10px}
+.bars .b{flex:1;background:var(--bar);border-radius:8px 8px 0 0;min-height:6px}
 .bars .b.on{background:var(--teal)}
 .bars .b.on.red{background:var(--red)}
-.blabels{display:flex;gap:8px;margin-top:12px}
-.blabels div{flex:1;text-align:center;font-size:26px;color:#6E7883;font-weight:600}
-.blabels div.on{color:#FFFFFF;font-weight:700}
+.blabels{display:flex;gap:8px;margin-top:10px}
+.blabels div{flex:1;text-align:center;font-size:34px;color:var(--dimmer);font-weight:500;white-space:nowrap}
+.blabels div.on{color:var(--txt);font-weight:600}
 /* punktraster fuer anteil am ganzen. hundert punkte, man kann sie zaehlen.
    ein gestapelter balken sagt dasselbe, aber niemand teilt einen balken. */
-.dots{display:grid;grid-template-columns:repeat(20,1fr);gap:9px;margin-top:16px}
-.dots i{display:block;padding-bottom:100%;border-radius:50%;background:#232B33}
+.dots{display:grid;grid-template-columns:repeat(20,1fr);gap:9px;margin-top:14px}
+.dots i{display:block;padding-bottom:100%;border-radius:50%;background:var(--dot)}
 .dots i.on{background:var(--teal)}
 .dots i.on.red{background:var(--red)}
-.dnote{margin-top:18px;font-size:34px;color:#8C97A2;font-weight:600}
-.dnote b{color:#FFFFFF;font-weight:700}
-.track{height:38px;background:#141A21;border-radius:9px;overflow:hidden}
+.dnote{margin-top:16px;font-size:34px;color:var(--dim);font-weight:500}
+.dnote b{color:var(--txt);font-weight:600}
+.track{height:36px;background:var(--track);border-radius:9px;overflow:hidden}
 .fill{height:100%;border-radius:9px;background:var(--faint)}
 .fill.teal{background:var(--teal)}
 .fill.red{background:var(--red)}
-.fill.grey{background:#39424C}
-.anchor{display:flex;flex-direction:column;gap:12px;flex:1;justify-content:center}
-.anchor .a{font-size:46px;line-height:1.28;color:var(--txt)}
-.anchor .a em{color:var(--teal);font-weight:700;font-style:normal}
-.note{margin-top:12px;font-size:34px;color:var(--dim);line-height:1.3}
-.foot{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
-      font-size:30px;color:var(--dimmer);line-height:1.4;
-      display:flex;justify-content:space-between;align-items:baseline}
-.foot b{color:var(--teal);font-weight:700;font-size:30px}
+.fill.grey{background:var(--faint)}
+.anchor{display:flex;flex-direction:column;gap:10px;flex:1;justify-content:center}
+.anchor .a{font-size:44px;line-height:1.24;color:var(--txt)}
+.anchor .a em{color:var(--teal);font-weight:600;font-style:normal}
+/* im teal-look ist der akzent die textfarbe, die betonung wird markiert */
+body[data-look=teal] em,body[data-look=teal] .anchor .a em{background:var(--txt);color:var(--bg);
+  padding:0 8px;border-radius:6px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.note{margin-top:10px;font-size:34px;color:var(--dim);line-height:1.28}
+.foot{margin-top:8px;padding-top:8px;border-top:2px solid var(--line);
+      font-family:'IBM Plex Mono',monospace;font-size:34px;color:var(--dimmer);line-height:1.3;
+      display:flex;justify-content:space-between;align-items:baseline;gap:24px}
+.foot b{font-family:'IBM Plex Sans',sans-serif;color:var(--teal);font-weight:600;font-size:34px;white-space:nowrap}
 """
-PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><style>{css}</style></head>
-<body>
+PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><style>{fonts}{css}</style></head>
+<body data-look="{look}">
   <div class="top">
     <div class="brand">KASPA <span>PULSE</span></div>
     <div class="iss">{issue}</div>
   </div>
   <div class="eyebrow">{eyebrow}</div>
-  <div class="value">{value}</div>
+  <div class="value" data-rolle="zahl">{value}</div>
   <div class="value-label">{value_label}</div>
-  <h1>{headline}</h1>
+  <h1 data-rolle="titel">{headline}</h1>
   <div class="panes">{panes}</div>
   {note}
   <div class="foot">
@@ -264,9 +287,9 @@ def build_line_pane(block: dict) -> str:
         # nicht dekoration, deshalb faerbt sie sich nach der richtung.
         band = _path(ps) + " L " + " L ".join(
             "%.1f %.1f" % p for p in reversed(pb)) + " Z"
-        fill = "#E36A6A" if ser[-1] < base[-1] else "#49EACB"
-        parts.append('<path class="band" d="%s" fill="%s" fill-opacity="0.26"/>'
-                     % (band, fill))
+        richtung = "red" if ser[-1] < base[-1] else "teal"
+        parts.append('<path class="band %s" d="%s" fill-opacity="0.26"/>'
+                     % (richtung, band))
         parts.append('<path class="ctx" d="%s"/>' % _path(pb))
         parts.append('<text class="tag dim" x="%d" y="%.1f">%s</text>'
                      % (CH_PAD + 6, max(34, pb[0][1] - 26), esc(block.get("base_label", ""))))
@@ -329,7 +352,7 @@ def build_columns_pane(block: dict) -> str:
 BUILDERS = {"compare": build_compare_pane, "anchor": build_anchor_pane,
             "line": build_line_pane, "columns": build_columns_pane,
             "dots": build_dots_pane}
-def render_html(d: dict) -> str:
+def render_html(d: dict, look: str = "dunkel") -> str:
     panes = []
     for block in d.get("panes", []):
         kind = block.get("kind", "anchor")
@@ -342,6 +365,8 @@ def render_html(d: dict) -> str:
     # kopf. hier bleibt nur das datum stehen, bis der generator nachzieht.
     issue = re.sub(r"^\s*KASPA\s+PULSE\s*[·.]?\s*", "", d.get("issue", ""), flags=re.I)
     return PAGE.format(
+        fonts=look_css(look),
+        look=look,
         css=CSS,
         issue=issue,
         eyebrow=esc(d.get("eyebrow", "NUMBER OF THE DAY")),
@@ -354,10 +379,7 @@ def render_html(d: dict) -> str:
         site=esc(d.get("site", "kaspapulse.com")),
     )
 # ---------------------------------------------------------------- render
-def shoot(html: str, out_png: Path) -> None:
-    from playwright.sync_api import sync_playwright
-    tmp = out_png.with_suffix(".html")
-    tmp.write_text(html, encoding="utf-8")
+def chromium_start(p):
     launch = {}
     for cand in (
         "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
@@ -366,12 +388,26 @@ def shoot(html: str, out_png: Path) -> None:
         if Path(cand).exists():
             launch["executable_path"] = cand
             break
-    with sync_playwright() as p:
-        browser = p.chromium.launch(**launch)
-        page = browser.new_page(viewport={"width": W, "height": H},
-                                device_scale_factor=1)
+    return p.chromium.launch(**launch)
+
+
+def shoot(html: str, out_png: Path, browser=None) -> None:
+    if browser is None:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            b = chromium_start(p)
+            try:
+                return shoot(html, out_png, b)
+            finally:
+                b.close()
+    tmp = out_png.with_suffix(".html")
+    tmp.write_text(html, encoding="utf-8")
+    page = browser.new_page(viewport={"width": W, "height": H},
+                            device_scale_factor=1)
+    try:
         page.goto(tmp.resolve().as_uri())
-        page.wait_for_timeout(350)
+        page.evaluate("document.fonts.ready")
+        page.wait_for_timeout(250)
         # ueberlaufwaechter. bei groesserer schrift passt mehr text nicht mehr
         # von allein. wenn der inhalt die leinwand sprengt, wird nicht leise
         # abgeschnitten, sondern der lauf bricht ab und nennt den ueberstand.
@@ -381,14 +417,72 @@ def shoot(html: str, out_png: Path) -> None:
             "Math.max(0, document.body.scrollHeight - %d)" % H
         )
         if overflow > 0:
-            browser.close()
             raise ValueError(
                 f"content overflows the {W}x{H} canvas by {overflow}px. "
                 f"shorten the json content (headline, anchor lines or note), "
                 f"do not shrink the fonts."
             )
         page.screenshot(path=str(out_png))
-        browser.close()
+    finally:
+        page.close()
+
+
+# ---------------------------------------------------------------- look-takt
+# die zahl des tages laeuft auf x und discord (telegram bekommt das
+# discord-bild). jeder kanal hat seinen takt in data/look-takt.json, serie
+# "zahl", einen schritt versetzt zur tagesgrafik (look_takt.VERSATZ).
+KANAELE = ("x", "discord")
+
+
+def kanal_pfad(out: Path, kanal: str) -> Path:
+    """x behaelt den alten namen (x_post.py und das archiv nehmen ihn), discord
+    bekommt den kanal im namen."""
+    return out if kanal == "x" else out.with_name("%s-%s%s" % (out.stem, kanal, out.suffix))
+
+
+def kanaele_rendern(d: dict, out: Path, tag: str, speicher=None, merken=False):
+    """rendert ein bild je kanal im look aus seinem takt. mit merken wird der
+    takt im speicher weitergeschoben und geschrieben. gibt {kanal: (pfad, look)}."""
+    import look_takt
+    from playwright.sync_api import sync_playwright
+    sp = look_takt.lesen() if speicher is None else speicher
+    looks = look_takt.looks_fuer(sp, "zahl", tag, KANAELE)
+    aus = {}
+    with sync_playwright() as p:
+        b = chromium_start(p)
+        try:
+            for k in KANAELE:
+                ziel = kanal_pfad(out, k)
+                shoot(render_html(d, looks[k]), ziel, b)
+                ziel.with_suffix(".html").unlink(missing_ok=True)
+                aus[k] = (ziel, looks[k])
+        finally:
+            b.close()
+    if merken:
+        for k in KANAELE:
+            look_takt.merken(sp, "zahl", k, tag)
+        if speicher is None:
+            look_takt.schreiben(sp)
+    return aus
+
+
+def kontaktbogen_bilder(ziel, browser, payloads, looks=("dunkel", "hell", "teal")):
+    """[(beschriftung, png)] fuer den kontaktbogen. ein payload, der ueberlaeuft,
+    steht als fehler in der liste."""
+    aus = []
+    Path(ziel).mkdir(parents=True, exist_ok=True)
+    for name, d in payloads:
+        for lk in looks:
+            png = Path(ziel) / ("zahl-%s-%s.png" % (name, lk))
+            try:
+                shoot(render_html(d, lk), png, browser)
+                png.with_suffix(".html").unlink(missing_ok=True)
+                aus.append(("zahl des tages %s %s" % (name, lk), png))
+            except ValueError as exc:
+                aus.append(("zahl des tages %s %s FEHLER %s" % (name, lk, exc), None))
+    return aus
+
+
 def selbsttest() -> int:
     """Die beiden Wachen, ohne Netz und ohne Chromium."""
     fehler = []
@@ -441,21 +535,61 @@ def main() -> int:
     ap.add_argument("--output", default="graphics/number-of-day.png")
     ap.add_argument("--keep-html", action="store_true")
     ap.add_argument("--selbsttest", action="store_true")
+    ap.add_argument("--takt-merken", action="store_true",
+                    help="look-takt in data/look-takt.json weiterschieben (nur der taegliche lauf)")
     args = ap.parse_args()
     if args.selbsttest:
-        return 1 if selbsttest() else 0
+        return 1 if (selbsttest() or look_selbsttest()) else 0
     src = Path(args.input)
     d = json.loads(src.read_text(encoding="utf-8"))
     walk_and_check(d)
     out = Path(args.output)
     out.parent.mkdir(parents=True, exist_ok=True)
-    html = render_html(d)
-    shoot(html, out)
-    if not args.keep_html:
-        out.with_suffix(".html").unlink(missing_ok=True)
-    size_kb = out.stat().st_size / 1024
-    print(f"wrote {out} ({W}x{H}, {size_kb:.0f} kB)")
+    if args.keep_html:
+        out.with_suffix(".html").write_text(render_html(d), encoding="utf-8")
+    import datetime as dt
+    tag = dt.datetime.now(dt.timezone.utc).date().isoformat()
+    for kanal, (pfad, look) in kanaele_rendern(d, out, tag, merken=args.takt_merken).items():
+        size_kb = pfad.stat().st_size / 1024
+        print(f"wrote {pfad} ({W}x{H}, {size_kb:.0f} kB), {kanal} im look {look}")
     return 0
+
+
+def look_selbsttest() -> int:
+    """look-takt der zahl des tages. rendert nur, wenn playwright da ist."""
+    fehler = 0
+
+    def ok(was, bedingung):
+        nonlocal fehler
+        print(("  ok   " if bedingung else "  FEHL ") + was)
+        fehler += 0 if bedingung else 1
+
+    print("number of the day, looks")
+    d = {"issue": "16 OCT 2026", "value": "96.6%", "value_label": "of all KAS is mined",
+         "headline": "almost *all of it* is out", "sources": "source kaspa rest api, 16 oct 2026",
+         "panes": [{"kind": "dots", "title": "MINED", "lit": 97, "note": "*97* of 100"}]}
+    for lk in LOOK_FARBEN:
+        h = render_html(d, lk)
+        ok("look %s, farben und schriften eingebettet" % lk,
+           LOOK_FARBEN[lk]["bg"] in h and "@font-face" in h and "googleapis" not in h)
+    ok("kein hartes hex im css, alles ueber die look-variablen",
+       not re.search(r"#[0-9A-Fa-f]{6}", CSS))
+    ok("discord-bild traegt den kanal im namen, x den alten",
+       kanal_pfad(Path("g/number-of-day.png"), "discord").name == "number-of-day-discord.png"
+       and kanal_pfad(Path("g/number-of-day.png"), "x").name == "number-of-day.png")
+    try:
+        import playwright  # noqa: F401
+    except ImportError:
+        print("  playwright fehlt, render-probe uebersprungen")
+        return fehler
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        sp = {"kanaele": {}}
+        r = kanaele_rendern(d, Path(td) / "number-of-day.png", "2026-10-17", sp, merken=True)
+        ok("x und discord gerendert", all(p.exists() for p, _ in r.values()))
+        ok("zahl startet versetzt, x hell am ersten tag (%s)" % r["x"][1], r["x"][1] == "hell")
+        ok("takt im speicher weitergeschoben", sp["kanaele"]["zahl/x"][-1]["datum"] == "2026-10-17")
+    return fehler
 if __name__ == "__main__":
     try:
         sys.exit(main())
