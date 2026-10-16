@@ -1,0 +1,15 @@
+[Unit]
+Description=Kaspa Pulse Takt, Reichweiten-Uhrwerk alle 6 Stunden
+
+[Timer]
+Unit=takt@uhrwerk.service
+# 00:40, 06:40, 12:40, 18:40 Berlin. Bewusst nicht zur vollen Stunde und
+# nicht um 09:30: der Tagespost soll zuerst draussen sein.
+OnCalendar=*-*-* 00,06,12,18:40:00 Europe/Berlin
+# Persistent: ein verpasster Lauf wird nachgeholt. Ein Fenster, das dabei
+# zu spaet kommt, erkennt der Sammler selbst und schreibt nachtrag: true.
+Persistent=true
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target
