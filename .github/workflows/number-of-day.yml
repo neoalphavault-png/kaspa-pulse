@@ -147,12 +147,17 @@ jobs:
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
-          git add graphics/ data/ *.html sitemap.xml
+          # Je Pfad ein eigenes add: ein gemeinsames add bricht ganz ab,
+          # sobald einer davon fehlt, und dann ist NICHTS vorgemerkt.
+          git add graphics/ 2>/dev/null || true
+          git add data/ 2>/dev/null || true
+          git add *.html 2>/dev/null || true
+          git add sitemap.xml 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "nothing changed"
           else
             git commit -m "number of the day $(date -u +%Y-%m-%d)"
-            git pull --rebase origin main
+            git pull --rebase --autostash origin main
             git push
           fi
       - name: upload for download
