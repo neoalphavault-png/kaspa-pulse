@@ -99,6 +99,14 @@ def walk_and_check(node, path="root"):
     elif isinstance(node, list):
         for i, v in enumerate(node):
             walk_and_check(v, f"{path}[{i}]")
+
+
+def echtzeit_treffer(text):
+    """das erste echtzeit-wort im text, oder None. dieselbe regel wie in
+    assert_punctuation, fuer die anderen post-wachen (x_post, weekly_numbers),
+    damit es eine liste gibt und nicht drei (Ben, 17.10.2026)."""
+    m = _ECHTZEIT.search(_strip_technical(text or ""))
+    return m.group(0) if m else None
 # ---------------------------------------------------------------- template
 # groessen in px bei 1080 breite. seit dem look-takt (Ben, 15.10.2026) nach
 # der tabelle fuer den instagram-feed: grosse zahl ab 200, ueberschrift ab 64,
