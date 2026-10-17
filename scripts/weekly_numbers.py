@@ -381,6 +381,31 @@ def vergleich_seit(prev, week_date):
     return " since " + month_day(pw)
 
 
+# Bens Regel (16.10.2026): Kaspalytics-Reihen tragen immer "source kaspalytics",
+# "counted" steht nur bei eigenen Zaehlungen. Im Post nennt deshalb jede
+# Kaspalytics-Zeile ihre Quelle (KL_FELDER oben), und ein Read, der eine
+# Kaspalytics-Reihe nennt, bekommt die Quelle angehaengt, falls er sie nicht
+# selbst nennt.
+QUELLE_KL = " · source kaspalytics"
+READ_KL = (("covenant", re.compile(r"\bcovenant", re.I)),
+           ("address", re.compile(r"\b(active addresses|addresses holding|addresses with|holders)\b", re.I)),
+           ("throughput", re.compile(r"\b(tps|throughput)\b", re.I)),
+           ("exchange", re.compile(r"\b(exchange (balances?|wallets|holdings)|on exchanges)\b", re.I)),
+           ("dormant supply", re.compile(r"\b(not moved|untouched|dormant)\b", re.I)))
+
+
+def read_mit_quelle(read):
+    """Haengt an den Read, welche Kaspalytics-Reihen er nennt, mit Quelle."""
+    read = read.strip()
+    if "kaspalytics" in read.lower():
+        return read
+    arten = [name for name, rx in READ_KL if rx.search(read)]
+    if not arten:
+        return read
+    liste = arten[0] if len(arten) == 1 else ", ".join(arten[:-1]) + " and " + arten[-1]
+    return read + " %s figures source kaspalytics." % liste
+
+
 def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
                   quelle="discord", tps_def=TPS_DEF):
     prev = prev or {}
@@ -405,7 +430,7 @@ def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
     out.append(line)
     out.append("")
 
-    out.append("\U0001f310 **network**")
+    out.append("\U0001f310 **network**" + QUELLE_KL)
     out.append("active addresses **%s** per day%s" % (
         fmt_int(v["active_addr"]),
         tail("active_addr", v["active_addr"], prev.get("active_addr"), extra)))
@@ -436,7 +461,7 @@ def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
     out.append("\U0001fa99 **supply**")
     out.append("**%s percent** of all KAS already mined"
                % fmt_num(v["mined_pct"], 2))
-    line = "**%s percent** has not moved in over a year" % fmt_num(v["dormant_pct"])
+    line = "**%s percent** has not moved in over a year" % fmt_num(v["dormant_pct"]) + QUELLE_KL
     dc, dtxt = delta("dormant_pct", v["dormant_pct"], prev.get("dormant_pct"))
     if SHOW_DELTA.get("dormant_pct") and dc:
         line += " %s %s%s" % (dc, dtxt, extra)
@@ -446,11 +471,11 @@ def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
         tail("exchange_kas", v["exchange_kas"], prev.get("exchange_kas"), extra))
     if show_usd and price:
         line += " worth %s" % fmt_money(v["exchange_kas"] * price)
-    out.append(line)
+    out.append(line + QUELLE_KL)
     out.append("")
 
     out.append("\U0001f4a1 **the read**")
-    out.append(read.strip())
+    out.append(read_mit_quelle(read))
     out.append("")
     out.append("\U0001f517 full dashboard kaspapulse.com")
     out.append(newsletter_zeile(quelle))
@@ -1083,7 +1108,7 @@ GOLD_MSG = "\n".join([
     "block reward **2.45 KAS** \U0001f53b cut to 2.312 on wednesday, 06.15 utc",
     "emission **2,116,775 KAS** per day",
     "",
-    "\U0001f310 **network**",
+    "\U0001f310 **network** · source kaspalytics",
     "active addresses **13,940** per day",
     "tps **0.91** \U0001f7e2 up 21.3 percent",
     "addresses holding a balance **747,603**",
@@ -1096,8 +1121,9 @@ GOLD_MSG = "\n".join([
     "",
     "\U0001fa99 **supply**",
     "**96.21 percent** of all KAS already mined",
-    "**50.6 percent** has not moved in over a year ⚪ unchanged",
-    "exchange balances **3.85B KAS** \U0001f7e2 down 2.2 percent",
+    # seit 16.10.2026 bewusst geaendert: kaspalytics-zeilen nennen ihre quelle
+    "**50.6 percent** has not moved in over a year · source kaspalytics ⚪ unchanged",
+    "exchange balances **3.85B KAS** \U0001f7e2 down 2.2 percent · source kaspalytics",
     "",
     "\U0001f4a1 **the read**",
     GOLD_READ,
@@ -1185,6 +1211,23 @@ def run_selftest():
                 print("      soll %r" % b)
     ok("post vom 03.08. exakt reproduziert", msg == GOLD_MSG)
     ok("laenge unter dem discord limit", len(msg) < 1990, len(msg))
+
+    # 6b quellen (Ben 16.10.2026): kaspalytics-reihen nennen ihre quelle
+    ok("netzwerk-kopf nennt kaspalytics", "**network** · source kaspalytics" in msg)
+    ok("read mit covenant-zahl bekommt die quelle",
+       read_mit_quelle("covenant transactions came to 219 a day against 245.")
+       == "covenant transactions came to 219 a day against 245. covenant figures source kaspalytics.")
+    ok("read mit mehreren reihen nennt alle",
+       read_mit_quelle("covenant transactions at 219, active addresses at 5,553.").endswith(
+           "covenant and address figures source kaspalytics."))
+    ok("read, der kaspalytics schon nennt, bleibt", read_mit_quelle(
+        "covenant transactions at 219, source kaspalytics.") == "covenant transactions at 219, source kaspalytics.")
+    ok("read ohne kaspalytics-reihe bleibt", read_mit_quelle(GOLD_READ) == GOLD_READ)
+    ok("entity x adresse ist keine kaspalytics-reihe", read_mit_quelle(
+        "the address the explorer calls entity x took in 4.77M KAS.") == "the address the explorer calls entity x took in 4.77M KAS.")
+    assert_punctuation(read_mit_quelle("throughput read 0.78 accepted transactions per second, "
+                                       "covenant transactions came to 219 a day."))
+    print("  ok   schreibregel mit quellenzeile eingehalten")
 
     # 7 schreibregel
     assert_punctuation(msg)

@@ -175,18 +175,18 @@
 </nav>
 <div class="wrap">
   <h1>Is Kaspa's <b>Toccata</b> upgrade being used?</h1>
-  <div class="sub">Toccata went live on 30 June 2026 and gave Kaspa covenants, a way to attach spending rules to an output. Whether anyone actually uses them is a counting question, not an opinion. So we count it, every day, and publish the whole series — the quiet days included.</div>
+  <div class="sub">Toccata went live on 30 June 2026 and gave Kaspa covenants, a way to attach spending rules to an output. Whether anyone actually uses them is a counting question, not an opinion. So we log the Kaspalytics count every day, source kaspalytics, and publish the whole series, the quiet days included.</div>
   <div class="live">
     <!--AUTO:kopf--><div class="lbl">covenant utxos on the kaspa network</div>
     <div class="bal"><span data-v="utxo_count">14,887</span></div>
     <div class="usd">unspent outputs bound to a covenant id, as of <span data-v="utxo_datum">16 oct 2026</span></div>
-    <div class="upd">counted by Kaspalytics, logged daily by Kaspa Pulse</div><!--/AUTO:kopf-->
+    <div class="upd">source kaspalytics, logged daily by Kaspa Pulse</div><!--/AUTO:kopf-->
   </div>
 </div>
 <div class="band"><div class="wrap2">
   <h2>What is being counted here</h2>
   <p>A <b>covenant</b> is a rule that travels with a coin. A normal Kaspa output can be spent by whoever holds the key. A covenant-bound output carries a condition about <i>how</i> it may be spent next, and the network enforces that condition. Toccata is the consensus change that made this possible on mainnet, and <a href="/kaspa-toccata.html">our Toccata page</a> covers what else it changed.</p>
-  <p>That leaves a measurable question. Covenant-bound outputs either exist on the chain or they do not, and transactions either create them or they do not. Both are countable, both are counted by <a href="https://www.kaspalytics.com/app/covenants/transactions" target="_blank" rel="noopener">Kaspalytics</a>, and since 22 September 2026 a bot of ours writes the daily reading into a file in our repository so the series survives even if the source's own window moves on.</p>
+  <p>That leaves a measurable question. Covenant-bound outputs either exist on the chain or they do not, and transactions either create them or they do not. Both are countable, and both are published by <a href="https://www.kaspalytics.com/app/covenants/transactions" target="_blank" rel="noopener">Kaspalytics</a>, and since 22 September 2026 a bot of ours writes the daily reading into a file in our repository so the series survives even if the source's own window moves on.</p>
   <div class="facts">
     <!--AUTO:kacheln--><div class="fact"><div class="v teal"><span data-v="tx_letzter">420</span></div><div class="l">covenant transactions on <span data-v="tx_datum">16 oct 2026</span>, the last full day in the log</div></div>
     <div class="fact"><div class="v"><span data-v="tx_schnitt7">238</span></div><div class="l">average per day over the last seven full days</div></div>
@@ -257,7 +257,7 @@
   <p>Transactions and outputs are daily sums, stamped at midnight of the day they count. The UTXO count is a snapshot taken at midnight with a few seconds of slack in either direction, so a reading stamped 00:00:02 belongs to the day that just ended. Reading that stamp naively puts half the series on the wrong day, which is the sort of error that never announces itself.</p>
   <h3>Every number here is in the page source</h3>
   <p>Not fetched by javascript after the fact. A bot renders the file, and a second pass reads the numbers back out of the finished page and compares each one against the log. If the page and the log disagree, the run fails and nothing ships. A page that can quietly contradict its own source is worse than no page.</p>
-  <div class="note"><!--AUTO:stand-->counted by Kaspalytics, logged daily by Kaspa Pulse · last reading <span data-v="stand_datum">16 oct 2026</span> · log written <span data-v="stand_abruf">2026-10-17</span><!--/AUTO:stand--></div>
+  <div class="note"><!--AUTO:stand-->source kaspalytics, logged daily by Kaspa Pulse · last reading <span data-v="stand_datum">16 oct 2026</span> · log written <span data-v="stand_abruf">2026-10-17</span><!--/AUTO:stand--></div>
 </div></div>
 <div class="wrap2">
 <!--AUTO:faq-->
@@ -268,7 +268,7 @@
   <h3>What is a covenant on Kaspa?</h3>
   <p>A covenant is a spending rule attached to an output. A normal output can be spent by whoever holds the key; a covenant bound output carries a condition about how it may be spent next, and the network enforces that condition. The Toccata consensus upgrade made covenants possible on Kaspa mainnet on 30 June 2026.</p>
   <h3>How many covenant UTXOs are there on Kaspa?</h3>
-  <p>The current number is shown at the top of this page with the date it was read. It is the count of unspent transaction outputs bound to a covenant id, counted by Kaspalytics and written into our own daily log so the series survives even if the source's window moves on.</p>
+  <p>The current number is shown at the top of this page with the date it was read. It is the count of unspent transaction outputs bound to a covenant id, source kaspalytics, written into our own daily log so the series survives even if the source's window moves on.</p>
   <h3>Where does the covenant data come from?</h3>
   <p>Three daily series from Kaspalytics, covenant transactions, covenant outputs created and spent, and the covenant UTXO count, read as JSON from the same public endpoints its own charts use. A bot reads them once a day, never reads the running day, and writes the result to data/covenants-log.json in our public repository. The numbers on this page are rendered into the page source from that file and checked back against it on every run.</p>
   <h3>Do the covenant numbers say anything about the Kaspa price?</h3>
@@ -350,7 +350,7 @@
     {
       "@type": "Question",
       "name": "How many covenant UTXOs are there on Kaspa?",
-      "acceptedAnswer": { "@type": "Answer", "text": "The current number is shown at the top of this page with the date it was read. It is the count of unspent transaction outputs bound to a covenant id, counted by Kaspalytics and written into our own daily log so the series survives even if the source's window moves on." }
+      "acceptedAnswer": { "@type": "Answer", "text": "The current number is shown at the top of this page with the date it was read. It is the count of unspent transaction outputs bound to a covenant id, source kaspalytics, written into our own daily log so the series survives even if the source's window moves on." }
     },
     {
       "@type": "Question",
