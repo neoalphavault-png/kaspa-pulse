@@ -50,6 +50,16 @@ jobs:
             --koepfe "$RUNNER_TEMP/koepfe.jsonl" \
             --meta "$RUNNER_TEMP/lauscher-meta.json"
 
+      # Lauf 17.10.2026: das Zuhoeren lief 330 min durch, der Kettenabruf danach
+      # scheiterte, und die Rohdaten lagen nur in RUNNER_TEMP. Deshalb sofort
+      # sichern; der Commit am Ende laeuft auch, wenn ein spaeterer Schritt bricht.
+      - name: rohdaten sichern
+        run: |
+          set -eu
+          gzip -n -c "$RUNNER_TEMP/ereignisse.jsonl" > data/zcash/lauscher-ereignisse.jsonl.gz
+          gzip -n -c "$RUNNER_TEMP/koepfe.jsonl" > data/zcash/lauscher-koepfe.jsonl.gz
+          cp "$RUNNER_TEMP/lauscher-meta.json" data/zcash/lauscher-meta.json
+
       - name: kette danach abrufen
         run: |
           set -eu
@@ -63,9 +73,6 @@ jobs:
             --ereignisse "$RUNNER_TEMP/ereignisse.jsonl" --koepfe "$RUNNER_TEMP/koepfe.jsonl" \
             --meta "$RUNNER_TEMP/lauscher-meta.json" --kette "$RUNNER_TEMP/kette.csv.gz" \
             --aus data/zcash/lauscher-zusammenfassung.json
-          gzip -n -c "$RUNNER_TEMP/ereignisse.jsonl" > data/zcash/lauscher-ereignisse.jsonl.gz
-          gzip -n -c "$RUNNER_TEMP/koepfe.jsonl" > data/zcash/lauscher-koepfe.jsonl.gz
-          cp "$RUNNER_TEMP/lauscher-meta.json" data/zcash/lauscher-meta.json
           {
             echo "## Zcash Lauscher"
             echo '```'
@@ -74,9 +81,15 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: secret-scan
+        id: scan
+        if: always()
         run: python3 scripts/secret_scan.py --baum
 
+      # Auch nach einem Fehler weiter oben, aber nie nach einem Treffer im
+      # Secret-Scan. Ohne frische Zusammenfassung bleibt die alte liegen; der
+      # Endlauf prueft Fenster und abgedeckte Zeit selbst (unter 2 h: D nicht gemessen).
       - name: committen
+        if: always() && steps.scan.outcome == 'success'
         run: |
           set -eu
           git config user.name "zcash nu7 bot"

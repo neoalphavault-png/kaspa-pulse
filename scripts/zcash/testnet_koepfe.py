@@ -163,9 +163,19 @@ class Peer:
             elif cmd == "reject":
                 raise ConnectionError("version abgelehnt")
 
-    def koepfe(self, locator_hash_intern, warten=60):
-        """getheaders ab einem Hash; liefert Liste roher Koepfe (ohne tx-count)."""
-        payload = struct.pack("<I", PROTOKOLL) + varint(1) + locator_hash_intern + b"\0" * 32
+    def koepfe(self, locator, warten=60):
+        """getheaders mit einem Locator (Liste von Hashes, neueste zuerst, oder
+        ein einzelner Hash); liefert Liste roher Koepfe (ohne tx-count).
+
+        Lauf des Zuhoerers 17.10.2026: mit nur EINEM Hash im Locator findet ein
+        Peer auf einem anderen Zweig keinen Anschluss; er antwortet mit Koepfen
+        von woanders, die wir verwerfen, bis zur Zeitueberschreitung. Mit einem
+        Locator wie bei echten Knoten findet er den gemeinsamen Vorfahren.
+        """
+        if isinstance(locator, bytes):
+            locator = [locator]
+        bekannt = set(locator)
+        payload = struct.pack("<I", PROTOKOLL) + varint(len(locator)) + b"".join(locator) + b"\0" * 32
         self.senden("getheaders", payload)
         frist = time.time() + warten
         while time.time() < frist:
@@ -183,7 +193,7 @@ class Peer:
                 _, i = lies_varint(p, i)  # tx-count, immer 0
             # Ein unverlangter headers (Ankuendigung eines neuen Blocks) haengt
             # nicht an unserem Locator; den ueberlesen wir.
-            if out and out[0][4:36] != locator_hash_intern:
+            if out and out[0][4:36] not in bekannt:
                 continue
             return out
         raise TimeoutError("keine headers-antwort")
@@ -273,28 +283,86 @@ def main():
         sys.exit("keine peers")
 
     kette = []  # (hoehe, kopf)
-    letzter_hash, letzte_h = start_hash, start_h
     benutzt, agents = set(), []
-    addr, peer = verbinden(adressen, mindesthoehe=args.ab)
+
+    def letzter():
+        return (kette[-1][0], kette[-1][1]["hash"]) if kette else (start_h, start_hash)
+
+    def locator():
+        # neueste zuerst: 10 einzeln, dann in wachsenden Schritten, zuletzt der Checkpoint
+        out, i, schritt = [], len(kette) - 1, 1
+        while i >= 0:
+            out.append(kette[i][1]["hash"])
+            if len(out) >= 10:
+                schritt *= 2
+            i -= schritt
+        return out + [start_hash]
+
+    # Zielhoehe: hoechste Hoehe, die mehrere Peers melden. Ein Peer, der weit
+    # darunter liegt, synchronisiert noch oder steht auf einem anderen Zweig
+    # (Lauf 17.10.2026: /Zakura:1.5.1/ meldete 4.482.036, die Spitze war 4.511.578).
+    gemeldet = []
+    for _ in range(4):
+        a, p = verbinden(adressen, benutzt, mindesthoehe=args.ab)
+        if p is None:
+            break
+        benutzt.add(a)
+        gemeldet.append(p.hoehe)
+        p.zu()
+    if not gemeldet:
+        sys.exit("kein peer erreichbar")
+    ziel = sorted(gemeldet)[-2] if len(gemeldet) >= 2 else gemeldet[0]
+    mindest = ziel - 20
+    log(f"zielhoehe {ziel} (median-nahe aus {len(gemeldet)} peers), hauptpeer ab {mindest}")
+    benutzt = set()
+
+    abzweige = []  # verworfene Koepfe, wenn ein Peer auf einem anderen Zweig stand
+    addr, peer = verbinden(adressen, benutzt, mindesthoehe=mindest)
     fehler = 0
+
+    def wechseln(grund):
+        nonlocal addr, peer, fehler
+        log(f"peer {grund}, wechsle")
+        peer.zu()
+        benutzt.add(addr)
+        fehler += 1
+        addr, peer = (None, None) if fehler > 12 else verbinden(adressen, benutzt, mindesthoehe=mindest)
+
     while True:
         if peer is None:
-            sys.exit("kein peer mehr erreichbar")
+            # Keine Peers mehr. Liegt der Stand nahe am Ziel, ist das die Spitze,
+            # die wir kriegen; sonst lieber keine Datei als eine kurze.
+            if letzter()[0] >= mindest:
+                log(f"WARNUNG: keine peers mehr, ende bei {letzter()[0]} (ziel {ziel})")
+                break
+            sys.exit("kein peer mehr erreichbar oder zu viele peer-fehler")
         try:
-            roh = peer.koepfe(letzter_hash)
+            roh = peer.koepfe(locator())
         except (OSError, ConnectionError, TimeoutError) as e:
-            log(f"peer abgebrochen ({type(e).__name__}: {e}), empfangen: {peer.gesehen[-12:]}, wechsle")
-            peer.zu()
-            benutzt.add(addr)
-            fehler += 1
-            if fehler > 12:
-                sys.exit("zu viele peer-fehler")
-            addr, peer = verbinden(adressen, benutzt, mindesthoehe=args.ab)
+            wechseln(f"abgebrochen ({type(e).__name__}: {e}), empfangen: {peer.gesehen[-12:]}")
             continue
         if peer.agent not in agents:
             agents.append(peer.agent)
         if not roh:
+            if letzter()[0] < ziel - 3:
+                wechseln(f"liefert nichts mehr bei {letzter()[0]}, ziel {ziel}")
+                continue
             break
+        # Anschluss suchen: der erste Kopf haengt an einem Hash unseres Locators.
+        prev = roh[0][4:36]
+        if prev != letzter()[1]:
+            if prev == start_hash:
+                pos = 0
+            else:
+                pos = next((i + 1 for i in range(len(kette) - 1, -1, -1) if kette[i][1]["hash"] == prev), None)
+                if pos is None:
+                    wechseln("antwortet ohne anschluss")
+                    continue
+            weg = kette[pos:]
+            abzweige.append({"verworfen": [(h, k["hash"]) for h, k in weg], "neuer_peer": peer.agent})
+            log(f"anderer zweig: {len(weg)} koepfe ab hoehe {weg[0][0] if weg else '-'} neu holen")
+            del kette[pos:]
+        letzte_h, letzter_hash = letzter()
         for r in roh:
             k = kopf_lesen(r)
             if k["prev"] != letzter_hash:
@@ -308,7 +376,19 @@ def main():
             kette.append((letzte_h, k))
         if len(kette) % 8000 < len(roh):
             log(f"... hoehe {letzte_h}")
-    peer.zu()
+    letzte_h, letzter_hash = letzter()
+    if peer is not None:
+        peer.zu()
+    # Echter Abzweig: erste Hoehe, an der ein verworfener Kopf nicht dem
+    # endgueltigen entspricht (verworfen wird ab dem Locator-Raster, also oft
+    # mehr als der Zweig selbst).
+    endg = {h: k["hash"] for h, k in kette}
+    zweige = []
+    for a in abzweige:
+        anders = [h for h, x in a["verworfen"] if endg.get(h) != x]
+        zweige.append({"abzweig_hoehe": anders[0] if anders else None,
+                       "bloecke_auf_anderem_zweig": len(anders), "danach_von": a["neuer_peer"]})
+    abzweige = zweige
     abruf = datetime.now(timezone.utc)
     log(f"spitze {letzte_h}, {len(kette)} koepfe")
     if letzte_h < args.ab:
@@ -381,6 +461,8 @@ def main():
         "checkpoints_geprueft": sum(1 for h, _ in kette if h in cps),
         "peer_software": agents,
         "peer_fehler": fehler,
+        "zielhoehe_gemeldet": ziel,
+        "abzweige_verworfen": abzweige,
         "gegenproben": proben,
         "gegenproben_ohne_antwort": fehlversuche,
         "pruefungen": ["prev-hash-kette", "hash <= ziel aus nbits", "zebra-checkpoints"],
