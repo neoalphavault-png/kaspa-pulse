@@ -1,59 +1,44 @@
 {
   "titel": "Zcash NU7 Testnet, unabhaengige Zaehlung",
-  "stichtag_utc": "2026-10-17 15:00:00 UTC",
+  "stichtag_utc": "2026-10-17 20:00:00 UTC",
   "bereich": {
     "von_hoehe": 4465026,
-    "bis_hoehe": 4512093,
-    "bloecke": 47068,
+    "bis_hoehe": 4512797,
+    "bloecke": 47772,
     "von_zeit_utc": "2026-10-04 18:21:45",
-    "bis_zeit_utc": "2026-10-17 14:59:35",
+    "bis_zeit_utc": "2026-10-17 19:59:32",
     "regel": "ab 4.465.026 bis zum hoechsten Block mit Zeitstempel <= Stichtag"
   },
   "quelle": {
     "quelle": "Zcash-Testnet P2P (getheaders), Peers aus DNS-Seeds",
-    "abruf_utc": "2026-10-17T15:17:54Z",
+    "abruf_utc": "2026-10-17T20:06:40Z",
     "start_checkpoint": 4414585,
     "erste_hoehe": 4414586,
-    "spitze_hoehe": 4512138,
-    "spitze_hash": "00000f1915d86de5bc8cacb50cf50cda4ab8866ca4af29cb8cc022264952dc53",
+    "spitze_hoehe": 4512810,
+    "spitze_hash": "00001e9408b7893e676f8328db1167f4c756475455ec2741e490a537dccc1aeb",
     "checkpoints_quelle": "https://raw.githubusercontent.com/ZcashFoundation/zebra/main/zebra-chain/src/parameters/checkpoint/test-checkpoints.txt",
     "checkpoints_geprueft": 0,
     "peer_software": [
-      "/Zebra:7.0.0-rc.0/",
-      "/Zakura:1.6.0/",
-      "/Zakura:1.7.0-rc1/"
+      "/Zebra:7.0.0-rc.0/"
     ],
     "peer_fehler": 0,
-    "zielhoehe_gemeldet": 4512131,
+    "zielhoehe_gemeldet": 4512805,
     "abzweige_verworfen": [],
     "gegenproben": [
       {
         "agent": "/Zebra:7.0.0-rc.0/",
         "verglichen": 500,
         "gleich": 500,
-        "spitze_peer": 4512139
+        "spitze_peer": 4512810
       },
       {
         "agent": "/Zebra:7.0.0-rc.0/",
         "verglichen": 500,
         "gleich": 500,
-        "spitze_peer": 4512139
+        "spitze_peer": 4512810
       }
     ],
-    "gegenproben_ohne_antwort": [
-      {
-        "agent": "/Zakura:1.6.0/",
-        "fehler": "TimeoutError"
-      },
-      {
-        "agent": "/Zakura:1.7.0-rc1/",
-        "fehler": "TimeoutError"
-      },
-      {
-        "agent": "/Zakura:1.7.0-rc1/",
-        "fehler": "TimeoutError"
-      }
-    ],
+    "gegenproben_ohne_antwort": [],
     "pruefungen": [
       "prev-hash-kette",
       "hash <= ziel aus nbits",
@@ -66,8 +51,8 @@
     ]
   },
   "abstaende": {
-    "anzahl_abstaende": 47067,
-    "mittel_s": 23.606,
+    "anzahl_abstaende": 47771,
+    "mittel_s": 23.635,
     "median_s": 17.0,
     "p90_s": 52.0,
     "p99_s": 109.0,
@@ -78,11 +63,11 @@
       "vorgaenger_zeit_utc": "2026-10-13 04:17:43",
       "zeit_utc": "2026-10-13 04:25:14"
     },
-    "anteil_ueber_75s": 0.03544,
-    "anteil_ueber_150s": 0.002,
-    "anzahl_ueber_75s": 1668,
-    "anzahl_ueber_150s": 94,
-    "anzahl_null": 505,
+    "anteil_ueber_75s": 0.03563,
+    "anteil_ueber_150s": 0.00199,
+    "anzahl_ueber_75s": 1702,
+    "anzahl_ueber_150s": 95,
+    "anzahl_null": 513,
     "anzahl_negativ": 0,
     "erwartung_exponentiell": {
       "mittel_s": 25.0,
@@ -91,7 +76,7 @@
       "p99_s": 115.13,
       "anteil_ueber_75s": 0.04979,
       "anteil_ueber_150s": 0.00248,
-      "laengste_luecke_erwartet_s": 283.4
+      "laengste_luecke_erwartet_s": 283.8
     }
   },
   "vorher_75s": {
@@ -281,15 +266,15 @@
     },
     {
       "tag_utc": "2026-10-17",
-      "bloecke": 2168,
+      "bloecke": 2872,
       "erste_hoehe": 4509926,
       "mindestschwierigkeit": 0,
-      "letzte_hoehe": 4512093,
-      "mittlerer_abstand_s": 24.9,
-      "schwierigkeit_mittel": 11563.784,
+      "letzte_hoehe": 4512797,
+      "mittlerer_abstand_s": 25.06,
+      "schwierigkeit_mittel": 11583.552,
       "schwierigkeit_min": 10255.912,
-      "schwierigkeit_max": 12476.261,
-      "hashrate_relativ": 464.4279
+      "schwierigkeit_max": 12739.804,
+      "hashrate_relativ": 462.1963
     }
   ],
   "mindestschwierigkeit": {
@@ -390,13 +375,13 @@
     "zeit_von_10_bei_75s_s": 750.0,
     "bloecke_gleiche_zeit_bei_25s": 30,
     "bloecke_gleiche_zeit_beim_gemessenen_mittel": 32,
-    "gemessenes_mittel_s": 23.606,
+    "gemessenes_mittel_s": 23.635,
     "gemessen_spanne_30_bloecke": {
-      "fenster": 47038,
+      "fenster": 47742,
       "median_s": 729.0,
       "p90_s": 926.0,
-      "p99_s": 1195.6299999999974,
-      "anteil_ueber_750s": 0.4423
+      "p99_s": 1193.0,
+      "anteil_ueber_750s": 0.4437
     },
     "theorie_erlang": {
       "10_bei_75s": {
@@ -412,10 +397,7 @@
     },
     "zuhoerer": null
   },
-  "zakura_und_andere_ohne_antwort": {
-    "/Zakura:1.6.0/": 1,
-    "/Zakura:1.7.0-rc1/": 2
-  },
+  "zakura_und_andere_ohne_antwort": {},
   "lauscher": null,
   "lauscher_pruefung": "Zuhoerer-Fenster nur 15 min (Mindestmass 120 min)",
   "lauscher_pruefung_en": "the listener window was only 15 min (minimum 120 min)",
