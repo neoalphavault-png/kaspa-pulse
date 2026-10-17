@@ -3,7 +3,7 @@
  "main": "kaspa closed the week 5.43% lower on 10 oct 2026 and still sits 12.59% above its 50 week average, the 4th close above that line in the 49 weeks of our series since 2 nov 2025. week 50, above or below the 50 week line?",
  "image": "",
  "reply_video": "the whole close in one sitting, both lines, and the highest hashrate of 56 logged days {video_url}",
- "reply_newsletter": "the same numbers land by email every monday at 18:00 berlin https://kaspapulse.com/?utm_source=x&utm_medium=post&utm_campaign=weekly-numbers#subscribe",
+ "reply_newsletter": "the same numbers land by email every monday at 18:00 berlin https://kaspapulse.com/x",
  "video_url": "https://youtu.be/636T88how3k",
  "_hinweise": {
   "wer fuellt das": "Die Montagsroutine schreibt date, main, image, reply_video und reply_newsletter (Sonntagsdatei traegt den vorformulierten Faden bereits in pulse-studio/kw/2026-09-28/uploadpaket.md). weekly-guard.yml und weekly-afternoon.yml stehen auf disabled_manually, Ben traegt video_url von Hand ein und postet den Faden von Hand um 18:15 Berlin.",
@@ -11,7 +11,7 @@
   "main": "Hauptpost, NIE mit Link. Ein Link im Hauptpost kostet 0,20 $ statt 0,015 $, und das Skript bricht deshalb ab.",
   "image": "Wochengrafik im Format 4:5 (1080x1350). x_post.py warnt, wenn das Verhaeltnis nicht stimmt. Leer seit 14.09.: es gibt im Repo keinen Erzeuger fuer diese Grafik, ein Platzhalter aus einer alten Woche (z.B. pulse-week5.png) wird bewusst nicht wiederverwendet, bis der Erzeuger existiert.",
   "reply_video": "Erste Selbstantwort. {video_url} wird ersetzt; steht kein Platzhalter drin, wird der Link hinten angehaengt.",
-  "reply_newsletter": "Zweite Selbstantwort, haengt an der ersten und muss den Anmeldelink tragen, sonst bricht das Skript ab. Der Link traegt seit dem 16.09.2026 utm_source=x (scripts/utm.py), sonst weiss niemand, ob X die Liste fuellt.",
+  "reply_newsletter": "Zweite Selbstantwort, haengt an der ersten und muss den Anmeldelink tragen, sonst bricht das Skript ab. Seit dem 17.10.2026 (Ben) der Kurzlink https://kaspapulse.com/x statt des langen UTM-Links; die Weiterleitung traegt utm_source=x.",
   "video_url": "Leer heisst: kein Video bestaetigt, also kein Faden. weekly-guard.yml wuerde hier eintragen, steht aber auf disabled_manually; getragen hat den Link am 05.10. Ben selbst (Folge 6, https://youtu.be/yobwNnm3wBM, 16:00 Berlin live). Vor 16:00 darf hier nichts stehen.",
   "kosten": "Hauptpost 0,015 $, zwei Antworten mit Link je 0,20 $, zusammen rund 0,42 $ je Montag. Mit Number of the Day (0,215 $/Tag) bleibt der Monat bei rund 8 $ von 15 $ Spend Cap.",
   "stand der zahlen": "main und reply_video sind gegen den fertigen Wochenschluss vom Samstag 03.10. geschrieben (Schluss 0,04312, 50-Wochen-Linie 0,036581, 17,88 Prozent darueber, 3. Schluss ueber dieser Linie in 48 Wochen, 21-Wochen-Linie 0,034273, 25,81 Prozent darueber, siehe pulse-studio/docs/weekly/2026-10-05.md). Nachgerechnet am 05.10. mit scripts/weekly_facts.py linie --wochen 50 und --wochen 21. Der Faden traegt keine der drei am 05.10. korrigierten Zeilen (Wallet-Differenz, Uhrzeit der naechsten Senkung, Superlativ zur 21-Wochen-Linie)."

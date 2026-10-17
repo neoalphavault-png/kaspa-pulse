@@ -65,6 +65,24 @@ KURZLINKS = {
 
 ORDNER = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
 
+# Kanal -> Ordner fuer Links in automatischen Posts (Ben, 17.10.2026): keine
+# langen UTM-Links mehr im Post, sondern der Kurzlink des Kanals. Die
+# Weiterleitung traegt die Quelle, also bleibt die Zuordnung erhalten.
+KANAL_ORDNER = {"x": "x", "threads": "threads", "discord": "discord", "instagram": "ig",
+                "youtube": "yt"}
+SEITE = "https://kaspapulse.com"
+
+
+def kurzlink(kanal):
+    """Der Kurzlink fuer einen Post im Kanal, z. B. https://kaspapulse.com/x."""
+    if kanal not in KANAL_ORDNER:
+        raise ValueError("kein kurzlink fuer kanal %r, es gibt %s"
+                         % (kanal, ", ".join(sorted(KANAL_ORDNER))))
+    ordner = KANAL_ORDNER[kanal]
+    if ordner not in KURZLINKS:
+        raise ValueError("ordner %r steht nicht in KURZLINKS" % ordner)
+    return "%s/%s" % (SEITE, ordner)
+
 
 def ziel(ordner):
     """Der Pfad, auf den weitergeleitet wird, relativ zur Wurzel."""
@@ -188,6 +206,16 @@ def selbsttest():
     ok("die dateien im repo stimmen mit der tabelle ueberein", not offen, offen)
     ok("keine der seiten steht in der sitemap",
        all(("/%s/" % k) not in _sitemap() and ("/%s<" % k) not in _sitemap() for k in KURZLINKS))
+    # kurzlinks fuer posts (Ben, 17.10.2026)
+    ok("kurzlink je kanal",
+       [kurzlink(k) for k in ("x", "threads", "discord", "instagram")]
+       == ["https://kaspapulse.com/x", "https://kaspapulse.com/threads",
+           "https://kaspapulse.com/discord", "https://kaspapulse.com/ig"])
+    try:
+        kurzlink("tg")
+        ok("kanal ohne kurzlink stoppt", False)
+    except ValueError:
+        ok("kanal ohne kurzlink stoppt", True)
     print("%d fehler" % schlecht)
     return 1 if schlecht else 0
 
