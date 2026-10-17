@@ -104,14 +104,21 @@ jobs:
           for p in sorted(glob.glob("out/stuecke/*/s*-gesamt.csv")):
               for r in csv.DictReader(open(p)):
                   rows[r["minute_utc"]] = r
-          spalten = ["minute_utc", "k1_voll", "k2_voll", "k1_bloecke", "k2_bloecke", "k1_ziel_bloecke", "k2_ziel_bloecke", "ziel_anteil_pct", "miner_verschieden"]
+          spalten = ["minute_utc", "k1_voll", "k2_voll", "k1_bloecke", "k2_bloecke", "k1_ziel_bloecke", "k2_ziel_bloecke", "ziel_anteil_pct", "k1_ziel_je", "k2_ziel_je", "miner_verschieden"]
           print(",".join(spalten))
           for m in sorted(rows):
               print(",".join(str(rows[m].get(s, "")) for s in spalten))
           voll = [r for r in rows.values() if r.get("k1_voll") == "1" and r.get("k2_voll") == "1"]
-          gleich = [r for r in voll if r.get("k1_bloecke") == r.get("k2_bloecke") and r.get("k1_ziel_bloecke") == r.get("k2_ziel_bloecke")]
+          gleich = [r for r in voll if r.get("k1_bloecke") == r.get("k2_bloecke") and r.get("k1_ziel_bloecke") == r.get("k2_ziel_bloecke") and r.get("k1_ziel_je", "") == r.get("k2_ziel_je", "")]
           zb = sum(int(r["k1_ziel_bloecke"] or 0) for r in voll); bb = sum(int(r["k1_bloecke"] or 0) for r in voll)
           print("=== zusammenfassung")
           print("minuten %d, beide knoten voll %d, davon gleich %d" % (len(rows), len(voll), len(gleich)))
           print("ziel-bloecke %d von %d bloecken in vollen minuten, %.2f %%" % (zb, bb, 100.0 * zb / bb if bb else 0))
+          je = {}
+          for r in voll:
+              t = (r.get("k1_ziel_je") or "").split()
+              for name, n in zip(t[0::2], t[1::2]):
+                  je[name] = je.get(name, 0) + int(n)
+          for name in sorted(je):
+              print("ziel %s %d von %d bloecken in vollen minuten, %.2f %%" % (name, je[name], bb, 100.0 * je[name] / bb if bb else 0))
           PY

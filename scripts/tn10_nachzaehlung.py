@@ -45,7 +45,7 @@ RAND_MS = 60000            # so weit vor und nach dem fenster wird gelesen
 MAX_ABFRAGEN = 4000        # sicherung, je knoten
 SPALTEN = ["minute_utc", "voll", "bloecke", "bloecke_pro_s", "tx_in_bloecken", "tx_je_block_mittel",
            "leere_bloecke", "angenommen_tx", "angenommen_pro_s", "daa_min", "daa_max", "blau_min", "blau_max",
-           "ziel_bloecke", "ziel_anteil_pct", "miner_verschieden", "coinbase_unlesbar"]
+           "ziel_bloecke", "ziel_anteil_pct", "ziel_je", "miner_verschieden", "coinbase_unlesbar"]
 COINBASE_SUBNETZ = "0100000000000000000000000000000000000000"
 
 
@@ -64,18 +64,37 @@ def miner_aus_coinbase(payload_hex):
     return int.from_bytes(b[0:8], "little"), b[19:19 + b[18]].hex()
 
 
+def ziele_lesen(text):
+    """Ziel-Hashes aus der Zieldatei: je Zeile "name sha256" oder nur "sha256"
+    (Name dann "ziel"), Kommentarzeilen mit #. Ergibt {sha256: name}. Nie
+    Adresse oder Script, nur der Hash (Ben, 17.10.2026: zwei Ziele, Bot und
+    Build)."""
+    aus = {}
+    for z in (text or "").splitlines():
+        t = z.split("#", 1)[0].split()
+        if not t:
+            continue
+        name, sha = (t[0], t[1]) if len(t) > 1 else ("ziel", t[0])
+        if len(sha) != 64 or any(c not in "0123456789abcdefABCDEF" for c in sha):
+            raise ValueError("ziel-zeile ohne sha256")
+        aus[sha.lower()] = name
+    return aus
+
+
 class Miner:
-    """Je Minute nach Blockzeit: Bloecke, deren Miner-Script den Ziel-Hash hat
-    (sha256 des Script-Hex), Zahl verschiedener Miner, unlesbare Coinbase.
-    Weder Script noch Adresse verlassen den Prozess, nur Zaehlungen."""
+    """Je Minute nach Blockzeit: Bloecke, deren Miner-Script einen der
+    Ziel-Hashes hat (sha256 des Script-Hex), je Ziel und zusammen, Zahl
+    verschiedener Miner, unlesbare Coinbase. Weder Script noch Adresse
+    verlassen den Prozess, nur Zaehlungen."""
 
     def __init__(self, ziel_sha=""):
-        self.ziel = (ziel_sha or "").strip().lower()
+        self.ziele = ziele_lesen(ziel_sha) if isinstance(ziel_sha, str) else dict(ziel_sha or {})
+        self.ziel = bool(self.ziele)
         self.je = {}
         self.blau_falsch = 0
 
     def block(self, b, ts):
-        m = self.je.setdefault(ts // 60000, {"ziel": 0, "scripts": set(), "unlesbar": 0})
+        m = self.je.setdefault(ts // 60000, {"ziel": 0, "je": {}, "scripts": set(), "unlesbar": 0})
         txs = feld(b, "transactions") or []
         cb = next((t for t in txs if str(feld(t, "subnetworkId") or "") == COINBASE_SUBNETZ), txs[0] if txs else None)
         x = miner_aus_coinbase(feld(cb, "payload") if cb else "")
@@ -87,16 +106,19 @@ class Miner:
             self.blau_falsch += 1
         sha = hashlib.sha256(script.encode()).hexdigest()
         m["scripts"].add(sha)
-        if self.ziel and sha == self.ziel:
+        if sha in self.ziele:
             m["ziel"] += 1
+            m["je"][self.ziele[sha]] = m["je"].get(self.ziele[sha], 0) + 1
 
     def spalten(self, minute, bloecke):
         m = self.je.get(minute)
         if not m:
-            return {"ziel_bloecke": "", "ziel_anteil_pct": "", "miner_verschieden": "", "coinbase_unlesbar": ""}
+            return {"ziel_bloecke": "", "ziel_anteil_pct": "", "ziel_je": "", "miner_verschieden": "",
+                    "coinbase_unlesbar": ""}
+        je = " ".join("%s %d" % (n, m["je"].get(n, 0)) for n in sorted(set(self.ziele.values())))
         return {"ziel_bloecke": m["ziel"] if self.ziel else "",
                 "ziel_anteil_pct": round(m["ziel"] / bloecke * 100, 2) if self.ziel and bloecke else "",
-                "miner_verschieden": len(m["scripts"]), "coinbase_unlesbar": m["unlesbar"]}
+                "ziel_je": je, "miner_verschieden": len(m["scripts"]), "coinbase_unlesbar": m["unlesbar"]}
 
 
 def utc_ms(text):
@@ -280,7 +302,7 @@ async def zaehle(rpc, takt, von_ms, bis_ms, rand_ms=RAND_MS, ziel_sha="", kette=
     zeilen, extra = eimer(z, von_ms, bis_ms, luecken)
     meta.update({"status": meta["status"] or "gelesen", "abfragen": les.abfragen, "datenform": les.form,
                  "angenommen_ohne_blockzeit": extra["angenommen_ohne_blockzeit"], "phasen": phasen,
-                 "ziel_gesetzt": bool(mi.ziel), "blau_score_im_payload_falsch": mi.blau_falsch,
+                 "ziel_gesetzt": len(mi.ziele), "blau_score_im_payload_falsch": mi.blau_falsch,
                  "kette_gelesen": kette})
     aus = []
     for m in range(von_ms // 60000, -(-bis_ms // 60000)):
@@ -334,7 +356,8 @@ def kombinieren(b1, b2):
     r2 = {r["minute_utc"]: r for r in z2}
     spalten = ["minute_utc", "k1_voll", "k1_bloecke", "k1_angenommen", "k1_angenommen_pro_s",
                "k2_voll", "k2_bloecke", "k2_angenommen", "k2_angenommen_pro_s", "knoten_gleich",
-               "k1_ziel_bloecke", "k2_ziel_bloecke", "ziel_anteil_pct", "miner_verschieden", "blau_min", "blau_max"]
+               "k1_ziel_bloecke", "k2_ziel_bloecke", "ziel_anteil_pct", "k1_ziel_je", "k2_ziel_je",
+               "miner_verschieden", "blau_min", "blau_max"]
     aus = []
     for m in sorted(set(r1) | set(r2)):
         a, b = r1.get(m, {}), r2.get(m, {})
@@ -345,9 +368,11 @@ def kombinieren(b1, b2):
                     "k2_angenommen": b.get("angenommen_tx", ""), "k2_angenommen_pro_s": b.get("angenommen_pro_s", ""),
                     "knoten_gleich": (int(a.get("bloecke") == b.get("bloecke")
                                           and a.get("angenommen_tx") == b.get("angenommen_tx")
-                                          and a.get("ziel_bloecke") == b.get("ziel_bloecke")) if beide else ""),
+                                          and a.get("ziel_bloecke") == b.get("ziel_bloecke")
+                                          and a.get("ziel_je", "") == b.get("ziel_je", "")) if beide else ""),
                     "k1_ziel_bloecke": a.get("ziel_bloecke", ""), "k2_ziel_bloecke": b.get("ziel_bloecke", ""),
                     "ziel_anteil_pct": a.get("ziel_anteil_pct") or b.get("ziel_anteil_pct", ""),
+                    "k1_ziel_je": a.get("ziel_je", ""), "k2_ziel_je": b.get("ziel_je", ""),
                     "miner_verschieden": a.get("miner_verschieden") or b.get("miner_verschieden", ""),
                     "blau_min": a.get("blau_min") or b.get("blau_min", ""),
                     "blau_max": a.get("blau_max") or b.get("blau_max", "")})
@@ -471,6 +496,21 @@ def selbsttest():
                                 ziel_sha=ziel, kette=False))
     ok("nur bloecke, angenommen leer, miner gezaehlt", all(r["angenommen_tx"] == "" and r["ziel_bloecke"] == 60
                                                           for r in zn) and mn["phasen"]["kette"]["abfragen"] == 0)
+    # zwei benannte ziele (Ben, 17.10.2026): je ziel und zusammen, nur hashes
+    z2 = hashlib.sha256(("20" + "cd" * 32 + "ac").encode()).hexdigest()
+    zt = "# kommentar\nbot %s\nbuild %s\n" % (ziel, z2)
+    ok("zieldatei mit zwei namen gelesen", ziele_lesen(zt) == {ziel: "bot", z2: "build"}
+       and ziele_lesen(ziel) == {ziel: "ziel"} and ziele_lesen("") == {})
+    zz, mz = asyncio.run(zaehle(FakeKnoten(t0, 600), OhneTakt(), t0 + 120000, t0 + 300000, rand_ms=60000,
+                                ziel_sha=zt, kette=False))
+    ok("zwei ziele, je 60 und zusammen 120 von 120", all(
+        r["ziel_bloecke"] == 120 and r["ziel_anteil_pct"] == 100.0 and r["ziel_je"] == "bot 60 build 60"
+        for r in zz) and mz["ziel_gesetzt"] == 2)
+    try:
+        ziele_lesen("bot keinhash")
+        ok("zielzeile ohne sha256 bricht ab", False)
+    except ValueError:
+        ok("zielzeile ohne sha256 bricht ab", True)
     zo, _mo = asyncio.run(zaehle(FakeKnoten(t0, 600), OhneTakt(), t0 + 120000, t0 + 300000, rand_ms=60000))
     ok("ohne ziel keine zielspalte, miner trotzdem gezaehlt", all(r["ziel_bloecke"] == "" and r["miner_verschieden"] == 2
                                                                  for r in zo))
@@ -556,7 +596,7 @@ def main(argv=None):
     ziel = ""
     if a.ziel_datei and os.path.exists(a.ziel_datei):
         with open(a.ziel_datei, encoding="utf-8") as fh:
-            ziel = next((z.strip() for z in fh if z.strip() and not z.startswith("#")), "")
+            ziel = fh.read()
     return asyncio.run(lauf(utc_ms(von), utc_ms(bis), a.rolle, a.partner, a.out, ziel, not nur))
 
 
