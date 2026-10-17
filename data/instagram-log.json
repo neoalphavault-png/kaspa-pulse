@@ -115,6 +115,24 @@
    "bild": "https://kaspapulse.com/ig/tagesgrafik-2026-10-16-form10.jpg",
    "zeit_utc": "2026-10-16T07:31:14+00:00",
    "nachgetragen": "aus lauf 38867609061, dessen commit verloren ging. caption, caption_sha, zahl, zahl_text, tag und herkunft stehen nicht drin, weil sie nur in der caption-datei des laufs standen und nicht byte-genau rekonstruierbar sind"
+  },
+  {
+   "datum": "2026-10-17",
+   "form": 8,
+   "modus": "scharf",
+   "start": "takt",
+   "container": "18093777575222481",
+   "status": "FINISHED",
+   "media": "18130043344825081",
+   "permalink": "https://www.instagram.com/p/Delk67bF2m1/",
+   "bild": "https://kaspapulse.com/ig/tagesgrafik-2026-10-17-form08.jpg",
+   "zahl": "367.9 PH/s",
+   "zahl_text": "367.9 PH/s of hashrate",
+   "tag": "16 oct 2026",
+   "herkunft": "source kaspa rest api hashrate",
+   "caption": "367.9 PH/s of hashrate.\n\ndid you expect this number?\n\nas of 16 oct 2026, source kaspa rest api hashrate.\n\nWeekly Kaspa numbers in our newsletter, link in bio.\n\n#kaspa #kas #blockdag #proofofwork",
+   "caption_sha": "7f89df221ed2",
+   "zeit_utc": "2026-10-17T07:30:15+00:00"
   }
  ]
 }

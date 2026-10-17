@@ -71,8 +71,8 @@ REGELN, vor jedem Rendern erzwungen (textpruefung()):
   Form 8 ohne Angreifer-Szenario (attack, 51, attacker ...)
   kein "never" und kein "record", "highest", "lowest" ohne Zeitraum
   X-Text in drei Zeilen, ohne Link, unter 240 Zeichen: Zeile 1 ohne
-  Dezimalstelle, Zeile 3 eine Frage. Der Link steht nur im Feld antwort
-  (utm_source=x, utm_medium=reply, utm_campaign=form<N>).
+  Dezimalstelle, Zeile 3 eine Frage. Der Link steht nur im Feld antwort,
+  seit 17.10.2026 der Kurzlink https://kaspapulse.com/x statt eines UTM-Links.
 
 ROTATION (waehle_form()). Ereignis schlaegt Plan: Reward-Senkung in hoechstens
 3 Tagen gibt Form 3, eine Entity-X-Bewegung ab 500.000 KAS in den letzten
@@ -479,6 +479,7 @@ def o_flaeche_linie(x, y, w, h, werte):
     """Flaeche ab null im Resteton, Linie in Akzent, letzter Punkt markiert."""
     hi = max(werte) * 1.08
     n = len(werte)
+    w = w - 10                       # der endpunkt (r 10) bleibt aus dem rand
     pts = [(x + w * i / (n - 1), y + h - h * v / hi) for i, v in enumerate(werte)]
     linie = " ".join("%.1f,%.1f" % p for p in pts)
     return ("<polygon points='%.1f,%.1f %s %.1f,%.1f' fill='%s'/>"
@@ -860,6 +861,12 @@ def messen_7(now):
         raise Stop("keine community-datei")
     for e in d.get("fragen") or []:
         if e.get("offen"):
+            # nie mit vorlagentext (Ben, 17.10.2026): ein platzhalter in
+            # irgendeinem feld nimmt form 7 heute aus der rotation
+            import content_wache
+            for k, v in sorted(e.items()):
+                if isinstance(v, str) and content_wache.PLATZHALTER.search(v):
+                    raise Stop("community-frage mit platzhalter in %s, form 7 faellt aus" % k)
             art = (e.get("objekt") or {}).get("art")
             if art not in ("anteil", "zwei"):
                 raise Stop("form 7 braucht einen vergleich im bild, objekt anteil oder zwei, nicht %r" % art)
@@ -1247,12 +1254,11 @@ def textpruefung(s, form):
 
 # ------------------------------------------------------------ texte
 
-# Was nur in der Wochenmail steht (Stand 30.09.2026, geprueft gegen die
-# Ausgaben vom 14., 21. und 28.09.): die Bloecke "the take" und "worth
-# watching" gibt es in keiner anderen Datei, weder auf kaspa-weekly.html noch
-# auf index.html noch in pulse-studio. Ben nennt sie Sonntagsmail; sie geht
-# montags 18:00 Berlin raus, deshalb sagt der Satz "weekly mail".
-MAIL_SATZ = "the weekly take and what is worth watching next are only in our weekly mail."
+# Der Mail-Satz (Ben, 17.10.2026). Der alte Satz versprach, "the take" und
+# "worth watching" stuenden nur in der Mail. Das stimmte nicht mehr: the take
+# steht auch im Montagsvideo und auf dem Dashboard. Der neue Satz verspricht
+# nur, was die Mail wirklich ist: alle Wochenzahlen, montags.
+MAIL_SATZ = "all the weekly numbers in one mail, every monday."
 
 
 # Instagram (Ben, 08.10.2026). Zeile 1 und 2 wie Discord, ohne den
@@ -1423,8 +1429,10 @@ def ig_pruefung(t, form, s=None):
 
 
 def antwort_link(form):
-    from utm import link
-    return link("x", "reply", "form%d" % form)
+    """Der Link unter dem X-Post, der Kurzlink fuer X (Ben, 17.10.2026). form
+    bleibt als Parameter, die Zuordnung je Form traegt der Kurzlink nicht mehr."""
+    import kurzlinks
+    return kurzlinks.kurzlink("x")
 
 
 def texte(s, form, messzeit):
@@ -1468,17 +1476,17 @@ CSS = """
 *{margin:0;padding:0;box-sizing:border-box}
 body{width:1080px;height:1350px;background:%(grund)s;position:relative;overflow:hidden;
   font-family:'IBM Plex Sans',sans-serif;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
-.kopf{position:absolute;left:60px;right:60px;top:60px;font-family:'Archivo',sans-serif;font-weight:800;
+.kopf{position:absolute;left:60px;right:60px;top:66px;font-family:'Archivo',sans-serif;font-weight:800;
   font-size:64px;line-height:1;letter-spacing:1px;color:%(text)s;white-space:nowrap}
-.zahl{position:absolute;left:56px;top:146px;font-family:'Archivo',sans-serif;font-weight:900;color:%(text)s;
+.zahl{position:absolute;left:60px;top:146px;font-family:'Archivo',sans-serif;font-weight:900;color:%(text)s;
   line-height:0.86;letter-spacing:-4px;white-space:nowrap}
 .zahl .einheit{font-size:0.36em;font-weight:800;letter-spacing:0;margin-left:18px}
 .bed{position:absolute;left:60px;right:60px;font-weight:500;font-size:44px;line-height:1.18;color:%(akzent)s}
 .bed.fett{font-family:'Archivo',sans-serif;font-weight:800;font-size:64px;line-height:1.05}
 .datum{position:absolute;left:60px;right:60px;bottom:132px;font-family:'IBM Plex Mono',monospace;
   font-weight:400;font-size:34px;line-height:1.28;color:%(text2)s;letter-spacing:-0.5px}
-.sig{position:absolute;left:0;right:0;bottom:60px;height:48px;display:flex;align-items:center;
-  justify-content:center;gap:16px}
+.sig{position:absolute;left:50%%;transform:translateX(-50%%);bottom:60px;height:48px;display:flex;
+  align-items:center;gap:16px}
 .sig img{width:38px;height:auto;display:block;filter:%(falke)s}
 .sig span{font-weight:600;font-size:34px;letter-spacing:4px;color:%(text)s;white-space:nowrap}
 .sig svg{width:170px;height:48px;display:block}
@@ -1534,9 +1542,10 @@ def html(s, falke, look=None):
     else:
         ziffern, einheit = zahl_teilen(s["zahl"])
         zahl = ("<div class='zahl' data-rolle='zahl' style='font-size:%dpx'>%s%s</div>"
-                % (zg, esc(ziffern), "<span class='einheit'>%s</span>" % esc(einheit) if einheit else ""))
+                % (zg, esc(ziffern), "<span class='einheit' data-rolle='einheit'>%s</span>" % esc(einheit)
+                   if einheit else ""))
     obj = s["objekt"](x, y, w, h)
-    sig = ("<div class='sig'><img src='%s' alt=''><span>KASPA PULSE</span>"
+    sig = ("<div class='sig' data-rolle='fuss'><img src='%s' alt=''><span>KASPA PULSE</span>"
            "<svg viewBox='0 0 230 48'><path d='%s' fill='none' "
            "stroke='%s' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'/></svg></div>"
            % (falke, PULS, MARK))
@@ -1588,15 +1597,17 @@ LAYOUT_JS = """() => {
   return f; }""" % {"rechts": 1080 - RAND, "rand": RAND}
 
 
-def rendern(seite, out, vorschau=VORSCHAU, browser=None):
+def rendern(seite, out, vorschau=VORSCHAU, browser=None, kanal="instagram"):
     """Rendert eine Seite. vorschau=0 laesst die kleine Vorschau weg. Mit
-    browser wird ein offener Chromium genutzt (Kontaktbogen, mehrere Kanaele)."""
+    browser wird ein offener Chromium genutzt (Kontaktbogen, mehrere Kanaele).
+    Nach dem Screenshot misst content_wache das Bild fuer den Kanal, ein
+    Verstoss stoppt den Lauf."""
     if browser is None:
         from playwright.sync_api import sync_playwright
         with sync_playwright() as p:
             b = chromium_start(p)
             try:
-                return rendern(seite, out, vorschau, b)
+                return rendern(seite, out, vorschau, b, kanal)
             finally:
                 b.close()
     out = Path(out)
@@ -1617,6 +1628,10 @@ def rendern(seite, out, vorschau=VORSCHAU, browser=None):
         if ueber or breit:
             raise Stop("inhalt ist %d px zu hoch und %d px zu breit, text kuerzen" % (ueber, breit))
         pg.screenshot(path=str(out))
+        import content_wache
+        verstoesse = content_wache.pruefe_seite(pg, kanal, out)
+        if verstoesse:
+            raise Stop("wache %s, %s" % (out.name, "; ".join(verstoesse)))
     finally:
         pg.close()
     if vpfad:
@@ -1978,12 +1993,12 @@ def kanaele_rendern(s, falke, png, heute, speicher=None):
     with sync_playwright() as p:
         b = chromium_start(p)
         try:
-            png, vpng = rendern(html(s, falke, looks["instagram"]), png, VORSCHAU, b)
+            png, vpng = rendern(html(s, falke, looks["instagram"]), png, VORSCHAU, b, "instagram")
             for k in look_takt.KANAELE:
                 if k == "instagram":
                     continue
                 kanalbilder[k], _ = rendern(html(s, falke, looks[k]),
-                                            png.with_name("%s-%s.png" % (png.stem, k)), 0, b)
+                                            png.with_name("%s-%s.png" % (png.stem, k)), 0, b, k)
         finally:
             b.close()
             look_setzen("dunkel")
@@ -1998,7 +2013,13 @@ def kontaktbogen_bilder(ziel, browser, looks=("dunkel", "hell", "teal")):
     aus = []
     Path(ziel).mkdir(parents=True, exist_ok=True)
     for f in sorted(FAKE):
-        s = seite_bauen(f, FAKE[f], FAKE_NOW, {"laeufe": []})
+        werte = FAKE[f]
+        if f == 7:
+            # das fixture traegt "@PLATZHALTER", das stoppt die wache zu recht.
+            # fuer den bogen steht der kanal statt eines namens da.
+            werte = json.loads(json.dumps(werte))
+            werte["eintrag"]["name"] = "#data-requests"
+        s = seite_bauen(f, werte, FAKE_NOW, {"laeufe": []})
         for lk in looks:
             name = "tagesgrafik f%d %s %s" % (f, GERUEST.get(f, ""), lk)
             try:
@@ -2398,8 +2419,7 @@ def selbsttest():
         ok("form %d, link nur im feld antwort" % f,
            all("kaspapulse" not in sf[k] and "http" not in sf[k]
                for k in ("x", "discord", "bedeutung", "datumszeile", "kopf", "zahl"))
-           and sf["antwort"].endswith(antwort_link(f))
-           and "utm_source=x&utm_medium=reply&utm_campaign=form%d" % f in sf["antwort"])
+           and sf["antwort"].endswith(" https://kaspapulse.com/x") and "utm_" not in sf["antwort"])
         ok("form %d, discord mit 17:00 und mail-satz ohne link" % f,
            sf["discord"].split("\n")[:2] == z[:2] and sf["discord"].endswith(MAIL_SATZ))
     kaputt = dict(seite_bauen(4, FAKE[4], FAKE_NOW, log))
@@ -2553,7 +2573,7 @@ def selbsttest():
        s11["datumszeile"].endswith("source kaspalytics, age estimated by daa score, 28 sep 2026")
        and SELBST not in s11["datumszeile"])
     ok("form 11, antwort mit der 2-jahres-zahl und form11", "25.75%" in s11["antwort"]
-       and s11["antwort"].endswith(antwort_link(11)) and "utm_campaign=form11" in s11["antwort"])
+       and s11["antwort"].endswith(antwort_link(11)) and "utm_" not in s11["antwort"])
     for wort in ("dormant", "hodl", "diamond hands"):
         ok("form 11, %r faellt" % wort, bool(pruefe_eine("the %s coins stay put" % wort, 11)))
     ok("form 11, motiv faellt", bool(pruefe_eine("holders are waiting deliberately", 11)))
@@ -2588,6 +2608,32 @@ def selbsttest():
     ok("emission am tag mit senkung geteilt",
        abs(emission_am_tag("2026-10-05") - (2.18268 * 10 * 11744 + 2.06023 * 10 * (86400 - 11744)))
        < 20000)
+    # form 7 nie mit platzhalter (Ben, 17.10.2026)
+    global COMMUNITY
+    alt_comm = COMMUNITY
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        COMMUNITY = Path(td) / "c.json"
+        COMMUNITY.write_text(json.dumps({"fragen": []}))
+        try:
+            messen_7(FAKE_NOW)
+            ok("form 7 ohne offene frage faellt aus", False)
+        except Stop:
+            ok("form 7 ohne offene frage faellt aus", True)
+        COMMUNITY.write_text(json.dumps({"fragen": [FAKE[7]["eintrag"]]}))
+        try:
+            messen_7(FAKE_NOW)
+            ok("form 7 mit @PLATZHALTER faellt aus", False)
+        except Stop as exc:
+            ok("form 7 mit @PLATZHALTER faellt aus", "platzhalter" in str(exc))
+        echt = dict(FAKE[7]["eintrag"], name="#data-requests")
+        COMMUNITY.write_text(json.dumps({"fragen": [echt]}))
+        ok("form 7 mit echter frage laeuft", messen_7(FAKE_NOW)["eintrag"]["name"] == "#data-requests")
+    COMMUNITY = alt_comm
+    ok("die echte community-datei hat keine offene frage mit platzhalter",
+       not any(isinstance(v, str) and "platzhalter" in v.lower()
+               for e in json.loads(COMMUNITY.read_text()).get("fragen", []) if e.get("offen")
+               for v in e.values()))
     # look-takt und geruest (Ben, 15.10.2026)
     nach_diagramm = {"laeufe": [{"datum": "2026-10-06", "form": 8}]}
     f, _ = waehle_form(dt.date(2026, 10, 7), nach_diagramm)

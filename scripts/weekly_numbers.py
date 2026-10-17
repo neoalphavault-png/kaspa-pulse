@@ -493,7 +493,11 @@ def newsletter_zeile(quelle):
     reinen Text ohne parse_mode, ein maskierter Link stuende dort roh als
     [text](url). Telegram behaelt deshalb die bisherige Zeile mit sichtbarem
     Link."""
-    link = utm.link(quelle, campaign="weekly-numbers")
+    # Discord bekommt seit dem 17.10.2026 den Kurzlink (Ben), Telegram hat
+    # keinen eigenen Kurzlink und behaelt den UTM-Link.
+    import kurzlinks
+    link = (kurzlinks.kurzlink(quelle) if quelle in kurzlinks.KANAL_ORDNER
+            else utm.link(quelle, campaign="weekly-numbers"))
     if quelle == "discord":
         # spitze klammern: discord zeigt dann keine vorschaukarte mit der
         # og:description der seite unter dem post
@@ -1128,8 +1132,7 @@ GOLD_MSG = "\n".join([
     # seit 25.09.2026 bewusst geaendert: die anmeldezeile in discord ist ein
     # maskierter link. der goldpost vom 03.08. trug noch die sichtbare url.
     "\U0001f4ec [free cheat sheet plus these numbers by email every monday]"
-    "(<https://kaspapulse.com/?utm_source=discord&utm_medium=chat"
-    "&utm_campaign=weekly-numbers#subscribe>)",
+    "(<https://kaspapulse.com/discord>)",
 ])
 
 
@@ -1532,8 +1535,8 @@ def run_selftest():
        "https://kaspapulse.com/?utm_source=tg&utm_medium=chat"
        "&utm_campaign=weekly-numbers#subscribe", tg.split("\n")[-1])
     ok("telegram hat keinen maskierten link", "](" not in tg)
-    ok("discord zeile ist maskiert und zeigt auf #subscribe",
-       re.fullmatch(r"\U0001f4ec \[[^\]]+\]\(<https://kaspapulse\.com/\?[^)>]*#subscribe>\)",
+    ok("discord zeile ist maskiert und zeigt auf den kurzlink",
+       re.fullmatch(r"\U0001f4ec \[[^\]]+\]\(<https://kaspapulse\.com/discord>\)",
                     newsletter_zeile("discord")) is not None, newsletter_zeile("discord"))
     assert_punctuation(tg)
     print("  ok   schreibregel in der telegram-fassung eingehalten")
