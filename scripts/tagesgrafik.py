@@ -71,8 +71,8 @@ REGELN, vor jedem Rendern erzwungen (textpruefung()):
   Form 8 ohne Angreifer-Szenario (attack, 51, attacker ...)
   kein "never" und kein "record", "highest", "lowest" ohne Zeitraum
   X-Text in drei Zeilen, ohne Link, unter 240 Zeichen: Zeile 1 ohne
-  Dezimalstelle, Zeile 3 eine Frage. Der Link steht nur im Feld antwort
-  (utm_source=x, utm_medium=reply, utm_campaign=form<N>).
+  Dezimalstelle, Zeile 3 eine Frage. Der Link steht nur im Feld antwort,
+  seit 17.10.2026 der Kurzlink https://kaspapulse.com/x statt eines UTM-Links.
 
 ROTATION (waehle_form()). Ereignis schlaegt Plan: Reward-Senkung in hoechstens
 3 Tagen gibt Form 3, eine Entity-X-Bewegung ab 500.000 KAS in den letzten
@@ -1254,12 +1254,11 @@ def textpruefung(s, form):
 
 # ------------------------------------------------------------ texte
 
-# Was nur in der Wochenmail steht (Stand 30.09.2026, geprueft gegen die
-# Ausgaben vom 14., 21. und 28.09.): die Bloecke "the take" und "worth
-# watching" gibt es in keiner anderen Datei, weder auf kaspa-weekly.html noch
-# auf index.html noch in pulse-studio. Ben nennt sie Sonntagsmail; sie geht
-# montags 18:00 Berlin raus, deshalb sagt der Satz "weekly mail".
-MAIL_SATZ = "the weekly take and what is worth watching next are only in our weekly mail."
+# Der Mail-Satz (Ben, 17.10.2026). Der alte Satz versprach, "the take" und
+# "worth watching" stuenden nur in der Mail. Das stimmte nicht mehr: the take
+# steht auch im Montagsvideo und auf dem Dashboard. Der neue Satz verspricht
+# nur, was die Mail wirklich ist: alle Wochenzahlen, montags.
+MAIL_SATZ = "all the weekly numbers in one mail, every monday."
 
 
 # Instagram (Ben, 08.10.2026). Zeile 1 und 2 wie Discord, ohne den
@@ -1430,8 +1429,10 @@ def ig_pruefung(t, form, s=None):
 
 
 def antwort_link(form):
-    from utm import link
-    return link("x", "reply", "form%d" % form)
+    """Der Link unter dem X-Post, der Kurzlink fuer X (Ben, 17.10.2026). form
+    bleibt als Parameter, die Zuordnung je Form traegt der Kurzlink nicht mehr."""
+    import kurzlinks
+    return kurzlinks.kurzlink("x")
 
 
 def texte(s, form, messzeit):
@@ -2418,8 +2419,7 @@ def selbsttest():
         ok("form %d, link nur im feld antwort" % f,
            all("kaspapulse" not in sf[k] and "http" not in sf[k]
                for k in ("x", "discord", "bedeutung", "datumszeile", "kopf", "zahl"))
-           and sf["antwort"].endswith(antwort_link(f))
-           and "utm_source=x&utm_medium=reply&utm_campaign=form%d" % f in sf["antwort"])
+           and sf["antwort"].endswith(" https://kaspapulse.com/x") and "utm_" not in sf["antwort"])
         ok("form %d, discord mit 17:00 und mail-satz ohne link" % f,
            sf["discord"].split("\n")[:2] == z[:2] and sf["discord"].endswith(MAIL_SATZ))
     kaputt = dict(seite_bauen(4, FAKE[4], FAKE_NOW, log))
@@ -2573,7 +2573,7 @@ def selbsttest():
        s11["datumszeile"].endswith("source kaspalytics, age estimated by daa score, 28 sep 2026")
        and SELBST not in s11["datumszeile"])
     ok("form 11, antwort mit der 2-jahres-zahl und form11", "25.75%" in s11["antwort"]
-       and s11["antwort"].endswith(antwort_link(11)) and "utm_campaign=form11" in s11["antwort"])
+       and s11["antwort"].endswith(antwort_link(11)) and "utm_" not in s11["antwort"])
     for wort in ("dormant", "hodl", "diamond hands"):
         ok("form 11, %r faellt" % wort, bool(pruefe_eine("the %s coins stay put" % wort, 11)))
     ok("form 11, motiv faellt", bool(pruefe_eine("holders are waiting deliberately", 11)))
