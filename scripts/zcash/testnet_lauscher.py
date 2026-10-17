@@ -190,12 +190,16 @@ def main():
             log(f"{datetime.now(timezone.utc):%H:%M} UTC verbunden {stand}, block-hashes {len(z.gesehen)}")
             letzte_meldung = time.time()
         time.sleep(min(NACHFASSEN_S, max(0, ende - time.time())))
+    tatsaechliches_ende = time.time()
     time.sleep(2)  # laufende Threads schreiben ihr Ende
 
     meta = {
         "art": "ein Zuhoerer (kein eigener Knoten), Verbindungen zu Testnet-Knoten aus den DNS-Seeds",
+        # Tatsaechliches Fenster (Ben, 17.10.2026): Start und Ende, wie sie
+        # waren, nicht wie geplant. Das geplante Ende steht daneben.
         "start_utc": datetime.fromtimestamp(start, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "ende_utc": datetime.fromtimestamp(ende, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "ende_utc": datetime.fromtimestamp(tatsaechliches_ende, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "geplantes_ende_utc": datetime.fromtimestamp(ende, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "dauer_min": args.dauer,
         "ziel_verbindungen_je_software": ZIEL_JE_SOFTWARE,
         "peers": z.peers,

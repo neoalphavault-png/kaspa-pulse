@@ -287,6 +287,19 @@ def lauscher_pruefen(L):
     return True, f"Fenster {fenster:.0f} min, Ankuendigungen ueber {abgedeckt:.0f} min"
 
 
+def fenster_text(L):
+    """Tatsaechliches Fenster des Zuhoerers, z. B. "17.10.2026 12:05 bis 17:35 UTC",
+    dazu die Zeit zwischen erster und letzter Ankuendigung."""
+    fmt = "%Y-%m-%dT%H:%M:%SZ"
+    a, b = (datetime.strptime(x, fmt) for x in L["fenster_utc"])
+    bis = b.strftime("%H:%M") if a.date() == b.date() else b.strftime("%d.%m.%Y %H:%M")
+    text = f"{a:%d.%m.%Y %H:%M} bis {bis} UTC"
+    if L.get("erste_ankuendigung_utc"):
+        text += (f" (Ankündigungen von {L['erste_ankuendigung_utc'][11:16]} bis "
+                 f"{L['letzte_ankuendigung_utc'][11:16]} UTC, {de(L.get('abgedeckt_min'))} min)")
+    return text
+
+
 def d_abschnitt(L, grund=None):
     """Abschnitt D. Mit Zuhoerer-Daten: Ersatzmessung, klar als ein Zuhoerer
     gekennzeichnet. Ohne: nicht gemessen."""
@@ -311,7 +324,7 @@ def d_abschnitt(L, grund=None):
     zeilen = [
         "## D. Ersatzmessung: ein Zuhörer, kein eigener Knoten",
         "",
-        f"**Ein Zuhörer** an einem Ort (GitHub-Runner), {L['fenster_utc'][0]} bis {L['fenster_utc'][1]} UTC. "
+        f"**Ein Zuhörer** an einem Ort (GitHub-Runner). Tatsächliches Zeitfenster: {fenster_text(L)}. "
         "Er hielt Verbindungen zu Testnet-Knoten und schrieb jede Block-Ankündigung mit Ankunftszeit mit. "
         "Er sieht nur, was ihm angekündigt wird; die Ankunftszeit enthält den Weg vom Knoten zu ihm. "
         "Das ersetzt keinen eigenen Knoten und gilt nur für dieses Fenster, nicht seit der Aktivierung. "

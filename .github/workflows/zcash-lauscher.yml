@@ -60,6 +60,20 @@ jobs:
           gzip -n -c "$RUNNER_TEMP/koepfe.jsonl" > data/zcash/lauscher-koepfe.jsonl.gz
           cp "$RUNNER_TEMP/lauscher-meta.json" data/zcash/lauscher-meta.json
 
+      # Ben, 17.10.2026: Rohdaten direkt nach dem Zuhoeren committen, bevor
+      # irgendetwas anderes laufen kann. Vorher der Secret-Scan ueber den Stand.
+      - name: rohdaten committen
+        run: |
+          set -eu
+          python3 scripts/secret_scan.py --baum
+          git config user.name "zcash nu7 bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/zcash/lauscher-ereignisse.jsonl.gz data/zcash/lauscher-koepfe.jsonl.gz data/zcash/lauscher-meta.json
+          if git diff --cached --quiet; then echo "nichts neu"; exit 0; fi
+          git commit -m "zcash nu7 testnet: zuhoerer-rohdaten [bot]"
+          git pull --rebase -X theirs origin messung/zcash-nu7
+          git push origin HEAD:messung/zcash-nu7
+
       - name: kette danach abrufen
         run: |
           set -eu
