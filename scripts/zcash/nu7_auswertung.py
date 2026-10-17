@@ -32,6 +32,8 @@ import statistics
 from collections import OrderedDict
 from datetime import datetime, timezone
 
+import bestaetigungen
+
 NU7 = 4_465_026
 ZIEL_S = 25.0
 ALT_S = 75.0
@@ -273,18 +275,20 @@ def lauscher_pruefen(L):
     steht D als "nicht gemessen" im Bericht. Ein kuerzerer Lauf (etwa die
     15-min-Probe vom 15.10.) wird nicht verwendet. Geprueft wird das Fenster
     und die tatsaechlich abgedeckte Zeit (erste bis letzte Ankuendigung).
-    Rueckgabe: (verwendbar, Grund)."""
+    Rueckgabe: (verwendbar, Grund, Grund englisch fuer den Forum-Nachtrag)."""
     if not L:
-        return False, "kein Lauf des Zuhoerers vorhanden"
+        return False, "kein Lauf des Zuhoerers vorhanden", "no listener run"
     fmt = "%Y-%m-%dT%H:%M:%SZ"
     a, b = (datetime.strptime(x, fmt) for x in L["fenster_utc"])
     fenster = (b - a).total_seconds() / 60
     abgedeckt = L.get("abgedeckt_min") or 0
     if fenster < LAUSCHER_MINDEST_MIN:
-        return False, f"Zuhoerer-Fenster nur {fenster:.0f} min (Mindestmass {LAUSCHER_MINDEST_MIN} min)"
+        return (False, f"Zuhoerer-Fenster nur {fenster:.0f} min (Mindestmass {LAUSCHER_MINDEST_MIN} min)",
+                f"the listener window was only {fenster:.0f} min (minimum {LAUSCHER_MINDEST_MIN} min)")
     if abgedeckt < LAUSCHER_MINDEST_MIN:
-        return False, f"Ankuendigungen nur ueber {abgedeckt:.0f} min (Mindestmass {LAUSCHER_MINDEST_MIN} min)"
-    return True, f"Fenster {fenster:.0f} min, Ankuendigungen ueber {abgedeckt:.0f} min"
+        return (False, f"Ankuendigungen nur ueber {abgedeckt:.0f} min (Mindestmass {LAUSCHER_MINDEST_MIN} min)",
+                f"announcements covered only {abgedeckt:.0f} min (minimum {LAUSCHER_MINDEST_MIN} min)")
+    return True, f"Fenster {fenster:.0f} min, Ankuendigungen ueber {abgedeckt:.0f} min", ""
 
 
 def fenster_text(L):
@@ -471,7 +475,7 @@ def main():
 
     meta = json.load(open(args.meta))
     lauscher = json.load(open(args.lauscher)) if args.lauscher else None
-    lauscher_ok, lauscher_grund = lauscher_pruefen(lauscher)
+    lauscher_ok, lauscher_grund, lauscher_grund_en = lauscher_pruefen(lauscher)
     print(f"zuhoerer: {'verwendet' if lauscher_ok else 'nicht verwendet'}, {lauscher_grund}")
     if not lauscher_ok:
         lauscher = None
@@ -521,9 +525,11 @@ def main():
         "mindestschwierigkeit_vorher": sum(1 for r in vor if r[2] == POW_LIMIT_BITS),
         "nachfuehrung": nachfuehrung(hoehen, zeiten, diffs),
         "zeitstempel": zeitstempel(hoehen, zeiten, abruf),
+        "bestaetigungen": bestaetigungen.rechnen(zeiten, a["mittel_s"], lauscher),
         "zakura_und_andere_ohne_antwort": ohne_antwort(meta),
         "lauscher": lauscher,
         "lauscher_pruefung": lauscher_grund,
+        "lauscher_pruefung_en": lauscher_grund_en,
         "nicht_gemessen": ([] if lauscher else [
             "verwaiste Bloecke und Reorg-Tiefe (kein eigener Knoten)",
             "Ankunftsabstand desselben Blocks auf zwei Knoten (kein eigener Knoten)",

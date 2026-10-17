@@ -70,6 +70,9 @@ jobs:
             --json "data/zcash/nu7-testnet-$NAME.json" \
             --md "docs/zcash-nu7-testnet-$NAME.md" \
             ${L:+--lauscher "$L"}
+          # Entwurf des Forum-Nachtrags (Ben prueft und postet von Hand).
+          python3 scripts/zcash/forum_nachtrag.py --json "data/zcash/nu7-testnet-$NAME.json" \
+            --aus "docs/zcash-nu7-forum-nachtrag-$NAME.md"
           {
             echo "## Zcash NU7 Testnet, $NAME"
             cat "docs/zcash-nu7-testnet-$NAME.md"
@@ -83,7 +86,7 @@ jobs:
           set -eu
           git config user.name "zcash nu7 bot"
           git config user.email "bot@users.noreply.github.com"
-          git add data/zcash docs/zcash-nu7-testnet-*.md
+          git add data/zcash docs/zcash-nu7-testnet-*.md docs/zcash-nu7-forum-nachtrag-*.md
           if git diff --cached --quiet; then echo "nichts neu"; exit 0; fi
           git commit -m "zcash nu7 testnet: koepfe und zaehlung [bot]"
           # Kam waehrend des Laufs ein Commit auf den Branch, setzen wir uns
