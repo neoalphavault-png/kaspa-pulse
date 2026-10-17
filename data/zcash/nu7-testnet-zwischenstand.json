@@ -1,0 +1,409 @@
+{
+  "titel": "Zcash NU7 Testnet, unabhaengige Zaehlung",
+  "stichtag_utc": "2026-10-17 20:00:00 UTC",
+  "bereich": {
+    "von_hoehe": 4465026,
+    "bis_hoehe": 4512797,
+    "bloecke": 47772,
+    "von_zeit_utc": "2026-10-04 18:21:45",
+    "bis_zeit_utc": "2026-10-17 19:59:32",
+    "regel": "ab 4.465.026 bis zum hoechsten Block mit Zeitstempel <= Stichtag"
+  },
+  "quelle": {
+    "quelle": "Zcash-Testnet P2P (getheaders), Peers aus DNS-Seeds",
+    "abruf_utc": "2026-10-17T20:06:40Z",
+    "start_checkpoint": 4414585,
+    "erste_hoehe": 4414586,
+    "spitze_hoehe": 4512810,
+    "spitze_hash": "00001e9408b7893e676f8328db1167f4c756475455ec2741e490a537dccc1aeb",
+    "checkpoints_quelle": "https://raw.githubusercontent.com/ZcashFoundation/zebra/main/zebra-chain/src/parameters/checkpoint/test-checkpoints.txt",
+    "checkpoints_geprueft": 0,
+    "peer_software": [
+      "/Zebra:7.0.0-rc.0/"
+    ],
+    "peer_fehler": 0,
+    "zielhoehe_gemeldet": 4512805,
+    "abzweige_verworfen": [],
+    "gegenproben": [
+      {
+        "agent": "/Zebra:7.0.0-rc.0/",
+        "verglichen": 500,
+        "gleich": 500,
+        "spitze_peer": 4512810
+      },
+      {
+        "agent": "/Zebra:7.0.0-rc.0/",
+        "verglichen": 500,
+        "gleich": 500,
+        "spitze_peer": 4512810
+      }
+    ],
+    "gegenproben_ohne_antwort": [],
+    "pruefungen": [
+      "prev-hash-kette",
+      "hash <= ziel aus nbits",
+      "zebra-checkpoints"
+    ],
+    "nicht_geprueft": [
+      "equihash-loesung",
+      "block-inhalt",
+      "konsensregeln jenseits des kopfes"
+    ]
+  },
+  "abstaende": {
+    "anzahl_abstaende": 47771,
+    "mittel_s": 23.635,
+    "median_s": 17.0,
+    "p90_s": 52.0,
+    "p99_s": 109.0,
+    "min_s": 0,
+    "laengste_luecke_s": 451,
+    "laengste_luecke_bei": {
+      "hoehe": 4495487,
+      "vorgaenger_zeit_utc": "2026-10-13 04:17:43",
+      "zeit_utc": "2026-10-13 04:25:14"
+    },
+    "anteil_ueber_75s": 0.03563,
+    "anteil_ueber_150s": 0.00199,
+    "anzahl_ueber_75s": 1702,
+    "anzahl_ueber_150s": 95,
+    "anzahl_null": 513,
+    "anzahl_negativ": 0,
+    "erwartung_exponentiell": {
+      "mittel_s": 25.0,
+      "median_s": 17.33,
+      "p90_s": 57.56,
+      "p99_s": 115.13,
+      "anteil_ueber_75s": 0.04979,
+      "anteil_ueber_150s": 0.00248,
+      "laengste_luecke_erwartet_s": 283.8
+    }
+  },
+  "vorher_75s": {
+    "anzahl_abstaende": 50439,
+    "mittel_s": 9.037,
+    "median_s": 2.0,
+    "p90_s": 25.0,
+    "p99_s": 451.0,
+    "min_s": -450,
+    "laengste_luecke_s": 451,
+    "anteil_ueber_75s": 0.02857,
+    "anteil_ueber_150s": 0.01455,
+    "anzahl_ueber_75s": 1441,
+    "anzahl_ueber_150s": 734,
+    "anzahl_null": 1335,
+    "anzahl_negativ": 517,
+    "erwartung_exponentiell": {
+      "mittel_s": 75.0,
+      "median_s": 51.99,
+      "p90_s": 172.69,
+      "p99_s": 345.39,
+      "anteil_ueber_75s": 0.36788,
+      "anteil_ueber_150s": 0.13534,
+      "laengste_luecke_erwartet_s": 855.4
+    }
+  },
+  "vorher_bereich": [
+    4414586,
+    4465025
+  ],
+  "je_tag": [
+    {
+      "tag_utc": "2026-10-04",
+      "bloecke": 685,
+      "erste_hoehe": 4465026,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4465710,
+      "mittlerer_abstand_s": 29.18,
+      "schwierigkeit_mittel": 1778.98,
+      "schwierigkeit_min": 1263.747,
+      "schwierigkeit_max": 2114.294,
+      "hashrate_relativ": 60.9873
+    },
+    {
+      "tag_utc": "2026-10-05",
+      "bloecke": 3334,
+      "erste_hoehe": 4465711,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4469044,
+      "mittlerer_abstand_s": 26.01,
+      "schwierigkeit_mittel": 918.024,
+      "schwierigkeit_min": 604.733,
+      "schwierigkeit_max": 1334.767,
+      "hashrate_relativ": 35.2948
+    },
+    {
+      "tag_utc": "2026-10-06",
+      "bloecke": 4047,
+      "erste_hoehe": 4469045,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4473091,
+      "mittlerer_abstand_s": 21.33,
+      "schwierigkeit_mittel": 7362.238,
+      "schwierigkeit_min": 611.469,
+      "schwierigkeit_max": 11877.993,
+      "hashrate_relativ": 345.1249
+    },
+    {
+      "tag_utc": "2026-10-07",
+      "bloecke": 3444,
+      "erste_hoehe": 4473092,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4476535,
+      "mittlerer_abstand_s": 25.11,
+      "schwierigkeit_mittel": 11609.398,
+      "schwierigkeit_min": 10452.931,
+      "schwierigkeit_max": 13566.785,
+      "hashrate_relativ": 462.3141
+    },
+    {
+      "tag_utc": "2026-10-08",
+      "bloecke": 3445,
+      "erste_hoehe": 4476536,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4479980,
+      "mittlerer_abstand_s": 25.06,
+      "schwierigkeit_mittel": 12614.158,
+      "schwierigkeit_min": 10597.968,
+      "schwierigkeit_max": 19457.073,
+      "hashrate_relativ": 503.4032
+    },
+    {
+      "tag_utc": "2026-10-09",
+      "bloecke": 3453,
+      "erste_hoehe": 4479981,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4483433,
+      "mittlerer_abstand_s": 25.03,
+      "schwierigkeit_mittel": 11780.297,
+      "schwierigkeit_min": 9927.187,
+      "schwierigkeit_max": 16143.057,
+      "hashrate_relativ": 470.6285
+    },
+    {
+      "tag_utc": "2026-10-10",
+      "bloecke": 3467,
+      "erste_hoehe": 4483434,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4486900,
+      "mittlerer_abstand_s": 24.93,
+      "schwierigkeit_mittel": 11502.666,
+      "schwierigkeit_min": 10554.064,
+      "schwierigkeit_max": 12604.105,
+      "hashrate_relativ": 461.475
+    },
+    {
+      "tag_utc": "2026-10-11",
+      "bloecke": 3463,
+      "erste_hoehe": 4486901,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4490363,
+      "mittlerer_abstand_s": 24.96,
+      "schwierigkeit_mittel": 12081.571,
+      "schwierigkeit_min": 10061.669,
+      "schwierigkeit_max": 21531.099,
+      "hashrate_relativ": 484.0736
+    },
+    {
+      "tag_utc": "2026-10-12",
+      "bloecke": 3457,
+      "erste_hoehe": 4490364,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4493820,
+      "mittlerer_abstand_s": 24.99,
+      "schwierigkeit_mittel": 11345.967,
+      "schwierigkeit_min": 10273.584,
+      "schwierigkeit_max": 12431.226,
+      "hashrate_relativ": 454.0961
+    },
+    {
+      "tag_utc": "2026-10-13",
+      "bloecke": 5714,
+      "erste_hoehe": 4493821,
+      "mindestschwierigkeit": 1,
+      "letzte_hoehe": 4499534,
+      "mittlerer_abstand_s": 15.12,
+      "schwierigkeit_mittel": 50070.797,
+      "schwierigkeit_min": 1.0,
+      "schwierigkeit_max": 720736.535,
+      "hashrate_relativ": 3311.2417
+    },
+    {
+      "tag_utc": "2026-10-14",
+      "bloecke": 3485,
+      "erste_hoehe": 4499535,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4503019,
+      "mittlerer_abstand_s": 24.8,
+      "schwierigkeit_mittel": 10655.928,
+      "schwierigkeit_min": 9020.358,
+      "schwierigkeit_max": 12573.001,
+      "hashrate_relativ": 429.7242
+    },
+    {
+      "tag_utc": "2026-10-15",
+      "bloecke": 3447,
+      "erste_hoehe": 4503020,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4506466,
+      "mittlerer_abstand_s": 25.06,
+      "schwierigkeit_mittel": 11461.419,
+      "schwierigkeit_min": 10201.206,
+      "schwierigkeit_max": 12756.278,
+      "hashrate_relativ": 457.2734
+    },
+    {
+      "tag_utc": "2026-10-16",
+      "bloecke": 3459,
+      "erste_hoehe": 4506467,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4509925,
+      "mittlerer_abstand_s": 24.98,
+      "schwierigkeit_mittel": 11395.735,
+      "schwierigkeit_min": 10329.816,
+      "schwierigkeit_max": 12745.433,
+      "hashrate_relativ": 456.2303
+    },
+    {
+      "tag_utc": "2026-10-17",
+      "bloecke": 2872,
+      "erste_hoehe": 4509926,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4512797,
+      "mittlerer_abstand_s": 25.06,
+      "schwierigkeit_mittel": 11583.552,
+      "schwierigkeit_min": 10255.912,
+      "schwierigkeit_max": 12739.804,
+      "hashrate_relativ": 462.1963
+    }
+  ],
+  "mindestschwierigkeit": {
+    "anzahl": 1,
+    "bloecke": [
+      {
+        "hoehe": 4495487,
+        "zeit_utc": "2026-10-13 04:25:14",
+        "luecke_davor_s": 451
+      }
+    ],
+    "kleinste_luecke_davor_s": 451,
+    "groesste_luecke_ohne_mindestschwierigkeit_s": 434
+  },
+  "mindestschwierigkeit_vorher": 517,
+  "nachfuehrung": {
+    "methode": "Fenster 100 Bloecke, Sprung ab Faktor 2.0 (vom folgenden Fenster bestaetigt); eingeholt, wenn die Schwierigkeit innerhalb +-15 % der Hashrate der folgenden 100 Bloecke mal 25 s liegt",
+    "spruenge": 6,
+    "abgeloest_vor_dem_einholen": 1,
+    "nicht_eingeholt_in_2000_bloecken": 0,
+    "median_bloecke": 960,
+    "median_min": 159.7,
+    "max_bloecke": 1839,
+    "ereignisse": [
+      {
+        "grenze_hoehe": 4469626,
+        "zeit_utc": "2026-10-06 04:00:07",
+        "faktor_hashrate": 2.45,
+        "schwierigkeit_an_grenze": 624.977,
+        "eingeholt_nach_bloecken": 960,
+        "eingeholt_nach_min": 182.2,
+        "schwierigkeit_eingeholt": 8116.746,
+        "abgeloest": false
+      },
+      {
+        "grenze_hoehe": 4480926,
+        "zeit_utc": "2026-10-09 06:01:32",
+        "faktor_hashrate": 0.28,
+        "schwierigkeit_an_grenze": 15396.409,
+        "eingeholt_nach_bloecken": 169,
+        "eingeholt_nach_min": 96.2,
+        "schwierigkeit_eingeholt": 12549.929,
+        "abgeloest": false
+      },
+      {
+        "grenze_hoehe": 4488026,
+        "zeit_utc": "2026-10-11 07:51:35",
+        "faktor_hashrate": 5.27,
+        "schwierigkeit_an_grenze": 11592.704,
+        "eingeholt_nach_bloecken": null,
+        "eingeholt_nach_min": null,
+        "schwierigkeit_eingeholt": null,
+        "abgeloest": true
+      },
+      {
+        "grenze_hoehe": 4488226,
+        "zeit_utc": "2026-10-11 08:11:57",
+        "faktor_hashrate": 0.17,
+        "schwierigkeit_an_grenze": 20911.798,
+        "eingeholt_nach_bloecken": 249,
+        "eingeholt_nach_min": 159.7,
+        "schwierigkeit_eingeholt": 12032.678,
+        "abgeloest": false
+      },
+      {
+        "grenze_hoehe": 4494176,
+        "zeit_utc": "2026-10-13 02:28:02",
+        "faktor_hashrate": 9.2,
+        "schwierigkeit_an_grenze": 12008.438,
+        "eingeholt_nach_bloecken": 1239,
+        "eingeholt_nach_min": 91.1,
+        "schwierigkeit_eingeholt": 628067.21,
+        "abgeloest": false
+      },
+      {
+        "grenze_hoehe": 4495476,
+        "zeit_utc": "2026-10-13 04:15:27",
+        "faktor_hashrate": 0.23,
+        "schwierigkeit_an_grenze": 717246.067,
+        "eingeholt_nach_bloecken": 1839,
+        "eingeholt_nach_min": 257.9,
+        "schwierigkeit_eingeholt": 10138.537,
+        "abgeloest": false
+      }
+    ]
+  },
+  "zeitstempel": {
+    "rueckwaerts_anzahl": 0,
+    "rueckwaerts_beispiele": [],
+    "rueckwaerts_groesster_s": 0,
+    "voraus_regel": "Zeitstempel mehr als 600 s nach dem Median der 11 folgenden Bloecke",
+    "voraus_anzahl": 0,
+    "voraus_beispiele": [],
+    "nach_abrufzeit_anzahl": 0,
+    "verletzt_median_der_11_vorgaenger": 0
+  },
+  "bestaetigungen": {
+    "zeit_von_10_bei_75s_s": 750.0,
+    "bloecke_gleiche_zeit_bei_25s": 30,
+    "bloecke_gleiche_zeit_beim_gemessenen_mittel": 32,
+    "gemessenes_mittel_s": 23.635,
+    "gemessen_spanne_30_bloecke": {
+      "fenster": 47742,
+      "median_s": 729.0,
+      "p90_s": 926.0,
+      "p99_s": 1193.0,
+      "anteil_ueber_750s": 0.4437
+    },
+    "theorie_erlang": {
+      "10_bei_75s": {
+        "median_s": 725,
+        "p90_s": 1065,
+        "p99_s": 1409
+      },
+      "30_bei_25s": {
+        "median_s": 742,
+        "p90_s": 930,
+        "p99_s": 1105
+      }
+    },
+    "zuhoerer": null
+  },
+  "zakura_und_andere_ohne_antwort": {},
+  "lauscher": null,
+  "lauscher_pruefung": "Zuhoerer-Fenster nur 15 min (Mindestmass 120 min)",
+  "lauscher_pruefung_en": "the listener window was only 15 min (minimum 120 min)",
+  "nicht_gemessen": [
+    "verwaiste Bloecke und Reorg-Tiefe (kein eigener Knoten)",
+    "Ankunftsabstand desselben Blocks auf zwei Knoten (kein eigener Knoten)",
+    "Equihash-Loesungen und Blockinhalt"
+  ]
+}

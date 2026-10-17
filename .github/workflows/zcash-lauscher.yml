@@ -1,0 +1,115 @@
+# zcash-lauscher.yml - Ersatzmessung D fuer das Zcash-NU7-Testnet.
+#
+# EIN Zuhoerer, kein eigener Knoten (Ben, 15.10.2026): bis knapp 6 h
+# Verbindungen zu Zebra- und Zakura-Knoten halten, jede Block-Ankuendigung
+# mit Ankunftszeit mitschreiben, danach die Kette abrufen und zaehlen, welche
+# angekuendigten Bloecke nicht in ihr landeten und wie weit Zebra und Zakura
+# bei der Ankuendigung desselben Blocks auseinanderliegen.
+#
+# Start: data/zcash/lauscher-start.txt auf messung/zcash-nu7 aendern und
+# pushen. Die Datei enthaelt eine Zeile dauer_min=<Minuten>, hoechstens 330
+# (GitHub beendet einen Job nach 6 h, der Rest ist fuer Abruf und Commit).
+#
+# Keine IP, kein Hostname in Daten oder Log; Peers heissen zebra-1 usw.
+name: zcash lauscher
+
+on:
+  push:
+    branches: ["messung/zcash-nu7"]
+    paths:
+      - "data/zcash/lauscher-start.txt"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: zcash-lauscher
+  cancel-in-progress: false
+
+jobs:
+  lauschen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: messung/zcash-nu7
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: zuhoeren
+        run: |
+          set -eu
+          DAUER=$(sed -n 's/^dauer_min=\([0-9]*\).*/\1/p' data/zcash/lauscher-start.txt)
+          [ -n "$DAUER" ] && [ "$DAUER" -le 330 ] || { echo "::error::dauer_min fehlt oder ueber 330"; exit 1; }
+          echo "zuhoeren fuer $DAUER min"
+          python3 scripts/zcash/testnet_lauscher.py --dauer "$DAUER" \
+            --ereignisse "$RUNNER_TEMP/ereignisse.jsonl" \
+            --koepfe "$RUNNER_TEMP/koepfe.jsonl" \
+            --meta "$RUNNER_TEMP/lauscher-meta.json"
+
+      # Lauf 17.10.2026: das Zuhoeren lief 330 min durch, der Kettenabruf danach
+      # scheiterte, und die Rohdaten lagen nur in RUNNER_TEMP. Deshalb sofort
+      # sichern; der Commit am Ende laeuft auch, wenn ein spaeterer Schritt bricht.
+      - name: rohdaten sichern
+        run: |
+          set -eu
+          gzip -n -c "$RUNNER_TEMP/ereignisse.jsonl" > data/zcash/lauscher-ereignisse.jsonl.gz
+          gzip -n -c "$RUNNER_TEMP/koepfe.jsonl" > data/zcash/lauscher-koepfe.jsonl.gz
+          cp "$RUNNER_TEMP/lauscher-meta.json" data/zcash/lauscher-meta.json
+
+      # Ben, 17.10.2026: Rohdaten direkt nach dem Zuhoeren committen, bevor
+      # irgendetwas anderes laufen kann. Vorher der Secret-Scan ueber den Stand.
+      - name: rohdaten committen
+        run: |
+          set -eu
+          python3 scripts/secret_scan.py --baum
+          git config user.name "zcash nu7 bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/zcash/lauscher-ereignisse.jsonl.gz data/zcash/lauscher-koepfe.jsonl.gz data/zcash/lauscher-meta.json
+          if git diff --cached --quiet; then echo "nichts neu"; exit 0; fi
+          git commit -m "zcash nu7 testnet: zuhoerer-rohdaten [bot]"
+          git pull --rebase -X theirs origin messung/zcash-nu7
+          git push origin HEAD:messung/zcash-nu7
+
+      - name: kette danach abrufen
+        run: |
+          set -eu
+          python3 scripts/zcash/testnet_koepfe.py \
+            --aus "$RUNNER_TEMP/kette.csv.gz" --meta "$RUNNER_TEMP/kette-meta.json"
+
+      - name: auswerten
+        run: |
+          set -eu
+          python3 scripts/zcash/lauscher_auswertung.py \
+            --ereignisse "$RUNNER_TEMP/ereignisse.jsonl" --koepfe "$RUNNER_TEMP/koepfe.jsonl" \
+            --meta "$RUNNER_TEMP/lauscher-meta.json" --kette "$RUNNER_TEMP/kette.csv.gz" \
+            --aus data/zcash/lauscher-zusammenfassung.json
+          {
+            echo "## Zcash Lauscher"
+            echo '```'
+            python3 -c 'import json;d=json.load(open("data/zcash/lauscher-zusammenfassung.json"));[print(k, d[k]) for k in ("fenster_utc","peers_je_software","kettenbloecke_im_fenster","davon_angekuendigt_gesehen","abgehaengt_anzahl","groesste_tiefe","zakura_minus_zebra_ms","streuung_alle_peers_ms")]'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: secret-scan
+        id: scan
+        if: always()
+        run: python3 scripts/secret_scan.py --baum
+
+      # Auch nach einem Fehler weiter oben, aber nie nach einem Treffer im
+      # Secret-Scan. Ohne frische Zusammenfassung bleibt die alte liegen; der
+      # Endlauf prueft Fenster und abgedeckte Zeit selbst (unter 2 h: D nicht gemessen).
+      - name: committen
+        if: always() && steps.scan.outcome == 'success'
+        run: |
+          set -eu
+          git config user.name "zcash nu7 bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/zcash/lauscher-*
+          if git diff --cached --quiet; then echo "nichts neu"; exit 0; fi
+          git commit -m "zcash nu7 testnet: zuhoerer (ersatzmessung d) [bot]"
+          git pull --rebase -X theirs origin messung/zcash-nu7
+          git push origin HEAD:messung/zcash-nu7
