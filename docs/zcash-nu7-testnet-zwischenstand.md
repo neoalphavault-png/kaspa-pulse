@@ -1,6 +1,6 @@
 # Zcash NU7 Testnet: unabhängige Zählung, Stand 2026-10-17
 
-**Stichtag:** 2026-10-17 14:00:00 UTC · **Blockbereich:** 4.465.026 bis 4.511.939 (46.914 Blöcke, 2026-10-04 18:21:45 bis 2026-10-17 13:59:26 UTC) · **Abruf:** 2026-10-17T14:55:12Z
+**Stichtag:** 2026-10-17 15:00:00 UTC · **Blockbereich:** 4.465.026 bis 4.512.093 (47.068 Blöcke, 2026-10-04 18:21:45 bis 2026-10-17 14:59:35 UTC) · **Abruf:** 2026-10-17T15:17:54Z
 
 Nur Zahlen. Kein Kurs, keine Bewertung.
 
@@ -9,7 +9,7 @@ Nur Zahlen. Kein Kurs, keine Bewertung.
 - Blockköpfe direkt aus dem P2P-Netz des Zcash-Testnets (`getheaders`), Peers über die DNS-Seeds, kein Explorer, keine API, kein Konto. Skript: `scripts/zcash/testnet_koepfe.py`.
 - Startpunkt: Checkpoint 4.414.585 aus Zebras `test-checkpoints.txt`. Geprüft: Verkettung über den Vorgänger-Hash, Hash ≤ Ziel aus nBits, 0 spätere Checkpoints. Die Equihash-Lösung prüfen wir nicht.
 - Gegenprobe mit weiteren Peers: /Zebra:7.0.0-rc.0/: 500/500 Hashes gleich, /Zebra:7.0.0-rc.0/: 500/500 Hashes gleich
-- Gegenprobe ohne verwertbare Antwort: /Zakura:1.6.0/: 2 Versuche, /Zakura:1.7.0-rc1/: 3 Versuche. Handschlag jeweils erfolgreich, auf `getheaders` kam innerhalb von 20 s keine Antwort. Das kann auch an unserem Client liegen; wir haben es nicht weiter eingegrenzt.
+- Gegenprobe ohne verwertbare Antwort: /Zakura:1.6.0/: 1 Versuche, /Zakura:1.7.0-rc1/: 2 Versuche. Handschlag jeweils erfolgreich, auf `getheaders` kam innerhalb von 20 s keine Antwort. Das kann auch an unserem Client liegen; wir haben es nicht weiter eingegrenzt.
 - Software der Peers: /Zebra:7.0.0-rc.0/, /Zakura:1.6.0/, /Zakura:1.7.0-rc1/
 - Abstand = Zeitstempel minus Zeitstempel des Vorgängers, erster Abstand bei 4.465.027. Zeitstempel setzt der Miner; null und negative Abstände bleiben drin.
 - Schwierigkeit wie in der RPC: Ziel(powLimit 0x2007ffff) / Ziel(nBits). Tage in UTC.
@@ -19,19 +19,19 @@ Nur Zahlen. Kein Kurs, keine Bewertung.
 
 |  | gemessen | Erwartung exponentiell, 25 s |
 | --- | --- | --- |
-| Abstände | 46.913 |  |
+| Abstände | 47.067 |  |
 | Mittel | 23,61 s | 25,0 s |
 | Median | 17,0 s | 17,3 s |
 | p90 | 52,0 s | 57,6 s |
 | p99 | 109,0 s | 115,1 s |
 | längste Lücke | 451 s (Höhe 4.495.487) | ≈ 283 s (Erwartungswert des Maximums) |
-| über 75 s | 3,54 % (1.661) | 4,98 % |
-| über 150 s | 0,198 % (93) | 0,248 % |
-| Abstand 0 s / negativ | 503 / 0 |  |
+| über 75 s | 3,54 % (1.668) | 4,98 % |
+| über 150 s | 0,200 % (94) | 0,248 % |
+| Abstand 0 s / negativ | 505 / 0 |  |
 
 Vor der Aktivierung (50.439 Abstände, Höhe 4.414.586 bis 4.465.025): Mittel 9,0 s, Median 2,0 s, 517 Blöcke mit Mindestschwierigkeit. Das Testnet lief dort weit schneller als das 75-s-Ziel; als Vergleich für das alte Ziel taugt dieser Abschnitt nicht.
 
-**Blöcke mit Mindestschwierigkeit seit der Aktivierung:** 1, kleinste Lücke davor 451 s; größte Lücke ohne Mindestschwierigkeit 434 s; Lücken über 150 s (6 × 25 s) insgesamt: 93.
+**Blöcke mit Mindestschwierigkeit seit der Aktivierung:** 1, kleinste Lücke davor 451 s; größte Lücke ohne Mindestschwierigkeit 434 s; Lücken über 150 s (6 × 25 s) insgesamt: 94.
 
 ## B. Je Tag (UTC)
 
@@ -50,7 +50,7 @@ Vor der Aktivierung (50.439 Abstände, Höhe 4.414.586 bis 4.465.025): Mittel 9,
 | 2026-10-14 | 3.485 | 4.499.535–4.503.019 | 24,8 s | 10.655,9 | 9.020,4 | 12.573,0 | 0 |
 | 2026-10-15 | 3.447 | 4.503.020–4.506.466 | 25,1 s | 11.461,4 | 10.201,2 | 12.756,3 | 0 |
 | 2026-10-16 | 3.459 | 4.506.467–4.509.925 | 25,0 s | 11.395,7 | 10.329,8 | 12.745,4 | 0 |
-| 2026-10-17 | 2.014 | 4.509.926–4.511.939 | 25,0 s | 11.524,6 | 10.255,9 | 12.476,3 | 0 |
+| 2026-10-17 | 2.168 | 4.509.926–4.512.093 | 24,9 s | 11.563,8 | 10.255,9 | 12.476,3 | 0 |
 
 Erster und letzter Tag sind angeschnitten (Aktivierung 18:21:45 UTC, Stichtag).
 
