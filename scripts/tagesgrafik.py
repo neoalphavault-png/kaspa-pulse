@@ -2138,6 +2138,12 @@ def main(argv=None):
         "herkunft": s["datumszeile"].split(" \u00b7 ")[-1]}, ensure_ascii=False, indent=1), encoding="utf-8")
     with open(out / (png.stem + ".txt"), "a", encoding="utf-8") as fh:
         fh.write("\nINSTAGRAM, %d zeichen\n%s\n" % (len(s["instagram"]), s["instagram"]))
+    # fuer den threads-job um 17:10 (Ben, 17.10.2026): der x-text, drei
+    # zeilen mit frage am ende, und das bild im threads-look
+    (out / (png.stem + "-threads.json")).write_text(json.dumps({
+        "datum": heute.isoformat(), "form": form, "messzeit_utc": m["messzeit_utc"],
+        "text": s["x"], "bild": Path(kanalbilder["threads"]).name}, ensure_ascii=False, indent=1),
+        encoding="utf-8")
     print("form %d (%s), %s\n%s\n%s" % (form, grund, png, vpng, (out / (png.stem + ".txt")).read_text()))
     # die gebuehrenreihe nur, wenn dieser lauf auch etwas damit tut. eine
     # probe (ohne senden, ohne log) ruft nichts ab und meldet nichts.
@@ -2634,6 +2640,11 @@ def selbsttest():
        not any(isinstance(v, str) and "platzhalter" in v.lower()
                for e in json.loads(COMMUNITY.read_text()).get("fragen", []) if e.get("offen")
                for v in e.values()))
+    # threads-text ist der x-text, er muss die threads-wache halten (Ben, 17.10.2026)
+    import threads
+    for f in sorted(FAKE):
+        bef = threads.wache(seite_bauen(f, FAKE[f], FAKE_NOW, log)["x"])
+        ok("form %d, x-text haelt die threads-wache%s" % (f, "" if not bef else ", " + "; ".join(bef)), not bef)
     # look-takt und geruest (Ben, 15.10.2026)
     nach_diagramm = {"laeufe": [{"datum": "2026-10-06", "form": 8}]}
     f, _ = waehle_form(dt.date(2026, 10, 7), nach_diagramm)
