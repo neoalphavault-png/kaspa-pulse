@@ -77,6 +77,9 @@ PFEILE = ("->", "=>", "←", "↑", "↓", "⇒", "⟶")
 KURSZIEL = re.compile(r"\b(?:price targets?|target price|kursziel|price prediction|to the moon|"
                       r"will (?:hit|reach|go to|touch)|heading (?:to|for) \$?\d|next stop \$?\d)",
                       re.I)
+# Platzhalter (Ben, 17.10.2026): ein Bild mit Vorlagentext geht nie raus.
+PLATZHALTER = re.compile(r"platzhalter|placeholder|lorem ipsum|\bTODO\b|\bTBD\b|\bFIXME\b|\bxxx+\b|"
+                         r"\{\{|\}\}|<name>|\bname here\b", re.I)
 DATUM = re.compile(r"\b\d{1,2} (?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b|"
                    r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec) \d{1,2}\b", re.I)
 
@@ -124,6 +127,9 @@ def text_verstoesse(text):
     m = KURSZIEL.search(text)
     if m:
         aus.append("kursziel %r" % m.group(0))
+    m = PLATZHALTER.search(text)
+    if m:
+        aus.append("platzhalter %r" % m.group(0))
     return aus
 
 
@@ -264,7 +270,9 @@ def selbsttest():
     for t, was in (("hashrate up 42 percent", "percent"), ("balance: 1,442 KAS", "doppelpunkt"),
                    ("up — down", "gedankenstrich"), ("from 5 -> 6", "ascii-pfeil"),
                    ("securing the network right now", "right now"), ("counted live", "live"),
-                   ("price target 1 dollar", "kursziel"), ("kas will reach 1", "kursziel will reach")):
+                   ("price target 1 dollar", "kursziel"), ("kas will reach 1", "kursziel will reach"),
+                   ("@PLATZHALTER ASKED", "platzhalter"), ("placeholder name", "placeholder"),
+                   ("{{name}} asked", "vorlagenklammer"), ("TODO zahl", "todo")):
         ok("text, %s faellt auf" % was, bool(text_verstoesse(t)))
     for t, was in (("29 sep 2026, 14:08 utc", "uhrzeit"), ("more on kaspapulse.com/halving.html", "link"),
                    ("almost nobody posts the second one", "the second (ausgenommen wie in #109)"),
@@ -319,6 +327,7 @@ def selbsttest():
         "balken im rand stoppt": (GUT + "<div style='left:20px;top:500px;width:100px;height:80px;"
                                   "background:#49EACB'></div>", "instagram", 1),
         "percent im bild stoppt": (GUT.replace("at least 1 KAS", "50 percent"), "instagram", 1),
+        "platzhalter im kopf stoppt": (GUT.replace("SLEEPING COINS", "@PLATZHALTER ASKED"), "instagram", 1),
     }
     with sync_playwright() as pw, tempfile.TemporaryDirectory() as td:
         import tagesgrafik as tg

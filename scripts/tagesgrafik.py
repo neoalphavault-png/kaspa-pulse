@@ -861,6 +861,12 @@ def messen_7(now):
         raise Stop("keine community-datei")
     for e in d.get("fragen") or []:
         if e.get("offen"):
+            # nie mit vorlagentext (Ben, 17.10.2026): ein platzhalter in
+            # irgendeinem feld nimmt form 7 heute aus der rotation
+            import content_wache
+            for k, v in sorted(e.items()):
+                if isinstance(v, str) and content_wache.PLATZHALTER.search(v):
+                    raise Stop("community-frage mit platzhalter in %s, form 7 faellt aus" % k)
             art = (e.get("objekt") or {}).get("art")
             if art not in ("anteil", "zwei"):
                 raise Stop("form 7 braucht einen vergleich im bild, objekt anteil oder zwei, nicht %r" % art)
@@ -2006,7 +2012,13 @@ def kontaktbogen_bilder(ziel, browser, looks=("dunkel", "hell", "teal")):
     aus = []
     Path(ziel).mkdir(parents=True, exist_ok=True)
     for f in sorted(FAKE):
-        s = seite_bauen(f, FAKE[f], FAKE_NOW, {"laeufe": []})
+        werte = FAKE[f]
+        if f == 7:
+            # das fixture traegt "@PLATZHALTER", das stoppt die wache zu recht.
+            # fuer den bogen steht der kanal statt eines namens da.
+            werte = json.loads(json.dumps(werte))
+            werte["eintrag"]["name"] = "#data-requests"
+        s = seite_bauen(f, werte, FAKE_NOW, {"laeufe": []})
         for lk in looks:
             name = "tagesgrafik f%d %s %s" % (f, GERUEST.get(f, ""), lk)
             try:
@@ -2596,6 +2608,32 @@ def selbsttest():
     ok("emission am tag mit senkung geteilt",
        abs(emission_am_tag("2026-10-05") - (2.18268 * 10 * 11744 + 2.06023 * 10 * (86400 - 11744)))
        < 20000)
+    # form 7 nie mit platzhalter (Ben, 17.10.2026)
+    global COMMUNITY
+    alt_comm = COMMUNITY
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        COMMUNITY = Path(td) / "c.json"
+        COMMUNITY.write_text(json.dumps({"fragen": []}))
+        try:
+            messen_7(FAKE_NOW)
+            ok("form 7 ohne offene frage faellt aus", False)
+        except Stop:
+            ok("form 7 ohne offene frage faellt aus", True)
+        COMMUNITY.write_text(json.dumps({"fragen": [FAKE[7]["eintrag"]]}))
+        try:
+            messen_7(FAKE_NOW)
+            ok("form 7 mit @PLATZHALTER faellt aus", False)
+        except Stop as exc:
+            ok("form 7 mit @PLATZHALTER faellt aus", "platzhalter" in str(exc))
+        echt = dict(FAKE[7]["eintrag"], name="#data-requests")
+        COMMUNITY.write_text(json.dumps({"fragen": [echt]}))
+        ok("form 7 mit echter frage laeuft", messen_7(FAKE_NOW)["eintrag"]["name"] == "#data-requests")
+    COMMUNITY = alt_comm
+    ok("die echte community-datei hat keine offene frage mit platzhalter",
+       not any(isinstance(v, str) and "platzhalter" in v.lower()
+               for e in json.loads(COMMUNITY.read_text()).get("fragen", []) if e.get("offen")
+               for v in e.values()))
     # look-takt und geruest (Ben, 15.10.2026)
     nach_diagramm = {"laeufe": [{"datum": "2026-10-06", "form": 8}]}
     f, _ = waehle_form(dt.date(2026, 10, 7), nach_diagramm)
