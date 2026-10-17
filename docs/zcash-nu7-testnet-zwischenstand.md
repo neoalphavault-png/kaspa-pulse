@@ -1,6 +1,6 @@
-# Zcash NU7 Testnet: unabhängige Zählung, Stand 2026-10-15
+# Zcash NU7 Testnet: unabhängige Zählung, Stand 2026-10-17
 
-**Stichtag:** 2026-10-15 13:00:00 UTC · **Blockbereich:** 4.465.026 bis 4.504.888 (39.863 Blöcke, 2026-10-04 18:21:45 bis 2026-10-15 12:59:28 UTC) · **Abruf:** 2026-10-15T13:16:26Z
+**Stichtag:** 2026-10-17 11:00:00 UTC · **Blockbereich:** 4.465.026 bis 4.511.500 (46.475 Blöcke, 2026-10-04 18:21:45 bis 2026-10-17 10:59:32 UTC) · **Abruf:** 2026-10-17T11:56:22Z
 
 Nur Zahlen. Kein Kurs, keine Bewertung.
 
@@ -9,8 +9,8 @@ Nur Zahlen. Kein Kurs, keine Bewertung.
 - Blockköpfe direkt aus dem P2P-Netz des Zcash-Testnets (`getheaders`), Peers über die DNS-Seeds, kein Explorer, keine API, kein Konto. Skript: `scripts/zcash/testnet_koepfe.py`.
 - Startpunkt: Checkpoint 4.414.585 aus Zebras `test-checkpoints.txt`. Geprüft: Verkettung über den Vorgänger-Hash, Hash ≤ Ziel aus nBits, 0 spätere Checkpoints. Die Equihash-Lösung prüfen wir nicht.
 - Gegenprobe mit weiteren Peers: /Zebra:7.0.0-rc.0/: 500/500 Hashes gleich, /Zebra:7.0.0-rc.0/: 500/500 Hashes gleich
-- Gegenprobe ohne verwertbare Antwort: /Zakura:1.6.0/: 3 Versuche, /Zakura:1.7.0-rc0/: 2 Versuche. Handschlag jeweils erfolgreich, auf `getheaders` kam innerhalb von 20 s keine Antwort. Das kann auch an unserem Client liegen; wir haben es nicht weiter eingegrenzt.
-- Software der Peers: /Zebra:7.0.0-rc.0/, /Zakura:1.6.0/, /Zakura:1.7.0-rc0/
+- Gegenprobe ohne verwertbare Antwort: /Zakura:1.7.0-rc1/: 1 Versuche, /Zakura:1.7.0-rc0/: 1 Versuche, /Zakura:1.6.0/: 1 Versuche. Handschlag jeweils erfolgreich, auf `getheaders` kam innerhalb von 20 s keine Antwort. Das kann auch an unserem Client liegen; wir haben es nicht weiter eingegrenzt.
+- Software der Peers: /Zebra:7.0.0-rc.0/, /Zakura:1.7.0-rc1/, /Zakura:1.7.0-rc0/, /Zakura:1.6.0/
 - Abstand = Zeitstempel minus Zeitstempel des Vorgängers, erster Abstand bei 4.465.027. Zeitstempel setzt der Miner; null und negative Abstände bleiben drin.
 - Schwierigkeit wie in der RPC: Ziel(powLimit 0x2007ffff) / Ziel(nBits). Tage in UTC.
 - Auswertung: `scripts/zcash/nu7_auswertung.py`, Rohdaten: `data/zcash/testnet-koepfe.csv.gz`.
@@ -19,19 +19,19 @@ Nur Zahlen. Kein Kurs, keine Bewertung.
 
 |  | gemessen | Erwartung exponentiell, 25 s |
 | --- | --- | --- |
-| Abstände | 39.862 |  |
-| Mittel | 23,36 s | 25,0 s |
+| Abstände | 46.474 |  |
+| Mittel | 23,60 s | 25,0 s |
 | Median | 17,0 s | 17,3 s |
 | p90 | 51,0 s | 57,6 s |
-| p99 | 108,0 s | 115,1 s |
-| längste Lücke | 451 s (Höhe 4.495.487) | ≈ 279 s (Erwartungswert des Maximums) |
-| über 75 s | 3,47 % (1.385) | 4,98 % |
-| über 150 s | 0,206 % (82) | 0,248 % |
-| Abstand 0 s / negativ | 431 / 0 |  |
+| p99 | 109,0 s | 115,1 s |
+| längste Lücke | 451 s (Höhe 4.495.487) | ≈ 283 s (Erwartungswert des Maximums) |
+| über 75 s | 3,54 % (1.643) | 4,98 % |
+| über 150 s | 0,200 % (93) | 0,248 % |
+| Abstand 0 s / negativ | 498 / 0 |  |
 
 Vor der Aktivierung (50.439 Abstände, Höhe 4.414.586 bis 4.465.025): Mittel 9,0 s, Median 2,0 s, 517 Blöcke mit Mindestschwierigkeit. Das Testnet lief dort weit schneller als das 75-s-Ziel; als Vergleich für das alte Ziel taugt dieser Abschnitt nicht.
 
-**Blöcke mit Mindestschwierigkeit seit der Aktivierung:** 1, kleinste Lücke davor 451 s; größte Lücke ohne Mindestschwierigkeit 434 s; Lücken über 150 s (6 × 25 s) insgesamt: 82.
+**Blöcke mit Mindestschwierigkeit seit der Aktivierung:** 1, kleinste Lücke davor 451 s; größte Lücke ohne Mindestschwierigkeit 434 s; Lücken über 150 s (6 × 25 s) insgesamt: 93.
 
 ## B. Je Tag (UTC)
 
@@ -48,7 +48,9 @@ Vor der Aktivierung (50.439 Abstände, Höhe 4.414.586 bis 4.465.025): Mittel 9,
 | 2026-10-12 | 3.457 | 4.490.364–4.493.820 | 25,0 s | 11.346,0 | 10.273,6 | 12.431,2 | 0 |
 | 2026-10-13 | 5.714 | 4.493.821–4.499.534 | 15,1 s | 50.070,8 | 1,0 | 720.736,5 | 1 |
 | 2026-10-14 | 3.485 | 4.499.535–4.503.019 | 24,8 s | 10.655,9 | 9.020,4 | 12.573,0 | 0 |
-| 2026-10-15 | 1.869 | 4.503.020–4.504.888 | 25,0 s | 11.061,1 | 10.201,2 | 12.366,7 | 0 |
+| 2026-10-15 | 3.447 | 4.503.020–4.506.466 | 25,1 s | 11.461,4 | 10.201,2 | 12.756,3 | 0 |
+| 2026-10-16 | 3.459 | 4.506.467–4.509.925 | 25,0 s | 11.395,7 | 10.329,8 | 12.745,4 | 0 |
+| 2026-10-17 | 1.575 | 4.509.926–4.511.500 | 25,1 s | 11.432,5 | 10.255,9 | 12.227,5 | 0 |
 
 Erster und letzter Tag sind angeschnitten (Aktivierung 18:21:45 UTC, Stichtag).
 
