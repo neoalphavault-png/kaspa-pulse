@@ -510,6 +510,11 @@ def assert_punctuation(text):
     if worte:
         raise Stop("wortregel verletzt, gefunden %r. kein buy, bought, sold, "
                    "sale oder purchase im post" % worte)
+    # echtzeit-woerter (Ben, 17.10.2026), dieselbe liste wie die zahl des tages
+    from number_of_day import echtzeit_treffer
+    wort = echtzeit_treffer(text)
+    if wort:
+        raise Stop("echtzeitregel verletzt, gefunden %r. messtag nennen statt dessen" % wort)
 
 
 # ------------------------------------------------------------------ pruefen --
@@ -1492,6 +1497,12 @@ def run_selftest():
        "https://kaspapulse.com/?utm_source=tg&utm_medium=chat"
        "&utm_campaign=weekly-numbers#subscribe", tg.split("\n")[-1])
     ok("telegram hat keinen maskierten link", "](" not in tg)
+    for wort in ("right now", "live", "currently", "at the moment"):
+        try:
+            assert_punctuation("hashrate %s at 360 PH" % wort)
+            ok("echtzeit %r stoppt den wochenpost" % wort, False)
+        except Stop:
+            ok("echtzeit %r stoppt den wochenpost" % wort, True)
     ok("discord zeile ist maskiert und zeigt auf den kurzlink",
        re.fullmatch(r"\U0001f4ec \[[^\]]+\]\(<https://kaspapulse\.com/discord>\)",
                     newsletter_zeile("discord")) is not None, newsletter_zeile("discord"))

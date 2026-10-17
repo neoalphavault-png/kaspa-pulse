@@ -230,6 +230,12 @@ def check_text(text, what):
     text = (text or "").strip()
     if not text:
         sys.exit("%s ist leer" % what)
+    # echtzeit-woerter stoppen jeden x-post (Ben, 17.10.2026), dieselbe
+    # liste wie die zahl des tages (number_of_day._ECHTZEIT)
+    from number_of_day import echtzeit_treffer
+    wort = echtzeit_treffer(text)
+    if wort:
+        sys.exit("%s traegt das Echtzeit-Wort %r, Messtag nennen statt dessen" % (what, wort))
     n = weighted_len(text)
     if n > MAX_CHARS:
         sys.exit("%s zu lang: %d von %d Zeichen (URLs zaehlen 23)" % (what, n, MAX_CHARS))
@@ -559,6 +565,14 @@ def selftest():
     assert want in hdr, "oauth-signatur weicht vom testvektor ab"
     assert weighted_len("see kaspapulse.com/kaspa-weekly.html now") == len("see ") + 23 + len(" now")
     assert has_link("priced on kaspapulse.com.") and not has_link("one kas buys 47 sats.")
+    # echtzeit-woerter stoppen jeden post (Ben, 17.10.2026)
+    for wort in ("right now", "live", "currently", "at the moment"):
+        try:
+            check_text("the network runs %s at 360 PH." % wort, "Text")
+            raise AssertionError("echtzeit-wort %r geht durch" % wort)
+        except SystemExit:
+            pass
+    assert check_text("360 PH on 17 oct.", "Text") == "360 PH on 17 oct."
     assert has_link("https://x.com/abc") and has_link("www.example.org")
     # Montagsfaden: Videolink wird eingesetzt, fehlende Angaben brechen ab
     q = {"date": "2026-09-14", "main": "one kas buys 46 sats.",
