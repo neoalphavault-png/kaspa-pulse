@@ -1,57 +1,64 @@
 {
   "titel": "Zcash NU7 Testnet, unabhaengige Zaehlung",
-  "stichtag_utc": "2026-10-17 11:00:00 UTC",
+  "stichtag_utc": "2026-10-17 14:00:00 UTC",
   "bereich": {
     "von_hoehe": 4465026,
-    "bis_hoehe": 4511500,
-    "bloecke": 46475,
+    "bis_hoehe": 4511939,
+    "bloecke": 46914,
     "von_zeit_utc": "2026-10-04 18:21:45",
-    "bis_zeit_utc": "2026-10-17 10:59:32",
+    "bis_zeit_utc": "2026-10-17 13:59:26",
     "regel": "ab 4.465.026 bis zum hoechsten Block mit Zeitstempel <= Stichtag"
   },
   "quelle": {
     "quelle": "Zcash-Testnet P2P (getheaders), Peers aus DNS-Seeds",
-    "abruf_utc": "2026-10-17T11:56:22Z",
+    "abruf_utc": "2026-10-17T14:55:12Z",
     "start_checkpoint": 4414585,
     "erste_hoehe": 4414586,
-    "spitze_hoehe": 4511642,
-    "spitze_hash": "000005f5356cdbcafa959fed7bd5c771a63b9afd79ea934338fb4ab8994cb6e0",
+    "spitze_hoehe": 4512081,
+    "spitze_hash": "000029ca81ac641afb99633d477a6775eb4ec0962205b7cb79a0503b7b1db709",
     "checkpoints_quelle": "https://raw.githubusercontent.com/ZcashFoundation/zebra/main/zebra-chain/src/parameters/checkpoint/test-checkpoints.txt",
     "checkpoints_geprueft": 0,
     "peer_software": [
       "/Zebra:7.0.0-rc.0/",
-      "/Zakura:1.7.0-rc1/",
-      "/Zakura:1.7.0-rc0/",
-      "/Zakura:1.6.0/"
+      "/Zakura:1.6.0/",
+      "/Zakura:1.7.0-rc1/"
     ],
     "peer_fehler": 0,
-    "zielhoehe_gemeldet": 4511641,
+    "zielhoehe_gemeldet": 4512068,
     "abzweige_verworfen": [],
     "gegenproben": [
       {
         "agent": "/Zebra:7.0.0-rc.0/",
         "verglichen": 500,
         "gleich": 500,
-        "spitze_peer": 4511642
+        "spitze_peer": 4512082
       },
       {
         "agent": "/Zebra:7.0.0-rc.0/",
         "verglichen": 500,
         "gleich": 500,
-        "spitze_peer": 4511643
+        "spitze_peer": 4512083
       }
     ],
     "gegenproben_ohne_antwort": [
+      {
+        "agent": "/Zakura:1.6.0/",
+        "fehler": "TimeoutError"
+      },
       {
         "agent": "/Zakura:1.7.0-rc1/",
         "fehler": "TimeoutError"
       },
       {
-        "agent": "/Zakura:1.7.0-rc0/",
+        "agent": "/Zakura:1.6.0/",
         "fehler": "TimeoutError"
       },
       {
-        "agent": "/Zakura:1.6.0/",
+        "agent": "/Zakura:1.7.0-rc1/",
+        "fehler": "TimeoutError"
+      },
+      {
+        "agent": "/Zakura:1.7.0-rc1/",
         "fehler": "TimeoutError"
       }
     ],
@@ -67,10 +74,10 @@
     ]
   },
   "abstaende": {
-    "anzahl_abstaende": 46474,
-    "mittel_s": 23.597,
+    "anzahl_abstaende": 46913,
+    "mittel_s": 23.607,
     "median_s": 17.0,
-    "p90_s": 51.0,
+    "p90_s": 52.0,
     "p99_s": 109.0,
     "min_s": 0,
     "laengste_luecke_s": 451,
@@ -79,11 +86,11 @@
       "vorgaenger_zeit_utc": "2026-10-13 04:17:43",
       "zeit_utc": "2026-10-13 04:25:14"
     },
-    "anteil_ueber_75s": 0.03535,
-    "anteil_ueber_150s": 0.002,
-    "anzahl_ueber_75s": 1643,
+    "anteil_ueber_75s": 0.03541,
+    "anteil_ueber_150s": 0.00198,
+    "anzahl_ueber_75s": 1661,
     "anzahl_ueber_150s": 93,
-    "anzahl_null": 498,
+    "anzahl_null": 503,
     "anzahl_negativ": 0,
     "erwartung_exponentiell": {
       "mittel_s": 25.0,
@@ -92,7 +99,7 @@
       "p99_s": 115.13,
       "anteil_ueber_75s": 0.04979,
       "anteil_ueber_150s": 0.00248,
-      "laengste_luecke_erwartet_s": 283.1
+      "laengste_luecke_erwartet_s": 283.3
     }
   },
   "vorher_75s": {
@@ -282,15 +289,15 @@
     },
     {
       "tag_utc": "2026-10-17",
-      "bloecke": 1575,
+      "bloecke": 2014,
       "erste_hoehe": 4509926,
       "mindestschwierigkeit": 0,
-      "letzte_hoehe": 4511500,
-      "mittlerer_abstand_s": 25.13,
-      "schwierigkeit_mittel": 11432.52,
+      "letzte_hoehe": 4511939,
+      "mittlerer_abstand_s": 25.01,
+      "schwierigkeit_mittel": 11524.577,
       "schwierigkeit_min": 10255.912,
-      "schwierigkeit_max": 12227.528,
-      "hashrate_relativ": 454.9553
+      "schwierigkeit_max": 12476.261,
+      "hashrate_relativ": 460.7817
     }
   ],
   "mindestschwierigkeit": {
@@ -388,9 +395,8 @@
     "verletzt_median_der_11_vorgaenger": 0
   },
   "zakura_und_andere_ohne_antwort": {
-    "/Zakura:1.7.0-rc1/": 1,
-    "/Zakura:1.7.0-rc0/": 1,
-    "/Zakura:1.6.0/": 1
+    "/Zakura:1.6.0/": 2,
+    "/Zakura:1.7.0-rc1/": 3
   },
   "lauscher": null,
   "lauscher_pruefung": "Zuhoerer-Fenster nur 15 min (Mindestmass 120 min)",
