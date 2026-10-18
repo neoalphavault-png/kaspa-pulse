@@ -1,0 +1,1013 @@
+{
+  "titel": "Zcash NU7 Testnet, unabhaengige Zaehlung",
+  "stichtag_utc": "2026-10-18 06:00:00 UTC",
+  "bereich": {
+    "von_hoehe": 4465026,
+    "bis_hoehe": 4514228,
+    "bloecke": 49203,
+    "von_zeit_utc": "2026-10-04 18:21:45",
+    "bis_zeit_utc": "2026-10-18 05:59:48",
+    "regel": "ab 4.465.026 bis zum hoechsten Block mit Zeitstempel <= Stichtag"
+  },
+  "quelle": {
+    "quelle": "Zcash-Testnet P2P (getheaders), Peers aus DNS-Seeds",
+    "abruf_utc": "2026-10-18T06:13:38Z",
+    "start_checkpoint": 4414585,
+    "erste_hoehe": 4414586,
+    "spitze_hoehe": 4514250,
+    "spitze_hash": "000000a7c86d1c70568f6440180482587693952d1d355f2f5ef289412e320aa3",
+    "checkpoints_quelle": "https://raw.githubusercontent.com/ZcashFoundation/zebra/main/zebra-chain/src/parameters/checkpoint/test-checkpoints.txt",
+    "checkpoints_geprueft": 0,
+    "peer_software": [
+      "/Zebra:7.0.0-rc.0/",
+      "/Zakura:1.6.0/",
+      "/Zakura:1.7.0-rc1/"
+    ],
+    "peer_fehler": 0,
+    "zielhoehe_gemeldet": 4514246,
+    "abzweige_verworfen": [],
+    "gegenproben": [
+      {
+        "agent": "/Zebra:7.0.0-rc.0/",
+        "verglichen": 500,
+        "gleich": 500,
+        "spitze_peer": 4514250
+      },
+      {
+        "agent": "/Zebra:7.0.0-rc.0/",
+        "verglichen": 500,
+        "gleich": 500,
+        "spitze_peer": 4514250
+      }
+    ],
+    "gegenproben_ohne_antwort": [
+      {
+        "agent": "/Zakura:1.6.0/",
+        "fehler": "TimeoutError"
+      },
+      {
+        "agent": "/Zakura:1.6.0/",
+        "fehler": "TimeoutError"
+      },
+      {
+        "agent": "/Zakura:1.7.0-rc1/",
+        "fehler": "TimeoutError"
+      }
+    ],
+    "pruefungen": [
+      "prev-hash-kette",
+      "hash <= ziel aus nbits",
+      "zebra-checkpoints"
+    ],
+    "nicht_geprueft": [
+      "equihash-loesung",
+      "block-inhalt",
+      "konsensregeln jenseits des kopfes"
+    ]
+  },
+  "abstaende": {
+    "anzahl_abstaende": 49202,
+    "mittel_s": 23.68,
+    "median_s": 17.0,
+    "p90_s": 52.0,
+    "p99_s": 109.0,
+    "min_s": 0,
+    "laengste_luecke_s": 451,
+    "laengste_luecke_bei": {
+      "hoehe": 4495487,
+      "vorgaenger_zeit_utc": "2026-10-13 04:17:43",
+      "zeit_utc": "2026-10-13 04:25:14"
+    },
+    "anteil_ueber_75s": 0.03591,
+    "anteil_ueber_150s": 0.00203,
+    "anzahl_ueber_75s": 1767,
+    "anzahl_ueber_150s": 100,
+    "anzahl_null": 531,
+    "anzahl_negativ": 0,
+    "erwartung_exponentiell": {
+      "mittel_s": 25.0,
+      "median_s": 17.33,
+      "p90_s": 57.56,
+      "p99_s": 115.13,
+      "anteil_ueber_75s": 0.04979,
+      "anteil_ueber_150s": 0.00248,
+      "laengste_luecke_erwartet_s": 284.5
+    }
+  },
+  "vorher_75s": {
+    "anzahl_abstaende": 50439,
+    "mittel_s": 9.037,
+    "median_s": 2.0,
+    "p90_s": 25.0,
+    "p99_s": 451.0,
+    "min_s": -450,
+    "laengste_luecke_s": 451,
+    "anteil_ueber_75s": 0.02857,
+    "anteil_ueber_150s": 0.01455,
+    "anzahl_ueber_75s": 1441,
+    "anzahl_ueber_150s": 734,
+    "anzahl_null": 1335,
+    "anzahl_negativ": 517,
+    "erwartung_exponentiell": {
+      "mittel_s": 75.0,
+      "median_s": 51.99,
+      "p90_s": 172.69,
+      "p99_s": 345.39,
+      "anteil_ueber_75s": 0.36788,
+      "anteil_ueber_150s": 0.13534,
+      "laengste_luecke_erwartet_s": 855.4
+    }
+  },
+  "vorher_bereich": [
+    4414586,
+    4465025
+  ],
+  "je_tag": [
+    {
+      "tag_utc": "2026-10-04",
+      "bloecke": 685,
+      "erste_hoehe": 4465026,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4465710,
+      "mittlerer_abstand_s": 29.18,
+      "schwierigkeit_mittel": 1778.98,
+      "schwierigkeit_min": 1263.747,
+      "schwierigkeit_max": 2114.294,
+      "hashrate_relativ": 60.9873
+    },
+    {
+      "tag_utc": "2026-10-05",
+      "bloecke": 3334,
+      "erste_hoehe": 4465711,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4469044,
+      "mittlerer_abstand_s": 26.01,
+      "schwierigkeit_mittel": 918.024,
+      "schwierigkeit_min": 604.733,
+      "schwierigkeit_max": 1334.767,
+      "hashrate_relativ": 35.2948
+    },
+    {
+      "tag_utc": "2026-10-06",
+      "bloecke": 4047,
+      "erste_hoehe": 4469045,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4473091,
+      "mittlerer_abstand_s": 21.33,
+      "schwierigkeit_mittel": 7362.238,
+      "schwierigkeit_min": 611.469,
+      "schwierigkeit_max": 11877.993,
+      "hashrate_relativ": 345.1249
+    },
+    {
+      "tag_utc": "2026-10-07",
+      "bloecke": 3444,
+      "erste_hoehe": 4473092,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4476535,
+      "mittlerer_abstand_s": 25.11,
+      "schwierigkeit_mittel": 11609.398,
+      "schwierigkeit_min": 10452.931,
+      "schwierigkeit_max": 13566.785,
+      "hashrate_relativ": 462.3141
+    },
+    {
+      "tag_utc": "2026-10-08",
+      "bloecke": 3445,
+      "erste_hoehe": 4476536,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4479980,
+      "mittlerer_abstand_s": 25.06,
+      "schwierigkeit_mittel": 12614.158,
+      "schwierigkeit_min": 10597.968,
+      "schwierigkeit_max": 19457.073,
+      "hashrate_relativ": 503.4032
+    },
+    {
+      "tag_utc": "2026-10-09",
+      "bloecke": 3453,
+      "erste_hoehe": 4479981,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4483433,
+      "mittlerer_abstand_s": 25.03,
+      "schwierigkeit_mittel": 11780.297,
+      "schwierigkeit_min": 9927.187,
+      "schwierigkeit_max": 16143.057,
+      "hashrate_relativ": 470.6285
+    },
+    {
+      "tag_utc": "2026-10-10",
+      "bloecke": 3467,
+      "erste_hoehe": 4483434,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4486900,
+      "mittlerer_abstand_s": 24.93,
+      "schwierigkeit_mittel": 11502.666,
+      "schwierigkeit_min": 10554.064,
+      "schwierigkeit_max": 12604.105,
+      "hashrate_relativ": 461.475
+    },
+    {
+      "tag_utc": "2026-10-11",
+      "bloecke": 3463,
+      "erste_hoehe": 4486901,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4490363,
+      "mittlerer_abstand_s": 24.96,
+      "schwierigkeit_mittel": 12081.571,
+      "schwierigkeit_min": 10061.669,
+      "schwierigkeit_max": 21531.099,
+      "hashrate_relativ": 484.0736
+    },
+    {
+      "tag_utc": "2026-10-12",
+      "bloecke": 3457,
+      "erste_hoehe": 4490364,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4493820,
+      "mittlerer_abstand_s": 24.99,
+      "schwierigkeit_mittel": 11345.967,
+      "schwierigkeit_min": 10273.584,
+      "schwierigkeit_max": 12431.226,
+      "hashrate_relativ": 454.0961
+    },
+    {
+      "tag_utc": "2026-10-13",
+      "bloecke": 5714,
+      "erste_hoehe": 4493821,
+      "mindestschwierigkeit": 1,
+      "letzte_hoehe": 4499534,
+      "mittlerer_abstand_s": 15.12,
+      "schwierigkeit_mittel": 50070.797,
+      "schwierigkeit_min": 1.0,
+      "schwierigkeit_max": 720736.535,
+      "hashrate_relativ": 3311.2417
+    },
+    {
+      "tag_utc": "2026-10-14",
+      "bloecke": 3485,
+      "erste_hoehe": 4499535,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4503019,
+      "mittlerer_abstand_s": 24.8,
+      "schwierigkeit_mittel": 10655.928,
+      "schwierigkeit_min": 9020.358,
+      "schwierigkeit_max": 12573.001,
+      "hashrate_relativ": 429.7242
+    },
+    {
+      "tag_utc": "2026-10-15",
+      "bloecke": 3447,
+      "erste_hoehe": 4503020,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4506466,
+      "mittlerer_abstand_s": 25.06,
+      "schwierigkeit_mittel": 11461.419,
+      "schwierigkeit_min": 10201.206,
+      "schwierigkeit_max": 12756.278,
+      "hashrate_relativ": 457.2734
+    },
+    {
+      "tag_utc": "2026-10-16",
+      "bloecke": 3459,
+      "erste_hoehe": 4506467,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4509925,
+      "mittlerer_abstand_s": 24.98,
+      "schwierigkeit_mittel": 11395.735,
+      "schwierigkeit_min": 10329.816,
+      "schwierigkeit_max": 12745.433,
+      "hashrate_relativ": 456.2303
+    },
+    {
+      "tag_utc": "2026-10-17",
+      "bloecke": 3442,
+      "erste_hoehe": 4509926,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4513367,
+      "mittlerer_abstand_s": 25.1,
+      "schwierigkeit_mittel": 11590.012,
+      "schwierigkeit_min": 10255.912,
+      "schwierigkeit_max": 12739.804,
+      "hashrate_relativ": 461.7438
+    },
+    {
+      "tag_utc": "2026-10-18",
+      "bloecke": 861,
+      "erste_hoehe": 4513368,
+      "mindestschwierigkeit": 0,
+      "letzte_hoehe": 4514228,
+      "mittlerer_abstand_s": 25.08,
+      "schwierigkeit_mittel": 11247.7,
+      "schwierigkeit_min": 10472.802,
+      "schwierigkeit_max": 12318.545,
+      "hashrate_relativ": 448.3874
+    }
+  ],
+  "mindestschwierigkeit": {
+    "anzahl": 1,
+    "bloecke": [
+      {
+        "hoehe": 4495487,
+        "zeit_utc": "2026-10-13 04:25:14",
+        "luecke_davor_s": 451
+      }
+    ],
+    "kleinste_luecke_davor_s": 451,
+    "groesste_luecke_ohne_mindestschwierigkeit_s": 434
+  },
+  "mindestschwierigkeit_vorher": 517,
+  "nachfuehrung": {
+    "methode": "Fenster 100 Bloecke, Sprung ab Faktor 2.0 (vom folgenden Fenster bestaetigt); eingeholt, wenn die Schwierigkeit innerhalb +-15 % der Hashrate der folgenden 100 Bloecke mal 25 s liegt",
+    "spruenge": 6,
+    "abgeloest_vor_dem_einholen": 1,
+    "nicht_eingeholt_in_2000_bloecken": 0,
+    "median_bloecke": 960,
+    "median_min": 159.7,
+    "max_bloecke": 1839,
+    "ereignisse": [
+      {
+        "grenze_hoehe": 4469626,
+        "zeit_utc": "2026-10-06 04:00:07",
+        "faktor_hashrate": 2.45,
+        "schwierigkeit_an_grenze": 624.977,
+        "eingeholt_nach_bloecken": 960,
+        "eingeholt_nach_min": 182.2,
+        "schwierigkeit_eingeholt": 8116.746,
+        "abgeloest": false
+      },
+      {
+        "grenze_hoehe": 4480926,
+        "zeit_utc": "2026-10-09 06:01:32",
+        "faktor_hashrate": 0.28,
+        "schwierigkeit_an_grenze": 15396.409,
+        "eingeholt_nach_bloecken": 169,
+        "eingeholt_nach_min": 96.2,
+        "schwierigkeit_eingeholt": 12549.929,
+        "abgeloest": false
+      },
+      {
+        "grenze_hoehe": 4488026,
+        "zeit_utc": "2026-10-11 07:51:35",
+        "faktor_hashrate": 5.27,
+        "schwierigkeit_an_grenze": 11592.704,
+        "eingeholt_nach_bloecken": null,
+        "eingeholt_nach_min": null,
+        "schwierigkeit_eingeholt": null,
+        "abgeloest": true
+      },
+      {
+        "grenze_hoehe": 4488226,
+        "zeit_utc": "2026-10-11 08:11:57",
+        "faktor_hashrate": 0.17,
+        "schwierigkeit_an_grenze": 20911.798,
+        "eingeholt_nach_bloecken": 249,
+        "eingeholt_nach_min": 159.7,
+        "schwierigkeit_eingeholt": 12032.678,
+        "abgeloest": false
+      },
+      {
+        "grenze_hoehe": 4494176,
+        "zeit_utc": "2026-10-13 02:28:02",
+        "faktor_hashrate": 9.2,
+        "schwierigkeit_an_grenze": 12008.438,
+        "eingeholt_nach_bloecken": 1239,
+        "eingeholt_nach_min": 91.1,
+        "schwierigkeit_eingeholt": 628067.21,
+        "abgeloest": false
+      },
+      {
+        "grenze_hoehe": 4495476,
+        "zeit_utc": "2026-10-13 04:15:27",
+        "faktor_hashrate": 0.23,
+        "schwierigkeit_an_grenze": 717246.067,
+        "eingeholt_nach_bloecken": 1839,
+        "eingeholt_nach_min": 257.9,
+        "schwierigkeit_eingeholt": 10138.537,
+        "abgeloest": false
+      }
+    ]
+  },
+  "zeitstempel": {
+    "rueckwaerts_anzahl": 0,
+    "rueckwaerts_beispiele": [],
+    "rueckwaerts_groesster_s": 0,
+    "voraus_regel": "Zeitstempel mehr als 600 s nach dem Median der 11 folgenden Bloecke",
+    "voraus_anzahl": 0,
+    "voraus_beispiele": [],
+    "nach_abrufzeit_anzahl": 0,
+    "verletzt_median_der_11_vorgaenger": 0
+  },
+  "bestaetigungen": {
+    "zeit_von_10_bei_75s_s": 750.0,
+    "bloecke_gleiche_zeit_bei_25s": 30,
+    "bloecke_gleiche_zeit_beim_gemessenen_mittel": 32,
+    "gemessenes_mittel_s": 23.68,
+    "gemessen_spanne_30_bloecke": {
+      "fenster": 49173,
+      "median_s": 730.0,
+      "p90_s": 926.0,
+      "p99_s": 1187.0,
+      "anteil_ueber_750s": 0.4458
+    },
+    "theorie_erlang": {
+      "10_bei_75s": {
+        "median_s": 725,
+        "p90_s": 1065,
+        "p99_s": 1409
+      },
+      "30_bei_25s": {
+        "median_s": 742,
+        "p90_s": 930,
+        "p99_s": 1105
+      }
+    },
+    "zuhoerer": {
+      "angekuendigte_bloecke": 780,
+      "abgehaengt": 5,
+      "anteil_abgehaengt": 0.00641,
+      "obergrenze_95_bei_null": null,
+      "tiefster_zweig": 1,
+      "fenster_utc": [
+        "2026-10-17T14:51:43Z",
+        "2026-10-17T20:21:43Z"
+      ]
+    }
+  },
+  "zakura_und_andere_ohne_antwort": {
+    "/Zakura:1.6.0/": 2,
+    "/Zakura:1.7.0-rc1/": 1
+  },
+  "lauscher": {
+    "art": "ein Zuhoerer, kein eigener Knoten",
+    "fenster_utc": [
+      "2026-10-17T14:51:43Z",
+      "2026-10-17T20:21:43Z"
+    ],
+    "erste_ankuendigung_utc": "2026-10-17 14:51:57",
+    "letzte_ankuendigung_utc": "2026-10-17 20:21:44",
+    "abgedeckt_min": 329.8,
+    "peers_je_software": {
+      "zakura": 55,
+      "zebra": 8
+    },
+    "ankuendigungen_je_software": {
+      "zakura": 3659,
+      "zebra": 2025
+    },
+    "peer_software": [
+      "/Zakura:1.6.0/",
+      "/Zakura:1.7.0-rc0/",
+      "/Zakura:1.7.0-rc1/",
+      "/Zebra:7.0.0-rc.0/"
+    ],
+    "kettenbloecke_im_fenster": 776,
+    "davon_angekuendigt_gesehen": 775,
+    "abgehaengt_anzahl": 5,
+    "abgehaengt_ohne_kopf": 0,
+    "zweige": 5,
+    "groesste_tiefe": 1,
+    "tiefen": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "abgehaengt_beispiele": [
+      {
+        "hash": "00000e21ddd49a3384e7221439f37cd66ce6054b71109b785a0afbf88f1b82c0",
+        "erste_ankuendigung_utc": "2026-10-17 14:59:22",
+        "angekuendigt_von": [
+          "zakura"
+        ],
+        "anzahl_peers": 3,
+        "vorgaenger": "0000268a3774324d62ddfc25e9cdc4e454e7276a9e83a795c906bcf2ca4e7eb0",
+        "zeitstempel_utc": "2026-10-17 14:59:16",
+        "nbits": "1e2ae521",
+        "hoehe": 4512089
+      },
+      {
+        "hash": "0000272138bedcde740add3e50387d86b20545ab677d4bd4fb36ffdc8953302f",
+        "erste_ankuendigung_utc": "2026-10-17 16:32:09",
+        "angekuendigt_von": [
+          "zakura"
+        ],
+        "anzahl_peers": 1,
+        "vorgaenger": "000018de3c412e249e4caa2925510bb969fd877e04935297a221e762cc40805f",
+        "zeitstempel_utc": "2026-10-17 16:31:55",
+        "nbits": "1e2bc2bc",
+        "hoehe": 4512307
+      },
+      {
+        "hash": "00000411082016ca4af3d8f977f106b43500232e4ee91123c699dbfe7bdfc221",
+        "erste_ankuendigung_utc": "2026-10-17 18:06:03",
+        "angekuendigt_von": [
+          "zakura",
+          "zebra"
+        ],
+        "anzahl_peers": 6,
+        "vorgaenger": "00000c88a7f92f4c0fec8582b450193fe782aefae63738338ccc103af9919219",
+        "zeitstempel_utc": "2026-10-17 18:05:56",
+        "nbits": "1e2ea6b1",
+        "hoehe": 4512513
+      },
+      {
+        "hash": "000029ff8b4f05e71b3324ecd68406ea480d6f2696fabe7c0c98f67a8c63aa42",
+        "erste_ankuendigung_utc": "2026-10-17 19:21:47",
+        "angekuendigt_von": [
+          "zakura"
+        ],
+        "anzahl_peers": 1,
+        "vorgaenger": "00000a95227f0cd3969f0f51617f1c4342b1bd0d33af624a1b7f27f28d418b95",
+        "zeitstempel_utc": "2026-10-17 19:21:36",
+        "nbits": "1e2d9f97",
+        "hoehe": 4512703
+      },
+      {
+        "hash": "0000120a574c4ff38557a8d82a8fb02f0a278888239111ab874982a20ca1d7dd",
+        "erste_ankuendigung_utc": "2026-10-17 19:45:32",
+        "angekuendigt_von": [
+          "zakura"
+        ],
+        "anzahl_peers": 2,
+        "vorgaenger": "00000d66323865b6257b5eeaa160b10d895f40fa40bd1b6dc0fc68b565ff23b8",
+        "zeitstempel_utc": "2026-10-17 19:44:52",
+        "nbits": "1e2e4337",
+        "hoehe": 4512758
+      }
+    ],
+    "zakura_minus_zebra_ms": {
+      "bloecke": 730,
+      "median": 36.0,
+      "p10": -2871.1,
+      "p90": 417.6,
+      "zakura_zuerst": 299
+    },
+    "streuung_alle_peers_ms": {
+      "bloecke": 773,
+      "median": 6910.0,
+      "p90": 15920.0,
+      "max": 79908
+    },
+    "erste_ankunft_minus_zeitstempel_s": {
+      "median": 16.4,
+      "p90": 53.1
+    },
+    "zuhoerer_meta": {
+      "art": "ein Zuhoerer (kein eigener Knoten), Verbindungen zu Testnet-Knoten aus den DNS-Seeds",
+      "start_utc": "2026-10-17T14:51:43Z",
+      "ende_utc": "2026-10-17T20:21:43Z",
+      "geplantes_ende_utc": "2026-10-17T20:21:43Z",
+      "dauer_min": 330.0,
+      "ziel_verbindungen_je_software": 8,
+      "block_hashes_gesehen": 781,
+      "koepfe_geholt": 780,
+      "zeitquelle": "Uhr des Runners (NTP), Millisekunden"
+    },
+    "peers": [
+      {
+        "peer": "zakura-1",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T14:51:54Z",
+        "getrennt_utc": "2026-10-17T17:28:34Z",
+        "ankuendigungen": 371
+      },
+      {
+        "peer": "zebra-1",
+        "software": "/Zebra:7.0.0-rc.0/",
+        "verbunden_utc": "2026-10-17T14:51:54Z",
+        "getrennt_utc": "2026-10-17T20:21:44Z",
+        "ankuendigungen": 269
+      },
+      {
+        "peer": "zebra-2",
+        "software": "/Zebra:7.0.0-rc.0/",
+        "verbunden_utc": "2026-10-17T14:51:55Z",
+        "ankuendigungen": 258
+      },
+      {
+        "peer": "zebra-3",
+        "software": "/Zebra:7.0.0-rc.0/",
+        "verbunden_utc": "2026-10-17T14:51:55Z",
+        "getrennt_utc": "2026-10-17T20:21:44Z",
+        "ankuendigungen": 260
+      },
+      {
+        "peer": "zebra-4",
+        "software": "/Zebra:7.0.0-rc.0/",
+        "verbunden_utc": "2026-10-17T14:52:19Z",
+        "getrennt_utc": "2026-10-17T20:21:44Z",
+        "ankuendigungen": 237
+      },
+      {
+        "peer": "zebra-5",
+        "software": "/Zebra:7.0.0-rc.0/",
+        "verbunden_utc": "2026-10-17T14:52:19Z",
+        "getrennt_utc": "2026-10-17T20:21:44Z",
+        "ankuendigungen": 271
+      },
+      {
+        "peer": "zebra-6",
+        "software": "/Zebra:7.0.0-rc.0/",
+        "verbunden_utc": "2026-10-17T14:52:20Z",
+        "getrennt_utc": "2026-10-17T20:21:45Z",
+        "ankuendigungen": 222
+      },
+      {
+        "peer": "zebra-7",
+        "software": "/Zebra:7.0.0-rc.0/",
+        "verbunden_utc": "2026-10-17T14:52:20Z",
+        "getrennt_utc": "2026-10-17T20:21:45Z",
+        "ankuendigungen": 249
+      },
+      {
+        "peer": "zebra-8",
+        "software": "/Zebra:7.0.0-rc.0/",
+        "verbunden_utc": "2026-10-17T14:52:20Z",
+        "getrennt_utc": "2026-10-17T20:21:45Z",
+        "ankuendigungen": 259
+      },
+      {
+        "peer": "zakura-2",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T14:52:44Z",
+        "ankuendigungen": 278
+      },
+      {
+        "peer": "zakura-3",
+        "software": "/Zakura:1.7.0-rc0/",
+        "verbunden_utc": "2026-10-17T14:52:46Z",
+        "getrennt_utc": "2026-10-17T20:21:44Z",
+        "ankuendigungen": 769
+      },
+      {
+        "peer": "zakura-4",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T14:53:11Z",
+        "getrennt_utc": "2026-10-17T20:21:45Z",
+        "ankuendigungen": 236
+      },
+      {
+        "peer": "zakura-5",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T14:53:11Z",
+        "getrennt_utc": "2026-10-17T17:27:51Z",
+        "ankuendigungen": 365
+      },
+      {
+        "peer": "zakura-6",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T14:53:11Z",
+        "getrennt_utc": "2026-10-17T17:28:27Z",
+        "ankuendigungen": 367
+      },
+      {
+        "peer": "zakura-7",
+        "software": "/Zakura:1.7.0-rc0/",
+        "verbunden_utc": "2026-10-17T15:23:00Z",
+        "getrennt_utc": "2026-10-17T15:23:00Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-8",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T15:23:12Z",
+        "getrennt_utc": "2026-10-17T20:21:45Z",
+        "ankuendigungen": 242
+      },
+      {
+        "peer": "zakura-9",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T15:23:50Z",
+        "getrennt_utc": "2026-10-17T15:23:52Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-10",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T15:53:17Z",
+        "getrennt_utc": "2026-10-17T15:53:22Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-11",
+        "software": "/Zakura:1.7.0-rc0/",
+        "verbunden_utc": "2026-10-17T15:55:19Z",
+        "getrennt_utc": "2026-10-17T15:55:22Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-12",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T15:56:21Z",
+        "getrennt_utc": "2026-10-17T15:56:32Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-13",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T15:57:22Z",
+        "getrennt_utc": "2026-10-17T15:57:28Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-14",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T15:58:35Z",
+        "getrennt_utc": "2026-10-17T15:58:44Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-15",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T16:24:23Z",
+        "getrennt_utc": "2026-10-17T16:24:27Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-16",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T16:25:24Z",
+        "getrennt_utc": "2026-10-17T16:25:47Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-17",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T16:26:25Z",
+        "getrennt_utc": "2026-10-17T16:26:38Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-18",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T16:28:02Z",
+        "getrennt_utc": "2026-10-17T16:28:08Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-19",
+        "software": "/Zakura:1.7.0-rc0/",
+        "verbunden_utc": "2026-10-17T16:29:15Z",
+        "getrennt_utc": "2026-10-17T16:29:18Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-20",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T16:54:41Z",
+        "getrennt_utc": "2026-10-17T16:54:59Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-21",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T16:55:42Z",
+        "getrennt_utc": "2026-10-17T16:55:50Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-22",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T16:57:57Z",
+        "getrennt_utc": "2026-10-17T16:58:05Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-23",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T16:58:59Z",
+        "getrennt_utc": "2026-10-17T16:59:01Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-24",
+        "software": "/Zakura:1.7.0-rc0/",
+        "verbunden_utc": "2026-10-17T17:00:12Z",
+        "getrennt_utc": "2026-10-17T17:00:23Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-25",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T17:25:24Z",
+        "getrennt_utc": "2026-10-17T17:25:24Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-26",
+        "software": "/Zakura:1.7.0-rc0/",
+        "verbunden_utc": "2026-10-17T17:27:01Z",
+        "getrennt_utc": "2026-10-17T17:27:04Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-27",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T17:28:02Z",
+        "getrennt_utc": "2026-10-17T17:28:11Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-28",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T17:28:40Z",
+        "getrennt_utc": "2026-10-17T17:28:49Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-29",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T17:28:40Z",
+        "getrennt_utc": "2026-10-17T20:21:44Z",
+        "ankuendigungen": 403
+      },
+      {
+        "peer": "zakura-30",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T17:56:06Z",
+        "getrennt_utc": "2026-10-17T17:56:12Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-31",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T17:56:43Z",
+        "getrennt_utc": "2026-10-17T17:56:50Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-32",
+        "software": "/Zakura:1.7.0-rc0/",
+        "verbunden_utc": "2026-10-17T17:56:55Z",
+        "getrennt_utc": "2026-10-17T17:57:04Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-33",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T17:56:56Z",
+        "getrennt_utc": "2026-10-17T17:57:05Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-34",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T17:56:56Z",
+        "ankuendigungen": 350
+      },
+      {
+        "peer": "zakura-35",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T17:58:34Z",
+        "getrennt_utc": "2026-10-17T17:58:35Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-36",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T18:26:59Z",
+        "getrennt_utc": "2026-10-17T18:27:04Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-37",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T18:27:00Z",
+        "getrennt_utc": "2026-10-17T18:27:04Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-38",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T18:28:02Z",
+        "ankuendigungen": 278
+      },
+      {
+        "peer": "zakura-39",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T18:28:02Z",
+        "getrennt_utc": "2026-10-17T18:28:07Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-40",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T18:57:44Z",
+        "getrennt_utc": "2026-10-17T18:57:46Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-41",
+        "software": "/Zakura:1.7.0-rc0/",
+        "verbunden_utc": "2026-10-17T18:58:57Z",
+        "getrennt_utc": "2026-10-17T18:59:08Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-42",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T18:59:58Z",
+        "getrennt_utc": "2026-10-17T19:00:09Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-43",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T19:00:58Z",
+        "getrennt_utc": "2026-10-17T19:01:03Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-44",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T19:02:35Z",
+        "getrennt_utc": "2026-10-17T19:02:37Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-45",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T19:03:36Z",
+        "getrennt_utc": "2026-10-17T19:03:38Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-46",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T19:05:02Z",
+        "getrennt_utc": "2026-10-17T19:05:06Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-47",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T19:28:25Z",
+        "getrennt_utc": "2026-10-17T19:28:35Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-48",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T19:29:52Z",
+        "getrennt_utc": "2026-10-17T19:29:57Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-49",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T19:31:04Z",
+        "getrennt_utc": "2026-10-17T19:31:14Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-50",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T19:32:18Z",
+        "getrennt_utc": "2026-10-17T19:32:27Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-51",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T19:59:59Z",
+        "getrennt_utc": "2026-10-17T20:00:08Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-52",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T20:01:12Z",
+        "getrennt_utc": "2026-10-17T20:01:15Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-53",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T20:02:13Z",
+        "getrennt_utc": "2026-10-17T20:02:13Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-54",
+        "software": "/Zakura:1.6.0/",
+        "verbunden_utc": "2026-10-17T20:03:28Z",
+        "getrennt_utc": "2026-10-17T20:03:34Z",
+        "ankuendigungen": 0
+      },
+      {
+        "peer": "zakura-55",
+        "software": "/Zakura:1.7.0-rc1/",
+        "verbunden_utc": "2026-10-17T20:04:28Z",
+        "getrennt_utc": "2026-10-17T20:04:56Z",
+        "ankuendigungen": 0
+      }
+    ]
+  },
+  "lauscher_pruefung": "Fenster 330 min, Ankuendigungen ueber 330 min",
+  "lauscher_pruefung_en": "",
+  "nicht_gemessen": [
+    "Equihash-Loesungen und Blockinhalt"
+  ]
+}
