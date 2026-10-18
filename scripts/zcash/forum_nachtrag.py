@@ -75,6 +75,34 @@ def stale_satz(L):
     return f"{anfang} {'did' if k != 1 else 'did'} not end up in the chain{tiefe}. "
 
 
+def spruenge_satz(nf):
+    """Ben, 18.10.2026. Beide Mediane laufen ueber dieselben eingeholten Spruenge
+    (Bloecke und Minuten werden in nachfuehrung() nur zusammen gesetzt). Der Grund
+    fuer nicht eingeholte Spruenge kommt aus den Daten: abgeloest heisst, der
+    naechste Sprung kam vorher; nicht in 2000 Bloecken bleibt als eigener Fall."""
+    ev = nf["ereignisse"]
+    gesamt = len(ev)
+    ein = [e for e in ev if e["eingeholt_nach_bloecken"] is not None]
+    k = len(ein)
+    satz = f"We found {n(gesamt)} hashrate jumps of 2x or more"
+    if k == gesamt:
+        satz += ", and all of them caught up."
+    else:
+        satz += f", and {n(k)} of them caught up."
+        for i, e in enumerate(ev):
+            if e["abgeloest"]:
+                abstand = ev[i + 1]["grenze_hoehe"] - e["grenze_hoehe"]
+                satz += f" The other one was followed by the next jump {n(abstand)} blocks later, before it could catch up."
+            elif e["eingeholt_nach_bloecken"] is None:
+                satz += " The other one did not catch up within 2,000 blocks."
+    if k:
+        wort = (satzanfang_zahl(k) or n(k)).lower() if k != gesamt else "all"
+        satz += (f" For those {wort} the difficulty came within ±15 % of the new level after a median of "
+                 f"{n(nf['median_bloecke'])} blocks, or a median of {n(nf['median_min'], 1)} min when measured in time, "
+                 f"and the longest catch-up took {n(nf['max_bloecke'])} blocks.")
+    return satz
+
+
 def zeitstempel_satz(z):
     """Genau das, was zeitstempel() in nu7_auswertung.py misst (Ben, 18.10.2026):
     voraus = mehr als 600 s nach dem Median der 11 FOLGENDEN Bloecke; dazu die
@@ -130,9 +158,7 @@ def entwurf(r):
         f"In post 24 we quoted a dashboard median of 19.5 s over 300 blocks. Over {n(B['bloecke'])} blocks "
         f"the median is {n(float(A['median_s']), 1)} s against {n(E['median_s'], 1)} s expected.",
         "",
-        f"We found {nf['spruenge']} hashrate jumps of 2x or more. After them the difficulty came within ±15 % of "
-        f"the new level after a median of {n(nf['median_bloecke'])} blocks ({n(nf['median_min'], 1)} min), "
-        f"and the longest catch-up took {n(nf['max_bloecke'])} blocks. "
+        f"{spruenge_satz(nf)} "
         f"{zeitstempel_satz(z)} Since activation there "
         f"{'was' if r['mindestschwierigkeit']['anzahl'] == 1 else 'were'} "
         f"{n(r['mindestschwierigkeit']['anzahl'])} minimum-difficulty "

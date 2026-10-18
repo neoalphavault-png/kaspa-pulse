@@ -13,7 +13,7 @@ We measured each block interval as the timestamp of a block minus that of its pa
 
 In post 24 we quoted a dashboard median of 19.5 s over 300 blocks. Over 49,203 blocks the median is 17.0 s against 17.3 s expected.
 
-We found 6 hashrate jumps of 2x or more. After them the difficulty came within ±15 % of the new level after a median of 960 blocks (159.7 min), and the longest catch-up took 1,839 blocks. No timestamps went backwards, and none were more than 10 min ahead of the median of the 11 following blocks. Every timestamp was above the median of the 11 previous blocks. Since activation there was 1 minimum-difficulty block.
+We found 6 hashrate jumps of 2x or more, and 5 of them caught up. The other one was followed by the next jump 200 blocks later, before it could catch up. For those five the difficulty came within ±15 % of the new level after a median of 960 blocks, or a median of 159.7 min when measured in time, and the longest catch-up took 1,839 blocks. No timestamps went backwards, and none were more than 10 min ahead of the median of the 11 following blocks. Every timestamp was above the median of the 11 previous blocks. Since activation there was 1 minimum-difficulty block.
 
 **Listener, as promised in post 24**
 
