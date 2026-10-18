@@ -51,11 +51,11 @@ minute_utc,angenommen_tx,angenommen_pro_s,bloecke_pro_s,beide_knoten_gleich,memp
 2026-10-17T14:19Z,21127,352.12,9.917,ja,123,100.0,100.0,100.0,"ok, zweiter versuch nach Exception",100.0,100.0,100.0,"ok, zweiter versuch nach Exception",nein,
 2026-10-17T14:20Z,21570,359.5,9.667,ja,195,100.0,100.0,100.0,ok,100.0,100.0,100.0,ok,nein,
 2026-10-17T14:21Z,15427,257.12,10.283,ja,100,155.81402774348967,133.40900806072648,108.27598531477506,"ok, zweiter versuch nach Exception",,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",,
-2026-10-17T14:22Z,3323,55.38,10.55,ja,50,142.53501800201414,126.82618057300138,107.02355371243313,ok,100.0,100.0,100.0,ok,nein,Sender-Luecke (STP-Rechner)
-2026-10-17T14:23Z,3320,55.33,9.8,ja,0,145.82151211720662,128.52675896278603,107.36128897419796,ok,100.0,100.0,100.0,"ok, zweiter versuch nach Exception",nein,Sender-Luecke (STP-Rechner)
-2026-10-17T14:24Z,3330,55.5,10.217,ja,59,100.0,100.0,100.0,"ok, zweiter versuch nach Exception, spaet 25 s",100.0,100.0,100.0,ok,nein,Sender-Luecke (STP-Rechner)
-2026-10-17T14:25Z,3328,55.47,10.367,ja,52,100.0,100.0,100.0,ok,154.6634588992661,132.86826718566732,108.17851465955994,"ok, zweiter versuch nach Exception",nein,Sender-Luecke (STP-Rechner)
-2026-10-17T14:26Z,17295,288.25,10.2,ja,1,,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",154.67181643664338,132.87221466087578,108.17922956290174,ok,,Sender-Luecke (STP-Rechner)
+2026-10-17T14:22Z,3323,55.38,10.55,ja,50,142.53501800201414,126.82618057300138,107.02355371243313,ok,100.0,100.0,100.0,ok,nein,"Bot-Maschine vom Host pausiert 14:21:31 bis 14:23:47, Neustart 14:26:10 (source STP)"
+2026-10-17T14:23Z,3320,55.33,9.8,ja,0,145.82151211720662,128.52675896278603,107.36128897419796,ok,100.0,100.0,100.0,"ok, zweiter versuch nach Exception",nein,"Bot-Maschine vom Host pausiert 14:21:31 bis 14:23:47, Neustart 14:26:10 (source STP)"
+2026-10-17T14:24Z,3330,55.5,10.217,ja,59,100.0,100.0,100.0,"ok, zweiter versuch nach Exception, spaet 25 s",100.0,100.0,100.0,ok,nein,"Bot-Maschine vom Host pausiert 14:21:31 bis 14:23:47, Neustart 14:26:10 (source STP)"
+2026-10-17T14:25Z,3328,55.47,10.367,ja,52,100.0,100.0,100.0,ok,154.6634588992661,132.86826718566732,108.17851465955994,"ok, zweiter versuch nach Exception",nein,"Bot-Maschine vom Host pausiert 14:21:31 bis 14:23:47, Neustart 14:26:10 (source STP)"
+2026-10-17T14:26Z,17295,288.25,10.2,ja,1,,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",154.67181643664338,132.87221466087578,108.17922956290174,ok,,"Bot-Maschine vom Host pausiert 14:21:31 bis 14:23:47, Neustart 14:26:10 (source STP)"
 2026-10-17T14:27Z,21365,356.08,9.667,ja,173,,,,"fehlt: kein knoten, verbinden gescheitert (TimeoutError)",162.13000794459924,136.28237045722085,108.77876156672784,"ok, zweiter versuch nach Exception",,
 2026-10-17T14:28Z,21377,356.28,9.417,ja,124,100.0,100.0,100.0,ok,152.43993730821322,131.8077465814761,107.98464164792709,ok,nein,
 2026-10-17T14:29Z,24716,411.93,9.817,ja,123,100.0,100.0,100.0,"ok, zweiter versuch nach Exception",154.6729816365916,132.8727649912504,108.1793292259699,"ok, zweiter versuch nach Exception",nein,
@@ -77,35 +77,35 @@ minute_utc,angenommen_tx,angenommen_pro_s,bloecke_pro_s,beide_knoten_gleich,memp
 2026-10-17T14:45Z,21219,353.65,9.95,ja,40,149.46709976001884,130.35733940188265,107.71355142764958,ok,100.0,100.0,100.0,ok,nein,
 2026-10-17T14:46Z,21497,358.28,9.15,ja,132,156.28181250782166,133.6273065613065,108.31507351164485,"ok, zweiter versuch nach Exception",100.0,100.0,100.0,"ok, zweiter versuch nach Exception, spaet 27 s",nein,
 2026-10-17T14:47Z,21583,359.72,9.15,ja,214,155.0033086021831,133.02855464127268,108.20750355835051,ok,100.0,100.0,100.0,ok,nein,
-2026-10-17T14:48Z,8289,138.15,9.483,ja,221,145.7110703031882,128.47039344228642,107.35025889649688,ok,,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",,Sender-Luecke (STP-Rechner)
-2026-10-17T14:49Z,3468,57.8,9.867,ja,50,142.18371276603156,126.64152537286424,106.98625628696689,"ok, zweiter versuch nach Exception",100.0,100.0,100.0,ok,nein,Sender-Luecke (STP-Rechner)
-2026-10-17T14:50Z,3353,55.88,9.15,ja,0,145.23324565677166,128.22590655564343,107.30228672761105,ok,,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",,Sender-Luecke (STP-Rechner)
-2026-10-17T14:51Z,3448,57.47,9.067,ja,4,148.33400224377604,129.7945651776284,107.60647496197731,ok,100.0,100.0,100.0,ok,nein,Sender-Luecke (STP-Rechner)
-2026-10-17T14:52Z,3437,57.28,9.767,ja,0,100.0,100.0,100.0,"ok, zweiter versuch nach Exception",,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",,Sender-Luecke (STP-Rechner)
-2026-10-17T14:53Z,3348,55.8,9.583,ja,50,100.0,100.0,100.0,ok,154.08344283669894,132.5936061400207,108.12865056452715,"ok, spaet 8 s",nein,Sender-Luecke (STP-Rechner)
-2026-10-17T14:54Z,3407,56.78,9.2,ja,56,,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",158.77613274726906,134.7763621588849,108.5183810387512,ok,,Sender-Luecke (STP-Rechner)
-2026-10-17T14:55Z,3703,61.72,9.1,ja,3,100.0,100.0,100.0,"ok, spaet 10 s",158.03629848334015,134.43815494882816,108.4589633647115,ok,nein,Sender-Luecke (STP-Rechner)
-2026-10-17T14:56Z,3416,56.93,10.167,ja,1,100.0,100.0,100.0,ok,,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",,Sender-Luecke (STP-Rechner)
-2026-10-17T14:57Z,3409,56.82,8.95,ja,0,100.0,100.0,100.0,"ok, zweiter versuch nach Exception",100.0,100.0,100.0,ok,nein,Sender-Luecke (STP-Rechner)
-2026-10-17T14:58Z,7199,119.98,9.867,ja,1,100.0,100.0,100.0,ok,163.91156344534983,137.0645347804676,108.911336699477,"ok, zweiter versuch nach Exception",nein,Sender-Luecke (STP-Rechner)
-2026-10-17T14:59Z,21384,356.4,9.217,ja,121,,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",174.78625931066895,141.58276295673377,109.6432945757217,ok,,Erholungsminute nach Sender-Luecke (STP-Rechner)
+2026-10-17T14:48Z,8289,138.15,9.483,ja,221,145.7110703031882,128.47039344228642,107.35025889649688,ok,,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",,Bot-Maschine vom Host pausiert 14:48:07 bis 14:58:08 (source STP)
+2026-10-17T14:49Z,3468,57.8,9.867,ja,50,142.18371276603156,126.64152537286424,106.98625628696689,"ok, zweiter versuch nach Exception",100.0,100.0,100.0,ok,nein,Bot-Maschine vom Host pausiert 14:48:07 bis 14:58:08 (source STP)
+2026-10-17T14:50Z,3353,55.88,9.15,ja,0,145.23324565677166,128.22590655564343,107.30228672761105,ok,,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",,Bot-Maschine vom Host pausiert 14:48:07 bis 14:58:08 (source STP)
+2026-10-17T14:51Z,3448,57.47,9.067,ja,4,148.33400224377604,129.7945651776284,107.60647496197731,ok,100.0,100.0,100.0,ok,nein,Bot-Maschine vom Host pausiert 14:48:07 bis 14:58:08 (source STP)
+2026-10-17T14:52Z,3437,57.28,9.767,ja,0,100.0,100.0,100.0,"ok, zweiter versuch nach Exception",,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",,Bot-Maschine vom Host pausiert 14:48:07 bis 14:58:08 (source STP)
+2026-10-17T14:53Z,3348,55.8,9.583,ja,50,100.0,100.0,100.0,ok,154.08344283669894,132.5936061400207,108.12865056452715,"ok, spaet 8 s",nein,Bot-Maschine vom Host pausiert 14:48:07 bis 14:58:08 (source STP)
+2026-10-17T14:54Z,3407,56.78,9.2,ja,56,,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",158.77613274726906,134.7763621588849,108.5183810387512,ok,,Bot-Maschine vom Host pausiert 14:48:07 bis 14:58:08 (source STP)
+2026-10-17T14:55Z,3703,61.72,9.1,ja,3,100.0,100.0,100.0,"ok, spaet 10 s",158.03629848334015,134.43815494882816,108.4589633647115,ok,nein,Bot-Maschine vom Host pausiert 14:48:07 bis 14:58:08 (source STP)
+2026-10-17T14:56Z,3416,56.93,10.167,ja,1,100.0,100.0,100.0,ok,,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",,Bot-Maschine vom Host pausiert 14:48:07 bis 14:58:08 (source STP)
+2026-10-17T14:57Z,3409,56.82,8.95,ja,0,100.0,100.0,100.0,"ok, zweiter versuch nach Exception",100.0,100.0,100.0,ok,nein,Bot-Maschine vom Host pausiert 14:48:07 bis 14:58:08 (source STP)
+2026-10-17T14:58Z,7199,119.98,9.867,ja,1,100.0,100.0,100.0,ok,163.91156344534983,137.0645347804676,108.911336699477,"ok, zweiter versuch nach Exception",nein,Bot-Maschine vom Host pausiert 14:48:07 bis 14:58:08 (source STP)
+2026-10-17T14:59Z,21384,356.4,9.217,ja,121,,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",174.78625931066895,141.58276295673377,109.6432945757217,ok,,Erholungsminute nach Pause der Bot-Maschine (source STP)
 2026-10-17T15:00Z,24060,401.0,8.867,ja,24,100.0,100.0,100.0,"ok, spaet 8 s",100.0,100.0,100.0,"ok, zweiter versuch nach Exception",nein,
 2026-10-17T15:01Z,27042,450.7,9.167,ja,386,215.07840234235795,155.0339675203332,111.52189195622798,ok,100.0,100.0,100.0,ok,nein,
 2026-10-17T15:02Z,28616,476.93,9.317,ja,30,100.0,100.0,100.0,ok,100.0,100.0,100.0,ok,nein,
-2026-10-17T15:03Z,16314,271.9,9.467,ja,32,173.1225753644172,140.9191574066363,109.5392900443968,"ok, zweiter versuch nach Exception",100.0,100.0,100.0,ok,nein,"Einbruch, Ursache offen, von STP nicht gemeldet"
-2026-10-17T15:04Z,3405,56.75,9.65,ja,49,150.922703768749,131.0722007788196,107.8480327120161,ok,100.0,100.0,100.0,"ok, zweiter versuch nach Exception, spaet 25 s",nein,"Einbruch, Ursache offen, von STP nicht gemeldet"
-2026-10-17T15:05Z,3457,57.62,9.35,ja,61,160.97094648886903,135.76690591271787,108.69040560511303,ok,100.0,100.0,100.0,ok,nein,"Einbruch, Ursache offen, von STP nicht gemeldet"
-2026-10-17T15:06Z,3647,60.78,9.767,ja,51,100.0,100.0,100.0,"ok, zweiter versuch nach Exception",100.0,100.0,100.0,"ok, zweiter versuch nach Exception, spaet 30 s",nein,"Einbruch, Ursache offen, von STP nicht gemeldet"
-2026-10-17T15:07Z,5699,94.98,9.783,ja,2,100.0,100.0,100.0,ok,100.0,100.0,100.0,ok,nein,"Einbruch, Ursache offen, von STP nicht gemeldet"
+2026-10-17T15:03Z,16314,271.9,9.467,ja,32,173.1225753644172,140.9191574066363,109.5392900443968,"ok, zweiter versuch nach Exception",100.0,100.0,100.0,ok,nein,"Bot-Maschine vom Host pausiert 15:03:34 bis 15:07:14, Build-Sender in Schleife 15:02:22 bis 15:15:08 (source STP)"
+2026-10-17T15:04Z,3405,56.75,9.65,ja,49,150.922703768749,131.0722007788196,107.8480327120161,ok,100.0,100.0,100.0,"ok, zweiter versuch nach Exception, spaet 25 s",nein,"Bot-Maschine vom Host pausiert 15:03:34 bis 15:07:14, Build-Sender in Schleife 15:02:22 bis 15:15:08 (source STP)"
+2026-10-17T15:05Z,3457,57.62,9.35,ja,61,160.97094648886903,135.76690591271787,108.69040560511303,ok,100.0,100.0,100.0,ok,nein,"Bot-Maschine vom Host pausiert 15:03:34 bis 15:07:14, Build-Sender in Schleife 15:02:22 bis 15:15:08 (source STP)"
+2026-10-17T15:06Z,3647,60.78,9.767,ja,51,100.0,100.0,100.0,"ok, zweiter versuch nach Exception",100.0,100.0,100.0,"ok, zweiter versuch nach Exception, spaet 30 s",nein,"Bot-Maschine vom Host pausiert 15:03:34 bis 15:07:14, Build-Sender in Schleife 15:02:22 bis 15:15:08 (source STP)"
+2026-10-17T15:07Z,5699,94.98,9.783,ja,2,100.0,100.0,100.0,ok,100.0,100.0,100.0,ok,nein,"Bot-Maschine vom Host pausiert 15:03:34 bis 15:07:14, Build-Sender in Schleife 15:02:22 bis 15:15:08 (source STP)"
 2026-10-17T15:08Z,21519,358.65,9.55,ja,166,178.8341569647356,143.15749874654136,109.88547813210324,"ok, zweiter versuch nach Exception, spaet 28 s",100.0,100.0,100.0,"ok, zweiter versuch nach Exception",nein,
 2026-10-17T15:09Z,21309,355.15,10.233,ja,31,175.90810125040574,142.02480320609712,109.71192838071336,ok,100.0,100.0,100.0,ok,nein,
 2026-10-17T15:10Z,21652,360.87,9.217,ja,123,186.30271597239485,145.92033085733829,110.29521772390096,ok,,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",,
 2026-10-17T15:11Z,21368,356.13,9.217,ja,79,179.68400497831922,143.48107132705732,109.93445080583798,ok,100.0,100.0,100.0,ok,nein,
-2026-10-17T15:12Z,17093,284.88,9.483,ja,34,174.99252645947695,141.6643653163561,109.65600329244661,"ok, zweiter versuch nach Exception, spaet 25 s",100.0,100.0,100.0,"ok, zweiter versuch nach Exception",nein,"Einbruch, Ursache offen, von STP nicht gemeldet"
-2026-10-17T15:13Z,3530,58.83,9.5,ja,0,172.10186112322907,140.50719661547348,109.47413330968757,ok,100.0,100.0,100.0,ok,nein,"Einbruch, Ursache offen, von STP nicht gemeldet"
-2026-10-17T15:14Z,3447,57.45,9.267,ja,51,174.29427315552104,141.38752866374088,109.6128175321388,ok,100.0,100.0,100.0,ok,nein,"Einbruch, Ursache offen, von STP nicht gemeldet"
-2026-10-17T15:15Z,10892,181.53,9.533,ja,3,100.0,100.0,100.0,"ok, zweiter versuch nach Exception",100.0,100.0,100.0,"ok, zweiter versuch nach Exception, spaet 25 s",nein,"Einbruch, Ursache offen, von STP nicht gemeldet"
-2026-10-17T15:16Z,19246,320.77,10.067,ja,4,100.0,100.0,100.0,ok,100.0,100.0,100.0,ok,nein,"Einbruch, Ursache offen, von STP nicht gemeldet"
+2026-10-17T15:12Z,17093,284.88,9.483,ja,34,174.99252645947695,141.6643653163561,109.65600329244661,"ok, zweiter versuch nach Exception, spaet 25 s",100.0,100.0,100.0,"ok, zweiter versuch nach Exception",nein,"Bot-Maschine vom Host pausiert 15:12:35 bis 15:15:53, Build nur kurze Stoesse 15:15 und 15:16 (source STP)"
+2026-10-17T15:13Z,3530,58.83,9.5,ja,0,172.10186112322907,140.50719661547348,109.47413330968757,ok,100.0,100.0,100.0,ok,nein,"Bot-Maschine vom Host pausiert 15:12:35 bis 15:15:53, Build nur kurze Stoesse 15:15 und 15:16 (source STP)"
+2026-10-17T15:14Z,3447,57.45,9.267,ja,51,174.29427315552104,141.38752866374088,109.6128175321388,ok,100.0,100.0,100.0,ok,nein,"Bot-Maschine vom Host pausiert 15:12:35 bis 15:15:53, Build nur kurze Stoesse 15:15 und 15:16 (source STP)"
+2026-10-17T15:15Z,10892,181.53,9.533,ja,3,100.0,100.0,100.0,"ok, zweiter versuch nach Exception",100.0,100.0,100.0,"ok, zweiter versuch nach Exception, spaet 25 s",nein,"Bot-Maschine vom Host pausiert 15:12:35 bis 15:15:53, Build nur kurze Stoesse 15:15 und 15:16 (source STP)"
+2026-10-17T15:16Z,19246,320.77,10.067,ja,4,100.0,100.0,100.0,ok,100.0,100.0,100.0,ok,nein,"Bot-Maschine vom Host pausiert 15:12:35 bis 15:15:53, Build nur kurze Stoesse 15:15 und 15:16 (source STP)"
 2026-10-17T15:17Z,21365,356.08,9.65,ja,75,191.62911047507922,147.78333971539234,110.56106578848029,"ok, zweiter versuch nach Exception, spaet 28 s",100.0,100.0,100.0,ok,nein,
 2026-10-17T15:18Z,21844,364.07,9.517,ja,36,189.10838442814364,146.91246173265054,110.43781300728125,ok,100.0,100.0,100.0,"ok, zweiter versuch nach Exception",nein,
 2026-10-17T15:19Z,21442,357.37,9.767,ja,112,,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",100.0,100.0,100.0,ok,,
@@ -171,8 +171,8 @@ minute_utc,angenommen_tx,angenommen_pro_s,bloecke_pro_s,beide_knoten_gleich,memp
 2026-10-17T16:19Z,39033,650.55,9.917,ja,217,122.40977741433464,115.30168922870634,104.43655349309655,"ok, zweiter versuch nach Exception",,,,"fehlt: kein knoten, verbinden gescheitert (TimeoutError)",,
 2026-10-17T16:20Z,39831,663.85,9.483,ja,72,236.41000993159656,160.4786513040492,112.17341252373775,ok,100.0,100.0,100.0,ok,nein,
 2026-10-17T16:21Z,39114,651.9,10.4,ja,214,204.4665532766317,151.93399204271952,111.12488518349383,"ok, zweiter versuch nach Exception",100.0,100.0,100.0,ok,nein,
-2026-10-17T16:22Z,26481,441.35,10.117,ja,32,125.73545200520942,117.34385768241876,104.93614286430983,ok,100.0,100.0,100.0,"ok, zweiter versuch nach Exception",nein,"Einbruch, Ursache offen, von STP nicht gemeldet"
-2026-10-17T16:23Z,30008,500.13,10.117,ja,5,126.16977515323381,117.60639252177147,104.99899200388731,ok,194.4742681412258,148.74358517868683,110.69493094188894,ok,nein,"Einbruch, Ursache offen, von STP nicht gemeldet"
+2026-10-17T16:22Z,26481,441.35,10.117,ja,32,125.73545200520942,117.34385768241876,104.93614286430983,ok,100.0,100.0,100.0,"ok, zweiter versuch nach Exception",nein,nur Bot-Maschine vom Host pausiert 16:22:09 bis 16:22:51 (source STP)
+2026-10-17T16:23Z,30008,500.13,10.117,ja,5,126.16977515323381,117.60639252177147,104.99899200388731,ok,194.4742681412258,148.74358517868683,110.69493094188894,ok,nein,nur Bot-Maschine vom Host pausiert 16:22:09 bis 16:22:51 (source STP)
 2026-10-17T16:24Z,39213,653.55,10.183,ja,217,210.6614133048004,153.7779060618766,111.36341325808566,"ok, zweiter versuch nach Exception",,,,"fehlt: get_fee_estimate RuntimeError, auch im zweiten versuch",,
 2026-10-17T16:25Z,39618,660.3,9.6,ja,175,223.06393900078663,157.18800031896794,111.78637644941581,ok,196.01450500150398,149.2535796820955,110.76517373847753,"ok, spaet 8 s",nein,
 2026-10-17T16:26Z,39084,651.4,10.05,ja,165,208.19876996880095,153.05665146591474,111.27095604565694,"ok, zweiter versuch nach Exception",205.73445857499595,152.3194404642075,111.17533557944678,ok,nein,
