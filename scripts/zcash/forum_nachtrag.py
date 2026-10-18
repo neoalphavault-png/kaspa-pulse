@@ -51,11 +51,36 @@ def fenster(L):
 VERBOTEN = re.compile(r"[–—→←⇒]|->|<-|(?<!\d):(?!\d)")
 
 
+ZAHLWORT = "No One Two Three Four Five Six Seven Eight Nine Ten Eleven Twelve".split()
+
+
+def satzanfang_zahl(x):
+    """Zahl am Satzanfang als Wort (Ben, 18.10.2026: kein Satz beginnt mit einer Ziffer)."""
+    return ZAHLWORT[x] if 0 <= x < len(ZAHLWORT) else None
+
+
+def stale_satz(L):
+    """Ben, 18.10.2026: "Five of the 780 announced blocks did not end up in the chain, each at depth 1." """
+    k, n_ang, tief = L["abgehaengt_anzahl"], L["davon_angekuendigt_gesehen"] + L["abgehaengt_anzahl"], L["groesste_tiefe"]
+    if k == 0:
+        return f"All {n(n_ang)} announced blocks ended up in the chain. "
+    wort = satzanfang_zahl(k)
+    anfang = f"{wort} of the {n(n_ang)} announced blocks" if wort else f"In total {n(k)} of the {n(n_ang)} announced blocks"
+    tiefe = (f", each at depth {n(tief)}" if all(x == tief for x in L.get("tiefen", [tief])) and len(L.get("tiefen", [])) == L.get("zweige", k)
+             else f", the deepest at depth {n(tief)}")
+    return f"{anfang} {'did' if k != 1 else 'did'} not end up in the chain{tiefe}. "
+
+
 def zeitstempel_satz(z):
-    rw, vo = z["rueckwaerts_anzahl"], z["voraus_anzahl"]
-    a = "No timestamps went backwards" if rw == 0 else f"There were {n(rw)} timestamps going backwards"
+    """Genau das, was zeitstempel() in nu7_auswertung.py misst (Ben, 18.10.2026):
+    voraus = mehr als 600 s nach dem Median der 11 FOLGENDEN Bloecke; dazu die
+    Gegenprobe Zeitstempel ueber dem Median der 11 VORHERIGEN (Konsensregel)."""
+    rw, vo, mtp = z["rueckwaerts_anzahl"], z["voraus_anzahl"], z["verletzt_median_der_11_vorgaenger"]
+    a = "No timestamps went backwards" if rw == 0 else f"In total {n(rw)} timestamps went backwards"
     b = "none were" if vo == 0 else f"{n(vo)} were"
-    return f"{a}, and {b} more than 10 min ahead of the median of the next 11 blocks."
+    c = ("Every timestamp was above the median of the 11 previous blocks." if mtp == 0
+         else f"In total {n(mtp)} timestamps were at or below the median of the 11 previous blocks.")
+    return f"{a}, and {b} more than 10 min ahead of the median of the 11 following blocks. {c}"
 
 
 # Ben, 18.10.2026: kein Satz beginnt mit einer Ziffer.
@@ -122,10 +147,7 @@ def entwurf(r):
             "time, and these arrival times include the path from the node to the listener. "
             f"Of {n(L['kettenbloecke_im_fenster'])} chain blocks with timestamps in the window it saw "
             f"{n(L['davon_angekuendigt_gesehen'])} announced. "
-            + (f"Of the announced blocks {n(L['abgehaengt_anzahl'])} did not end up in the chain"
-               if L['abgehaengt_anzahl'] else "Every announced block ended up in the chain")
-            + f", and the deepest branch was {n(L['groesste_tiefe'])} "
-            f"{'block' if L['groesste_tiefe'] == 1 else 'blocks'}. "
+            + stale_satz(L)
             + (f"For the {n(zk['bloecke'])} blocks announced by both, the first Zakura announcement came a median of "
                f"{n(zk['median'])} ms after the first Zebra announcement (p10 {n(zk['p10'])} ms, p90 {n(zk['p90'])} ms). "
                if zk["bloecke"] else "No block was announced by both Zebra and Zakura peers. ")
