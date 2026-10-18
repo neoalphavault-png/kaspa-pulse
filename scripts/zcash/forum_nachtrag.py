@@ -38,6 +38,10 @@ def pct(x, nk=2):
     return "n/a" if x is None else f"{x * 100:.{nk}f} %"
 
 
+def wochentag(L):
+    return datetime.strptime(L["fenster_utc"][0], "%Y-%m-%dT%H:%M:%SZ").strftime("%A")
+
+
 def fenster(L):
     fmt = "%Y-%m-%dT%H:%M:%SZ"
     a, b = (datetime.strptime(x, fmt) for x in L["fenster_utc"])
@@ -142,7 +146,8 @@ def entwurf(r):
         versionen = ", ".join(f"`{v}` ({c})" for v, c in sorted(sw.items()))
         zk = L["zakura_minus_zebra_ms"]
         t += [
-            f"One listener at one location ran on Saturday, not our own node. The actual window was {fenster(L)}. "
+            f"On {wochentag(L)} we ran one listener at one location. It is not a full node. "
+            f"The actual window was {fenster(L)}. "
             "It kept connections to Zebra and Zakura nodes and logged every block announcement with its arrival "
             "time, and these arrival times include the path from the node to the listener. "
             f"Of {n(L['kettenbloecke_im_fenster'])} chain blocks with timestamps in the window it saw "
@@ -170,32 +175,29 @@ def entwurf(r):
         f"{n(neu['median_s'])} s, {n(neu['p90_s'])} s and {n(neu['p99_s'])} s.",
         "",
     ]
-    if Z:
-        satz = (f"In the listener window {n(Z['abgehaengt'])} of {n(Z['angekuendigte_bloecke'])} announced blocks "
-                f"were stale or orphaned ({pct(Z['anteil_abgehaengt'], 2)})")
-        if Z.get("obergrenze_95_bei_null") is not None:
-            satz += f", and with none observed the 95 % upper bound is {pct(Z['obergrenze_95_bei_null'], 2)}"
-        satz += f". The deepest reorg we observed was {n(Z['tiefster_zweig'])} {'block' if Z['tiefster_zweig'] == 1 else 'blocks'}."
-        t += [satz, ""]
-    else:
-        t += ["We could not measure the stale or orphan rate and the deepest reorg without a valid listener run.", ""]
-    # Ben, 17.10.2026: letzte Zeile, reine Rechnung. Nur wenn die Zahlen es tragen.
-    if G["p99_s"] < alt["p99_s"]:
-        t += [f"Thirty blocks at 25 s vary less than ten blocks at 75 s, p99 {n(G['p99_s'])} s measured against "
-              f"{n(alt['p99_s'])} s expected for the old target.", ""]
-    # Ben, 18.10.2026: Satz zu perfekten 25-s-Bloecken. "partly", weil die
-    # Spruenge den Abstand zur Theorie nur zum Teil erklaeren (p99 ohne
-    # Sprungphasen steht daneben).
+    # Ben, 18.10.2026: ein Absatz statt drei. Erst der Vergleich mit 10 x 75 s,
+    # dann der Abstand zu perfekten 25-s-Bloecken ("partly", weil das p99 ohne
+    # die Sprungphasen noch darueber liegt), dann der tiefste Reorg.
     ohne = G.get("ohne_sprungphasen") or {}
-    if G["p99_s"] > neu["p99_s"]:
-        teil = (f", partly because of the hashrate jumps ({n(ohne['p99_s'])} s without the windows around them)"
-                if ohne.get("p99_s") and ohne["p99_s"] > neu["p99_s"] else " because of the hashrate jumps")
-        t += [f"For perfect 25 s blocks the p99 over 30 blocks would be about {n(neu['p99_s'])} s. The measured "
-              f"{n(G['p99_s'])} s sits above that{teil}, and still well below the {n(alt['p99_s'])} s for "
-              "10 blocks at 75 s.", ""]
+    teile = []
+    if G["p99_s"] < alt["p99_s"]:
+        teile.append(f"Thirty blocks at 25 s vary less than ten blocks at 75 s, p99 {n(G['p99_s'])} s measured "
+                     f"against {n(alt['p99_s'])} s expected for the old target.")
     else:
-        t += [f"The p99 of 30 blocks at 25 s is {n(G['p99_s'])} s measured against {n(alt['p99_s'])} s expected "
-              "for 10 blocks at the old target.", ""]
+        teile.append(f"The p99 of thirty blocks at 25 s is {n(G['p99_s'])} s measured against {n(alt['p99_s'])} s "
+                     "expected for ten blocks at the old target.")
+    if G["p99_s"] > neu["p99_s"]:
+        if ohne.get("p99_s") and ohne["p99_s"] > neu["p99_s"]:
+            grund = f", partly because of the hashrate jumps ({n(ohne['p99_s'])} s without the windows around them)"
+        else:
+            grund = " because of the hashrate jumps"
+        teile.append(f"The measured value sits above the {n(neu['p99_s'])} s of perfect 25 s blocks{grund}.")
+    if Z:
+        teile.append(f"In the listener window the deepest reorg we observed was {n(Z['tiefster_zweig'])} "
+                     f"{'block' if Z['tiefster_zweig'] == 1 else 'blocks'}.")
+    else:
+        teile.append("Without a valid listener run we could not measure the deepest reorg.")
+    t += [" ".join(teile), ""]
     t += [
         "We did not measure orphaned blocks and reorg depth since activation outside the listener window, arrival "
         "times on our own nodes because we run none, or Equihash solutions and block contents because we only "
@@ -205,7 +207,8 @@ def entwurf(r):
         "checkpoint, checked hash linkage and proof of work against nBits and cross-checked them against further peers.",
         "",
         # Ben, 17.10.2026: kein Verweis auf das Repo, die Seite fuellen wir Sonntag.
-        "Method, CSV and the full report are at pulsehawk.io/zcash-nu7.",
+        # Ben, 18.10.2026: die CSV folgt diese Woche.
+        "Method and the full numbers are at pulsehawk.io/zcash-nu7. The CSV of all intervals follows there this week.",
         "",
     ]
     return "\n".join(t)
