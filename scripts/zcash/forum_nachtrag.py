@@ -51,11 +51,24 @@ def fenster(L):
 VERBOTEN = re.compile(r"[–—→←⇒]|->|<-|(?<!\d):(?!\d)")
 
 
+def zeitstempel_satz(z):
+    rw, vo = z["rueckwaerts_anzahl"], z["voraus_anzahl"]
+    a = "No timestamps went backwards" if rw == 0 else f"There were {n(rw)} timestamps going backwards"
+    b = "none were" if vo == 0 else f"{n(vo)} were"
+    return f"{a}, and {b} more than 10 min ahead of the median of the next 11 blocks."
+
+
+# Ben, 18.10.2026: kein Satz beginnt mit einer Ziffer.
+SATZ_ZIFFER = re.compile(r"(?:^|[.!?]\s+)(\d)")
+
+
 def regel_pruefen(text):
     treffer = []
     for i, zeile in enumerate(text.splitlines(), 1):
         if zeile.lstrip().startswith("|"):
             continue  # Tabelle
+        for m in SATZ_ZIFFER.finditer(zeile.lstrip("*- ")):
+            treffer.append(f"zeile {i}, satz beginnt mit ziffer: {zeile[max(0, m.start() - 10):m.end() + 30]}")
         for m in VERBOTEN.finditer(zeile):
             treffer.append(f"zeile {i}, zeichen {m.group()!r}: {zeile[max(0, m.start() - 30):m.end() + 30]}")
     return treffer
@@ -91,8 +104,7 @@ def entwurf(r):
         f"We found {nf['spruenge']} hashrate jumps of 2x or more. After them the difficulty came within ±15 % of "
         f"the new level after a median of {n(nf['median_bloecke'])} blocks ({n(nf['median_min'], 1)} min), "
         f"and the longest catch-up took {n(nf['max_bloecke'])} blocks. "
-        f"{n(z['rueckwaerts_anzahl'])} timestamps went backwards and {n(z['voraus_anzahl'])} were more than 10 min "
-        f"ahead of the median of the next 11 blocks. Since activation there "
+        f"{zeitstempel_satz(z)} Since activation there "
         f"{'was' if r['mindestschwierigkeit']['anzahl'] == 1 else 'were'} "
         f"{n(r['mindestschwierigkeit']['anzahl'])} minimum-difficulty "
         f"{'block' if r['mindestschwierigkeit']['anzahl'] == 1 else 'blocks'}.",
@@ -109,8 +121,10 @@ def entwurf(r):
             "It kept connections to Zebra and Zakura nodes and logged every block announcement with its arrival "
             "time, and these arrival times include the path from the node to the listener. "
             f"Of {n(L['kettenbloecke_im_fenster'])} chain blocks with timestamps in the window it saw "
-            f"{n(L['davon_angekuendigt_gesehen'])} announced. {n(L['abgehaengt_anzahl'])} announced blocks did not "
-            f"end up in the chain, and the deepest branch was {n(L['groesste_tiefe'])} "
+            f"{n(L['davon_angekuendigt_gesehen'])} announced. "
+            + (f"Of the announced blocks {n(L['abgehaengt_anzahl'])} did not end up in the chain"
+               if L['abgehaengt_anzahl'] else "Every announced block ended up in the chain")
+            + f", and the deepest branch was {n(L['groesste_tiefe'])} "
             f"{'block' if L['groesste_tiefe'] == 1 else 'blocks'}. "
             + (f"For the {n(zk['bloecke'])} blocks announced by both, the first Zakura announcement came a median of "
                f"{n(zk['median'])} ms after the first Zebra announcement (p10 {n(zk['p10'])} ms, p90 {n(zk['p90'])} ms). "
@@ -125,7 +139,7 @@ def entwurf(r):
     t += [
         "**@shabam, confirmations at 25 s** (your question in post 13, measurement and arithmetic only)",
         "",
-        f"10 blocks at 75 s cover {n(bs['zeit_von_10_bei_75s_s'])} s on average, and at 25 s the same expected time "
+        f"Ten blocks at 75 s cover {n(bs['zeit_von_10_bei_75s_s'])} s on average, and at 25 s the same expected time "
         f"is {bs['bloecke_gleiche_zeit_bei_25s']} blocks ({bs['bloecke_gleiche_zeit_beim_gemessenen_mittel']} blocks "
         f"with the measured mean of {n(bs['gemessenes_mittel_s'], 2)} s). On the testnet 30 consecutive NU7 blocks "
         f"spanned a median of {n(G['median_s'])} s, p90 {n(G['p90_s'])} s and p99 {n(G['p99_s'])} s over "
@@ -145,8 +159,18 @@ def entwurf(r):
         t += ["We could not measure the stale or orphan rate and the deepest reorg without a valid listener run.", ""]
     # Ben, 17.10.2026: letzte Zeile, reine Rechnung. Nur wenn die Zahlen es tragen.
     if G["p99_s"] < alt["p99_s"]:
-        t += [f"30 blocks at 25 s vary less than 10 blocks at 75 s, p99 {n(G['p99_s'])} s measured against "
+        t += [f"Thirty blocks at 25 s vary less than ten blocks at 75 s, p99 {n(G['p99_s'])} s measured against "
               f"{n(alt['p99_s'])} s expected for the old target.", ""]
+    # Ben, 18.10.2026: Satz zu perfekten 25-s-Bloecken. "partly", weil die
+    # Spruenge den Abstand zur Theorie nur zum Teil erklaeren (p99 ohne
+    # Sprungphasen steht daneben).
+    ohne = G.get("ohne_sprungphasen") or {}
+    if G["p99_s"] > neu["p99_s"]:
+        teil = (f", partly because of the hashrate jumps ({n(ohne['p99_s'])} s without the windows around them)"
+                if ohne.get("p99_s") and ohne["p99_s"] > neu["p99_s"] else " because of the hashrate jumps")
+        t += [f"For perfect 25 s blocks the p99 over 30 blocks would be about {n(neu['p99_s'])} s. The measured "
+              f"{n(G['p99_s'])} s sits above that{teil}, and still well below the {n(alt['p99_s'])} s for "
+              "10 blocks at 75 s.", ""]
     else:
         t += [f"The p99 of 30 blocks at 25 s is {n(G['p99_s'])} s measured against {n(alt['p99_s'])} s expected "
               "for 10 blocks at the old target.", ""]

@@ -241,6 +241,23 @@ def zeitstempel(hoehen, zeiten, abruf_ts):
     }
 
 
+def sprungphasen(nf, n=30):
+    """Hoehenbereiche rund um die Hashrate-Spruenge: ab FENSTER + n Bloecke vor
+    der Grenze bis n Bloecke nach dem Einholen (abgeloest: bis zur naechsten Grenze)."""
+    ev = nf["ereignisse"]
+    out = []
+    for i, e in enumerate(ev):
+        a = e["grenze_hoehe"] - FENSTER - n
+        if e["eingeholt_nach_bloecken"] is not None:
+            b = e["grenze_hoehe"] + e["eingeholt_nach_bloecken"] + n
+        elif e["abgeloest"] and i + 1 < len(ev):
+            b = ev[i + 1]["grenze_hoehe"] + n
+        else:
+            b = e["grenze_hoehe"] + 2000 + n
+        out.append((a, b))
+    return out
+
+
 def ohne_antwort(meta):
     """Peers ohne verwertbare Antwort auf getheaders, je Software-Version gezaehlt."""
     n = {}
@@ -352,6 +369,16 @@ def d_abschnitt(L, grund=None):
         "",
     ]
     if L["abgehaengt_beispiele"]:
+        nur_zk = sum(1 for x in L["abgehaengt_beispiele"] if x["angekuendigt_von"] == ["zakura"])
+        if nur_zk:
+            # Ben, 18.10.2026: nur im Bericht, nicht im Forum-Nachtrag, und mit Vorbehalt.
+            zeilen += [
+                f"Beobachtung mit Vorbehalt: {nur_zk} der {len(L['abgehaengt_beispiele'])} abgehängten Blöcke hat nur "
+                "ein Zakura-Peer angekündigt. Das ist ein Zuhörer an einem Ort mit 5 Blöcken; daraus folgt kein Schluss "
+                "auf einen Client. Zakura-Verbindungen wechselten öfter als Zebra-Verbindungen, das kann die Zahl "
+                "mitbestimmen. Für den nächsten Lauf vorgemerkt: ein zweiter Zuhörer an einem anderen Ort.",
+                "",
+            ]
         zeilen += [tabelle(["Höhe", "erste Ankündigung UTC", "angekündigt von", "Peers"], [
             [de(a.get("hoehe")), a["erste_ankuendigung_utc"], ", ".join(a["angekuendigt_von"]), a["anzahl_peers"]]
             for a in L["abgehaengt_beispiele"]]), ""]
@@ -503,6 +530,7 @@ def main():
     bits = [r[2] for r in sel]
 
     vor = rows[:ab]
+    nf = nachfuehrung(hoehen, zeiten, diffs)
     a, _ = abstands_statistik(hoehen, zeiten, ZIEL_S)
     v, _ = abstands_statistik([r[0] for r in vor], [r[1] for r in vor], ALT_S)
     for k in ("laengste_luecke_bei",):
@@ -523,9 +551,9 @@ def main():
         "je_tag": je_tag(hoehen, zeiten, diffs),
         "mindestschwierigkeit": mindestschwierigkeit(hoehen, zeiten, bits),
         "mindestschwierigkeit_vorher": sum(1 for r in vor if r[2] == POW_LIMIT_BITS),
-        "nachfuehrung": nachfuehrung(hoehen, zeiten, diffs),
+        "nachfuehrung": nf,
         "zeitstempel": zeitstempel(hoehen, zeiten, abruf),
-        "bestaetigungen": bestaetigungen.rechnen(zeiten, a["mittel_s"], lauscher),
+        "bestaetigungen": bestaetigungen.rechnen(zeiten, a["mittel_s"], lauscher, hoehen, sprungphasen(nf)),
         "zakura_und_andere_ohne_antwort": ohne_antwort(meta),
         "lauscher": lauscher,
         "lauscher_pruefung": lauscher_grund,

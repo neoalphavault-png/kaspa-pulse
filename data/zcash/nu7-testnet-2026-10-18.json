@@ -408,7 +408,38 @@
       "median_s": 730.0,
       "p90_s": 926.0,
       "p99_s": 1187.0,
-      "anteil_ueber_750s": 0.4458
+      "anteil_ueber_750s": 0.4458,
+      "ohne_sprungphasen": {
+        "fenster": 43812,
+        "p99_s": 1154.0,
+        "sperrbereiche": [
+          [
+            4469496,
+            4470616
+          ],
+          [
+            4480796,
+            4481125
+          ],
+          [
+            4487896,
+            4488256
+          ],
+          [
+            4488096,
+            4488505
+          ],
+          [
+            4494046,
+            4495445
+          ],
+          [
+            4495346,
+            4497345
+          ]
+        ],
+        "regel": "Fenster, deren Start in [Grenze - 100 - 30, eingeholt + 30] liegt; abgeloest: bis zur naechsten Grenze + 30"
+      }
     },
     "theorie_erlang": {
       "10_bei_75s": {

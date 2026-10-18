@@ -49,7 +49,7 @@ def quantil(s, q):
     return s[lo] + (s[hi] - s[lo]) * (pos - lo)
 
 
-def rechnen(zeiten, mittel_gemessen, lauscher=None):
+def rechnen(zeiten, mittel_gemessen, lauscher=None, hoehen=None, sperrbereiche=None):
     ziel_s = ALT_N * ALT_S
     n_gleich = round(ziel_s / NEU_S)
     n_gemessen = math.ceil(ziel_s / mittel_gemessen)
@@ -75,6 +75,18 @@ def rechnen(zeiten, mittel_gemessen, lauscher=None):
         "theorie_erlang": theorie,
         "zuhoerer": None,
     }
+    # Ben, 18.10.2026, Satz zu den Hashrate-Spruengen: wie viel des p99 kommt aus
+    # den Spruengen? Gerechnet ohne die Fenster, die eine Sprungphase beruehren
+    # (Hoehenbereiche aus der Nachfuehrung).
+    if hoehen and sperrbereiche:
+        rest = sorted(zeiten[i + n_gleich] - zeiten[i] for i in range(len(zeiten) - n_gleich)
+                      if not any(a <= hoehen[i] <= b for a, b in sperrbereiche))
+        out["gemessen_spanne_30_bloecke"]["ohne_sprungphasen"] = {
+            "fenster": len(rest), "p99_s": quantil(rest, 0.99) if rest else None,
+            "sperrbereiche": [list(x) for x in sperrbereiche],
+            "regel": f"Fenster, deren Start in [Grenze - 100 - {n_gleich}, eingeholt + {n_gleich}] liegt; "
+                     f"abgeloest: bis zur naechsten Grenze + {n_gleich}",
+        }
     if lauscher:
         gesehen = lauscher["davon_angekuendigt_gesehen"]
         stale = lauscher["abgehaengt_anzahl"]

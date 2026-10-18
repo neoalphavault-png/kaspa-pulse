@@ -83,6 +83,8 @@ Erster und letzter Tag sind angeschnitten (Aktivierung 18:21:45 UTC, Stichtag).
 - Streuung über alle Peers (letzte minus erste Ankündigung, 773 Blöcke): Median 6.910,0 ms, p90 15.920,0 ms, max 79.908 ms
 - Erste Ankunft minus Zeitstempel des Blocks: Median 16,4 s, p90 53,1 s (Zeitstempel setzt der Miner)
 
+Beobachtung mit Vorbehalt: 4 der 5 abgehängten Blöcke hat nur ein Zakura-Peer angekündigt. Das ist ein Zuhörer an einem Ort mit 5 Blöcken; daraus folgt kein Schluss auf einen Client. Zakura-Verbindungen wechselten öfter als Zebra-Verbindungen, das kann die Zahl mitbestimmen. Für den nächsten Lauf vorgemerkt: ein zweiter Zuhörer an einem anderen Ort.
+
 | Höhe | erste Ankündigung UTC | angekündigt von | Peers |
 | --- | --- | --- | --- |
 | 4.512.089 | 2026-10-17 14:59:22 | zakura | 3 |
