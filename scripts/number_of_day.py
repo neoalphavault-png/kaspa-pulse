@@ -46,6 +46,20 @@ FORBIDDEN = {
 # jeder text dort ohnehin vorbeikommt, der grafik UND post einschliesst.
 # ganze woerter: "percentile" oder "percentpoints" sind keine verstoesse.
 _PERCENT = re.compile(r"\bpercent(?:s|age)?\b", re.I)
+# echtzeitregel (ben, 16.10.2026): die zahl des tages ist eine messung mit
+# stichtag, keine anzeige. "petahash per second securing the network right
+# now" stand am 16.10. in der grafik und war genau das, was die regel
+# verbietet - gemessen wurde um 10:12, gesehen wird das bild tagelang.
+#
+# die wortliste ist die aus scripts/tagesgrafik.py (ECHTZEIT), um bens drei
+# woerter erweitert. ZWEI WOERTER VON DORT STEHEN HIER ABSICHTLICH NICHT:
+# "the second" und "the moment". In den kurzen zeilen der tagesgrafik sind
+# sie echtzeitwoerter, in den langen posttexten der zahl des tages sind sie
+# gewoehnliche sprache ("almost nobody posts the second one"). eine wache,
+# die richtige saetze stoppt, wird abgeschaltet.
+_ECHTZEIT = re.compile(
+    r"\b(?:right now|currently|at the moment|as we speak|this second|live|"
+    r"real[- ]?time|around the clock|every minute|instant|instantly|24/7)\b", re.I)
 _URL = re.compile(r"\b[\w.-]+\.(?:com|org|io|net|stream|xyz|app|dev)\b\S*", re.I)
 _TIME = re.compile(r"\b\d{1,2}:\d{2}(?::\d{2})?\b")
 _PROTO = re.compile(r"https?://\S+", re.I)
@@ -67,6 +81,13 @@ def assert_punctuation(text: str, where: str) -> None:
             f"spelling rule violated in {where}: {hit.group(0)!r} instead of % "
             f"in {text!r}"
         )
+    hit = _ECHTZEIT.search(probe)
+    if hit:
+        raise ValueError(
+            f"realtime rule violated in {where}: {hit.group(0)!r} claims a live "
+            f"reading. the number has a measurement day, name it or leave the "
+            f"time out, in {text!r}"
+        )
 def walk_and_check(node, path="root"):
     if isinstance(node, str):
         assert_punctuation(node, path)
@@ -78,6 +99,14 @@ def walk_and_check(node, path="root"):
     elif isinstance(node, list):
         for i, v in enumerate(node):
             walk_and_check(v, f"{path}[{i}]")
+
+
+def echtzeit_treffer(text):
+    """das erste echtzeit-wort im text, oder None. dieselbe regel wie in
+    assert_punctuation, fuer die anderen post-wachen (x_post, weekly_numbers),
+    damit es eine liste gibt und nicht drei (Ben, 17.10.2026)."""
+    m = _ECHTZEIT.search(_strip_technical(text or ""))
+    return m.group(0) if m else None
 # ---------------------------------------------------------------- template
 # groessen in px bei 1080 breite. seit dem look-takt (Ben, 15.10.2026) nach
 # der tabelle fuer den instagram-feed: grosse zahl ab 200, ueberschrift ab 64,
@@ -516,6 +545,41 @@ def selbsttest() -> int:
        assert_punctuation("the 90th percentile of all blocks", "test") is None)
     ok("percentpoints bleibt erlaubt",
        assert_punctuation("up 3 percentpoints", "test") is None)
+    # Abgleich gegen die Liste in tagesgrafik.py, damit die beiden nicht
+    # auseinanderlaufen. Die zwei bewusst ausgenommenen Woerter stehen
+    # hier beim Namen, nicht als stilles Loch.
+    AUSGENOMMEN = ("the second", "the moment")
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from tagesgrafik import ECHTZEIT          # noqa: E402
+    except ImportError as exc:
+        print("  ok   abgleich mit tagesgrafik uebersprungen (%s)" % exc)
+    else:
+        fehlend = [w for w in ECHTZEIT
+                   if w not in AUSGENOMMEN and not _ECHTZEIT.search(w)]
+        ok("jedes echtzeitwort der tagesgrafik faellt auch hier auf, "
+           "ausser %s" % " und ".join(AUSGENOMMEN), not fehlend)
+
+    hebt("right now faellt auf", "petahash per second securing the network right now")
+    hebt("currently faellt auf", "the network currently runs at 342 PH")
+    hebt("at the moment faellt auf", "at the moment the heap is shrinking")
+    hebt("live faellt auf", "the live emission numbers are on the halving page")
+    hebt("real time faellt auf", "counted in real time")
+    hebt("real-time faellt auf", "a real-time reading")
+    hebt("around the clock faellt auf", "we watch it around the clock")
+    hebt("24/7 faellt auf", "the bot runs 24/7")
+    ok("ein stichtag geht durch",
+       assert_punctuation("petahash per second on 16 oct 2026", "test") is None)
+    ok("ohne zeitangabe geht durch",
+       assert_punctuation("petahash per second securing the network", "test") is None)
+    # die beiden woerter aus der tagesgrafik-liste, die hier gewoehnliche
+    # sprache sind und deshalb durchgehen muessen
+    ok("the second one bleibt erlaubt",
+       assert_punctuation("almost nobody posts the second one", "test") is None)
+    ok("the moment bleibt erlaubt",
+       assert_punctuation("the moment it lands on a block score", "test") is None)
+    ok("delivered bleibt erlaubt, live steckt nicht drin",
+       assert_punctuation("every block delivered since august", "test") is None)
     hebt("gedankenstrich faellt weiter auf", "hashrate up — the reward fell")
     hebt("doppelpunkt faellt weiter auf", "balance: 1,442 KAS")
     ok("eine uhrzeit stoert nicht",

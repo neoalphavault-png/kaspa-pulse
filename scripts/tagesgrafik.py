@@ -1140,7 +1140,9 @@ MOTIV_11 = ("deliberately", "deliberate", "forgotten", "forget", "lost", "convic
 # am Tag, nicht laufend. Die Woerter fallen ueberall, auch wo sie fuer Bloecke
 # stimmen wuerden.
 ECHTZEIT = ("around the clock", "real time", "realtime", "real-time", "every minute",
-            "instantly", "instant", "live", "the second", "the moment", "24/7")
+            "instantly", "instant", "live", "the second", "the moment", "24/7",
+            # dieselben woerter wie die zahl des tages (Ben, 17.10.2026)
+            "right now", "currently", "as we speak", "this second")
 # Kein Vergleich mit einer anderen Chain, in keiner Form (Ben, 29.09.2026).
 FREMDE_CHAINS = ("bitcoin", "btc", "ethereum", "eth", "solana", "sol", "cardano", "xrp",
                  "litecoin", "ltc", "dogecoin", "doge", "monero", "xmr", "alephium", "alph",

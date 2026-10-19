@@ -5,6 +5,16 @@
     "datum": "2026-10-17",
     "look": "dunkel",
     "schritt": 0
+   },
+   {
+    "datum": "2026-10-18",
+    "look": "hell",
+    "schritt": 1
+   },
+   {
+    "datum": "2026-10-19",
+    "look": "teal",
+    "schritt": 2
    }
   ],
   "tagesgrafik/instagram": [
@@ -12,6 +22,16 @@
     "datum": "2026-10-17",
     "look": "dunkel",
     "schritt": 0
+   },
+   {
+    "datum": "2026-10-18",
+    "look": "hell",
+    "schritt": 1
+   },
+   {
+    "datum": "2026-10-19",
+    "look": "teal",
+    "schritt": 2
    }
   ],
   "tagesgrafik/threads": [
@@ -19,6 +39,16 @@
     "datum": "2026-10-17",
     "look": "dunkel",
     "schritt": 0
+   },
+   {
+    "datum": "2026-10-18",
+    "look": "hell",
+    "schritt": 1
+   },
+   {
+    "datum": "2026-10-19",
+    "look": "teal",
+    "schritt": 2
    }
   ],
   "tagesgrafik/x": [
@@ -26,6 +56,16 @@
     "datum": "2026-10-17",
     "look": "dunkel",
     "schritt": 0
+   },
+   {
+    "datum": "2026-10-18",
+    "look": "hell",
+    "schritt": 1
+   },
+   {
+    "datum": "2026-10-19",
+    "look": "teal",
+    "schritt": 2
    }
   ]
  }
