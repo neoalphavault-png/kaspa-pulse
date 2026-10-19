@@ -2,10 +2,18 @@
 # -*- coding: utf-8 -*-
 """threads.py, Kaspa Pulse auf Threads (Ben, 14.10.2026).
 
-DIESER STAND KANN NOCH NICHT VEROEFFENTLICHEN. Er liest /me und legt einen
-Container an, und dort hoert er auf. Der zweite Schritt (threads_publish)
-kommt erst, wenn die Probe bestaetigt hat, dass Konto, Rechte und
-topic_tag stimmen - vorher waere jede Zeile davon geraten.
+VEROEFFENTLICHEN NUR MIT ZWEI SCHALTERN (Ben, 17.10.2026). "posten" legt den
+Container an, wartet auf FINISHED und ruft threads_publish nur, wenn der
+Lauf mit --modus scharf kommt UND die Variable THREADS_LIVE auf "scharf"
+steht UND kein Trockenlauf ist (ZIEL=moderator). Sonst bleibt der
+Container unveroeffentlicht, wie beim Instagram-Trockenlauf. Ein Lauf von
+Hand (--hand) ist nie scharf.
+
+DER TEXT kommt aus der Warteschlange data/threads-queue.json, wenn sie fuer
+den Tag einen traegt, sonst aus der Tagesgrafik des Tages (der X-Text,
+drei Zeilen, endet mit einer Frage, im Artefakt als -threads.json). Das
+Bild ist das Threads-Bild der Tagesgrafik im eigenen Look, als JPEG auf
+kaspapulse.com/ig/ gelegt wie das Instagram-Bild. Takt 17:10 Berlin von c2.
 
 DAS TOKEN KOMMT AUS DER UMGEBUNG UND WIRD NIE GEDRUCKT. THREADS_TOKEN
 steht als Secret in kaspa-pulse, nie in einer Datei, nie in einer Ausgabe.
@@ -14,16 +22,20 @@ Token als Parameter - deshalb geht jede Ausgabe durch blind(), und das
 Token steht in keiner URL, sondern im Authorization-Header.
 
     python3 scripts/threads.py me
+    python3 scripts/threads.py faellig [--hand | --takt]
+    python3 scripts/threads.py artefakt --ziel out/th
+    python3 scripts/threads.py posten --bild URL --text-datei t.json --modus trocken|scharf
     python3 scripts/threads.py container --text "..." [--bild URL] [--thema Crypto]
     python3 scripts/threads.py wache --text "..."
     python3 scripts/threads.py --selbsttest
 
-Was dieses Skript NICHT tut: es postet nicht, es loescht nicht, es
-antwortet nicht. Und es erfindet keinen Text: der Text kommt aus der
+Was dieses Skript NICHT tut: es loescht nicht und es antwortet nicht. Und es erfindet keinen Text: der Text kommt aus der
 Warteschlange oder aus der Tagesgrafik, nie aus dem Skript.
 """
 import argparse
+import datetime as dt
 import json
+import time
 import os
 import re
 import sys
@@ -45,6 +57,11 @@ LOG = ROOT / "data" / "threads-post-log.json"
 TEXT_MAX = 480
 POSTS_PRO_TAG = 2
 THEMA = "Crypto"
+ENV_LIVE = "THREADS_LIVE"
+# 17:10 Berlin kommt der Takt von c2, nach Discord (09:00) und vor X (17:00
+# geplant von Ben ist knapp davor). Bis 19:30 darf ein verspaeteter Lauf noch.
+FENSTER_BERLIN = ((17, 0), (19, 30))
+GRAFIK_LOG = ROOT / "data" / "tagesgrafik-log.json"
 
 
 # ------------------------------------------------------------------ blenden
@@ -183,6 +200,117 @@ def container(text, bild="", thema=THEMA, tok=None, oeffner=None):
     return d
 
 
+# ------------------------------------------------------ der taegliche post
+
+def json_laden(pfad, leer):
+    try:
+        return json.loads(Path(pfad).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return leer
+
+
+def faellig(now, log_grafik, log_th, hand=False):
+    """(eintrag der tagesgrafik, None) oder (None, grund). --hand laesst
+    Zeitfenster und Tagessperre weg und ist nie scharf."""
+    import instagram
+    import look_takt
+    b = instagram.berlin(now)
+    heute = b.date().isoformat()
+    (h0, m0), (h1, m1) = FENSTER_BERLIN
+    if not hand and not (h0, m0) <= (b.hour, b.minute) < (h1, m1):
+        return None, "%02d:%02d berlin liegt nicht zwischen %02d:%02d und %02d:%02d" % (
+            b.hour, b.minute, h0, m0, h1, m1)
+    if not hand and look_takt.trockenlauf():
+        return None, "trockenlauf, ZIEL=moderator, das threads-bild liegt in #moderator-only"
+    if not hand and not darf_posten(log_th, heute, 1):
+        return None, "heute (%s) schon auf threads" % heute
+    eintrag = next((e for e in reversed(log_grafik.get("laeufe", [])) if e.get("datum") == heute), None)
+    if not eintrag or not eintrag.get("messzeit_utc"):
+        return None, "heute (%s) keine ausgelieferte tagesgrafik im log" % heute
+    return eintrag, None
+
+
+def artefakt(eintrag, ziel, gh=None):
+    """Threads-Bild und -Text aus dem Lauf, der die Tagesgrafik ausgeliefert
+    hat. Dieselbe Suche wie instagram.artefakt, nur andere Dateien."""
+    import io
+    import zipfile
+    import instagram
+    gh = gh or instagram.gh
+    mz = eintrag["messzeit_utc"]
+    stamm = "tagesgrafik-%s-form%02d" % (mz[:10], int(eintrag["form"]))
+    runs = gh("actions/workflows/tagesgrafik.yml/runs?per_page=30&created=%%3E%%3D%s" % mz[:10])
+    for run in runs.get("workflow_runs", []):
+        for a in gh("actions/runs/%d/artifacts" % run["id"]).get("artifacts", []):
+            if a.get("name") != "tagesgrafik" or a.get("expired"):
+                continue
+            z = zipfile.ZipFile(io.BytesIO(gh("actions/artifacts/%d/zip" % a["id"], roh=True)))
+            namen = {Path(n).name: n for n in z.namelist()}
+            png_n, txt_n = stamm + "-threads.png", stamm + "-threads.json"
+            if png_n not in namen or txt_n not in namen:
+                continue
+            t = json.loads(z.read(namen[txt_n]).decode("utf-8"))
+            if t.get("messzeit_utc") != mz:
+                continue
+            Path(ziel).mkdir(parents=True, exist_ok=True)
+            png, txt = Path(ziel) / png_n, Path(ziel) / txt_n
+            png.write_bytes(z.read(namen[png_n]))
+            txt.write_bytes(z.read(namen[txt_n]))
+            print("artefakt aus lauf %d, %s" % (run["id"], png.name))
+            return png, txt
+    raise LookupError("kein artefakt mit %s-threads und messzeit %s" % (stamm, mz))
+
+
+def scharf(modus, hand=False):
+    """Veroeffentlicht wird nur mit beiden Schaltern und ohne Trockenlauf."""
+    import look_takt
+    return (modus == "scharf" and not hand
+            and os.environ.get(ENV_LIVE, "").strip().lower() == "scharf"
+            and not look_takt.trockenlauf())
+
+
+def posten(text, bild, modus, tag, log_pfad=None, hand=False, tok=None, oeffner=None,
+           warte_takt=10, warte_max=300):
+    """Container anlegen, auf FINISHED warten, nur scharf veroeffentlichen.
+    Scharf steht der Post danach im Log, trocken nicht."""
+    befunde = wache(text)
+    if befunde:
+        sys.exit("der text haelt die wachen nicht ein, kein container: %s" % "; ".join(befunde))
+    tok = tok or token()
+    nutzer = os.environ.get(ENV_USER, "").strip() or str(me(tok=tok, oeffner=oeffner).get("id", ""))
+    if not re.fullmatch(r"\d+", nutzer):
+        sys.exit("keine threads-nutzer-id")
+    felder = {"media_type": "IMAGE" if bild else "TEXT", "text": text, "topic_tag": THEMA}
+    if bild:
+        felder["image_url"] = bild
+    cid = str(graph("%s/threads" % nutzer, felder, post=True, tok=tok, oeffner=oeffner).get("id", ""))
+    if not re.fullmatch(r"\d+", cid):
+        sys.exit("container ohne id")
+    print("container %s angelegt" % cid)
+    status, ende = "", time.time() + warte_max
+    while time.time() < ende:
+        status = graph(cid, {"fields": "status,error_message"}, tok=tok, oeffner=oeffner).get("status", "")
+        print("container %s, status %s" % (cid, status))
+        if status in ("FINISHED", "ERROR", "EXPIRED", "PUBLISHED"):
+            break
+        time.sleep(warte_takt)
+    if status != "FINISHED":
+        sys.exit("container %s endet mit status %s, nicht veroeffentlicht" % (cid, status or "-"))
+    if not scharf(modus, hand):
+        print("trocken, container %s bleibt unveroeffentlicht (modus %s, %s=%s, ziel %s)" % (
+            cid, modus, ENV_LIVE, os.environ.get(ENV_LIVE, "") or "-", os.environ.get("ZIEL", "") or "-"))
+        return {"container": cid, "status": status, "modus": "trocken"}
+    m = graph("%s/threads_publish" % nutzer, {"creation_id": cid}, post=True, tok=tok, oeffner=oeffner)
+    erg = {"tag": tag, "container": cid, "media": str(m.get("id", "")), "modus": "scharf",
+           "bild": bild, "text": text}
+    log = json_laden(log_pfad or LOG, {"posts": []})
+    log.setdefault("posts", []).append(erg)
+    Path(log_pfad or LOG).write_text(json.dumps(log, ensure_ascii=False, indent=1) + "\n",
+                                     encoding="utf-8")
+    print("veroeffentlicht, media %s" % erg["media"])
+    return erg
+
+
 # -------------------------------------------------------------- selbsttest
 
 def selbsttest():
@@ -277,6 +405,60 @@ def selbsttest():
     pruefe("die bildadresse steht drin", "image_url=https" in gesehen["leib"], True)
     del os.environ[ENV_USER]
 
+    # der taegliche post (Ben, 17.10.2026)
+    def zeit(h, m):
+        return dt.datetime(2026, 10, 20, h, m, tzinfo=dt.timezone.utc)     # mesz, +2
+    lg = {"laeufe": [{"datum": "2026-10-20", "form": 4, "messzeit_utc": "2026-10-20T05:30:00+00:00"}]}
+    alt = {k: os.environ.pop(k, None) for k in ("ZIEL", ENV_LIVE)}
+    pruefe("faellig um 17:10 berlin", faellig(zeit(15, 10), lg, {"posts": []})[0] is not None, True)
+    pruefe("nicht faellig um 16:30 berlin", faellig(zeit(14, 30), lg, {"posts": []})[0] is None, True)
+    pruefe("nicht doppelt am tag",
+           faellig(zeit(15, 10), lg, {"posts": [{"tag": "2026-10-20"}]})[0] is None, True)
+    pruefe("ohne tagesgrafik nicht faellig", faellig(zeit(15, 10), {"laeufe": []}, {"posts": []})[0] is None, True)
+    os.environ["ZIEL"] = "moderator"
+    pruefe("im trockenlauf nicht faellig", faellig(zeit(15, 10), lg, {"posts": []})[0] is None, True)
+    pruefe("im trockenlauf nie scharf", scharf("scharf"), False)
+    os.environ["ZIEL"] = ""
+    pruefe("ohne THREADS_LIVE nicht scharf", scharf("scharf"), False)
+    os.environ[ENV_LIVE] = "scharf"
+    pruefe("beide schalter scharf", scharf("scharf"), True)
+    pruefe("von hand nie scharf", scharf("scharf", hand=True), False)
+    pruefe("modus trocken bleibt trocken", scharf("trocken"), False)
+
+    wege = []
+
+    def api(req, timeout=0):
+        wege.append((req.get_method(), req.full_url.split("v1.0/")[1].split("?")[0],
+                     (req.data or b"").decode()))
+        weg = wege[-1][1]
+        if weg == "me":
+            return Antwort({"id": "99", "username": "kaspapulse"})
+        if weg == "99/threads":
+            return Antwort({"id": "555"})
+        if weg == "555":
+            return Antwort({"status": "FINISHED"})
+        return Antwort({"id": "777"})
+    with tempfile.TemporaryDirectory() as tmp:
+        lp = Path(tmp, "log.json")
+        e = posten(gut, "https://kaspapulse.com/ig/x-threads.jpg", "scharf", "2026-10-20", lp,
+                   tok=tok, oeffner=api, warte_takt=0)
+        pruefe("scharf ruft threads_publish mit der container-id",
+               ("POST", "99/threads_publish", "creation_id=555") in wege, True)
+        pruefe("scharf steht im log", json.loads(lp.read_text())["posts"][0]["media"], "777")
+        pruefe("bild und thema im container", any("image_url=https" in w[2] and "topic_tag=Crypto" in w[2]
+                                                  for w in wege), True)
+        wege.clear()
+        os.environ[ENV_LIVE] = ""
+        e = posten(gut, "", "scharf", "2026-10-21", lp, tok=tok, oeffner=api, warte_takt=0)
+        pruefe("ohne THREADS_LIVE kein threads_publish",
+               any(w[1].endswith("threads_publish") for w in wege) or e["modus"] != "trocken", False)
+        pruefe("trocken nicht im log", len(json.loads(lp.read_text())["posts"]), 1)
+    for k, v in alt.items():
+        if v is None:
+            os.environ.pop(k, None)
+        else:
+            os.environ[k] = v
+
     print("\n%d faelle, %d falsch" % (len(gezaehlt), len(fehler)))
     for f in fehler:
         print("  " + f)
@@ -286,8 +468,14 @@ def selbsttest():
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("befehl", nargs="?", choices=["me", "container", "wache"])
+    ap.add_argument("befehl", nargs="?",
+                    choices=["me", "container", "wache", "faellig", "artefakt", "posten"])
     ap.add_argument("--text", default="")
+    ap.add_argument("--text-datei", default="", help="-threads.json aus dem artefakt")
+    ap.add_argument("--ziel", default="out/th")
+    ap.add_argument("--modus", default="trocken", choices=["trocken", "scharf"])
+    ap.add_argument("--hand", action="store_true", help="ohne fenster und tagessperre, nie scharf")
+    ap.add_argument("--takt", action="store_true", help="vom takt auf c2, fenster und sperre gelten")
     ap.add_argument("--bild", default="")
     ap.add_argument("--thema", default=THEMA)
     ap.add_argument("--selbsttest", action="store_true")
@@ -304,6 +492,34 @@ def main(argv=None):
         return 1 if befunde else 0
     elif a.befehl == "container":
         container(a.text, a.bild, a.thema)
+    elif a.befehl in ("faellig", "artefakt"):
+        now = dt.datetime.now(dt.timezone.utc)
+        e, grund = faellig(now, json_laden(GRAFIK_LOG, {"laeufe": []}), json_laden(LOG, {"posts": []}),
+                           a.hand)
+        aus = os.environ.get("GITHUB_OUTPUT", "")
+        if e is None:
+            print("nicht faellig, %s" % grund)
+            zeilen = "faellig=0\n"
+        elif a.befehl == "faellig":
+            print("faellig, tagesgrafik form %s" % e["form"])
+            zeilen = "faellig=1\n"
+        else:
+            try:
+                png, txt = artefakt(e, a.ziel)
+                zeilen = "faellig=1\ngefunden=1\npng=%s\ntext=%s\n" % (png, txt)
+            except LookupError as exc:
+                print("kein artefakt, %s" % exc)
+                zeilen = "faellig=1\ngefunden=0\n"
+        if aus:
+            with open(aus, "a", encoding="utf-8") as fh:
+                fh.write(zeilen)
+    elif a.befehl == "posten":
+        import instagram
+        tag = instagram.berlin(dt.datetime.now(dt.timezone.utc)).date().isoformat()
+        text = warteschlange(tag) or (json_laden(a.text_datei, {}).get("text", "") if a.text_datei else a.text)
+        if not text:
+            sys.exit("kein text, weder warteschlange noch tagesgrafik")
+        posten(text, a.bild, a.modus, tag, hand=a.hand)
     else:
         ap.print_help()
         return 2
