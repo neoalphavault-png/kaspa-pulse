@@ -168,6 +168,26 @@ MAX_JUMP = {
     "exchange_kas": 0.25,
 }
 
+# DAS DEX-VOLUMEN IST EIN WOCHENWERT, seit dem 19.10.2026 (Ben, Weg 3).
+#
+# Bis dahin las _llama_overview total24h - einen TAGESWERT - und die Zeile
+# trug trotzdem eine Wochenveraenderung. Am 19.10. hat die Sprungbremse das
+# aufgedeckt: 4.448 auf 51.173, also +1050 Prozent. Beide Zahlen waren
+# richtig gelesen und beide waren einzelne SONNTAGE (11.10. und 18.10.).
+# Die Woche selbst, 11. bis 17. Oktober, lag bei 213.688, und im
+# 7-Tage-Fenster ist das Volumen gegenueber dem Block davor um 57,5 Prozent
+# GEFALLEN. Der Post haette "+1050 % on the week" gesagt.
+#
+# Jetzt steht total7d in der Zeile, und die Prozentzahl kommt aus
+# total14dto7d - aus DERSELBEN Antwort, nicht aus unserer History. Damit
+# vergleicht die Zeile zwei Siebentagefenster statt zwei Sonntage.
+#
+# DER REIHENBRUCH steht in der History, nach dem Muster von tps_def: jede
+# neue Zeile traegt dex_def, und wo die Definition nicht uebereinstimmt,
+# wird nicht verglichen - weder in der Zeile noch in der Sprungbremse.
+DEX_DEF = "total7d"
+DEX_DEF_VOR = "total14dto7d"
+
 MANUAL_KEYS = []          # seit 23.09.2026 leer, siehe KL_FELDER
 AUTO_KEYS = [
     "hashrate", "block_reward", "emission", "mined_pct",
@@ -238,15 +258,22 @@ def fetch_llama_tvl():
     return out
 
 
-def _llama_overview(kind, chain):
+def _llama_roh(kind, chain):
+    """Die ganze Antwort einer Kette, oder None."""
     url = ("https://api.llama.fi/overview/%s/%s"
            "?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true"
            % (kind, chain))
     try:
-        d = http_json(url, tries=2)
+        return http_json(url, tries=2)
     except Stop:
         return None
-    v = d.get("total24h")
+
+
+def _llama_overview(kind, chain, feld="total24h"):
+    d = _llama_roh(kind, chain)
+    if d is None:
+        return None
+    v = d.get(feld)
     return float(v) if v is not None else None
 
 
@@ -448,9 +475,13 @@ def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
         tail("tvl_total", v["tvl_total"], prev.get("tvl_total"), extra)))
     out.append("kasplex **%s** and igra **%s**" % (
         fmt_money(v["tvl_kasplex"]), fmt_money(v["tvl_igra"])))
-    out.append("dex volume **%s**%s" % (
+    # SIEBEN TAGE, und die Prozentzahl gegen die sieben davor - aus
+    # derselben Antwort, nicht aus der History. "7 days" steht in der Zeile,
+    # damit niemand sie fuer einen Tageswert haelt (wie die Gebuehrenzeile
+    # "for the day" sagt).
+    out.append("dex volume, 7 days **%s**%s" % (
         fmt_money(v["dex_vol"]),
-        tail("dex_vol", v["dex_vol"], prev.get("dex_vol"), extra)))
+        tail("dex_vol", v["dex_vol"], v.get("dex_vol_vor"), extra)))
     # ohne frischen wert keine zeile, siehe gebuehren_pruefen()
     if v.get("chain_fees") is not None:
         out.append("chain fees **%s** for the day%s" % (
@@ -555,11 +586,23 @@ def check_plausible(values):
 
 
 def check_jumps(values, prev, force=False):
+    """Ein Sprung gegen die eigene Reihe stoppt den Post.
+
+    UEBER EINEN REIHENBRUCH WIRD NICHT VERGLICHEN. dex_vol war bis zum
+    19.10.2026 ein Tageswert und ist seit dem ein Siebentagefenster; die
+    Vorwoche steht noch in der alten Definition da. Ohne diese Ausnahme
+    waere der erste Lauf nach der Umstellung garantiert rot, und zwar
+    ohne Befund - genau die Art Alarm, die man danach abschaltet."""
     warn = []
     for key, limit in MAX_JUMP.items():
         now = values.get(key)
         old = (prev or {}).get(key)
         if now is None or old in (None, 0):
+            continue
+        if key == "dex_vol" and (prev or {}).get("dex_def") != DEX_DEF:
+            print("dex_vol: die vorwoche steht in der alten definition "
+                  "(%s), es wird nicht verglichen"
+                  % ((prev or {}).get("dex_def") or "total24h"))
             continue
         move = abs(float(now) - float(old)) / abs(float(old))
         if move > limit:
@@ -583,6 +626,17 @@ def load_json(path, default=None):
         return json.load(fh)
 
 
+# DER SERIENSTART DER WOCHENREIHE IST DER 24.11.2024 (Ben, 19.10.2026, wie
+# im Newsletter korrigiert). Die Marke in ROWS ist der SONNTAG, der
+# Wochenanfang, und ROWS[0] ist 2024-11-24. Der 19.11.2024 ist die erste
+# TAGESkerze der Kraken-Reihe - sie ist in die Wochentexte gerutscht und
+# stand am 12.10. und am 19.10. im read. Gemeldet wird nur, wo die 19 in
+# EINEM Satz mit "week" steht; wo wirklich die Tagesreihe gemeint ist,
+# bleibt sie richtig.
+SERIE_ALT = re.compile(r"\b19\s+nov(?:ember)?\s+2024\b", re.I)
+SERIE_RICHTIG = "24 november 2024"
+
+
 def read_input(path=None):
     data = load_json(path or INPUT_PATH)
     week = str(data.get("week", "")).strip()
@@ -600,6 +654,15 @@ def read_input(path=None):
     if len(read) < 40:
         raise Stop("the read fehlt oder ist zu kurz. das ist der teil der uns "
                    "von einem datenfeed unterscheidet, den schreibt kein bot")
+    for satz in re.split(r"(?<=[.?!])\s+", read):
+        if SERIE_ALT.search(satz) and "week" in satz.lower():
+            raise Stop(
+                "the read sagt %s ueber die wochenreihe. die faengt am %s an "
+                "- die marke in ROWS ist der SONNTAG, der wochenanfang, und "
+                "ROWS[0] ist 2024-11-24. der 19.11.2024 ist die erste "
+                "TAGESkerze der kraken-reihe. gefunden in: %r"
+                % (SERIE_ALT.search(satz).group(0), SERIE_RICHTIG,
+                   satz.strip()[:110]))
     return {
         "week": week,
         "date": wd,
@@ -660,20 +723,45 @@ def _need(d, key):
     return d[key]
 
 
-def _sum_overview(kind):
+def _sum_overview(kind, feld="total24h"):
     total = 0.0
     got = 0
     for chain in ("kasplex", "igra"):
-        val = _llama_overview(kind, chain)
+        val = _llama_overview(kind, chain, feld)
         if val is not None:
             total += val
             got += 1
     if got == 0:
         raise Stop("defillama %s liefert fuer keine der beiden ketten "
-                   "einen wert" % kind)
+                   "einen wert (%s)" % (kind, feld))
     if got < 2:
         print("WARN defillama %s hat nur eine der beiden ketten geliefert" % kind)
     return total
+
+
+def dex_fenster():
+    """(diese sieben tage, die sieben davor) ueber beide Ketten.
+
+    AUS DERSELBEN ANTWORT, in einem Zug. Zwei getrennte Abfragen koennten
+    zwischen zwei Minuten liegen, und dann vergliche die Prozentzahl zwei
+    Staende. Das Fenster davor darf fehlen - dann steht keine Prozentzahl
+    in der Zeile, und das ist besser als eine falsche."""
+    jetzt = davor = 0.0
+    got = 0
+    for chain in ("kasplex", "igra"):
+        d = _llama_roh("dexs", chain)
+        if d is None or d.get(DEX_DEF) is None:
+            continue
+        got += 1
+        jetzt += float(d[DEX_DEF])
+        if d.get(DEX_DEF_VOR) is not None:
+            davor += float(d[DEX_DEF_VOR])
+    if got == 0:
+        raise Stop("defillama dexs liefert fuer keine der beiden ketten ein "
+                   "%s" % DEX_DEF)
+    if got < 2:
+        print("WARN defillama dexs hat nur eine der beiden ketten geliefert")
+    return jetzt, (davor or None)
 
 
 # ---------------------------------------------------------- kaspalytics --
@@ -779,7 +867,15 @@ def collect_auto(now_ts, override):
             errors.append("defillama chains (%s)" % exc)
     take("tvl_kasplex", lambda: _need(tvl, "kasplex"))
     take("tvl_igra", lambda: _need(tvl, "igra"))
-    take("dex_vol", lambda: _sum_overview("dexs"))
+    take("dex_vol", lambda: dex_fenster()[0])
+    # Das Fenster davor ist KEINE Postzahl: es steht in keiner Zeile, nur in
+    # der Prozentangabe, und sein Fehlen darf den Post nicht anhalten.
+    if override.get("dex_vol") is None:
+        try:
+            v["dex_vol_vor"] = dex_fenster()[1]
+        except Stop as exc:
+            print("WARN das vorige dex-fenster kam nicht (%s), die zeile "
+                  "bleibt ohne prozentzahl" % exc)
     take("chain_fees", lambda: _sum_overview("fees"))
 
     cur, nxt, nxt_ts = reward_state(now_ts)
@@ -983,6 +1079,8 @@ def history_eintrag(week, issue, v, price=None):
             entry[k] = round(float(v[k]), 6)
     if "tps" in entry:
         entry["tps_def"] = TPS_DEF
+    if "dex_vol" in entry:
+        entry["dex_def"] = DEX_DEF
     if price:
         entry["price"] = price
     return entry
@@ -1121,7 +1219,14 @@ GOLD_MSG = "\n".join([
     "\U0001f9f1 **layer 2**",
     "total tvl **$1.83M** \U0001f534 down 6.6%",
     "kasplex **$343K** and igra **$1.49M**",
-    "dex volume **$109K** \U0001f534 down 17.9%",
+    # REIHENBRUCH 19.10.2026. Im Post vom 03.08. stand hier
+    #   "dex volume **$109K** \U0001f534 down 17.9%"
+    # Die Zahl war ein Tageswert und die Prozentangabe verglich zwei
+    # einzelne Tage. Seit dem 19.10. steht ein Siebentagefenster in der
+    # Zeile; die Prozentzahl kommt aus total14dto7d, und das hatte der Lauf
+    # vom 03.08. nicht gespeichert. Der Goldtest reproduziert den Post
+    # deshalb mit der NEUEN Zeile - bis auf sie ist er unveraendert.
+    "dex volume, 7 days **$109K**",
     "chain fees **$226** for the day",
     "",
     "\U0001fa99 **supply**",
@@ -1214,7 +1319,32 @@ def run_selftest():
             if a != b:
                 print("      ist  %r" % a)
                 print("      soll %r" % b)
-    ok("post vom 03.08. exakt reproduziert", msg == GOLD_MSG)
+    ok("post vom 03.08. reproduziert, dex-zeile in der neuen fassung",
+       msg == GOLD_MSG)
+    # 6a-bis DAS DEX-FENSTER (Ben, 19.10.2026, Weg 3)
+    check_dex = dict(v)
+    check_dex["dex_vol_vor"] = 612803.0
+    m_dex = build_message(dict(check_dex, dex_vol=260413.0), GOLD_PREV, 4,
+                          dt.date(2026, 8, 3), GOLD_READ, tps_def=None)
+    zeile = [z for z in m_dex.split("\n") if z.startswith("dex volume")][0]
+    ok("die zeile sagt sieben tage", zeile.startswith("dex volume, 7 days"), zeile)
+    ok("und vergleicht gegen das fenster davor, nicht gegen die vorwoche",
+       "down 57.5%" in zeile, zeile)
+    m_ohne_vor = build_message(dict(v, dex_vol=260413.0), GOLD_PREV, 4,
+                               dt.date(2026, 8, 3), GOLD_READ, tps_def=None)
+    z_ohne = [z for z in m_ohne_vor.split("\n") if z.startswith("dex volume")][0]
+    ok("fehlt das fenster davor, steht keine prozentzahl da",
+       z_ohne == "dex volume, 7 days **$260K**", z_ohne)
+    # Die Sprungbremse vergleicht nicht ueber den Reihenbruch.
+    alt_def = {"dex_vol": 4448.0}                      # ohne dex_def = alt
+    neu_def = {"dex_vol": 4448.0, "dex_def": DEX_DEF}
+    check_jumps({"dex_vol": 260413.0}, alt_def)
+    ok("ueber den reihenbruch wird nicht verglichen", True)
+    raises("in derselben definition schlaegt die bremse weiter an",
+           lambda: check_jumps({"dex_vol": 260413.0}, neu_def))
+    ok("die history-zeile traegt die definition",
+       history_eintrag("2026-10-19", 15, {"dex_vol": 260413.0}).get("dex_def"),
+       DEX_DEF)
     ok("prozent als %, nie percent (regel 19.10.2026)",
        "percent" not in msg and "**50.6%** has not moved" in msg
        and "up 21.3%" in msg, msg)
@@ -1443,6 +1573,24 @@ def run_selftest():
         kaspalytics_reset()
 
     bad2 = json.loads(json.dumps(good))
+    # Der Serienstart, der am 12.10. und am 19.10. im read stand.
+    bad_serie = json.loads(json.dumps(good))
+    bad_serie["read"] = ("the close fell 13.34% and sits below the 50 week "
+                         "average, in the 50 weeks the line exists in our "
+                         "series, which starts on 19 november 2024.")
+    raises("der alte serienstart im read stoppt",
+           lambda: read_input(write_input(bad_serie)))
+    ok_serie = json.loads(json.dumps(good))
+    ok_serie["read"] = bad_serie["read"].replace("19 november", "24 november")
+    read_input(write_input(ok_serie))
+    print("  ok   der richtige serienstart geht durch")
+    # Die Tagesreihe darf weiter am 19. anfangen, wenn kein "week" im Satz steht.
+    tag_serie = json.loads(json.dumps(good))
+    tag_serie["read"] = ("the close fell 13.34% on saturday. our own kraken "
+                         "series, which starts 19 nov 2024, holds every daily "
+                         "candle since then.")
+    read_input(write_input(tag_serie))
+    print("  ok   die tagesreihe darf weiter am 19. anfangen")
     bad2["read"] = "kurz"
     raises("fehlender read stoppt", lambda: read_input(write_input(bad2)))
     bad3 = json.loads(json.dumps(good))
