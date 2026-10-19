@@ -68,8 +68,10 @@ def covenant_satz(log):
     if not tage:
         return None
     e = tage[-1]
-    return ("On layer 1, <b>%s covenant outputs</b> were unspent on chain at the end of %s, counted by "
-            "Kaspalytics and logged in <a href=\"/kaspa-covenants.html\">our daily covenant count</a>."
+    # Bens Regel 16.10.2026: Kaspalytics-Reihen tragen "source kaspalytics",
+    # "counted" nur bei eigenen Zaehlungen
+    return ("On layer 1, <b>%s covenant outputs</b> were unspent on chain at the end of %s, source "
+            "kaspalytics, logged daily in <a href=\"/kaspa-covenants.html\">our covenant log</a>."
             % (ganz(e["utxo_count"]), datum(e["datum"])))
 
 

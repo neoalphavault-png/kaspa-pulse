@@ -709,7 +709,7 @@ def karten(p):
                   "exchange wallets." % MONATE_LANG[int(bo_erst[0][5:7]) - 1],
              signal="rising share, more coins within reach of a sale, often read as selling "
                     "pressure. falling share, coins leave for private wallets.",
-             src="data kaspalytics · logged and checked by kaspa pulse"),
+             src="source kaspalytics · checked by kaspa pulse"),
         dict(n=3, tag="holders", q="how much KAS has not moved in a year?",
              big="%.1f%%" % ub["p1"], unit="of all KAS, untouched for 1 year or more",
              date="%s · %.1f%% untouched for 2 years" % (tag_lang(ub["stichtag"]), ub["p2"]),
@@ -719,7 +719,7 @@ def karten(p):
                   "every week since %s, the share sat between %.1f%% and %.1f%%."
                   % (MONATE_LANG[int(ub["wochen_von"][5:7]) - 1], ub["wochen_min"], ub["wochen_max"]),
              signal="a sudden drop. that is old coins waking up.",
-             src="data kaspalytics · logged and checked by kaspa pulse"),
+             src="source kaspalytics · checked by kaspa pulse"),
         dict(n=4, tag="holders", q="how many wallets hold a real stake?",
              big=fmt(ha["k100"]), unit="addresses with 100 KAS or more",
              date="%s · %s in 7 days · %s in 30 · %s in 90" % (
@@ -737,7 +737,7 @@ def karten(p):
                   "addresses. %.1f million addresses hold something, almost all of it dust below "
                   "0.01 KAS." % (ha["alle"] / 1e6),
              signal="the 30 day direction of the 100+ line.",
-             src="data kaspalytics · logged and checked by kaspa pulse"),
+             src="source kaspalytics · checked by kaspa pulse"),
         dict(n=5, tag="miners", q="when do miners get paid less again?",
              big=tag_kurz(se_zeit.date()),
              unit="next block reward cut, %s utc" % se_zeit.strftime("%H:%M"),
@@ -762,7 +762,7 @@ def karten(p):
                   "day without a fee value drops out of both sides." % (
                       mio(ge["emission"]), fmt(ge["fees"]), ge["tage"]),
              signal="the ratio falling because fees rise.",
-             src="fees kaspalytics · issuance computed by kaspa pulse"),
+             src="fees source kaspalytics · issuance by kaspa pulse"),
         dict(n=7, tag="security", q="how much computing power guards kaspa?",
              big="%.0f" % hs["mittel"], unit="PH/s, mean of the last %d days" % HASH_FENSTER,
              date="%s · single day %.0f on %s" % (
@@ -787,7 +787,7 @@ def karten(p):
              nerd="covenant outputs created per day, summed. most are spent again soon, tests and "
                   "bots count too.",
              signal="the unspent stock. it grows steady, the traffic comes in waves.",
-             src="data kaspalytics · logged daily by kaspa pulse"),
+             src="source kaspalytics · logged daily by kaspa pulse"),
     ]
 
 
@@ -800,6 +800,12 @@ def wort(n):
     return ZAHLWORT.get(n, fmt(n))
 
 
+# Bens Regel (16.10.2026): Kaspalytics-Reihen tragen immer "source kaspalytics",
+# "counted" steht nur bei eigenen Zaehlungen. Das Deckblatt nennt die Quelle
+# deshalb in der Zeile selbst, nicht erst auf der Karte.
+KL = " · source kaspalytics"
+
+
 def uebersicht(p, k):
     """Die acht Zeilen auf dem Deckblatt, in derselben Reihenfolge."""
     z = p["zahlen"]
@@ -807,17 +813,17 @@ def uebersicht(p, k):
     return [
         ("biggest wallet, share of supply", "entity x · %s"
          % tag_kurz(z["entityx"]["stichtag"]), k[0]["big"]),
-        ("KAS on exchanges", tag_kurz(z["boersen"]["stichtag"]), k[1]["big"]),
-        ("untouched for a year or more", tag_kurz(z["unbewegt"]["stichtag"]), k[2]["big"]),
-        ("addresses with 100 KAS or more", tag_kurz(z["halter"]["stichtag"]), k[3]["big"]),
+        ("KAS on exchanges", tag_kurz(z["boersen"]["stichtag"]) + KL, k[1]["big"]),
+        ("untouched for a year or more", tag_kurz(z["unbewegt"]["stichtag"]) + KL, k[2]["big"]),
+        ("addresses with 100 KAS or more", tag_kurz(z["halter"]["stichtag"]) + KL, k[3]["big"]),
         ("next block reward cut", "%s utc" % se_zeit.strftime("%H:%M"), k[4]["big"]),
         ("new coins vs fees, %d days" % z["gebuehren"]["tage"],
-         "to %s" % tag_kurz(z["gebuehren"]["bis"]), k[5]["big"]),
+         "to %s · fees source kaspalytics" % tag_kurz(z["gebuehren"]["bis"]), k[5]["big"]),
         ("hashrate, %d day mean" % HASH_FENSTER,
          spanne(z["hashrate"]["von"], z["hashrate"]["bis"], lang=False),
          "%s PH/s" % k[6]["big"]),
         ("covenant outputs since %s" % tag_monat(z["covenants"]["seit"]),
-         tag_kurz(z["covenants"]["stichtag"]), k[7]["big"]),
+         tag_kurz(z["covenants"]["stichtag"]) + KL, k[7]["big"]),
     ]
 
 
@@ -937,7 +943,7 @@ def deckblatt(zeilen, marke):
                   for i, (a, b, v) in enumerate(zeilen))
     return """<section class="pg cv">%s
 <h1>the 8 kaspa numbers <em>whales watch</em></h1>
-<div class="sub">counted on chain. dated. updated every month.</div>
+<div class="sub">dated and sourced. updated every month.</div>
 <div class="list">%s</div>
 <div class="foot"><span>one number per page, with how to read it</span><b>kaspapulse.com</b>
 </div></section>""" % (top(marke), rws)
@@ -948,7 +954,7 @@ def rueckseite(marke, utm):
 <h2>every number<br>has a date.</h2>
 <div class="rules">
 <div class="rule"><i>01</i><span><b style="color:%s">a date and a source on every number.</b> so you can check each one.</span></div>
-<div class="rule"><i>02</i><span><b style="color:%s">counted, not guessed.</b> every move straight from the chain.</span></div>
+<div class="rule"><i>02</i><span><b style="color:%s">sourced, not guessed.</b> what we count ourselves says counted, the rest names its source.</span></div>
 <div class="rule"><i>03</i><span><b style="color:%s">plain words first.</b> the detail for the nerds right below.</span></div>
 <div class="rule"><i>04</i><span><b style="color:%s">we keep the history.</b> logged by us, checked for breaks, sources named so you can check us.</span></div>
 </div>
@@ -1273,6 +1279,18 @@ def selbsttest():
         except Abbruch as exc:
             ok("%s traegt %s nicht mehr" % (a if wort_ == "half" else b, wort_),
                wort_ in str(exc), exc)
+
+    # Bens Regel 16.10.2026: Kaspalytics-Reihen tragen "source kaspalytics",
+    # "counted" nur bei eigenen zaehlungen
+    kk = karten(p)
+    zl = uebersicht(p, kk)
+    seiten = html(p, 1)
+    ok("jede kaspalytics-karte nennt source kaspalytics",
+       all("source kaspalytics" in c["src"] for c in kk if "kaspalytics" in c["src"]))
+    ok("deckblatt nennt die quelle in den kaspalytics-zeilen",
+       all("source kaspalytics" in zl[i][1] for i in (1, 2, 3, 5, 7)), [z[1] for z in zl])
+    ok("kein 'counted on chain' und kein 'counted, not guessed'",
+       "counted on chain" not in seiten and "counted, not guessed" not in seiten)
 
     # die ausgabe-nummer
     lg = {"editionen": [{"n": 1, "monat": "2026-10"}]}
