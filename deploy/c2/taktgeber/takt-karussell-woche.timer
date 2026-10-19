@@ -1,0 +1,11 @@
+[Unit]
+Description=Kaspa Pulse Takt, Karussell-Entwurf Woche, Fr 18:00 Berlin, fuer Sa 11:00
+
+[Timer]
+Unit=takt@karussell-woche.service
+OnCalendar=Fri *-*-* 18:00:00 Europe/Berlin
+Persistent=true
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

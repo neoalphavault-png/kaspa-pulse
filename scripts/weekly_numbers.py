@@ -94,7 +94,7 @@ ISSUE_ANCHOR_NUM = 4
 # war es ein einzelner Tag mit Coinbase (data/weekly-notes.md). Zeilen ohne
 # dieses Feld sind nach der alten Definition gemessen. Einen Vergleich gibt
 # es nur zwischen zwei Zeilen derselben Definition, sonst stuende im Post
-# "down 48 percent", obwohl nur die Zaehlweise gewechselt hat.
+# "down 48%", obwohl nur die Zaehlweise gewechselt hat.
 TPS_DEF = "standard_7d"
 
 # Unter diesem Prozentwert heisst eine Veraenderung "unchanged"
@@ -168,6 +168,26 @@ MAX_JUMP = {
     "exchange_kas": 0.25,
 }
 
+# DAS DEX-VOLUMEN IST EIN WOCHENWERT, seit dem 19.10.2026 (Ben, Weg 3).
+#
+# Bis dahin las _llama_overview total24h - einen TAGESWERT - und die Zeile
+# trug trotzdem eine Wochenveraenderung. Am 19.10. hat die Sprungbremse das
+# aufgedeckt: 4.448 auf 51.173, also +1050 Prozent. Beide Zahlen waren
+# richtig gelesen und beide waren einzelne SONNTAGE (11.10. und 18.10.).
+# Die Woche selbst, 11. bis 17. Oktober, lag bei 213.688, und im
+# 7-Tage-Fenster ist das Volumen gegenueber dem Block davor um 57,5 Prozent
+# GEFALLEN. Der Post haette "+1050 % on the week" gesagt.
+#
+# Jetzt steht total7d in der Zeile, und die Prozentzahl kommt aus
+# total14dto7d - aus DERSELBEN Antwort, nicht aus unserer History. Damit
+# vergleicht die Zeile zwei Siebentagefenster statt zwei Sonntage.
+#
+# DER REIHENBRUCH steht in der History, nach dem Muster von tps_def: jede
+# neue Zeile traegt dex_def, und wo die Definition nicht uebereinstimmt,
+# wird nicht verglichen - weder in der Zeile noch in der Sprungbremse.
+DEX_DEF = "total7d"
+DEX_DEF_VOR = "total14dto7d"
+
 MANUAL_KEYS = []          # seit 23.09.2026 leer, siehe KL_FELDER
 AUTO_KEYS = [
     "hashrate", "block_reward", "emission", "mined_pct",
@@ -238,15 +258,22 @@ def fetch_llama_tvl():
     return out
 
 
-def _llama_overview(kind, chain):
+def _llama_roh(kind, chain):
+    """Die ganze Antwort einer Kette, oder None."""
     url = ("https://api.llama.fi/overview/%s/%s"
            "?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true"
            % (kind, chain))
     try:
-        d = http_json(url, tries=2)
+        return http_json(url, tries=2)
     except Stop:
         return None
-    v = d.get("total24h")
+
+
+def _llama_overview(kind, chain, feld="total24h"):
+    d = _llama_roh(kind, chain)
+    if d is None:
+        return None
+    v = d.get(feld)
     return float(v) if v is not None else None
 
 
@@ -345,8 +372,8 @@ def delta(key, now, prev):
     else:
         good = (pct > 0 and d > 0) or (pct < 0 and d < 0)
         circle = "\U0001f7e2" if good else "\U0001f534"
-    return circle, "%s %s percent" % ("up" if pct > 0 else "down",
-                                      fmt_num(abs(pct)))
+    return circle, "%s %s%%" % ("up" if pct > 0 else "down",
+                                fmt_num(abs(pct)))
 
 
 def tail(key, now, prev, extra=""):
@@ -381,6 +408,31 @@ def vergleich_seit(prev, week_date):
     return " since " + month_day(pw)
 
 
+# Bens Regel (16.10.2026): Kaspalytics-Reihen tragen immer "source kaspalytics",
+# "counted" steht nur bei eigenen Zaehlungen. Im Post nennt deshalb jede
+# Kaspalytics-Zeile ihre Quelle (KL_FELDER oben), und ein Read, der eine
+# Kaspalytics-Reihe nennt, bekommt die Quelle angehaengt, falls er sie nicht
+# selbst nennt.
+QUELLE_KL = " · source kaspalytics"
+READ_KL = (("covenant", re.compile(r"\bcovenant", re.I)),
+           ("address", re.compile(r"\b(active addresses|addresses holding|addresses with|holders)\b", re.I)),
+           ("throughput", re.compile(r"\b(tps|throughput)\b", re.I)),
+           ("exchange", re.compile(r"\b(exchange (balances?|wallets|holdings)|on exchanges)\b", re.I)),
+           ("dormant supply", re.compile(r"\b(not moved|untouched|dormant)\b", re.I)))
+
+
+def read_mit_quelle(read):
+    """Haengt an den Read, welche Kaspalytics-Reihen er nennt, mit Quelle."""
+    read = read.strip()
+    if "kaspalytics" in read.lower():
+        return read
+    arten = [name for name, rx in READ_KL if rx.search(read)]
+    if not arten:
+        return read
+    liste = arten[0] if len(arten) == 1 else ", ".join(arten[:-1]) + " and " + arten[-1]
+    return read + " %s figures source kaspalytics." % liste
+
+
 def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
                   quelle="discord", tps_def=TPS_DEF):
     prev = prev or {}
@@ -405,7 +457,7 @@ def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
     out.append(line)
     out.append("")
 
-    out.append("\U0001f310 **network**")
+    out.append("\U0001f310 **network**" + QUELLE_KL)
     out.append("active addresses **%s** per day%s" % (
         fmt_int(v["active_addr"]),
         tail("active_addr", v["active_addr"], prev.get("active_addr"), extra)))
@@ -423,9 +475,13 @@ def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
         tail("tvl_total", v["tvl_total"], prev.get("tvl_total"), extra)))
     out.append("kasplex **%s** and igra **%s**" % (
         fmt_money(v["tvl_kasplex"]), fmt_money(v["tvl_igra"])))
-    out.append("dex volume **%s**%s" % (
+    # SIEBEN TAGE, und die Prozentzahl gegen die sieben davor - aus
+    # derselben Antwort, nicht aus der History. "7 days" steht in der Zeile,
+    # damit niemand sie fuer einen Tageswert haelt (wie die Gebuehrenzeile
+    # "for the day" sagt).
+    out.append("dex volume, 7 days **%s**%s" % (
         fmt_money(v["dex_vol"]),
-        tail("dex_vol", v["dex_vol"], prev.get("dex_vol"), extra)))
+        tail("dex_vol", v["dex_vol"], v.get("dex_vol_vor"), extra)))
     # ohne frischen wert keine zeile, siehe gebuehren_pruefen()
     if v.get("chain_fees") is not None:
         out.append("chain fees **%s** for the day%s" % (
@@ -434,9 +490,9 @@ def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
     out.append("")
 
     out.append("\U0001fa99 **supply**")
-    out.append("**%s percent** of all KAS already mined"
+    out.append("**%s%%** of all KAS already mined"
                % fmt_num(v["mined_pct"], 2))
-    line = "**%s percent** has not moved in over a year" % fmt_num(v["dormant_pct"])
+    line = "**%s%%** has not moved in over a year" % fmt_num(v["dormant_pct"]) + QUELLE_KL
     dc, dtxt = delta("dormant_pct", v["dormant_pct"], prev.get("dormant_pct"))
     if SHOW_DELTA.get("dormant_pct") and dc:
         line += " %s %s%s" % (dc, dtxt, extra)
@@ -446,11 +502,11 @@ def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
         tail("exchange_kas", v["exchange_kas"], prev.get("exchange_kas"), extra))
     if show_usd and price:
         line += " worth %s" % fmt_money(v["exchange_kas"] * price)
-    out.append(line)
+    out.append(line + QUELLE_KL)
     out.append("")
 
     out.append("\U0001f4a1 **the read**")
-    out.append(read.strip())
+    out.append(read_mit_quelle(read))
     out.append("")
     out.append("\U0001f517 full dashboard kaspapulse.com")
     out.append(newsletter_zeile(quelle))
@@ -530,11 +586,23 @@ def check_plausible(values):
 
 
 def check_jumps(values, prev, force=False):
+    """Ein Sprung gegen die eigene Reihe stoppt den Post.
+
+    UEBER EINEN REIHENBRUCH WIRD NICHT VERGLICHEN. dex_vol war bis zum
+    19.10.2026 ein Tageswert und ist seit dem ein Siebentagefenster; die
+    Vorwoche steht noch in der alten Definition da. Ohne diese Ausnahme
+    waere der erste Lauf nach der Umstellung garantiert rot, und zwar
+    ohne Befund - genau die Art Alarm, die man danach abschaltet."""
     warn = []
     for key, limit in MAX_JUMP.items():
         now = values.get(key)
         old = (prev or {}).get(key)
         if now is None or old in (None, 0):
+            continue
+        if key == "dex_vol" and (prev or {}).get("dex_def") != DEX_DEF:
+            print("dex_vol: die vorwoche steht in der alten definition "
+                  "(%s), es wird nicht verglichen"
+                  % ((prev or {}).get("dex_def") or "total24h"))
             continue
         move = abs(float(now) - float(old)) / abs(float(old))
         if move > limit:
@@ -655,20 +723,45 @@ def _need(d, key):
     return d[key]
 
 
-def _sum_overview(kind):
+def _sum_overview(kind, feld="total24h"):
     total = 0.0
     got = 0
     for chain in ("kasplex", "igra"):
-        val = _llama_overview(kind, chain)
+        val = _llama_overview(kind, chain, feld)
         if val is not None:
             total += val
             got += 1
     if got == 0:
         raise Stop("defillama %s liefert fuer keine der beiden ketten "
-                   "einen wert" % kind)
+                   "einen wert (%s)" % (kind, feld))
     if got < 2:
         print("WARN defillama %s hat nur eine der beiden ketten geliefert" % kind)
     return total
+
+
+def dex_fenster():
+    """(diese sieben tage, die sieben davor) ueber beide Ketten.
+
+    AUS DERSELBEN ANTWORT, in einem Zug. Zwei getrennte Abfragen koennten
+    zwischen zwei Minuten liegen, und dann vergliche die Prozentzahl zwei
+    Staende. Das Fenster davor darf fehlen - dann steht keine Prozentzahl
+    in der Zeile, und das ist besser als eine falsche."""
+    jetzt = davor = 0.0
+    got = 0
+    for chain in ("kasplex", "igra"):
+        d = _llama_roh("dexs", chain)
+        if d is None or d.get(DEX_DEF) is None:
+            continue
+        got += 1
+        jetzt += float(d[DEX_DEF])
+        if d.get(DEX_DEF_VOR) is not None:
+            davor += float(d[DEX_DEF_VOR])
+    if got == 0:
+        raise Stop("defillama dexs liefert fuer keine der beiden ketten ein "
+                   "%s" % DEX_DEF)
+    if got < 2:
+        print("WARN defillama dexs hat nur eine der beiden ketten geliefert")
+    return jetzt, (davor or None)
 
 
 # ---------------------------------------------------------- kaspalytics --
@@ -774,7 +867,15 @@ def collect_auto(now_ts, override):
             errors.append("defillama chains (%s)" % exc)
     take("tvl_kasplex", lambda: _need(tvl, "kasplex"))
     take("tvl_igra", lambda: _need(tvl, "igra"))
-    take("dex_vol", lambda: _sum_overview("dexs"))
+    take("dex_vol", lambda: dex_fenster()[0])
+    # Das Fenster davor ist KEINE Postzahl: es steht in keiner Zeile, nur in
+    # der Prozentangabe, und sein Fehlen darf den Post nicht anhalten.
+    if override.get("dex_vol") is None:
+        try:
+            v["dex_vol_vor"] = dex_fenster()[1]
+        except Stop as exc:
+            print("WARN das vorige dex-fenster kam nicht (%s), die zeile "
+                  "bleibt ohne prozentzahl" % exc)
     take("chain_fees", lambda: _sum_overview("fees"))
 
     cur, nxt, nxt_ts = reward_state(now_ts)
@@ -978,6 +1079,8 @@ def history_eintrag(week, issue, v, price=None):
             entry[k] = round(float(v[k]), 6)
     if "tps" in entry:
         entry["tps_def"] = TPS_DEF
+    if "dex_vol" in entry:
+        entry["dex_def"] = DEX_DEF
     if price:
         entry["price"] = price
     return entry
@@ -1104,25 +1207,33 @@ GOLD_MSG = "\n".join([
     "august 3",
     "",
     "⛏️ **mining**",
-    "hashrate **342.5 PH/s** \U0001f7e2 up 30.6 percent this week",
+    "hashrate **342.5 PH/s** \U0001f7e2 up 30.6% this week",
     "block reward **2.45 KAS** \U0001f53b cut to 2.312 on wednesday, 06.15 utc",
     "emission **2,116,775 KAS** per day",
     "",
-    "\U0001f310 **network**",
+    "\U0001f310 **network** · source kaspalytics",
     "active addresses **13,940** per day",
-    "tps **0.91** \U0001f7e2 up 21.3 percent",
+    "tps **0.91** \U0001f7e2 up 21.3%",
     "addresses holding a balance **747,603**",
     "",
     "\U0001f9f1 **layer 2**",
-    "total tvl **$1.83M** \U0001f534 down 6.6 percent",
+    "total tvl **$1.83M** \U0001f534 down 6.6%",
     "kasplex **$343K** and igra **$1.49M**",
-    "dex volume **$109K** \U0001f534 down 17.9 percent",
+    # REIHENBRUCH 19.10.2026. Im Post vom 03.08. stand hier
+    #   "dex volume **$109K** \U0001f534 down 17.9%"
+    # Die Zahl war ein Tageswert und die Prozentangabe verglich zwei
+    # einzelne Tage. Seit dem 19.10. steht ein Siebentagefenster in der
+    # Zeile; die Prozentzahl kommt aus total14dto7d, und das hatte der Lauf
+    # vom 03.08. nicht gespeichert. Der Goldtest reproduziert den Post
+    # deshalb mit der NEUEN Zeile - bis auf sie ist er unveraendert.
+    "dex volume, 7 days **$109K**",
     "chain fees **$226** for the day",
     "",
     "\U0001fa99 **supply**",
-    "**96.21 percent** of all KAS already mined",
-    "**50.6 percent** has not moved in over a year ⚪ unchanged",
-    "exchange balances **3.85B KAS** \U0001f7e2 down 2.2 percent",
+    "**96.21%** of all KAS already mined",
+    # seit 16.10.2026 bewusst geaendert: kaspalytics-zeilen nennen ihre quelle
+    "**50.6%** has not moved in over a year · source kaspalytics ⚪ unchanged",
+    "exchange balances **3.85B KAS** \U0001f7e2 down 2.2% · source kaspalytics",
     "",
     "\U0001f4a1 **the read**",
     GOLD_READ,
@@ -1208,8 +1319,53 @@ def run_selftest():
             if a != b:
                 print("      ist  %r" % a)
                 print("      soll %r" % b)
-    ok("post vom 03.08. exakt reproduziert", msg == GOLD_MSG)
+    ok("post vom 03.08. reproduziert, dex-zeile in der neuen fassung",
+       msg == GOLD_MSG)
+    # 6a-bis DAS DEX-FENSTER (Ben, 19.10.2026, Weg 3)
+    check_dex = dict(v)
+    check_dex["dex_vol_vor"] = 612803.0
+    m_dex = build_message(dict(check_dex, dex_vol=260413.0), GOLD_PREV, 4,
+                          dt.date(2026, 8, 3), GOLD_READ, tps_def=None)
+    zeile = [z for z in m_dex.split("\n") if z.startswith("dex volume")][0]
+    ok("die zeile sagt sieben tage", zeile.startswith("dex volume, 7 days"), zeile)
+    ok("und vergleicht gegen das fenster davor, nicht gegen die vorwoche",
+       "down 57.5%" in zeile, zeile)
+    m_ohne_vor = build_message(dict(v, dex_vol=260413.0), GOLD_PREV, 4,
+                               dt.date(2026, 8, 3), GOLD_READ, tps_def=None)
+    z_ohne = [z for z in m_ohne_vor.split("\n") if z.startswith("dex volume")][0]
+    ok("fehlt das fenster davor, steht keine prozentzahl da",
+       z_ohne == "dex volume, 7 days **$260K**", z_ohne)
+    # Die Sprungbremse vergleicht nicht ueber den Reihenbruch.
+    alt_def = {"dex_vol": 4448.0}                      # ohne dex_def = alt
+    neu_def = {"dex_vol": 4448.0, "dex_def": DEX_DEF}
+    check_jumps({"dex_vol": 260413.0}, alt_def)
+    ok("ueber den reihenbruch wird nicht verglichen", True)
+    raises("in derselben definition schlaegt die bremse weiter an",
+           lambda: check_jumps({"dex_vol": 260413.0}, neu_def))
+    ok("die history-zeile traegt die definition",
+       history_eintrag("2026-10-19", 15, {"dex_vol": 260413.0}).get("dex_def"),
+       DEX_DEF)
+    ok("prozent als %, nie percent (regel 19.10.2026)",
+       "percent" not in msg and "**50.6%** has not moved" in msg
+       and "up 21.3%" in msg, msg)
     ok("laenge unter dem discord limit", len(msg) < 1990, len(msg))
+
+    # 6b quellen (Ben 16.10.2026): kaspalytics-reihen nennen ihre quelle
+    ok("netzwerk-kopf nennt kaspalytics", "**network** · source kaspalytics" in msg)
+    ok("read mit covenant-zahl bekommt die quelle",
+       read_mit_quelle("covenant transactions came to 219 a day against 245.")
+       == "covenant transactions came to 219 a day against 245. covenant figures source kaspalytics.")
+    ok("read mit mehreren reihen nennt alle",
+       read_mit_quelle("covenant transactions at 219, active addresses at 5,553.").endswith(
+           "covenant and address figures source kaspalytics."))
+    ok("read, der kaspalytics schon nennt, bleibt", read_mit_quelle(
+        "covenant transactions at 219, source kaspalytics.") == "covenant transactions at 219, source kaspalytics.")
+    ok("read ohne kaspalytics-reihe bleibt", read_mit_quelle(GOLD_READ) == GOLD_READ)
+    ok("entity x adresse ist keine kaspalytics-reihe", read_mit_quelle(
+        "the address the explorer calls entity x took in 4.77M KAS.") == "the address the explorer calls entity x took in 4.77M KAS.")
+    assert_punctuation(read_mit_quelle("throughput read 0.78 accepted transactions per second, "
+                                       "covenant transactions came to 219 a day."))
+    print("  ok   schreibregel mit quellenzeile eingehalten")
 
     # 7 schreibregel
     assert_punctuation(msg)
@@ -1465,7 +1621,7 @@ def run_selftest():
     gleich = dict(alt, tps_def=TPS_DEF)
     neu2 = build_message(v, gleich, 5, dt.date(2026, 8, 3), GOLD_READ)
     tps2 = [l for l in neu2.split("\n") if l.startswith("tps ")][0]
-    ok("tps mit vergleich bei gleicher definition", "up 21.3 percent" in tps2, tps2)
+    ok("tps mit vergleich bei gleicher definition", "up 21.3%" in tps2, tps2)
     e = history_eintrag("2026-09-28", 12, {"tps": 1.47, "hashrate": 350.0})
     ok("history zeile traegt die definition", e.get("tps_def") == TPS_DEF, e)
     ok("ohne tps keine definition",
@@ -1476,12 +1632,12 @@ def run_selftest():
     lang = build_message(v, sep7, 12, dt.date(2026, 9, 28), GOLD_READ)
     ok("drei wochen abstand, kein this week", "this week" not in lang)
     ok("hashrate sagt since september 7",
-       "up 30.6 percent since september 7" in lang,
+       "up 30.6% since september 7" in lang,
        [l for l in lang.split("\n") if l.startswith("hashrate")])
     ok("alle vergleiche sagen since",
        all("since september 7" in l for l in lang.split("\n")
-           if " percent" in l and ("up " in l or "down " in l)),
-       [l for l in lang.split("\n") if " percent" in l])
+           if "%" in l and ("up " in l or "down " in l)),
+       [l for l in lang.split("\n") if "%" in l])
     ok("unchanged sagt ebenfalls since",
        "unchanged since september 7" in lang)
     assert_punctuation(lang)

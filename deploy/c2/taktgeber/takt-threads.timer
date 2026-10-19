@@ -1,0 +1,13 @@
+[Unit]
+Description=Kaspa Pulse Takt, Threads 17:10 Berlin
+
+[Timer]
+Unit=takt@threads.service
+# Nach Discord (09:00) und Instagram (09:30), knapp nach dem X-Post um 17:00.
+# threads.py laesst nur zwischen 17:00 und 19:30 Berlin durch.
+OnCalendar=*-*-* 17:10:00 Europe/Berlin
+Persistent=true
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

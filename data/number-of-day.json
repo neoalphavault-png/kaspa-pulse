@@ -1,26 +1,26 @@
 {
-  "issue": "OCT 17 2026",
+  "issue": "OCT 19 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "$1.07M",
-  "value_label": "locked across kasplex and igra",
-  "headline": "layer 2 tvl is *down 23%*\nagainst 6 weeks ago.",
+  "value": "$64.0K",
+  "value_label": "of brand new kaspa supply is created every day",
+  "headline": "bitcoin prints *581x*\nmore supply each day.",
   "panes": [
     {
       "kind": "compare",
-      "title": "TOTAL VALUE LOCKED",
-      "sub": "same measurement, two dates",
+      "title": "NEW SUPPLY PER DAY",
+      "sub": "issuance valued at today's spot price",
       "rows": [
         {
-          "label": "today",
-          "sub": "",
-          "value": "$1.07M",
-          "pct": 77.4004338320461,
-          "tone": "red"
+          "label": "kaspa",
+          "sub": "1.78 million KAS",
+          "value": "$64.0K",
+          "pct": 0.1722314232042888,
+          "tone": "teal"
         },
         {
-          "label": "6 weeks ago",
-          "sub": "",
-          "value": "$1.39M",
+          "label": "bitcoin",
+          "sub": "450 BTC",
+          "value": "$37.14M",
           "pct": 100.0,
           "tone": "grey"
         }
@@ -28,17 +28,16 @@
     },
     {
       "kind": "anchor",
-      "title": "WHAT THE NUMBER IS",
+      "title": "WHY THAT GAP CLOSES",
       "lines": [
-        "the difference is *$313K*.",
-        "*counted* from the same source."
+        "kaspa cuts *twelve times a year*. bitcoin once every four years."
       ]
     }
   ],
-  "sources": "defillama.com",
+  "sources": "api.kaspa.org and coingecko.com",
   "site": "kaspapulse.com",
   "post": {
-    "x": "layer 2 tvl on kaspa is down 23% against 6 weeks ago. $1.07M today, $1.39M then, both read from the same source 40 days apart.",
-    "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
+    "x": "kaspa creates about $64.0K of new supply per day. bitcoin creates $37.14M, roughly 581 times more. kaspa cuts its reward twelve times a year and bitcoin once every four years, so that gap narrows every month without anyone voting on it.",
+    "reply": "the full emission schedule is on kaspapulse.com/kaspa-halving.html. bitcoin issuance is 3.125 coins per block, about 144 blocks a day."
   }
 }

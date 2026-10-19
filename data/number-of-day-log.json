@@ -1,23 +1,5 @@
 [
   {
-    "date": "2026-08-16",
-    "candidate": "none",
-    "hashrate": 331.468574,
-    "tvl_total": 1687196.199399,
-    "mined_pct": 96.30245,
-    "price_kas": 0.025696,
-    "whale_kas": 1510873535.476284
-  },
-  {
-    "date": "2026-08-17",
-    "candidate": "emission_vs_btc",
-    "hashrate": 329.174234,
-    "tvl_total": 1697298.633017,
-    "mined_pct": 96.309476,
-    "price_kas": 0.025784,
-    "whale_kas": 1510873535.476284
-  },
-  {
     "date": "2026-08-18",
     "candidate": "none",
     "hashrate": 327.87381,
@@ -540,5 +522,25 @@
     "price_kas": 0.035437,
     "whale_kas": 1528068346.628765,
     "circ": 27760446333.1254
+  },
+  {
+    "date": "2026-10-18",
+    "candidate": "hashrate_consequence",
+    "hashrate": 381.963415,
+    "tvl_total": 1004581.216591,
+    "mined_pct": 96.718894,
+    "price_kas": 0.034647,
+    "whale_kas": 1528621611.05991,
+    "circ": 27762225835.738327
+  },
+  {
+    "date": "2026-10-19",
+    "candidate": "emission_vs_btc",
+    "hashrate": 365.8282,
+    "tvl_total": 997778.994915,
+    "mined_pct": 96.725091,
+    "price_kas": 0.035939,
+    "whale_kas": 1530455169.114896,
+    "circ": 27764004446.28983
   }
 ]

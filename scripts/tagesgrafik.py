@@ -1989,7 +1989,10 @@ def kanaele_rendern(s, falke, png, heute, speicher=None):
     alle 1080x1350. Gibt (png, vorschau, {kanal: png}, {kanal: look})."""
     import look_takt
     from playwright.sync_api import sync_playwright
-    looks = look_takt.looks_fuer(look_takt.lesen() if speicher is None else speicher, "tagesgrafik", heute)
+    sp = look_takt.lesen() if speicher is None else speicher
+    looks = look_takt.looks_fuer(sp, "tagesgrafik", heute)
+    # instagram steht im gemeinsamen raster mit dem karussell (Ben, 18.10.2026)
+    looks["instagram"] = look_takt.raster_faellig(sp, "tagesgrafik", heute)[1]
     png = Path(png)
     kanalbilder = {}
     with sync_playwright() as p:
@@ -2140,6 +2143,12 @@ def main(argv=None):
         "herkunft": s["datumszeile"].split(" \u00b7 ")[-1]}, ensure_ascii=False, indent=1), encoding="utf-8")
     with open(out / (png.stem + ".txt"), "a", encoding="utf-8") as fh:
         fh.write("\nINSTAGRAM, %d zeichen\n%s\n" % (len(s["instagram"]), s["instagram"]))
+    # fuer den threads-job um 17:10 (Ben, 17.10.2026): der x-text, drei
+    # zeilen mit frage am ende, und das bild im threads-look
+    (out / (png.stem + "-threads.json")).write_text(json.dumps({
+        "datum": heute.isoformat(), "form": form, "messzeit_utc": m["messzeit_utc"],
+        "text": s["x"], "bild": Path(kanalbilder["threads"]).name}, ensure_ascii=False, indent=1),
+        encoding="utf-8")
     print("form %d (%s), %s\n%s\n%s" % (form, grund, png, vpng, (out / (png.stem + ".txt")).read_text()))
     # die gebuehrenreihe nur, wenn dieser lauf auch etwas damit tut. eine
     # probe (ohne senden, ohne log) ruft nichts ab und meldet nichts.
@@ -2162,7 +2171,9 @@ def main(argv=None):
         import look_takt
         sp = look_takt.lesen()
         for k in look_takt.KANAELE:
-            look_takt.merken(sp, "tagesgrafik", k, heute)
+            if k != "instagram":
+                look_takt.merken(sp, "tagesgrafik", k, heute)
+        look_takt.raster_merken(sp, "tagesgrafik", heute)
         look_takt.schreiben(sp)
         mw = messwerte_fuer_log(form, m["werte"], geb)
         if mw:
@@ -2636,6 +2647,11 @@ def selbsttest():
        not any(isinstance(v, str) and "platzhalter" in v.lower()
                for e in json.loads(COMMUNITY.read_text()).get("fragen", []) if e.get("offen")
                for v in e.values()))
+    # threads-text ist der x-text, er muss die threads-wache halten (Ben, 17.10.2026)
+    import threads
+    for f in sorted(FAKE):
+        bef = threads.wache(seite_bauen(f, FAKE[f], FAKE_NOW, log)["x"])
+        ok("form %d, x-text haelt die threads-wache%s" % (f, "" if not bef else ", " + "; ".join(bef)), not bef)
     # look-takt und geruest (Ben, 15.10.2026)
     nach_diagramm = {"laeufe": [{"datum": "2026-10-06", "form": 8}]}
     f, _ = waehle_form(dt.date(2026, 10, 7), nach_diagramm)

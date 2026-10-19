@@ -1,0 +1,119 @@
+name: karussell
+
+# Instagram-Karussell, ENTWURF (Ben, 18.10.2026). Dieser Workflow baut die
+# Seiten und schickt Bilder und Caption nach #moderator-only. Er postet
+# NICHTS auf Instagram. Ben gibt frei und postet bis zur Freigabe-Strecke
+# von Hand. Das Posten ueber die Graph API kommt spaeter mit dem Schalter
+# KARUSSELL_LIVE (aus), wenn zwei Entwuerfe sauber durchgelaufen sind.
+#
+# Der Takt kommt von c2: Fr 18:00 Berlin "woche" fuer Sa 11:00, Di 18:00
+# Berlin "story" fuer Mi 18:00. "meme" ist der Einzelpost "Meme, but true"
+# (scripts/meme_wahr.py), Entwurf am Posttag 09:00 Berlin, weil Seite 2 die
+# Blockrate am Posttag 10 Minuten misst; scheitert die Messung, faellt sie auf
+# die Crescendo-Blockrate zurueck (ohne "counted"). Erster Termin So 25.10. Ein Lauf mit senden=true merkt den Look im
+# gemeinsamen Instagram-Raster (data/look-takt.json), weil Ben genau diese
+# Bilder postet.
+
+on:
+  workflow_dispatch:
+    inputs:
+      art:
+        description: "woche (sa 11:00), story (mi 18:00) oder meme (einzelpost)"
+        type: choice
+        options:
+          - woche
+          - story
+          - meme
+        default: woche
+      fuer:
+        description: "post-datum JJJJ-MM-TT, leer = der naechste sa bzw. mi, beim meme heute"
+        required: false
+        default: ""
+      senden:
+        description: "entwurf nach #moderator-only schicken und look merken"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: karussell
+  cancel-in-progress: false
+
+jobs:
+  entwurf:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: playwright
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: selbsttest
+        run: |
+          python3 scripts/karussell.py --selbsttest
+          python3 scripts/meme_wahr.py --selbsttest
+      - name: entwurf
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          ART: ${{ inputs.art }}
+          FUER: ${{ inputs.fuer }}
+          SENDEN: ${{ inputs.senden }}
+        run: |
+          if [ "$ART" = "meme" ]; then
+            SKRIPT=scripts/meme_wahr.py
+            ARGS="--zahl messung --out graphics/karussell"
+          else
+            SKRIPT=scripts/karussell.py
+            ARGS="$ART --out graphics/karussell"
+          fi
+          if [ -n "$FUER" ]; then
+            case "$FUER" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) ;; *) echo "fuer muss JJJJ-MM-TT sein"; exit 1;; esac
+            ARGS="$ARGS --fuer $FUER"
+          fi
+          if [ "$SENDEN" = "true" ]; then ARGS="$ARGS --senden"; fi
+          python3 "$SKRIPT" $ARGS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: karussell
+          path: graphics/karussell/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: look sichern
+        if: inputs.senden
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/look-takt.json 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "look-takt unveraendert, kein commit"
+          else
+            git commit -m "karussell look [bot]"
+            git pull --rebase --autostash origin "$GITHUB_REF_NAME"
+            git push
+          fi
+      - name: ops bei rot
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ART: ${{ inputs.art }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
+          text = "karussell %s ist rot, kein entwurf\n%s" % (os.environ.get("ART", ""), os.environ.get("LAUF", ""))
+          print(text)
+          if hook:
+              req = urllib.request.Request(hook, data=json.dumps({"content": text,
+                    "allowed_mentions": {"parse": []}}).encode(), headers={
+                    "Content-Type": "application/json", "User-Agent": "kaspa-pulse-bot"})
+              urllib.request.urlopen(req, timeout=30)
+          PY

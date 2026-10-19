@@ -1,13 +1,13 @@
 {
   "row": {
-    "active_addr": 5553,
-    "holder_addr": 802817,
-    "holders": 51.3,
-    "exchange_kas": 3789841776,
-    "covenant_tx": 219,
-    "tps_peak": 0.81,
-    "tps_peak_date": "2026-10-08",
+    "active_addr": 5672,
+    "holder_addr": 803742,
+    "holders": 50.98,
+    "exchange_kas": 3800549793,
+    "covenant_tx": 141,
+    "tps_peak": 1.09,
+    "tps_peak_date": "2026-10-14",
     "tps_days": 7,
-    "tps": 0.78
+    "tps": 0.94
   }
 }

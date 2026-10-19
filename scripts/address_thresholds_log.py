@@ -28,10 +28,33 @@ non-zero-balance zaehlt JEDE Adresse mit irgendeinem Guthaben, auch die mit
 einem Bruchteil eines Sompi. Am 21.09.2026 waren das 54.876.372 gegen
 796.711 bei meaningful-balance, also das Neunundsechzigfache. Am 27.08.2023,
 dem ersten Tag der Reihe, standen sich 280.049 und 279.609 gegenueber, die
-beiden Reihen waren praktisch deckungsgleich. Dazwischen liegt eine
-Staubschwemme, keine Halterschaft. Wer holders_all als "Zahl der Halter"
-liest oder auf eine Seite schreibt, sagt etwas Falsches. Die Reihe steht
-trotzdem im Log, weil sie die Staubschwemme selbst messbar macht.
+beiden Reihen waren praktisch deckungsgleich. Wer holders_all als "Zahl der
+Halter" liest oder auf eine Seite schreibt, sagt etwas Falsches. Die Reihe
+steht trotzdem im Log, weil sie die Staubschwemme selbst messbar macht.
+
+UND SIE HAT EINEN BRUCH, holders_all IST ERST AB 28.09.2023 VERGLEICHBAR
+Dazwischen liegt keine Staubschwemme, sondern eine Umstellung an der Quelle,
+und zwar in vier Tagen (Befund vom 19.10.2026):
+
+    24.09.2023      282.629
+    25.09.2023   33.505.003
+    26.09.2023   48.895.319
+    28.09.2023   53.877.217
+
+282.000 auf 53,9 Millionen in vier Tagen ist kein Wachstum. Die anderen vier
+Reihen laufen durch diese Tage glatt weiter (holders_001kas 257.951 ->
+260.469), es ist also nicht die Kette, die sich bewegt hat, sondern was
+non-zero-balance zaehlt. Vorher hat das Feld offensichtlich etwas anderes
+gemessen.
+
+FOLGE: jede Zaehlung ueber holders_all beginnt bei HOLDERS_ALL_AB
+(28.09.2023), nicht am ersten Tag der Reihe. Das sind 1.096 statt 1.128
+protokollierte Tage. Die Reihe hat ausserdem 13 Luecken, also heisst es
+immer "protokollierte Tage", nie Kalendertage - dieselbe Zeitraum-Pflicht,
+die im Weekly fuer jede Rekord-Aussage gilt. Gefunden hat den Bruch die
+Suche nach einer eigenen Zaehlung fuer den Freitags-Short: der erste
+Kandidat zaehlte Tage ueber holders_all und haette die vier Umstellungstage
+als Bewegung mitgezaehlt.
 
 Die Zahl, die Bens Handablesung auf kaspa.stream am naechsten kommt
 (792.706 als Summe aller Stufen), ist holders_mean mit 796.711. Andere
@@ -68,6 +91,11 @@ import kaspalytics as k      # noqa: E402  hole(), stichtag(), zeit_von(), reihe
 
 ZIEL = os.path.join(REPO, "data", "address-thresholds-log.json")
 QUELLENNAME = "kaspalytics"
+
+# AB HIER IST holders_all VERGLEICHBAR, siehe Kopf. Wer die Reihe
+# zaehlt, faengt hier an - davor misst das Feld etwas anderes
+# (Befund 19.10.2026). Das sind 1.096 statt 1.128 Tage.
+HOLDERS_ALL_AB = dt.date(2023, 9, 28)
 
 # feld -> (pfad unter /api/charts/, reihenname)
 # alle fuenf sind bestaende, siehe kopf. die art steht nicht je feld dabei,
@@ -183,6 +211,16 @@ def verschmelze(log, roh, jetzt):
         "holders_all zaehlt jede adresse mit irgendeinem guthaben, auch "
         "staub. am 21.09.2026 waren das 54.876.372 gegen 796.711 bei "
         "holders_mean. als 'zahl der halter' ist holders_all falsch.")
+    # DER BRUCH GEHOERT IN DIE DATEI, nicht nur in den Kopf dieses Skripts:
+    # wer die Reihe liest, hat das Skript nicht daneben liegen.
+    log["holders_all_ab"] = HOLDERS_ALL_AB.isoformat()
+    log["hinweis_holders_all_bruch"] = (
+        "holders_all ist erst ab %s vergleichbar. vom 24. auf den 25.09.2023 "
+        "springt das feld von 282.629 auf 33.505.003 und bis zum 28.09.2023 "
+        "auf 53.877.217, waehrend die vier anderen reihen glatt weiterlaufen "
+        "- eine umstellung an der quelle, kein wachstum. jede zaehlung ueber "
+        "holders_all beginnt an diesem tag."
+        % HOLDERS_ALL_AB.isoformat())
     log["aktualisiert_utc"] = jetzt
     return log, neu, geaendert
 
@@ -225,9 +263,13 @@ def _stub(pfad):
 
 
 def run_selftest():
-    fails = []
+    fails, lief = [], []
 
     def check(name, ist, soll):
+        # GEZAEHLT, NICHT GESCHRIEBEN (19.10.2026). Die Zahl am Ende stand als
+        # 24 im print, also blieb sie 24, als sechs Faelle dazukamen - sie sagte
+        # nicht mehr, wie viele gelaufen sind.
+        lief.append(name)
         if ist != soll:
             fails.append("%s\n    ist  %r\n    soll %r" % (name, ist, soll))
 
@@ -269,6 +311,28 @@ def run_selftest():
           True)
     check("endpunkte stehen in der datei", len(log["endpunkte"]), 5)
     check("der hinweis auf schwellen steht drin", "schwellen" in log["hinweis"], True)
+    check("der bruch steht in der datei", log["holders_all_ab"], "2023-09-28")
+    check("und mit begruendung",
+          "umstellung an der quelle" in log["hinweis_holders_all_bruch"], True)
+    # DER BRUCH SELBST, gegen die echte Reihe. Faellt er weg, weil die Quelle
+    # die Geschichte nachtraegt, faellt dieser Fall auf und die Konstante
+    # gehoert geprueft - nicht stillschweigend stehengelassen.
+    if os.path.exists(ZIEL):
+        with open(ZIEL, encoding="utf-8") as fh:
+            echt = json.load(fh)["tage"]
+        nach = {e["datum"]: e for e in echt}
+        if "2023-09-24" in nach and "2023-09-25" in nach:
+            sprung = nach["2023-09-25"]["holders_all"] - nach["2023-09-24"]["holders_all"]
+            check("der sprung am 25.09.2023 ist ueber 30 millionen",
+                  sprung > 30_000_000, True)
+            check("und die schwellenreihe laeuft glatt durch",
+                  abs(nach["2023-09-25"]["holders_001kas"]
+                      - nach["2023-09-24"]["holders_001kas"]) < 5_000, True)
+        # GEZAEHLT GEGEN DIE VORGESCHICHTE, nicht gegen eine feste Zahl: das
+        # Log waechst jeden Tag, die 32 Tage VOR dem Bruch wachsen nicht.
+        vor = [e for e in echt if e["datum"] < log["holders_all_ab"]]
+        check("vor dem bruch stehen 32 tage", len(vor), 32)
+        check("danach der rest", len(echt) - len(vor), len(echt) - 32)
 
     log2, neu2, geaendert2 = verschmelze(json.loads(json.dumps(log)), roh,
                                          "2026-09-28T06:00:00+00:00")
@@ -316,7 +380,7 @@ def run_selftest():
         for f in fails:
             print("  " + f)
         return 1
-    print("selftest ok, 24 faelle")
+    print("selftest ok, %d faelle" % len(lief))
     return 0
 
 
