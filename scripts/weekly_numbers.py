@@ -94,7 +94,7 @@ ISSUE_ANCHOR_NUM = 4
 # war es ein einzelner Tag mit Coinbase (data/weekly-notes.md). Zeilen ohne
 # dieses Feld sind nach der alten Definition gemessen. Einen Vergleich gibt
 # es nur zwischen zwei Zeilen derselben Definition, sonst stuende im Post
-# "down 48 percent", obwohl nur die Zaehlweise gewechselt hat.
+# "down 48%", obwohl nur die Zaehlweise gewechselt hat.
 TPS_DEF = "standard_7d"
 
 # Unter diesem Prozentwert heisst eine Veraenderung "unchanged"
@@ -345,8 +345,8 @@ def delta(key, now, prev):
     else:
         good = (pct > 0 and d > 0) or (pct < 0 and d < 0)
         circle = "\U0001f7e2" if good else "\U0001f534"
-    return circle, "%s %s percent" % ("up" if pct > 0 else "down",
-                                      fmt_num(abs(pct)))
+    return circle, "%s %s%%" % ("up" if pct > 0 else "down",
+                                fmt_num(abs(pct)))
 
 
 def tail(key, now, prev, extra=""):
@@ -459,9 +459,9 @@ def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
     out.append("")
 
     out.append("\U0001fa99 **supply**")
-    out.append("**%s percent** of all KAS already mined"
+    out.append("**%s%%** of all KAS already mined"
                % fmt_num(v["mined_pct"], 2))
-    line = "**%s percent** has not moved in over a year" % fmt_num(v["dormant_pct"]) + QUELLE_KL
+    line = "**%s%%** has not moved in over a year" % fmt_num(v["dormant_pct"]) + QUELLE_KL
     dc, dtxt = delta("dormant_pct", v["dormant_pct"], prev.get("dormant_pct"))
     if SHOW_DELTA.get("dormant_pct") and dc:
         line += " %s %s%s" % (dc, dtxt, extra)
@@ -1109,26 +1109,26 @@ GOLD_MSG = "\n".join([
     "august 3",
     "",
     "⛏️ **mining**",
-    "hashrate **342.5 PH/s** \U0001f7e2 up 30.6 percent this week",
+    "hashrate **342.5 PH/s** \U0001f7e2 up 30.6% this week",
     "block reward **2.45 KAS** \U0001f53b cut to 2.312 on wednesday, 06.15 utc",
     "emission **2,116,775 KAS** per day",
     "",
     "\U0001f310 **network** · source kaspalytics",
     "active addresses **13,940** per day",
-    "tps **0.91** \U0001f7e2 up 21.3 percent",
+    "tps **0.91** \U0001f7e2 up 21.3%",
     "addresses holding a balance **747,603**",
     "",
     "\U0001f9f1 **layer 2**",
-    "total tvl **$1.83M** \U0001f534 down 6.6 percent",
+    "total tvl **$1.83M** \U0001f534 down 6.6%",
     "kasplex **$343K** and igra **$1.49M**",
-    "dex volume **$109K** \U0001f534 down 17.9 percent",
+    "dex volume **$109K** \U0001f534 down 17.9%",
     "chain fees **$226** for the day",
     "",
     "\U0001fa99 **supply**",
-    "**96.21 percent** of all KAS already mined",
+    "**96.21%** of all KAS already mined",
     # seit 16.10.2026 bewusst geaendert: kaspalytics-zeilen nennen ihre quelle
-    "**50.6 percent** has not moved in over a year · source kaspalytics ⚪ unchanged",
-    "exchange balances **3.85B KAS** \U0001f7e2 down 2.2 percent · source kaspalytics",
+    "**50.6%** has not moved in over a year · source kaspalytics ⚪ unchanged",
+    "exchange balances **3.85B KAS** \U0001f7e2 down 2.2% · source kaspalytics",
     "",
     "\U0001f4a1 **the read**",
     GOLD_READ,
@@ -1215,6 +1215,9 @@ def run_selftest():
                 print("      ist  %r" % a)
                 print("      soll %r" % b)
     ok("post vom 03.08. exakt reproduziert", msg == GOLD_MSG)
+    ok("prozent als %, nie percent (regel 19.10.2026)",
+       "percent" not in msg and "**50.6%** has not moved" in msg
+       and "up 21.3%" in msg, msg)
     ok("laenge unter dem discord limit", len(msg) < 1990, len(msg))
 
     # 6b quellen (Ben 16.10.2026): kaspalytics-reihen nennen ihre quelle
@@ -1470,7 +1473,7 @@ def run_selftest():
     gleich = dict(alt, tps_def=TPS_DEF)
     neu2 = build_message(v, gleich, 5, dt.date(2026, 8, 3), GOLD_READ)
     tps2 = [l for l in neu2.split("\n") if l.startswith("tps ")][0]
-    ok("tps mit vergleich bei gleicher definition", "up 21.3 percent" in tps2, tps2)
+    ok("tps mit vergleich bei gleicher definition", "up 21.3%" in tps2, tps2)
     e = history_eintrag("2026-09-28", 12, {"tps": 1.47, "hashrate": 350.0})
     ok("history zeile traegt die definition", e.get("tps_def") == TPS_DEF, e)
     ok("ohne tps keine definition",
@@ -1481,12 +1484,12 @@ def run_selftest():
     lang = build_message(v, sep7, 12, dt.date(2026, 9, 28), GOLD_READ)
     ok("drei wochen abstand, kein this week", "this week" not in lang)
     ok("hashrate sagt since september 7",
-       "up 30.6 percent since september 7" in lang,
+       "up 30.6% since september 7" in lang,
        [l for l in lang.split("\n") if l.startswith("hashrate")])
     ok("alle vergleiche sagen since",
        all("since september 7" in l for l in lang.split("\n")
-           if " percent" in l and ("up " in l or "down " in l)),
-       [l for l in lang.split("\n") if " percent" in l])
+           if "%" in l and ("up " in l or "down " in l)),
+       [l for l in lang.split("\n") if "%" in l])
     ok("unchanged sagt ebenfalls since",
        "unchanged since september 7" in lang)
     assert_punctuation(lang)
