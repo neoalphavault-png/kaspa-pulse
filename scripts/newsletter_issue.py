@@ -45,6 +45,15 @@ DATEI_RE = re.compile(r"(\d{4}-\d{2}-\d{2})\.html$")
 NUMMER_RE = re.compile(r"(issue\s+)(\d+)", re.I)
 PLATZHALTER = "{{ISSUE}}"
 
+# Unsere eigenen Platzhalter in einer Vorlage. Steht einer davon noch im
+# Inhalt, darf die Ausgabe nicht raus. Bewusst eine feste Liste und kein
+# Muster wie {{...}}: Brevos eigene Platzhalter muessen stehen bleiben, und
+# ein unbekannter Brevo-Platzhalter darf keinen Montag blockieren.
+# Anlass VIDEO_URL: am 05.10.2026 ging eine Ausgabe mit href="VIDEO_URL"
+# raus, der Knopf "watch this week's episode" fuehrte ins Leere.
+UNSERE_PLATZHALTER = ("{{ISSUE}}", "{{SUBJECT}}", "{{DATE}}", "VIDEO_URL")
+VIDEO_RE = re.compile(r"youtu\.be/([\w-]{6,})|youtube\.com/watch\?v=([\w-]{6,})")
+
 
 # Kanal-Buttons am Ende jeder Ausgabe (Ben, 12.10.2026): direkt auf die Kanaele,
 # ohne UTM. NICHT die Kurzlinks kaspapulse.com/yt, /x, /ig, /threads, /discord,
@@ -101,6 +110,42 @@ def teile(text):
 
 def nur_inhalt(text):
     return "".join(t for art, t in teile(text) if art == "inhalt")
+
+
+def offene_platzhalter(text):
+    """Welche unserer Platzhalter noch im Inhalt stehen. Kommentare zaehlen
+    nicht mit, der Kopf einer Vorlage erklaert sie ja."""
+    inhalt = nur_inhalt(text)
+    return [ph for ph in UNSERE_PLATZHALTER if ph in inhalt]
+
+
+def video_ids(text):
+    out = []
+    for m in VIDEO_RE.finditer(nur_inhalt(text)):
+        out.append(m.group(1) or m.group(2))
+    return out
+
+
+def videolink_schon_benutzt(pfad, verz=None):
+    """Traegt diese Ausgabe einen Videolink, der schon in einer frueheren
+    Ausgabe stand? Dann ist er wahrscheinlich vergessen worden. Liefert
+    (video_id, frueherer dateiname)."""
+    with open(pfad, encoding="utf-8") as fh:
+        ids = set(video_ids(fh.read()))
+    if not ids:
+        return []
+    datum = datum_aus_pfad(pfad)
+    treffer = []
+    for d, frueher, _ in ausgaben(verz):
+        if os.path.abspath(frueher) == os.path.abspath(pfad):
+            continue
+        if datum and d >= datum:
+            continue
+        with open(frueher, encoding="utf-8") as fh:
+            alt = set(video_ids(fh.read()))
+        for vid in sorted(ids & alt):
+            treffer.append((vid, os.path.basename(frueher)))
+    return treffer
 
 
 def datum_aus_pfad(pfad):
@@ -262,7 +307,22 @@ def selbsttest():
     leer = tempfile.mkdtemp()
     assert naechste_nummer(dt.date(2026, 10, 5), leer) == 1
 
-    print("selbsttest ok: hochzaehlen, platzhalter, wiederholbar, luecke, leeres verzeichnis")
+    # offene platzhalter und der recycelte videolink
+    vorl = schreib("2026-11-02.html",
+                   "<!-- VIDEO_URL erklaert der kopf -->" + kopf % (PLATZHALTER, PLATZHALTER)
+                   + "<a href=\"VIDEO_URL\">x</a>")
+    assert set(offene_platzhalter(open(vorl, encoding="utf-8").read())) == {"{{ISSUE}}", "VIDEO_URL"}
+    assert offene_platzhalter("<p>alles gefuellt, issue 14</p>") == []
+    assert offene_platzhalter("<!-- hier steht VIDEO_URL im kommentar -->") == []
+    a1 = schreib("2026-11-09.html", kopf % (16, 16) + '<a href="https://youtu.be/AAAAAAAAAAA">v</a>')
+    a2 = schreib("2026-11-16.html", kopf % (17, 17) + '<a href="https://youtu.be/AAAAAAAAAAA">v</a>')
+    assert video_ids(open(a1, encoding="utf-8").read()) == ["AAAAAAAAAAA"]
+    assert videolink_schon_benutzt(a2, v) == [("AAAAAAAAAAA", "2026-11-09.html")]
+    assert videolink_schon_benutzt(a1, v) == []
+    for f in (vorl, a1, a2):
+        os.remove(f)
+
+    print("selbsttest ok: offene platzhalter, recycelter videolink, hochzaehlen, platzhalter, wiederholbar, luecke, leeres verzeichnis")
     return 0
 
 
