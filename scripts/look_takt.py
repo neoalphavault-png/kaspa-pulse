@@ -172,7 +172,7 @@ def merken(speicher, serie, kanal, datum, sonder=None):
 # Rang davor steht, und rechnet vom Vortag weiter. Das Karussell nimmt den
 # Schritt nach ihr.
 RASTER = "raster/instagram"
-RANG = {"tagesgrafik": 1, "karussell": 2}
+RANG = {"tagesgrafik": 1, "meme": 2, "karussell": 3}
 
 
 def _raster_ort(e):
@@ -188,11 +188,16 @@ def raster_faellig(speicher, serie, datum):
     for e in reihe:
         if e["datum"] == datum and e.get("serie") == serie:
             return e["schritt"], e["look"]
-    # ein spaeterer rang am selben tag folgt dem frueheren, auch wenn der noch
-    # nicht gelaufen ist: das karussell nimmt den schritt nach der tagesgrafik
-    vorgaenger = [x for x, n in sorted(RANG.items(), key=lambda t: t[1]) if n < RANG[serie]]
-    if vorgaenger:
-        schritt = (raster_faellig(speicher, vorgaenger[-1], datum)[0] + 1) % len(TAKT)
+    # ein spaeterer rang folgt dem letzten post desselben tags davor. gibt es
+    # an dem tag noch keinen, folgt er der tagesgrafik, auch wenn die noch
+    # nicht gelaufen ist (der entwurf entsteht oft am vorabend). ein rang
+    # ohne post (kein meme an einem karussell-samstag) zaehlt nicht mit.
+    if RANG[serie] > 1:
+        am_tag = [e for e in reihe if e["datum"] == datum and 1 < RANG.get(e.get("serie"), 9) < RANG[serie]]
+        if am_tag:
+            schritt = (max(am_tag, key=_raster_ort)["schritt"] + 1) % len(TAKT)
+        else:
+            schritt = (raster_faellig(speicher, "tagesgrafik", datum)[0] + 1) % len(TAKT)
         return schritt, TAKT[schritt]
     ort = (datum, RANG[serie])
     davor = [e for e in reihe if _raster_ort(e) < ort]
@@ -313,6 +318,13 @@ def selbsttest():
        and raster_faellig(sp4, "tagesgrafik", "2026-10-24")[0] == (fr + 1) % 4
        and raster_faellig(sp4, "tagesgrafik", "2026-10-25")[0] == (fr + 3) % 4)
     ok("im raster laeuft das muster ohne bruch", folge == [TAKT[(1 + i + 1) % 4] for i in range(len(folge))])
+    # das meme am sonntag (Ben, 19.10.2026): eigener rang nach der tagesgrafik,
+    # und an einem karussell-samstag ohne meme ueberspringt nichts
+    m = raster_merken(sp4, "meme", "2026-10-25")
+    ok("meme am sonntag nimmt den schritt nach der tagesgrafik",
+       raster_faellig(sp4, "meme", "2026-10-25")[0] == (raster_faellig(sp4, "tagesgrafik", "2026-10-25")[0] + 1) % 4)
+    ok("tagesgrafik am montag folgt dem meme",
+       raster_faellig(sp4, "tagesgrafik", "2026-10-26")[0] == (raster_faellig(sp4, "meme", "2026-10-25")[0] + 1) % 4)
     ok("ein zweiter entwurf am selben tag schiebt nicht weiter",
        raster_merken(sp4, "karussell", "2026-10-24") == k)
     ok("hell, #49EACB nur als markierung", LOOKS["hell"]["akzent"] == "#0F9A80"
