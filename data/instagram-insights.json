@@ -620,6 +620,13 @@
      "comments": 3,
      "saved": 4,
      "shares": 1
+    },
+    "2026-10-19": {
+     "reach": 1840,
+     "likes": 28,
+     "comments": 3,
+     "saved": 4,
+     "shares": 1
     }
    }
   },
@@ -666,6 +673,13 @@
     "2026-10-18": {
      "reach": 42,
      "likes": 7,
+     "comments": 0,
+     "saved": 2,
+     "shares": 3
+    },
+    "2026-10-19": {
+     "reach": 45,
+     "likes": 8,
      "comments": 0,
      "saved": 2,
      "shares": 3
@@ -718,6 +732,13 @@
      "comments": 1,
      "saved": 3,
      "shares": 1
+    },
+    "2026-10-19": {
+     "reach": 104,
+     "likes": 11,
+     "comments": 1,
+     "saved": 3,
+     "shares": 1
     }
    }
   },
@@ -748,6 +769,13 @@
      "shares": 3
     },
     "2026-10-18": {
+     "reach": 1478,
+     "likes": 12,
+     "comments": 0,
+     "saved": 0,
+     "shares": 3
+    },
+    "2026-10-19": {
      "reach": 1478,
      "likes": 12,
      "comments": 0,
@@ -791,6 +819,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-19": {
+     "reach": 34,
+     "likes": 4,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -822,6 +857,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-19": {
+     "reach": 46,
+     "likes": 8,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -846,6 +888,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-19": {
+     "reach": 28,
+     "likes": 7,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -867,6 +916,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-19": {
+     "reach": 87,
+     "likes": 7,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -884,9 +940,33 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-19": {
+     "reach": 28,
+     "likes": 6,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    }
+   }
+  },
+  "18109619987238254": {
+   "gepostet_utc": "2026-10-19T07:31:51+0000",
+   "typ": "IMAGE",
+   "permalink": "https://www.instagram.com/p/DequmJFFllV/",
+   "form": 2,
+   "caption_sha": "198c1693be1a",
+   "frage": null,
+   "tage": {
+    "2026-10-19": {
+     "reach": 10,
+     "likes": 3,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   }
  },
- "stand_utc": "2026-10-18T09:53:00+00:00"
+ "stand_utc": "2026-10-19T11:15:12+00:00"
 }
