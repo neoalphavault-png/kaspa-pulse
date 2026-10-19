@@ -1,44 +1,39 @@
 {
-  "issue": "OCT 17 2026",
+  "issue": "OCT 18 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "$1.07M",
-  "value_label": "locked across kasplex and igra",
-  "headline": "layer 2 tvl is *down 23%*\nagainst 6 weeks ago.",
+  "value": "382 PH",
+  "value_label": "petahash per second securing the network on 18 oct",
+  "headline": "hashrate *up 15%*.\nthe reward fell.",
   "panes": [
     {
-      "kind": "compare",
-      "title": "TOTAL VALUE LOCKED",
-      "sub": "same measurement, two dates",
-      "rows": [
-        {
-          "label": "today",
-          "sub": "",
-          "value": "$1.07M",
-          "pct": 77.4004338320461,
-          "tone": "red"
-        },
-        {
-          "label": "6 weeks ago",
-          "sub": "",
-          "value": "$1.39M",
-          "pct": 100.0,
-          "tone": "grey"
-        }
-      ]
+      "kind": "line",
+      "title": "BOTH SET TO 100 AT THE ANCHOR",
+      "sub": "hashrate against what a block pays",
+      "series": [
+        100.0,
+        114.70372817621586
+      ],
+      "baseline": [
+        100.0,
+        94.38743126816935
+      ],
+      "base_label": "block reward",
+      "end_label": "hashrate 115",
+      "tone": "teal"
     },
     {
       "kind": "anchor",
-      "title": "WHAT THE NUMBER IS",
+      "title": "WHAT MINERS ARE PAID",
       "lines": [
-        "the difference is *$313K*.",
-        "*counted* from the same source."
+        "the block reward fell *5.61%*",
+        "over the same days."
       ]
     }
   ],
-  "sources": "defillama.com",
+  "sources": "api.kaspa.org, emission from the schedule",
   "site": "kaspapulse.com",
   "post": {
-    "x": "layer 2 tvl on kaspa is down 23% against 6 weeks ago. $1.07M today, $1.39M then, both read from the same source 40 days apart.",
-    "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
+    "x": "kaspa's hashrate is up 15% against 6 weeks ago. over the same days the block reward fell 5.61%, as it does every month by design. more machines securing the chain, less new supply paying for them. that gap is the whole security question.",
+    "reply": "the schedule behind the reward is on kaspapulse.com/kaspa-halving.html. we report the movement, never the motive."
   }
 }

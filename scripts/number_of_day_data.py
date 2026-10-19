@@ -42,6 +42,7 @@ import datetime as dt
 import json
 import math
 import os
+import re
 import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -239,6 +240,35 @@ def fmt_money(v):
     if v >= 1e3:
         return "$%.1fK" % (v / 1e3)
     return "$%.0f" % v
+def stichtag(day):
+    """"17 oct", der messtag in fliesstext und beschriftung."""
+    return "%d %s" % (day.day, MONTHS[day.month - 1].lower())
+
+
+# herkunft (Ben, 16./17.10.2026): "counted" nur fuer eigene zaehlungen, eine
+# fremde reihe sagt "read from" und nennt die quelle. eigen ist, was wir
+# selbst zaehlen oder rechnen, erkennbar an der quellzeile.
+EIGENE_ZAEHLUNG = re.compile(r"counted by us|our own count|counted by kaspa pulse", re.I)
+
+
+def eigene_zaehlung(quelle):
+    return bool(EIGENE_ZAEHLUNG.search(quelle or ""))
+
+
+def herkunft_kurz(quelle):
+    """die ankerzeile fuer zwei werte aus derselben reihe."""
+    if eigene_zaehlung(quelle):
+        return "*counted* from the same source."
+    return "*read* from %s, both days." % quelle
+
+
+def herkunft_post(quelle, tage):
+    """der halbsatz im posttext fuer zwei werte aus derselben reihe."""
+    if eigene_zaehlung(quelle):
+        return "both counted by us %d days apart." % tage
+    return "both read from %s %d days apart." % (quelle, tage)
+
+
 def issue_line(day):
     # seit dem 27.08. traegt der renderer die marke selbst im kopf. hier
     # steht nur noch das datum, sonst stuende kaspa pulse doppelt da.
@@ -319,7 +349,7 @@ KENNZAHLEN = {
     "hashrate_move": {
         "mess": ("hashrate",),
         "fmt": lambda v: "%.0f PH" % float(v),
-        "label": "petahash per second securing the network right now",
+        "label": "petahash per second securing the network",
         "quelle": "api.kaspa.org",
     },
     "tvl_move": {
@@ -435,7 +465,7 @@ def cand_cut_today(ctx):
                 "to %s."
                 % (verb, pct, when, fmt_int(gone),
                    fmt_millions(e_before), fmt_millions(e_after)),
-                "the live emission numbers are on " + HALVING_URL + ". the exact "
+                "the emission numbers are on " + HALVING_URL + ". the exact "
                 "minute drifts, the cut lands on a block score, not a clock."),
         },
     }
@@ -493,7 +523,7 @@ def cand_cut_countdown(ctx):
                 % (d, word, fmt_int(btc_days), int(btc_days / (STEP / DAY)),
                    fmt_millions(e_now), fmt_millions(e_next),
                    ctx["reward"], ctx["next_reward"]),
-                "the countdown runs live on " + HALVING_URL + ". the kaspa date "
+                "the countdown runs on " + HALVING_URL + ". the kaspa date "
                 "is arithmetic, the bitcoin date is an estimate."),
         },
     }
@@ -590,26 +620,28 @@ def _move_candidate(ctx, key, title, unit_fmt, label, headline_word,
                     "title": "WHAT THE NUMBER IS",
                     "lines": [
                         "the difference is *%s*." % unit_fmt(abs(now - then)),
-                        "*counted* from the same source.",
+                        herkunft_kurz(sources),
                     ],
                 },
             ],
             "sources": sources,
             "site": "kaspapulse.com",
             "post": post_block(
-                "%s on kaspa is %s %.0f%% against %s. %s today, %s then, "
-                "both read from the same source %d days apart."
+                "%s on kaspa is %s %.0f%% against %s. %s today, %s then, %s"
                 % (headline_word, direction, abs(change), age_phrase(age),
-                   unit_fmt(now), unit_fmt(then), age),
+                   unit_fmt(now), unit_fmt(then), herkunft_post(sources, age)),
                 "the weekly readings behind that are on " + SITE_URL + ". the "
                 "anchor is the weekly reading we archived, not a chart high."),
         },
     }
 def cand_hashrate_move(ctx):
     k = KENNZAHLEN["hashrate_move"]
+    # der messtag steht an der beschriftung (Ben, 17.10.2026), statt eines
+    # echtzeit-worts. KENNZAHLEN bleibt ohne datum, der short liest es dort.
     return _move_candidate(
         ctx, "hashrate", "NETWORK HASHRATE",
-        k["fmt"], k["label"], "hashrate", 30.0, k["quelle"])
+        k["fmt"], "%s on %s" % (k["label"], stichtag(ctx["today"])), "hashrate", 30.0,
+        k["quelle"])
 def cand_tvl_move(ctx):
     k = KENNZAHLEN["tvl_move"]
     return _move_candidate(
@@ -968,13 +1000,13 @@ def cand_hashrate_consequence(ctx):
     if reward_then <= reward_now:
         return None
     pay = 100.0 * (reward_then - reward_now) / reward_then
-    return {
+    res = {
         "score": 34.0 + min(30.0, change),
         "payload": {
             "issue": issue_line(ctx["today"]),
             "eyebrow": "NUMBER OF THE DAY",
             "value": "%.0f PH" % now,
-            "value_label": "petahash per second securing the network right now",
+            "value_label": "petahash per second securing the network",
             "headline": "hashrate *up %.0f%%*.\nthe reward fell."
                         % change,
             "panes": [
@@ -1012,6 +1044,9 @@ def cand_hashrate_consequence(ctx):
                 "report the movement, never the motive."),
         },
     }
+    # der messtag an der beschriftung (Ben, 17.10.2026)
+    res["payload"]["value_label"] += " on %s" % stichtag(ctx["today"])
+    return res
 
 
 CANDIDATES = [
@@ -1379,6 +1414,22 @@ def run_selftest():
         ok("heutiger wert steht zuerst", rows[0]["label"] == "today")
         ok("anker ist nicht der eintrag von heute",
            "342" not in rows[1]["value"], rows[1]["value"])
+        # herkunft und messtag (Ben, 17.10.2026)
+        p = res["payload"]
+        ok("hashrate nennt den messtag statt right now",
+           p["value_label"] == "petahash per second securing the network on %s"
+           % stichtag(far["today"]) and "right now" not in json.dumps(p), p["value_label"])
+        ok("fremde quelle sagt read from und nennt sie",
+           "*read* from api.kaspa.org, both days." in p["panes"][1]["lines"]
+           and "counted" not in json.dumps(p["panes"]) and "both read from api.kaspa.org" in p["post"]["x"],
+           p["panes"][1]["lines"])
+    tvl = cand_tvl_move(far)
+    ok("tvl sagt read from defillama.com, nie counted",
+       tvl is not None and "*read* from defillama.com, both days." in tvl["payload"]["panes"][1]["lines"]
+       and "counted" not in json.dumps(tvl["payload"]), tvl and tvl["payload"]["panes"][1]["lines"])
+    ok("eigene zaehlung sagt counted", herkunft_kurz("kraken daily closes, counted by us")
+       == "*counted* from the same source." and herkunft_post("counted by us", 6) == "both counted by us 6 days apart.")
+    ok("stichtag im hausformat", stichtag(dt.date(2026, 10, 17)) == "17 oct")
     flat = build_context(now_ts=ANCHOR_TS + 3 * DAY, live=FAKE_LIVE,
                          history=[{"week": "2026-06-01", "hashrate": 340.0}])
     ok("kleine bewegung feuert nicht", cand_hashrate_move(flat) is None)
@@ -1505,6 +1556,9 @@ def run_selftest():
         walk_and_check(hc["payload"])
         ok("die folge nennt den gefallenen reward",
            "block reward fell" in hc["payload"]["panes"][1]["lines"][0])
+        ok("die folge nennt den messtag statt right now",
+           hc["payload"]["value_label"].endswith(" on %s" % stichtag(hoch["today"]))
+           and "right now" not in json.dumps(hc["payload"]), hc["payload"]["value_label"])
     flach = build_context(now_ts=ANCHOR_TS + 3 * DAY,
                           live=dict(FAKE_LIVE, hashrate=FAKE_HISTORY[0]["hashrate"]),
                           history=FAKE_HISTORY)
