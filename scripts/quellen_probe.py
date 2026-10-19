@@ -46,6 +46,7 @@ WAS BISHER HERAUSKAM, in Kurzform
 import argparse
 import datetime as dt
 import json
+import pathlib
 import os
 import re
 import sys
@@ -737,7 +738,100 @@ def befehl_montag():
     return schlecht
 
 
+def befehl_dexs():
+    """Das DEX-Volumen bei defillama, getrennt nach Kasplex und Igra.
+
+    WOFUER (Ben, 19.10.2026). Die Sprungbremse hat den Wochenpost um 18:40
+    angehalten: dex_vol springt von 4.448 auf 51.173, also um 1050 Prozent
+    bei einer Grenze von 400. Zu pruefen ist, ob die Zahl stimmt - und das
+    geht nur von einem Laeufer aus: die Arbeitsumgebung kommt an
+    api.llama.fi nicht heran, der Proxy antwortet 403 auf CONNECT.
+
+    GEDRUCKT WIRD, WAS DIE FRAGE BEANTWORTET:
+      total24h je Kette      das ist der Wert, den weekly_numbers.py nimmt
+                             (_llama_overview liest total24h, NICHT total7d)
+      total7d je Kette       das Wochenfenster, nach dem Ben gefragt hat
+      die Protokolle         mit ihren 24h- und 7d-Werten. Ein neuer Pool
+                             auf Igra - Zealous Swap V3 - steht hier als
+                             eigene Zeile, wenn es ihn gibt
+      die Tagesreihe         die letzten 14 Tage, damit sich der 11. bis
+                             17. Oktober nachrechnen laesst
+
+    Diese Sonde liest nur. Sie postet nichts und schreibt nichts ins Repo."""
+    schlecht = 0
+    print("# DEX-VOLUMEN BEI DEFILLAMA, JE KETTE")
+    print("# weekly_numbers.py nimmt total24h. Das ist ein TAGESWERT, auch")
+    print("# wenn er im Wochenpost steht - deshalb die Tagesreihe darunter.")
+    gesamt24 = gesamt7 = 0.0
+    for kette in ("kasplex", "igra"):
+        url = ("https://api.llama.fi/overview/dexs/%s"
+               "?excludeTotalDataChartBreakdown=true" % kette)
+        st, txt = hole(url)
+        print("\n## %s  ->  HTTP %s" % (kette, st))
+        d, wie = form(txt)
+        if not isinstance(d, dict):
+            print("   %s" % wie)
+            print("   roh: %s" % kurz(txt, 300))
+            schlecht = 1
+            continue
+        for k in ("total24h", "total48hto24h", "total7d", "total14dto7d",
+                  "total30d", "change_1d", "change_7d", "change_1m"):
+            print("   %-16s %s" % (k, d.get(k)))
+        if d.get("total24h") is not None:
+            gesamt24 += float(d["total24h"])
+        if d.get("total7d") is not None:
+            gesamt7 += float(d["total7d"])
+        prot = d.get("protocols") or []
+        print("   protokolle: %d" % len(prot))
+        for q in sorted(prot, key=lambda x: -(x.get("total24h") or 0)):
+            print("     %-28s 24h %14s   7d %14s   %s"
+                  % (str(q.get("name"))[:28], q.get("total24h"),
+                     q.get("total7d"), ",".join(q.get("chains") or [])))
+        reihe = d.get("totalDataChart") or []
+        print("   tagesreihe, letzte 14 von %d:" % len(reihe))
+        for eintrag in reihe[-14:]:
+            try:
+                ts, wert = eintrag[0], eintrag[1]
+                tag = dt.datetime.fromtimestamp(
+                    int(ts), dt.timezone.utc).strftime("%Y-%m-%d %a")
+            except Exception:                      # noqa: BLE001
+                print("     %s" % kurz(eintrag, 120))
+                continue
+            print("     %s  %14s" % (tag, wert))
+        # Das Fenster, nach dem Ben gefragt hat, aus der Tagesreihe gerechnet.
+        fenster = []
+        for eintrag in reihe:
+            try:
+                tag = dt.datetime.fromtimestamp(
+                    int(eintrag[0]), dt.timezone.utc).date()
+            except Exception:                      # noqa: BLE001
+                continue
+            if dt.date(2026, 10, 11) <= tag <= dt.date(2026, 10, 17):
+                fenster.append((tag, float(eintrag[1] or 0)))
+        if fenster:
+            print("   11. bis 17. oktober: %d tage, summe %.0f, mittel %.0f"
+                  % (len(fenster), sum(w for _t, w in fenster),
+                     sum(w for _t, w in fenster) / len(fenster)))
+        else:
+            print("   11. bis 17. oktober: in der tagesreihe nicht gefunden")
+    print("\n## summe beider ketten")
+    print("   total24h %14.0f   <- das ist dex_vol im post" % gesamt24)
+    print("   total7d  %14.0f" % gesamt7)
+    print("\n## unsere eigene reihe, data/weekly-history.json")
+    try:
+        hist = json.loads(pathlib.Path("data/weekly-history.json")
+                          .read_text(encoding="utf-8"))
+        for r in hist[-10:]:
+            print("   %s  issue %-3s  dex_vol %s  tvl_total %s"
+                  % (r.get("week"), r.get("issue"), r.get("dex_vol"),
+                     r.get("tvl_total")))
+    except Exception as exc:                       # noqa: BLE001
+        print("   nicht lesbar: %s" % exc)
+    return schlecht
+
+
 BEFEHLE = {
+    "dexs": befehl_dexs,
     "kaspalytics": befehl_kaspalytics,
     "bestaende": befehl_bestaende,
     "stream": befehl_stream,
