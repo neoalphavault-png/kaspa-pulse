@@ -1,0 +1,133 @@
+name: threads
+
+# Threads, ein Post am Tag um 17:10 Berlin (Ben, 17.10.2026).
+#
+# Der Takt kommt von c2 (takt-threads.timer), GitHubs geplante Laeufe kommen
+# in diesem Konto sechs bis sieben Stunden zu spaet. Bild und Text kommen
+# aus dem Artefakt des Tagesgrafik-Laufs vom Morgen: das Threads-Bild im
+# eigenen Look und der X-Text (drei Zeilen, Frage am Ende). Steht in
+# data/threads-queue.json ein Text fuer den Tag, geht der vor.
+#
+# VEROEFFENTLICHT WIRD NUR MIT ZWEI SCHALTERN, wie bei Instagram: der Takt
+# schickt modus=scharf (THREADS_LIVE in takt.conf) UND die Variable
+# THREADS_LIVE steht auf "scharf". Steht ZIEL auf "moderator", ist der Job
+# nicht faellig. Ein Lauf von Hand (modus=trocken) legt nur den Container an
+# und veroeffentlicht nie. Der Token kommt nur als Secret THREADS_TOKEN in
+# den einen Schritt, der ihn braucht.
+
+on:
+  workflow_dispatch:
+    inputs:
+      modus:
+        description: "trocken = von hand, nur container. scharf = takt von c2"
+        type: choice
+        options:
+          - trocken
+          - scharf
+        default: trocken
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: threads
+  cancel-in-progress: false
+
+jobs:
+  threads:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      ZIEL: ${{ vars.ZIEL }}
+      # --takt behaelt Zeitfenster und Tagessperre, --hand laesst beide weg
+      # und ist nie scharf
+      TH_START: ${{ inputs.modus == 'scharf' && '--takt' || '--hand' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: pillow
+        run: "pip install --only-binary=:all: pillow==11.3.0"
+      - name: selbsttest
+        run: python3 scripts/threads.py --selbsttest
+      - name: grafik aus dem 07:30-lauf
+        id: a
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/threads.py artefakt $TH_START --ziel out/th
+      - name: jpeg
+        id: j
+        if: steps.a.outputs.faellig == '1' && steps.a.outputs.gefunden == '1'
+        env:
+          PNG: ${{ steps.a.outputs.png }}
+        run: python3 scripts/instagram.py jpeg --png "$PNG" --ziel ig
+      - name: jpeg auf kaspapulse.com
+        if: steps.a.outputs.faellig == '1' && steps.a.outputs.gefunden == '1'
+        env:
+          JPEG: ${{ steps.j.outputs.jpeg }}
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add "$JPEG" 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "jpeg schon im repo"
+          else
+            git commit -m "threads bild [bot]"
+            git pull --rebase --autostash origin "$GITHUB_REF_NAME"
+            git push
+          fi
+          # threads holt das bild ueber die oeffentliche adresse, also warten,
+          # bis kaspapulse.com genau diese datei ausliefert
+          python3 - "$JPEG" <<'PY'
+          import sys, pathlib
+          sys.path.insert(0, "scripts")
+          import instagram
+          p = pathlib.Path(sys.argv[1])
+          instagram.url_warten(instagram.SEITE + "/ig/" + p.name, p.stat().st_size)
+          print("oeffentlich, " + instagram.SEITE + "/ig/" + p.name)
+          PY
+      - name: container, status, veroeffentlichen nur wenn scharf
+        if: steps.a.outputs.faellig == '1' && steps.a.outputs.gefunden == '1'
+        env:
+          THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
+          THREADS_USER_ID: ${{ vars.THREADS_USER_ID }}
+          THREADS_LIVE: ${{ vars.THREADS_LIVE }}
+          MODUS: ${{ inputs.modus }}
+          JPEG: ${{ steps.j.outputs.jpeg }}
+          TEXT: ${{ steps.a.outputs.text }}
+        run: |
+          BILD="https://kaspapulse.com/ig/$(basename "$JPEG")"
+          HAND=""; [ "$TH_START" = "--hand" ] && HAND="--hand"
+          python3 scripts/threads.py posten --bild "$BILD" --text-datei "$TEXT" --modus "$MODUS" $HAND
+      - name: log sichern
+        if: always() && steps.a.outputs.faellig == '1'
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/threads-post-log.json 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "log unveraendert, kein commit"
+          else
+            git commit -m "threads log [bot]"
+            git pull --rebase --autostash origin "$GITHUB_REF_NAME"
+            git push
+          fi
+      - name: ops bei rot
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
+          text = "threads ist rot, heute kein post\n" + os.environ.get("LAUF", "")
+          print(text)
+          if hook:
+              req = urllib.request.Request(hook, data=json.dumps({"content": text,
+                    "allowed_mentions": {"parse": []}}).encode(), headers={
+                    "Content-Type": "application/json", "User-Agent": "kaspa-pulse-bot"})
+              urllib.request.urlopen(req, timeout=30)
+          PY
