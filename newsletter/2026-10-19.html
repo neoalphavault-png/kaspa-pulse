@@ -13,10 +13,11 @@
   351.97 gegen 339.06 aus data/number-of-day-log.json. Wallet 10.10. 18:29 und 17.10.
   17:02 UTC (scripts/entity_x_daily.json), Differenz erst gerundet, dann abgezogen:
   1,528,621,611 minus 1,527,589,469 = 1,032,142 (ungerundet 1,032,142.10).
-  Emission 1,779,989 minus 1,680,086 = 99,903. Gebuehrenanteil 0.1338 aus
-  data/pruefung/mining-ertrag-monate-2023-10-bis-2026-09.csv (Branch
-  pruefung/mining-revenue-2026-09-26), 1.-25.09.2026, Zaehler und Nenner ueber
-  dieselben 25 Tage, 24 Tage alt. Keine Kaspalytics-Zahl in dieser Ausgabe.
+  Emission 1,779,989 minus 1,680,086 = 99,903. Keine Kaspalytics-Zahl in dieser
+  Ausgabe, und seit dem 19.10. auch kein Gebuehrenanteil: der Wert 0.1338 kam
+  in der Ausgabe selbst nicht vor und stand nur noch in HOW WE COUNT.
+  Volumen: kraken_daily in scripts/kas_candles.py speichert Volumen mal
+  Schluss, die Zahl ist also DOLLAR und nicht KAS.
 
   VIDEO_URL ist Platzhalter: der Link der Folge steht nicht in der Sonntagsdatei,
   Ben liefert ihn nach (Punkt 9 der Routine).
@@ -86,8 +87,8 @@
         <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right; color:#49EACB;">1.24% above, down from 16.97% a week earlier</td>
       </tr>
       <tr>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">weekly volume, 11 oct to 17 oct</td>
-        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">9.35M units, 37.49% above the week before</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; color:#9BA3AB;">weekly volume on kraken, 11 oct to 17 oct</td>
+        <td style="padding:9px 0; border-bottom:1px solid #1A1D21; text-align:right;">$9.35M, 37.49% above the week before</td>
       </tr>
       <tr>
         <td style="padding:9px 0; color:#9BA3AB;">one kas in satoshis, 17 oct</td>
@@ -101,12 +102,12 @@
     <div style="font-size:15px; line-height:24px; color:#9BA3AB; padding-top:10px;">
       kaspa closed the week 13.34% lower, saturday 10 october to saturday 17 october, after 9.98% and 5.43% lower in
       the two weeks before, so 26.22% down across the 3 weeks since saturday 26 september. the weekly move is the
-      12th weakest of the 98 in our series, which starts on 19 november 2024. the close sits 1.46% below the
+      12th weakest of the 98 weekly moves in our series. the close sits 1.46% below the
       50 week average. our series carries that line for 50 weeks, the first 45 closed below it, the next 4 closed
       above it, and this is the 46th below. a week earlier the gap was 12.59% above, a turn of 14.05 points. the close
       still sits 1.24% above the 21 week average, which it has closed above in 12 of 79 weeks, the last 6 in a row.
       a close above $0.035538 would hold both lines, 0.56% above this close. hashrate read 383.01 PH/s
-      on saturday 17 october, the highest of the 63 days in our own log, which starts on 13 august 2026, and averaged
+      on saturday 17 october, the highest of the 63 recorded days in our own log, which starts on 13 august 2026, and averaged
       351.97 PH/s from 11 to 17 october, against 339.06 from 4 to 10 october.
     </div>
   </td></tr>
@@ -142,9 +143,7 @@
       average of the last 50 weekly closes. the chart above draws from that same series. block reward and emission
       come from our own chain reader against kaspa's fixed anchor and monthly step; for the next cut we print
       the date only, because the step lands on a block score and not on a clock, so the minute moves. hashrate is our own daily
-      reading, averaged over seven days per window. the fee share is our own count across 1 to 25 september 2026,
-      0.1338% of miner revenue, fees and reward over the same 25 days; that count is 24 days old today. the wallet figures are daily balances on the dates given, two
-      daily readings.
+      reading, averaged over seven days per window. the wallet figures are two readings at the times given.
     </div>
   </td></tr>
 
@@ -154,7 +153,7 @@
         <div style="font-size:11px; letter-spacing:2px; color:#49EACB; text-transform:uppercase;">new on youtube</div>
         <div style="font-size:15px; color:#FFFFFF; font-weight:700; padding-top:10px;">Kaspa Analysis | 3 Red Weeks And The 50 Week Line Broke</div>
         <div style="font-size:13px; line-height:21px; color:#9BA3AB; padding:8px 0 14px 0;">
-          the whole close in one sitting, both lines, and the highest hashrate of 63 logged days. new chart breakdown every monday, subscribe so you don't miss it.
+          the whole close in one sitting, both lines, and the highest hashrate of 63 recorded days. new chart breakdown every monday, subscribe so you don't miss it.
         </div>
         <a href="VIDEO_URL" style="display:inline-block; background:#49EACB; color:#050608; font-size:14px; font-weight:700; text-decoration:none; padding:11px 20px; border-radius:8px;">watch this week's episode</a>
       </td></tr>
@@ -176,8 +175,8 @@
 
   <tr><td style="padding:18px 28px 0 28px;">
     <div style="font-size:13px; line-height:21px; color:#9BA3AB;">
-      every number here is counted by us from public data, kraken daily candles for price and volume,
-      our own chain reader for reward and emission. the definitions and the daily updates are at
+      price and volume come from kraken's daily candles (source kraken), the two averages are computed by us
+      from them, reward, emission and hashrate come from our own chain reader. the definitions and the daily updates are at
       <a href="https://kaspapulse.com/?utm_source=newsletter&amp;utm_medium=mail&amp;utm_campaign=weekly8#subscribe" style="color:#49EACB; text-decoration:none;">kaspapulse.com</a>,
       the weekly page with the same chart is at
       <a href="https://kaspapulse.com/kaspa-weekly.html" style="color:#49EACB; text-decoration:none;">kaspapulse.com/kaspa-weekly.html</a>.
