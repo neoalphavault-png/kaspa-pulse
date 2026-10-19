@@ -28,6 +28,23 @@ case "$1" in
     # scharf), scharf als Takt (Fenster und Tagessperre gelten).
     "$HIER/takt.sh" "$REPO_PULSE" tagesgrafik.yml "instagram=${IG_LIVE:-trocken}"
     ;;
+  threads)
+    # threads.yml (Ben, 17.10.2026). scharf steuert THREADS_LIVE hier, der
+    # zweite Schalter ist die Repository-Variable THREADS_LIVE. trocken legt
+    # nur den Container an und veroeffentlicht nie.
+    "$HIER/takt.sh" "$REPO_PULSE" threads.yml "modus=${THREADS_LIVE:-trocken}"
+    ;;
+  karussell-woche)
+    # karussell.yml (Ben, 18.10.2026), nur entwurf nach #moderator-only
+    "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=woche fuer= senden=true
+    ;;
+  karussell-story)
+    "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=story fuer= senden=true
+    ;;
+  karussell-meme)
+    # "Meme, but true", entwurf am posttag, misst die blockrate am posttag
+    "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=meme fuer= senden=true
+    ;;
   reel)
     # Leere Eingaben: der Lauf nimmt den Short, der jetzt faellig ist.
     # live steuert die Variable REELS_LIVE, nicht der Takt.
