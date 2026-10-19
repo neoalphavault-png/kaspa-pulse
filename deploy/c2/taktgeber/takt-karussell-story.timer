@@ -1,0 +1,11 @@
+[Unit]
+Description=Kaspa Pulse Takt, Karussell-Entwurf Story, Di 18:00 Berlin, fuer Mi 18:00
+
+[Timer]
+Unit=takt@karussell-story.service
+OnCalendar=Tue *-*-* 18:00:00 Europe/Berlin
+Persistent=true
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target
