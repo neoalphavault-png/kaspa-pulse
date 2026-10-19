@@ -558,6 +558,17 @@ def load_json(path, default=None):
         return json.load(fh)
 
 
+# DER SERIENSTART DER WOCHENREIHE IST DER 24.11.2024 (Ben, 19.10.2026, wie
+# im Newsletter korrigiert). Die Marke in ROWS ist der SONNTAG, der
+# Wochenanfang, und ROWS[0] ist 2024-11-24. Der 19.11.2024 ist die erste
+# TAGESkerze der Kraken-Reihe - sie ist in die Wochentexte gerutscht und
+# stand am 12.10. und am 19.10. im read. Gemeldet wird nur, wo die 19 in
+# EINEM Satz mit "week" steht; wo wirklich die Tagesreihe gemeint ist,
+# bleibt sie richtig.
+SERIE_ALT = re.compile(r"\b19\s+nov(?:ember)?\s+2024\b", re.I)
+SERIE_RICHTIG = "24 november 2024"
+
+
 def read_input(path=None):
     data = load_json(path or INPUT_PATH)
     week = str(data.get("week", "")).strip()
@@ -575,6 +586,15 @@ def read_input(path=None):
     if len(read) < 40:
         raise Stop("the read fehlt oder ist zu kurz. das ist der teil der uns "
                    "von einem datenfeed unterscheidet, den schreibt kein bot")
+    for satz in re.split(r"(?<=[.?!])\s+", read):
+        if SERIE_ALT.search(satz) and "week" in satz.lower():
+            raise Stop(
+                "the read sagt %s ueber die wochenreihe. die faengt am %s an "
+                "- die marke in ROWS ist der SONNTAG, der wochenanfang, und "
+                "ROWS[0] ist 2024-11-24. der 19.11.2024 ist die erste "
+                "TAGESkerze der kraken-reihe. gefunden in: %r"
+                % (SERIE_ALT.search(satz).group(0), SERIE_RICHTIG,
+                   satz.strip()[:110]))
     return {
         "week": week,
         "date": wd,
@@ -1397,6 +1417,24 @@ def run_selftest():
         kaspalytics_reset()
 
     bad2 = json.loads(json.dumps(good))
+    # Der Serienstart, der am 12.10. und am 19.10. im read stand.
+    bad_serie = json.loads(json.dumps(good))
+    bad_serie["read"] = ("the close fell 13.34% and sits below the 50 week "
+                         "average, in the 50 weeks the line exists in our "
+                         "series, which starts on 19 november 2024.")
+    raises("der alte serienstart im read stoppt",
+           lambda: read_input(write_input(bad_serie)))
+    ok_serie = json.loads(json.dumps(good))
+    ok_serie["read"] = bad_serie["read"].replace("19 november", "24 november")
+    read_input(write_input(ok_serie))
+    print("  ok   der richtige serienstart geht durch")
+    # Die Tagesreihe darf weiter am 19. anfangen, wenn kein "week" im Satz steht.
+    tag_serie = json.loads(json.dumps(good))
+    tag_serie["read"] = ("the close fell 13.34% on saturday. our own kraken "
+                         "series, which starts 19 nov 2024, holds every daily "
+                         "candle since then.")
+    read_input(write_input(tag_serie))
+    print("  ok   die tagesreihe darf weiter am 19. anfangen")
     bad2["read"] = "kurz"
     raises("fehlender read stoppt", lambda: read_input(write_input(bad2)))
     bad3 = json.loads(json.dumps(good))
