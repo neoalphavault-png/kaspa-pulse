@@ -1,20 +1,20 @@
 {
-  "generated_at": 1791800181,
+  "generated_at": 1792398643,
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "method": "volume weighted daily average price, kucoin with mexc and bybit gap fill",
   "reliable": true,
-  "deposits": 323,
-  "kas_received": 1593687241.4,
-  "kas_priced": 1593687241.4,
-  "usd_invested": 137348300.78,
-  "avg_cost_usd": 0.086183,
-  "outflow_kas": 66097902.55,
-  "outflow_count": 27,
-  "transactions_total": 545,
+  "deposits": 327,
+  "kas_received": 1600412904.56,
+  "kas_priced": 1600412904.56,
+  "usd_invested": 137595240.07,
+  "avg_cost_usd": 0.085975,
+  "outflow_kas": 69957865.56,
+  "outflow_count": 28,
+  "transactions_total": 550,
   "dust_transactions": 195,
   "dust_kas": 130.1136,
   "first_outflow": "2024-03-07",
-  "last_outflow": "2026-10-01",
+  "last_outflow": "2026-10-15",
   "outflows": [
     {
       "day": "2024-03-07",
@@ -150,21 +150,26 @@
       "day": "2026-10-01",
       "kas": 4517808.0,
       "tx": "7d15c9e75d146a5b68e76b15e5e6dcf74f4ff8cd2744bd3170b7c7d4c6620fc0"
+    },
+    {
+      "day": "2026-10-15",
+      "kas": 3859963.0,
+      "tx": "e5ac927c0865ecc9a7c63def02d9159f55820e173b7d2586c0850e3f43903f66"
     }
   ],
-  "balance_kas": 1527589468.96,
+  "balance_kas": 1530455169.11,
   "first_deposit": "2024-03-06",
-  "last_deposit": "2026-10-09",
+  "last_deposit": "2026-10-19",
   "largest_deposit_kas": 90000000.0,
   "largest_deposit_day": "2024-03-11",
-  "price_now": 0.0419,
-  "value_now_usd": 64005998.75,
-  "unrealized_usd": -73342302.03,
-  "unrealized_pct": -53.4,
+  "price_now": 0.03596,
+  "value_now_usd": 55035167.88,
+  "unrealized_usd": -82560072.19,
+  "unrealized_pct": -60.0,
   "missing_price_days": [],
   "missing_share": 0.0,
   "price_source_days": {
-    "kucoin": 952,
+    "kucoin": 960,
     "mexc": 0,
     "bybit": 0
   },
@@ -357,9 +362,9 @@
     },
     {
       "month": "2026-10",
-      "kas": 9591119.62,
-      "usd": 401263.99,
-      "avg": 0.041837
+      "kas": 16316782.77,
+      "usd": 648203.28,
+      "avg": 0.039726
     }
   ]
 }
