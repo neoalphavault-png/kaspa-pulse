@@ -107,6 +107,12 @@
    "step": "test",
    "campaign_id": 43,
    "test_to": "benni.alkanli@gmail.com"
+  },
+  {
+   "at": "2026-10-19T09:47:31Z",
+   "step": "cancel",
+   "campaign_id": 43,
+   "result": "kampagne ist ein entwurf, sie kann nicht von selbst rausgehen"
   }
  ],
  "_hinweise": {
