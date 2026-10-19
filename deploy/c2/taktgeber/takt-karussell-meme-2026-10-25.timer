@@ -1,0 +1,13 @@
+[Unit]
+Description=Kaspa Pulse Takt, Meme but true, Entwurf So 25.10.2026 09:00 Berlin fuer 11:00
+
+[Timer]
+Unit=takt@karussell-meme.service
+# einmalig. nach dem lauf den timer wieder abschalten
+# (systemctl disable --now takt-karussell-meme-2026-10-25.timer)
+OnCalendar=2026-10-25 09:00:00 Europe/Berlin
+Persistent=false
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target
