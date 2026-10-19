@@ -15,7 +15,13 @@ SEITE 2  (optional, macht den Post zum Karussell) "the chemistry checks out.
                              mit Netz zu api.kaspa.org, "counted by kaspa
                              pulse from the kaspa rest api"
            --zahl crescendo  10 Bloecke je Sekunde seit dem Crescendo-Upgrade
-                             am 5 may 2025, die Blockrate des Protokolls, kein Messwert
+                             am 5 may 2025, die Blockrate des Protokolls, kein Messwert;
+                             das ist auch der Rueckfall, wenn die Messung scheitert,
+                             und dann steht nirgends "counted" (Ben, 19.10.2026)
+
+TERMIN (Ben, 19.10.2026): So 25.10. 11:00, eigener Rang "meme" im
+Instagram-Raster nach der Tagesgrafik. Entwurf am Posttag 09:00 Berlin, weil
+die Messung am Posttag laeuft.
 
 Ordnungszahlen und Namen stehen fest im Skript (IUPAC); geprueft wird, dass
 sie zu den Symbolen passen. Jede Seite traegt ein Datum, weil Ziffern im
@@ -82,18 +88,26 @@ def tag(iso):
     return karussell.tag(iso)
 
 
-def zahl_seite2(art, fuer):
-    """(zahl, satz, datumszeile, caption-satz) fuer Seite 2."""
-    if art == "crescendo":
-        return ("10 blocks a second", "the kaspa block rate since the crescendo upgrade",
-                "since %s · source kaspa crescendo upgrade" % tag(CRESCENDO),
-                "10 blocks a second, the kaspa block rate since the crescendo upgrade on %s." % tag(CRESCENDO))
-    import tagesgrafik as tg
-    bps, _ = tg.m_blockrate(tg.BLOCKRATE_SEK)
-    heute = dt.datetime.now(dt.timezone.utc).date().isoformat()
-    return ("%.1f blocks a second" % bps, "measured on the kaspa network over 10 minutes",
-            "%s · counted by kaspa pulse from the kaspa rest api" % tag(heute),
-            "%.1f blocks a second on %s, counted by kaspa pulse over 10 minutes." % (bps, tag(heute)))
+def zahl_seite2(art, fuer, messen=None):
+    """(zahl, satz, datumszeile, caption-satz) fuer Seite 2.
+
+    messung (Ben, 19.10.2026): am Posttag 10 Minuten nach Hausregel gemessen.
+    Scheitert die Messung, faellt die Seite auf die Crescendo-Blockrate
+    zurueck, und dann steht nirgends "counted", denn gezaehlt hat niemand."""
+    if art == "messung":
+        try:
+            import tagesgrafik as tg
+            bps, _ = (messen or (lambda: tg.m_blockrate(tg.BLOCKRATE_SEK)))()
+            if not 5 <= bps <= 15:
+                raise ValueError("blockrate %.2f unplausibel" % bps)
+            return ("%.1f blocks a second" % bps, "measured on the kaspa network over 10 minutes",
+                    "%s · counted by kaspa pulse from the kaspa rest api" % tag(fuer),
+                    "%.1f blocks a second on %s, counted by kaspa pulse over 10 minutes." % (bps, tag(fuer)))
+        except Exception as exc:                    # noqa: BLE001
+            print("messung gescheitert (%s), rueckfall auf die crescendo-blockrate" % exc)
+    return ("10 blocks a second", "the block rate since the crescendo upgrade",
+            "since %s · source kaspa crescendo upgrade" % tag(CRESCENDO),
+            "10 blocks a second, the block rate since the crescendo upgrade on %s." % tag(CRESCENDO))
 
 
 def seiten(fuer, zweite=None):
@@ -200,13 +214,27 @@ def selbsttest():
     ok("texte und caption halten die wachen (%s)" % "; ".join(pruefen(ss, cap)), not pruefen(ss, cap))
     ok("caption ohne link, frage am ende", cap.rstrip().endswith(FRAGE) and "http" not in cap)
     ok("seite 1 allein geht auch", len(seiten("2026-10-24")) == 1)
+    g = zahl_seite2("messung", "2026-10-25", messen=lambda: (9.87, 1))
+    ok("messung traegt den posttag und counted (%s)" % g[0], g[0] == "9.9 blocks a second"
+       and "25 oct 2026" in g[2] and "counted by kaspa pulse" in g[2])
+
+    def kaputt():
+        raise OSError("tunnel 403")
+    r = zahl_seite2("messung", "2026-10-25", messen=kaputt)
+    ok("gescheiterte messung faellt auf crescendo zurueck, ohne counted",
+       r[0] == "10 blocks a second" and not any("counted" in t for t in r)
+       and r[3] == "10 blocks a second, the block rate since the crescendo upgrade on 5 may 2025.")
+    ok("unplausible messung faellt auch zurueck", zahl_seite2("messung", "2026-10-25", messen=lambda: (99.0, 1))[0]
+       == "10 blocks a second")
+    ss2 = seiten("2026-10-25", r)
+    ok("rueckfall haelt die wachen", not pruefen(ss2, caption(ss2)))
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument("--fuer", default="", help="post-datum JJJJ-MM-TT")
+    ap.add_argument("--fuer", default="", help="post-datum JJJJ-MM-TT, ohne: heute (gemessen wird am posttag)")
     ap.add_argument("--out", default="graphics/meme-wahr")
     ap.add_argument("--zahl", default="", choices=["", "messung", "crescendo"], help="leer = nur seite 1")
     ap.add_argument("--look", default="", help="ohne: der look aus dem instagram-raster")
@@ -216,10 +244,10 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.selbsttest:
         return selbsttest()
-    if not a.fuer:
-        ap.error("--fuer fehlt")
+    a.fuer = a.fuer or dt.datetime.now(dt.timezone.utc).date().isoformat()
     import look_takt
-    lk = a.look or look_takt.raster_faellig(look_takt.lesen(), "karussell", a.fuer)[1]
+    sp = look_takt.lesen()
+    lk = a.look or look_takt.raster_faellig(sp, "meme", a.fuer)[1]
     looks = ("dunkel", "hell", "teal") if a.alle_looks else (lk,)
     ss, cap, bilder = bauen(a.fuer, a.out, a.zahl, looks)
     if a.senden:
@@ -227,8 +255,10 @@ def main(argv=None):
         hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
         if not hook:
             raise SystemExit("ABBRUCH kein DISCORD_WEBHOOK_OPS, nichts geschickt")
-        karussell.UHRZEIT["meme"] = "nach freigabe"
+        karussell.UHRZEIT["meme"] = "So 11:00" if dt.date.fromisoformat(a.fuer).weekday() == 6 else "nach freigabe"
         karussell.ops_senden(hook, "meme", a.fuer, lk, [b for b in bilder if b.stem.endswith("-" + lk)], cap)
+        look_takt.raster_merken(sp, "meme", a.fuer)
+        look_takt.schreiben(sp)
     print("meme, but true fuer %s, look %s\n%s\n\nCAPTION\n%s" % (a.fuer, lk, "\n".join(map(str, bilder)), cap))
     return 0
 
