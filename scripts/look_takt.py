@@ -22,6 +22,10 @@ zwei Posts am Tag immer hell. Die Zahl des Tages startet deshalb einen
 Schritt versetzt (VERSATZ), dann tragen beide am selben Tag nie denselben Look,
 solange beide taeglich laufen.
 
+DAS INSTAGRAM-RASTER (Ben, 18.10.2026). Instagram hat einen gemeinsamen
+Takt fuer alle Posts im Raster, Tagesgrafik und Karussell (RASTER, RANG).
+Das Karussell nimmt den Schritt nach der Tagesgrafik desselben Tages.
+
 TROCKENLAUF. ZIEL=moderator in der Umgebung heisst: bauen wie scharf, posten
 nur nach #moderator-only. trockenlauf() ist die eine Stelle, die das liest.
 
@@ -154,6 +158,64 @@ def merken(speicher, serie, kanal, datum, sonder=None):
     return sonder or lk
 
 
+# ---------------------------------------------------- das instagram-raster
+#
+# EIN TAKT FUER ALLE INSTAGRAM-POSTS (Ben, 18.10.2026). Tagesgrafik und
+# Karussell landen im selben Raster mit drei Spalten. Getrennte Takte
+# braechen dort das Muster dunkel, hell, teal, hell. Deshalb fuehrt
+# "raster/instagram" alle Posts in der Reihenfolge, in der sie im Raster
+# stehen: nach Datum, und am selben Tag nach RANG (die Tagesgrafik um 09:30
+# vor dem Karussell um 11:00 oder 18:00). Jeder Eintrag traegt seine Serie.
+#
+# Das Karussell legt seinen Eintrag schon beim Entwurf am Vorabend an. Die
+# Tagesgrafik des Folgetags sieht ihn nicht als Vorgaenger, weil sie im
+# Rang davor steht, und rechnet vom Vortag weiter. Das Karussell nimmt den
+# Schritt nach ihr.
+RASTER = "raster/instagram"
+RANG = {"tagesgrafik": 1, "karussell": 2}
+
+
+def _raster_ort(e):
+    return (e["datum"], RANG.get(e.get("serie"), 9))
+
+
+def raster_faellig(speicher, serie, datum):
+    """(schritt, look) fuer einen Instagram-Post dieser Serie an diesem Tag."""
+    if serie not in RANG:
+        raise Fehler("unbekannte serie im raster %r" % serie)
+    datum = str(datum)
+    reihe = speicher.get("kanaele", {}).get(RASTER, [])
+    for e in reihe:
+        if e["datum"] == datum and e.get("serie") == serie:
+            return e["schritt"], e["look"]
+    # ein spaeterer rang am selben tag folgt dem frueheren, auch wenn der noch
+    # nicht gelaufen ist: das karussell nimmt den schritt nach der tagesgrafik
+    vorgaenger = [x for x, n in sorted(RANG.items(), key=lambda t: t[1]) if n < RANG[serie]]
+    if vorgaenger:
+        schritt = (raster_faellig(speicher, vorgaenger[-1], datum)[0] + 1) % len(TAKT)
+        return schritt, TAKT[schritt]
+    ort = (datum, RANG[serie])
+    davor = [e for e in reihe if _raster_ort(e) < ort]
+    if davor:
+        schritt = (max(davor, key=_raster_ort)["schritt"] + 1) % len(TAKT)
+    else:
+        # der erste raster-eintrag knuepft an den alten takt der tagesgrafik an
+        alt = [e for e in speicher.get("kanaele", {}).get("tagesgrafik/instagram", []) if e["datum"] < datum]
+        schritt = ((max(alt, key=lambda e: e["datum"])["schritt"] + 1) % len(TAKT)) if alt else 0
+    return schritt, TAKT[schritt]
+
+
+def raster_merken(speicher, serie, datum, sonder=None):
+    if sonder is not None and sonder not in SONDER:
+        raise Fehler("unbekannter sonderlook %r" % sonder)
+    schritt, lk = raster_faellig(speicher, serie, datum)
+    reihe = [e for e in speicher.setdefault("kanaele", {}).get(RASTER, [])
+             if not (e["datum"] == str(datum) and e.get("serie") == serie)]
+    reihe.append({"datum": str(datum), "serie": serie, "schritt": schritt, "look": sonder or lk})
+    speicher["kanaele"][RASTER] = sorted(reihe, key=_raster_ort)[-2 * BEHALTEN:]
+    return sonder or lk
+
+
 def looks_fuer(speicher, serie, datum, kanaele=KANAELE):
     """{kanal: look} fuer einen Lauf, ohne zu schreiben."""
     return {k: faellig(speicher, serie, k, datum)[1] for k in kanaele}
@@ -234,6 +296,25 @@ def selbsttest():
            _kontrast(l["text"], l["grund"]) >= 7 and _kontrast(l["text2"], l["grund"]) >= 4.5)
         ok("%s akzent %.1f gegen grund" % (name, _kontrast(l["akzent"], l["grund"])),
            _kontrast(l["akzent"], l["grund"]) >= 3)
+    # das gemeinsame instagram-raster (Ben, 18.10.2026)
+    sp4 = {"kanaele": {"tagesgrafik/instagram": [{"datum": "2026-10-18", "schritt": 1, "look": "hell"}]}}
+    ok("raster knuepft an den alten tagesgrafik-takt an",
+       raster_merken(sp4, "tagesgrafik", "2026-10-19") == "teal")
+    # freitag 23.10. tagesgrafik, entwurf fuer samstag am freitagabend
+    for d in ("2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23"):
+        raster_merken(sp4, "tagesgrafik", d)
+    fr = raster_faellig(sp4, "tagesgrafik", "2026-10-23")[0]
+    k = raster_merken(sp4, "karussell", "2026-10-24")
+    sa = raster_merken(sp4, "tagesgrafik", "2026-10-24")
+    so = raster_merken(sp4, "tagesgrafik", "2026-10-25")
+    folge = [e["look"] for e in sp4["kanaele"][RASTER]]
+    ok("karussell nimmt den schritt nach der tagesgrafik desselben tags (%s)" % " ".join(folge),
+       raster_faellig(sp4, "karussell", "2026-10-24")[0] == (fr + 2) % 4
+       and raster_faellig(sp4, "tagesgrafik", "2026-10-24")[0] == (fr + 1) % 4
+       and raster_faellig(sp4, "tagesgrafik", "2026-10-25")[0] == (fr + 3) % 4)
+    ok("im raster laeuft das muster ohne bruch", folge == [TAKT[(1 + i + 1) % 4] for i in range(len(folge))])
+    ok("ein zweiter entwurf am selben tag schiebt nicht weiter",
+       raster_merken(sp4, "karussell", "2026-10-24") == k)
     ok("hell, #49EACB nur als markierung", LOOKS["hell"]["akzent"] == "#0F9A80"
        and "#49EACB" not in (LOOKS["hell"]["akzent"], LOOKS["hell"]["text"], LOOKS["hell"]["text2"]))
     css = schriften_css()

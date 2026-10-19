@@ -1989,7 +1989,10 @@ def kanaele_rendern(s, falke, png, heute, speicher=None):
     alle 1080x1350. Gibt (png, vorschau, {kanal: png}, {kanal: look})."""
     import look_takt
     from playwright.sync_api import sync_playwright
-    looks = look_takt.looks_fuer(look_takt.lesen() if speicher is None else speicher, "tagesgrafik", heute)
+    sp = look_takt.lesen() if speicher is None else speicher
+    looks = look_takt.looks_fuer(sp, "tagesgrafik", heute)
+    # instagram steht im gemeinsamen raster mit dem karussell (Ben, 18.10.2026)
+    looks["instagram"] = look_takt.raster_faellig(sp, "tagesgrafik", heute)[1]
     png = Path(png)
     kanalbilder = {}
     with sync_playwright() as p:
@@ -2168,7 +2171,9 @@ def main(argv=None):
         import look_takt
         sp = look_takt.lesen()
         for k in look_takt.KANAELE:
-            look_takt.merken(sp, "tagesgrafik", k, heute)
+            if k != "instagram":
+                look_takt.merken(sp, "tagesgrafik", k, heute)
+        look_takt.raster_merken(sp, "tagesgrafik", heute)
         look_takt.schreiben(sp)
         mw = messwerte_fuer_log(form, m["werte"], geb)
         if mw:
