@@ -31,7 +31,7 @@
  "description": "A Kaspa dashboard with DeFi TVL across both layer 2s, network usage, holder behaviour and mining power. Live where a feed exists, counted weekly where not.",
  "url": "https://kaspapulse.com/",
  "inLanguage": "en",
- "dateModified": "2026-10-13",
+ "dateModified": "2026-10-17",
  "isPartOf": {
   "@type": "WebSite",
   "name": "Kaspa Pulse",
@@ -307,7 +307,7 @@
   </div>
   <div class="cta">kaspa weekly every monday and an explainer every thursday on the <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener">Kaspa Pulse YouTube channel</a> · daily numbers on X <a href="https://x.com/gokugalax" target="_blank">@gokugalax</a></div>
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 13 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 17 October 2026<!--/AUTO:seitenstand--></div>
     <div class="brand">PULSEHAWK</div>
     <div class="src">data: <a href="https://defillama.com" target="_blank">defillama</a> · <a href="https://www.coingecko.com" target="_blank">coingecko</a> · <a href="https://kaspalytics.com" target="_blank">kaspalytics</a> · <a href="https://kaspa.stream" target="_blank">kaspa.stream</a></div>
     <div class="legal">not financial advice · <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener">youtube</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
@@ -870,7 +870,7 @@ $("supplyCards").innerHTML = `
   <div class="card"><div class="name">Annual inflation</div><div class="expl">* new supply added per year at current rate</div>
     <div class="val">~${DATA.emission.annual_inflation_pct}%</div>
     <div class="trends"><div class="tr"><span class="win">trend</span><span class="up">▼ falling</span></div></div></div>
-  <div class="card"><div class="name">KAS on exchanges</div><div class="expl">* coins on known exchange wallets — potential sell-side supply</div>
+  <div class="card"><div class="name">KAS on exchanges</div><div class="expl">* coins on known exchange wallets, potential sell-side supply &middot; source kaspalytics</div>
     <div class="val">${fmtKas(cur.exchange_kas)}</div>
     <div class="trends">
       ${invRow("vs last week", cur.exchange_kas, exPrev ? exPrev.exchange_kas : null)}
@@ -879,11 +879,11 @@ $("supplyCards").innerHTML = `
     </div></div>`;
 // --- weekly cards ---
 $("usageCards").innerHTML = `
-  <div class="card"><div class="name">Real network usage</div><div class="expl">* standard transactions per second, 7 day average, coinbase excluded</div>
+  <div class="card"><div class="name">Real network usage</div><div class="expl">* standard transactions per second, 7 day average, coinbase excluded &middot; source kaspalytics</div>
     <div class="val">${cur.tps!=null?cur.tps+" TPS":"—"}</div><div class="trends">${trendBlock("tps")}</div></div>
-  <div class="card"><div class="name">Smart-contract activity</div><div class="expl">* covenant transactions per day (live since June) &middot; <a href="/kaspa-token-standard.html" style="color:var(--teal); text-decoration:underline;">token standards, explained &rarr;</a></div>
+  <div class="card"><div class="name">Smart-contract activity</div><div class="expl">* covenant transactions per day since June &middot; source kaspalytics &middot; <a href="/kaspa-token-standard.html" style="color:var(--teal); text-decoration:underline;">token standards, explained &rarr;</a></div>
     <div class="val">${fmtN(cur.covenant_tx)}/day</div><div class="trends">${trendBlock("covenant_tx")}</div></div>
-  <div class="card"><div class="name">Active addresses</div><div class="expl">* unique addresses transacting per day (kaspalytics) — the honest count, not the inflated one</div>
+  <div class="card"><div class="name">Active addresses</div><div class="expl">* unique addresses transacting per day &middot; source kaspalytics &middot; the honest count, not the inflated one</div>
     <div class="val">${fmtN(cur.active_addr)}</div><div class="trends">${trendBlock("active_addr")}</div></div>
   <div class="card"><div class="name">L2 activity split</div><div class="expl">* transactions per day on each L2</div>
     <div class="val">${(cur.igra_tx!=null&&cur.kasplex_tx!=null)?(cur.igra_tx/(cur.igra_tx+cur.kasplex_tx)*100).toFixed(0)+"% Igra":"—"}</div>
@@ -893,9 +893,9 @@ $("usageCards").innerHTML = `
 const hbRow = (label, base) => { const d = deltaTxt(cur.holder_addr, base);
   return `<div class="tr"><span class="win">${label}</span><span class="${d?d.cls:'flat'}">${d?d.txt:'—'}</span></div>`; };
 $("baseCards").innerHTML = `
-  <div class="card"><div class="name">Long-term holders</div><div class="expl">* share of all KAS untouched for over a year</div>
+  <div class="card"><div class="name">Long-term holders</div><div class="expl">* share of all KAS untouched for over a year &middot; source kaspalytics</div>
     <div class="val">${cur.holders!=null?cur.holders.toFixed(1)+"%":"—"}</div><div class="trends">${trendBlock("holders")}</div></div>
-  <div class="card"><div class="name">Addresses holding KAS</div><div class="expl">* wallets holding at least 0.01 KAS — addresses, not people</div>
+  <div class="card"><div class="name">Addresses holding KAS</div><div class="expl">* wallets holding at least 0.01 KAS &middot; addresses, not people &middot; source kaspalytics</div>
     <div class="val">${fmtN(cur.holder_addr)}</div>
     <div class="trends">
       ${trRow("holder_addr",1,"vs last week")}

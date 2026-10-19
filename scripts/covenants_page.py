@@ -215,7 +215,7 @@ def bloecke(log):
         '<div class="lbl">covenant utxos on the kaspa network</div>\n'
         '    <div class="bal">%s</div>\n'
         '    <div class="usd">unspent outputs bound to a covenant id, as of %s</div>\n'
-        '    <div class="upd">counted by Kaspalytics, logged daily by Kaspa Pulse</div>'
+        '    <div class="upd">source kaspalytics, logged daily by Kaspa Pulse</div>'
         % (v("utxo_count", zahl(letzte_utxo)), v("utxo_datum", datum_lang(letzte_utxo_tag)))
     )
 
@@ -278,7 +278,7 @@ def bloecke(log):
     aus["tabelle"] = "\n      ".join(zeilen)
 
     aus["stand"] = (
-        'counted by Kaspalytics, logged daily by Kaspa Pulse · '
+        'source kaspalytics, logged daily by Kaspa Pulse · '
         'last reading %s · log written %s'
         % (v("stand_datum", datum_lang(letzte_utxo_tag)),
            v("stand_abruf", log.get("aktualisiert_utc", "")[:10]))
