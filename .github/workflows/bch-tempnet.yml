@@ -1,0 +1,87 @@
+# bch-tempnet.yml - unabhaengige Zaehlung des BCH Tempnet 2027 (Faster Blocks).
+#
+# Laeuft nur auf dem Branch messung/bch-tempnet, bei jedem Push, der
+# scripts/bch/, diese Datei, data/bch/stichtag.txt oder data/bch/anstoss.txt
+# aendert. Geplante Laeufe gibt es fuer Nicht-Default-Branches nicht; ein
+# neuer Lauf = ein Push.
+#
+# Quelle sind eigene Header ueber P2P (scripts/bch/tempnet_koepfe.py). Die
+# Peers liest das Skript zur Laufzeit aus der oeffentlichen Tempnet-
+# Konfiguration; keine Adresse und kein Hostname steht im Repo oder im Log.
+# chaingraph nur als Gegenprobe (scripts/bch/bch_gegenprobe.py).
+#
+# Stichtag: data/bch/stichtag.txt. Liegt der Abruf davor, heissen die
+# Ausgaben "zwischenstand" und der Stichtag ist die Abrufzeit (volle Stunde).
+name: bch tempnet
+
+on:
+  push:
+    branches: ["messung/bch-tempnet"]
+    paths:
+      - "scripts/bch/**"
+      - "data/bch/stichtag.txt"
+      - "data/bch/anstoss.txt"
+      - ".github/workflows/bch-tempnet.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bch-tempnet
+  cancel-in-progress: false
+
+jobs:
+  zaehlen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: messung/bch-tempnet
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: koepfe holen
+        run: |
+          set -eu
+          python3 scripts/bch/tempnet_koepfe.py \
+            --aus data/bch/tempnet-koepfe.csv.gz --meta data/bch/tempnet-koepfe-meta.json
+
+      - name: gegenprobe chaingraph
+        run: |
+          set -eu
+          python3 scripts/bch/bch_gegenprobe.py --koepfe data/bch/tempnet-koepfe.csv.gz \
+            --aus data/bch/gegenprobe-chaingraph.json
+
+      - name: auswerten
+        run: |
+          set -eu
+          STICHTAG=$(tr -d ' \n' < data/bch/stichtag.txt)
+          ABRUF=$(python3 -c 'import json;print(json.load(open("data/bch/tempnet-koepfe-meta.json"))["abruf_utc"])')
+          if [ "$ABRUF" \< "$STICHTAG" ]; then
+            ST="${ABRUF%:*:*}:00:00Z"; NAME=zwischenstand
+          else
+            ST="$STICHTAG"; NAME="${STICHTAG%%T*}"
+          fi
+          echo "stichtag $ST, ausgabe $NAME"
+          python3 scripts/bch/tempnet_auswertung.py \
+            --koepfe data/bch/tempnet-koepfe.csv.gz --meta data/bch/tempnet-koepfe-meta.json \
+            --gegenprobe data/bch/gegenprobe-chaingraph.json --stichtag "$ST" \
+            --json "data/bch/tempnet-$NAME.json" --md "docs/bch-tempnet-$NAME.md"
+          { echo "## BCH Tempnet, $NAME"; cat "docs/bch-tempnet-$NAME.md"; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: secret-scan
+        run: python3 scripts/secret_scan.py --baum
+
+      - name: committen
+        run: |
+          set -eu
+          git config user.name "bch tempnet bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/bch docs/bch-tempnet-*.md
+          if git diff --cached --quiet; then echo "nichts neu"; exit 0; fi
+          git commit -m "bch tempnet: koepfe und zaehlung [bot]"
+          git pull --rebase -X theirs origin messung/bch-tempnet
+          git push origin HEAD:messung/bch-tempnet
