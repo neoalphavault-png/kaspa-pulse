@@ -110,8 +110,17 @@ def mtp_simulation(n=200_000, saat=2027):
             "abruf_minus_spitze": kennzahlen(alter_spitze), "ziehungen": n, "saat": saat}
 
 
-def nachfuehrung(hoehen, zeiten, diffs):
+def nachfuehrung(hoehen, zeiten, diffs, bits=None):
+    """Wie beim Zcash-NU7-Bericht. Tempnet mischt Bloecke mit Mindestschwierigkeit
+    (nBits = powLimit) unter die ASERT-Bloecke. Die Hashrate kommt aus der Arbeit
+    aller Bloecke; verglichen wird mit der zuletzt gueltigen ASERT-Schwierigkeit
+    (letzter Block mit nBits != powLimit), nicht mit dem einzelnen Block."""
     W, n = FENSTER, len(hoehen)
+    asert, letzte = [], None
+    for i in range(n):
+        if bits is None or bits[i] != POW_LIMIT_BITS:
+            letzte = diffs[i]
+        asert.append(letzte if letzte is not None else diffs[i])
 
     def rate(a, b):
         dt = zeiten[b] - zeiten[a]
@@ -121,7 +130,7 @@ def nachfuehrung(hoehen, zeiten, diffs):
         if j + W >= n:
             return False
         h = rate(j, j + W)
-        return bool(h) and abs(diffs[j] / (h * ZIEL_S) - 1) <= NAEHE
+        return bool(h) and abs(asert[j] / (h * ZIEL_S) - 1) <= NAEHE
 
     grenzen, b = [], W
     while b + 2 * W < n:
@@ -141,13 +150,16 @@ def nachfuehrung(hoehen, zeiten, diffs):
                    "eingeholt_nach_bloecken": (k - b) if k is not None else None,
                    "eingeholt_nach_min": round((zeiten[k] - zeiten[b]) / 60, 1) if k is not None else None,
                    "abgeloest": k is None and ende < n and ende < b + 2000,
-                   "offen_am_stichtag": k is None and ende >= n})
+                   "offen_am_stichtag": k is None and ende >= n and b + 2000 > n,
+                   "nicht_in_2000": k is None and not (ende < n and ende < b + 2000) and b + 2000 <= n})
     ein = [e for e in ev if e["eingeholt_nach_bloecken"] is not None]
     return {
-        "methode": f"Fenster {W} Bloecke, Sprung ab Faktor {SPRUNG} (bestaetigt), eingeholt bei +-{int(NAEHE*100)} %",
+        "methode": (f"Fenster {W} Bloecke, Sprung ab Faktor {SPRUNG} (bestaetigt), eingeholt, wenn die ASERT-"
+                    f"Schwierigkeit innerhalb +-{int(NAEHE*100)} % der Hashrate der folgenden {W} Bloecke mal 60 s liegt"),
         "spruenge": len(ev), "eingeholt": len(ein),
         "abgeloest": sum(1 for e in ev if e["abgeloest"]),
         "offen_am_stichtag": sum(1 for e in ev if e["offen_am_stichtag"]),
+        "nicht_in_2000_bloecken": sum(1 for e in ev if e["nicht_in_2000"]),
         # Bloecke und Minuten ueber dieselben eingeholten Spruenge
         "median_bloecke": statistics.median([e["eingeholt_nach_bloecken"] for e in ein]) if ein else None,
         "median_min": statistics.median([e["eingeholt_nach_min"] for e in ein]) if ein else None,
@@ -156,7 +168,29 @@ def nachfuehrung(hoehen, zeiten, diffs):
     }
 
 
-def je_tag(hoehen, zeiten, diffs):
+def mindest_auswertung(hoehen, zeiten, bits):
+    """Bloecke mit Mindestschwierigkeit, nach Tag und nach der Luecke davor.
+    Beobachtung, keine Regelpruefung: wir lesen nur Koepfe."""
+    md = [i for i in range(1, len(bits)) if bits[i] == POW_LIMIT_BITS]
+    norm = [i for i in range(1, len(bits)) if bits[i] != POW_LIMIT_BITS]
+    tage = OrderedDict()
+    for i in range(len(bits)):
+        tag = datetime.fromtimestamp(zeiten[i], timezone.utc).strftime("%Y-%m-%d")
+        a = tage.setdefault(tag, [0, 0])
+        a[0] += 1
+        a[1] += bits[i] == POW_LIMIT_BITS
+    erster_asert = next((hoehen[i] for i in range(len(bits)) if bits[i] != POW_LIMIT_BITS), None)
+    return {
+        "anzahl": sum(1 for b in bits if b == POW_LIMIT_BITS), "von": len(bits),
+        "je_tag": [{"tag_utc": k, "bloecke": v[0], "mindest": v[1]} for k, v in tage.items()],
+        "luecke_davor_ueber_120s": sum(1 for i in md if zeiten[i] - zeiten[i - 1] > 2 * ZIEL_S),
+        "luecke_davor_bis_120s": sum(1 for i in md if zeiten[i] - zeiten[i - 1] <= 2 * ZIEL_S),
+        "max_luecke_vor_asert_block_s": max((zeiten[i] - zeiten[i - 1] for i in norm), default=None),
+        "erster_asert_block": erster_asert,
+    }
+
+
+def je_tag(hoehen, zeiten, diffs, bits=None):
     tage = OrderedDict()
     for i in range(len(hoehen)):
         tage.setdefault(datetime.fromtimestamp(zeiten[i], timezone.utc).strftime("%Y-%m-%d"), []).append(i)
@@ -165,7 +199,9 @@ def je_tag(hoehen, zeiten, diffs):
         ab = [zeiten[i] - zeiten[i - 1] for i in idx if i > 0]
         out.append({"tag_utc": tag, "bloecke": len(idx), "von": hoehen[min(idx)], "bis": hoehen[max(idx)],
                     "mittlerer_abstand_s": round(sum(ab) / len(ab), 1) if ab else None,
-                    "schwierigkeit_median": round(statistics.median(diffs[i] for i in idx), 2)})
+                    # nur Bloecke mit ASERT-Schwierigkeit (nBits != powLimit)
+                    "schwierigkeit_median": round(statistics.median(
+                        [diffs[i] for i in idx if bits is None or bits[i] != POW_LIMIT_BITS] or [1.0]), 2)})
     return out
 
 
@@ -225,20 +261,33 @@ def bericht(r):
          "", f"{de(F['gemessen']['anzahl'])} überlappende Fenster.", "",
          "## Nachführung der Schwierigkeit", "",
          f"{N['methode']}. Sprünge: {N['spruenge']}, eingeholt {N['eingeholt']}, vom nächsten Sprung abgelöst "
-         f"{N['abgeloest']}, am Stichtag offen {N['offen_am_stichtag']}. Eingeholt im Median nach "
+         f"{N['abgeloest']}, am Stichtag offen {N['offen_am_stichtag']}, nicht in 2.000 Blöcken eingeholt "
+         f"{N['nicht_in_2000_bloecken']}. Eingeholt im Median nach "
          f"{de(N['median_bloecke'])} Blöcken bzw. {de(N['median_min'])} min (dieselben Sprünge), längstens "
          f"{de(N['max_bloecke'])} Blöcke.", ""]
     if N["ereignisse"]:
         z += [tabelle(["Höhe", "Zeit UTC", "Faktor", "eingeholt nach Blöcken", "min"], [
             [de(e["grenze_hoehe"]), e["zeit_utc"], de(e["faktor_hashrate"], 2),
-             "abgelöst" if e["abgeloest"] else ("offen" if e["offen_am_stichtag"] else de(e["eingeholt_nach_bloecken"])),
+             "abgelöst" if e["abgeloest"] else ("offen" if e["offen_am_stichtag"] else (
+                 "nicht in 2.000" if e["nicht_in_2000"] else de(e["eingeholt_nach_bloecken"]))),
              de(e["eingeholt_nach_min"])] for e in N["ereignisse"][:20]]), ""]
-    z += ["## Je Tag (UTC)", "", tabelle(["Tag", "Blöcke", "Höhen", "mittl. Abstand", "Schwierigkeit Median"], [
+    z += ["## Je Tag (UTC)", "", tabelle(["Tag", "Blöcke", "Höhen", "mittl. Abstand", "ASERT-Schwierigkeit Median"], [
         [t["tag_utc"], de(t["bloecke"]), f"{de(t['von'])}–{de(t['bis'])}", f"{de(t['mittlerer_abstand_s'])} s",
          de(t["schwierigkeit_median"], 2)] for t in r["je_tag"]]), "",
-          f"Blöcke mit Mindestschwierigkeit (nBits = powLimit): {de(r['mindestschwierigkeit'])}.", "",
+          "## Blöcke mit Mindestschwierigkeit", "",
+          f"{de(r['mindest']['anzahl'])} von {de(r['mindest']['von'])} Blöcken tragen nBits = powLimit (Schwierigkeit 1). "
+          f"Der erste Block mit anderer Schwierigkeit ist {de(r['mindest']['erster_asert_block'])}. "
+          f"Vor {de(r['mindest']['luecke_davor_ueber_120s'])} dieser Blöcke lag eine Lücke über 120 s, vor "
+          f"{de(r['mindest']['luecke_davor_bis_120s'])} eine bis 120 s. Die längste Lücke vor einem Block mit anderer "
+          f"Schwierigkeit war {de(r['mindest']['max_luecke_vor_asert_block_s'])} s. Beobachtung aus den Köpfen; die Regel "
+          "selbst prüfen wir nicht.", "",
+          tabelle(["Tag", "Blöcke", "davon Mindestschwierigkeit"], [
+              [x["tag_utc"], de(x["bloecke"]), de(x["mindest"])] for x in r["mindest"]["je_tag"]]), "",
           "## Nicht gemessen", "",
           "- Blockinhalte und die ASERT-Regel selbst (nur Kopf, Verkettung, PoW gegen nBits).",
+          "- Die Nachführung nach der Zcash-Methode setzt voraus, dass jeder Block die laufende Schwierigkeit trägt. "
+          "Mit Blöcken auf Mindestschwierigkeit dazwischen ist das Gleichgewicht ASERT-Schwierigkeit = Hashrate × 60 s "
+          "nicht gegeben; die Zahlen dort sind deshalb nur eingeschränkt aussagekräftig.",
           "- Verwaiste Blöcke und Ankunftszeiten (kein Zuhörer, kein eigener Knoten).", ""]
     return "\n".join(z)
 
@@ -301,8 +350,9 @@ def main():
         "laengste_luecke_hoehe": h[i_max + 1],
         "null": sum(1 for x in iv if x == 0), "negativ": sum(1 for x in iv if x < 0),
         "mtp": M, "fenster_10": F,
-        "nachfuehrung": nachfuehrung(h, t, d),
-        "je_tag": je_tag(h, t, d),
+        "nachfuehrung": nachfuehrung(h, t, d, [r_[2] for r_ in sel]),
+        "mindest": mindest_auswertung(h, t, [r_[2] for r_ in sel]),
+        "je_tag": je_tag(h, t, d, [r_[2] for r_ in sel]),
         "mindestschwierigkeit": sum(1 for r_ in sel if r_[2] == POW_LIMIT_BITS),
         "gegenprobe_chaingraph": json.load(open(args.gegenprobe)) if args.gegenprobe else None,
     }
