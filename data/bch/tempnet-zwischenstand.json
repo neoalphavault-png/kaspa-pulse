@@ -10,36 +10,39 @@
   },
   "quelle": {
     "quelle": "BCH-Tempnet P2P (getheaders), Peers aus der oeffentlichen Tempnet-Konfiguration",
-    "abruf_utc": "2026-10-20T16:33:16Z",
+    "abruf_utc": "2026-10-20T16:35:44Z",
     "start_checkpoint": 327988,
     "erste_hoehe": 327989,
-    "spitze_hoehe": 334523,
-    "spitze_hash": "00000000471d464a2544e3bd402bdc125d412f7d87fe93208180465cc10281bf",
+    "spitze_hoehe": 334524,
+    "spitze_hash": "00000000eb843af449119a2023054c121ad8a2016e5379be1b1fc287177f816d",
     "fixpunkte": {
       "letzter_gemeinsamer": 327988,
       "erster_tempnet": 327989
     },
     "checkpoints_geprueft": 1,
     "peer_software": [
+      "/Bitcoin Cash Node:29.1.0(EB2.0)/",
+      "/Bitcoin Cash Node:29.0.0(EB2.0)/",
+      "/Bitcoin Cash Node:28.0.2(EB2.0)/",
       "/Rapids:2026-10.d46922c2/",
       "/Vcash:0.1/",
       "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/"
     ],
-    "peer_fehler": 1,
+    "peer_fehler": 4,
     "zielhoehe_gemeldet": 328718,
     "abzweige_verworfen": [],
     "gegenproben": [
       {
-        "agent": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
-        "verglichen": 500,
-        "gleich": 500,
-        "spitze_peer": 334523
-      },
-      {
         "agent": "/Vcash:0.1/",
         "verglichen": 500,
         "gleich": 500,
-        "spitze_peer": 334523
+        "spitze_peer": 334524
+      },
+      {
+        "agent": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+        "verglichen": 500,
+        "gleich": 500,
+        "spitze_peer": 334524
       }
     ],
     "gegenproben_ohne_antwort": [],
@@ -85,9 +88,9 @@
       "max": 27799
     },
     "verzug_block_min": 49,
-    "abruf_minus_mtp": 333,
-    "abruf_minus_spitze": 23,
-    "spitze_beim_abruf": 334523,
+    "abruf_minus_mtp": 339,
+    "abruf_minus_spitze": 37,
+    "spitze_beim_abruf": 334524,
     "erwartung": {
       "verzug_block": {
         "anzahl": 200000,
@@ -138,25 +141,67 @@
     }
   },
   "nachfuehrung": {
-    "methode": "Fenster 100 Bloecke, Sprung ab Faktor 2.0 (bestaetigt), eingeholt bei +-15 %",
+    "methode": "Fenster 100 Bloecke, Sprung ab Faktor 2.0 (bestaetigt), eingeholt, wenn die ASERT-Schwierigkeit innerhalb +-15 % der Hashrate der folgenden 100 Bloecke mal 60 s liegt",
     "spruenge": 1,
-    "eingeholt": 1,
+    "eingeholt": 0,
     "abgeloest": 0,
     "offen_am_stichtag": 0,
-    "median_bloecke": 0,
-    "median_min": 0.0,
-    "max_bloecke": 0,
+    "nicht_in_2000_bloecken": 1,
+    "median_bloecke": null,
+    "median_min": null,
+    "max_bloecke": null,
     "ereignisse": [
       {
         "grenze_hoehe": 328239,
         "zeit_utc": "2026-10-16 13:48:16",
         "faktor_hashrate": 3.16,
-        "eingeholt_nach_bloecken": 0,
-        "eingeholt_nach_min": 0.0,
+        "eingeholt_nach_bloecken": null,
+        "eingeholt_nach_min": null,
         "abgeloest": false,
-        "offen_am_stichtag": false
+        "offen_am_stichtag": false,
+        "nicht_in_2000": true
       }
     ]
+  },
+  "mindest": {
+    "anzahl": 3292,
+    "von": 6507,
+    "je_tag": [
+      {
+        "tag_utc": "2026-10-15",
+        "bloecke": 10,
+        "mindest": 10
+      },
+      {
+        "tag_utc": "2026-10-16",
+        "bloecke": 855,
+        "mindest": 698
+      },
+      {
+        "tag_utc": "2026-10-17",
+        "bloecke": 1525,
+        "mindest": 1525
+      },
+      {
+        "tag_utc": "2026-10-18",
+        "bloecke": 1888,
+        "mindest": 641
+      },
+      {
+        "tag_utc": "2026-10-19",
+        "bloecke": 1282,
+        "mindest": 274
+      },
+      {
+        "tag_utc": "2026-10-20",
+        "bloecke": 947,
+        "mindest": 144
+      }
+    ],
+    "luecke_davor_ueber_120s": 927,
+    "luecke_davor_bis_120s": 2364,
+    "max_luecke_vor_asert_block_s": 120,
+    "erster_asert_block": 328002
   },
   "je_tag": [
     {
@@ -173,7 +218,7 @@
       "von": 327999,
       "bis": 328853,
       "mittlerer_abstand_s": 109.8,
-      "schwierigkeit_median": 1.0
+      "schwierigkeit_median": 6.39
     },
     {
       "tag_utc": "2026-10-17",
@@ -189,7 +234,7 @@
       "von": 330379,
       "bis": 332266,
       "mittlerer_abstand_s": 45.8,
-      "schwierigkeit_median": 3.83
+      "schwierigkeit_median": 12.28
     },
     {
       "tag_utc": "2026-10-19",
@@ -197,7 +242,7 @@
       "von": 332267,
       "bis": 333548,
       "mittlerer_abstand_s": 67.4,
-      "schwierigkeit_median": 6.19
+      "schwierigkeit_median": 6.96
     },
     {
       "tag_utc": "2026-10-20",
@@ -205,7 +250,7 @@
       "von": 333549,
       "bis": 334495,
       "mittlerer_abstand_s": 60.9,
-      "schwierigkeit_median": 3.17
+      "schwierigkeit_median": 3.25
     }
   ],
   "mindestschwierigkeit": 3292,
