@@ -1,43 +1,44 @@
 {
-  "issue": "OCT 19 2026",
+  "issue": "OCT 20 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "$64.0K",
-  "value_label": "of brand new kaspa supply is created every day",
-  "headline": "bitcoin prints *581x*\nmore supply each day.",
+  "value": "$1.01M",
+  "value_label": "locked across kasplex and igra",
+  "headline": "layer 2 tvl is *down 29%*\nagainst 3 weeks ago.",
   "panes": [
     {
       "kind": "compare",
-      "title": "NEW SUPPLY PER DAY",
-      "sub": "issuance valued at today's spot price",
+      "title": "TOTAL VALUE LOCKED",
+      "sub": "same measurement, two dates",
       "rows": [
         {
-          "label": "kaspa",
-          "sub": "1.78 million KAS",
-          "value": "$64.0K",
-          "pct": 0.1722314232042888,
-          "tone": "teal"
+          "label": "today",
+          "sub": "",
+          "value": "$1.01M",
+          "pct": 71.35790763864973,
+          "tone": "red"
         },
         {
-          "label": "bitcoin",
-          "sub": "450 BTC",
-          "value": "$37.14M",
-          "pct": 100.0,
+          "label": "3 weeks ago",
+          "sub": "",
+          "value": "$1.42M",
+          "pct": 100.00000000000001,
           "tone": "grey"
         }
       ]
     },
     {
       "kind": "anchor",
-      "title": "WHY THAT GAP CLOSES",
+      "title": "WHAT THE NUMBER IS",
       "lines": [
-        "kaspa cuts *twelve times a year*. bitcoin once every four years."
+        "the difference is *$406K*.",
+        "*read* from defillama.com, both days."
       ]
     }
   ],
-  "sources": "api.kaspa.org and coingecko.com",
+  "sources": "defillama.com",
   "site": "kaspapulse.com",
   "post": {
-    "x": "kaspa creates about $64.0K of new supply per day. bitcoin creates $37.14M, roughly 581 times more. kaspa cuts its reward twelve times a year and bitcoin once every four years, so that gap narrows every month without anyone voting on it.",
-    "reply": "the full emission schedule is on kaspapulse.com/kaspa-halving.html. bitcoin issuance is 3.125 coins per block, about 144 blocks a day."
+    "x": "layer 2 tvl on kaspa is down 29% against 3 weeks ago. $1.01M today, $1.42M then, both read from defillama.com 22 days apart.",
+    "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
   }
 }
