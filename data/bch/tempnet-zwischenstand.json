@@ -1,0 +1,220 @@
+{
+  "titel": "BCH Tempnet 2027, unabhaengige Zaehlung",
+  "stichtag_utc": "2026-10-20 16:00 UTC",
+  "bereich": {
+    "von_hoehe": 327989,
+    "bis_hoehe": 334495,
+    "bloecke": 6507,
+    "von_zeit_utc": "2026-10-15 12:56:56",
+    "bis_zeit_utc": "2026-10-20 15:59:59"
+  },
+  "quelle": {
+    "quelle": "BCH-Tempnet P2P (getheaders), Peers aus der oeffentlichen Tempnet-Konfiguration",
+    "abruf_utc": "2026-10-20T16:33:16Z",
+    "start_checkpoint": 327988,
+    "erste_hoehe": 327989,
+    "spitze_hoehe": 334523,
+    "spitze_hash": "00000000471d464a2544e3bd402bdc125d412f7d87fe93208180465cc10281bf",
+    "fixpunkte": {
+      "letzter_gemeinsamer": 327988,
+      "erster_tempnet": 327989
+    },
+    "checkpoints_geprueft": 1,
+    "peer_software": [
+      "/Rapids:2026-10.d46922c2/",
+      "/Vcash:0.1/",
+      "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/"
+    ],
+    "peer_fehler": 1,
+    "zielhoehe_gemeldet": 328718,
+    "abzweige_verworfen": [],
+    "gegenproben": [
+      {
+        "agent": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+        "verglichen": 500,
+        "gleich": 500,
+        "spitze_peer": 334523
+      },
+      {
+        "agent": "/Vcash:0.1/",
+        "verglichen": 500,
+        "gleich": 500,
+        "spitze_peer": 334523
+      }
+    ],
+    "gegenproben_ohne_antwort": [],
+    "pruefungen": [
+      "prev-hash-kette",
+      "hash <= ziel aus nbits",
+      "erster tempnet-block 327989"
+    ],
+    "nicht_geprueft": [
+      "block-inhalt",
+      "asert-schwierigkeitsregel",
+      "konsensregeln jenseits des kopfes"
+    ]
+  },
+  "abstaende": {
+    "anzahl": 6506,
+    "mittel": 68.09,
+    "median": 42.5,
+    "p90": 124.0,
+    "p99": 236.0,
+    "max": 20863
+  },
+  "erwartung_abstaende": {
+    "mittel": 60.0,
+    "median": 41.6,
+    "p90": 138.2,
+    "p99": 276.3,
+    "anteil_ueber_5min": 0.00674,
+    "laengste_luecke": 561.5
+  },
+  "anteil_ueber_5min": 0.00446,
+  "anzahl_ueber_5min": 29,
+  "laengste_luecke_hoehe": 328223,
+  "null": 0,
+  "negativ": 0,
+  "mtp": {
+    "verzug_block": {
+      "anzahl": 6496,
+      "mittel": 383.54,
+      "median": 330.0,
+      "p90": 525.0,
+      "p99": 795.1,
+      "max": 27799
+    },
+    "verzug_block_min": 49,
+    "abruf_minus_mtp": 333,
+    "abruf_minus_spitze": 23,
+    "spitze_beim_abruf": 334523,
+    "erwartung": {
+      "verzug_block": {
+        "anzahl": 200000,
+        "mittel": 359.85,
+        "median": 340.107398799977,
+        "p90": 556.5,
+        "p99": 786.0,
+        "max": 1341.7716854069604
+      },
+      "abruf_minus_mtp": {
+        "anzahl": 200000,
+        "mittel": 359.85,
+        "median": 340.350340138432,
+        "p90": 555.8,
+        "p99": 786.4,
+        "max": 1374.5140852918812
+      },
+      "abruf_minus_spitze": {
+        "anzahl": 200000,
+        "mittel": 60.1,
+        "median": 41.73228996285829,
+        "p90": 137.5,
+        "p99": 277.8,
+        "max": 764.6230505589011
+      },
+      "ziehungen": 200000,
+      "saat": 2027
+    }
+  },
+  "fenster_10": {
+    "gemessen": {
+      "anzahl": 6497,
+      "mittel": 660.1,
+      "median": 562.0,
+      "p90": 827.0,
+      "p99": 1285.5,
+      "max": 48270
+    },
+    "erwartung_10x60": {
+      "median": 580.1,
+      "p90": 852.4,
+      "p99": 1127.0
+    },
+    "erwartung_1x600": {
+      "median": 415.9,
+      "p90": 1381.6,
+      "p99": 2763.1
+    }
+  },
+  "nachfuehrung": {
+    "methode": "Fenster 100 Bloecke, Sprung ab Faktor 2.0 (bestaetigt), eingeholt bei +-15 %",
+    "spruenge": 1,
+    "eingeholt": 1,
+    "abgeloest": 0,
+    "offen_am_stichtag": 0,
+    "median_bloecke": 0,
+    "median_min": 0.0,
+    "max_bloecke": 0,
+    "ereignisse": [
+      {
+        "grenze_hoehe": 328239,
+        "zeit_utc": "2026-10-16 13:48:16",
+        "faktor_hashrate": 3.16,
+        "eingeholt_nach_bloecken": 0,
+        "eingeholt_nach_min": 0.0,
+        "abgeloest": false,
+        "offen_am_stichtag": false
+      }
+    ]
+  },
+  "je_tag": [
+    {
+      "tag_utc": "2026-10-15",
+      "bloecke": 10,
+      "von": 327989,
+      "bis": 327998,
+      "mittlerer_abstand_s": 3585.3,
+      "schwierigkeit_median": 1.0
+    },
+    {
+      "tag_utc": "2026-10-16",
+      "bloecke": 855,
+      "von": 327999,
+      "bis": 328853,
+      "mittlerer_abstand_s": 109.8,
+      "schwierigkeit_median": 1.0
+    },
+    {
+      "tag_utc": "2026-10-17",
+      "bloecke": 1525,
+      "von": 328854,
+      "bis": 330378,
+      "mittlerer_abstand_s": 56.7,
+      "schwierigkeit_median": 1.0
+    },
+    {
+      "tag_utc": "2026-10-18",
+      "bloecke": 1888,
+      "von": 330379,
+      "bis": 332266,
+      "mittlerer_abstand_s": 45.8,
+      "schwierigkeit_median": 3.83
+    },
+    {
+      "tag_utc": "2026-10-19",
+      "bloecke": 1282,
+      "von": 332267,
+      "bis": 333548,
+      "mittlerer_abstand_s": 67.4,
+      "schwierigkeit_median": 6.19
+    },
+    {
+      "tag_utc": "2026-10-20",
+      "bloecke": 947,
+      "von": 333549,
+      "bis": 334495,
+      "mittlerer_abstand_s": 60.9,
+      "schwierigkeit_median": 3.17
+    }
+  ],
+  "mindestschwierigkeit": 3292,
+  "gegenprobe_chaingraph": {
+    "quelle": "source chaingraph",
+    "endpunkt": "https://tempnet.chaingraph.cash/v1/graphql",
+    "proben": 16,
+    "verglichen": 0,
+    "gleich": 0,
+    "fehler": "HTTPError: HTTP Error 403: Forbidden"
+  }
+}
