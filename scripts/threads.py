@@ -179,6 +179,37 @@ def me(tok=None, oeffner=None):
     return d
 
 
+def nutzer_id(tok=None, oeffner=None):
+    """Die Threads-Nutzer-ID: aus der Umgebung, sonst selbst von /me geholt.
+
+    WOFUER (Ben, 20.10.2026). THREADS_USER_ID gibt es als Variable nicht,
+    und container() hat deshalb hart abgebrochen ("erst 'me' laufen
+    lassen"). Damit war kein Trockenlauf moeglich, der etwas beweist: der
+    Container-Schritt ist der EINZIGE, der Token und ID ueberhaupt
+    benutzt, und er kam nie dazu.
+
+    Die ID ist kein Geheimnis - sie ist die oeffentliche Konto-ID und
+    gehoert als Repository-Variable eingetragen. Das Skript holt sie
+    deshalb selbst und DRUCKT sie, damit sie aus dem Lauf-Log in die
+    Variable wandern kann. DAS TOKEN NIE: es steht im Authorization-Header,
+    in keiner URL und in keiner Ausgabe, und jede Fehlermeldung laeuft
+    durch blind().
+
+    Steht die Variable, wird /me nicht gefragt - ein Abruf weniger je Lauf."""
+    wert = os.environ.get(ENV_USER, "").strip()
+    if wert:
+        if not re.fullmatch(r"\d+", wert):
+            sys.exit("%s ist keine Zahl: %r" % (ENV_USER, wert))
+        return wert
+    print("%s steht nicht in der Umgebung, wird ueber /me geholt" % ENV_USER)
+    wert = str(me(tok=tok, oeffner=oeffner).get("id", "") or "").strip()
+    if not re.fullmatch(r"\d+", wert):
+        sys.exit("/me liefert keine nutzer-id, %s bleibt leer" % ENV_USER)
+    print("%s=%s als Repository-Variable eintragen, dann entfaellt dieser "
+          "Abruf" % (ENV_USER, wert))
+    return wert
+
+
 def container(text, bild="", thema=THEMA, tok=None, oeffner=None):
     """Container anlegen und DORT AUFHOEREN. Kein threads_publish."""
     befunde = wache(text)
@@ -186,9 +217,7 @@ def container(text, bild="", thema=THEMA, tok=None, oeffner=None):
         for b in befunde:
             print("WACHE: %s" % b, file=sys.stderr)
         sys.exit("der text haelt die wachen nicht ein, kein container")
-    nutzer = os.environ.get(ENV_USER, "").strip()
-    if not nutzer:
-        sys.exit("FEHLT: %s steht nicht in der Umgebung (erst 'me' laufen lassen)" % ENV_USER)
+    nutzer = nutzer_id(tok=tok, oeffner=oeffner)
     felder = {"media_type": "IMAGE" if bild else "TEXT", "text": text}
     if bild:
         felder["image_url"] = bild
@@ -277,9 +306,7 @@ def posten(text, bild, modus, tag, log_pfad=None, hand=False, tok=None, oeffner=
     if befunde:
         sys.exit("der text haelt die wachen nicht ein, kein container: %s" % "; ".join(befunde))
     tok = tok or token()
-    nutzer = os.environ.get(ENV_USER, "").strip() or str(me(tok=tok, oeffner=oeffner).get("id", ""))
-    if not re.fullmatch(r"\d+", nutzer):
-        sys.exit("keine threads-nutzer-id")
+    nutzer = nutzer_id(tok=tok, oeffner=oeffner)
     felder = {"media_type": "IMAGE" if bild else "TEXT", "text": text, "topic_tag": THEMA}
     if bild:
         felder["image_url"] = bild
@@ -404,6 +431,61 @@ def selbsttest():
     pruefe("mit bild als IMAGE", "media_type=IMAGE" in gesehen["leib"], True)
     pruefe("die bildadresse steht drin", "image_url=https" in gesehen["leib"], True)
     del os.environ[ENV_USER]
+
+    # --- DIE NUTZER-ID HOLT SICH DAS SKRIPT SELBST (Ben, 20.10.2026) ---
+    # Jeder Fall hier stand dem Trockenlauf im Weg oder deckt ihn ab.
+    import io as _io
+    import contextlib as _ctx
+
+    def _mit_ausgabe(fn):
+        """(ergebnis_oder_SystemExit, gedruckte ausgabe)."""
+        puffer = _io.StringIO()
+        try:
+            with _ctx.redirect_stdout(puffer):
+                return fn(), puffer.getvalue()
+        except SystemExit as exc:
+            return exc, puffer.getvalue()
+
+    os.environ[ENV_USER] = "4711"
+    gesehen.clear()
+    wert, _aus = _mit_ausgabe(lambda: nutzer_id(tok=tok, oeffner=oeffner))
+    pruefe("steht die variable, gilt sie", wert, "4711")
+    pruefe("und /me wird nicht gefragt", gesehen.get("url"), None)
+
+    os.environ[ENV_USER] = "siebzehn"
+    wert, _aus = _mit_ausgabe(lambda: nutzer_id(tok=tok, oeffner=oeffner))
+    pruefe("eine nicht-zahl in der variable stoppt",
+           isinstance(wert, SystemExit) and ENV_USER in str(wert), True)
+
+    del os.environ[ENV_USER]
+    gesehen.clear()
+    wert, aus = _mit_ausgabe(lambda: nutzer_id(tok=tok, oeffner=oeffner))
+    pruefe("fehlt sie, kommt sie von /me", wert, "17890")
+    pruefe("und zwar wirklich von /me",
+           (gesehen.get("url") or "").endswith("/me?fields=id%2Cusername"), True)
+    pruefe("die id steht im log", "17890" in aus, True)
+    pruefe("mit dem hinweis, sie einzutragen",
+           "als Repository-Variable eintragen" in aus, True)
+    # DAS TOKEN STEHT IN KEINER AUSGABE. Die ID ist kein Geheimnis, das
+    # Token ist eines - und dieser Weg druckt zum ersten Mal etwas, das
+    # aus einer Token-Antwort kommt.
+    pruefe("das token steht nicht im log", tok in aus, False)
+    pruefe("auch kein stueck davon", tok[2:22] in aus, False)
+
+    # Liefert /me keine id, wird nicht geraten.
+    def _ohne_id(req, timeout=0):
+        return Antwort({"username": "kaspapulse"})
+    wert, _aus = _mit_ausgabe(lambda: nutzer_id(tok=tok, oeffner=_ohne_id))
+    pruefe("ohne id von /me stoppt der lauf",
+           isinstance(wert, SystemExit) and "keine nutzer-id" in str(wert), True)
+
+    # Und der Container laeuft jetzt ohne die Variable durch - das ist der
+    # Schritt, der am 19.10. uebersprungen wurde.
+    gesehen.clear()
+    _r, _aus = _mit_ausgabe(
+        lambda: container(gut, thema="Crypto", tok=tok, oeffner=oeffner))
+    pruefe("der container nimmt die geholte id",
+           (gesehen.get("url") or "").endswith("/17890/threads"), True)
 
     # der taegliche post (Ben, 17.10.2026)
     def zeit(h, m):
