@@ -627,6 +627,13 @@
      "comments": 3,
      "saved": 4,
      "shares": 1
+    },
+    "2026-10-20": {
+     "reach": 1845,
+     "likes": 31,
+     "comments": 3,
+     "saved": 4,
+     "shares": 1
     }
    }
   },
@@ -781,6 +788,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 3
+    },
+    "2026-10-20": {
+     "reach": 1478,
+     "likes": 13,
+     "comments": 0,
+     "saved": 0,
+     "shares": 3
     }
    }
   },
@@ -826,6 +840,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-20": {
+     "reach": 34,
+     "likes": 4,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -864,6 +885,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-20": {
+     "reach": 51,
+     "likes": 10,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -890,6 +918,13 @@
      "shares": 0
     },
     "2026-10-19": {
+     "reach": 28,
+     "likes": 7,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    },
+    "2026-10-20": {
      "reach": 28,
      "likes": 7,
      "comments": 0,
@@ -923,6 +958,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-20": {
+     "reach": 87,
+     "likes": 7,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -947,6 +989,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-20": {
+     "reach": 28,
+     "likes": 6,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -964,9 +1013,61 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-20": {
+     "reach": 23,
+     "likes": 4,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    }
+   }
+  },
+  "18160044676507819": {
+   "gepostet_utc": "2026-10-20T10:07:15+0000",
+   "typ": "VIDEO",
+   "permalink": "https://www.instagram.com/reel/DetlHe5jC4s/",
+   "tage": {
+    "2026-10-20": {
+     "reach": 1,
+     "likes": 0,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    }
+   }
+  },
+  "18117082411981026": {
+   "gepostet_utc": "2026-10-20T07:31:21+0000",
+   "typ": "IMAGE",
+   "permalink": "https://www.instagram.com/p/DetTUDslheh/",
+   "form": 9,
+   "caption_sha": "5330bf89fe01",
+   "frage": null,
+   "tage": {
+    "2026-10-20": {
+     "reach": 7,
+     "likes": 0,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    }
+   }
+  },
+  "18102704348035225": {
+   "gepostet_utc": "2026-10-19T15:21:02+0000",
+   "typ": "VIDEO",
+   "permalink": "https://www.instagram.com/reel/DerkPe6gUC1/",
+   "tage": {
+    "2026-10-20": {
+     "reach": 93,
+     "likes": 5,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   }
  },
- "stand_utc": "2026-10-19T11:15:12+00:00"
+ "stand_utc": "2026-10-20T10:24:47+00:00"
 }
