@@ -69,7 +69,7 @@ jobs:
           k=$(find . -type f -name kaspad | head -n 1)
           chmod +x "$k" && cp "$k" /mnt/kp/kaspad
           sha256sum /mnt/kp/kaspad | cut -c1-64
-          /mnt/kp/kaspad --version | head -n 1
+          /mnt/kp/kaspad --version > /mnt/kp/version.txt 2>&1 || true; head -n 1 /mnt/kp/version.txt
           echo "ok=ja" >> "$GITHUB_OUTPUT"
 
       - name: knoten starten, ausgabe nur in datei
