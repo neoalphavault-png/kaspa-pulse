@@ -999,7 +999,7 @@ def vorlage_9(w, now):
                 tag_kurz(tage[0]), tag_kurz(tage[-1]), ", below the line a day that fell" if rueck else ""),
             "herkunft": "source kaspalytics address thresholds",
             "objekt": lambda x, y, ww, hh: o_tagesspalten(x, y, ww, hh, neu, ["%+d" % v for v in neu]),
-            "x1": "%s kaspa addresses now hold at least 100 KAS." % ganz(j),
+            "x1": "%s kaspa addresses hold at least 100 KAS." % ganz(j),
             "x2": "%s, source kaspalytics address thresholds" % tag(w["d1"]),
             "x3": "how many joined this week?",
             "aufloesung": "%+d net in the 7 days to %s. %s came in on the days it grew%s." % (
@@ -1142,7 +1142,11 @@ MOTIV_11 = ("deliberately", "deliberate", "forgotten", "forget", "lost", "convic
 ECHTZEIT = ("around the clock", "real time", "realtime", "real-time", "every minute",
             "instantly", "instant", "live", "the second", "the moment", "24/7",
             # dieselben woerter wie die zahl des tages (Ben, 17.10.2026)
-            "right now", "currently", "as we speak", "this second")
+            "right now", "currently", "as we speak", "this second",
+            # "now" allein, nach dem Threads-Post vom 20.10. 17:10
+            # ("294,512 kaspa addresses now hold at least 100 KAS"). Nur als
+            # ganzes Wort, "known" und "nowhere" bleiben erlaubt (Ben, 21.10.2026).
+            "now")
 # Kein Vergleich mit einer anderen Chain, in keiner Form (Ben, 29.09.2026).
 FREMDE_CHAINS = ("bitcoin", "btc", "ethereum", "eth", "solana", "sol", "cardano", "xrp",
                  "litecoin", "ltc", "dogecoin", "doge", "monero", "xmr", "alephium", "alph",
@@ -2390,6 +2394,15 @@ def selbsttest():
     ok("andere chain faellt", bool(probe("48 blocks for bitcoin in the same time")))
     ok("echtzeit-wort faellt", bool(probe("sealed by proof of work, around the clock")))
     ok("echtzeit live faellt", bool(probe("tracked live")))
+    # der threads-post vom 20.10. 17:10, wortgleich (Ben, 21.10.2026)
+    ok("echtzeit now faellt", bool(probe("294,512 kaspa addresses now hold at least 100 KAS.")))
+    ok("known faellt nicht, now steckt nur drin", not probe("a known address on 16 oct"))
+    ok("nowhere faellt nicht, now steckt nur drin", not probe("the heap went nowhere on 16 oct"))
+    ok("now faellt auch in der instagram-caption",
+       any("echtzeit" in f for f in ig_pruefung("294,512 kaspa addresses now hold at least 100 KAS.", 9)))
+    ok("form 9 traegt kein now mehr",
+       not [k for k, v in seite_bauen(9, FAKE[9], FAKE_NOW, log).items()
+            if isinstance(v, str) and re.search(r"\bnow\b", v)])
     s4 = seite_bauen(4, FAKE[4], FAKE_NOW, log)
     ok("form 4 heartbeat aus der blockrate", s4["bedeutung"] == "10 blocks for every heartbeat while you slept"
        and "resting pulse 60 assumed" in s4["datumszeile"])

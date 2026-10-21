@@ -371,13 +371,20 @@ def selbsttest():
     pruefe("fremde chain faellt auf",
            any("chain" in b for b in wache("faster than bitcoin on 14 oct, really?")), True)
     pruefe("kursangabe faellt auf",
-           any("kurs" in b for b in wache("the price on 14 oct, what now?")), True)
+           any("kurs" in b for b in wache("the price on 14 oct, what next?")), True)
+    # der post vom 20.10. 17:10, wortgleich (Ben, 21.10.2026)
+    pruefe("now faellt auf",
+           any("echtzeit" in b for b in wache("294,512 kaspa addresses now hold at least 100 KAS.")), True)
+    pruefe("known faellt nicht auf",
+           any("echtzeit" in b for b in wache("a known address on 14 oct, ok?")), False)
+    pruefe("nowhere faellt nicht auf",
+           any("echtzeit" in b for b in wache("the heap went nowhere on 14 oct, ok?")), False)
     pruefe("link faellt auf",
            any("link" in b for b in wache("more on kaspapulse.com on 14 oct, ok?")), True)
     pruefe("fehlende frage faellt auf",
            any("frage" in b for b in wache("the hashrate on 14 oct is 338 PH.")), True)
     pruefe("zahl ohne datum faellt auf",
-           any("ohne datum" in b for b in wache("the hashrate is 338 PH, what now?")), True)
+           any("ohne datum" in b for b in wache("the hashrate is 338 PH, what next?")), True)
     pruefe("zu langer text faellt auf",
            any("zeichen lang" in b for b in wache("a " * 300 + "on 14 oct, ok?")), True)
 

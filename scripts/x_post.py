@@ -566,12 +566,19 @@ def selftest():
     assert weighted_len("see kaspapulse.com/kaspa-weekly.html now") == len("see ") + 23 + len(" now")
     assert has_link("priced on kaspapulse.com.") and not has_link("one kas buys 47 sats.")
     # echtzeit-woerter stoppen jeden post (Ben, 17.10.2026)
-    for wort in ("right now", "live", "currently", "at the moment"):
+    for wort in ("right now", "live", "currently", "at the moment", "now"):
         try:
             check_text("the network runs %s at 360 PH." % wort, "Text")
             raise AssertionError("echtzeit-wort %r geht durch" % wort)
         except SystemExit:
             pass
+    # der threads-post vom 20.10. 17:10, wortgleich (Ben, 21.10.2026)
+    try:
+        check_text("294,512 kaspa addresses now hold at least 100 KAS.", "Text")
+        raise AssertionError("der satz mit now geht durch")
+    except SystemExit:
+        pass
+    assert check_text("a known address went nowhere on 16 oct.", "Text")
     assert check_text("360 PH on 17 oct.", "Text") == "360 PH on 17 oct."
     assert has_link("https://x.com/abc") and has_link("www.example.org")
     # Montagsfaden: Videolink wird eingesetzt, fehlende Angaben brechen ab
