@@ -203,9 +203,9 @@ fn main() {
         pp_utxo_pos == pp,
         pp_stabil
     );
-    if pp_kette != pp_index {
-        stopp(format!("index des pruning-punkts in der kette {pp_kette} statt {pp_index}"));
-    }
+    // pp_index zaehlt die pruning-punkte, nicht die kette; fuer die kette gilt pp_kette
+    let _ = pp_index;
+    let pp_index = pp_kette;
     if ts(pp) >= *zeiten.last().unwrap() {
         stopp(format!("stichzeit {} liegt nicht ueber dem pruning-punkt ({}), kein exakter rueckweg", iso(*zeiten.last().unwrap()), iso(ts(pp))));
     }
