@@ -3,32 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kaspa Pulse, a Live Dashboard for the Kaspa Network</title>
-<meta name="description" content="A Kaspa dashboard with DeFi TVL on both layer 2s, network usage, holders, mining power. Live where a feed exists, read weekly from named sources where not.">
+<title>Kaspa Pulse, the Kaspa Network in 6 Numbers a Week</title>
+<meta name="description" content="The number of the week and 6 Kaspa numbers every monday, each with its date and source. Block rate, miner fees, emission, holders, layer 2 and addresses.">
 <!-- FlexOffers site verification, do not remove -->
 <meta name="fo-verify" content="947fd0e6-86c3-42e7-89d7-0ad0609e2b50" />
 <!--AUTO:seo-kopf-->
 <link rel="canonical" href="https://kaspapulse.com/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Kaspa Pulse">
-<meta property="og:title" content="Kaspa Pulse, a Live Dashboard for the Kaspa Network">
-<meta property="og:description" content="A Kaspa dashboard with DeFi TVL on both layer 2s, network usage, holders, mining power. Live where a feed exists, read weekly from named sources where not.">
+<meta property="og:title" content="Kaspa Pulse, the Kaspa Network in 6 Numbers a Week">
+<meta property="og:description" content="The number of the week and 6 Kaspa numbers every monday, each with its date and source. Block rate, miner fees, emission, holders, layer 2 and addresses.">
 <meta property="og:url" content="https://kaspapulse.com/">
 <meta property="og:image" content="https://kaspapulse.com/og-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Kaspa Pulse, on-chain numbers for Kaspa">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Kaspa Pulse, a Live Dashboard for the Kaspa Network">
-<meta name="twitter:description" content="A Kaspa dashboard with DeFi TVL on both layer 2s, network usage, holders, mining power. Live where a feed exists, read weekly from named sources where not.">
+<meta name="twitter:title" content="Kaspa Pulse, the Kaspa Network in 6 Numbers a Week">
+<meta name="twitter:description" content="The number of the week and 6 Kaspa numbers every monday, each with its date and source. Block rate, miner fees, emission, holders, layer 2 and addresses.">
 <meta name="twitter:image" content="https://kaspapulse.com/og-card.png">
 <meta name="twitter:image:alt" content="Kaspa Pulse, on-chain numbers for Kaspa">
 <script type="application/ld+json">
 {
  "@context": "https://schema.org",
  "@type": "WebPage",
- "name": "Kaspa Pulse, a Live Dashboard for the Kaspa Network",
- "description": "A Kaspa dashboard with DeFi TVL on both layer 2s, network usage, holders, mining power. Live where a feed exists, read weekly from named sources where not.",
+ "name": "Kaspa Pulse, the Kaspa Network in 6 Numbers a Week",
+ "description": "The number of the week and 6 Kaspa numbers every monday, each with its date and source. Block rate, miner fees, emission, holders, layer 2 and addresses.",
  "url": "https://kaspapulse.com/",
  "inLanguage": "en",
  "dateModified": "2026-10-21",
@@ -47,152 +47,138 @@
 <!--/AUTO:seo-kopf-->
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="favicon.png">
+<link rel="preload" href="/graphics/fonts/archivo-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-  :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --grid:#14171B; --teal:#49EACB; --red:#E36A6A; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
-         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
-  .wrap { max-width:920px; margin:0 auto; padding:28px 18px 56px; }
-  header { display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--line); padding-bottom:16px; }
-  .logo { font-size:14px; letter-spacing:5px; font-weight:700; }
-  .logo span { color:var(--teal); }
-  .updated { font-size:11px; color:var(--dimmer); letter-spacing:1px; text-align:right; }
-  .live-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--teal); margin-right:5px; animation:pulse 2s infinite; vertical-align:1px; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
-  .hero { text-align:center; padding:58px 0 46px; }
-  .hero .label { font-size:13px; letter-spacing:3px; color:var(--dim); text-transform:uppercase; }
-  .hero .big { font-size:60px; font-weight:700; color:var(--teal); margin:8px 0 4px; }
-  .hero .sub { font-size:13px; color:var(--dimmer); }
-  .hero .breakdown { font-size:13px; color:var(--dim); margin-top:12px; }
-  .hero .breakdown b { color:var(--txt); }
-  .hero .volline { font-size:13px; color:var(--dim); margin-top:8px; }
-  .hero .volline b { color:var(--txt); }
-  .hero .volline .lv { color:var(--teal); font-size:11px; font-weight:700; }
-  .hero .deltas { margin-top:10px; font-size:13px; font-weight:700; }
-  .panel { background:#080A0D; border:1px solid #171A1F; border-radius:22px; padding:28px 30px 32px; margin-top:22px; }
-  .panel:first-of-type { margin-top:34px; }
-  .sec { margin:0 0 4px; display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:6px; }
-  .sec .t { font-size:24px; font-weight:700; letter-spacing:-0.4px; color:var(--txt); display:flex; align-items:baseline; }
-  .snum { display:inline-flex; align-items:center; justify-content:center; min-width:34px; height:24px; padding:0 9px; background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.30); border-radius:8px; color:var(--teal); font-size:12px; font-weight:700; letter-spacing:1px; margin-right:15px; position:relative; top:-2px; }
-  .sec .t span { color:var(--dimmer); font-weight:600; margin-left:9px; }
-  .sec .tag { font-size:11px; letter-spacing:1px; color:var(--dimmer); }
-  .read { font-size:14.5px; line-height:22px; color:var(--dim); margin:14px 0 24px; padding-left:49px; max-width:860px; }
-  .read b { color:var(--txt); font-weight:600; }
-  .read .rl { color:var(--teal); font-weight:700; letter-spacing:2px; font-size:10px; text-transform:uppercase; margin-right:10px; }
-  @media (max-width:520px){ .panel{padding:22px 18px 24px;} .sec .t{font-size:20px;} .sec .t span{display:block; margin-left:0; margin-top:3px;} .read{padding-left:0; margin-top:12px;} }
-  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-  .grid.four { grid-template-columns:repeat(4,1fr); }
-  @media (max-width:760px){ .grid, .grid.four { grid-template-columns:repeat(2,1fr); } }
-  @media (max-width:440px){ .grid, .grid.four { grid-template-columns:1fr; } }
-  .card { background:var(--card); border:1px solid #15181C; border-radius:16px; padding:19px 18px; transition:border-color .2s; }
-  .card:hover { border-color:#2A3038; }
-  .card .name { font-size:13px; color:var(--txt); font-weight:600; }
-  .card .expl { font-size:12px; line-height:16px; color:var(--dimmer); margin-top:4px; min-height:32px; }
-  .card .val { font-size:26px; font-weight:700; margin-top:8px; }
-  .card { display:flex; flex-direction:column; }
-  .trends, .split, .split-lbl { margin-top:auto; }
-  .trends { margin-top:8px; display:flex; flex-direction:column; gap:2px; }
-  .tr { display:flex; justify-content:space-between; font-size:12px; }
-  .tr .win { color:var(--dimmer); }
-  .up { color:var(--teal); font-weight:700; } .down { color:var(--red); font-weight:700; } .flat { color:var(--dim); font-weight:700; }
-  .split { display:flex; gap:2px; height:10px; border-radius:5px; overflow:hidden; margin-top:10px; }
-  .split .a { background:var(--teal); } .split .b { background:#2A6E63; }
-  .split-lbl { display:flex; justify-content:space-between; font-size:11px; color:var(--dim); margin-top:5px; }
-  .ctx { display:flex; flex-wrap:wrap; gap:18px; justify-content:center; font-size:12px; color:var(--dim); margin:44px 0 6px; }
-  .ctx b { color:var(--txt); }
-  .chart-box { background:var(--card); border:1px solid #15181C; border-radius:16px; padding:24px; margin-top:30px; }
-  .chart-box .title { font-size:12px; color:var(--dim); letter-spacing:1px; margin-bottom:10px; }
-  .philosophy { text-align:center; font-size:12px; color:var(--dimmer); font-style:italic; margin:26px 0 0; }
-  .cta { text-align:center; margin:22px 0 26px; font-size:13px; color:var(--dim); }
-  .cta a { color:var(--teal); text-decoration:none; }
-  footer { border-top:1px solid var(--line); padding-top:16px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
-  footer .brand { font-size:11px; letter-spacing:4px; color:var(--teal); opacity:0.75; }
-  footer .src { font-size:11px; color:var(--dimmer); }
-  footer a { color:var(--dim); text-decoration:none; }
-  footer .legal { width:100%; text-align:center; font-size:11px; color:var(--dimmer); margin-top:6px; }
-  @media (max-width:520px){ .hero .big{font-size:44px;} }
-  .comeback { text-align:center; font-size:12px; color:var(--dim); margin:28px 0 0; }
-  .comeback b { color:var(--teal); font-weight:600; }
-  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:34px 24px; margin:72px 0 0; text-align:center; box-shadow:0 0 40px rgba(73,234,203,0.06); }
-  .subscribe .st { font-size:18px; font-weight:700; color:var(--txt); letter-spacing:-0.3px; }
-  .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
-  .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
-  .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
-  .subscribe input::placeholder { color:var(--dimmer); }
-  .subscribe input:focus { outline:none; border-color:var(--teal); }
-  a:focus-visible, button:focus-visible, input:focus-visible { outline:2px solid var(--teal); outline-offset:2px; }
-  .heropill { display:inline-flex; align-items:center; gap:9px; margin-top:22px; padding:9px 16px 9px 14px; background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; font-size:13px; color:var(--txt); text-decoration:none; transition:background .2s; }
-  .heropill:hover { background:rgba(73,234,203,0.16); }
-  .heropill b { color:var(--teal); font-weight:700; letter-spacing:0.3px; }
-  .heropill .arr { color:var(--teal); font-weight:700; }
-  .heropills { display:flex; flex-direction:column; gap:10px; justify-content:center; align-items:center; margin-top:22px; }
-  .heropills .heropill { margin-top:0; text-align:left; }
-  .heropill b { white-space:nowrap; }
-  .heropill.dc { background:rgba(88,101,242,0.12); border-color:rgba(88,101,242,0.45); }
-  .heropill.dc:hover { background:rgba(88,101,242,0.20); }
-  .heropill.dc b, .heropill.dc .arr { color:#9BA6F8; }
-  .heropill.yt { background:rgba(227,106,106,0.10); border-color:rgba(227,106,106,0.40); }
-  .heropill.yt:hover { background:rgba(227,106,106,0.18); }
-  .heropill.yt b, .heropill.yt .arr { color:#E36A6A; }
-  @media (max-width:560px){ .heropills .heropill { font-size:12px; padding:8px 13px; } }
-  .subscribe .st b { color:var(--teal); font-weight:700; }
-  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
-  .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
-  .subscribe button:hover { opacity:0.9; }
-  .subscribe .fine { font-size:11px; color:var(--dimmer); margin-top:10px; }
-  .subscribe .msg { display:none; font-size:13px; font-weight:600; margin-top:14px; padding:10px 14px; border-radius:8px; }
-  .subscribe .msg.ok { display:block; color:var(--teal); background:rgba(73,234,203,0.08); border:1px solid rgba(73,234,203,0.35); }
-  .subscribe .msg.err { display:block; color:var(--red); background:rgba(227,106,106,0.08); border:1px solid rgba(227,106,106,0.35); }
-  .subscribe button:disabled { opacity:0.6; cursor:wait; }
-  @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
-  /* v2: nav + motion */
-  html { scroll-behavior:smooth; }
-  .nav { position:sticky; top:0; z-index:60; background:rgba(5,6,8,0.88); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
-  .nav .nt { max-width:920px; margin:0 auto; padding:13px 18px 9px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
-  .nav .nlogo { font-size:13px; letter-spacing:4px; font-weight:700; white-space:nowrap; }
-  .nav .nlogo span { color:var(--teal); }
-  .nav .nstamp { font-size:10px; color:var(--dimmer); letter-spacing:1px; text-align:right; line-height:14px; }
-  .nav .nc { max-width:920px; margin:0 auto; padding:0 10px 10px; display:flex; flex-wrap:wrap; gap:2px; row-gap:3px; }
-  .nav .nc::-webkit-scrollbar { display:none; }
-  .nav .nc a { font-size:12px; color:var(--dim); text-decoration:none; padding:5px 8px; border-radius:999px; white-space:nowrap; border:1px solid transparent; }
-  .nav .nc a:hover { color:var(--txt); }
-  .nav .nc a.on { color:var(--teal); background:rgba(73,234,203,0.08); border-color:rgba(73,234,203,0.25); }
-  .rv { opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
-  .rv.vis { opacity:1; transform:none; }
-  @media (prefers-reduced-motion: reduce){ .rv { opacity:1; transform:none; transition:none; } }
-  /* v2.1: mobile menu + tables */
-  .nright { display:flex; align-items:center; gap:8px; }
-  .nburger { display:none; background:none; border:1px solid var(--line); color:var(--txt); border-radius:10px; padding:8px 14px; font-size:19px; line-height:1.2; cursor:pointer; font-family:inherit; }
-  .tblwrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-  .tblwrap table { min-width:540px; }
-  @media (max-width:640px){
-    .nburger { display:block; }
-    .nav .nc { display:none; }
-    .nav .nc.open { display:flex; flex-direction:column; gap:4px; padding:8px 18px 14px; border-top:1px solid var(--line); }
-    .nav .nc.open a { font-size:15px; padding:11px 12px; }
-    .nav .nstamp { display:none; }
-    .nav .nlogo { font-size:12px; letter-spacing:3px; }
+/* Startseite nach dem Entwurf vom 21.10.2026. Zahlen und Navigation schreibt
+   scripts/startseite.py zwischen die AUTO-Marken, hier steht nur der Rahmen.
+   Schriften kommen aus graphics/fonts (OFL), nicht von Google: keine
+   Anfrage an Dritte beim Seitenaufruf. */
+@font-face{font-family:Archivo;font-weight:800;font-display:swap;src:url(/graphics/fonts/archivo-latin-800-normal.woff2) format("woff2")}
+@font-face{font-family:Archivo;font-weight:900;font-display:swap;src:url(/graphics/fonts/archivo-latin-900-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;src:url(/graphics/fonts/ibm-plex-mono-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:500;font-display:swap;src:url(/graphics/fonts/ibm-plex-mono-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-weight:400;font-display:swap;src:url(/graphics/fonts/ibm-plex-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-weight:500;font-display:swap;src:url(/graphics/fonts/ibm-plex-sans-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-weight:600;font-display:swap;src:url(/graphics/fonts/ibm-plex-sans-latin-600-normal.woff2) format("woff2")}
+:root{
+  --bg:#EEF3F1; --surface:#FFFFFF; --ink:#0B1A17; --muted:#4F625D; --line:#D3DEDA;
+  --accent:#0F9A80; --accent-soft:#CDEBE4; --neg:#C2553A; --chip:#E2ECE9;
+  /* der kopf ist in beiden looks dunkel: KASPA #F2F5F4, PULSE #49EACB (Ben, 21.10.2026) */
+  --bar:#080B0F; --bar-ink:#F2F5F4; --bar-muted:#A9B7B4; --bar-line:#1B252B; --bar-chip:#1B252B; --brand:#49EACB;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#080B0F; --surface:#0F1519; --ink:#F2F5F4; --muted:#A9B7B4; --line:#1F2A2E;
+    --accent:#49EACB; --accent-soft:#103A33; --neg:#F08A6C; --chip:#152025;
   }
-  @media (max-width:440px){
-    .card { text-align:center; }
-    .card .expl { min-height:0; }
-  }
-  /* v2.2: live vs weekly mode divider */
-  .modeline { display:flex; align-items:center; gap:14px; margin:34px 0 -14px; }
-  .modeline::before, .modeline::after { content:""; flex:1; height:1px; background:var(--line); }
-  .modeline .mi { font-size:11px; color:var(--dimmer); letter-spacing:0.5px; text-align:center; line-height:17px; max-width:520px; }
-  .modeline .mi b { color:var(--dim); font-weight:600; }
-  .modeline .mi .lvw { color:var(--teal); font-weight:700; }
-  .sec .tag { border:1px solid var(--line); border-radius:999px; padding:3px 11px; font-size:10.5px; letter-spacing:1px; color:var(--dimmer); background:rgba(255,255,255,0.015); white-space:nowrap; }
-  .sec .tag i { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--dimmer); margin-right:6px; vertical-align:1px; font-style:normal; }
-  .sec .tag.lv i { background:var(--teal); animation:pulse 2s infinite; }
-  /* v2.3: karte for builders unter dem ersten block (Ben, 08.10.2026). Umrandeter knopf, damit der newsletter oben der haupt-cta bleibt */
-  .bcard { display:flex; align-items:center; justify-content:space-between; gap:16px 22px; flex-wrap:wrap; background:var(--card); border:1px solid rgba(73,234,203,0.28); border-radius:18px; padding:20px 24px; margin-top:22px; }
-  .bcard .bc-h { font-size:17px; font-weight:700; letter-spacing:-0.2px; color:var(--txt); }
-  .bcard .bc-s { font-size:13px; line-height:19px; color:var(--dim); margin-top:4px; }
-  .bcard .bc-btn { flex:none; display:inline-block; border:1px solid rgba(73,234,203,0.5); color:var(--teal); border-radius:999px; padding:11px 20px; font-size:13px; font-weight:700; text-decoration:none; white-space:nowrap; }
-  .bcard .bc-btn:hover { background:rgba(73,234,203,0.10); }
-  @media (max-width:520px){ .bcard{ padding:18px; text-align:center; justify-content:center; } .bcard .bc-btn{ width:100%; text-align:center; padding:12px 18px; } }
+}
+:root[data-theme="dark"]{
+  --bg:#080B0F; --surface:#0F1519; --ink:#F2F5F4; --muted:#A9B7B4; --line:#1F2A2E;
+  --accent:#49EACB; --accent-soft:#103A33; --neg:#F08A6C; --chip:#152025;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:110px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;line-height:1.55;overflow-x:hidden}
+a{color:inherit}
+.bar{position:sticky;top:0;z-index:60;background:var(--bar);border-bottom:1px solid var(--bar-line)}
+header.top{max-width:1080px;margin:0 auto;padding:0 16px;height:56px;display:flex;align-items:center;gap:16px}
+.logo{font:900 18px/1 Archivo,sans-serif;letter-spacing:.04em;color:var(--bar-ink);text-decoration:none;white-space:nowrap}
+.logo span{color:var(--brand)}
+.menu{display:flex;align-items:center;gap:2px;margin-left:auto}
+.mtop{display:flex;gap:2px}
+.menu a,.gbtn{font:500 14px/1 "IBM Plex Sans",system-ui,sans-serif;color:var(--bar-muted);text-decoration:none;padding:10px 9px;border-radius:6px;background:none;border:0;cursor:pointer;white-space:nowrap}
+.menu a:hover,.gbtn:hover{color:var(--bar-ink);background:var(--bar-chip)}
+.mtop a[aria-current="page"]{color:var(--bar-ink);box-shadow:inset 0 -2px 0 var(--brand);border-radius:0}
+.gbtn::after{content:"";display:inline-block;width:6px;height:6px;margin-left:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-3px) rotate(45deg)}
+.grp{position:relative}
+.drop{display:none;position:absolute;top:100%;left:0;min-width:200px;flex-direction:column;background:var(--bar);border:1px solid var(--bar-line);border-radius:10px;padding:6px;box-shadow:0 12px 32px rgba(0,0,0,.35)}
+.drop a{color:var(--bar-ink);padding:10px 12px}
+.grp:hover .drop,.grp:focus-within .drop,.grp.open .drop{display:flex}
+.subbtn{font:600 14px/1 "IBM Plex Sans",system-ui,sans-serif;background:var(--brand);color:#04211C;text-decoration:none;padding:10px 14px;border-radius:8px;white-space:nowrap}
+.burger{display:none;margin-left:auto;font:500 13px/1 "IBM Plex Mono",monospace;background:var(--bar-chip);color:var(--bar-ink);border:1px solid var(--bar-line);border-radius:8px;padding:9px 12px;cursor:pointer}
+.menu a:focus-visible,.gbtn:focus-visible,.subbtn:focus-visible,.burger:focus-visible,.logo:focus-visible,.share:focus-visible,.next:focus-visible,.channels a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+@media (max-width:1000px){
+  header.top{gap:10px}
+  .burger{display:inline-block}
+  .subbtn{padding:9px 12px}
+  /* handy: alle gruppen offen, zwei spalten, passt ohne scrollen auf 360 x 640 */
+  .menu{display:none;position:absolute;left:0;right:0;top:56px;margin:0;background:var(--bar);border-bottom:1px solid var(--bar-line);padding:8px 16px 14px;max-height:calc(100vh - 56px);max-height:calc(100dvh - 56px);overflow-y:auto;overscroll-behavior:contain}
+  .menu.open{display:block;columns:2;column-gap:16px}
+  .mtop{column-span:all;display:flex;flex-wrap:wrap;gap:0 14px;border-bottom:1px solid var(--bar-line);margin-bottom:6px}
+  .mtop a{padding:9px 0;font-size:15px;color:var(--bar-ink)}
+  .mtop a[aria-current="page"]{box-shadow:none;color:var(--brand)}
+  .grp{break-inside:avoid;padding-top:6px}
+  .gbtn{pointer-events:none;padding:4px 0 2px;font:500 11px/1 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--bar-muted)}
+  .gbtn::after{display:none}
+  .drop{display:flex;position:static;min-width:0;border:0;box-shadow:none;padding:0;background:none}
+  .drop a{padding:5px 0;font-size:14.5px;white-space:normal}
+}
+@media (max-width:380px){.logo{font-size:16px}.subbtn{padding:8px 10px;font-size:13px}.burger{padding:8px 10px}}
+main{max-width:760px;margin:0 auto;padding:0 16px 40px}
+.hero{padding:44px 0 36px;border-bottom:1px solid var(--line)}
+.eyebrow{font:500 12px/1.4 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+.big{font:900 clamp(64px,18vw,128px)/.9 Archivo,sans-serif;letter-spacing:-.02em;margin:0;color:var(--accent);font-variant-numeric:tabular-nums}
+.lead{font:800 clamp(20px,4.6vw,26px)/1.3 Archivo,sans-serif;margin:18px 0 8px;max-width:32ch;text-wrap:balance}
+.note{font:400 12px/1.5 "IBM Plex Mono",monospace;color:var(--muted);margin:0}
+.next{display:inline-flex;gap:8px;align-items:center;margin-top:26px;font:500 14px/1 "IBM Plex Sans",system-ui,sans-serif;color:var(--ink);text-decoration:none;border:1px solid var(--line);padding:12px 16px;border-radius:999px}
+.progress{position:sticky;top:57px;z-index:4;display:flex;gap:6px;padding:12px 0;background:var(--bg)}
+.progress a{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.progress a.on{background:var(--accent)}
+section.step{padding:48px 0 24px;border-bottom:1px solid var(--line);transition:opacity .4s}
+.js section.step{opacity:.35}
+.js section.step.seen{opacity:1}
+@media (prefers-reduced-motion: reduce){.js section.step{opacity:1;transition:none}}
+.steprow{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.stepnum{font:500 12px/1 "IBM Plex Mono",monospace;color:var(--muted);letter-spacing:.08em}
+.share{font:500 12px/1 "IBM Plex Mono",monospace;color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:7px 10px;white-space:nowrap}
+.share:hover{color:var(--accent);border-color:var(--accent)}
+h2{font:800 clamp(24px,5.6vw,34px)/1.15 Archivo,sans-serif;margin:12px 0 14px;max-width:24ch;text-wrap:balance}
+h2 em{font-style:normal;color:var(--accent)}
+p.body{max-width:62ch;margin:0 0 18px}
+figure{margin:0 0 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.ftitle{font:800 16px/1.3 Archivo,sans-serif;margin:0 0 10px}
+figcaption{font:400 12px/1.5 "IBM Plex Mono",monospace;color:var(--muted);margin-top:10px}
+figure svg{display:block;max-width:100%;height:auto}
+svg text{font-family:"IBM Plex Mono",monospace;fill:var(--muted);font-size:13px}
+svg .lab{fill:var(--ink);font-weight:500}
+/* auf dem handy wird die grafik auf rund die halbe breite gestaucht, die schrift waechst mit */
+@media (max-width:560px){svg text{font-size:21px}}
+.bridge{font:500 15px/1.4 "IBM Plex Sans",system-ui,sans-serif;color:var(--muted);margin:18px 0 0}
+.bridge a{color:var(--accent);font-weight:600}
+.cmp{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px;padding:0;list-style:none}
+.cmp li{font:500 12px/1 "IBM Plex Mono",monospace;background:var(--chip);border-radius:999px;padding:8px 12px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.cmp li .up{color:var(--accent)} .cmp li .dn{color:var(--neg)}
+.hero .cmp{margin:16px 0 0}
+.subscribe{margin:40px 0;padding:24px;border-radius:12px;background:var(--accent-soft)}
+.subscribe h3{font:800 22px/1.2 Archivo,sans-serif;margin:0 0 6px}
+.subscribe p{margin:0 0 14px}
+.subscribe form{display:flex;gap:8px;flex-wrap:wrap}
+.subscribe input[type=email]{flex:1 1 200px;min-width:0;padding:12px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:400 15px "IBM Plex Sans",system-ui,sans-serif}
+.subscribe button{padding:12px 18px;border:0;border-radius:8px;background:var(--accent);color:var(--bg);font:600 15px "IBM Plex Sans",system-ui,sans-serif;cursor:pointer}
+.subscribe button:disabled{opacity:.6;cursor:wait}
+.subscribe small{display:block;margin-top:10px;font:400 12px/1.5 "IBM Plex Mono",monospace;color:var(--muted)}
+.subscribe .msg{display:none;margin-top:12px;font-size:14px;font-weight:600}
+.subscribe .msg.ok{display:block;color:var(--accent)} .subscribe .msg.err{display:block;color:var(--neg)}
+.deeper{display:flex;flex-wrap:wrap;gap:8px;margin:28px 0 0}
+.deeper a{font:500 13px "IBM Plex Mono",monospace;color:var(--ink);background:var(--chip);border-radius:999px;padding:9px 12px;text-decoration:none}
+.channels{max-width:760px;margin:0 auto;padding:32px 16px 0;border-top:1px solid var(--line)}
+.channels p{font:500 12px/1 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+.channels nav{display:flex;flex-wrap:wrap;gap:8px}
+.channels a{display:inline-flex;align-items:center;gap:8px;font:500 14px/1 "IBM Plex Sans",system-ui,sans-serif;color:var(--ink);text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:11px 14px}
+.channels a:hover{border-color:var(--accent)}
+.channels svg{width:16px;height:16px;fill:currentColor}
+footer{max-width:760px;margin:0 auto;padding:24px 16px 32px;font:400 12px/1.7 "IBM Plex Mono",monospace;color:var(--muted)}
+footer a{color:var(--muted)}
+/* die wortmarke im fuss steht auf dem grund der seite, im hellen look also dunkel auf hell.
+   farben und gewicht setzt der block von wortmarke.py am ende, hier nur schrift und groesse */
+footer .brand{font:900 16px/1 Archivo,sans-serif;letter-spacing:.04em;margin:8px 0 10px}
+/* der block von wortmarke.py faerbt den fuss fest #F2F5F4, das ist auf hellem grund
+   nicht zu lesen. html davor schlaegt ihn, im dunklen look sind --ink und --accent
+   genau die marken-farben, im hellen die des hellen looks (wortmarke.farben("hell")) */
+html footer .brand{color:var(--ink)}
+html footer .brand span{color:var(--accent)}
+footer .fund a{display:inline-block;padding:10px 0}
   /* wortmarke.py, nicht von hand aendern */
   .nav .nlogo a, .logo, footer .brand { color:#F2F5F4; font-weight:900; }
   .nav .nlogo span, .logo span, footer .brand span { color:#49EACB; }
@@ -201,96 +187,66 @@
 </style>
 </head>
 <body>
-<nav class="nav">
-  <div class="nt">
-    <div class="nlogo">PULSE<span>HAWK</span> · KASPA PULSE</div>
-    <div class="nright"><div class="nstamp"><span class="live-dot"></span>LIVE PRICES &amp; TVL<br><span id="weeklyStamp"></span></div><button class="nburger" aria-label="menu">☰</button></div>
-  </div>
-    <div class="nc">
-    <a href="/" class="on">dashboard</a>
+<div class="bar">
+<header class="top">
+  <a class="logo" href="/">KASPA <span>PULSE</span></a>
+<!--AUTO:menue-->
+<nav class="menu" id="menu" aria-label="main">
+  <div class="mtop">
+    <a href="/" aria-current="page">this week</a>
     <a href="/kaspa-weekly.html">weekly</a>
     <a href="/for-builders.html">for builders</a>
-    <a href="/kaspa-hashrate.html">hashrate</a>
-    <a href="/kaspa-mining.html">mining</a>
-    <a href="/merged-mining.html">merged mining</a>
-    <a href="/kaspa-halving.html">the halving</a>
-    <a href="/kaspa-security-budget.html">security budget</a>
-    <a href="/kaspa-toccata.html">toccata</a>
-    <a href="/kaspa-covenants.html">covenants</a>
-    <a href="/kaspa-supply.html">supply</a>
-    <a href="/entity-x.html">entity x</a>
-    <a href="/kaspa-staking.html">staking</a>
-    <a href="/kaspa-token-standard.html">token standards</a>
-    <a href="/kaspa-smart-contracts.html">smart contracts</a>
-    <a href="/kron.html">kron</a>
-    <a href="/kaspa-tvl.html">tvl</a>
-    <a href="/kaspa-wallets.html">wallets</a>
-    <a href="/kaspa-web-wallet-safe.html">web wallet safety</a>
-    <a href="/kaspa-data-sources.html">data sources</a>
   </div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">network</button><div class="drop"><a href="/kaspa-hashrate.html">hashrate</a><a href="/kaspa-mining.html">mining</a><a href="/merged-mining.html">merged mining</a><a href="/kaspa-halving.html">the halving</a><a href="/kaspa-security-budget.html">security budget</a><a href="/kaspa-toccata.html">toccata</a><a href="/kaspa-covenants.html">covenants</a></div></div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">supply</button><div class="drop"><a href="/kaspa-supply.html">supply</a><a href="/entity-x.html">entity x</a><a href="/kaspa-staking.html">staking</a></div></div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">tokens</button><div class="drop"><a href="/kaspa-token-standard.html">token standards</a><a href="/kaspa-smart-contracts.html">smart contracts</a><a href="/kron.html">kron</a><a href="/kaspa-tvl.html">tvl</a></div></div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">tools</button><div class="drop"><a href="/kaspa-wallets.html">wallets</a><a href="/kaspa-web-wallet-safe.html">web wallet safety</a><a href="/kaspa-data-sources.html">data sources</a></div></div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">about</button><div class="drop"><a href="/kaspa-data-sources.html">method</a><a href="/kaspa-weekly.html">archive</a><a href="/how-we-fund-this.html">how we fund this</a></div></div>
 </nav>
-<div class="wrap">
-  <section class="hero">
-    <div class="label"><span class="live-dot"></span>Total money in Kaspa DeFi</div>
-    <div class="big" id="totalTvl">…</div>
-    <div class="sub">capital committed across both L2s (total TVL) — every number here comes with what it means · <a href="/kaspa-tvl.html" style="color:var(--teal); text-decoration:none;">what does TVL on kaspa actually mean? →</a></div>
-    <div class="breakdown" id="breakdown"></div>
-    <div class="volline" id="volline"></div>
-    <div class="deltas" id="heroDeltas"></div>
-    <div class="heropills">
-      <a class="heropill" href="#subscribe"><b>FREE CHEAT SHEET</b> · the 8 Kaspa numbers whales watch <span class="arr">→</span></a>
-      <a class="heropill dc" href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener"><b>WALLET ALERTS</b> · a bot checks the entity x wallet for you <span class="arr">→</span></a>
-      <a class="heropill yt" href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener"><b>ON YOUTUBE</b> · one number explained every thursday <span class="arr">→</span></a>
-      <a class="heropill" href="/kaspa-wallets.html"><b>KASPA WALLETS</b> · web, phone, desktop and hardware, checked one by one</a>
-    </div>
+<!--/AUTO:menue-->
+  <button class="burger" type="button" aria-expanded="false" aria-controls="menu">menu</button>
+  <a class="subbtn" href="#subscribe">subscribe</a>
+</header>
+</div>
+
+<main>
+<!--AUTO:startseite-->
+  <section class="hero" id="week">
+    <p class="eyebrow">number of the week · reading 19 oct 2026 · next 26 oct</p>
+    <p class="big">1.46%</p>
+    <p class="lead">kaspa closed the week 1.46% under its 50 week average, its 3rd red week in a row.</p>
+    <p class="note">week to 17 oct 2026 · weekly close against the average of the last 50 weekly closes, source kraken daily candles · our own series since 24 nov 2024</p>
+    <ul class="cmp" aria-label="comparison"><li><span class="dn">▼ 14.05 points</span> vs 10 oct</li><li><span class="up">▲ 39.22 points</span> vs 18 jul</li></ul>
+    <a class="next" href="#chain">5 numbers, 2 minutes</a>
   </section>
-  <div class="modeline"><div class="mi"><span class="lvw">live</span> <b>numbers above refresh on every visit</b> · the panels below are the <b>fixed monday reading</b>, kept still all week so the trends compare like with like · <b id="modeDate"></b></div></div>
-  <section class="panel">
-    <div class="sec"><div class="t"><span class="snum">01</span>Usage. <span>is anyone actually using it?</span></div><div class="tag wk" id="weeklyTag"><i></i><span>weekly</span></div></div>
-    <div class="read"><span class="rl">the read</span>throughput read <b>0.94 accepted transactions per second</b> on monday 19 october, up from 0.78 on monday 12 october, source kaspalytics, both standard transfers averaged over seven days. the peak day of the week was 14 october at 1.09, source kaspalytics. covenant transactions came to <b>141 a day</b> against 219, source kaspalytics, and active addresses to <b>5,672</b> against 5,553, up 2.1% week on week, source kaspalytics.</div>
-    <div class="grid four" id="usageCards"></div>
+  <nav class="progress" aria-label="progress"><a href="#chain" aria-label="step 1"></a><a href="#fees" aria-label="step 2"></a><a href="#emission" aria-label="step 3"></a><a href="#holders" aria-label="step 4"></a><a href="#addresses" aria-label="step 5"></a></nav>
+  <section class="step" id="chain">
+    <div class="steprow"><div class="stepnum">1 / 5 · the chain</div><a class="share" href="https://x.com/intent/post?text=blocks%20keep%20landing%2010%20times%20a%20second.%20source%20kaspa%20pulse&amp;url=https%3A%2F%2Fkaspapulse.com%2F%23chain" target="_blank" rel="noopener">share on x</a></div>
+    <h2>blocks keep landing <em>10 times a second</em></h2>
+    <p class="body">9.962 blocks per second over 600 seconds on 21 oct 2026, counted by kaspa pulse from the kaspa rest api. the protocol is set to 10 a second since the crescendo upgrade on 5 may 2025.</p>
+    <figure><p class="ftitle">our count sits 0.4% under the protocol rate of 10</p><svg viewBox="0 0 640 112" width="100%" role="img" aria-label="blocks per second, counted 9.962 against the protocol rate of 10"><text x="0" y="22" class="lab">counted 21 oct 2026</text><rect x="0" y="30" width="438.3" height="22" rx="3" fill="var(--accent)"/><text x="446.3" y="46">9.962</text><text x="0" y="76" class="lab">protocol rate</text><rect x="0" y="84" width="440.0" height="22" rx="3" fill="var(--muted)"/><text x="448.0" y="100">10</text></svg><figcaption>blocks per second over 600 seconds, counted 21 oct 2026</figcaption></figure>
+    <p class="bridge">fast blocks need miners. so who pays them? <a href="#fees">next</a></p>
   </section>
-  <div class="bcard">
-    <div>
-      <div class="bc-h">Building on Kaspa?</div>
-      <div class="bc-s">Independent reviews and testnet load tests. Your first look is free.</div>
-    </div>
-    <a class="bc-btn" href="/for-builders.html">See how it works</a>
-  </div>
-  <section class="panel">
-    <div class="sec"><div class="t"><span class="snum">02</span>DEX volume. <span>where KAS actually trades</span></div><div class="tag wk"><i></i><span>weekly</span></div></div>
-    <div class="read"><span class="rl">the read</span>the dex reading of monday 19 october, taken at 06:45 utc, came to <b>$51K a day</b> against $4K in the reading a week earlier, about 11.5 times as much, source defillama. <b>kasplex $2.5K</b> rose 136.2% and <b>igra $49K</b> rose 1,341.2%, source defillama. a swing that size off a $4K base gets rechecked before anyone leans on it. locked value across both layers read <b>0.99 million dollars</b> against 1.27 million, down 21.7% week on week, source defillama; igra holds 0.70 million of it and kasplex 0.29 million.</div>
-    <div class="grid four" id="dexCards"></div>
+  <section class="step" id="fees">
+    <div class="steprow"><div class="stepnum">2 / 5 · security budget</div><a class="share" href="https://x.com/intent/post?text=fees%20paid%200.13%25%20of%20miner%20revenue%20from%2019%20sep%20to%2018%20oct.%20source%20kaspa%20pulse&amp;url=https%3A%2F%2Fkaspapulse.com%2F%23fees" target="_blank" rel="noopener">share on x</a></div>
+    <h2>fees paid <em>0.13%</em> of miner revenue from 19 sep to 18 oct</h2>
+    <p class="body">new coins paid the other 99.87%. that is why the emission schedule matters so much for kaspa security.</p>
+    <figure><p class="ftitle">new coins pay almost all of it</p><svg viewBox="0 0 640 96" width="100%" role="img" aria-label="miner revenue split, new coins 99.87%, fees 0.13%"><rect x="0" y="22" width="640" height="34" rx="4" fill="var(--line)"/><rect x="0" y="22" width="636.0" height="34" rx="4" fill="var(--accent)"/><text x="0" y="82" class="lab">new coins 99.87%</text><text x="640" y="82" text-anchor="end" class="lab">fees 0.13%</text></svg><figcaption>19 sep 2026 to 18 oct 2026, miner revenue in KAS · fees source kaspalytics, new coins computed from the emission schedule</figcaption></figure>
+    <p class="bridge">and the new coins get fewer every month. <a href="#emission">next</a></p>
   </section>
-  <section class="panel">
-    <div class="sec"><div class="t"><span class="snum">03</span>Supply. <span>the tightening story</span></div><div class="tag wk"><i></i><span>weekly</span></div></div>
-    <div class="read"><span class="rl">the read</span>the block reward reads <b>2.06 KAS</b> since the monthly cut of monday 5 october at 03:15 utc, a step of 5.61%, and daily emission 1,779,989 KAS. the next cut is due on wednesday 4 november. <b>96.71%</b> of all KAS was mined on 17 october. balances at addresses labelled as exchanges read <b>3.80 billion KAS</b> on monday 19 october against 3.79 billion a week earlier, up 0.28%, source kaspalytics. <a href="/kaspa-halving.html" style="color:var(--teal); text-decoration:none;">how the monthly halving works &rarr;</a></div>
-    <div class="grid four" id="supplyCards"></div>
+  <section class="step" id="emission">
+    <div class="steprow"><div class="stepnum">3 / 5 · emission</div><a class="share" href="https://x.com/intent/post?text=daily%20emission%20steps%20down%20to%201%2C680%2C086%20KAS%20on%204%20nov.%20source%20kaspa%20pulse&amp;url=https%3A%2F%2Fkaspapulse.com%2F%23emission" target="_blank" rel="noopener">share on x</a></div>
+    <h2>daily emission steps down to <em>1,680,086 KAS</em> on 4 nov</h2>
+    <p class="body">it steps down every month by the same factor and halves once a year. at flat fees, each step is close to a 5.6% cut in miner income in KAS.</p>
+    <ul class="cmp" aria-label="comparison"><li><span class="dn">▼ 5.6%</span> vs 5 oct</li><li><span class="dn">▼ 15.9%</span> vs 5 aug</li></ul>
+    <figure><p class="ftitle">1,680,086 KAS a day on 4 nov, after 1,779,989 on 5 oct</p><svg viewBox="0 0 640 240" width="100%" role="img" aria-label="daily emission in KAS per month, 5 may 2026 to 6 may 2027, stepping down from 2,376,000 to 1,188,000"><line x1="56" x2="626" y1="148.7" y2="148.7" stroke="var(--line)"/><text x="48" y="152.7" text-anchor="end" font-size="11">1.5M</text><line x1="56" x2="626" y1="84.5" y2="84.5" stroke="var(--line)"/><text x="48" y="88.5" text-anchor="end" font-size="11">2.0M</text><line x1="56" x2="626" y1="20.4" y2="20.4" stroke="var(--line)"/><text x="48" y="24.4" text-anchor="end" font-size="11">2.5M</text><path d="M56.0,36.3 H103.5 V53.4 H151.0 V69.6 H198.5 V84.8 H246.0 V99.2 H293.5 V112.8 H341.0 V125.6 H388.5 V137.7 H436.0 V149.1 H483.5 V159.9 H531.0 V170.1 H578.5 V179.7 H626.0 V188.8" fill="none" stroke="var(--muted)" stroke-width="2"/><line x1="341.0" x2="341.0" y1="112.8" y2="125.6" stroke="var(--accent)" stroke-width="4"/><circle cx="341.0" cy="125.6" r="5" fill="var(--accent)"/><text x="349.0" y="117.6" class="lab" font-size="12">4 nov · 1,680,086</text><text x="8.0" y="228" text-anchor="start" font-size="11">may 26</text><text x="198.5" y="228" text-anchor="middle" font-size="11">aug 26</text><text x="341.0" y="228" text-anchor="middle" font-size="11">nov 26</text><text x="483.5" y="228" text-anchor="middle" font-size="11">feb 27</text><text x="626.0" y="228" text-anchor="end" font-size="11">may 27</text></svg><figcaption>computed from the emission schedule, factor 2^(1/12) down per month · KAS per day</figcaption></figure>
+    <p class="bridge">who is holding all those coins? <a href="#holders">next</a></p>
   </section>
-  <section class="panel">
-    <div class="sec"><div class="t"><span class="snum">04</span>Holders &amp; Security. <span>who is still here</span></div><div class="tag wk"><i></i><span>weekly</span></div></div>
-    <div class="read"><span class="rl">the read</span><b>50.98% of all KAS has not moved in a year</b>, read on monday 19 october, against 51.3% a week earlier, source kaspalytics. addresses holding a balance rose to <b>803,742</b> from 802,817, up 925 in the week to monday 19 october, source kaspalytics. mining power read <b>383.01 PH per second</b> on saturday 17 october, the highest of the 63 days in our own log since 13 august 2026, and averaged 351.97 over 11 to 17 october, against 339.06 the week before. <a href="/merged-mining.html" style="color:var(--teal); text-decoration:none;">does merged mining take hashrate? &rarr;</a></div>
-    <div class="grid four" id="baseCards"></div>
-  </section>
-  <section class="panel">
-    <div class="sec"><div class="t"><span class="snum">05</span>Whale watch. <span>the biggest wallet on the chain</span></div><div class="tag lv"><i></i>live balance · weekly deltas</div></div>
-    <div class="read"><span class="rl">the read</span>the chain's largest known address held <b>1,528,621,611 KAS</b> on 17 october, against 1,527,589,469 on 10 october, <b>1,032,142 KAS more</b> between those two daily readings. we quote the two endpoints only, the steps between them have no transaction list. it took in 0.07% of what it held at the start of that window. <a href="/entity-x.html" style="color:var(--teal); text-decoration:none;">the full record &rarr;</a></div>
-    <div class="grid four" id="whaleCards"></div>
-  </section>
-  <div class="chart-box">
-    <div class="title">TOTAL DEFI TVL — WEEK BY WEEK</div>
-    <div id="chart"></div>
-    <div style="font-size:11px;color:var(--dimmer);text-align:center;margin-top:10px;font-style:italic;">more trend charts unlock as the weekly history grows</div>
-  </div>
-  <div class="comeback">fresh numbers drop <b>every monday</b> — worth a bookmark if you hold $KAS</div>
-  <div class="ctx" id="ctx"></div>
-  <div class="philosophy">counted, not guessed · a new number every day, the full picture every monday</div>
   <div class="subscribe" id="subscribe">
-    <div class="badge">free · one email to confirm</div>
-    <div class="st">get the <b>8 kaspa numbers whales watch</b></div>
-    <div class="ss">the 8 numbers whales watch and how to read them · plus the weekly pulse every monday · no hype, no spam</div>
-    <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
-      <input type="email" name="EMAIL" placeholder="you@email.com" required>
+    <h3>all the weekly numbers in one mail, every monday</h3>
+    <p>the 5 numbers on this page, dated and sourced, in one mail.</p>
+    <form class="subform" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="your email" aria-label="email" required>
       <input type="hidden" name="UTM_SOURCE" id="utmSource" value="direct">
       <input type="hidden" name="UTM_MEDIUM" id="utmMedium" value="none">
       <input type="hidden" name="UTM_CAMPAIGN" id="utmCampaign" value="none">
@@ -298,27 +254,63 @@
       <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
       <input type="hidden" name="locale" value="en">
       <input type="hidden" name="html_type" value="simple">
-      <button type="submit" id="subBtn">get it</button>
+      <button type="submit">subscribe</button>
     </form>
-    <div class="msg" id="subMsg"></div>
-    <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
+    <div class="msg" role="status"></div>
+    <small>free · unsubscribe anytime · cheat sheet delivered after email confirmation</small>
   </div>
-  <div class="discordbox" style="background:linear-gradient(160deg, rgba(88,101,242,0.13), rgba(88,101,242,0.03)); border:1px solid rgba(88,101,242,0.45); border-radius:16px; padding:30px 24px; margin:18px 0 0; text-align:center;">
-    <div style="display:inline-block; font-size:10px; letter-spacing:2px; color:#9BA6F8; background:rgba(88,101,242,0.14); border:1px solid rgba(88,101,242,0.45); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700;">free · wallet alerts</div>
-    <div style="font-size:18px; font-weight:700; letter-spacing:-0.3px;">the chain, <span style="color:#9BA6F8;">watched for you</span></div>
-    <div style="font-size:12px; color:#7A828C; margin-top:6px; line-height:17px; max-width:460px; margin-left:auto; margin-right:auto;">the entity x wallet and the reward cuts get checked several times a day, and a post goes to discord when a check finds a move. plus the monday numbers and a place to request the data you're missing.</div>
-    <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener" style="display:inline-block; background:#5865F2; color:#FFFFFF; border-radius:8px; padding:11px 22px; font-size:14px; font-weight:700; text-decoration:none; margin-top:16px;">join the kaspa pulse discord</a>
-    <div style="font-size:11px; color:#7A828C; margin-top:10px;">one click, no email · alerts land in #entity-x-alerts</div>
+  <section class="step" id="holders">
+    <div class="steprow"><div class="stepnum">4 / 5 · holders</div><a class="share" href="https://x.com/intent/post?text=294%2C510%20addresses%20hold%20at%20least%20100%20KAS.%20source%20kaspa%20pulse&amp;url=https%3A%2F%2Fkaspapulse.com%2F%23holders" target="_blank" rel="noopener">share on x</a></div>
+    <h2><em>294,510</em> addresses hold at least 100 KAS</h2>
+    <p class="body">280 more than on 11 oct. 1 day fell, on 18 oct. read on 18 oct 2026, source kaspalytics.</p>
+    <ul class="cmp" aria-label="comparison"><li><span class="up">▲ 280 · 0.10%</span> vs 11 oct</li><li><span class="up">▲ 2,852 · 0.98%</span> vs 19 jul</li></ul>
+    <figure><p class="ftitle">net change per day, 6 of 7 days up</p><svg viewBox="0 0 640 220" width="100%" role="img" aria-label="net change per day of addresses with at least 100 KAS, 12 oct 2026 to 18 oct 2026"><line x1="44" x2="628" y1="110.1" y2="110.1" stroke="var(--muted)"/><text x="36" y="114.1" text-anchor="end" font-size="11">0</text><rect x="59.0" y="92.7" width="53.4" height="17.4" rx="3" fill="var(--accent)"/><text x="85.7" y="208" text-anchor="middle" font-size="11">12</text><rect x="142.4" y="78.9" width="53.4" height="31.3" rx="3" fill="var(--accent)"/><text x="169.1" y="208" text-anchor="middle" font-size="11">13</text><rect x="225.9" y="74.7" width="53.4" height="35.5" rx="3" fill="var(--accent)"/><text x="252.6" y="208" text-anchor="middle" font-size="11">14</text><rect x="309.3" y="37.4" width="53.4" height="72.7" rx="3" fill="var(--accent)"/><text x="336.0" y="208" text-anchor="middle" font-size="11">15</text><text x="336.0" y="31.4" text-anchor="middle" font-size="11" class="lab">+121</text><rect x="392.7" y="57.8" width="53.4" height="52.3" rx="3" fill="var(--accent)"/><text x="419.4" y="208" text-anchor="middle" font-size="11">16</text><rect x="476.2" y="94.5" width="53.4" height="15.6" rx="3" fill="var(--accent)"/><text x="502.9" y="208" text-anchor="middle" font-size="11">17</text><rect x="559.6" y="110.1" width="53.4" height="56.5" rx="3" fill="var(--neg)"/><text x="586.3" y="208" text-anchor="middle" font-size="11">18</text><text x="586.3" y="180.6" text-anchor="middle" font-size="11" class="lab">-94</text></svg><figcaption>net change per day, 12 oct to 18 oct 2026 · source kaspalytics address thresholds</figcaption></figure>
+    <p class="bridge">one more number, and it gets quoted wrong a lot. <a href="#addresses">next</a></p>
+  </section>
+  <section class="step" id="addresses">
+    <div class="steprow"><div class="stepnum">5 / 5 · the quoted number</div><a class="share" href="https://x.com/intent/post?text=54.9%20million%20addresses%2C%20but%20not%2054.9%20million%20holders.%20source%20kaspa%20pulse&amp;url=https%3A%2F%2Fkaspapulse.com%2F%23addresses" target="_blank" rel="noopener">share on x</a></div>
+    <h2>54.9 million addresses, but not <em>54.9 million holders</em></h2>
+    <p class="body">most hold dust. above 0.01 KAS it is 763,863 addresses, read on 18 oct 2026, source kaspalytics.</p>
+    <figure><p class="ftitle">only 1.4% of all addresses hold more than 0.01 KAS</p><svg viewBox="0 0 640 112" width="100%" role="img" aria-label="54,883,401 addresses with any balance, 763,863 above 0.01 KAS"><text x="0" y="22" class="lab">addresses with any balance</text><rect x="0" y="30" width="440.0" height="22" rx="3" fill="var(--muted)"/><text x="448.0" y="46">54,883,401</text><text x="0" y="76" class="lab">addresses above 0.01 KAS</text><rect x="0" y="84" width="6.1" height="22" rx="3" fill="var(--accent)"/><text x="14.1" y="100">763,863</text></svg><figcaption>18 oct 2026 · source kaspalytics address thresholds</figcaption></figure>
+    <div class="deeper"><a href="/kaspa-hashrate.html">network</a><a href="/kaspa-supply.html">supply</a><a href="/kaspa-token-standard.html">tokens</a><a href="/entity-x.html">largest wallet</a><a href="/kaspa-covenants.html">covenants</a></div>
+  </section>
+  <div class="subscribe" id="subscribe-end">
+    <h3>next reading monday 26 oct</h3>
+    <p>get it in your inbox, every number with its date and source.</p>
+    <form class="subform" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="your email" aria-label="email" required>
+      <input type="hidden" name="UTM_SOURCE" data-utm="utmSource" value="direct">
+      <input type="hidden" name="UTM_MEDIUM" data-utm="utmMedium" value="none">
+      <input type="hidden" name="UTM_CAMPAIGN" data-utm="utmCampaign" value="none">
+      <input type="hidden" name="UTM_MEDIUM_RAW" data-utm="utmMediumRaw" value="none">
+      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="locale" value="en">
+      <input type="hidden" name="html_type" value="simple">
+      <button type="submit">subscribe</button>
+    </form>
+    <div class="msg" role="status"></div>
+    <small>free · unsubscribe anytime · cheat sheet delivered after email confirmation</small>
   </div>
-  <div class="cta">kaspa weekly every monday and an explainer every thursday on the <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener">Kaspa Pulse YouTube channel</a> · daily numbers on X <a href="https://x.com/gokugalax" target="_blank">@gokugalax</a></div>
+<!--/AUTO:startseite-->
+</main>
+
+<section class="channels" aria-label="follow kaspa pulse">
+  <p>follow kaspa pulse</p>
+  <nav aria-label="channels">
+    <a href="https://x.com/gokugalax" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.8 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg>X</a>
+    <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.7 15V9l5.8 3-5.8 3z"/></svg>YouTube</a>
+    <a href="https://discord.gg/e6snta6Rfg" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18 18 0 0 0-5.6 0L8.6 3a19.6 19.6 0 0 0-4.9 1.4C.6 9 0 13.5.3 18a19.8 19.8 0 0 0 6 3l1.3-2a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4-2 1 1.3 2a19.7 19.7 0 0 0 6-3c.4-5.2-.7-9.6-3.4-13.6zM8.7 15.3c-1.2 0-2.1-1-2.1-2.3s.9-2.3 2.1-2.3 2.1 1 2.1 2.3-.9 2.3-2.1 2.3zm6.6 0c-1.2 0-2.1-1-2.1-2.3s.9-2.3 2.1-2.3 2.1 1 2.1 2.3-.9 2.3-2.1 2.3z"/></svg>Discord</a>
+    <a href="https://www.instagram.com/kaspapulse" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.3a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm6-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM17 2H7a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5zm3.2 15a3.2 3.2 0 0 1-3.2 3.2H7A3.2 3.2 0 0 1 3.8 17V7A3.2 3.2 0 0 1 7 3.8h10A3.2 3.2 0 0 1 20.2 7v10z"/></svg>Instagram</a>
+  </nav>
+</section>
+
   <footer>
     <div class="stand"><!--AUTO:seitenstand-->page last updated 21 October 2026<!--/AUTO:seitenstand--></div>
     <div class="brand">KASPA <span>PULSE</span></div>
-    <div class="src">data: <a href="https://defillama.com" target="_blank">defillama</a> · <a href="https://www.coingecko.com" target="_blank">coingecko</a> · <a href="https://kaspalytics.com" target="_blank">kaspalytics</a> · <a href="https://kaspa.stream" target="_blank">kaspa.stream</a></div>
-    <div class="legal">not financial advice · <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener">youtube</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
-    <div class="fund" style="margin-top:10px;"><a href="/how-we-fund-this.html" style="display:inline-block;padding:12px 10px;">how we fund this</a> · <a href="/for-builders.html" style="display:inline-block;padding:12px 10px;">for builders</a></div>
+    <div>kaspapulse.com · Kaspa Pulse. We keep track. · not financial advice · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div class="fund"><a href="/how-we-fund-this.html">how we fund this</a> · <a href="/for-builders.html">for builders</a></div>
   </footer>
-</div>
+
 <script>
 // WEEKLY-DATA-START  wird von scripts/dashboard_weekly.py erzeugt.
 // nichts von hand aendern, quelle ist data/weekly.json, herkunft der
@@ -733,335 +725,79 @@ const DATA = {
   }
 };
 // WEEKLY-DATA-END
-const $ = id => document.getElementById(id);
-// --- newsletter: submit in background, show confirmation inline (no ugly JSON tab) ---
-(function(){
-  const form = $("subForm"), btn = $("subBtn"), msg = $("subMsg");
-  form.addEventListener("submit", async e => {
-    e.preventDefault();
-    btn.disabled = true; const old = btn.textContent; btn.textContent = "…";
-    msg.className = "msg";
-    try {
-      const res = await fetch(form.action, { method:"POST", body:new FormData(form) });
-      const j = await res.json();
-      if (j.success) {
-        msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after.";
-        msg.className = "msg ok";
-        form.reset();
-      } else {
-        msg.textContent = j.message || "something went wrong — please try again";
-        msg.className = "msg err";
-      }
-    } catch(_) {
-      // network/CORS issue → fall back to classic submit (opens Brevo page in new tab)
-      form.submit();
-    }
-    btn.disabled = false; btn.textContent = old;
+// Der Datenblock oben gehoert dashboard_weekly.py und check_reads.py. Die
+// Startseite liest ihn nicht, ihre Zahlen schreibt scripts/startseite.py
+// fest ins HTML, damit sie ohne Skript und fuer Suchmaschinen dastehen.
+(function () {
+  "use strict";
+  document.documentElement.classList.add("js");
+  var menu = document.getElementById("menu"), burger = document.querySelector(".burger");
+  function zu() { menu.classList.remove("open"); burger.setAttribute("aria-expanded", "false"); burger.textContent = "menu"; }
+  burger.addEventListener("click", function () {
+    var o = menu.classList.toggle("open");
+    burger.setAttribute("aria-expanded", o); burger.textContent = o ? "close" : "menu";
   });
-})();
-const fmtUsd = n => n==null?"—":(n>=1e9?"$"+(n/1e9).toFixed(2)+"B":n>=1e6?"$"+(n/1e6).toFixed(2)+"M":"$"+Math.round(n/1e3)+"K");
-const fmtN = n => n==null?"—":n.toLocaleString("en-US");
-// wRow rendert eine feste Prozentzahl (nicht aus history gerechnet). Muss VOR baseCards stehen.
-const wRow = (label, pct) => { if(pct==null) return `<div class="tr"><span class="win">${label}</span><span class="flat">n/a</span></div>`;
-  const cls = pct>0.5?"up":(pct<-0.5?"down":"flat");
-  return `<div class="tr"><span class="win">${label}</span><span class="${cls}">${pct>0?'▲ +':'▼ '}${Math.abs(pct)}%</span></div>`; };
-// Countdown bis zur naechsten Reward-Reduktion, kalendertaggenau in UTC.
-// Der Termin wird GERECHNET, nicht gepflegt (Ben, 11.10.2026). Vorher stand
-// er als Handwert im Datenblock und war zwei Stufen alt: die Startseite
-// zeigte fuenf Wochen lang "just happened" statt eines Countdowns. Der
-// Datenblock kommt nur montags frisch, die Stufen liegen 30,4 Tage
-// auseinander - gepflegt geht das nicht gut.
-// Dieselben Konstanten wie scripts/number_of_day_data.py, dort steht die
-// Wahrheit: Anker, Schrittweite 365,25/12 Tage, zwoelf Stufen halbieren.
-const EMISSION_ANKER = 1783280744, EMISSION_STUFE = (365.25 / 12) * 86400;
-const nextRedTs = (() => {
-  const k = Math.floor((Date.now() / 1000 - EMISSION_ANKER) / EMISSION_STUFE);
-  return (EMISSION_ANKER + (k + 1) * EMISSION_STUFE) * 1000;
-})();
-const nextRedTxt = (() => {
-  const t = new Date(nextRedTs), n = new Date();
-  const day = d => Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
-  const d = Math.round((day(t) - day(n)) / 86400000);
-  return d > 1 ? "in " + d + " days" : d === 1 ? "tomorrow" : d === 0 ? "today" : "just happened";
-})();
-const H = DATA.history, cur = H[H.length-1].m;
-const back = w => H.length>w ? H[H.length-1-w].m : null;
-$("weeklyStamp").textContent = "WEEKLY READING: " + DATA.updated + " · NEXT: " + DATA.next_update;
-$("modeDate").textContent = "this reading: " + DATA.updated;
-document.querySelectorAll(".sec .tag.wk span").forEach(el => { el.textContent = "monday reading · " + DATA.updated; });
-// Harte Zahlen in den read-Zeilen werden aus DATA gefuettert, damit kein Satz
-// stehen bleibt, wenn die Woche wechselt. Regel 9 aus dem SEO-Doc.
-const setRd = (id, v) => { const e = $(id); if(e) e.textContent = v; };
-(function fillRead(){
-  const l2 = (cur.igra_tx!=null && cur.kasplex_tx!=null) ? cur.igra_tx + cur.kasplex_tx : null;
-  if(l2){
-    setRd("rdIgraShare", Math.round(cur.igra_tx/l2*100) + "%");
-    setRd("rdIgraTx", fmtN(cur.igra_tx));
-    setRd("rdL2Tx", fmtN(l2));
+  menu.querySelectorAll("a").forEach(function (a) { a.addEventListener("click", zu); });
+  function gruppenZu() {
+    menu.querySelectorAll(".grp.open").forEach(function (g) {
+      g.classList.remove("open"); g.querySelector(".gbtn").setAttribute("aria-expanded", "false");
+    });
   }
-  setRd("rdCov", fmtN(cur.covenant_tx));
-  setRd("rdDex", fmtUsd(cur.dex_vol));
-  setRd("rdKasplexDex", fmtUsd(cur.kasplex_dex));
-  setRd("rdIgraDex", fmtUsd(cur.igra_dex));
-  const p = back(1);
-  if(p && cur.entityx_kas!=null && p.entityx_kas!=null){
-    setRd("rdWeek", ((cur.entityx_kas - p.entityx_kas)/1e6).toFixed(1) + "M");
+  menu.querySelectorAll(".gbtn").forEach(function (b) {
+    b.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      var g = b.parentNode, offen = g.classList.contains("open");
+      gruppenZu();
+      if (!offen) { g.classList.add("open"); b.setAttribute("aria-expanded", "true"); }
+    });
+  });
+  document.addEventListener("click", function (e) { if (!e.target.closest(".grp")) gruppenZu(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { gruppenZu(); zu(); } });
+
+  // anmeldung im hintergrund, bestaetigung im kasten. das zweite formular
+  // holt sich die utm-werte, die utm.js ins erste geschrieben hat.
+  document.querySelectorAll(".subform").forEach(function (form) {
+    var box = form.parentNode, msg = box.querySelector(".msg"), btn = form.querySelector("button");
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      form.querySelectorAll("[data-utm]").forEach(function (f) {
+        var q = document.getElementById(f.getAttribute("data-utm"));
+        if (q && q.value) f.value = q.value;
+      });
+      btn.disabled = true; var alt = btn.textContent; btn.textContent = "…";
+      msg.className = "msg";
+      fetch(form.action, { method: "POST", body: new FormData(form) })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (j && j.success) {
+            msg.textContent = "✓ almost there. check your inbox and click the confirmation link.";
+            msg.className = "msg ok"; form.reset();
+          } else {
+            msg.textContent = (j && j.message) || "something went wrong, please try again";
+            msg.className = "msg err";
+          }
+        })
+        .catch(function () { form.submit(); })
+        .then(function () { btn.disabled = false; btn.textContent = alt; });
+    });
+  });
+
+  // fortschritt und einblenden der schritte
+  var steps = [].slice.call(document.querySelectorAll("section.step"));
+  var dots = [].slice.call(document.querySelectorAll(".progress a"));
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add("seen");
+        var i = steps.indexOf(e.target);
+        dots.forEach(function (d, j) { d.classList.toggle("on", j <= i); });
+      });
+    }, { threshold: 0.25 });
+    steps.forEach(function (s) { io.observe(s); });
+  } else {
+    steps.forEach(function (s) { s.classList.add("seen"); });
   }
-})();
-function deltaTxt(c,p){ if(c==null||p==null) return null; const pct=(c-p)/Math.abs(p)*100;
-  return { pct, cls:Math.abs(pct)<0.5?"flat":(pct>0?"up":"down"), txt:Math.abs(pct)<0.5?"→ flat":(pct>0?"▲ +":"▼ ")+Math.abs(pct).toFixed(1)+"%" }; }
-// Serien, deren Definition am 03.08. geaendert wurde. Ein blosser Strich sieht aus wie
-// ein Fehler. Hier soll dastehen, WARUM es keinen Vergleich gibt. Sobald zwei Lesungen
-// mit derselben Definition vorliegen, rechnet deltaTxt wieder normal und das Label
-// verschwindet von selbst. Beim naechsten Definitionswechsel Key hier eintragen.
-const RESTARTED = { covenant_tx:"baseline week", active_addr:"baseline week" };
-function trRow(key,weeks,label){ const p=back(weeks); const d=p?deltaTxt(cur[key],p[key]):null;
-  const miss = (!d && RESTARTED[key] && cur[key]!=null) ? RESTARTED[key] : "—";
-  return `<div class="tr"><span class="win">${label}</span><span class="${d?d.cls:'flat'}">${d?d.txt:miss}</span></div>`; }
-const trendBlock = key => trRow(key,1,"vs last week") + trRow(key,4,"vs last month");
-// --- HERO: live TVL from DefiLlama, fallback to weekly snapshot ---
-function renderHero(kasplex, igra, liveTag){
-  const total = (kasplex!=null&&igra!=null) ? kasplex+igra : cur.tvl_total;
-  $("totalTvl").textContent = fmtUsd(total);
-  $("breakdown").innerHTML = `Igra <b>${fmtUsd(igra??cur.tvl_igra)}</b> · Kasplex <b>${fmtUsd(kasplex??cur.tvl_kasplex)}</b>${liveTag?' · <span class="up" style="font-size:11px">LIVE</span>':''}`;
-  const p1 = back(1);
-  if(p1 && p1.tvl_total!=null && total!=null){ const d=deltaTxt(total,p1.tvl_total);
-    $("heroDeltas").innerHTML = `<span class="${d.cls}">${d.txt} vs last week's reading</span>`; }
-  else $("heroDeltas").innerHTML = `<span class="flat">trend starts with next weekly reading</span>`;
-}
-renderHero(null,null,false);
-// dex volume line — weekly fallback, then live
-function renderVol(v, live){
-  $("volline").innerHTML = "traded (24h): <b>"+fmtUsd(v)+"</b> across all kaspa DEXs" + (live?' <span class="lv">LIVE</span>':'');
-}
-renderVol(cur.dex_vol, false);
-fetch("https://api.llama.fi/overview/dexs/kasplex?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true")
-  .then(r=>r.json()).then(k=>{
-    const kv = k.total24h || 0;
-    fetch("https://api.llama.fi/overview/dexs/igra?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true")
-      .then(r=>r.json()).then(i=>{
-        const iv = i.total24h || 0;
-        if(kv+iv > 0) renderVol(kv+iv, true);
-      }).catch(()=>{});
-  }).catch(()=>{});
-fetch("https://api.llama.fi/v2/chains").then(r=>r.json()).then(chains=>{
-  let k=null,i=null;
-  for(const c of chains){ const n=(c.name||"").toLowerCase();
-    if(n==="kasplex") k=c.tvl; if(n==="igra") i=c.tvl; }
-  if(k!=null&&i!=null) renderHero(k,i,true);
-}).catch(()=>{});
-// --- context: live price/mcap from CoinGecko, fallback ---
-function renderCtx(p,m,liveTag){
-  $("ctx").innerHTML = `<span>KAS price <b>$${(+p).toFixed(4)}</b>${liveTag?' <span class="up" style="font-size:10px">LIVE</span>':''}</span>`+
-    `<span>Market cap <b>${fmtUsd(m)}</b></span><span>Supply mined <b>${DATA.context_fallback.mined_pct}%</b></span>`;
-}
-renderCtx(DATA.context_fallback.price_usd, DATA.context_fallback.mcap_usd, false);
-fetch("https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd&include_market_cap=true")
-  .then(r=>r.json()).then(d=>{ if(d.kaspa) renderCtx(d.kaspa.usd, d.kaspa.usd_market_cap, true); }).catch(()=>{});
-// --- supply & emission cards ---
-// exchange holdings: MEHR auf Börsen = potenzieller Verkaufsdruck → Anstieg wird rot, Rückgang teal (invertierte Färbung)
-const fmtKas = n => n==null?"—":(n>=1e9?(n/1e9).toFixed(2)+"B":(n/1e6).toFixed(0)+"M");
-const invRow = (label, c, p) => { const d = deltaTxt(c, p); if(!d) return `<div class="tr"><span class="win">${label}</span><span class="flat">—</span></div>`;
-  const cls = d.cls==="up" ? "down" : (d.cls==="down" ? "up" : "flat");
-  return `<div class="tr"><span class="win">${label}</span><span class="${cls}">${d.txt}</span></div>`; };
-const exPrev = back(1);
-$("supplyCards").innerHTML = `
-  <div class="card"><div class="name">Supply issued</div><div class="expl">* share of all KAS that will ever exist, already mined</div>
-    <div class="val">${DATA.context_fallback.mined_pct}%</div>
-    <div class="trends"><div class="tr"><span class="win">new issuance</span><span class="flat">nearly done</span></div></div></div>
-  <div class="card"><div class="name">Block reward</div><div class="expl">* KAS minted per block — drops on each reduction · <a href="/kaspa-halving.html" style="color:var(--teal); text-decoration:none;">how the schedule works →</a></div>
-    <div class="val">${DATA.emission.block_reward}</div>
-    <div class="trends"><div class="tr"><span class="win">next reduction</span><span class="down">${nextRedTxt}</span></div></div></div>
-  <div class="card"><div class="name">Annual inflation</div><div class="expl">* new supply added per year at current rate</div>
-    <div class="val">~${DATA.emission.annual_inflation_pct}%</div>
-    <div class="trends"><div class="tr"><span class="win">trend</span><span class="up">▼ falling</span></div></div></div>
-  <div class="card"><div class="name">KAS on exchanges</div><div class="expl">* coins on known exchange wallets, potential sell-side supply &middot; source kaspalytics</div>
-    <div class="val">${fmtKas(cur.exchange_kas)}</div>
-    <div class="trends">
-      ${invRow("vs last week", cur.exchange_kas, exPrev ? exPrev.exchange_kas : null)}
-      ${invRow("vs 3 months", cur.exchange_kas, DATA.exchange_baselines.m3.n)}
-      ${invRow("vs 1 year", cur.exchange_kas, DATA.exchange_baselines.y1.n)}
-    </div></div>`;
-// --- weekly cards ---
-$("usageCards").innerHTML = `
-  <div class="card"><div class="name">Real network usage</div><div class="expl">* standard transactions per second, 7 day average, coinbase excluded &middot; source kaspalytics</div>
-    <div class="val">${cur.tps!=null?cur.tps+" TPS":"—"}</div><div class="trends">${trendBlock("tps")}</div></div>
-  <div class="card"><div class="name">Smart-contract activity</div><div class="expl">* covenant transactions per day since June &middot; source kaspalytics &middot; <a href="/kaspa-token-standard.html" style="color:var(--teal); text-decoration:underline;">token standards, explained &rarr;</a></div>
-    <div class="val">${fmtN(cur.covenant_tx)}/day</div><div class="trends">${trendBlock("covenant_tx")}</div></div>
-  <div class="card"><div class="name">Active addresses</div><div class="expl">* unique addresses transacting per day &middot; source kaspalytics &middot; the honest count, not the inflated one</div>
-    <div class="val">${fmtN(cur.active_addr)}</div><div class="trends">${trendBlock("active_addr")}</div></div>
-  <div class="card"><div class="name">L2 activity split</div><div class="expl">* transactions per day on each L2</div>
-    <div class="val">${(cur.igra_tx!=null&&cur.kasplex_tx!=null)?(cur.igra_tx/(cur.igra_tx+cur.kasplex_tx)*100).toFixed(0)+"% Igra":"—"}</div>
-    <div class="split"><div class="a" style="width:${(cur.igra_tx!=null&&cur.kasplex_tx!=null)?cur.igra_tx/(cur.igra_tx+cur.kasplex_tx)*100:0}%"></div><div class="b" style="flex:1"></div></div>
-    <div class="split-lbl"><span>Igra ${fmtN(cur.igra_tx)}</span><span>Kasplex ${fmtN(cur.kasplex_tx)}</span></div></div>`;
-// holder-address deltas vs fixed baselines (Kaspalytics)
-const hbRow = (label, base) => { const d = deltaTxt(cur.holder_addr, base);
-  return `<div class="tr"><span class="win">${label}</span><span class="${d?d.cls:'flat'}">${d?d.txt:'—'}</span></div>`; };
-$("baseCards").innerHTML = `
-  <div class="card"><div class="name">Long-term holders</div><div class="expl">* share of all KAS untouched for over a year &middot; source kaspalytics</div>
-    <div class="val">${cur.holders!=null?cur.holders.toFixed(1)+"%":"—"}</div><div class="trends">${trendBlock("holders")}</div></div>
-  <div class="card"><div class="name">Addresses holding KAS</div><div class="expl">* wallets holding at least 0.01 KAS &middot; addresses, not people &middot; source kaspalytics</div>
-    <div class="val">${fmtN(cur.holder_addr)}</div>
-    <div class="trends">
-      ${trRow("holder_addr",1,"vs last week")}
-      ${hbRow("vs 3 months", DATA.holder_baselines.m3.n)}
-      ${hbRow("vs 1 year", DATA.holder_baselines.y1.n)}
-    </div></div>
-  <div class="card"><div class="name">Mining power</div><div class="expl">* computing power securing the network (hashrate) — <a href="/kaspa-hashrate.html" style="color:var(--teal); text-decoration:none;">how to read this number →</a></div>
-    <div class="val" id="hrVal">${cur.hashrate} PH/s</div>
-    <div class="trends" id="hrTrends">
-      ${wRow("7 days", DATA.hashrate_windows.d7)}
-      ${wRow("30 days", DATA.hashrate_windows.d30)}
-      ${wRow("90 days", DATA.hashrate_windows.d90)}
-    </div></div>
-  <div class="card"><div class="name">Kasplex TVL</div><div class="expl">* capital on the Kasplex L2 alone</div>
-    <div class="val">${fmtUsd(cur.tvl_kasplex)}</div><div class="trends">${trendBlock("tvl_kasplex")}</div></div>`;
-// --- DEX cards ---
-$("dexCards").innerHTML = `
-  <div class="card"><div class="name">DEX volume (24h)</div><div class="expl">* trading volume across all kaspa DEXs, both L2s combined</div>
-    <div class="val">${fmtUsd(cur.dex_vol)}</div><div class="trends">${trendBlock("dex_vol")}</div></div>
-  <div class="card"><div class="name">Kasplex DEXs</div><div class="expl">* almost entirely krokoswap — the busiest venue in the ecosystem</div>
-    <div class="val">${fmtUsd(cur.kasplex_dex)}</div><div class="trends">${wRow("vs last week", DATA.dex_windows.kasplex_w)}</div></div>
-  <div class="card"><div class="name">Igra DEXs</div><div class="expl">* mostly zealousswap — cooled off after last week's push</div>
-    <div class="val">${fmtUsd(cur.igra_dex)}</div><div class="trends">${wRow("vs last week", DATA.dex_windows.igra_w)}</div></div>
-  <div class="card"><div class="name">Protocol fees (24h)</div><div class="expl">* what users actually paid to use both L2s — the adoption number that can't be faked</div>
-    <div class="val">$${fmtN(cur.fees_day)}</div>
-    <div class="trends"><div class="tr"><span class="win">7-day total</span><span class="flat">${DATA.fees_7d==null?"n/a this week":"$"+fmtN(DATA.fees_7d)}</span></div></div></div>`;
-// --- Whale watch: Entity X ---
-const EX_ADDR = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a";
-const wPrev = back(1);
-const exWk = (cur.entityx_kas!=null && wPrev && wPrev.entityx_kas!=null) ? cur.entityx_kas - wPrev.entityx_kas : null;
-const exM3 = (cur.entityx_kas!=null && DATA.entityx_baselines.m3.n!=null) ? cur.entityx_kas - DATA.entityx_baselines.m3.n : null;
-const exShare = cur.entityx_kas!=null ? (cur.entityx_kas / DATA.circ_supply * 100).toFixed(2)+"%" : "—";
-const exDeltaRow = (label, d) => d==null ? `<div class="tr"><span class="win">${label}</span><span class="flat">—</span></div>`
-  : `<div class="tr"><span class="win">${label}</span><span class="${d>0?'up':(d<0?'down':'flat')}">${d>0?'▲ +':'▼ '}${(Math.abs(d)/1e6).toFixed(1)}M KAS</span></div>`;
-$("whaleCards").innerHTML = `
-  <div class="card"><div class="name">Entity X balance</div><div class="expl">* the largest single kaspa address — labeled "entity x" by explorers. one address, verifiable on-chain</div>
-    <div class="val" id="exBal">${cur.entityx_kas!=null?(cur.entityx_kas/1e9).toFixed(2)+"B KAS":"—"}</div>
-    <div class="trends">
-      ${exDeltaRow("this week", exWk)}
-      ${exDeltaRow("vs 3 months", exM3)}
-    </div></div>
-  <div class="card"><div class="name">Share of supply</div><div class="expl">* one wallet vs all known exchanges combined (${fmtKas(cur.exchange_kas)} KAS)</div>
-    <div class="val">${exShare}</div>
-    <div class="trends"><div class="tr"><span class="win">vs all exchanges</span><span class="flat">&gt; ⅓ of their total</span></div></div></div>
-  <div class="card"><div class="name">Average entry</div><div class="expl">* our own calculation — every deposit this wallet ever received, valued at the volume weighted price of its day</div>
-    <div class="val" id="exCost">—</div>
-    <div class="trends" id="exCostTrends">
-      <div class="tr"><span class="win">total invested</span><span class="flat">—</span></div>
-      <div class="tr"><span class="win">unrealized</span><span class="flat">—</span></div>
-    </div></div>
-  <div class="card"><div class="name">Coins moved out</div><div class="expl">* KAS that has left this address since 2024 and moved to another address. the chain doesn't show where it went next</div>
-    <div class="val" id="exOut">—</div>
-    <div class="trends" id="exOutTrends">
-      <div class="tr"><span class="win">share of all it took in</span><span class="flat">—</span></div>
-      <div class="tr"><span class="win">last move</span><span class="flat">—</span></div>
-    </div></div>`;
-// --- cost basis: our own number, computed weekly by a bot, read from disk ---
-// Bleibt still, wenn die Datei fehlt oder sich selbst fuer unbelastbar erklaert.
-// Lieber zwei Kacheln mit Strich als zwei Kacheln mit einer falschen Zahl.
-(function(){
-  const dstr = s => { if(!s) return "—"; const [y,m,d] = s.split("-");
-    return d.replace(/^0/,"")+" "+["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"][+m-1]+" "+y; };
-  fetch("/data/entity-x-costbasis.json", {cache:"no-store"}).then(r=>r.json()).then(cb=>{
-    if(!(cb && cb.reliable && cb.avg_cost_usd)) return;
-    $("exCost").innerHTML = "$"+cb.avg_cost_usd.toFixed(4);
-    const spot = () => { const el = document.querySelector("#ctx b"); if(!el) return cb.price_now;
-      const v = parseFloat(el.textContent.replace("$","")); return isFinite(v) && v>0 ? v : cb.price_now; };
-    const paint = () => {
-      const p = spot(), held = cb.balance_kas;
-      const rows = [`<div class="tr"><span class="win">total invested</span><span class="flat">${fmtUsd(cb.usd_invested)}</span></div>`];
-      if(p && held){
-        const pnl = held*p - cb.usd_invested, pct = pnl/cb.usd_invested*100;
-        rows.push(`<div class="tr"><span class="win">unrealized</span><span class="${pnl<0?'down':'up'}">${pnl<0?'▼ ':'▲ +'}${fmtUsd(Math.abs(pnl))} (${pct.toFixed(0)}%)</span></div>`);
-      } else {
-        rows.push(`<div class="tr"><span class="win">unrealized</span><span class="flat">—</span></div>`);
-      }
-      $("exCostTrends").innerHTML = rows.join("");
-    };
-    // Der Live-Kurs kommt von CoinGecko und braucht manchmal laenger als
-    // unsere Datei. Zweimal nachrechnen kostet nichts.
-    paint(); setTimeout(paint, 2500); setTimeout(paint, 6000);
-    // Die read-Zeile darueber traegt dieselben Zahlen. Stuenden dort andere
-    // als in der Kachel darunter, waere das Panel in sich widerspruechlich.
-    const set = (id, v) => { const e = $(id); if(e) e.textContent = v; };
-    set("rdAvg", "$"+cb.avg_cost_usd.toFixed(4));
-    if(cb.kas_received) set("rdBought", (cb.kas_received/1e9).toFixed(2)+"B");
-    if(cb.outflow_kas != null){
-      $("exOut").innerHTML = (cb.outflow_kas/1e6).toFixed(1)+"M KAS";
-      const share = cb.kas_received ? (cb.outflow_kas/cb.kas_received*100).toFixed(2)+"%" : "—";
-      set("rdOut", (cb.outflow_kas/1e6).toFixed(1)+"M");
-      set("rdOutCnt", cb.outflow_count);
-      set("rdShare", share);
-      $("exOutTrends").innerHTML =
-        `<div class="tr"><span class="win">share of all it took in</span><span class="flat">${share}</span></div>`+
-        `<div class="tr"><span class="win">last move</span><span class="flat">${dstr(cb.last_outflow)}</span></div>`;
-    }
-  }).catch(()=>{});
-})();
-// --- live hashrate (weekly snapshot as fallback) ---
-// trend rows are recomputed against the same weekly baselines the static view uses,
-// so the live value and the arrows always agree. baselines derive from cur.hashrate
-// and the stored window percentages — keeps working after every monday data update.
-fetch("https://api.kaspa.org/info/hashrate?stringOnly=false").then(r=>r.json()).then(j=>{
-  if(!(j && j.hashrate)) return;
-  const ph = j.hashrate/1e3;
-  $("hrVal").innerHTML = ph.toFixed(1)+' PH/s <span style="color:var(--teal); font-size:11px; font-weight:700; letter-spacing:1px; vertical-align:6px;">LIVE</span>';
-  const baseOf = w => cur.hashrate/(1 + w/100);           // implied absolute baseline
-  const row = (label, basePh) => {
-    const p = (ph/basePh - 1)*100;
-    const cls = p > 0.5 ? "up" : (p < -0.5 ? "down" : "flat");
-    const arrow = p > 0.5 ? "▲ +" : (p < -0.5 ? "▼ " : "· ");
-    return '<div class="tr"><span class="win">'+label+'</span><span class="'+cls+'">'+arrow+Math.abs(p).toFixed(1)+'%</span></div>';
-  };
-  $("hrTrends").innerHTML =
-    row("vs mon reading", cur.hashrate) +
-    row("30 days", baseOf(DATA.hashrate_windows.d30)) +
-    row("90 days", baseOf(DATA.hashrate_windows.d90));
-}).catch(()=>{});
-// live balance from api.kaspa.org (weekly snapshot as fallback)
-fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).then(j=>{
-  if(j && j.balance) $("exBal").innerHTML = (j.balance/1e8/1e9).toFixed(3)+"B KAS <span class='up' style='font-size:10px'>LIVE</span>";
-}).catch(()=>{});
-// --- chart ---
-const pts = H.map(h=>({d:h.date, v:h.m.tvl_total ?? h.m.tvl_kasplex}));
-const W=820,Hh=210,P=42;
-const vs=pts.map(p=>p.v), max=Math.max(...vs)*1.15;
-const x=i=>P+(W-2*P)*(pts.length>1?i/(pts.length-1):0.5), y=v=>Hh-P-(Hh-2*P)*(v/max);
-// recessive hairline gridlines at clean values
-const step = max>1.5e6 ? 5e5 : 2.5e5;
-let grid="";
-for(let g=step; g<max; g+=step){
-  grid += `<line x1="${P}" x2="${W-P}" y1="${y(g)}" y2="${y(g)}" stroke="#14171B" stroke-width="1"/>`+
-          `<text x="${P-8}" y="${y(g)+3}" fill="#7A828C" font-size="9" text-anchor="end">${fmtUsd(g)}</text>`;
-}
-let path=pts.map((p,i)=>(i?"L":"M")+x(i)+","+y(p.v)).join(" ");
-// soft area wash under the line (~10% opacity fading out)
-const area = path + ` L ${x(pts.length-1)},${Hh-P} L ${x(0)},${Hh-P} Z`;
-let dots=pts.map((p,i)=>`<circle cx="${x(i)}" cy="${y(p.v)}" r="4" fill="#49EACB" stroke="#0B0E12" stroke-width="2"><title>${p.d}: ${fmtUsd(p.v)}</title></circle>`+
-  `<text x="${x(i)}" y="${Hh-14}" fill="#7A828C" font-size="10" text-anchor="middle">${p.d.slice(5)}</text>`+
-  `<text x="${x(i)}" y="${y(p.v)-12}" fill="#9BA3AB" font-size="10" text-anchor="middle">${fmtUsd(p.v)}</text>`).join("");
-$("chart").innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" width="100%">
-  <defs><linearGradient id="tvlfill" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0%" stop-color="#49EACB" stop-opacity="0.14"/><stop offset="100%" stop-color="#49EACB" stop-opacity="0"/>
-  </linearGradient></defs>
-  ${grid}
-  <path d="${area}" fill="url(#tvlfill)"/>
-  <path d="${path}" stroke="#49EACB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  ${dots}</svg>`;
-</script>
-<script>
-(function(){
-  if(!("IntersectionObserver" in window)) return;
-  const els = document.querySelectorAll(".panel,.comeback,.subscribe,.cta");
-  const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("vis"); io.unobserve(e.target); } }),{threshold:0.06});
-  els.forEach(el=>{ el.classList.add("rv"); io.observe(el); });
-})();
-</script>
-<script>
-(function(){
-  const b = document.querySelector(".nburger"), c = document.querySelector(".nav .nc");
-  if(b && c) b.addEventListener("click", function(){ c.classList.toggle("open"); b.textContent = c.classList.contains("open") ? "\u2715" : "\u2630"; });
 })();
 </script>
 <script src="/capture.js" defer></script>
