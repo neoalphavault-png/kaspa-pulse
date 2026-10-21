@@ -50,6 +50,13 @@ VORLAUF_S = 240           # so viel vor dem start verbinden
 MAX_DAUER = 6 * 3600 - 1800
 ABFRAGE_TIMEOUT_S = 15
 SPAET_S = 5               # spaeter als das gilt eine lesung als spaet, steht im status
+# Keepalive (Ben, 21.10.2026): am 17.10. trennten die Knoten die WebSocket-
+# Verbindung zwischen den Minuten, k1 verlor 16 und k2 25 Minuten. Zwischen den
+# Lesungen geht deshalb alle KEEPALIVE_S ein leichter Aufruf an den Knoten,
+# VORAB_S vor der Sekunde 0 ein letzter. Scheitert einer, wird sofort neu
+# verbunden, damit zur Sekunde 0 eine offene Verbindung steht. 0 schaltet aus.
+KEEPALIVE_S = 15
+VORAB_S = 8
 
 
 def iso(s):
@@ -132,7 +139,8 @@ def csv_text(zeilen, spalten):
 
 async def lesen(von, bis, rolle, partner, out):
     import kaspa                                         # noqa: WPS433
-    zeilen, meta = [], {"rolle": rolle, "verbindungen": [], "meldungen": []}
+    zeilen, meta = [], {"rolle": rolle, "verbindungen": [], "meldungen": [],
+                        "keepalive": {"ok": 0, "fehler": 0, "neu_verbunden": 0}}
     rpc, p2p = None, ""
 
     andere_rolle = "k2" if rolle == "k1" else "k1"
@@ -198,7 +206,38 @@ async def lesen(von, bis, rolle, partner, out):
                 meta["meldungen"].append("%s verbinden: %s" % (iso(int(time.time())), type(exc).__name__))
                 await asyncio.sleep(10)
 
-    await nachverbinden(t0)
+    async def wach_halten(bis_s):
+        """bis kurz vor bis_s die verbindung offen halten, siehe KEEPALIVE_S."""
+        if rpc is None or not KEEPALIVE_S:
+            await nachverbinden(bis_s)
+        if not KEEPALIVE_S:
+            return
+        while True:
+            ziel = min(time.time() + KEEPALIVE_S, bis_s - VORAB_S)
+            letzter = ziel >= bis_s - VORAB_S
+            rest = ziel - time.time()
+            if rest > 0:
+                await asyncio.sleep(rest)
+            if time.time() > bis_s - 3:
+                return
+            if rpc is None:
+                await nachverbinden(bis_s)
+            else:
+                try:
+                    await asyncio.wait_for(rpc.get_server_info(), max(1.0, min(ABFRAGE_TIMEOUT_S, bis_s - time.time() - 2)))
+                    meta["keepalive"]["ok"] += 1
+                except Exception as exc:                 # noqa: BLE001
+                    meta["keepalive"]["fehler"] += 1
+                    meta["meldungen"].append("%s keepalive %s: %s" % (
+                        iso(int(time.time())), type(exc).__name__, ohne_adressen(exc)))
+                    await trennen()
+                    await nachverbinden(bis_s)
+                    if rpc is not None:
+                        meta["keepalive"]["neu_verbunden"] += 1
+            if letzter:
+                return
+
+    await wach_halten(t0)
     m = t0
     while m < bis:
         rest = m - time.time()
@@ -254,7 +293,7 @@ async def lesen(von, bis, rolle, partner, out):
             meta["meldungen"].append("%s %s" % (iso(m), grund))
         m += 60
         if m < bis:
-            await nachverbinden(m)                       # luecke vor der naechsten sekunde 0 nutzen
+            await wach_halten(m)                         # verbindung bis zur naechsten sekunde 0 offen halten
     await trennen()
     meta["kennung"] = kennung(p2p)
     meta["knoten_je_minute"] = je_minute
@@ -264,8 +303,9 @@ async def lesen(von, bis, rolle, partner, out):
     with open(os.path.join(out, "gebuehren-%s.json" % rolle), "w", encoding="utf-8") as fh:
         json.dump(meta, fh, indent=1)
     ok = sum(1 for z in zeilen if z["status"].startswith("ok"))
-    print("%s kennung %s minuten %d, mit werten %d, ohne %d, verbindungen %d" % (
-        rolle, meta["kennung"] or "-", len(zeilen), ok, len(zeilen) - ok, len(meta["verbindungen"])))
+    print("%s kennung %s minuten %d, mit werten %d, ohne %d, verbindungen %d, keepalive ok %d fehler %d" % (
+        rolle, meta["kennung"] or "-", len(zeilen), ok, len(zeilen) - ok, len(meta["verbindungen"]),
+        meta["keepalive"]["ok"], meta["keepalive"]["fehler"]))
     return 0 if zeilen else 1
 
 
@@ -413,8 +453,98 @@ def selbsttest():
        and all(len(k) == 10 and all(c in "0123456789abcdef" for c in k) for k in kennungen)
        and "<url>" in " ".join(metas[0]["meldungen"] + metas[1]["meldungen"])
        and "zweiter versuch" in alles)
+    # Keepalive (Ben, 21.10.2026): ein erfundener knoten trennt nach 30 s ohne
+    # aufruf, wie die knoten am 17.10. zwischen den minuten. mit keepalive kommt
+    # jede minute im ersten versuch, ohne braucht jede lesung den zweiten.
+    # uhr und schlaf sind erfunden, der test dauert keine minute.
+    mit, ohne = _leerlauf_lauf(15), _leerlauf_lauf(0)
+    ok("keepalive: 5 von 5 minuten im ersten versuch, kein abriss",
+       mit["status"] == ["ok"] * 5 and mit["keepalive"]["fehler"] == 0 and mit["keepalive"]["ok"] >= 15
+       and mit["getrennt"] == 0)
+    ok("ohne keepalive reisst die verbindung vor jeder lesung ab (gegenprobe)",
+       len(ohne["status"]) == 5 and all("zweiter versuch" in x for x in ohne["status"]) and ohne["getrennt"] == 5)
+    ok("keepalive ruft vor sekunde 0 zuletzt und liest puenktlich",
+       all(x == "ok" for x in mit["status"]) and mit["spaet"] == 0)
     print("selbsttest", fehler, "fehler")
     return fehler
+
+
+def _leerlauf_lauf(keepalive_s, minuten=5, leerlauf_s=30):
+    """lesen() gegen einen erfundenen knoten mit leerlauf-trennung, erfundene uhr."""
+    import tempfile
+    import types
+    global time, asyncio, KEEPALIVE_S
+    t0 = int(dt.datetime(2026, 10, 29, 17, 0, tzinfo=dt.timezone.utc).timestamp())
+    uhr = {"t": float(t0 - VORLAUF_S)}
+    zustand = {"verbindungen": 0, "getrennt": 0}
+    echt_time, echt_asyncio, echt_ka = time, asyncio, KEEPALIVE_S
+
+    async def schlafen(d):
+        uhr["t"] += max(0.0, d)
+        await echt_asyncio.sleep(0)
+
+    class Client:
+        def __init__(self, url=None, network_id=None):
+            zustand["verbindungen"] += 1
+            self.offen, self.letzter, self.p2p = False, None, "fake-p2p-%d" % zustand["verbindungen"]
+
+        async def connect(self):
+            self.offen, self.letzter = True, uhr["t"]
+
+        async def disconnect(self):
+            self.offen = False
+
+        async def _ruf(self, antwort):
+            if not self.offen or uhr["t"] - self.letzter > leerlauf_s:
+                if self.offen:
+                    zustand["getrennt"] += 1
+                self.offen = False
+                raise RuntimeError("websocket closed")
+            self.letzter = uhr["t"]
+            return antwort
+
+        async def get_info(self):
+            return await self._ruf({"p2pId": self.p2p, "serverVersion": "0", "isSynced": True})
+
+        async def get_server_info(self):
+            return await self._ruf({"isSynced": True})
+
+        async def get_fee_estimate(self):
+            return await self._ruf({"estimate": {"priorityBucket": {"feerate": 1.0},
+                                                 "normalBuckets": [{"feerate": 1.0}], "lowBuckets": [{"feerate": 1.0}]}})
+
+    class Resolver:
+        async def get_url(self, *_a):
+            return "wss://erfunden"
+
+    fk = types.ModuleType("kaspa")
+    fk.Resolver, fk.RpcClient, fk.NetworkId = Resolver, Client, (lambda x: x)
+    alt = sys.modules.get("kaspa")
+    sys.modules["kaspa"] = fk
+    time = types.SimpleNamespace(time=lambda: uhr["t"])
+    asyncio = types.SimpleNamespace(sleep=schlafen, wait_for=echt_asyncio.wait_for, run=echt_asyncio.run,
+                                    gather=echt_asyncio.gather)
+    KEEPALIVE_S = keepalive_s
+    try:
+        with tempfile.TemporaryDirectory() as d, contextlib_stumm():
+            echt_asyncio.run(lesen(t0, t0 + minuten * 60, "k1", "", d))
+            with open(os.path.join(d, "gebuehren-k1.csv"), encoding="utf-8") as fh:
+                zeilen = list(csv.DictReader(fh))
+            with open(os.path.join(d, "gebuehren-k1.json"), encoding="utf-8") as fh:
+                meta = json.load(fh)
+    finally:
+        time, asyncio, KEEPALIVE_S = echt_time, echt_asyncio, echt_ka
+        if alt is None:
+            sys.modules.pop("kaspa", None)
+        else:
+            sys.modules["kaspa"] = alt
+    return {"status": [z["status"] for z in zeilen], "keepalive": meta["keepalive"],
+            "getrennt": zustand["getrennt"], "spaet": sum("spaet" in z["status"] for z in zeilen)}
+
+
+def contextlib_stumm():
+    import contextlib
+    return contextlib.redirect_stdout(io.StringIO())
 
 
 def _wirft(f):
