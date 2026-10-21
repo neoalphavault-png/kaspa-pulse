@@ -1691,12 +1691,23 @@ def run_selftest():
        "https://kaspapulse.com/?utm_source=tg&utm_medium=chat"
        "&utm_campaign=weekly-numbers#subscribe", tg.split("\n")[-1])
     ok("telegram hat keinen maskierten link", "](" not in tg)
-    for wort in ("right now", "live", "currently", "at the moment"):
+    for wort in ("right now", "live", "currently", "at the moment", "now"):
         try:
             assert_punctuation("hashrate %s at 360 PH" % wort)
             ok("echtzeit %r stoppt den wochenpost" % wort, False)
         except Stop:
             ok("echtzeit %r stoppt den wochenpost" % wort, True)
+    # der threads-post vom 20.10. 17:10, wortgleich (Ben, 21.10.2026)
+    for was, satz, soll in (
+            ("der satz mit now stoppt den wochenpost",
+             "294,512 kaspa addresses now hold at least 100 KAS.", True),
+            ("known und nowhere gehen durch",
+             "a known address went nowhere on 16 oct", False)):
+        try:
+            assert_punctuation(satz)
+            ok(was, not soll)
+        except Stop:
+            ok(was, soll)
     ok("discord zeile ist maskiert und zeigt auf den kurzlink",
        re.fullmatch(r"\U0001f4ec \[[^\]]+\]\(<https://kaspapulse\.com/discord>\)",
                     newsletter_zeile("discord")) is not None, newsletter_zeile("discord"))

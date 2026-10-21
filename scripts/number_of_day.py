@@ -57,9 +57,12 @@ _PERCENT = re.compile(r"\bpercent(?:s|age)?\b", re.I)
 # sie echtzeitwoerter, in den langen posttexten der zahl des tages sind sie
 # gewoehnliche sprache ("almost nobody posts the second one"). eine wache,
 # die richtige saetze stoppt, wird abgeschaltet.
+# "now" steht seit dem 21.10.2026 dabei (Ben), nach dem Threads-Post vom
+# 20.10. 17:10. Es faellt nur als ganzes Wort, "known" und "nowhere" nicht.
 _ECHTZEIT = re.compile(
     r"\b(?:right now|currently|at the moment|as we speak|this second|live|"
-    r"real[- ]?time|around the clock|every minute|instant|instantly|24/7)\b", re.I)
+    r"real[- ]?time|around the clock|every minute|instant|instantly|24/7|"
+    r"now)\b", re.I)
 _URL = re.compile(r"\b[\w.-]+\.(?:com|org|io|net|stream|xyz|app|dev)\b\S*", re.I)
 _TIME = re.compile(r"\b\d{1,2}:\d{2}(?::\d{2})?\b")
 _PROTO = re.compile(r"https?://\S+", re.I)
@@ -568,6 +571,14 @@ def selbsttest() -> int:
     hebt("real-time faellt auf", "a real-time reading")
     hebt("around the clock faellt auf", "we watch it around the clock")
     hebt("24/7 faellt auf", "the bot runs 24/7")
+    # der threads-post vom 20.10. 17:10, wortgleich (Ben, 21.10.2026)
+    hebt("now faellt auf", "294,512 kaspa addresses now hold at least 100 KAS.")
+    ok("known faellt nicht auf, now steckt nur drin",
+       assert_punctuation("a known address on 16 oct 2026", "test") is None)
+    ok("nowhere faellt nicht auf, now steckt nur drin",
+       assert_punctuation("the heap went nowhere on 16 oct 2026", "test") is None)
+    ok("now steht im treffer, nicht das ganze wort",
+       echtzeit_treffer("294,512 kaspa addresses now hold at least 100 KAS.") == "now")
     ok("ein stichtag geht durch",
        assert_punctuation("petahash per second on 16 oct 2026", "test") is None)
     ok("ohne zeitangabe geht durch",

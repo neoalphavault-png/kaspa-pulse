@@ -72,7 +72,8 @@ KANAL_PROFIL = {"instagram": "feed", "threads": "feed", "story": "story", "x": "
 # Die Echtzeit-Regel aus #109, wortgleich. Nach dem Merge gewinnt der
 # Ausdruck in number_of_day.py, dieser Ersatz kann dann weg.
 _ECHTZEIT_109 = (r"\b(?:right now|currently|at the moment|as we speak|this second|live|"
-                 r"real[- ]?time|around the clock|every minute|instant|instantly|24/7)\b")
+                 r"real[- ]?time|around the clock|every minute|instant|instantly|24/7|"
+                 r"now)\b")
 PFEILE = ("->", "=>", "←", "↑", "↓", "⇒", "⟶")
 KURSZIEL = re.compile(r"\b(?:price targets?|target price|kursziel|price prediction|to the moon|"
                       r"will (?:hit|reach|go to|touch)|heading (?:to|for) \$?\d|next stop \$?\d)",
@@ -279,6 +280,10 @@ def selbsttest():
                    ("the moment it lands", "the moment"), ("block time target is 100 ms", "technisches target"),
                    ("up 5% since 9 oct", "prozentzeichen")):
         ok("text, %s geht durch" % was, not text_verstoesse(t))
+    # der threads-post vom 20.10. 17:10 (Ben, 21.10.2026)
+    ok("text, now faellt auf", bool(text_verstoesse("294,512 kaspa addresses now hold at least 100 KAS.")))
+    ok("text, known geht durch", not text_verstoesse("a known address on 16 oct"))
+    ok("text, nowhere geht durch", not text_verstoesse("the heap went nowhere on 16 oct"))
     ok("zahl ohne datum faellt auf", bool(seite_text_verstoesse(["293,501", "addresses"])))
     ok("zahl mit datum geht durch", not seite_text_verstoesse(["293,501", "as of 16 oct"]))
     ok("datum auch amerikanisch", not seite_text_verstoesse(["96.39%", "OCT 16 2026"]))

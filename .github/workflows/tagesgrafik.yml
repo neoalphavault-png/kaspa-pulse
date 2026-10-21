@@ -95,7 +95,6 @@ jobs:
         if: github.event_name == 'schedule'
         env:
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
-          ZIEL: ${{ vars.ZIEL }}
         run: python3 scripts/tagesgrafik.py --zeitplan --senden --log-schreiben --out graphics/tagesgrafik
       - name: grafik, von hand
         if: github.event_name == 'workflow_dispatch'
@@ -184,9 +183,10 @@ jobs:
         ${{ github.event_name == 'workflow_dispatch'
             && (inputs.instagram == 'scharf' && '--takt' || '--hand')
             || '' }}
-      # ZIEL=moderator (Design-Runde, 16.10.2026): Trockenlauf, gepostet
-      # wird nur nach #moderator-only. Leer = normal.
-      ZIEL: ${{ vars.ZIEL }}
+      # ZIEL ist weg (Ben, 21.10.2026): die Design-Runde ist beendet
+      # (Beschluss 18.10.), die Variable gab es nie, die Zeile war leer.
+      # look_takt.trockenlauf() liest ZIEL weiter aus der Umgebung, es
+      # setzt nur niemand mehr.
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

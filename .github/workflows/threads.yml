@@ -10,10 +10,9 @@ name: threads
 #
 # VEROEFFENTLICHT WIRD NUR MIT ZWEI SCHALTERN, wie bei Instagram: der Takt
 # schickt modus=scharf (THREADS_LIVE in takt.conf) UND die Variable
-# THREADS_LIVE steht auf "scharf". Steht ZIEL auf "moderator", ist der Job
-# nicht faellig. Ein Lauf von Hand (modus=trocken) legt nur den Container an
-# und veroeffentlicht nie. Der Token kommt nur als Secret THREADS_TOKEN in
-# den einen Schritt, der ihn braucht.
+# THREADS_LIVE steht auf "scharf". Ein Lauf von Hand (modus=trocken) legt
+# nur den Container an und veroeffentlicht nie. Der Token kommt nur als
+# Secret THREADS_TOKEN in den einen Schritt, der ihn braucht.
 
 on:
   workflow_dispatch:
@@ -39,7 +38,6 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
-      ZIEL: ${{ vars.ZIEL }}
       # --takt behaelt Zeitfenster und Tagessperre, --hand laesst beide weg
       # und ist nie scharf
       TH_START: ${{ inputs.modus == 'scharf' && '--takt' || '--hand' }}
