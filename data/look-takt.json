@@ -6,6 +6,12 @@
     "look": "hell",
     "schritt": 3,
     "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-10-21",
+    "look": "dunkel",
+    "schritt": 0,
+    "serie": "tagesgrafik"
    }
   ],
   "tagesgrafik/discord": [
@@ -28,6 +34,11 @@
     "datum": "2026-10-20",
     "look": "hell",
     "schritt": 3
+   },
+   {
+    "datum": "2026-10-21",
+    "look": "dunkel",
+    "schritt": 0
    }
   ],
   "tagesgrafik/instagram": [
@@ -67,6 +78,11 @@
     "datum": "2026-10-20",
     "look": "hell",
     "schritt": 3
+   },
+   {
+    "datum": "2026-10-21",
+    "look": "dunkel",
+    "schritt": 0
    }
   ],
   "tagesgrafik/x": [
@@ -89,6 +105,11 @@
     "datum": "2026-10-20",
     "look": "hell",
     "schritt": 3
+   },
+   {
+    "datum": "2026-10-21",
+    "look": "dunkel",
+    "schritt": 0
    }
   ]
  }
