@@ -311,19 +311,34 @@ def main():
     # Zielhoehe: hoechste Hoehe, die mehrere Peers melden. Ein Peer, der weit
     # darunter liegt, synchronisiert noch oder steht auf einem anderen Zweig
     # (Lauf 17.10.2026: /Zakura:1.5.1/ meldete 4.482.036, die Spitze war 4.511.578).
-    gemeldet = []
-    for _ in range(4):
+    # Ben, 21.10.2026: die Zielhoehe zaehlt nur von Peers, die den Abzweig
+    # bestaetigen. Am 21.10. standen drei von vier Proben auf Chipnet, und die
+    # Zielhoehe kam von dort. Probe: getheaders ab dem letzten gemeinsamen
+    # Block; der erste Kopf der Antwort muss der Tempnet-Block 327.989 sein.
+    gemeldet, abgelehnt_chipnet, versuche = [], 0, 0
+    erster_hash = bytes.fromhex(ERSTER_TEMPNET[1])[::-1]
+    while len(gemeldet) < 4 and versuche < 20:
+        versuche += 1
         a, p = verbinden(adressen, benutzt, mindesthoehe=args.ab)
         if p is None:
             break
         benutzt.add(a)
-        gemeldet.append(p.hoehe)
+        try:
+            probe = p.koepfe([start_hash], warten=20)
+            if probe and sha256d(probe[0]) == erster_hash:
+                gemeldet.append(p.hoehe)
+            else:
+                abgelehnt_chipnet += 1
+                log(f"probe {p.agent}: bestaetigt den abzweig {ERSTER_TEMPNET[0]} nicht, zaehlt nicht zur zielhoehe")
+        except (OSError, ConnectionError, TimeoutError) as e:
+            log(f"probe {p.agent} ohne antwort ({type(e).__name__})")
         p.zu()
     if not gemeldet:
-        sys.exit("kein peer erreichbar")
+        sys.exit("kein peer bestaetigt den tempnet-abzweig")
     ziel = sorted(gemeldet)[-2] if len(gemeldet) >= 2 else gemeldet[0]
     mindest = ziel - 20
-    log(f"zielhoehe {ziel} (median-nahe aus {len(gemeldet)} peers), hauptpeer ab {mindest}")
+    log(f"zielhoehe {ziel} aus {len(gemeldet)} peers mit bestaetigtem abzweig "
+        f"({abgelehnt_chipnet} ohne), hauptpeer ab {mindest}")
     benutzt = set()
 
     abzweige = []  # verworfene Koepfe, wenn ein Peer auf einem anderen Zweig stand
@@ -481,6 +496,8 @@ def main():
         "peer_software": agents,
         "peer_fehler": fehler,
         "zielhoehe_gemeldet": ziel,
+        "zielhoehe_aus_peers_mit_abzweig": len(gemeldet),
+        "proben_ohne_abzweig": abgelehnt_chipnet,
         "abzweige_verworfen": abzweige,
         "gegenproben": proben,
         "gegenproben_ohne_antwort": fehlversuche,
