@@ -150,6 +150,11 @@ svg .lab{fill:var(--ink);font-weight:500}
 .cmp li{font:500 12px/1 "IBM Plex Mono",monospace;background:var(--chip);border-radius:999px;padding:8px 12px;font-variant-numeric:tabular-nums;color:var(--ink)}
 .cmp li .up{color:var(--accent)} .cmp li .dn{color:var(--neg)}
 .hero .cmp{margin:16px 0 0}
+/* der schwebende knopf "free cheat sheet" aus capture.js verdeckt am handy die
+   ueberschrift von schritt 1 (Ben, 21.10.2026). die startseite hat oben subscribe
+   und zwei anmeldungen, hier braucht es ihn nicht. auf den unterseiten bleibt er.
+   die id-regel mit !important schlaegt den stilblock, den capture.js spaeter einfuegt. */
+#kpcBtn,#kpcPad{display:none!important}
 .subscribe{margin:40px 0;padding:24px;border-radius:12px;background:var(--accent-soft)}
 .subscribe h3{font:800 22px/1.2 Archivo,sans-serif;margin:0 0 6px}
 .subscribe p{margin:0 0 14px}
@@ -216,7 +221,7 @@ footer .fund a{display:inline-block;padding:10px 0}
     <p class="big">1.46%</p>
     <p class="lead">kaspa closed the week 1.46% under its 50 week average, its 3rd red week in a row.</p>
     <p class="note">week to 17 oct 2026 · weekly close against the average of the last 50 weekly closes, source kraken daily candles · our own series since 24 nov 2024</p>
-    <ul class="cmp" aria-label="comparison"><li><span class="dn">▼ 14.05 points</span> vs 10 oct</li><li><span class="up">▲ 39.22 points</span> vs 18 jul</li></ul>
+    <ul class="cmp" aria-label="comparison"><li>10 oct · <span class="dn">12.59% above</span></li><li>18 jul · <span class="up">40.68% below</span></li></ul>
     <a class="next" href="#chain">5 numbers, 2 minutes</a>
   </section>
   <nav class="progress" aria-label="progress"><a href="#chain" aria-label="step 1"></a><a href="#fees" aria-label="step 2"></a><a href="#emission" aria-label="step 3"></a><a href="#holders" aria-label="step 4"></a><a href="#addresses" aria-label="step 5"></a></nav>
