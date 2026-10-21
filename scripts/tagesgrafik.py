@@ -92,7 +92,13 @@ im selben Massstab, den Rest einer Flaeche oder vorher gegen nachher.
 AUSGABE: PNG 1080x1350 je Kanal (das Instagram-Bild ohne Kanal im Namen,
 dazu -threads, -x, -discord), Vorschau 390 px, Discord-Text, X-Text, die
 Antwort unter dem X-Post und eine Zeile Selbstpruefung. Mit --senden geht alles an DISCORD_WEBHOOK_OPS
-(#moderator-only). Es gibt keinen oeffentlichen Post aus diesem Skript.
+(#moderator-only, die Kontrolle).
+
+ZWEITER VERSAND, OEFFENTLICH (Ben, 21.10.2026): mit --senden geht zusaetzlich
+der Discord-Text mit dem Discord-Bild nach #daily-graphic, ueber das Secret
+DISCORD_WEBHOOK_DAILY_GRAPHIC. Nur diese zwei Stuecke, nichts aus der
+Kontrolle. Fehlt das Secret, wird nur protokolliert, ohne Abbruch.
+#moderator-only bleibt vorerst als Kontrolle daneben stehen.
 
     python3 scripts/tagesgrafik.py --out /tmp/tg                 heute, rotiert
     python3 scripts/tagesgrafik.py --out /tmp/tg --form 4        eine Form
@@ -109,6 +115,7 @@ import os
 import re
 import sys
 import time
+import urllib.error
 import urllib.request
 import uuid
 from pathlib import Path
@@ -129,6 +136,12 @@ EX_ADR = "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a"
 GENESIS = "58c2d4199e21f910d1571d114969cecef48f09f934d42ccb6a281a15868f2999"
 MONATE = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
 X_ZEIT = "17:00"                     # Ben plant X um 17:00 Berlin
+# #daily-graphic (Ben, 21.10.2026): die Grafik geht zusaetzlich oeffentlich
+# raus. Die Adresse steht NUR im Secret DISCORD_WEBHOOK_DAILY_GRAPHIC, nie
+# in einer Datei im Repo. Fehlt das Secret, wird nur protokolliert.
+ENV_OEFFENTLICH = "DISCORD_WEBHOOK_DAILY_GRAPHIC"
+# Fuer den Selbsttest: faengt die Anfrage ab, statt sie zu schicken.
+OEFFNER = None
 EX_EREIGNIS = 500000                 # KAS in 24 h, dann Form 2
 CUT_EREIGNIS_TAGE = 3                # Reward-Senkung in hoechstens 3 Tagen, dann Form 3
 GEB_MIN_TAGE = 25                    # weniger Gebuehrentage in 30, dann ist die Reihe gebrochen
@@ -1787,25 +1800,22 @@ def variante(log, form):
 
 # ------------------------------------------------------------ ops
 
-def ops_senden(png, vorschau, s, form, grund, hook, kanalbilder=None, looks=None):
-    """kanalbilder: {kanal: png} fuer threads, x und discord, je im eigenen
-    Look. png ist das Instagram-Bild."""
-    import look_takt
-    kanalbilder = kanalbilder or {}
-    looks = looks or {}
-    weitere = ["bild %d %s (%s)" % (i + 3, k, looks.get(k, "?")) for i, k in enumerate(kanalbilder)]
-    inhalt = ("%stagesgrafik %s, form %d %s (%s)\nnicht oeffentlich. discord 09:00, x %s.\n"
-              "bild 1 instagram (%s), 1080x1350. bild 2, 390 px breit, nur zur kontrolle, so klein "
-              "erscheint sie im handy-feed, nicht posten. %s. jeder kanal hat seinen eigenen look-takt, "
-              "bitte je kanal das passende bild posten.\n\n"
-              "DISCORD\n```\n%s\n```\nX, %d zeichen\n```\n%s\n```\nANTWORT unter dem X-Post\n```\n%s\n```\n"
-              "selbstpruefung, wuerde ein halter das reposten, um anzugeben? %s" % (
-                  "TROCKENLAUF (ZIEL=moderator), heute nichts posten.\n" if look_takt.trockenlauf() else "",
-                  s["datum"], form, FORMEN[form][0], grund, X_ZEIT, looks.get("instagram", "?"),
-                  ", ".join(weitere) or "keine weiteren bilder",
-                  s["discord"], len(s["x"]), s["x"], s["antwort"], s["pruefung"]))
-    if len(inhalt) > 1990:
-        inhalt = inhalt[:1990]
+def _oeffnen(req, timeout=60):
+    """urlopen, im Selbsttest abgefangen."""
+    return (OEFFNER or urllib.request.urlopen)(req, timeout=timeout)
+
+
+def _ohne_url(text):
+    """Eine Fehlermeldung ohne Adressen. Eine Webhook-Adresse traegt den
+    Token; sie darf in keine Meldung und in kein Log geraten."""
+    return re.sub(r"https?://\S+", "<adresse entfernt>", str(text))
+
+
+def _mehrteilig(hook, inhalt, bilder):
+    """Ein Discord-Post mit Text und Bildern. Gibt den HTTP-Status zurueck.
+
+    bilder ist eine Liste von Pfaden, in dieser Reihenfolge als files[0..n].
+    allowed_mentions bleibt leer, es wird nie jemand angepingt."""
     grenze = "----tg" + uuid.uuid4().hex
     teile = []
 
@@ -1817,15 +1827,67 @@ def ops_senden(png, vorschau, s, form, grund, hook, kanalbilder=None, looks=None
                       "Content-Type: %s\r\n" % typ if typ else "")).encode() + wert + b"\r\n")
     feld("payload_json", json.dumps({"content": inhalt, "allowed_mentions": {"parse": []}}).encode(),
          typ="application/json")
-    feld("files[0]", Path(png).read_bytes(), Path(png).name, "image/png")
-    feld("files[1]", Path(vorschau).read_bytes(), Path(vorschau).name, "image/png")
-    for i, k in enumerate(kanalbilder):
-        feld("files[%d]" % (i + 2), Path(kanalbilder[k]).read_bytes(), Path(kanalbilder[k]).name, "image/png")
+    for i, b in enumerate(bilder):
+        feld("files[%d]" % i, Path(b).read_bytes(), Path(b).name, "image/png")
     body = b"".join(teile) + ("--%s--\r\n" % grenze).encode()
     req = urllib.request.Request(hook, data=body, headers={
         "Content-Type": "multipart/form-data; boundary=%s" % grenze, "User-Agent": UA})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        print("an ops geschickt, http %s" % r.status)
+    with _oeffnen(req) as r:
+        return r.status
+
+
+def oeffentlich_senden(s, bild, hook=None):
+    """Der Discord-Text und das Discord-Bild nach #daily-graphic, oeffentlich.
+
+    Genau der Text, den Ben heute um 09:00 von Hand postet (s["discord"]),
+    und genau ein Bild, das im Discord-Look. Nichts aus der Kontrolle: kein
+    X-Text, keine Antwort, keine Selbstpruefung, keine Instagram-Caption,
+    keine Vorschau.
+
+    Gibt eine Zeile fuer #moderator-only zurueck und wirft nie. Fehlt das
+    Secret oder scheitert der Versand, steht das in der Zeile; die Grafik
+    liegt dann trotzdem schon in der Kontrolle (Ben, 21.10.2026)."""
+    import look_takt
+    if look_takt.trockenlauf():
+        return "ZIEL=moderator, nichts nach #daily-graphic geschickt"
+    hook = hook if hook is not None else os.environ.get(ENV_OEFFENTLICH, "").strip()
+    if not hook:
+        return ("kein %s, nichts nach #daily-graphic geschickt. "
+                "#moderator-only bleibt die kontrolle" % ENV_OEFFENTLICH)
+    if not bild or not Path(bild).exists():
+        return "kein discord-bild gerendert, nichts nach #daily-graphic geschickt"
+    try:
+        status = _mehrteilig(hook, s["discord"], [bild])
+    except Exception as exc:                                   # noqa: BLE001
+        return ("#daily-graphic fehlgeschlagen, %s. die grafik steht oben in "
+                "der kontrolle, bitte von hand posten" % _ohne_url(exc))
+    return "oeffentlich nach #daily-graphic geschickt, http %s" % status
+
+
+def ops_senden(png, vorschau, s, form, grund, hook, kanalbilder=None, looks=None):
+    """kanalbilder: {kanal: png} fuer threads, x und discord, je im eigenen
+    Look. png ist das Instagram-Bild."""
+    import look_takt
+    kanalbilder = kanalbilder or {}
+    looks = looks or {}
+    weitere = ["bild %d %s (%s)" % (i + 3, k, looks.get(k, "?")) for i, k in enumerate(kanalbilder)]
+    inhalt = ("%stagesgrafik %s, form %d %s (%s)\nkontrolle. der discord-text und das "
+              "discord-bild gehen automatisch nach #daily-graphic, x %s von hand.\n"
+              "bild 1 instagram (%s), 1080x1350. bild 2, 390 px breit, nur zur kontrolle, so klein "
+              "erscheint sie im handy-feed, nicht posten. %s. jeder kanal hat seinen eigenen look-takt, "
+              "bitte je kanal das passende bild posten.\n\n"
+              "DISCORD\n```\n%s\n```\nX, %d zeichen\n```\n%s\n```\nANTWORT unter dem X-Post\n```\n%s\n```\n"
+              "selbstpruefung, wuerde ein halter das reposten, um anzugeben? %s" % (
+                  "TROCKENLAUF (ZIEL=moderator), heute nichts posten.\n" if look_takt.trockenlauf() else "",
+                  s["datum"], form, FORMEN[form][0], grund, X_ZEIT, looks.get("instagram", "?"),
+                  ", ".join(weitere) or "keine weiteren bilder",
+                  s["discord"], len(s["x"]), s["x"], s["antwort"], s["pruefung"]))
+    if len(inhalt) > 1990:
+        inhalt = inhalt[:1990]
+    # dieselbe reihenfolge wie bisher: bild 1 instagram, bild 2 vorschau,
+    # dann je kanal eines
+    bilder = [png, vorschau] + [kanalbilder[k] for k in kanalbilder]
+    print("an ops geschickt, http %s" % _mehrteilig(hook, inhalt, bilder))
     if s.get("instagram"):
         ops_text(hook, "INSTAGRAM, caption fuer den post um 09:30, nach discord (nur wenn IG_MODUS "
                  "scharf, stoppen mit der variable IG_STOPP=%s)\n```\n%s\n```" % (
@@ -1837,7 +1899,7 @@ def ops_text(hook, text, was="meldung"):
     req = urllib.request.Request(hook, data=json.dumps({"content": text[:1990],
                                  "allowed_mentions": {"parse": []}}).encode(), headers={
                                  "Content-Type": "application/json", "User-Agent": UA})
-    with urllib.request.urlopen(req, timeout=60) as r:
+    with _oeffnen(req) as r:
         print("%s an ops geschickt, http %s" % (was, r.status))
 
 
@@ -2056,7 +2118,9 @@ def main(argv=None):
     ap.add_argument("--form", type=int)
     ap.add_argument("--messen", action="store_true", help="nur messen, json auf stdout")
     ap.add_argument("--aus", help="aus einer gespeicherten messung rendern")
-    ap.add_argument("--senden", action="store_true", help="an DISCORD_WEBHOOK_OPS schicken")
+    ap.add_argument("--senden", action="store_true",
+                    help="an DISCORD_WEBHOOK_OPS (kontrolle) und, wenn das secret "
+                         "DISCORD_WEBHOOK_DAILY_GRAPHIC steht, oeffentlich nach #daily-graphic")
     ap.add_argument("--zeitplan", action="store_true",
                     help="geplanter lauf, nur ab 07:00 Berlin und einmal am tag")
     ap.add_argument("--log-schreiben", action="store_true")
@@ -2165,6 +2229,14 @@ def main(argv=None):
         if not hook:
             raise SystemExit("ABBRUCH kein DISCORD_WEBHOOK_OPS, nichts geschickt")
         ops_senden(png, vpng, s, form, grund, hook, kanalbilder, looks)
+        # zweiter versand, oeffentlich nach #daily-graphic (Ben, 21.10.2026).
+        # Er haengt an denselben sperren wie die kontrolle: --zeitplan laesst
+        # nur zwischen 07:00 und 12:00 Berlin und nur einmal am tag durch.
+        # Scheitert er, bleibt der lauf gruen, die kontrolle hat die grafik
+        # schon, und die zeile sagt warum.
+        meldung = oeffentlich_senden(s, kanalbilder.get("discord"))
+        print(meldung)
+        ops_text(hook, meldung, "daily-graphic")
         if bruch:
             ops_text(hook, bruch, "gebuehren-bruch")
     elif bruch:
@@ -2700,6 +2772,99 @@ def selbsttest():
                looks["x"] == "hell" and looks["instagram"] == "dunkel")
     except ImportError:
         print("     playwright fehlt, render-probe uebersprungen")
+    # ------------------------------------------------ #daily-graphic (21.10.2026)
+    # Der zweite, oeffentliche Versand. Nichts geht ins Netz: OEFFNER faengt
+    # die Anfrage ab, und der Haken prueft, WAS genau rausgegangen waere.
+    import tempfile as _tf
+    gesendet = []
+
+    class _Antwort:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    def _faenger(req, timeout=60):
+        gesendet.append(req)
+        return _Antwort()
+
+    def _teile(req):
+        """(text, dateinamen) aus einem mehrteiligen Rumpf."""
+        roh = req.data
+        kopf, _, rest = roh.partition(b'name="payload_json"')
+        txt = rest.split(b"\r\n\r\n", 1)[1].split(b"\r\n--", 1)[0]
+        namen = re.findall(rb'name="(files\[\d+\])"; filename="([^"]+)"', roh)
+        return json.loads(txt.decode()), [n[1].decode() for n in namen]
+
+    sd = seite_bauen(9, FAKE[9], FAKE_NOW, log)
+    alt_oeffner, alt_ziel = globals()["OEFFNER"], os.environ.get("ZIEL")
+    alt_secret = os.environ.get(ENV_OEFFENTLICH)
+    try:
+        globals()["OEFFNER"] = _faenger
+        os.environ.pop("ZIEL", None)
+        os.environ.pop(ENV_OEFFENTLICH, None)
+        with _tf.TemporaryDirectory() as td:
+            bild = Path(td) / "tagesgrafik-discord.png"
+            bild.write_bytes(b"\x89PNG\r\n\x1a\nnicht echt")
+            # 4. fehlt das secret, wird nur protokolliert, ohne abbruch
+            gesendet.clear()
+            zeile = oeffentlich_senden(sd, bild)
+            ok("ohne secret nur eine zeile, kein versand, kein abbruch",
+               ENV_OEFFENTLICH in zeile and not gesendet)
+            # 3. ZIEL=moderator haelt den oeffentlichen versand weiter an
+            os.environ["ZIEL"] = "moderator"
+            gesendet.clear()
+            zeile = oeffentlich_senden(sd, bild, hook="https://discord.test/hook/geheim")
+            ok("ZIEL=moderator postet nichts oeffentlich",
+               "ZIEL=moderator" in zeile and not gesendet)
+            os.environ.pop("ZIEL", None)
+            # kein bild, kein versand
+            gesendet.clear()
+            zeile = oeffentlich_senden(sd, Path(td) / "gibtsnicht.png",
+                                       hook="https://discord.test/hook/geheim")
+            ok("ohne discord-bild kein versand", "kein discord-bild" in zeile and not gesendet)
+            # 2. mit secret geht genau der discord-text und genau ein bild raus
+            os.environ[ENV_OEFFENTLICH] = "https://discord.test/hook/geheim"
+            gesendet.clear()
+            zeile = oeffentlich_senden(sd, bild)
+            ok("mit secret genau ein versand", len(gesendet) == 1 and "http 200" in zeile)
+            nutz, namen = _teile(gesendet[0])
+            ok("oeffentlich steht genau der discord-text", nutz["content"] == sd["discord"])
+            ok("oeffentlich haengt genau das discord-bild dran", namen == [bild.name])
+            ok("oeffentlich pingt niemanden", nutz["allowed_mentions"] == {"parse": []})
+            fremd = [w for w in ("selbstpruefung", "kontrolle", "ANTWORT", "INSTAGRAM",
+                                 "#daily-graphic", sd["antwort"], sd["instagram"], sd["pruefung"])
+                     if w and w in nutz["content"]]
+            ok("nichts aus der kontrolle im oeffentlichen post", not fremd)
+            ok("der oeffentliche text ist schon durch die wache",
+               not pruefe_eine(sd["discord"].replace(MAIL_SATZ, ""), 9, "discord"))
+            # ein fehler im versand bricht nicht ab und nennt keine adresse
+            def _kaputt(req, timeout=60):
+                raise urllib.error.HTTPError("https://discord.test/hook/geheim", 404,
+                                             "Not Found", None, None)
+            globals()["OEFFNER"] = _kaputt
+            zeile = oeffentlich_senden(sd, bild)
+            ok("ein fehler bricht nicht ab und nennt keine adresse",
+               "fehlgeschlagen" in zeile and "discord.test" not in zeile and "geheim" not in zeile)
+            # 1. die kontrolle bleibt, in alter reihenfolge
+            globals()["OEFFNER"] = _faenger
+            gesendet.clear()
+            kb = {"threads": bild, "x": bild, "discord": bild}
+            ops_senden(bild, bild, dict(sd, instagram=""), 9, "probe",
+                       "https://discord.test/hook/ops", kb, {})
+            _, namen = _teile(gesendet[0])
+            ok("die kontrolle schickt weiter fuenf bilder", len(namen) == 5)
+    finally:
+        globals()["OEFFNER"] = alt_oeffner
+        for k, v in ((ENV_OEFFENTLICH, alt_secret), ("ZIEL", alt_ziel)):
+            os.environ.pop(k, None)
+            if v is not None:
+                os.environ[k] = v
+    ok("eine adresse wird aus jeder meldung entfernt",
+       "geheim" not in _ohne_url("kaputt bei https://discord.com/api/webhooks/1/geheim jetzt"))
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 
