@@ -134,6 +134,13 @@ jobs:
       - name: seitenstand und sitemap
         if: always() && steps.guard.outputs.done != '1'
         run: |
+          # die startseite aus den montagsdaten (Ben, 21.10.2026). taeglich,
+          # weil nicht alle montagsdaten vor dem dashboard-lauf da sind (die
+          # adress-schwellen kommen gegen 12:30). startseite.py nimmt immer den
+          # stand des letzten montags, an den uebrigen tagen ist das ein leerlauf.
+          # faellt seine wache, bleibt die alte seite stehen und der lauf geht weiter.
+          python3 scripts/startseite.py --selbsttest && python3 scripts/startseite.py \
+            || echo "startseite nicht neu gebaut, siehe oben"
           python3 scripts/seo_seiten.py --selbsttest
           python3 scripts/seo_seiten.py
       # laeuft auch an tagen ohne post und auch, wenn discord oder x rot
