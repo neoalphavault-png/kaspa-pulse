@@ -27,6 +27,8 @@ WOHER DIE ZAHLEN KOMMEN (Stichtag ist der letzte Montag, siehe stichtag())
   6 die Adressen   data/address-thresholds-log.json, holders_all, holders_001kas
 
   TVL bleibt draussen, bis der Ausreisser vom 21.09.2026 geprueft ist (Ben).
+  Layer 2 ebenso, bis der igra-Sprung vom 19.10.2026 geprueft ist (Ben,
+  21.10.2026), Schalter LAYER2. Die Seite laeuft solange mit 5 Schritten.
 
 VERGLEICHS-CHIPS
   Schnelle Zahlen (Zahl der Woche, Halter, Layer 2) gegen die Woche davor und
@@ -77,6 +79,13 @@ ABOUT = ("about", [("method", "/kaspa-data-sources.html"),
                    ("how we fund this", "/how-we-fund-this.html")])
 # oberste punkte, die nicht in die leiste gehoeren: "dashboard" ist diese seite
 OBEN_UMBENANNT = {"/": "this week"}
+
+# Layer 2 bleibt draussen, bis der igra-Sprung vom 19.10.2026 geprueft ist
+# (Ben, 21.10.2026). igra stand an diesem Montag bei 95% des DEX-Volumens,
+# 19,2 Punkte ueber der Vorwoche, und der Lesetext vom Montag markiert genau
+# diesen Sprung als "wird nachgeprueft". Der Schritt ist fertig gebaut und
+# kommt mit True zurueck.
+LAYER2 = False
 
 DATUM_RE = re.compile(r"\b\d{1,2} (?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b")
 
@@ -314,7 +323,7 @@ def daten(heute=None):
     sw = schwellen(lade(SCHWELLEN, {}), st)
     return {"stichtag": st, "zdw": zahl_der_woche(lade(CANDLES, {}), st), "kette": blockrate(tg, st),
             "gebuehren": gebuehren(tg, st), "emission": emission(st), "halter": halter(sw),
-            "layer2": layer2(lade(WEEKLY, {}), st), "adressen": adressen(sw)}
+            "layer2": layer2(lade(WEEKLY, {}), st) if LAYER2 else None, "adressen": adressen(sw)}
 
 
 # ---------------------------------------------------------------- bausteine
@@ -446,6 +455,16 @@ def netto_balken(netto):
 
 # ---------------------------------------------------------------- schritte
 
+# Die Frage am Ende eines Schritts fuehrt in den naechsten. Sie haengt deshalb
+# am Ziel, nicht am Schritt davor: faellt ein Schritt weg, fragt der vorige
+# nach dem, was wirklich folgt.
+HIN = {"fees": "fast blocks need miners. so who pays them?",
+       "emission": "and the new coins get fewer every month.",
+       "holders": "who is holding all those coins?",
+       "layer2": "and where does the money move on kaspa's layer 2?",
+       "addresses": "one more number, and it gets quoted wrong a lot."}
+
+
 def schritte(D):
     """Liste der Schritte. Ein Schritt ohne Daten faellt weg, die Zaehlung rueckt nach."""
     aus = []
@@ -463,8 +482,7 @@ def schritte(D):
                                   ("protocol rate", 10, "10", False),
                                   "blocks per second, counted %.3f against the protocol rate of 10" % k["bps"]),
             "fcap": "blocks per second over %d seconds, counted %s" % (k["sek"] or 600, d_kurz(k["datum"])),
-            "chips": "",
-            "frage": "fast blocks need miners. so who pays them?"})
+            "chips": ""})
     g = D["gebuehren"]
     if g:
         aus.append({
@@ -480,8 +498,7 @@ def schritte(D):
                                        pct(100 - g["anteil"]), pct(g["anteil"]))),
             "fcap": ("%s to %s, miner revenue in KAS · fees source kaspalytics, new coins computed "
                      "from the emission schedule" % (d_kurz(g["von"]), d_kurz(g["bis"]))),
-            "chips": "",
-            "frage": "and the new coins get fewer every month."})
+            "chips": ""})
     e = D["emission"]
     if e:
         vm, q3 = e["vormonat"], e["q3"]
@@ -495,8 +512,7 @@ def schritte(D):
             "grafik": treppe(e),
             "fcap": "computed from the emission schedule, factor 2^(1/12) down per month · KAS per day",
             "chips": chips([chip((e["neu"] / vm["wert"] - 1) * 100, "%", vm["datum"], 1),
-                            chip((e["neu"] / q3["wert"] - 1) * 100, "%", q3["datum"], 1)]),
-            "frage": "who is holding all those coins?"})
+                            chip((e["neu"] / q3["wert"] - 1) * 100, "%", q3["datum"], 1)])})
     h = D["halter"]
     if h:
         vw = h["vorwoche"]
@@ -529,8 +545,7 @@ def schritte(D):
             "grafik": netto_balken(h["netto"]) if h["netto"] else "",
             "fcap": ("net change per day, %s to %s · source kaspalytics address thresholds"
                      % (d_kurz(h["netto"][0][0], False), d_kurz(h["netto"][-1][0]))) if h["netto"] else "",
-            "chips": chips(cs),
-            "frage": "and where does the money move on kaspa's layer 2?"})
+            "chips": chips(cs)})
     l2 = D["layer2"]
     if l2:
         a = l2["anteil"]
@@ -543,8 +558,7 @@ def schritte(D):
             "grafik": balken_split([("igra %d%%" % round(a), a), ("kasplex %d%%" % (100 - round(a)), 100 - a)],
                                    "layer 2 DEX volume share, igra %d%%, kasplex %d%%" % (round(a), 100 - round(a))),
             "fcap": "24 hours to the reading of %s · source defillama" % d_kurz(l2["datum"]),
-            "chips": chips([chip(a - v["wert"], " points", v["datum"], 1) for v in (l2["vorwoche"], l2["q13"]) if v]),
-            "frage": "one more number, and it gets quoted wrong a lot."})
+            "chips": chips([chip(a - v["wert"], " points", v["datum"], 1) for v in (l2["vorwoche"], l2["q13"]) if v])})
     ad = D["adressen"]
     if ad:
         mio = ad["alle"] / 1e6
@@ -560,8 +574,7 @@ def schritte(D):
                                   "%s addresses with any balance, %s above 0.01 KAS" % (
                                       ganz(ad["alle"]), ganz(ad["ueber"]))),
             "fcap": "%s · source kaspalytics address thresholds" % d_kurz(ad["datum"]),
-            "chips": "",
-            "frage": ""})
+            "chips": ""})
     return aus
 
 
@@ -651,8 +664,8 @@ def inhalt_html(D):
         if s["grafik"]:
             z.append('    <figure><p class="ftitle">%s</p>%s<figcaption>%s</figcaption></figure>'
                      % (esc(s["ftitel"]), s["grafik"], esc(s["fcap"])))
-        if nxt and s["frage"]:
-            z.append('    <p class="bridge">%s <a href="#%s">next</a></p>' % (esc(s["frage"]), nxt))
+        if nxt and HIN.get(nxt):
+            z.append('    <p class="bridge">%s <a href="#%s">next</a></p>' % (esc(HIN[nxt]), nxt))
         if not nxt:
             z.append('    <div class="deeper"><a href="/kaspa-hashrate.html">network</a>'
                      '<a href="/kaspa-supply.html">supply</a><a href="/kaspa-token-standard.html">tokens</a>'
@@ -783,6 +796,7 @@ def selbsttest():
     D2 = dict(D, kette=None, gebuehren=None)
     ss2 = schritte(D2)
     in2 = inhalt_html(D2)
+    ok("frage fuehrt in den naechsten schritt", 'quoted wrong a lot. <a href="#addresses">' in inhalt_html(dict(D, layer2=None)))
     ok("fehlende daten, schritt faellt weg", len(ss2) == 4 and "1 / 4" in in2 and pruefen(in2, ss2) == [])
     ok("echtzeit-wort faellt auf", pruefen(inhalt.replace("blocks keep landing", "blocks currently land"), ss) != [])
     ok("percent faellt auf", pruefen(inhalt.replace("fees paid", "fees paid 1 percent"), ss) != [])
@@ -809,6 +823,7 @@ def selbsttest():
         ok("ohne marken bricht ab", False)
     except Abbruch:
         ok("ohne marken bricht ab", True)
+    ok("layer 2 bleibt draussen, solange LAYER2 aus ist", LAYER2 or daten()["layer2"] is None)
     try:
         echt = bauen(INDEX.read_text(encoding="utf-8"), daten())
         ok("index.html baut mit den echten daten", "<section class=\"step\"" in echt)
