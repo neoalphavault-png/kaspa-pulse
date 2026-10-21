@@ -51,6 +51,9 @@ def lesen(pfad):
 
 
 def zeile_covenant(rows):
+    """Covenant-IDs disjunkt eingeteilt: eine ID gilt als "eigenes Skript",
+    wenn KEINER ihrer UTXOs auf einem Skript liegt, das auch UTXOs einer
+    anderen ID traegt. Sonst zaehlt sie ganz zu "auf geteilten Skripten"."""
     cov = [z for z in rows if z["cid"]]
     je_id = collections.defaultdict(list)
     for z in cov:
@@ -61,19 +64,18 @@ def zeile_covenant(rows):
     geteilt = {s for s, ids in ids_je_skript.items() if len(ids) > 1}
 
     def teil(bed):
-        ids = [c for c, zs in je_id.items() if bed(c, zs)]
+        ids = [c for c, zs in je_id.items() if bed(zs)]
         zs = [z for c in ids for z in je_id[c]]
         return {"covenant_ids": len(ids), **summe(zs)}
 
-    eigen = lambda zs: zs[0]["skript"] not in geteilt  # noqa: E731
+    eigen = lambda zs: all(z["skript"] not in geteilt for z in zs)  # noqa: E731
     return {
-        "alle": {"covenant_ids": len(je_id), **summe(cov)},
-        "ein_utxo_eigenes_skript": teil(lambda c, zs: len(zs) == 1 and eigen(zs)),
-        "mehrere_utxos_eigenes_skript": teil(lambda c, zs: len(zs) > 1 and eigen(zs)),
-        "auf_geteilten_skripten": {
-            "skripte": len(geteilt),
-            **teil(lambda c, zs: any(z["skript"] in geteilt for z in zs)),
-        },
+        "alle": {"covenant_ids": len(je_id), "skripte": len(ids_je_skript), **summe(cov)},
+        "ein_utxo_eigenes_skript": teil(lambda zs: len(zs) == 1 and eigen(zs)),
+        "mehrere_utxos_eigenes_skript": teil(lambda zs: len(zs) > 1 and eigen(zs)),
+        "auf_geteilten_skripten": {"skripte": len(geteilt), **teil(lambda zs: not eigen(zs))},
+        "ids_ueber_mehrere_skripte": sum(1 for zs in je_id.values() if len({z["skript"] for z in zs}) > 1),
+        "davon_p2sh": summe([z for z in cov if z["p2sh"]]),
         "seit_toccata_entstanden": summe([z for z in cov if z["daa"] >= TOCCATA_DAA]),
     }
 
@@ -95,12 +97,17 @@ def zeile_scripthash(rows, nur_seit_toccata=False):
 
 
 def auswerten(rows, stand):
+    z1 = zeile_covenant(rows)
+    teile = [z1[k] for k in ("ein_utxo_eigenes_skript", "mehrere_utxos_eigenes_skript", "auf_geteilten_skripten")]
+    if (sum(t["covenant_ids"] for t in teile) != z1["alle"]["covenant_ids"]
+            or sum(t["utxos"] for t in teile) != z1["alle"]["utxos"]):
+        raise SystemExit("zeile 1 nicht disjunkt, abbruch")
     return {
         "quelle": "counted by kaspa pulse, eigener knoten, utxo-bestand aus der knoten-datenbank",
         "stichzeit": stand.get("hauptstichzeit"),
         "stichblock": stand.get("hauptstichblock"),
         "zweitpruefung_identisch": (stand.get("zweitpruefung") or {}).get("identisch_mit_rueckweg"),
-        "zeile1_covenant_id": zeile_covenant(rows),
+        "zeile1_covenant_id": z1,
         "zeile2_inscriptions": {"wert": None, "grund": "ein p2sh-output zeigt sein skript erst beim ausgeben, "
                                 "aus dem bestand allein nicht bestimmbar"},
         "zeile3_scripthash_ohne_covenant_id": zeile_scripthash(rows),
@@ -129,6 +136,9 @@ def selbsttest():
         # covenant C und D teilen ein skript
         ("c:0", 3 * SOMPI, TOCCATA_DAA + 7, "cc", "p2sh", p2sh(3)),
         ("d:0", 4 * SOMPI, TOCCATA_DAA + 8, "cd", "p2sh", p2sh(3)),
+        # covenant E: ein utxo auf eigenem skript, einer auf dem geteilten skript von C und D
+        ("h:0", 10 * SOMPI, TOCCATA_DAA + 7, "ce", "p2sh", p2sh(7)),
+        ("h:1", 20 * SOMPI, TOCCATA_DAA + 7, "ce", "p2sh", p2sh(3)),
         # p2sh ohne id: zwei einzelne (einer alt), ein geteiltes mit drei
         ("e:0", 5 * SOMPI, TOCCATA_DAA - 10, "", "p2sh", p2sh(4)),
         ("f:0", 6 * SOMPI, TOCCATA_DAA + 9, "", "p2sh", p2sh(5)),
@@ -144,13 +154,17 @@ def selbsttest():
                 fh.write("%s,%d,%d,false,%s,%s,,0,%s\n" % (o, s, daa, cid, k, spk))
         r = auswerten(lesen(p), {"hauptstichzeit": "x", "zweitpruefung": {"identisch_mit_rueckweg": True}})
     z1 = r["zeile1_covenant_id"]
-    ok("z1 alle", z1["alle"] == {"covenant_ids": 4, "utxos": 5, "kas": 110.0}, z1["alle"])
+    ok("z1 alle", z1["alle"] == {"covenant_ids": 5, "skripte": 4, "utxos": 7, "kas": 140.0}, z1["alle"])
     ok("z1 ein utxo eigen", z1["ein_utxo_eigenes_skript"] == {"covenant_ids": 1, "utxos": 1, "kas": 100.0},
        z1["ein_utxo_eigenes_skript"])
     ok("z1 mehrere eigen", z1["mehrere_utxos_eigenes_skript"] == {"covenant_ids": 1, "utxos": 2, "kas": 3.0},
        z1["mehrere_utxos_eigenes_skript"])
-    ok("z1 geteilt", z1["auf_geteilten_skripten"] == {"skripte": 1, "covenant_ids": 2, "utxos": 2, "kas": 7.0},
+    ok("z1 geteilt, e ganz dort", z1["auf_geteilten_skripten"] == {"skripte": 1, "covenant_ids": 3, "utxos": 4, "kas": 37.0},
        z1["auf_geteilten_skripten"])
+    teile = [z1[k] for k in ("ein_utxo_eigenes_skript", "mehrere_utxos_eigenes_skript", "auf_geteilten_skripten")]
+    ok("z1 disjunkt, teile ergeben das ganze", sum(t["covenant_ids"] for t in teile) == z1["alle"]["covenant_ids"]
+       and sum(t["utxos"] for t in teile) == z1["alle"]["utxos"], teile)
+    ok("z1 id ueber mehrere skripte", z1["ids_ueber_mehrere_skripte"] == 1)
     z3 = r["zeile3_scripthash_ohne_covenant_id"]
     ok("z3 alle", z3["alle"] == {"skripte": 3, "utxos": 5, "kas": 14.0}, z3["alle"])
     ok("z3 einzeln", z3["ein_utxo_je_skript"] == {"utxos": 2, "kas": 11.0}, z3["ein_utxo_je_skript"])

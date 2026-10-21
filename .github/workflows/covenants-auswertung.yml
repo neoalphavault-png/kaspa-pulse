@@ -1,0 +1,46 @@
+# Kaspa Pulse - Auswertung der Stichzeit-Zaehlung neu rechnen (Ben, 21.10.2026)
+#
+# Liegt bewusst NUR auf dem Branch messung/covenants-stichzeit. Nicht gemergt.
+# Holt das Artefakt eines Laufs von covenants-stichzeit (Lauf-Nummer in
+# messung/covenants-stichzeit/auswertung.txt) und rechnet die Auswertung mit
+# dem aktuellen Skript neu. Kein Knoten, kein Netz ausser GitHub.
+
+name: covenants auswertung
+
+on:
+  push:
+    branches:
+      - messung/covenants-stichzeit
+    paths:
+      - messung/covenants-stichzeit/auswertung.txt
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  auswerten:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: selbsttest
+        run: python3 scripts/kp_stichzeit_auswertung.py --selbsttest
+      - id: lauf
+        run: echo "id=$(sed -n 's/^lauf=//p' messung/covenants-stichzeit/auswertung.txt)" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@v4
+        with:
+          name: covenants-stichzeit
+          run-id: ${{ steps.lauf.outputs.id }}
+          github-token: ${{ github.token }}
+          path: aus
+      - name: auswertung
+        run: |
+          set -euo pipefail
+          sha256sum aus/stand.json
+          gunzip -k aus/bestand.csv.gz
+          sha256sum aus/bestand.csv
+          python3 scripts/kp_stichzeit_auswertung.py aus/bestand.csv aus/stand.json aus/auswertung.json
