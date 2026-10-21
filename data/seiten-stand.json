@@ -1,4 +1,8 @@
 {
+  "archive/index.html": {
+    "datum": "2026-10-21",
+    "hash": "0a483754624b2115"
+  },
   "entity-x.html": {
     "datum": "2026-10-19",
     "hash": "5522b1aebbdaea0a"
@@ -82,5 +86,69 @@
   "merged-mining.html": {
     "datum": "2026-10-13",
     "hash": "6b38330b3090706d"
+  },
+  "method/index.html": {
+    "datum": "2026-10-21",
+    "hash": "af213ad8f46fd438"
+  },
+  "week/2026-07-13/index.html": {
+    "datum": "2026-10-21",
+    "hash": "4bd409fcfcb0f42a"
+  },
+  "week/2026-07-20/index.html": {
+    "datum": "2026-10-21",
+    "hash": "9590410d4dae0737"
+  },
+  "week/2026-07-27/index.html": {
+    "datum": "2026-10-21",
+    "hash": "1ce2cf52f29f7ac2"
+  },
+  "week/2026-08-03/index.html": {
+    "datum": "2026-10-21",
+    "hash": "6c3ac83d96825c4d"
+  },
+  "week/2026-08-10/index.html": {
+    "datum": "2026-10-21",
+    "hash": "9e194cb866eac056"
+  },
+  "week/2026-08-17/index.html": {
+    "datum": "2026-10-21",
+    "hash": "42fcea1f84b01ddc"
+  },
+  "week/2026-08-24/index.html": {
+    "datum": "2026-10-21",
+    "hash": "1d8c2d6c83759e1b"
+  },
+  "week/2026-08-31/index.html": {
+    "datum": "2026-10-21",
+    "hash": "c4ea067ecf36345a"
+  },
+  "week/2026-09-07/index.html": {
+    "datum": "2026-10-21",
+    "hash": "5788e80e4fe228c7"
+  },
+  "week/2026-09-14/index.html": {
+    "datum": "2026-10-21",
+    "hash": "d5ecbadfcd48bee2"
+  },
+  "week/2026-09-21/index.html": {
+    "datum": "2026-10-21",
+    "hash": "44e0761043140def"
+  },
+  "week/2026-09-28/index.html": {
+    "datum": "2026-10-21",
+    "hash": "bcb46ce60cf88782"
+  },
+  "week/2026-10-05/index.html": {
+    "datum": "2026-10-21",
+    "hash": "7d9ef197d4b2e2c4"
+  },
+  "week/2026-10-12/index.html": {
+    "datum": "2026-10-21",
+    "hash": "02b26809a3ce7e59"
+  },
+  "week/2026-10-19/index.html": {
+    "datum": "2026-10-21",
+    "hash": "a93aefab42bafe97"
   }
 }

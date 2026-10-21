@@ -59,7 +59,11 @@ def lies(pfad, ref=None):
 
 
 def seiten():
-    return sorted(p.name for p in REPO.glob("*.html") if p.name not in NICHT_OEFFENTLICH)
+    # dazu die ordnerseiten von archiv.py (wochen, archive, method), dieselbe
+    # liste wie in seo_seiten.py
+    sys.path.insert(0, str(REPO / "scripts"))
+    import archiv
+    return sorted(p.name for p in REPO.glob("*.html") if p.name not in NICHT_OEFFENTLICH) + archiv.seiten_pfade()
 
 
 def titel(s):
