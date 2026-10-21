@@ -340,7 +340,10 @@ def quellen_pruefen(html):
 
 def render_index(data):
     src = open(INDEX_PATH, encoding="utf-8").read()
-    fehlt = quellen_pruefen(src)
+    # die kaspalytics-karten gibt es nur auf der alten startseite. die neue
+    # (ab 23.10.2026) schreibt scripts/startseite.py, und deren wache prueft
+    # die quellen selbst, satz fuer satz.
+    fehlt = quellen_pruefen(src) if '<div class="name">' in src else []
     if fehlt:
         raise SystemExit("ABBRUCH diese karten nennen ihre quelle nicht (source kaspalytics): %s"
                          % ", ".join(fehlt))
@@ -355,6 +358,19 @@ def render_index(data):
              + ";\n" + MARK_END)
     with open(INDEX_PATH, "w", encoding="utf-8") as f:
         f.write(src[:a] + block + src[b:])
+    startseite_bauen()
+
+
+def startseite_bauen():
+    """Die Zahlen der Startseite aus den frischen Montagsdaten. Faellt die
+    wache von startseite.py, bleibt die alte Seite stehen und der Lauf geht
+    weiter: jede Zahl dort traegt ihr Datum, sie wird alt, aber nicht falsch."""
+    if "<!--AUTO:startseite-->" not in open(INDEX_PATH, encoding="utf-8").read():
+        return
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import startseite
+    if startseite.main([]) != 0:
+        print("WARNUNG startseite nicht neu gebaut, siehe oben")
 
 
 def save(data):
@@ -461,9 +477,13 @@ def run_selftest():
     ohne = alle.replace("* x &middot; source kaspalytics</div>", "* x</div>", 1)
     ok("eine karte ohne quelle wird benannt", quellen_pruefen(ohne) == [KASPALYTICS_KARTEN[0]],
        quellen_pruefen(ohne))
-    ok("index.html nennt bei allen kaspalytics-karten die quelle",
-       quellen_pruefen(open(INDEX_PATH, encoding="utf-8").read()) == [],
-       quellen_pruefen(open(INDEX_PATH, encoding="utf-8").read()))
+    idx = open(INDEX_PATH, encoding="utf-8").read()
+    if '<div class="name">' in idx:
+        ok("index.html nennt bei allen kaspalytics-karten die quelle",
+           quellen_pruefen(idx) == [], quellen_pruefen(idx))
+    else:
+        ok("neue startseite hat die marken fuer startseite.py und den datenblock",
+           "<!--AUTO:startseite-->" in idx and MARK_START in idx and MARK_END in idx)
 
     print("")
     if fails:
