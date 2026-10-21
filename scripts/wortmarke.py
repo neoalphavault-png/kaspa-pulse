@@ -115,19 +115,86 @@ _ALT_FUSS = re.compile(r'<div class="brand">.*?</div>')
 _ALT_RECHT = re.compile(r'<a class="logo" href="/">.*?</a>')
 SEITEN = sorted(p.name for p in REPO.glob("*.html"))
 
-# Die Farben der Marke stehen hier als Zahl, nicht als var(--txt): --txt ist
-# auf der Website #FFFFFF, die Marke traegt #F2F5F4. Der Block haengt am Ende
+# Die Farben der Marke stehen hier als Zahl, nicht als var(--ink): die
+# Marke ist die Marke, nicht der Textton der Seite. Der Block haengt am Ende
 # des Stilblocks jeder Seite und schlaegt die Regeln davor. Die Schriftart
 # bleibt die der Seite; Archivo gehoert zum Startseiten-Umbau, der ueber das
 # Laden der Schnitte entscheidet (Ben, 21.10.2026).
 MARKE_AUF = "/* wortmarke.py, nicht von hand aendern */"
 MARKE_ZU = "/* ende wortmarke.py */"
-WEB_CSS = """  %s
-  .nav .nlogo a, .logo, footer .brand { color:%s; font-weight:%d; }
-  .nav .nlogo span, .logo span, footer .brand span { color:%s; }
-  footer .brand { opacity:1; }
-  %s""" % (MARKE_AUF, FARBE_1, GEWICHT, FARBE_2, MARKE_ZU)
+# Die beiden Gruppen, die die Marke tragen: KASPA und das <span>/<b> PULSE.
+_S_KASPA = (".nav .nlogo a", ".logo", "footer .brand")
+_S_PULSE = (".nav .nlogo span", ".logo span", "footer .brand span")
+# Nur der Fuss, fuer die Seiten mit hellem Look.
+_S_FUSS_K = ("footer .brand",)
+_S_FUSS_P = ("footer .brand span",)
+# HELLER LOOK (Ben, 21.10.2026). Die Startseite folgt seit dem Umbau dem
+# System: hell als Grundfall, dunkel ueber zwei Abfragen. #F2F5F4 fest ist
+# auf hellem Grund nicht zu lesen, deshalb hat der Umbau den Block mit
+# "html footer .brand{color:var(--ink)}" uebersteuert - und damit stand die
+# Markenfarbe an zwei Stellen. Jetzt schreibt dieser Block beide Looks selbst.
+#
+# WICHTIG, DER KOPF FOLGT DEM LOOK NICHT. Der Balken oben traegt seine
+# eigenen Toene (--bar, --bar-ink, --brand) und bleibt in beiden Looks
+# dunkel; sie stehen auf der Startseite nur einmal in :root. Die Marke im
+# Kopf bleibt deshalb immer die dunkle. Nur der Fuss steht auf dem Grund
+# der Seite und wechselt mit.
+_DUNKEL_1 = "@media (prefers-color-scheme: dark){"
+_DUNKEL_2_INNEN = ':root:not([data-theme="light"])'
+_DUNKEL_2 = ':root[data-theme="dark"]'
+# Eine Seite hat einen hellen Look, wenn sie selbst eine Dunkel-Abfrage
+# fuehrt: dann ist hell ihr Grundfall. Die Unterseiten tun das nicht, sie
+# sind immer dunkel. Das steht als Regel hier und nicht als Liste von
+# Dateinamen, damit es von allein stimmt, wenn der Umbau weitergeht.
+_DUNKELABFRAGE = "prefers-color-scheme: dark"
+
+
+def _regel(auswahl, farbe, zusatz="", vor=""):
+    """Eine CSS-Regel ueber eine Auswahlgruppe, jedem Teil vorangestellt."""
+    teile = ", ".join(("%s %s" % (vor, a)) if vor else a for a in auswahl)
+    return "%s { color:%s;%s }" % (teile, farbe, zusatz)
+
+
+def web_css(hell=False):
+    """Der Marken-Block fuer eine Seite.
+
+    hell=False: die Seite ist immer dunkel (alle Unterseiten), eine Farbe.
+    hell=True: die Seite folgt dem System (Startseite), also hell als
+    Grundfall und dunkel in denselben zwei Abfragen wie die Seite selbst."""
+    kd, pd = farben("dunkel")
+    zeilen = [_regel(_S_KASPA, kd, " font-weight:%d;" % GEWICHT),
+              _regel(_S_PULSE, pd),
+              "footer .brand { opacity:1; }"]
+    if hell:
+        kh, ph = farben("hell")
+        zeilen += [
+            "/* nur der fuss steht auf dem grund der seite und folgt dem look,",
+            "   der balken oben bleibt in beiden looks dunkel */",
+            _regel(_S_FUSS_K, kh),
+            _regel(_S_FUSS_P, ph),
+            _DUNKEL_1,
+            "  " + _regel(_S_FUSS_K, kd, vor=_DUNKEL_2_INNEN),
+            "  " + _regel(_S_FUSS_P, pd, vor=_DUNKEL_2_INNEN),
+            "}",
+            _regel(_S_FUSS_K, kd, vor=_DUNKEL_2),
+            _regel(_S_FUSS_P, pd, vor=_DUNKEL_2)]
+    return "  %s\n%s\n  %s" % (MARKE_AUF,
+                                "\n".join("  " + z for z in zeilen), MARKE_ZU)
+
+
 _ALT_CSS = re.compile(re.escape(MARKE_AUF) + r".*?" + re.escape(MARKE_ZU), re.S)
+# Faerbt eine Seite die Marke so, dass sie den Block SCHLAEGT, steht die
+# Farbe an zwei Stellen. Genau das ist nach dem Startseiten-Umbau passiert:
+# "html footer .brand{color:var(--ink)}" gewinnt gegen "footer .brand" aus
+# dem Block, weil es spezifischer ist.
+#
+# Die gewoehnlichen Regeln der Seiten (".nav .nlogo a { color:var(--txt) }")
+# stehen VOR dem Block und sind gleich spezifisch, der Block schlaegt sie.
+# Sie sind kein Befund. Gesucht wird nur, was mit html, body oder :root
+# davor spezifischer gemacht wurde.
+_FREMDE_FARBE = re.compile(
+    r"^[^\n{}]*\b(?:html|body|:root)\b[^\n{}]*"
+    r"\.(?:brand|nlogo|logo)\b[^\n{}]*\{[^}]*\bcolor\s*:", re.M)
 
 
 def seite_umschreiben(text, name):
@@ -143,8 +210,21 @@ def seite_umschreiben(text, name):
     return text, n
 
 
+def hat_hellen_look(text):
+    """True, wenn die Seite selbst eine Dunkel-Abfrage fuehrt. Dann ist hell
+    ihr Grundfall und die Marke braucht beide Looks."""
+    return _DUNKELABFRAGE in _ALT_CSS.sub(" ", text)
+
+
+def fremde_markenfarbe(text):
+    """Regeln ausserhalb des Blocks, die die Marke selbst faerben."""
+    return [m.group(0).strip()
+            for m in _FREMDE_FARBE.finditer(_ALT_CSS.sub(" ", text))]
+
+
 def _css_setzen(text):
     """Haengt den Marken-Block ans Ende des Stilblocks, genau einmal."""
+    WEB_CSS = web_css(hat_hellen_look(text))
     if MARKE_AUF in text:
         # der treffer beginnt bei MARKE_AUF, die einrueckung davor bleibt
         # stehen. ohne lstrip waechst sie mit jedem lauf um zwei leerzeichen.
@@ -191,9 +271,18 @@ def seiten_treffer():
     return aus
 
 
+def farb_treffer():
+    """Seiten, die die Marke ausserhalb des Blocks faerben."""
+    aus = []
+    for name in SEITEN:
+        for r in fremde_markenfarbe((REPO / name).read_text(encoding="utf-8")):
+            aus.append("%s faerbt die marke neben dem block: %s" % (name, r[:70]))
+    return aus
+
+
 def pruefen():
     """Befunde als Liste. Leer heisst: die Marke steht ueberall gleich."""
-    befunde = erzeuger_treffer() + seiten_treffer()
+    befunde = erzeuger_treffer() + seiten_treffer() + farb_treffer()
     for name in SEITEN:
         text = (REPO / name).read_text(encoding="utf-8")
         for m in _ALT_KOPF.finditer(text):
@@ -274,6 +363,39 @@ def selbsttest():
     ok("anwenden ist wiederholbar, auch mit farbblock",
        seite_umschreiben(einmal, "x.html")[0] == einmal and einmal.count(MARKE_AUF) == 1)
     ok("anwenden aendert keine seite, die schon stimmt", anwenden(schreiben=False) == [])
+    # heller look (Ben, 21.10.2026)
+    ok("eine seite mit dunkel-abfrage hat einen hellen grundfall",
+       hat_hellen_look("@media (prefers-color-scheme: dark){:root{--bg:#000}}"))
+    ok("eine seite ohne dunkel-abfrage bleibt dunkel",
+       not hat_hellen_look(":root{--bg:#050608;--txt:#FFFFFF}"))
+    ok("der block selbst zaehlt nicht als dunkel-abfrage der seite",
+       not hat_hellen_look(web_css(True)))
+    hellblock = web_css(True)
+    ok("heller block: der kopf bleibt dunkel, er sitzt auf dem balken",
+       hellblock.index("#F2F5F4") < hellblock.index("#0B1A17")
+       and ".logo { color:#0B1A17" not in hellblock
+       and ".nlogo a, " in hellblock.split("#0B1A17")[0])
+    ok("heller block: nur der fuss bekommt die hellen toene",
+       all(z.strip().startswith("footer .brand") for z in hellblock.splitlines()
+           if "#0B1A17" in z or "#0F9A80" in z))
+    ok("heller block traegt beide abfragen der seite, nur fuer den fuss",
+       "prefers-color-scheme: dark" in hellblock
+       and ':root[data-theme="dark"] footer .brand' in hellblock
+       and ':root:not([data-theme="light"]) footer .brand' in hellblock
+       and ':root[data-theme="dark"] .logo' not in hellblock)
+    ok("dunkler block bleibt eine farbe je wort",
+       web_css(False).count("#F2F5F4") == 1 and web_css(False).count("#0B1A17") == 0)
+    ok("eine farbe neben dem block faellt auf",
+       fremde_markenfarbe("html footer .brand{color:var(--ink)}"))
+    ok("eine groesse neben dem block ist erlaubt",
+       not fremde_markenfarbe("footer .brand{font:900 16px/1 Archivo}"))
+    ok("die gewoehnliche regel der seite ist kein befund, der block schlaegt sie",
+       not fremde_markenfarbe(".nav .nlogo a { color:var(--txt); }"))
+    ok("keine seite faerbt die marke neben dem block: %s"
+       % (farb_treffer() or "keine"), not farb_treffer())
+    ok("nur die startseite traegt den hellen block",
+       [n for n in SEITEN
+        if "#0B1A17" in (REPO / n).read_text(encoding="utf-8")] == ["index.html"])
     ok("keine seite weicht ab", not pruefen())
     ok("kein erzeuger traegt noch falke oder pulsehawk: %s" % (erzeuger_treffer() or "keiner"),
        not erzeuger_treffer())
