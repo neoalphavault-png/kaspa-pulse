@@ -337,6 +337,19 @@ def chip(diff, einheit, datum, nd=2):
     return '<li><span class="%s">%s %s</span> vs %s</li>' % (klasse, zeichen, wert, d_kurz(datum, False))
 
 
+def chip_wert(jetzt, alt, datum, text):
+    """Ein Chip mit dem alten Wert statt einer Differenz (Ben, 21.10.2026):
+    "10 oct \u00b7 12.59% above" liest sich, "\u25bc 14.05 points vs 10 oct" nicht.
+    Die Farbe sagt, in welche Richtung es seitdem ging."""
+    klasse = "up" if jetzt > alt else "dn" if jetzt < alt else ""
+    wert = '<span class="%s">%s</span>' % (klasse, esc(text)) if klasse else esc(text)
+    return "<li>%s \u00b7 %s</li>" % (d_kurz(datum, False), wert)
+
+
+def abstand_text(a):
+    return "%s %s" % (pct(abs(a)), "below" if a < 0 else "above")
+
+
 def chips(liste):
     liste = [c for c in liste if c]
     if not liste:
@@ -558,7 +571,8 @@ def schritte(D):
             "grafik": balken_split([("igra %d%%" % round(a), a), ("kasplex %d%%" % (100 - round(a)), 100 - a)],
                                    "layer 2 DEX volume share, igra %d%%, kasplex %d%%" % (round(a), 100 - round(a))),
             "fcap": "24 hours to the reading of %s · source defillama" % d_kurz(l2["datum"]),
-            "chips": chips([chip(a - v["wert"], " points", v["datum"], 1) for v in (l2["vorwoche"], l2["q13"]) if v])})
+            "chips": chips([chip_wert(a, v["wert"], v["datum"], "%.1f%%" % v["wert"])
+                            for v in (l2["vorwoche"], l2["q13"]) if v])})
     ad = D["adressen"]
     if ad:
         mio = ad["alle"] / 1e6
@@ -588,7 +602,8 @@ def hero_html(z, st):
     elif z["gruen"] >= 2:
         satz += ", its %s green week in a row" % wf.ordnung(z["gruen"])
     satz += "."
-    cs = chips([chip(z["abstand"] - v["abstand"], " points", v["datum"]) for v in (z["vorwoche"], z["q13"]) if v])
+    cs = chips([chip_wert(z["abstand"], v["abstand"], v["datum"], abstand_text(v["abstand"]))
+                for v in (z["vorwoche"], z["q13"]) if v])
     return "\n".join([
         '  <section class="hero" id="week">',
         '    <p class="eyebrow">number of the week · reading %s · next %s</p>' % (
@@ -790,7 +805,14 @@ def selbsttest():
     ok("utm-felder mit id nur einmal", inhalt.count('id="utmSource"') == 1 and 'data-utm="utmSource"' in inhalt)
     ok("share-link auf genau diesen schritt", "kaspapulse.com%2F%23holders" in inhalt)
     ok("kein platzhalter-chip", "todo" not in inhalt and "from the series" not in inhalt)
-    ok("13-wochen-chip fehlt bei layer 2", inhalt.count("vs 12 oct") >= 1 and "points</span> vs 20 jul" not in inhalt)
+    ok("13-wochen-chip fehlt bei layer 2", "<li>12 oct \u00b7 " in inhalt and "<li>20 jul \u00b7 " not in inhalt)
+    zc = hero_html(z, st)
+    ok("zahl der woche zeigt den alten wert, nicht die differenz",
+       "points" not in zc and ("%s \u00b7 " % d_kurz(z["vorwoche"]["datum"], False)) in zc
+       and abstand_text(z["vorwoche"]["abstand"]) in zc)
+    ok("farbe nach richtung", ('class="dn">%s' % abstand_text(z["vorwoche"]["abstand"])) in zc
+       if z["abstand"] < z["vorwoche"]["abstand"] else ('class="up">%s' % abstand_text(z["vorwoche"]["abstand"])) in zc)
+    ok("abstand_text", abstand_text(-40.68) == "40.68% below" and abstand_text(12.59) == "12.59% above")
     ok("emission chips vs 5 oct und 5 aug", "vs 5 oct" in inhalt and "vs 5 aug" in inhalt)
     ok("feste groessen ohne chips", '<ul class="cmp"' not in inhalt.split('id="chain"')[1].split("</section>")[0])
     D2 = dict(D, kette=None, gebuehren=None)
