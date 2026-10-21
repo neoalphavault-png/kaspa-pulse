@@ -57,6 +57,6 @@ jobs:
             echo "unveraendert, kein commit"
           else
             git commit -m "instagram antwort [bot]"
-            git pull --rebase origin "$GITHUB_REF_NAME"
+            git pull --rebase --autostash origin "$GITHUB_REF_NAME"
             git push
           fi

@@ -42,6 +42,6 @@ jobs:
             echo "state unveraendert, kein commit"
           else
             git commit -m "entity x daily state [bot]"
-            git pull --rebase origin main
+            git pull --rebase --autostash origin main
             git push
           fi

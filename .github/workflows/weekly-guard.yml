@@ -77,7 +77,7 @@ jobs:
             git config user.email "bot@kaspapulse.com"
             git add -A data/weekly-veto
             git commit -m "weekly veto der vorwoche entfernt"
-            git pull --rebase origin main && git push origin HEAD:main
+            git pull --rebase --autostash origin main && git push origin HEAD:main
           fi
 
       # Die Kanal-ID steht in scripts/yt_live_check.py (KANAL_ID, seit
@@ -131,7 +131,7 @@ jobs:
             git add data/weekly-x-queue.json
             git commit -m "weekly x queue: videolink der montagsfolge"
             for i in 1 2 3; do
-              git pull --rebase origin main && git push origin HEAD:main && break
+              git pull --rebase --autostash origin main && git push origin HEAD:main && break
               sleep $((i * 5))
             done
           fi
@@ -206,7 +206,7 @@ jobs:
           else
             git commit -m "weekly veto $TODAY: kein video live"
             for i in 1 2 3; do
-              git pull --rebase origin main && git push origin HEAD:main && break
+              git pull --rebase --autostash origin main && git push origin HEAD:main && break
               sleep $((i * 5))
             done
           fi

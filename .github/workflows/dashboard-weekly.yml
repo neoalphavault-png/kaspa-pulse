@@ -95,6 +95,6 @@ jobs:
             echo "nothing changed"
           else
             git commit -m "dashboard weekly $(date -u +%Y-%m-%d) (${{ github.event_name }})"
-            git pull --rebase origin main
+            git pull --rebase --autostash origin main
             git push
           fi
