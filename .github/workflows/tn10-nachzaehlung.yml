@@ -44,10 +44,10 @@ jobs:
           mkdir -p out/einzeln
           P="$RUNNER_TEMP/tn10-nach-partner.json"
           F=messung/tn10/nach/fenster.txt
-          python3 scripts/tn10_nachzaehlung.py --fenster "$F" --rolle k1 --partner "$P" --ziel-datei messung/tn10/nach/ziel.sha256 --out out/einzeln/nach-k1 > out/einzeln/k1.log 2>&1 &
+          python3 scripts/tn10_nachzaehlung.py --fenster "$F" --rolle k1 --partner "$P" --ziel-datei messung/tn10/nach/ziel.sha256 --covenant-datei messung/tn10/nach/covenant.sha256 --out out/einzeln/nach-k1 > out/einzeln/k1.log 2>&1 &
           P1=$!
           sleep 20
-          python3 scripts/tn10_nachzaehlung.py --fenster "$F" --rolle k2 --partner "$P" --ziel-datei messung/tn10/nach/ziel.sha256 --out out/einzeln/nach-k2 > out/einzeln/k2.log 2>&1 &
+          python3 scripts/tn10_nachzaehlung.py --fenster "$F" --rolle k2 --partner "$P" --ziel-datei messung/tn10/nach/ziel.sha256 --covenant-datei messung/tn10/nach/covenant.sha256 --out out/einzeln/nach-k2 > out/einzeln/k2.log 2>&1 &
           P2=$!
           S=0
           wait $P1 || S=1

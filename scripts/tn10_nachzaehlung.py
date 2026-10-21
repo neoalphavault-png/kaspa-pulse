@@ -45,7 +45,9 @@ RAND_MS = 60000            # so weit vor und nach dem fenster wird gelesen
 MAX_ABFRAGEN = 4000        # sicherung, je knoten
 SPALTEN = ["minute_utc", "voll", "bloecke", "bloecke_pro_s", "tx_in_bloecken", "tx_je_block_mittel",
            "leere_bloecke", "angenommen_tx", "angenommen_pro_s", "daa_min", "daa_max", "blau_min", "blau_max",
-           "ziel_bloecke", "ziel_anteil_pct", "ziel_je", "miner_verschieden", "coinbase_unlesbar"]
+           "ziel_bloecke", "ziel_anteil_pct", "ziel_je", "miner_verschieden", "coinbase_unlesbar",
+           "cov_in_bloecken", "cov_angenommen", "cov_nie_angenommen"]
+COV_SPALTEN = ["tx_id", "erster_block_ms", "bloecke", "angenommen", "annehmender_block_ms"]
 COINBASE_SUBNETZ = "0100000000000000000000000000000000000000"
 
 
@@ -121,6 +123,91 @@ class Miner:
                 "ziel_je": je, "miner_verschieden": len(m["scripts"]), "coinbase_unlesbar": m["unlesbar"]}
 
 
+def cov_hash(cid):
+    """sha256 der Covenant-ID als kleingeschriebenes Hex. Nur dieser Hash steht
+    in der Zieldatei, nie die ID (Ben, 21.10.2026)."""
+    return hashlib.sha256(str(cid).strip().lower().encode()).hexdigest()
+
+
+class Covenant:
+    """Contention-Phase (Ben, 21.10.2026): Ausgaben eines benannten Covenants.
+
+    Eine Tx zaehlt als Ausgabe des Covenants, wenn einer ihrer Ausgaenge an
+    die Ziel-Covenant-ID gebunden ist (Fortsetzung, auch die Entstehung) oder
+    einer ihrer Eingaenge einen solchen Ausgang ausgibt, der vorher gelesen
+    wurde. Je Tx: Blockzeit des ersten Blocks, der sie enthaelt, Zahl der
+    Bloecke, und ob die Kette sie angenommen hat, mit der Blockzeit des
+    annehmenden Kettenblocks. Konkurrierende Ausgaben, die in einem Block
+    stehen, aber nie angenommen werden, bleiben als "nie angenommen" sichtbar.
+    Grenze: eine Ausgabe ohne Fortsetzung, deren Block vor dem Block der
+    Entstehung gelesen wird, faellt durch; meta zaehlt, wie viele Treffer nur
+    ueber Eingaenge kamen."""
+
+    def __init__(self, ziel_sha=""):
+        self.ziele = set(ziele_lesen(ziel_sha)) if isinstance(ziel_sha, str) else set(ziel_sha or ())
+        self.aktiv = bool(self.ziele)
+        self.ausgaenge = set()      # "txid:index" mit ziel-covenant
+        self.tx = {}                # txid -> {"erst": ms, "bloecke": n}
+        self.annahme = {}           # txid -> annehmender block
+        self.ohne_id = 0
+        self.nur_eingang = 0
+
+    def block(self, b, ts):
+        if not self.aktiv:
+            return
+        for tx in feld(b, "transactions") or []:
+            tid = feld(feld(tx, "verboseData") or {}, "transactionId")
+            aus = False
+            for i, o in enumerate(feld(tx, "outputs") or []):
+                cid = feld(feld(o, "covenant") or {}, "covenantId")
+                if cid and cov_hash(cid) in self.ziele:
+                    aus = True
+                    if tid:
+                        self.ausgaenge.add("%s:%d" % (tid, i))
+            ein = any("%s:%s" % (feld(feld(e, "previousOutpoint") or {}, "transactionId"),
+                                 feld(feld(e, "previousOutpoint") or {}, "index")) in self.ausgaenge
+                      for e in feld(tx, "inputs") or [])
+            if not (aus or ein):
+                continue
+            if not tid:
+                self.ohne_id += 1
+                continue
+            if ein and not aus and tid not in self.tx:
+                self.nur_eingang += 1
+            e = self.tx.setdefault(tid, {"erst": ts, "bloecke": 0})
+            e["erst"] = min(e["erst"], ts)
+            e["bloecke"] += 1
+
+    def kette(self, r):
+        if not self.aktiv:
+            return
+        weg = set(feld(r, "removedChainBlockHashes") or [])
+        if weg:
+            self.annahme = {t: h for t, h in self.annahme.items() if h not in weg}
+        for eintrag in feld(r, "acceptedTransactionIds") or []:
+            h = feld(eintrag, "acceptingBlockHash")
+            for t in feld(eintrag, "acceptedTransactionIds") or []:
+                if t in self.tx and h:
+                    self.annahme[t] = h
+
+    def auswerten(self, blockzeit, kette_gelesen):
+        """je minute die drei spalten und je tx eine zeile."""
+        je, txz = {}, []
+        for t, e in sorted(self.tx.items(), key=lambda kv: (kv[1]["erst"], kv[0])):
+            h = self.annahme.get(t)
+            ats = blockzeit(h) if h else None
+            m = je.setdefault(e["erst"] // 60000, {"in": 0, "an": 0, "nie": 0})
+            m["in"] += 1
+            if ats is not None:
+                je.setdefault(ats // 60000, {"in": 0, "an": 0, "nie": 0})["an"] += 1
+            elif kette_gelesen:
+                m["nie"] += 1
+            txz.append({"tx_id": t, "erster_block_ms": e["erst"], "bloecke": e["bloecke"],
+                        "angenommen": (1 if ats is not None else 0) if kette_gelesen else "",
+                        "annehmender_block_ms": ats if ats is not None else ""})
+        return je, txz
+
+
 def utc_ms(text):
     return int(dt.datetime.strptime(text, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=dt.timezone.utc).timestamp() * 1000)
 
@@ -177,7 +264,7 @@ async def start_finden(les, pp, ziel_ms):
         start = neu[-1]
 
 
-async def bloecke_lesen(les, z, s0, ende_ms, miner=None):
+async def bloecke_lesen(les, z, s0, ende_ms, miner=None, cov=None):
     """Jeder Block ab s0, bis ein ganzes Stueck nach ende_ms liegt. Gibt die
     spaeteste Blockzeit zurueck, bis zu der lueckenlos gelesen ist."""
     low, gesehen, bis = s0, set(), 0
@@ -199,6 +286,8 @@ async def bloecke_lesen(les, z, s0, ende_ms, miner=None):
                 bis = max(bis, ts)
                 if miner is not None:
                     miner.block(b, ts)
+                if cov is not None:
+                    cov.block(b, ts)
         if not neu or not hs:
             return bis
         if frueh is not None and frueh > ende_ms:
@@ -206,7 +295,7 @@ async def bloecke_lesen(les, z, s0, ende_ms, miner=None):
         low = hs[-1]
 
 
-async def kette_lesen(les, z, s0, ende_ms):
+async def kette_lesen(les, z, s0, ende_ms, cov=None):
     """Die Kette ab s0 mit den angenommenen Tx-IDs, in Stuecken, weiter ab dem
     letzten Kettenblock, zu dem die Antwort Annahmen enthaelt. Gibt die
     Blockzeit des letzten so gelesenen Kettenblocks zurueck."""
@@ -219,6 +308,8 @@ async def kette_lesen(les, z, s0, ende_ms):
         if not neu:
             return bis
         z.kette(r)
+        if cov is not None:
+            cov.kette(r)
         letzter = feld(acc[-1], "acceptingBlockHash") if acc else neu[-1]
         if letzter == start:
             return bis
@@ -258,10 +349,10 @@ async def verbinden(rolle, partner):
     raise Abbruch("kein knoten")
 
 
-async def zaehle(rpc, takt, von_ms, bis_ms, rand_ms=RAND_MS, ziel_sha="", kette=True):
+async def zaehle(rpc, takt, von_ms, bis_ms, rand_ms=RAND_MS, ziel_sha="", kette=True, cov_sha=""):
     """Ergebnis fuer einen Knoten: zeilen je minute und meta. kette False
     liest nur die Bloecke (Miner-Anteil), angenommen bleibt dann leer."""
-    les, z, mi = Leser(rpc, takt), Zaehler(), Miner(ziel_sha)
+    les, z, mi, cv = Leser(rpc, takt), Zaehler(), Miner(ziel_sha), Covenant(cov_sha)
     phasen = {}
 
     def phase(name, a0, t0):
@@ -280,10 +371,10 @@ async def zaehle(rpc, takt, von_ms, bis_ms, rand_ms=RAND_MS, ziel_sha="", kette=
         meta["start_utc"] = iso_ms(await les.ts(s0))
         phase("start", a0, t0)
         a0, t0 = les.abfragen, time.time()
-        b_bis = await bloecke_lesen(les, z, s0, bis_ms + rand_ms, mi)
+        b_bis = await bloecke_lesen(les, z, s0, bis_ms + rand_ms, mi, cv)
         phase("bloecke", a0, t0)
         a0, t0 = les.abfragen, time.time()
-        k_bis = await kette_lesen(les, z, s0, bis_ms + rand_ms) if kette else b_bis
+        k_bis = await kette_lesen(les, z, s0, bis_ms + rand_ms, cv) if kette else b_bis
         phase("kette", a0, t0)
         meta["bloecke_bis_utc"], meta["kette_bis_utc"] = iso_ms(b_bis), iso_ms(k_bis)
         gelesen_bis = min(b_bis, k_bis)
@@ -304,10 +395,18 @@ async def zaehle(rpc, takt, von_ms, bis_ms, rand_ms=RAND_MS, ziel_sha="", kette=
                  "angenommen_ohne_blockzeit": extra["angenommen_ohne_blockzeit"], "phasen": phasen,
                  "ziel_gesetzt": len(mi.ziele), "blau_score_im_payload_falsch": mi.blau_falsch,
                  "kette_gelesen": kette})
+    cov_je, cov_tx = cv.auswerten(lambda h: z.bloecke.get(h, {}).get("ts"), kette)
+    if cv.aktiv:
+        meta["covenant"] = {"ziel_gesetzt": len(cv.ziele), "tx": len(cov_tx), "ohne_txid": cv.ohne_id,
+                            "nur_ueber_eingang": cv.nur_eingang, "tx_liste": cov_tx}
     aus = []
     for m in range(von_ms // 60000, -(-bis_ms // 60000)):
         if m in zeilen:
-            zr = dict(zeilen[m], **mi.spalten(m, zeilen[m]["bloecke"]))
+            c = cov_je.get(m, {"in": 0, "an": 0, "nie": 0})
+            zr = dict(zeilen[m], **mi.spalten(m, zeilen[m]["bloecke"]),
+                      cov_in_bloecken=c["in"] if cv.aktiv else "",
+                      cov_angenommen=(c["an"] if kette else "") if cv.aktiv else "",
+                      cov_nie_angenommen=(c["nie"] if kette else "") if cv.aktiv else "")
             if not kette:
                 zr["angenommen_tx"] = zr["angenommen_pro_s"] = ""
             aus.append({k: zr[k] for k in SPALTEN})
@@ -328,6 +427,12 @@ def fenster_lesen(text):
 
 def schreiben(basis, zeilen, meta):
     os.makedirs(os.path.dirname(basis) or ".", exist_ok=True)
+    cov = (meta.get("covenant") or {}).pop("tx_liste", None)
+    if cov is not None:
+        with open(basis + "-covenant.csv", "w", encoding="utf-8", newline="") as fh:
+            w = csv.DictWriter(fh, fieldnames=COV_SPALTEN)
+            w.writeheader()
+            w.writerows(cov)
     with open(basis + ".csv", "w", encoding="utf-8", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=SPALTEN)
         w.writeheader()
@@ -357,7 +462,9 @@ def kombinieren(b1, b2):
     spalten = ["minute_utc", "k1_voll", "k1_bloecke", "k1_angenommen", "k1_angenommen_pro_s",
                "k2_voll", "k2_bloecke", "k2_angenommen", "k2_angenommen_pro_s", "knoten_gleich",
                "k1_ziel_bloecke", "k2_ziel_bloecke", "ziel_anteil_pct", "k1_ziel_je", "k2_ziel_je",
-               "miner_verschieden", "blau_min", "blau_max"]
+               "miner_verschieden", "blau_min", "blau_max",
+               "k1_cov_in_bloecken", "k2_cov_in_bloecken", "k1_cov_angenommen", "k2_cov_angenommen",
+               "k1_cov_nie_angenommen", "k2_cov_nie_angenommen"]
     aus = []
     for m in sorted(set(r1) | set(r2)):
         a, b = r1.get(m, {}), r2.get(m, {})
@@ -369,13 +476,17 @@ def kombinieren(b1, b2):
                     "knoten_gleich": (int(a.get("bloecke") == b.get("bloecke")
                                           and a.get("angenommen_tx") == b.get("angenommen_tx")
                                           and a.get("ziel_bloecke") == b.get("ziel_bloecke")
-                                          and a.get("ziel_je", "") == b.get("ziel_je", "")) if beide else ""),
+                                          and a.get("ziel_je", "") == b.get("ziel_je", "")
+                                          and a.get("cov_in_bloecken", "") == b.get("cov_in_bloecken", "")
+                                          and a.get("cov_angenommen", "") == b.get("cov_angenommen", "")) if beide else ""),
                     "k1_ziel_bloecke": a.get("ziel_bloecke", ""), "k2_ziel_bloecke": b.get("ziel_bloecke", ""),
                     "ziel_anteil_pct": a.get("ziel_anteil_pct") or b.get("ziel_anteil_pct", ""),
                     "k1_ziel_je": a.get("ziel_je", ""), "k2_ziel_je": b.get("ziel_je", ""),
                     "miner_verschieden": a.get("miner_verschieden") or b.get("miner_verschieden", ""),
                     "blau_min": a.get("blau_min") or b.get("blau_min", ""),
-                    "blau_max": a.get("blau_max") or b.get("blau_max", "")})
+                    "blau_max": a.get("blau_max") or b.get("blau_max", ""),
+                    **{"%s_%s" % (n, c): r.get(c, "") for n, r in (("k1", a), ("k2", b))
+                       for c in ("cov_in_bloecken", "cov_angenommen", "cov_nie_angenommen")}})
     buf = io.StringIO()
     w = csv.DictWriter(buf, fieldnames=spalten, lineterminator="\n")
     w.writeheader()
@@ -395,13 +506,13 @@ def kombinieren(b1, b2):
     return buf.getvalue(), zus
 
 
-async def lauf(von_ms, bis_ms, rolle, partner, out, ziel_sha="", kette=True):
+async def lauf(von_ms, bis_ms, rolle, partner, out, ziel_sha="", kette=True, cov_sha=""):
     try:
         rpc, takt, kn = await verbinden(rolle, partner)
     except Exception as exc:                             # noqa: BLE001
         schreiben(out, [], {"status": "kein knoten, %s" % type(exc).__name__})
         return 1
-    zeilen, meta = await zaehle(rpc, takt, von_ms, bis_ms, ziel_sha=ziel_sha, kette=kette)
+    zeilen, meta = await zaehle(rpc, takt, von_ms, bis_ms, ziel_sha=ziel_sha, kette=kette, cov_sha=cov_sha)
     meta.update(kn)
     schreiben(out, zeilen, meta)
     try:
@@ -460,6 +571,35 @@ class FakeKnoten:
                        "cb-r%d" % (j - 1), "r%d-0" % (j - 1), "r%d-1" % (j - 1)]
                 acc.append({"acceptingBlockHash": h, "acceptedTransactionIds": ids})
         return {"addedChainBlockHashes": neu, "removedChainBlockHashes": [], "acceptedTransactionIds": acc}
+
+
+class FakeCovKnoten(FakeKnoten):
+    """Wie FakeKnoten, dazu ein Covenant: in jedem Kettenblock c<i> gibt eine
+    Tx den Covenant-Ausgang der Vorgaenger-Tx aus und bindet ihren Ausgang 0
+    wieder an die ID (Fortsetzung). Im Block daneben r<i> steht eine
+    konkurrierende Ausgabe desselben Ausgangs, die nie angenommen wird."""
+    CID = "c0de" * 16
+
+    def blk(self, h):
+        b = super().blk(h)
+        i = int(h[1:])
+        vor = {"transactionId": "cov-c%d" % (i - 1), "index": 0}
+        if h[0] == "c":
+            tx = {"subnetworkId": "00" * 20, "verboseData": {"transactionId": "cov-c%d" % i},
+                  "inputs": [{"previousOutpoint": vor}],
+                  "outputs": [{"covenant": {"authorizingInput": 0, "covenantId": self.CID}}, {}]}
+        else:   # konkurrent ohne fortsetzung, nur ueber den eingang erkennbar
+            tx = {"subnetworkId": "00" * 20, "verboseData": {"transactionId": "cov-r%d" % i},
+                  "inputs": [{"previousOutpoint": vor}], "outputs": [{}]}
+        b["transactions"].append(tx)
+        return b
+
+    async def get_virtual_chain_from_block(self, a):
+        r = await super().get_virtual_chain_from_block(a)
+        for e in r["acceptedTransactionIds"]:
+            j = int(e["acceptingBlockHash"][1:])
+            e["acceptedTransactionIds"] = e["acceptedTransactionIds"] + ["cov-c%d" % (j - 1)]
+        return r
 
 
 def selbsttest():
@@ -527,6 +667,29 @@ def selbsttest():
     ok("kombinieren, beide knoten gleich", "minuten mit beiden knoten voll 3, davon gleich 3" in zus[-1])
     ok("keine adressen in der ausgabe", "://" not in text + " ".join(zus))
     ok("kein script in der ausgabe", "ab" * 32 not in text + " ".join(zus) + json.dumps(meta))
+    # covenant contention (Ben, 21.10.2026): je sekunde eine angenommene
+    # ausgabe im kettenblock und eine konkurrierende im block daneben
+    cz = "contention %s\n" % cov_hash(FakeCovKnoten.CID.upper())
+    zc, mc = asyncio.run(zaehle(FakeCovKnoten(t0, 600), OhneTakt(), t0 + 120000, t0 + 300000, rand_ms=60000,
+                                cov_sha=cz))
+    ok("covenant: je minute 120 ausgaben in bloecken, 60 angenommen, 60 nie angenommen", all(
+        r["cov_in_bloecken"] == 120 and r["cov_angenommen"] == 60 and r["cov_nie_angenommen"] == 60 for r in zc))
+    ok("covenant: konkurrent nur ueber den eingang erkannt", mc["covenant"]["nur_ueber_eingang"] > 0)
+    tl = mc["covenant"]["tx_liste"]
+    an = [t for t in tl if t["angenommen"] == 1]
+    ok("covenant: annahme eine sekunde nach dem ersten block",
+       an and all(t["annehmender_block_ms"] - t["erster_block_ms"] == 1000 for t in an))
+    ok("covenant: ohne zieldatei keine spalte", all(r["cov_in_bloecken"] == "" for r in zeilen))
+    with tempfile.TemporaryDirectory() as tmp:
+        schreiben(os.path.join(tmp, "k1"), zc, dict(mc, kennung="aaa"))
+        with open(os.path.join(tmp, "k1-covenant.csv"), encoding="utf-8") as fh:
+            cl = list(csv.DictReader(fh))
+        mj = open(os.path.join(tmp, "k1.json"), encoding="utf-8").read()
+        schreiben(os.path.join(tmp, "k2"), zc, dict(mc, kennung="bbb"))
+        tc, zc2 = kombinieren(os.path.join(tmp, "k1"), os.path.join(tmp, "k2"))
+    ok("covenant: tx-liste als csv, nicht im json", len(cl) == len(tl) and "tx_liste" not in mj)
+    ok("covenant: kombiniert gleich, mit spalten", "davon gleich 3" in zc2[-1] and "k1_cov_angenommen" in tc)
+    ok("covenant: die id selbst steht nirgends", FakeCovKnoten.CID not in json.dumps(mc) + tc + mj)
     datei = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "messung", "tn10", "nach", "fenster.txt")
     if os.path.exists(datei):
         with open(datei, encoding="utf-8") as fh:
@@ -574,6 +737,7 @@ def main(argv=None):
     ap.add_argument("--kombinieren", nargs=2, metavar=("K1", "K2"))
     ap.add_argument("--ziel-datei", default="", help="datei mit dem sha256 des miner-scripts, nie die adresse")
     ap.add_argument("--nur-bloecke", action="store_true", help="kette nicht lesen, nur bloecke und miner")
+    ap.add_argument("--covenant-datei", default="", help="datei mit dem sha256 der covenant-id, nie die id")
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args(argv)
     if a.selbsttest:
@@ -597,7 +761,11 @@ def main(argv=None):
     if a.ziel_datei and os.path.exists(a.ziel_datei):
         with open(a.ziel_datei, encoding="utf-8") as fh:
             ziel = fh.read()
-    return asyncio.run(lauf(utc_ms(von), utc_ms(bis), a.rolle, a.partner, a.out, ziel, not nur))
+    cov = ""
+    if a.covenant_datei and os.path.exists(a.covenant_datei):
+        with open(a.covenant_datei, encoding="utf-8") as fh:
+            cov = fh.read()
+    return asyncio.run(lauf(utc_ms(von), utc_ms(bis), a.rolle, a.partner, a.out, ziel, not nur, cov))
 
 
 if __name__ == "__main__":

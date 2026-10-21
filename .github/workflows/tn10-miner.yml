@@ -55,7 +55,10 @@ jobs:
       - name: sdk, version und pruefsumme fest
         run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
       - name: selbsttest
-        run: python3 scripts/tn10_nachzaehlung.py --selbsttest | tail -n 1
+        run: |
+          python3 scripts/tn10_nachzaehlung.py --selbsttest | tail -n 1
+          python3 scripts/tn10_contention.py --selbsttest > out-contention-test.log || { cat out-contention-test.log; exit 1; }
+          tail -n 1 out-contention-test.log
       - name: zwei knoten, nur bloecke
         env:
           VON: ${{ matrix.s.von }}
@@ -66,10 +69,10 @@ jobs:
           mkdir -p out/einzeln
           P="$RUNNER_TEMP/tn10-miner-partner.json"
           Z=messung/tn10/nach/ziel.sha256
-          python3 scripts/tn10_nachzaehlung.py --von "$VON" --bis "$BIS" $MODUS --rolle k1 --partner "$P" --ziel-datei "$Z" --out "out/einzeln/s$N-k1" > out/einzeln/k1.log 2>&1 &
+          python3 scripts/tn10_nachzaehlung.py --von "$VON" --bis "$BIS" $MODUS --rolle k1 --partner "$P" --ziel-datei "$Z" --covenant-datei messung/tn10/nach/covenant.sha256 --out "out/einzeln/s$N-k1" > out/einzeln/k1.log 2>&1 &
           P1=$!
           sleep 20
-          python3 scripts/tn10_nachzaehlung.py --von "$VON" --bis "$BIS" $MODUS --rolle k2 --partner "$P" --ziel-datei "$Z" --out "out/einzeln/s$N-k2" > out/einzeln/k2.log 2>&1 &
+          python3 scripts/tn10_nachzaehlung.py --von "$VON" --bis "$BIS" $MODUS --rolle k2 --partner "$P" --ziel-datei "$Z" --covenant-datei messung/tn10/nach/covenant.sha256 --out "out/einzeln/s$N-k2" > out/einzeln/k2.log 2>&1 &
           P2=$!
           S=0
           wait $P1 || S=1
