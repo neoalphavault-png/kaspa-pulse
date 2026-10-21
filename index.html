@@ -178,16 +178,21 @@ footer a{color:var(--muted)}
 /* die wortmarke im fuss steht auf dem grund der seite, im hellen look also dunkel auf hell.
    farben und gewicht setzt der block von wortmarke.py am ende, hier nur schrift und groesse */
 footer .brand{font:900 16px/1 Archivo,sans-serif;letter-spacing:.04em;margin:8px 0 10px}
-/* der block von wortmarke.py faerbt den fuss fest #F2F5F4, das ist auf hellem grund
-   nicht zu lesen. html davor schlaegt ihn, im dunklen look sind --ink und --accent
-   genau die marken-farben, im hellen die des hellen looks (wortmarke.farben("hell")) */
-html footer .brand{color:var(--ink)}
-html footer .brand span{color:var(--accent)}
 footer .fund a{display:inline-block;padding:10px 0}
   /* wortmarke.py, nicht von hand aendern */
   .nav .nlogo a, .logo, footer .brand { color:#F2F5F4; font-weight:900; }
   .nav .nlogo span, .logo span, footer .brand span { color:#49EACB; }
   footer .brand { opacity:1; }
+  /* nur der fuss steht auf dem grund der seite und folgt dem look,
+     der balken oben bleibt in beiden looks dunkel */
+  footer .brand { color:#0B1A17; }
+  footer .brand span { color:#0F9A80; }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) footer .brand { color:#F2F5F4; }
+    :root:not([data-theme="light"]) footer .brand span { color:#49EACB; }
+  }
+  :root[data-theme="dark"] footer .brand { color:#F2F5F4; }
+  :root[data-theme="dark"] footer .brand span { color:#49EACB; }
   /* ende wortmarke.py */
 </style>
 </head>
