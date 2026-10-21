@@ -51,7 +51,10 @@ KANAELE = ("instagram", "threads", "x", "discord")
 VERSATZ = {"zahl": 1}                # startschritt je serie, sonst 0
 BEHALTEN = 12                        # eintraege je serie/kanal im speicher
 
-# Die Farben je Look (Ben, 15.10.2026). grund, text, text2 und akzent sind
+# Die Farben je Look (Ben, 15.10.2026). Der Filter "falke" ist mit der
+# Marken-Umstellung weg (Ben, 21.10.2026), es gibt keinen Falken mehr; die
+# Wortmarke steht in scripts/wortmarke.py und holt text und akzent von hier.
+# grund, text, text2 und akzent sind
 # vorgegeben. rest ist der dritte Ton fuer den "Rest" der Daten, akzent2 der
 # dunkler abgesetzte Akzent (Form 11), markierung die Pulslinie und kleine
 # Hervorhebungen. Im hellen Look ist #49EACB nur Markierung, die Balken
@@ -59,14 +62,13 @@ BEHALTEN = 12                        # eintraege je serie/kanal im speicher
 LOOKS = {
     "dunkel": {"grund": "#080B0F", "text": "#F2F5F4", "text2": "#A9B7B4",
                "akzent": "#49EACB", "akzent2": "#2FAE96", "rest": "#2B7A6C",
-               "flaeche": "#1B252B", "markierung": "#49EACB", "falke": "none"},
+               "flaeche": "#1B252B", "markierung": "#49EACB"},
     "hell":   {"grund": "#EEF3F1", "text": "#0B1A17", "text2": "#4F625D",
                "akzent": "#0F9A80", "akzent2": "#0B6B59", "rest": "#B4CCC5",
-               "flaeche": "#DCE6E2", "markierung": "#49EACB",
-               "falke": "brightness(0.55) saturate(1.4)"},
+               "flaeche": "#DCE6E2", "markierung": "#49EACB"},
     "teal":   {"grund": "#49EACB", "text": "#04211C", "text2": "#0F4A40",
                "akzent": "#04211C", "akzent2": "#0F4A40", "rest": "#9AF5E3",
-               "flaeche": "#3BD3B6", "markierung": "#04211C", "falke": "brightness(0)"},
+               "flaeche": "#3BD3B6", "markierung": "#04211C"},
 }
 
 # Schnitte, die eingebettet werden. Anton und Permanent Marker kommen mit

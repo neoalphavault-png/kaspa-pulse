@@ -232,8 +232,6 @@ body{width:1080px;height:1350px;background:%(grund)s;position:relative;overflow:
 .obj{position:absolute;left:0;top:0}
 .sig{position:absolute;left:50%%;transform:translateX(-50%%);bottom:60px;height:48px;display:flex;
   align-items:center;gap:16px}
-.sig img{width:38px;height:auto;display:block;filter:%(falke)s}
-.sig span{font-weight:600;font-size:34px;letter-spacing:4px;white-space:nowrap}
 .sig svg{width:170px;height:48px;display:block}
 """
 
@@ -265,15 +263,19 @@ def balken(x, y, w, h, s, lk, look):
     return "".join(teile)
 
 
-def seite_html(s, falke, look):
+def seite_html(s, look):
     import look_takt
     import tagesgrafik as tg
+    import wortmarke
     lk = look_takt.look(look)
-    css = look_takt.schriften_css() + CSS % {"grund": lk["grund"], "text": lk["text"], "text2": lk["text2"],
-                                             "akzent": lk["akzent"], "falke": lk["falke"]}
-    sig = ("<div class='sig' data-rolle='fuss'><img src='%s' alt=''><span>KASPA PULSE</span>"
+    css = (look_takt.schriften_css()
+           + CSS % {"grund": lk["grund"], "text": lk["text"], "text2": lk["text2"],
+                    "akzent": lk["akzent"]}
+           + wortmarke.css(look=look))
+    sig = ("<div class='sig' data-rolle='fuss'>%s"
            "<svg viewBox='0 0 230 48'><path d='%s' fill='none' stroke='%s' stroke-width='3' "
-           "stroke-linejoin='round' stroke-linecap='round'/></svg></div>" % (falke, tg.PULS, lk["markierung"]))
+           "stroke-linejoin='round' stroke-linecap='round'/></svg></div>"
+           % (wortmarke.html(), tg.PULS, lk["markierung"]))
     nr = "<div class='nr'>%d/%d</div>" % (s["seite"], s["von"])
     datum = "<div class='datum'>%s</div>" % esc(s["datum"]) if s.get("datum") else ""
 
@@ -408,7 +410,6 @@ def rendern(art, fuer, ss, looks, out):
     from playwright.sync_api import sync_playwright
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
-    falke = tg.falke_lesen()
     bilder = []
     with sync_playwright() as p:
         b = tg.chromium_start(p)
@@ -416,7 +417,7 @@ def rendern(art, fuer, ss, looks, out):
             for lk in looks:
                 for s in ss:
                     png = out / ("karussell-%s-%s-%d-%s.png" % (art, fuer, s["seite"], lk))
-                    tg.rendern(seite_html(s, falke, lk), png, 0, b, "instagram")
+                    tg.rendern(seite_html(s, lk), png, 0, b, "instagram")
                     bilder.append(png)
         finally:
             b.close()

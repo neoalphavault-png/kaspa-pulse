@@ -65,7 +65,10 @@ VERBOTEN = ["\u2014", "\u2013", " - ", ":", "\u2192"]
 # zeitstempel wie 06:25 und urls sind ausgenommen
 AUSNAHME = re.compile(r"\d:\d|https?://|\w+\.(com|io|org|app|stream|fyi)")
 
-MARKEN = ["kaspapulse.com", "pulsehawk.io", "alphavault", "pulse hawk"]
+# Marken-Umstellung (Ben, 21.10.2026): eine Kaspa-Pulse-Grafik traegt die
+# Wortmarke oder die Domain. pulsehawk und alphavault gelten hier NICHT mehr
+# als Marke; eine Grafik, die noch eine davon traegt, faellt jetzt auf.
+MARKEN = ["kaspapulse.com", "kaspa pulse"]
 
 
 def messen(html_pfad, breite, hoehe):
@@ -221,7 +224,7 @@ flex-direction:column}
 .foot{font-size:32px}</style></head><body>
 <div class="hero"><div class="v">+$4.1B</div></div>
 <div class="rest">viel inhalt darunter, der den kasten zusammendrueckt</div>
-<div class="foot">pulsehawk.io</div></body></html>"""
+<div class="foot">kaspapulse.com</div></body></html>"""
 
 
 def selbsttest():

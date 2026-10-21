@@ -39,7 +39,7 @@ HISTORY_PATH = os.path.join(ROOT, "data", "channels-history.json")
 # Die Kanal-ID, nicht der Alias (Ben, 12.10.2026). Ein Alias kann
 # umgezogen werden, die ID nicht, und beide Adressen darunter bauen sich
 # daraus. Dieselbe ID steht in scripts/yt_live_check.py.
-KANAL_ID = "UCLheLoijZUZOE79vRtJtJ9Q"    # Kaspa Pulse / PulseHawk
+KANAL_ID = "UCLheLoijZUZOE79vRtJtJ9Q"    # Kaspa Pulse auf YouTube
 YOUTUBE_URL = "https://www.youtube.com/channel/%s/about" % KANAL_ID
 YOUTUBE_FEED = "https://www.youtube.com/feeds/videos.xml?channel_id=%s" % KANAL_ID
 DISCORD_INVITE = "h33JBhrPP7"

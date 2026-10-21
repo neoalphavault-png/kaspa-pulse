@@ -77,8 +77,6 @@ body{width:1080px;height:1350px;background:%(grund)s;position:relative;overflow:
   font-size:34px;line-height:1.28;color:%(text2)s;letter-spacing:-0.5px}
 .sig{position:absolute;left:50%%;transform:translateX(-50%%);bottom:60px;height:48px;display:flex;
   align-items:center;gap:16px}
-.sig img{width:38px;height:auto;display:block;filter:%(falke)s}
-.sig span{font-weight:600;font-size:34px;letter-spacing:4px;white-space:nowrap}
 .sig svg{width:170px;height:48px;display:block}
 """
 
@@ -124,14 +122,18 @@ def esc(t):
     return str(t).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def seite_html(s, falke, look):
+def seite_html(s, look):
     import look_takt
     import tagesgrafik as tg
+    import wortmarke
     lk = look_takt.look(look)
-    css = look_takt.schriften_css() + CSS % {k: lk[k] for k in ("grund", "text", "text2", "akzent", "flaeche", "falke")}
-    sig = ("<div class='sig' data-rolle='fuss'><img src='%s' alt=''><span>KASPA PULSE</span>"
+    css = (look_takt.schriften_css()
+           + CSS % {k: lk[k] for k in ("grund", "text", "text2", "akzent", "flaeche")}
+           + wortmarke.css(look=look))
+    sig = ("<div class='sig' data-rolle='fuss'>%s"
            "<svg viewBox='0 0 230 48'><path d='%s' fill='none' stroke='%s' stroke-width='3' "
-           "stroke-linejoin='round' stroke-linecap='round'/></svg></div>" % (falke, tg.PULS, lk["markierung"]))
+           "stroke-linejoin='round' stroke-linecap='round'/></svg></div>"
+           % (wortmarke.html(), tg.PULS, lk["markierung"]))
     nr = "<div class='nr'>%d/%d</div>" % (s["seite"], s["von"]) if s["von"] > 1 else ""
     if s["art"] == "kacheln":
         kacheln = "".join("<div class='k'><div class='z'>%d</div><div class='s' data-rolle='titel'>%s</div>"
@@ -191,7 +193,7 @@ def bauen(fuer, out, zahl="", looks=("dunkel",)):
             for lk in looks:
                 for s in ss:
                     png = out / ("meme-wahr-%s-%d-%s.png" % (fuer, s["seite"], lk))
-                    tg.rendern(seite_html(s, tg.falke_lesen(), lk), png, 0, b, "instagram")
+                    tg.rendern(seite_html(s, lk), png, 0, b, "instagram")
                     bilder.append(png)
         finally:
             b.close()

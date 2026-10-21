@@ -44,7 +44,7 @@ FEED = "https://www.youtube.com/feeds/videos.xml?channel_id=%s"
 # die ID aus dem HTML der Kanalseite gefischt, mit einem regex auf
 # "channelId" - ein Abruf mehr, und er bricht, sobald YouTube sein Markup
 # aendert. Die ID steht in keinem Geheimnis, sie steht in jedem Feed-Link.
-KANAL_ID = "UCLheLoijZUZOE79vRtJtJ9Q"    # Kaspa Pulse / PulseHawk
+KANAL_ID = "UCLheLoijZUZOE79vRtJtJ9Q"    # Kaspa Pulse auf YouTube
 UA = {"User-Agent": "kaspa-pulse-bot/1.0 (+https://kaspapulse.com)"}
 TIMEOUT = 30
 
