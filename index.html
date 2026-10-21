@@ -170,7 +170,20 @@ svg .lab{fill:var(--ink);font-weight:500}
 .channels svg{width:16px;height:16px;fill:currentColor}
 footer{max-width:760px;margin:0 auto;padding:24px 16px 32px;font:400 12px/1.7 "IBM Plex Mono",monospace;color:var(--muted)}
 footer a{color:var(--muted)}
+/* die wortmarke im fuss steht auf dem grund der seite, im hellen look also dunkel auf hell.
+   farben und gewicht setzt der block von wortmarke.py am ende, hier nur schrift und groesse */
+footer .brand{font:900 16px/1 Archivo,sans-serif;letter-spacing:.04em;margin:8px 0 10px}
+/* der block von wortmarke.py faerbt den fuss fest #F2F5F4, das ist auf hellem grund
+   nicht zu lesen. html davor schlaegt ihn, im dunklen look sind --ink und --accent
+   genau die marken-farben, im hellen die des hellen looks (wortmarke.farben("hell")) */
+html footer .brand{color:var(--ink)}
+html footer .brand span{color:var(--accent)}
 footer .fund a{display:inline-block;padding:10px 0}
+  /* wortmarke.py, nicht von hand aendern */
+  .nav .nlogo a, .logo, footer .brand { color:#F2F5F4; font-weight:900; }
+  .nav .nlogo span, .logo span, footer .brand span { color:#49EACB; }
+  footer .brand { opacity:1; }
+  /* ende wortmarke.py */
 </style>
 </head>
 <body>
@@ -293,6 +306,7 @@ footer .fund a{display:inline-block;padding:10px 0}
 
   <footer>
     <div class="stand"><!--AUTO:seitenstand-->page last updated 21 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="brand">KASPA <span>PULSE</span></div>
     <div>kaspapulse.com · Kaspa Pulse. We keep track. · not financial advice · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
     <div class="fund"><a href="/how-we-fund-this.html">how we fund this</a> · <a href="/for-builders.html">for builders</a></div>
   </footer>

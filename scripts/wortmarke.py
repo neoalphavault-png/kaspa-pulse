@@ -52,10 +52,9 @@ GEWICHT = 900
 VERBOTEN_IN_AUSGABEN = ("pulsehawk", "pulse hawk", "falcon.b64", "falke_lesen")
 # Dateien, die ueber die ANDERE Marke reden statt sie zu zeigen.
 REDET_UEBER = ("wortmarke.py", "wortmarke_bilder.py", "x_post.py", "grafik_check.py")
-# Der Kopf der Startseite traegt PULSEHAWK noch genau einmal; er wird im
-# Startseiten-Umbau neu gebaut (Ben, 21.10.2026). Faellt dort eine zweite
-# Stelle an, soll der Waechter rot werden.
-NOCH_OFFEN = {"index.html": 1}
+# Keine Seite traegt PULSEHAWK mehr. Die Ausnahme fuer den alten Kopf der
+# Startseite ist mit dem Startseiten-Umbau weg (Ben, 21.10.2026).
+NOCH_OFFEN = {}
 
 
 def farben(look=None):
@@ -107,15 +106,13 @@ def svg(breite=1200, groesse=34, sperrung=8, x=0, y=0, kaspa=None, pulse=None):
 
 # ------------------------------------------------------------- die website --
 # Jede Seite traegt das Logo in genau einer Zeile. nlogo ist der Kopf der
-# Unterseiten, brand der Fuss. Der Kopf der Startseite bleibt unberuehrt, er
-# wird im Startseiten-Umbau neu gebaut (Ben, 21.10.2026).
+# Unterseiten, logo der Kopf der Startseite, brand der Fuss.
 WEB_KOPF = '<div class="nlogo"><a href="/">KASPA <span>PULSE</span></a></div>'
 WEB_FUSS = '<div class="brand">KASPA <span>PULSE</span></div>'
 WEB_RECHT = '<a class="logo" href="/">KASPA <span>PULSE</span></a>'
 _ALT_KOPF = re.compile(r'<div class="nlogo"><a href="/">.*?</a></div>')
 _ALT_FUSS = re.compile(r'<div class="brand">.*?</div>')
 _ALT_RECHT = re.compile(r'<a class="logo" href="/">.*?</a>')
-OHNE_KOPF = ("index.html",)          # Startseiten-Kopf: Umbau, nicht hier
 SEITEN = sorted(p.name for p in REPO.glob("*.html"))
 
 # Die Farben der Marke stehen hier als Zahl, nicht als var(--txt): --txt ist
@@ -136,9 +133,8 @@ _ALT_CSS = re.compile(re.escape(MARKE_AUF) + r".*?" + re.escape(MARKE_ZU), re.S)
 def seite_umschreiben(text, name):
     """(neuer text, zahl der ersetzungen) fuer eine Seite."""
     n = 0
-    if name not in OHNE_KOPF:
-        text, k = _ALT_KOPF.subn(WEB_KOPF, text)
-        n += k
+    text, k = _ALT_KOPF.subn(WEB_KOPF, text)
+    n += k
     for muster, neu in ((_ALT_FUSS, WEB_FUSS), (_ALT_RECHT, WEB_RECHT)):
         text, k = muster.subn(neu, text)
         n += k
@@ -150,7 +146,9 @@ def seite_umschreiben(text, name):
 def _css_setzen(text):
     """Haengt den Marken-Block ans Ende des Stilblocks, genau einmal."""
     if MARKE_AUF in text:
-        return _ALT_CSS.sub(lambda m: WEB_CSS, text, count=1)
+        # der treffer beginnt bei MARKE_AUF, die einrueckung davor bleibt
+        # stehen. ohne lstrip waechst sie mit jedem lauf um zwei leerzeichen.
+        return _ALT_CSS.sub(lambda m: WEB_CSS.lstrip(), text, count=1)
     i = text.find("</style>")
     if i < 0:
         return text
@@ -199,8 +197,6 @@ def pruefen():
     for name in SEITEN:
         text = (REPO / name).read_text(encoding="utf-8")
         for m in _ALT_KOPF.finditer(text):
-            if name in OHNE_KOPF:
-                continue
             if m.group(0) != WEB_KOPF:
                 befunde.append("%s, kopf weicht ab: %s" % (name, m.group(0)[:80]))
         for m in _ALT_FUSS.finditer(text):
@@ -266,15 +262,22 @@ def selbsttest():
     ok("der alte kopf wird zur wortmarke", auf == WEB_KOPF)
     auf, _ = seite_umschreiben('<div class="brand">PULSEHAWK</div>', "index.html")
     ok("der alte fuss wird zur wortmarke", auf == WEB_FUSS)
-    auf, n = seite_umschreiben(
-        '<div class="nlogo"><a href="/">PULSE<span>HAWK</span></a></div>', "index.html")
-    ok("der kopf der startseite bleibt unberuehrt", n == 0 and "HAWK" in auf)
+    auf, n = seite_umschreiben('<a class="logo" href="/">PULSE<span>HAWK</span></a>', "index.html")
+    ok("der kopf der startseite wird zur wortmarke", n == 1 and auf == WEB_RECHT)
+    idx = (REPO / "index.html").read_text(encoding="utf-8")
+    ok("die startseite traegt die wortmarke in kopf und fuss",
+       WEB_RECHT in idx and WEB_FUSS in idx and MARKE_AUF in idx)
     ok("zweimal anwenden aendert nichts mehr",
        seite_umschreiben(WEB_KOPF, "kaspa-tvl.html") == (WEB_KOPF, 1))
+    mit_block = "<style>\n  a{}\n</style>\n" + WEB_FUSS
+    einmal, _ = seite_umschreiben(mit_block, "x.html")
+    ok("anwenden ist wiederholbar, auch mit farbblock",
+       seite_umschreiben(einmal, "x.html")[0] == einmal and einmal.count(MARKE_AUF) == 1)
+    ok("anwenden aendert keine seite, die schon stimmt", anwenden(schreiben=False) == [])
     ok("keine seite weicht ab", not pruefen())
     ok("kein erzeuger traegt noch falke oder pulsehawk: %s" % (erzeuger_treffer() or "keiner"),
        not erzeuger_treffer())
-    ok("keine seite traegt pulsehawk ausser dem offenen startseiten-kopf: %s"
+    ok("keine seite traegt pulsehawk: %s"
        % (seiten_treffer() or "keine"), not seiten_treffer())
     ok("graphics/falcon.b64 ist weg", not (REPO / "graphics" / "falcon.b64").exists())
     print("%d fehler" % len(fehler))
