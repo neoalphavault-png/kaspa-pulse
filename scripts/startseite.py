@@ -72,10 +72,10 @@ SEITE = "https://kaspapulse.com/"
 MON = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
 TAGE = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
-# die neue gruppe "about" (Ben, 21.10.2026). archive und method kommen mit
-# PR 2, bis dahin fuehren sie auf die Wochenseite und die Datenquellen.
-ABOUT = ("about", [("method", "/kaspa-data-sources.html"),
-                   ("archive", "/kaspa-weekly.html"),
+# die gruppe "about" (Ben, 21.10.2026). Sie steht seit PR 2 in MENUE in
+# capture.js, das hier ist nur der rueckfall, falls sie dort fehlt.
+ABOUT = ("about", [("method", "/method/"),
+                   ("archive", "/archive/"),
                    ("how we fund this", "/how-we-fund-this.html")])
 # oberste punkte, die nicht in die leiste gehoeren: "dashboard" ist diese seite
 OBEN_UMBENANNT = {"/": "this week"}
@@ -161,11 +161,13 @@ def lade(p, standard=None):
         return standard
 
 
-def bis(reihe, grenze, datum):
-    """Neuester Eintrag mit Datum <= grenze. Gibt es keinen, der neueste ueberhaupt."""
+def bis(reihe, grenze, datum, streng=False):
+    """Neuester Eintrag mit Datum <= grenze. Gibt es keinen, der neueste ueberhaupt,
+    ausser streng: eine Seite fuer eine vergangene Woche (archiv.py) darf nie
+    einen Wert tragen, der nach ihrem Montag gemessen wurde."""
     alle = sorted((r for r in reihe if datum(r)), key=datum)
     vor = [r for r in alle if datum(r) <= grenze.isoformat()]
-    return (vor or alle or [None])[-1]
+    return (vor or ([] if streng else alle) or [None])[-1]
 
 
 def zahl_der_woche(candles, st):
@@ -210,24 +212,24 @@ def zahl_der_woche(candles, st):
             "vorwoche": vergleich(1), "q13": vergleich(13)}
 
 
-def tg_messwert(log, st, feld):
+def tg_messwert(log, st, feld, streng=False):
     laeufe = (log or {}).get("laeufe", [])
     mit = [e for e in laeufe if isinstance((e.get("messwerte") or {}).get(feld), (int, float, dict))
            and not (isinstance(e["messwerte"][feld], dict) and e["messwerte"][feld].get("ausfall"))]
-    e = bis(mit, st, lambda r: (r.get("messzeit_utc") or r.get("datum") or "")[:10])
+    e = bis(mit, st, lambda r: (r.get("messzeit_utc") or r.get("datum") or "")[:10], streng)
     return e
 
 
-def blockrate(log, st):
-    e = tg_messwert(log, st, "bps")
+def blockrate(log, st, streng=False):
+    e = tg_messwert(log, st, "bps", streng)
     if not e or not 5 < e["messwerte"]["bps"] < 15:
         return None
     return {"bps": e["messwerte"]["bps"], "sek": e["messwerte"].get("blockrate_sek"),
             "datum": dt.date.fromisoformat((e.get("messzeit_utc") or e["datum"])[:10])}
 
 
-def gebuehren(log, st):
-    e = tg_messwert(log, st, "gebuehren")
+def gebuehren(log, st, streng=False):
+    e = tg_messwert(log, st, "gebuehren", streng)
     if not e:
         return None
     g = e["messwerte"]["gebuehren"]
@@ -256,11 +258,11 @@ def emission(st):
             "kurve": [(cut(k), je_tag(k)) for k in range(nxt - 6, nxt + 7)], "nxt_i": 6}
 
 
-def schwellen(log, st):
+def schwellen(log, st, streng=False):
     tage = [t for t in (log or {}).get("tage", []) if t.get("datum")]
     tage.sort(key=lambda t: t["datum"])
     vor = [t for t in tage if t["datum"] <= st.isoformat()]
-    return vor or tage
+    return vor if (vor or streng) else tage
 
 
 def halter(tage):
@@ -286,10 +288,10 @@ def halter(tage):
             "netto": netto if len(netto) == 7 else []}
 
 
-def layer2(weekly, st):
+def layer2(weekly, st, streng=False):
     rows = [r for r in (weekly or {}).get("history", [])
             if (r.get("m") or {}).get("igra_dex") and (r.get("m") or {}).get("kasplex_dex") is not None]
-    rows = [r for r in rows if r["date"] <= st.isoformat()] or rows
+    rows = [r for r in rows if r["date"] <= st.isoformat()] or ([] if streng else rows)
     if not rows:
         return None
     nach = {r["date"]: r for r in rows}
@@ -316,14 +318,22 @@ def adressen(tage):
     return {"datum": dt.date.fromisoformat(t["datum"]), "alle": t["holders_all"], "ueber": t["holders_001kas"]}
 
 
-def daten(heute=None):
+def daten(heute=None, streng=False, quellen=None):
+    """Alle Zahlen zum Stichtag. streng fuer vergangene Wochen, siehe bis().
+    quellen erlaubt archiv.py, die Dateien nur einmal zu lesen."""
     heute = heute or dt.datetime.now(dt.timezone.utc).date()
     st = stichtag(heute)
-    tg = lade(TG_LOG, {})
-    sw = schwellen(lade(SCHWELLEN, {}), st)
-    return {"stichtag": st, "zdw": zahl_der_woche(lade(CANDLES, {}), st), "kette": blockrate(tg, st),
-            "gebuehren": gebuehren(tg, st), "emission": emission(st), "halter": halter(sw),
-            "layer2": layer2(lade(WEEKLY, {}), st) if LAYER2 else None, "adressen": adressen(sw)}
+    q = quellen or lade_quellen()
+    tg = q["tg"]
+    sw = schwellen(q["schwellen"], st, streng)
+    return {"stichtag": st, "zdw": zahl_der_woche(q["candles"], st), "kette": blockrate(tg, st, streng),
+            "gebuehren": gebuehren(tg, st, streng), "emission": emission(st), "halter": halter(sw),
+            "layer2": layer2(q["weekly"], st, streng) if LAYER2 else None, "adressen": adressen(sw)}
+
+
+def lade_quellen():
+    return {"tg": lade(TG_LOG, {}), "schwellen": lade(SCHWELLEN, {}), "candles": lade(CANDLES, {}),
+            "weekly": lade(WEEKLY, {})}
 
 
 # ---------------------------------------------------------------- bausteine
@@ -357,10 +367,10 @@ def chips(liste):
     return '<ul class="cmp" aria-label="comparison">%s</ul>' % "".join(liste)
 
 
-def teilen(sid, satz):
+def teilen(sid, satz, url=SEITE):
     text = satz + ". source kaspa pulse"
     return ("https://x.com/intent/post?text=" + urllib.parse.quote(text, safe="")
-            + "&url=" + urllib.parse.quote(SEITE + "#" + sid, safe=""))
+            + "&url=" + urllib.parse.quote(url + "#" + sid, safe=""))
 
 
 def balken_split(teile, label):
@@ -592,7 +602,7 @@ def schritte(D):
     return aus
 
 
-def hero_html(z, st):
+def hero_html(z, st, oben=None):
     if not z:
         return ""
     unter = z["abstand"] < 0
@@ -606,15 +616,20 @@ def hero_html(z, st):
                 for v in (z["vorwoche"], z["q13"]) if v])
     return "\n".join([
         '  <section class="hero" id="week">',
-        '    <p class="eyebrow">number of the week · reading %s · next %s</p>' % (
-            d_kurz(st), d_kurz(st + dt.timedelta(days=7), False)),
-        '    <p class="big">%s</p>' % pct(abs(z["abstand"])),
+        '    <p class="eyebrow">%s</p>' % (oben or "number of the week · reading %s · next %s" % (
+            d_kurz(st), d_kurz(st + dt.timedelta(days=7), False))),
+        '    <p class="big"><a class="mref" href="/method/#week">%s</a></p>' % pct(abs(z["abstand"])),
         '    <p class="lead">%s</p>' % esc(satz),
         '    <p class="note">week to %s · weekly close against the average of the last 50 weekly closes, '
         'source kraken daily candles · our own series since %s</p>' % (d_kurz(z["datum"]), d_kurz(z["seit"])),
         "    " + cs if cs else "",
         '    <a class="next" href="#%s">6 numbers, 2 minutes</a>',
         "  </section>"]).replace("\n\n", "\n")
+
+
+def mref(h, sid):
+    """Die hervorgehobene Zahl verlinkt auf ihren Eintrag in method (Ben, 21.10.2026)."""
+    return h.replace("<em>", '<a class="mref" href="/method/#%s"><em>' % sid, 1).replace("</em>", "</em></a>", 1)
 
 
 def h2_text(h):
@@ -656,13 +671,16 @@ BREVO = ("https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUm
          "FPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==")
 
 
-def inhalt_html(D):
+def inhalt_html(D, url=SEITE, archiv=None):
+    """Der Inhalt der Startseite. Mit archiv (dict mit oben, unten) dieselben
+    Schritte fuer eine Wochenseite: eigene Kopfzeile, eine Anmeldung am Ende,
+    Links zur Vor- und Folgewoche."""
     st = D["stichtag"]
     ss = schritte(D)
     if not ss:
         raise Abbruch("kein einziger schritt hat daten")
     n = len(ss)
-    teile = [hero_html(D["zdw"], st).replace('href="#%s"', 'href="#%s"' % ss[0]["id"])
+    teile = [hero_html(D["zdw"], st, archiv and archiv["oben"]).replace('href="#%s"', 'href="#%s"' % ss[0]["id"])
              .replace("6 numbers, 2 minutes", "%d numbers, 2 minutes" % n)]
     teile.append('  <nav class="progress" aria-label="progress">%s</nav>' % "".join(
         '<a href="#%s" aria-label="step %d"></a>' % (s["id"], i + 1) for i, s in enumerate(ss)))
@@ -671,8 +689,8 @@ def inhalt_html(D):
         z = ['  <section class="step" id="%s">' % s["id"],
              '    <div class="steprow"><div class="stepnum">%d / %d · %s</div>'
              '<a class="share" href="%s" target="_blank" rel="noopener">share on x</a></div>'
-             % (i + 1, n, s["kopf"], esc(teilen(s["id"], h2_text(s["h2"])))),
-             "    <h2>%s</h2>" % s["h2"],
+             % (i + 1, n, s["kopf"], esc(teilen(s["id"], h2_text(s["h2"]), url))),
+             "    <h2>%s</h2>" % mref(s["h2"], s["id"]),
              '    <p class="body">%s</p>' % esc(s["satz"])]
         if s["chips"]:
             z.append("    " + s["chips"])
@@ -687,9 +705,14 @@ def inhalt_html(D):
                      '<a href="/entity-x.html">largest wallet</a><a href="/kaspa-covenants.html">covenants</a></div>')
         z.append("  </section>")
         teile.append("\n".join(z))
-        if i == 2 and n > 3:
+        if i == 2 and n > 3 and not archiv:
             teile.append(anmeldung(1, "subscribe", "all the weekly numbers in one mail, every monday",
                                    "the %d numbers on this page, dated and sourced, in one mail." % n))
+    if archiv:
+        teile.append(archiv["unten"])
+        teile.append(anmeldung(1, "subscribe", "all the weekly numbers in one mail, every monday",
+                               "the numbers of each monday reading, dated and sourced, in one mail."))
+        return "\n".join(teile)
     if n <= 3:
         teile.append(anmeldung(1, "subscribe", "all the weekly numbers in one mail, every monday",
                                "the %d numbers on this page, dated and sourced, in one mail." % n))
@@ -845,6 +868,15 @@ def selbsttest():
         ok("ohne marken bricht ab", False)
     except Abbruch:
         ok("ohne marken bricht ab", True)
+    tg = {"laeufe": [{"datum": "2026-10-21", "messzeit_utc": "2026-10-21T05:30:00+00:00",
+                      "messwerte": {"bps": 9.96, "blockrate_sek": 600}}]}
+    ok("streng, kein wert nach dem montag", blockrate(tg, dt.date(2026, 10, 19), True) is None)
+    ok("nicht streng, der neueste als rueckfall", blockrate(tg, dt.date(2026, 10, 19))["bps"] == 9.96)
+    ok("streng, schwellen nur bis zum montag", schwellen({"tage": tage}, dt.date(2026, 9, 1), True) == [])
+    ok("zahl verlinkt auf method", 'href="/method/#holders"><em>' in inhalt)
+    ok("share-link einer wochenseite zeigt auf die woche",
+       "week%2F2026-10-19%2F%23holders" in inhalt_html(D, SEITE + "week/2026-10-19/",
+                                                     {"oben": "x 19 oct", "unten": ""}))
     ok("layer 2 bleibt draussen, solange LAYER2 aus ist", LAYER2 or daten()["layer2"] is None)
     try:
         echt = bauen(INDEX.read_text(encoding="utf-8"), daten())
@@ -939,18 +971,20 @@ def main(argv=None):
     except Abbruch as exc:
         print("ABBRUCH %s, index.html bleibt wie sie ist" % exc)
         return 1
+    import archiv
     if a.pruefen:
         if neu != alt:
             print("index.html weicht vom stand der daten ab, python3 scripts/startseite.py laufen lassen")
             return 1
         print("index.html passt zu den daten")
-        return 0
+        # die wochenseiten, das archiv und method haengen am rahmen der startseite
+        return archiv.schreiben(heute, nur_pruefen=True)
     if neu != alt:
         INDEX.write_text(neu, encoding="utf-8")
         print("index.html neu gebaut, stichtag %s" % stichtag(heute or dt.date.today()))
     else:
         print("index.html unveraendert")
-    return 0
+    return archiv.schreiben(heute)
 
 
 if __name__ == "__main__":

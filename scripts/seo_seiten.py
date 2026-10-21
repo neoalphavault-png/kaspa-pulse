@@ -63,11 +63,33 @@ def datum_text(iso):
 
 
 def url(datei):
-    return BASIS if datei == "index.html" else BASIS + datei
+    if datei == "index.html":
+        return BASIS
+    # seiten in eigenem ordner (archiv.py): week/2026-10-19/index.html liegt
+    # unter https://kaspapulse.com/week/2026-10-19/
+    if datei.endswith("/index.html"):
+        return BASIS + datei[:-len("index.html")]
+    return BASIS + datei
+
+
+def datei_zu(loc):
+    """Umkehrung von url()."""
+    if loc == BASIS:
+        return "index.html"
+    rest = loc[len(BASIS):]
+    return rest + "index.html" if rest.endswith("/") else rest
+
+
+def ordner_seiten():
+    """Wochenseiten, Archiv und method, gebaut von archiv.py. Die Kurzlinks
+    (ig/, x/ ...) sind Weiterleitungen und gehoeren nicht dazu."""
+    sys.path.insert(0, str(REPO / "scripts"))
+    import archiv
+    return archiv.seiten_pfade()
 
 
 def seiten():
-    return sorted(p.name for p in REPO.glob("*.html") if p.name not in AUSGENOMMEN)
+    return sorted(p.name for p in REPO.glob("*.html") if p.name not in AUSGENOMMEN) + ordner_seiten()
 
 
 def noindex(s):
@@ -236,10 +258,27 @@ def stand_neu(st, datei, h, heute):
 def sitemap(xml, daten):
     def ein(m):
         loc = m.group(1)
-        datei = "index.html" if loc == BASIS else loc[len(BASIS):]
+        datei = datei_zu(loc)
         iso = daten.get(datei)
         return m.group(0) if not iso else m.group(0)[:m.start(2) - m.start(0)] + iso + m.group(0)[m.end(2) - m.start(0):]
     return re.sub(r"<loc>([^<]+)</loc>\s*<lastmod>([^<]+)</lastmod>", ein, xml)
+
+
+def sitemap_ergaenzen(xml, fehlt, daten):
+    """Traegt fehlende Seiten nach. Nur fuer die Ordnerseiten von archiv.py:
+    jede neue Woche kommt montags dazu, von Hand pflegt die niemand."""
+    neu = []
+    for u in fehlt:
+        d = datei_zu(u)
+        if not d.endswith("/index.html") or d not in daten:
+            continue
+        prio = "0.6" if d.startswith("week/") else "0.7"
+        neu.append("<url>\n<loc>%s</loc>\n<lastmod>%s</lastmod>\n<changefreq>%s</changefreq>\n"
+                   "<priority>%s</priority>\n</url>\n" % (u, daten[d], "monthly" if d.startswith("week/")
+                                                           else "weekly", prio))
+    if not neu:
+        return xml
+    return xml.replace("</urlset>", "".join(neu) + "</urlset>", 1)
 
 
 def sitemap_luecken(xml, oeffentlich):
@@ -295,12 +334,20 @@ def lauf(schreiben=True, heute=None, init=False):
     sp = REPO / "sitemap.xml"
     xml = sp.read_text(encoding="utf-8")
     fehlt, zuviel = sitemap_luecken(xml, daten)
+    xml_neu = sitemap_ergaenzen(xml, fehlt, daten)
+    if xml_neu != xml:
+        if schreiben:
+            print("sitemap.xml, nachgetragen %d ordnerseiten" % (xml_neu.count("<url>") - xml.count("<url>")))
+        xml, nachgetragen = xml_neu, True
+    else:
+        nachgetragen = False
+    fehlt, zuviel = sitemap_luecken(xml, daten)
     for x in fehlt:
         print("sitemap.xml, es fehlt %s" % x)
     for x in zuviel:
         print("sitemap.xml, steht drin, ist aber keine oeffentliche seite: %s" % x)
     nx = sitemap(xml, daten)
-    if nx != xml:
+    if nx != xml or nachgetragen:
         abweichung.append("sitemap.xml")
         if schreiben:
             sp.write_text(nx, encoding="utf-8")
@@ -342,6 +389,13 @@ def selbsttest():
     ok("kopf wiederholbar", kopf(k, "x.html", "2026-10-06") == k)
     ok("eigenes share-bild je seite", 'og-builders.png' in kopf(n, "for-builders.html", "2026-10-07")
        and 'og-card.png' in k)
+    ok("ordnerseite hat den ordner als url", url("week/2026-10-19/index.html") == BASIS + "week/2026-10-19/")
+    ok("url und datei_zu passen zusammen", all(datei_zu(url(d)) == d for d in
+                                              ("index.html", "a.html", "archive/index.html")))
+    x0 = "<urlset>\n</urlset>"
+    x1 = sitemap_ergaenzen(x0, [BASIS + "week/2026-10-19/", BASIS + "b.html"], {"week/2026-10-19/index.html": "2026-10-19"})
+    ok("sitemap traegt nur ordnerseiten nach", x1.count("<url>") == 1 and "b.html" not in x1
+       and "<lastmod>2026-10-19</lastmod>" in x1)
     ok("index hat die wurzel als url", 'href="https://kaspapulse.com/">' in kopf(n, "index.html", "2026-10-06"))
     ni = k.replace("<head>", '<head><meta name="robots" content="noindex">')
     ok("noindex, nur canonical", "og:title" not in kopf(ni, "x.html", None) and 'rel="canonical"' in kopf(ni, "x.html", None))

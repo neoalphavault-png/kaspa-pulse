@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaspa Pulse Issue 7, the Reading of 24 Aug 2026</title>
+<meta name="description" content="The Kaspa Pulse reading of monday 24 aug 2026, issue 7. The weekly close sat 28.71% below the 50 week average, plus 3 more numbers, dated and sourced.">
+<!--AUTO:seo-kopf-->
+<link rel="canonical" href="https://kaspapulse.com/week/2026-08-24/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Kaspa Pulse">
+<meta property="og:title" content="Kaspa Pulse Issue 7, the Reading of 24 Aug 2026">
+<meta property="og:description" content="The Kaspa Pulse reading of monday 24 aug 2026, issue 7. The weekly close sat 28.71% below the 50 week average, plus 3 more numbers, dated and sourced.">
+<meta property="og:url" content="https://kaspapulse.com/week/2026-08-24/">
+<meta property="og:image" content="https://kaspapulse.com/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Kaspa Pulse, on-chain numbers for Kaspa">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Kaspa Pulse Issue 7, the Reading of 24 Aug 2026">
+<meta name="twitter:description" content="The Kaspa Pulse reading of monday 24 aug 2026, issue 7. The weekly close sat 28.71% below the 50 week average, plus 3 more numbers, dated and sourced.">
+<meta name="twitter:image" content="https://kaspapulse.com/og-card.png">
+<meta name="twitter:image:alt" content="Kaspa Pulse, on-chain numbers for Kaspa">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "WebPage",
+ "name": "Kaspa Pulse Issue 7, the Reading of 24 Aug 2026",
+ "description": "The Kaspa Pulse reading of monday 24 aug 2026, issue 7. The weekly close sat 28.71% below the 50 week average, plus 3 more numbers, dated and sourced.",
+ "url": "https://kaspapulse.com/week/2026-08-24/",
+ "inLanguage": "en",
+ "dateModified": "2026-10-21",
+ "isPartOf": {
+  "@type": "WebSite",
+  "name": "Kaspa Pulse",
+  "url": "https://kaspapulse.com/"
+ },
+ "publisher": {
+  "@type": "Organization",
+  "name": "Kaspa Pulse",
+  "url": "https://kaspapulse.com/"
+ }
+}
+</script>
+<!--/AUTO:seo-kopf-->
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/favicon.png">
+<link rel="preload" href="/graphics/fonts/archivo-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+/* Startseite nach dem Entwurf vom 21.10.2026. Zahlen und Navigation schreibt
+   scripts/startseite.py zwischen die AUTO-Marken, hier steht nur der Rahmen.
+   Schriften kommen aus graphics/fonts (OFL), nicht von Google: keine
+   Anfrage an Dritte beim Seitenaufruf. */
+@font-face{font-family:Archivo;font-weight:800;font-display:swap;src:url(/graphics/fonts/archivo-latin-800-normal.woff2) format("woff2")}
+@font-face{font-family:Archivo;font-weight:900;font-display:swap;src:url(/graphics/fonts/archivo-latin-900-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;src:url(/graphics/fonts/ibm-plex-mono-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:500;font-display:swap;src:url(/graphics/fonts/ibm-plex-mono-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-weight:400;font-display:swap;src:url(/graphics/fonts/ibm-plex-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-weight:500;font-display:swap;src:url(/graphics/fonts/ibm-plex-sans-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-weight:600;font-display:swap;src:url(/graphics/fonts/ibm-plex-sans-latin-600-normal.woff2) format("woff2")}
+:root{
+  --bg:#EEF3F1; --surface:#FFFFFF; --ink:#0B1A17; --muted:#4F625D; --line:#D3DEDA;
+  --accent:#0F9A80; --accent-soft:#CDEBE4; --neg:#C2553A; --chip:#E2ECE9;
+  /* der kopf ist in beiden looks dunkel: KASPA #F2F5F4, PULSE #49EACB (Ben, 21.10.2026) */
+  --bar:#080B0F; --bar-ink:#F2F5F4; --bar-muted:#A9B7B4; --bar-line:#1B252B; --bar-chip:#1B252B; --brand:#49EACB;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#080B0F; --surface:#0F1519; --ink:#F2F5F4; --muted:#A9B7B4; --line:#1F2A2E;
+    --accent:#49EACB; --accent-soft:#103A33; --neg:#F08A6C; --chip:#152025;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#080B0F; --surface:#0F1519; --ink:#F2F5F4; --muted:#A9B7B4; --line:#1F2A2E;
+  --accent:#49EACB; --accent-soft:#103A33; --neg:#F08A6C; --chip:#152025;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:110px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;line-height:1.55;overflow-x:hidden}
+a{color:inherit}
+.bar{position:sticky;top:0;z-index:60;background:var(--bar);border-bottom:1px solid var(--bar-line)}
+header.top{max-width:1080px;margin:0 auto;padding:0 16px;height:56px;display:flex;align-items:center;gap:16px}
+.logo{font:900 18px/1 Archivo,sans-serif;letter-spacing:.04em;color:var(--bar-ink);text-decoration:none;white-space:nowrap}
+.logo span{color:var(--brand)}
+.menu{display:flex;align-items:center;gap:2px;margin-left:auto}
+.mtop{display:flex;gap:2px}
+.menu a,.gbtn{font:500 14px/1 "IBM Plex Sans",system-ui,sans-serif;color:var(--bar-muted);text-decoration:none;padding:10px 9px;border-radius:6px;background:none;border:0;cursor:pointer;white-space:nowrap}
+.menu a:hover,.gbtn:hover{color:var(--bar-ink);background:var(--bar-chip)}
+.mtop a[aria-current="page"]{color:var(--bar-ink);box-shadow:inset 0 -2px 0 var(--brand);border-radius:0}
+.gbtn::after{content:"";display:inline-block;width:6px;height:6px;margin-left:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-3px) rotate(45deg)}
+.grp{position:relative}
+.drop{display:none;position:absolute;top:100%;left:0;min-width:200px;flex-direction:column;background:var(--bar);border:1px solid var(--bar-line);border-radius:10px;padding:6px;box-shadow:0 12px 32px rgba(0,0,0,.35)}
+.drop a{color:var(--bar-ink);padding:10px 12px}
+.grp:hover .drop,.grp:focus-within .drop,.grp.open .drop{display:flex}
+.subbtn{font:600 14px/1 "IBM Plex Sans",system-ui,sans-serif;background:var(--brand);color:#04211C;text-decoration:none;padding:10px 14px;border-radius:8px;white-space:nowrap}
+.burger{display:none;margin-left:auto;font:500 13px/1 "IBM Plex Mono",monospace;background:var(--bar-chip);color:var(--bar-ink);border:1px solid var(--bar-line);border-radius:8px;padding:9px 12px;cursor:pointer}
+.menu a:focus-visible,.gbtn:focus-visible,.subbtn:focus-visible,.burger:focus-visible,.logo:focus-visible,.share:focus-visible,.next:focus-visible,.channels a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+@media (max-width:1000px){
+  header.top{gap:10px}
+  .burger{display:inline-block}
+  .subbtn{padding:9px 12px}
+  /* handy: alle gruppen offen, zwei spalten, passt ohne scrollen auf 360 x 640 */
+  .menu{display:none;position:absolute;left:0;right:0;top:56px;margin:0;background:var(--bar);border-bottom:1px solid var(--bar-line);padding:8px 16px 14px;max-height:calc(100vh - 56px);max-height:calc(100dvh - 56px);overflow-y:auto;overscroll-behavior:contain}
+  .menu.open{display:block;columns:2;column-gap:16px}
+  .mtop{column-span:all;display:flex;flex-wrap:wrap;gap:0 14px;border-bottom:1px solid var(--bar-line);margin-bottom:6px}
+  .mtop a{padding:9px 0;font-size:15px;color:var(--bar-ink)}
+  .mtop a[aria-current="page"]{box-shadow:none;color:var(--brand)}
+  .grp{break-inside:avoid;padding-top:6px}
+  .gbtn{pointer-events:none;padding:4px 0 2px;font:500 11px/1 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--bar-muted)}
+  .gbtn::after{display:none}
+  .drop{display:flex;position:static;min-width:0;border:0;box-shadow:none;padding:0;background:none}
+  .drop a{padding:5px 0;font-size:14.5px;white-space:normal}
+}
+@media (max-width:380px){.logo{font-size:16px}.subbtn{padding:8px 10px;font-size:13px}.burger{padding:8px 10px}}
+main{max-width:760px;margin:0 auto;padding:0 16px 40px}
+.hero{padding:44px 0 36px;border-bottom:1px solid var(--line)}
+.eyebrow{font:500 12px/1.4 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+.big{font:900 clamp(64px,18vw,128px)/.9 Archivo,sans-serif;letter-spacing:-.02em;margin:0;color:var(--accent);font-variant-numeric:tabular-nums}
+.lead{font:800 clamp(20px,4.6vw,26px)/1.3 Archivo,sans-serif;margin:18px 0 8px;max-width:32ch;text-wrap:balance}
+.note{font:400 12px/1.5 "IBM Plex Mono",monospace;color:var(--muted);margin:0}
+.next{display:inline-flex;gap:8px;align-items:center;margin-top:26px;font:500 14px/1 "IBM Plex Sans",system-ui,sans-serif;color:var(--ink);text-decoration:none;border:1px solid var(--line);padding:12px 16px;border-radius:999px}
+.progress{position:sticky;top:57px;z-index:4;display:flex;gap:6px;padding:12px 0;background:var(--bg)}
+.progress a{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.progress a.on{background:var(--accent)}
+section.step{padding:48px 0 24px;border-bottom:1px solid var(--line);transition:opacity .4s}
+.js section.step{opacity:.35}
+.js section.step.seen{opacity:1}
+@media (prefers-reduced-motion: reduce){.js section.step{opacity:1;transition:none}}
+.steprow{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.stepnum{font:500 12px/1 "IBM Plex Mono",monospace;color:var(--muted);letter-spacing:.08em}
+.share{font:500 12px/1 "IBM Plex Mono",monospace;color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:7px 10px;white-space:nowrap}
+.share:hover{color:var(--accent);border-color:var(--accent)}
+h2{font:800 clamp(24px,5.6vw,34px)/1.15 Archivo,sans-serif;margin:12px 0 14px;max-width:24ch;text-wrap:balance}
+h2 em{font-style:normal;color:var(--accent)}
+/* die hervorgehobene zahl verlinkt auf ihren eintrag in method */
+a.mref{color:inherit;text-decoration:underline dotted;text-decoration-thickness:2px;text-underline-offset:.15em}
+a.mref:hover{text-decoration-style:solid}
+.big a.mref{text-decoration-thickness:4px}
+p.body{max-width:62ch;margin:0 0 18px}
+figure{margin:0 0 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.ftitle{font:800 16px/1.3 Archivo,sans-serif;margin:0 0 10px}
+figcaption{font:400 12px/1.5 "IBM Plex Mono",monospace;color:var(--muted);margin-top:10px}
+figure svg{display:block;max-width:100%;height:auto}
+svg text{font-family:"IBM Plex Mono",monospace;fill:var(--muted);font-size:13px}
+svg .lab{fill:var(--ink);font-weight:500}
+/* auf dem handy wird die grafik auf rund die halbe breite gestaucht, die schrift waechst mit */
+@media (max-width:560px){svg text{font-size:21px}}
+.bridge{font:500 15px/1.4 "IBM Plex Sans",system-ui,sans-serif;color:var(--muted);margin:18px 0 0}
+.bridge a{color:var(--accent);font-weight:600}
+.cmp{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px;padding:0;list-style:none}
+.cmp li{font:500 12px/1 "IBM Plex Mono",monospace;background:var(--chip);border-radius:999px;padding:8px 12px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.cmp li .up{color:var(--accent)} .cmp li .dn{color:var(--neg)}
+.hero .cmp{margin:16px 0 0}
+/* der schwebende knopf "free cheat sheet" aus capture.js verdeckt am handy die
+   ueberschrift von schritt 1 (Ben, 21.10.2026). die startseite hat oben subscribe
+   und zwei anmeldungen, hier braucht es ihn nicht. auf den unterseiten bleibt er.
+   die id-regel mit !important schlaegt den stilblock, den capture.js spaeter einfuegt. */
+#kpcBtn,#kpcPad{display:none!important}
+.subscribe{margin:40px 0;padding:24px;border-radius:12px;background:var(--accent-soft)}
+.subscribe h3{font:800 22px/1.2 Archivo,sans-serif;margin:0 0 6px}
+.subscribe p{margin:0 0 14px}
+.subscribe form{display:flex;gap:8px;flex-wrap:wrap}
+.subscribe input[type=email]{flex:1 1 200px;min-width:0;padding:12px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:400 15px "IBM Plex Sans",system-ui,sans-serif}
+.subscribe button{padding:12px 18px;border:0;border-radius:8px;background:var(--accent);color:var(--bg);font:600 15px "IBM Plex Sans",system-ui,sans-serif;cursor:pointer}
+.subscribe button:disabled{opacity:.6;cursor:wait}
+.subscribe small{display:block;margin-top:10px;font:400 12px/1.5 "IBM Plex Mono",monospace;color:var(--muted)}
+.subscribe .msg{display:none;margin-top:12px;font-size:14px;font-weight:600}
+.subscribe .msg.ok{display:block;color:var(--accent)} .subscribe .msg.err{display:block;color:var(--neg)}
+.deeper{display:flex;flex-wrap:wrap;gap:8px;margin:28px 0 0}
+/* archiv, wochenseiten und method (archiv.py) */
+h1.lead{font-size:clamp(24px,5.6vw,34px)}
+.weeks{list-style:none;margin:8px 0 0;padding:0}
+.weeks li{border-bottom:1px solid var(--line);padding:18px 0}
+.weeks a{display:flex;justify-content:space-between;align-items:baseline;gap:12px;text-decoration:none;color:var(--ink)}
+.weeks a b{font:800 20px/1.2 Archivo,sans-serif}
+.weeks a span{font:500 12px/1 "IBM Plex Mono",monospace;color:var(--muted);white-space:nowrap}
+.weeks p{margin:6px 0 0;color:var(--muted);font-size:15px}
+.weeknav{display:flex;flex-wrap:wrap;gap:8px;margin:32px 0 0}
+.weeknav a{font:500 13px "IBM Plex Mono",monospace;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:9px 12px;text-decoration:none}
+.weeknav a:hover{border-color:var(--accent)}
+section.mentry{padding:32px 0 20px;border-bottom:1px solid var(--line)}
+section.mentry h2{margin:0}
+section.mentry .steprow{flex-wrap:wrap;align-items:baseline}
+.art{font:500 12px/1.3 "IBM Plex Mono",monospace;background:var(--chip);border-radius:999px;padding:7px 12px}
+.deeper a{font:500 13px "IBM Plex Mono",monospace;color:var(--ink);background:var(--chip);border-radius:999px;padding:9px 12px;text-decoration:none}
+.channels{max-width:760px;margin:0 auto;padding:32px 16px 0;border-top:1px solid var(--line)}
+.channels p{font:500 12px/1 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+.channels nav{display:flex;flex-wrap:wrap;gap:8px}
+.channels a{display:inline-flex;align-items:center;gap:8px;font:500 14px/1 "IBM Plex Sans",system-ui,sans-serif;color:var(--ink);text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:11px 14px}
+.channels a:hover{border-color:var(--accent)}
+.channels svg{width:16px;height:16px;fill:currentColor}
+footer{max-width:760px;margin:0 auto;padding:24px 16px 32px;font:400 12px/1.7 "IBM Plex Mono",monospace;color:var(--muted)}
+footer a{color:var(--muted)}
+/* die wortmarke im fuss steht auf dem grund der seite, im hellen look also dunkel auf hell.
+   farben und gewicht setzt der block von wortmarke.py am ende, hier nur schrift und groesse */
+footer .brand{font:900 16px/1 Archivo,sans-serif;letter-spacing:.04em;margin:8px 0 10px}
+footer .fund a{display:inline-block;padding:10px 0}
+  /* wortmarke.py, nicht von hand aendern */
+  .nav .nlogo a, .logo, footer .brand { color:#F2F5F4; font-weight:900; }
+  .nav .nlogo span, .logo span, footer .brand span { color:#49EACB; }
+  footer .brand { opacity:1; }
+  /* nur der fuss steht auf dem grund der seite und folgt dem look,
+     der balken oben bleibt in beiden looks dunkel */
+  footer .brand { color:#0B1A17; }
+  footer .brand span { color:#0F9A80; }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) footer .brand { color:#F2F5F4; }
+    :root:not([data-theme="light"]) footer .brand span { color:#49EACB; }
+  }
+  :root[data-theme="dark"] footer .brand { color:#F2F5F4; }
+  :root[data-theme="dark"] footer .brand span { color:#49EACB; }
+  /* ende wortmarke.py */
+</style>
+</head>
+<body>
+<div class="bar">
+<header class="top">
+  <a class="logo" href="/">KASPA <span>PULSE</span></a>
+<!--AUTO:menue-->
+<nav class="menu" id="menu" aria-label="main">
+  <div class="mtop">
+    <a href="/">this week</a>
+    <a href="/kaspa-weekly.html">weekly</a>
+    <a href="/for-builders.html">for builders</a>
+  </div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">network</button><div class="drop"><a href="/kaspa-hashrate.html">hashrate</a><a href="/kaspa-mining.html">mining</a><a href="/merged-mining.html">merged mining</a><a href="/kaspa-halving.html">the halving</a><a href="/kaspa-security-budget.html">security budget</a><a href="/kaspa-toccata.html">toccata</a><a href="/kaspa-covenants.html">covenants</a></div></div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">supply</button><div class="drop"><a href="/kaspa-supply.html">supply</a><a href="/entity-x.html">entity x</a><a href="/kaspa-staking.html">staking</a></div></div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">tokens</button><div class="drop"><a href="/kaspa-token-standard.html">token standards</a><a href="/kaspa-smart-contracts.html">smart contracts</a><a href="/kron.html">kron</a><a href="/kaspa-tvl.html">tvl</a></div></div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">tools</button><div class="drop"><a href="/kaspa-wallets.html">wallets</a><a href="/kaspa-web-wallet-safe.html">web wallet safety</a><a href="/kaspa-data-sources.html">data sources</a></div></div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">about</button><div class="drop"><a href="/method/">method</a><a href="/archive/">archive</a><a href="/how-we-fund-this.html">how we fund this</a></div></div>
+</nav>
+<!--/AUTO:menue-->
+  <button class="burger" type="button" aria-expanded="false" aria-controls="menu">menu</button>
+  <a class="subbtn" href="#subscribe">subscribe</a>
+</header>
+</div>
+
+<main>
+<!--AUTO:startseite-->
+  <section class="hero" id="week">
+    <p class="eyebrow">issue 7 · the monday reading of 24 aug 2026</p>
+    <p class="big"><a class="mref" href="/method/#week">28.71%</a></p>
+    <p class="lead">kaspa closed the week 28.71% under its 50 week average.</p>
+    <p class="note">week to 22 aug 2026 · weekly close against the average of the last 50 weekly closes, source kraken daily candles · our own series since 24 nov 2024</p>
+    <ul class="cmp" aria-label="comparison"><li>15 aug · <span class="up">38.26% below</span></li><li>23 may · <span class="up">38.69% below</span></li></ul>
+    <a class="next" href="#emission">3 numbers, 2 minutes</a>
+  </section>
+  <nav class="progress" aria-label="progress"><a href="#emission" aria-label="step 1"></a><a href="#holders" aria-label="step 2"></a><a href="#addresses" aria-label="step 3"></a></nav>
+  <section class="step" id="emission">
+    <div class="steprow"><div class="stepnum">1 / 3 · emission</div><a class="share" href="https://x.com/intent/post?text=daily%20emission%20steps%20down%20to%201%2C885%2C832%20KAS%20on%204%20sep.%20source%20kaspa%20pulse&amp;url=https%3A%2F%2Fkaspapulse.com%2Fweek%2F2026-08-24%2F%23emission" target="_blank" rel="noopener">share on x</a></div>
+    <h2>daily emission steps down to <a class="mref" href="/method/#emission"><em>1,885,832 KAS</em></a> on 4 sep</h2>
+    <p class="body">it steps down every month by the same factor and halves once a year. at flat fees, each step is close to a 5.6% cut in miner income in KAS.</p>
+    <ul class="cmp" aria-label="comparison"><li><span class="dn">▼ 5.6%</span> vs 5 aug</li><li><span class="dn">▼ 15.9%</span> vs 5 jun</li></ul>
+    <figure><p class="ftitle">1,885,832 KAS a day on 4 sep, after 1,997,970 on 5 aug</p><svg viewBox="0 0 640 240" width="100%" role="img" aria-label="daily emission in KAS per month, 6 mar 2026 to 6 mar 2027, stepping down from 2,666,970 to 1,333,485"><line x1="56" x2="626" y1="169.7" y2="169.7" stroke="var(--line)"/><text x="48" y="173.7" text-anchor="end" font-size="11">1.5M</text><line x1="56" x2="626" y1="112.6" y2="112.6" stroke="var(--line)"/><text x="48" y="116.6" text-anchor="end" font-size="11">2.0M</text><line x1="56" x2="626" y1="55.4" y2="55.4" stroke="var(--line)"/><text x="48" y="59.4" text-anchor="end" font-size="11">2.5M</text><path d="M56.0,36.3 H103.5 V53.4 H151.0 V69.6 H198.5 V84.8 H246.0 V99.2 H293.5 V112.8 H341.0 V125.6 H388.5 V137.7 H436.0 V149.1 H483.5 V159.9 H531.0 V170.1 H578.5 V179.7 H626.0 V188.8" fill="none" stroke="var(--muted)" stroke-width="2"/><line x1="341.0" x2="341.0" y1="112.8" y2="125.6" stroke="var(--accent)" stroke-width="4"/><circle cx="341.0" cy="125.6" r="5" fill="var(--accent)"/><text x="349.0" y="117.6" class="lab" font-size="12">4 sep · 1,885,832</text><text x="8.0" y="228" text-anchor="start" font-size="11">mar 26</text><text x="198.5" y="228" text-anchor="middle" font-size="11">jun 26</text><text x="341.0" y="228" text-anchor="middle" font-size="11">sep 26</text><text x="483.5" y="228" text-anchor="middle" font-size="11">dec 26</text><text x="626.0" y="228" text-anchor="end" font-size="11">mar 27</text></svg><figcaption>computed from the emission schedule, factor 2^(1/12) down per month · KAS per day</figcaption></figure>
+    <p class="bridge">who is holding all those coins? <a href="#holders">next</a></p>
+  </section>
+  <section class="step" id="holders">
+    <div class="steprow"><div class="stepnum">2 / 3 · holders</div><a class="share" href="https://x.com/intent/post?text=291%2C839%20addresses%20hold%20at%20least%20100%20KAS.%20source%20kaspa%20pulse&amp;url=https%3A%2F%2Fkaspapulse.com%2Fweek%2F2026-08-24%2F%23holders" target="_blank" rel="noopener">share on x</a></div>
+    <h2><a class="mref" href="/method/#holders"><em>291,839</em></a> addresses hold at least 100 KAS</h2>
+    <p class="body">80 more than on 17 aug. 2 of the 7 days fell. read on 24 aug 2026, source kaspalytics.</p>
+    <ul class="cmp" aria-label="comparison"><li><span class="up">▲ 80 · 0.03%</span> vs 17 aug</li><li><span class="up">▲ 806 · 0.28%</span> vs 25 may</li></ul>
+    <figure><p class="ftitle">net change per day, 5 of 7 days up</p><svg viewBox="0 0 640 220" width="100%" role="img" aria-label="net change per day of addresses with at least 100 KAS, 18 aug 2026 to 24 aug 2026"><line x1="44" x2="628" y1="119.1" y2="119.1" stroke="var(--muted)"/><text x="36" y="123.1" text-anchor="end" font-size="11">0</text><rect x="59.0" y="104.2" width="53.4" height="14.9" rx="3" fill="var(--accent)"/><text x="85.7" y="208" text-anchor="middle" font-size="11">18</text><rect x="142.4" y="119.1" width="53.4" height="47.5" rx="3" fill="var(--neg)"/><text x="169.1" y="208" text-anchor="middle" font-size="11">19</text><text x="169.1" y="180.6" text-anchor="middle" font-size="11" class="lab">-54</text><rect x="225.9" y="37.4" width="53.4" height="81.8" rx="3" fill="var(--accent)"/><text x="252.6" y="208" text-anchor="middle" font-size="11">20</text><text x="252.6" y="31.4" text-anchor="middle" font-size="11" class="lab">+93</text><rect x="309.3" y="105.1" width="53.4" height="14.1" rx="3" fill="var(--accent)"/><text x="336.0" y="208" text-anchor="middle" font-size="11">21</text><rect x="392.7" y="119.1" width="53.4" height="23.7" rx="3" fill="var(--neg)"/><text x="419.4" y="208" text-anchor="middle" font-size="11">22</text><text x="419.4" y="156.9" text-anchor="middle" font-size="11" class="lab">-27</text><rect x="476.2" y="104.2" width="53.4" height="14.9" rx="3" fill="var(--accent)"/><text x="502.9" y="208" text-anchor="middle" font-size="11">23</text><rect x="559.6" y="103.3" width="53.4" height="15.8" rx="3" fill="var(--accent)"/><text x="586.3" y="208" text-anchor="middle" font-size="11">24</text><text x="586.3" y="97.3" text-anchor="middle" font-size="11" class="lab">+18</text></svg><figcaption>net change per day, 18 aug to 24 aug 2026 · source kaspalytics address thresholds</figcaption></figure>
+    <p class="bridge">one more number, and it gets quoted wrong a lot. <a href="#addresses">next</a></p>
+  </section>
+  <section class="step" id="addresses">
+    <div class="steprow"><div class="stepnum">3 / 3 · the quoted number</div><a class="share" href="https://x.com/intent/post?text=54.9%20million%20addresses%2C%20but%20not%2054.9%20million%20holders.%20source%20kaspa%20pulse&amp;url=https%3A%2F%2Fkaspapulse.com%2Fweek%2F2026-08-24%2F%23addresses" target="_blank" rel="noopener">share on x</a></div>
+    <h2>54.9 million addresses, but not <a class="mref" href="/method/#addresses"><em>54.9 million holders</em></a></h2>
+    <p class="body">most hold dust. above 0.01 KAS it is 751,039 addresses, read on 24 aug 2026, source kaspalytics.</p>
+    <figure><p class="ftitle">only 1.4% of all addresses hold more than 0.01 KAS</p><svg viewBox="0 0 640 112" width="100%" role="img" aria-label="54,870,655 addresses with any balance, 751,039 above 0.01 KAS"><text x="0" y="22" class="lab">addresses with any balance</text><rect x="0" y="30" width="440.0" height="22" rx="3" fill="var(--muted)"/><text x="448.0" y="46">54,870,655</text><text x="0" y="76" class="lab">addresses above 0.01 KAS</text><rect x="0" y="84" width="6.0" height="22" rx="3" fill="var(--accent)"/><text x="14.0" y="100">751,039</text></svg><figcaption>24 aug 2026 · source kaspalytics address thresholds</figcaption></figure>
+    <div class="deeper"><a href="/kaspa-hashrate.html">network</a><a href="/kaspa-supply.html">supply</a><a href="/kaspa-token-standard.html">tokens</a><a href="/entity-x.html">largest wallet</a><a href="/kaspa-covenants.html">covenants</a></div>
+  </section>
+  <nav class="weeknav" aria-label="weeks"><a href="/week/2026-08-17/">previous week, 17 aug 2026</a><a href="/archive/">all weeks</a><a href="/week/2026-08-31/">next week, 31 aug 2026</a></nav>
+  <div class="subscribe" id="subscribe">
+    <h3>all the weekly numbers in one mail, every monday</h3>
+    <p>the numbers of each monday reading, dated and sourced, in one mail.</p>
+    <form class="subform" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="your email" aria-label="email" required>
+      <input type="hidden" name="UTM_SOURCE" id="utmSource" value="direct">
+      <input type="hidden" name="UTM_MEDIUM" id="utmMedium" value="none">
+      <input type="hidden" name="UTM_CAMPAIGN" id="utmCampaign" value="none">
+      <input type="hidden" name="UTM_MEDIUM_RAW" id="utmMediumRaw" value="none">
+      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="locale" value="en">
+      <input type="hidden" name="html_type" value="simple">
+      <button type="submit">subscribe</button>
+    </form>
+    <div class="msg" role="status"></div>
+    <small>free · unsubscribe anytime · cheat sheet delivered after email confirmation</small>
+  </div>
+<!--/AUTO:startseite-->
+</main>
+
+<section class="channels" aria-label="follow kaspa pulse">
+  <p>follow kaspa pulse</p>
+  <nav aria-label="channels">
+    <a href="https://x.com/gokugalax" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.8 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg>X</a>
+    <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.7 15V9l5.8 3-5.8 3z"/></svg>YouTube</a>
+    <a href="https://discord.gg/e6snta6Rfg" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18 18 0 0 0-5.6 0L8.6 3a19.6 19.6 0 0 0-4.9 1.4C.6 9 0 13.5.3 18a19.8 19.8 0 0 0 6 3l1.3-2a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4-2 1 1.3 2a19.7 19.7 0 0 0 6-3c.4-5.2-.7-9.6-3.4-13.6zM8.7 15.3c-1.2 0-2.1-1-2.1-2.3s.9-2.3 2.1-2.3 2.1 1 2.1 2.3-.9 2.3-2.1 2.3zm6.6 0c-1.2 0-2.1-1-2.1-2.3s.9-2.3 2.1-2.3 2.1 1 2.1 2.3-.9 2.3-2.1 2.3z"/></svg>Discord</a>
+    <a href="https://www.instagram.com/kaspapulse" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.3a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm6-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM17 2H7a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5zm3.2 15a3.2 3.2 0 0 1-3.2 3.2H7A3.2 3.2 0 0 1 3.8 17V7A3.2 3.2 0 0 1 7 3.8h10A3.2 3.2 0 0 1 20.2 7v10z"/></svg>Instagram</a>
+  </nav>
+</section>
+
+  <footer>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 21 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="brand">KASPA <span>PULSE</span></div>
+    <div>kaspapulse.com · Kaspa Pulse. We keep track. · not financial advice · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div class="fund"><a href="/how-we-fund-this.html">how we fund this</a> · <a href="/for-builders.html">for builders</a></div>
+  </footer>
+
+<script>
+(function () {
+  "use strict";
+  document.documentElement.classList.add("js");
+  var menu = document.getElementById("menu"), burger = document.querySelector(".burger");
+  function zu() { menu.classList.remove("open"); burger.setAttribute("aria-expanded", "false"); burger.textContent = "menu"; }
+  burger.addEventListener("click", function () {
+    var o = menu.classList.toggle("open");
+    burger.setAttribute("aria-expanded", o); burger.textContent = o ? "close" : "menu";
+  });
+  menu.querySelectorAll("a").forEach(function (a) { a.addEventListener("click", zu); });
+  function gruppenZu() {
+    menu.querySelectorAll(".grp.open").forEach(function (g) {
+      g.classList.remove("open"); g.querySelector(".gbtn").setAttribute("aria-expanded", "false");
+    });
+  }
+  menu.querySelectorAll(".gbtn").forEach(function (b) {
+    b.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      var g = b.parentNode, offen = g.classList.contains("open");
+      gruppenZu();
+      if (!offen) { g.classList.add("open"); b.setAttribute("aria-expanded", "true"); }
+    });
+  });
+  document.addEventListener("click", function (e) { if (!e.target.closest(".grp")) gruppenZu(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { gruppenZu(); zu(); } });
+
+  // anmeldung im hintergrund, bestaetigung im kasten. das zweite formular
+  // holt sich die utm-werte, die utm.js ins erste geschrieben hat.
+  document.querySelectorAll(".subform").forEach(function (form) {
+    var box = form.parentNode, msg = box.querySelector(".msg"), btn = form.querySelector("button");
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      form.querySelectorAll("[data-utm]").forEach(function (f) {
+        var q = document.getElementById(f.getAttribute("data-utm"));
+        if (q && q.value) f.value = q.value;
+      });
+      btn.disabled = true; var alt = btn.textContent; btn.textContent = "…";
+      msg.className = "msg";
+      fetch(form.action, { method: "POST", body: new FormData(form) })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (j && j.success) {
+            msg.textContent = "✓ almost there. check your inbox and click the confirmation link.";
+            msg.className = "msg ok"; form.reset();
+          } else {
+            msg.textContent = (j && j.message) || "something went wrong, please try again";
+            msg.className = "msg err";
+          }
+        })
+        .catch(function () { form.submit(); })
+        .then(function () { btn.disabled = false; btn.textContent = alt; });
+    });
+  });
+
+  // fortschritt und einblenden der schritte
+  var steps = [].slice.call(document.querySelectorAll("section.step"));
+  var dots = [].slice.call(document.querySelectorAll(".progress a"));
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add("seen");
+        var i = steps.indexOf(e.target);
+        dots.forEach(function (d, j) { d.classList.toggle("on", j <= i); });
+      });
+    }, { threshold: 0.25 });
+    steps.forEach(function (s) { io.observe(s); });
+  } else {
+    steps.forEach(function (s) { s.classList.add("seen"); });
+  }
+})();
+</script>
+<script src="/capture.js" defer></script>
+<script src="/utm.js" defer></script>
+</body>
+</html>

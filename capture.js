@@ -41,6 +41,11 @@
       ["wallets", "/kaspa-wallets.html"],
       ["web wallet safety", "/kaspa-web-wallet-safe.html"],
       ["data sources", "/kaspa-data-sources.html"]
+    ]},
+    { t: "about", k: [
+      ["method", "/method/"],
+      ["archive", "/archive/"],
+      ["how we fund this", "/how-we-fund-this.html"]
     ]}
   ];
   var nc = document.querySelector(".nav .nc");
