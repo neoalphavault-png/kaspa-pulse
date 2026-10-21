@@ -113,7 +113,7 @@ jobs:
             echo "unveraendert, kein commit"
           else
             git commit -m "cheat sheet neu gebaut [bot]"
-            git pull --rebase origin "$GITHUB_REF_NAME"
+            git pull --rebase --autostash origin "$GITHUB_REF_NAME"
             git push
           fi
       - name: ops bei rot

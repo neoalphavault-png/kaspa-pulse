@@ -125,7 +125,7 @@ jobs:
           git add data/newsletter-queue.json
           git commit -m "newsletter queue ${{ inputs.mode }} $(date -u +%Y-%m-%d)"
           for i in 1 2 3; do
-            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            git pull --rebase --autostash origin main && git push origin HEAD:main && exit 0
             sleep $((i * 5))
           done
           echo "::error::queue konnte nicht gepusht werden"; exit 1
