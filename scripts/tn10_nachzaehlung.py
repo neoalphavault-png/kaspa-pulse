@@ -47,7 +47,7 @@ SPALTEN = ["minute_utc", "voll", "bloecke", "bloecke_pro_s", "tx_in_bloecken", "
            "leere_bloecke", "angenommen_tx", "angenommen_pro_s", "daa_min", "daa_max", "blau_min", "blau_max",
            "ziel_bloecke", "ziel_anteil_pct", "ziel_je", "miner_verschieden", "coinbase_unlesbar",
            "cov_in_bloecken", "cov_angenommen", "cov_nie_angenommen"]
-COV_SPALTEN = ["tx_id", "erster_block_ms", "bloecke", "angenommen", "annehmender_block_ms"]
+COV_SPALTEN = ["tx_id", "familie", "erster_block_ms", "bloecke", "angenommen", "annehmender_block_ms"]
 COINBASE_SUBNETZ = "0100000000000000000000000000000000000000"
 
 
@@ -129,25 +129,46 @@ def cov_hash(cid):
     return hashlib.sha256(str(cid).strip().lower().encode()).hexdigest()
 
 
-class Covenant:
-    """Contention-Phase (Ben, 21.10.2026): Ausgaben eines benannten Covenants.
+FAMILIE = re.compile(r"^[a-z0-9_]{1,24}$")
 
-    Eine Tx zaehlt als Ausgabe des Covenants, wenn einer ihrer Ausgaenge an
-    die Ziel-Covenant-ID gebunden ist (Fortsetzung, auch die Entstehung) oder
+
+def familien_lesen(text):
+    """Covenant-Familien aus der Zieldatei: je Zeile "name sha256" (sha256 der
+    Covenant-ID, nie die ID). Ergibt {sha256: name} in Dateireihenfolge. Namen
+    werden Spaltennamen: klein, Ziffern, Unterstrich, eindeutig (Ben,
+    23.10.2026: 1, 2, dann 4 Familien parallel)."""
+    z = ziele_lesen(text)
+    namen = list(z.values())
+    for n in namen:
+        if not FAMILIE.match(n):
+            raise ValueError("familienname nur a-z, 0-9, _: %r" % n)
+    if len(set(namen)) != len(namen):
+        raise ValueError("familienname doppelt")
+    return z
+
+
+class Covenant:
+    """Contention-Phase (Ben, 21.10.2026, ab 23.10. mehrere Familien):
+    Ausgaben benannter Covenants, je Familie getrennt und zusammen.
+
+    Eine Tx zaehlt als Ausgabe einer Familie, wenn einer ihrer Ausgaenge an
+    deren Covenant-ID gebunden ist (Fortsetzung, auch die Entstehung) oder
     einer ihrer Eingaenge einen solchen Ausgang ausgibt, der vorher gelesen
     wurde. Je Tx: Blockzeit des ersten Blocks, der sie enthaelt, Zahl der
     Bloecke, und ob die Kette sie angenommen hat, mit der Blockzeit des
     annehmenden Kettenblocks. Konkurrierende Ausgaben, die in einem Block
     stehen, aber nie angenommen werden, bleiben als "nie angenommen" sichtbar.
+    Beruehrt eine Tx zwei Familien, zaehlt sie bei beiden, in der Summe einmal.
     Grenze: eine Ausgabe ohne Fortsetzung, deren Block vor dem Block der
     Entstehung gelesen wird, faellt durch; meta zaehlt, wie viele Treffer nur
     ueber Eingaenge kamen."""
 
     def __init__(self, ziel_sha=""):
-        self.ziele = set(ziele_lesen(ziel_sha)) if isinstance(ziel_sha, str) else set(ziel_sha or ())
+        self.ziele = familien_lesen(ziel_sha) if isinstance(ziel_sha, str) else dict(ziel_sha or {})
+        self.familien = list(dict.fromkeys(self.ziele.values()))
         self.aktiv = bool(self.ziele)
-        self.ausgaenge = set()      # "txid:index" mit ziel-covenant
-        self.tx = {}                # txid -> {"erst": ms, "bloecke": n}
+        self.ausgaenge = {}         # "txid:index" -> familie
+        self.tx = {}                # txid -> {"erst": ms, "bloecke": n, "familien": set}
         self.annahme = {}           # txid -> annehmender block
         self.ohne_id = 0
         self.nur_eingang = 0
@@ -157,16 +178,17 @@ class Covenant:
             return
         for tx in feld(b, "transactions") or []:
             tid = feld(feld(tx, "verboseData") or {}, "transactionId")
-            aus = False
+            aus = set()
             for i, o in enumerate(feld(tx, "outputs") or []):
                 cid = feld(feld(o, "covenant") or {}, "covenantId")
-                if cid and cov_hash(cid) in self.ziele:
-                    aus = True
+                f = self.ziele.get(cov_hash(cid)) if cid else None
+                if f:
+                    aus.add(f)
                     if tid:
-                        self.ausgaenge.add("%s:%d" % (tid, i))
-            ein = any("%s:%s" % (feld(feld(e, "previousOutpoint") or {}, "transactionId"),
-                                 feld(feld(e, "previousOutpoint") or {}, "index")) in self.ausgaenge
-                      for e in feld(tx, "inputs") or [])
+                        self.ausgaenge["%s:%d" % (tid, i)] = f
+            ein = {self.ausgaenge.get("%s:%s" % (feld(feld(e, "previousOutpoint") or {}, "transactionId"),
+                                                 feld(feld(e, "previousOutpoint") or {}, "index")))
+                   for e in feld(tx, "inputs") or []} - {None}
             if not (aus or ein):
                 continue
             if not tid:
@@ -174,9 +196,10 @@ class Covenant:
                 continue
             if ein and not aus and tid not in self.tx:
                 self.nur_eingang += 1
-            e = self.tx.setdefault(tid, {"erst": ts, "bloecke": 0})
+            e = self.tx.setdefault(tid, {"erst": ts, "bloecke": 0, "familien": set()})
             e["erst"] = min(e["erst"], ts)
             e["bloecke"] += 1
+            e["familien"] |= aus | ein
 
     def kette(self, r):
         if not self.aktiv:
@@ -190,19 +213,25 @@ class Covenant:
                 if t in self.tx and h:
                     self.annahme[t] = h
 
+    def spalten(self):
+        return [("cov_%s_%s" % (f, k)) for f in self.familien for k in ("in_bloecken", "angenommen", "nie_angenommen")]
+
     def auswerten(self, blockzeit, kette_gelesen):
-        """je minute die drei spalten und je tx eine zeile."""
+        """je minute {"summe": {...}, familie: {...}} und je tx eine zeile."""
+        leer = lambda: {"in": 0, "an": 0, "nie": 0}  # noqa: E731
         je, txz = {}, []
         for t, e in sorted(self.tx.items(), key=lambda kv: (kv[1]["erst"], kv[0])):
             h = self.annahme.get(t)
             ats = blockzeit(h) if h else None
-            m = je.setdefault(e["erst"] // 60000, {"in": 0, "an": 0, "nie": 0})
-            m["in"] += 1
-            if ats is not None:
-                je.setdefault(ats // 60000, {"in": 0, "an": 0, "nie": 0})["an"] += 1
-            elif kette_gelesen:
-                m["nie"] += 1
-            txz.append({"tx_id": t, "erster_block_ms": e["erst"], "bloecke": e["bloecke"],
+            for f in ["summe"] + sorted(e["familien"]):
+                m = je.setdefault(e["erst"] // 60000, {}).setdefault(f, leer())
+                m["in"] += 1
+                if ats is not None:
+                    je.setdefault(ats // 60000, {}).setdefault(f, leer())["an"] += 1
+                elif kette_gelesen:
+                    m["nie"] += 1
+            txz.append({"tx_id": t, "familie": "+".join(sorted(e["familien"])), "erster_block_ms": e["erst"],
+                        "bloecke": e["bloecke"],
                         "angenommen": (1 if ats is not None else 0) if kette_gelesen else "",
                         "annehmender_block_ms": ats if ats is not None else ""})
         return je, txz
@@ -397,22 +426,91 @@ async def zaehle(rpc, takt, von_ms, bis_ms, rand_ms=RAND_MS, ziel_sha="", kette=
                  "kette_gelesen": kette})
     cov_je, cov_tx = cv.auswerten(lambda h: z.bloecke.get(h, {}).get("ts"), kette)
     if cv.aktiv:
-        meta["covenant"] = {"ziel_gesetzt": len(cv.ziele), "tx": len(cov_tx), "ohne_txid": cv.ohne_id,
+        meta["covenant"] = {"ziel_gesetzt": len(cv.ziele), "familien": cv.familien, "tx": len(cov_tx), "ohne_txid": cv.ohne_id,
                             "nur_ueber_eingang": cv.nur_eingang, "tx_liste": cov_tx}
     aus = []
+    spalten = SPALTEN + cv.spalten()
     for m in range(von_ms // 60000, -(-bis_ms // 60000)):
         if m in zeilen:
-            c = cov_je.get(m, {"in": 0, "an": 0, "nie": 0})
+            cj = cov_je.get(m, {})
+
+            def cw(f, k, an=False):
+                if not cv.aktiv or (an and not kette):
+                    return ""
+                return cj.get(f, {}).get(k, 0)
             zr = dict(zeilen[m], **mi.spalten(m, zeilen[m]["bloecke"]),
-                      cov_in_bloecken=c["in"] if cv.aktiv else "",
-                      cov_angenommen=(c["an"] if kette else "") if cv.aktiv else "",
-                      cov_nie_angenommen=(c["nie"] if kette else "") if cv.aktiv else "")
+                      cov_in_bloecken=cw("summe", "in"), cov_angenommen=cw("summe", "an", True),
+                      cov_nie_angenommen=cw("summe", "nie", True))
+            for f in cv.familien:
+                zr["cov_%s_in_bloecken" % f] = cw(f, "in")
+                zr["cov_%s_angenommen" % f] = cw(f, "an", True)
+                zr["cov_%s_nie_angenommen" % f] = cw(f, "nie", True)
             if not kette:
                 zr["angenommen_tx"] = zr["angenommen_pro_s"] = ""
-            aus.append({k: zr[k] for k in SPALTEN})
+            aus.append({k: zr[k] for k in spalten})
         else:                                            # minute ohne block: nie still als null
-            aus.append(dict({k: "" for k in SPALTEN}, minute_utc=iso_ms(m * 60000)[:16] + "Z", voll=0))
+            aus.append(dict({k: "" for k in spalten}, minute_utc=iso_ms(m * 60000)[:16] + "Z", voll=0))
     return aus, meta
+
+
+MEMPOOL_MAX_WARTEN_S = 340 * 60   # laenger schlaeft ein job nicht
+
+
+def mempool_auswerten(antwort, ziele):
+    """Mempool samt Orphan-Pool: wie viele Eintraege, wie viele Orphans, und je
+    Familie die Eintraege mit einem an ihre Covenant-ID gebundenen Ausgang,
+    getrennt nach Orphan und wartend. Nur Zahlen."""
+    eintraege = feld(antwort, "mempoolEntries") or feld(antwort, "entries") or (
+        antwort if isinstance(antwort, list) else [])
+    aus = {"eintraege": len(eintraege), "orphans": 0, "familien": {}}
+    for f in dict.fromkeys(ziele.values()):
+        aus["familien"][f] = {"orphans": 0, "wartend": 0}
+    for e in eintraege:
+        orphan = bool(feld(e, "isOrphan"))
+        aus["orphans"] += orphan
+        tx = feld(e, "transaction") or {}
+        fam = {ziele.get(cov_hash(c)) for c in (feld(feld(o, "covenant") or {}, "covenantId")
+                                               for o in feld(tx, "outputs") or []) if c} - {None}
+        for f in fam:
+            aus["familien"][f]["orphans" if orphan else "wartend"] += 1
+    return aus
+
+
+async def mempool_lauf(um_ms, rolle, partner, out, cov_sha="", jetzt=time.time, schlafen=asyncio.sleep):
+    """Wartet bis um_ms (15 min nach END), liest dann einmal den Mempool samt
+    Orphan-Pool eines Knotens (Ben, 23.10.2026). Ergebnis in out.json."""
+    warten = um_ms / 1000 - jetzt()
+    if warten > MEMPOOL_MAX_WARTEN_S:
+        schreiben_json(out, {"status": "zu frueh gestartet, %d min bis zur lesung" % (warten // 60)})
+        print("%s zu frueh gestartet" % rolle)
+        return 1
+    if warten > 0:
+        await schlafen(warten)
+    try:
+        ziele = familien_lesen(cov_sha) if cov_sha else {}
+        rpc, takt, kn = await verbinden(rolle, partner)
+        les = Leser(rpc, takt)
+        info = await les.rufe("get_info")
+        r = await les.rufe("get_mempool_entries", {"includeOrphanPool": True, "filterTransactionPool": False})
+        meta = dict(mempool_auswerten(r, ziele), **kn, status="gelesen", gelesen_utc=iso_ms(int(jetzt() * 1000)),
+                    synchron=feld(info, "isSynced"), datenform=les.form)
+        try:
+            await rpc.disconnect()
+        except Exception:                                # noqa: BLE001
+            pass
+    except Exception as exc:                             # noqa: BLE001
+        meta = {"status": "fehler, %s" % type(exc).__name__, "meldung": ohne_adresse(str(exc))[:300]}
+    schreiben_json(out, meta)
+    print("%s mempool %s: eintraege %s, orphans %s, je familie %s" % (
+        rolle, meta["status"], meta.get("eintraege", ""), meta.get("orphans", ""),
+        json.dumps(meta.get("familien", {}))))
+    return 0 if meta["status"] == "gelesen" else 1
+
+
+def schreiben_json(basis, meta):
+    os.makedirs(os.path.dirname(basis) or ".", exist_ok=True)
+    with open(basis + ".json", "w", encoding="utf-8") as fh:
+        json.dump(meta, fh, ensure_ascii=False, indent=1)
 
 
 def fenster_lesen(text):
@@ -434,7 +532,7 @@ def schreiben(basis, zeilen, meta):
             w.writeheader()
             w.writerows(cov)
     with open(basis + ".csv", "w", encoding="utf-8", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=SPALTEN)
+        w = csv.DictWriter(fh, fieldnames=list(zeilen[0]) if zeilen else SPALTEN)
         w.writeheader()
         w.writerows(zeilen)
     with open(basis + ".json", "w", encoding="utf-8") as fh:
@@ -459,12 +557,12 @@ def kombinieren(b1, b2):
     (z1, m1), (z2, m2) = lesen(b1), lesen(b2)
     r1 = {r["minute_utc"]: r for r in z1}
     r2 = {r["minute_utc"]: r for r in z2}
+    cov = list(dict.fromkeys(c for z in (z1[:1] + z2[:1]) for c in z if c.startswith("cov_")))
     spalten = ["minute_utc", "k1_voll", "k1_bloecke", "k1_angenommen", "k1_angenommen_pro_s",
                "k2_voll", "k2_bloecke", "k2_angenommen", "k2_angenommen_pro_s", "knoten_gleich",
                "k1_ziel_bloecke", "k2_ziel_bloecke", "ziel_anteil_pct", "k1_ziel_je", "k2_ziel_je",
                "miner_verschieden", "blau_min", "blau_max",
-               "k1_cov_in_bloecken", "k2_cov_in_bloecken", "k1_cov_angenommen", "k2_cov_angenommen",
-               "k1_cov_nie_angenommen", "k2_cov_nie_angenommen"]
+               ] + ["%s_%s" % (n, c) for c in cov for n in ("k1", "k2")]
     aus = []
     for m in sorted(set(r1) | set(r2)):
         a, b = r1.get(m, {}), r2.get(m, {})
@@ -477,16 +575,14 @@ def kombinieren(b1, b2):
                                           and a.get("angenommen_tx") == b.get("angenommen_tx")
                                           and a.get("ziel_bloecke") == b.get("ziel_bloecke")
                                           and a.get("ziel_je", "") == b.get("ziel_je", "")
-                                          and a.get("cov_in_bloecken", "") == b.get("cov_in_bloecken", "")
-                                          and a.get("cov_angenommen", "") == b.get("cov_angenommen", "")) if beide else ""),
+                                          and all(a.get(c, "") == b.get(c, "") for c in cov)) if beide else ""),
                     "k1_ziel_bloecke": a.get("ziel_bloecke", ""), "k2_ziel_bloecke": b.get("ziel_bloecke", ""),
                     "ziel_anteil_pct": a.get("ziel_anteil_pct") or b.get("ziel_anteil_pct", ""),
                     "k1_ziel_je": a.get("ziel_je", ""), "k2_ziel_je": b.get("ziel_je", ""),
                     "miner_verschieden": a.get("miner_verschieden") or b.get("miner_verschieden", ""),
                     "blau_min": a.get("blau_min") or b.get("blau_min", ""),
                     "blau_max": a.get("blau_max") or b.get("blau_max", ""),
-                    **{"%s_%s" % (n, c): r.get(c, "") for n, r in (("k1", a), ("k2", b))
-                       for c in ("cov_in_bloecken", "cov_angenommen", "cov_nie_angenommen")}})
+                    **{"%s_%s" % (n, c): r.get(c, "") for n, r in (("k1", a), ("k2", b)) for c in cov}})
     buf = io.StringIO()
     w = csv.DictWriter(buf, fieldnames=spalten, lineterminator="\n")
     w.writeheader()
@@ -602,6 +698,30 @@ class FakeCovKnoten(FakeKnoten):
         return r
 
 
+class FakeZweiKnoten(FakeCovKnoten):
+    """Dazu eine zweite Familie: in jedem geraden Kettenblock eine Ausgabe,
+    immer angenommen, ohne Konkurrenten."""
+    CID2 = "beef" * 16
+
+    def blk(self, h):
+        b = super().blk(h)
+        i = int(h[1:])
+        if h[0] == "c" and i % 2 == 0:
+            b["transactions"].append({
+                "subnetworkId": "00" * 20, "verboseData": {"transactionId": "cov2-c%d" % i},
+                "inputs": [{"previousOutpoint": {"transactionId": "cov2-c%d" % (i - 2), "index": 0}}],
+                "outputs": [{"covenant": {"authorizingInput": 0, "covenantId": self.CID2}}]})
+        return b
+
+    async def get_virtual_chain_from_block(self, a):
+        r = await super().get_virtual_chain_from_block(a)
+        for e in r["acceptedTransactionIds"]:
+            j = int(e["acceptingBlockHash"][1:])
+            if (j - 1) % 2 == 0:
+                e["acceptedTransactionIds"] = e["acceptedTransactionIds"] + ["cov2-c%d" % (j - 1)]
+        return r
+
+
 def selbsttest():
     fehler = 0
 
@@ -690,6 +810,67 @@ def selbsttest():
     ok("covenant: tx-liste als csv, nicht im json", len(cl) == len(tl) and "tx_liste" not in mj)
     ok("covenant: kombiniert gleich, mit spalten", "davon gleich 3" in zc2[-1] and "k1_cov_angenommen" in tc)
     ok("covenant: die id selbst steht nirgends", FakeCovKnoten.CID not in json.dumps(mc) + tc + mj)
+    # mehrere familien (Ben, 23.10.2026): je familie eigene spalten, dazu die summe
+    zf = "# zwei familien\nf1 %s\nf2 %s\n" % (cov_hash(FakeCovKnoten.CID), cov_hash(FakeZweiKnoten.CID2))
+    z2f, m2f = asyncio.run(zaehle(FakeZweiKnoten(t0, 600), OhneTakt(), t0 + 120000, t0 + 300000, rand_ms=60000,
+                                  cov_sha=zf))
+    ok("familien: f1 120/60/60, f2 30/30/0, summe 150/90/60 je minute", all(
+        (r["cov_f1_in_bloecken"], r["cov_f1_angenommen"], r["cov_f1_nie_angenommen"]) == (120, 60, 60)
+        and (r["cov_f2_in_bloecken"], r["cov_f2_angenommen"], r["cov_f2_nie_angenommen"]) == (30, 30, 0)
+        and (r["cov_in_bloecken"], r["cov_angenommen"], r["cov_nie_angenommen"]) == (150, 90, 60) for r in z2f))
+    ok("familien: tx-liste traegt die familie", {t["familie"] for t in m2f["covenant"]["tx_liste"]} == {"f1", "f2"}
+       and m2f["covenant"]["familien"] == ["f1", "f2"])
+    with tempfile.TemporaryDirectory() as tmp:
+        schreiben(os.path.join(tmp, "k1"), z2f, dict(m2f))
+        schreiben(os.path.join(tmp, "k2"), z2f, dict(m2f))
+        t2f, s2f = kombinieren(os.path.join(tmp, "k1"), os.path.join(tmp, "k2"))
+    ok("familien: kombiniert mit k1/k2 je familie, gleich", "k2_cov_f2_angenommen" in t2f.splitlines()[0]
+       and "davon gleich 3" in s2f[-1])
+    # mempool samt orphans 15 min nach END (Ben, 23.10.2026)
+    fam = familien_lesen(zf)
+    mp = {"mempoolEntries": [
+        {"isOrphan": True, "transaction": {"outputs": [{"covenant": {"covenantId": FakeCovKnoten.CID}}]}},
+        {"isOrphan": True, "transaction": {"outputs": [{}]}},
+        {"isOrphan": False, "transaction": {"outputs": [{"covenant": {"covenantId": FakeZweiKnoten.CID2.upper()}}]}},
+        {"isOrphan": False, "transaction": {"outputs": [{}]}}]}
+    ok("mempool: 4 eintraege, 2 orphans, f1 ein orphan, f2 einer wartend",
+       mempool_auswerten(mp, fam) == {"eintraege": 4, "orphans": 2, "familien": {
+           "f1": {"orphans": 1, "wartend": 0}, "f2": {"orphans": 0, "wartend": 1}}})
+    ok("mempool: leere antwort", mempool_auswerten({"mempoolEntries": []}, fam)["eintraege"] == 0)
+    with tempfile.TemporaryDirectory() as tmp:
+        geschlafen = []
+
+        async def schlaf(s):
+            geschlafen.append(s)
+        rc = asyncio.run(mempool_lauf(1000 * (1000 + MEMPOOL_MAX_WARTEN_S + 60), "k1", "", os.path.join(tmp, "m"),
+                                      zf, jetzt=lambda: 1000.0, schlafen=schlaf))
+        mz = json.load(open(os.path.join(tmp, "m.json"), encoding="utf-8"))
+    ok("mempool: zu frueh gestartet bricht ab, ohne zu schlafen", rc == 1 and not geschlafen
+       and mz["status"].startswith("zu frueh"))
+    import contextlib
+    fk2, alt2 = fake_kaspa(), (sys.modules.get("kaspa"), Takt.__init__.__defaults__)
+    sys.modules["kaspa"], Takt.__init__.__defaults__ = fk2, (0.01,)
+    puf = io.StringIO()
+    try:
+        with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(puf):
+            rcm = asyncio.run(mempool_lauf(0, "k1", os.path.join(tmp, "p.json"), os.path.join(tmp, "m"), zf))
+            mtext = open(os.path.join(tmp, "m.json"), encoding="utf-8").read()
+    finally:
+        Takt.__init__.__defaults__ = alt2[1]
+        if alt2[0] is None:
+            sys.modules.pop("kaspa", None)
+        else:
+            sys.modules["kaspa"] = alt2[0]
+    mj2 = json.loads(mtext)
+    ok("mempool gegen erfundenen knoten: gelesen, nur kennung, keine adresse",
+       rcm == 0 and mj2["status"] == "gelesen" and re.fullmatch(r"[0-9a-f]{10}", mj2.get("kennung", ""))
+       and adressfrei(mtext + puf.getvalue()) and "beispiel" not in mtext + puf.getvalue())
+    for schlecht in ("F1 %s" % ("a" * 64), "a %s\na %s" % ("a" * 64, "b" * 64)):
+        try:
+            familien_lesen(schlecht)
+            ok("familienname geprueft: %r" % schlecht[:8], False)
+        except ValueError:
+            ok("familienname geprueft: %r" % schlecht[:8], True)
     datei = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "messung", "tn10", "nach", "fenster.txt")
     if os.path.exists(datei):
         with open(datei, encoding="utf-8") as fh:
@@ -738,6 +919,7 @@ def main(argv=None):
     ap.add_argument("--ziel-datei", default="", help="datei mit dem sha256 des miner-scripts, nie die adresse")
     ap.add_argument("--nur-bloecke", action="store_true", help="kette nicht lesen, nur bloecke und miner")
     ap.add_argument("--covenant-datei", default="", help="datei mit dem sha256 der covenant-id, nie die id")
+    ap.add_argument("--mempool-um", default="", help="utc-zeit, zu der der mempool samt orphans gelesen wird")
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args(argv)
     if a.selbsttest:
@@ -752,6 +934,12 @@ def main(argv=None):
         print("=== zusammenfassung")
         print("\n".join(zus))
         return 0
+    if a.mempool_um:
+        cov = ""
+        if a.covenant_datei and os.path.exists(a.covenant_datei):
+            with open(a.covenant_datei, encoding="utf-8") as fh:
+                cov = fh.read()
+        return asyncio.run(mempool_lauf(utc_ms(a.mempool_um), a.rolle, a.partner, a.out, cov))
     von, bis, nur = a.von, a.bis, a.nur_bloecke
     if a.fenster:
         with open(a.fenster, encoding="utf-8") as fh:

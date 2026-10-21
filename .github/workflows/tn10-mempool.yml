@@ -1,0 +1,68 @@
+# Kaspa Pulse - Mempool samt Orphan-Pool 15 min nach END lesen (Ben, 23.10.2026)
+#
+# Liegt bewusst NUR auf dem Branch messung/tn10-zaehler. Nicht gemergt.
+# Zwei Knoten, je einmal get_mempool_entries mit Orphan-Pool, zur UTC-Zeit
+# aus messung/tn10/nach/mempool.txt. Der Job schlaeft bis dahin, hoechstens
+# 5 h 40 min; die Datei also hoechstens so lange vorher aendern. Nur Zahlen:
+# Eintraege, Orphans, je Covenant-Familie (Hash in covenant.sha256) Orphans
+# und wartende. Keine Wallet, keine Schluessel, keine Secrets, nichts ins Repo.
+
+name: tn10 mempool
+
+on:
+  push:
+    branches:
+      - messung/tn10-zaehler
+    paths:
+      - messung/tn10/nach/mempool.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tn10-mempool
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash -eo pipefail {0}
+
+jobs:
+  mempool:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: sdk, version und pruefsumme fest
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+      - name: selbsttest
+        run: |
+          python3 scripts/tn10_nachzaehlung.py --selbsttest > out-selbsttest.log || { cat out-selbsttest.log; exit 1; }
+          tail -n 1 out-selbsttest.log
+      - name: zwei knoten, zur zeit aus mempool.txt
+        # die partnerdatei mit host und kennung von k1 liegt unter RUNNER_TEMP, nie im artefakt
+        run: |
+          mkdir -p out/mempool
+          P="$RUNNER_TEMP/tn10-mempool-partner.json"
+          UM=$(grep -v '^#' messung/tn10/nach/mempool.txt | grep -m1 -E '^[0-9]{4}-')
+          echo "lesung um $UM"
+          python3 scripts/tn10_nachzaehlung.py --mempool-um "$UM" --rolle k1 --partner "$P" --covenant-datei messung/tn10/nach/covenant.sha256 --out out/mempool/mempool-k1 > out/mempool/k1.log 2>&1 &
+          P1=$!
+          sleep 20
+          python3 scripts/tn10_nachzaehlung.py --mempool-um "$UM" --rolle k2 --partner "$P" --covenant-datei messung/tn10/nach/covenant.sha256 --out out/mempool/mempool-k2 > out/mempool/k2.log 2>&1 &
+          P2=$!
+          S=0
+          wait $P1 || S=1
+          wait $P2 || S=1
+          for n in k1 k2; do echo "=== $n"; tail -n 5 out/mempool/$n.log; python3 -c "import json,sys; m=json.load(open(sys.argv[1])); m.pop('datenform',None); print(json.dumps(m, ensure_ascii=False))" out/mempool/mempool-$n.json; done
+          exit $S
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tn10-mempool
+          path: out/mempool/*.json
+          if-no-files-found: ignore
+          retention-days: 30

@@ -230,8 +230,32 @@ def zaehlung_lesen(ordner):
     return kom, tx
 
 
-def zusammensetzen(zaehlung, stp, submit, von_ms, bis_ms):
+def familien_aus(kom):
+    """Familiennamen aus den Minutenspalten k1_cov_<familie>_angenommen."""
+    aus = []
+    for z in list(kom.values())[:1]:
+        for c in z:
+            if c.startswith("k1_cov_") and c.endswith("_angenommen") and not c.endswith("_nie_angenommen") \
+                    and c != "k1_cov_angenommen":
+                aus.append(c[len("k1_cov_"):-len("_angenommen")])
+    return aus
+
+
+def mempool_lesen(ordner):
+    """mempool-k1.json und mempool-k2.json aus tn10_nachzaehlung --mempool-um."""
+    aus = {}
+    for n in ("k1", "k2"):
+        for p in glob.glob(os.path.join(ordner or "", "**", "mempool-%s.json" % n), recursive=True)[:1]:
+            with open(p, encoding="utf-8") as fh:
+                m = json.load(fh)
+            aus[n] = {k: m.get(k) for k in ("status", "gelesen_utc", "kennung", "synchron", "eintraege", "orphans",
+                                           "familien")}
+    return aus
+
+
+def zusammensetzen(zaehlung, stp, submit, von_ms, bis_ms, mempool=""):
     kom, tx = zaehlung_lesen(zaehlung)
+    fam = familien_aus(kom)
     sub = submit_lesen(submit)
     rej, rej_quelle = konflikte(stp) if stp else ({}, [])
     m0, m1 = von_ms // 60000, -(-bis_ms // 60000)
@@ -239,7 +263,7 @@ def zusammensetzen(zaehlung, stp, submit, von_ms, bis_ms):
     lue = luecken(stp, m0, m1) if stp else {m: ("unbekannt", "keine STP-logs") for m in range(m0, m1)}
     mw, mw_quelle = miner_wechsel(stp) if stp else ({}, [])
     k1 = tx.get("k1", {})
-    je_bis, je_an = {}, {}
+    je_bis, je_an, je_fam = {}, {}, {}
     for t, z in k1.items():
         if z.get("angenommen") != "1" or t.lower() not in sub:
             continue
@@ -247,6 +271,9 @@ def zusammensetzen(zaehlung, stp, submit, von_ms, bis_ms):
         mm = int(z["annehmender_block_ms"]) // 60000
         je_bis.setdefault(mm, []).append(int(z["erster_block_ms"]) - s)
         je_an.setdefault(mm, []).append(int(z["annehmender_block_ms"]) - s)
+        for f in (z.get("familie") or "").split("+"):
+            if f:
+                je_fam.setdefault((f, mm), []).append(int(z["erster_block_ms"]) - s)
     aus = []
     for m in range(a, e):
         z = kom.get(m, {})
@@ -276,12 +303,20 @@ def zusammensetzen(zaehlung, stp, submit, von_ms, bis_ms):
             "bis_annahme_ms_median": round(statistics.median(je_an[m])) if je_an.get(m) else "",
             "sender_luecke": sl[0], "miner_wechsel": miner[0] if phase == "fenster" else "",
             "gueltig": int(phase == "fenster" and not grund), "grund": "; ".join(grund)})
+        for f in fam:
+            an = z.get("k1_cov_%s_angenommen" % f, "")
+            bf = je_fam.get((f, m), [])
+            aus[-1].update({
+                "cov_%s_angenommen" % f: an,
+                "cov_%s_pro_s" % f: round(int(an) / 60, 3) if str(an).isdigit() else "",
+                "cov_%s_nie_angenommen" % f: z.get("k1_cov_%s_nie_angenommen" % f, ""),
+                "cov_%s_bis_block_ms_median" % f: round(statistics.median(bf)) if bf else ""})
     zus = {"fenster": [minute(m0), minute(m1)], "grundlast_min": GRUNDLAST_MIN,
            "konflikt_quelle": rej_quelle, "miner_quelle": mw_quelle,
            "submit_zeiten": len(sub), "tx_k1": len(k1), "tx_k2": len(tx.get("k2", {})),
            "tx_k1_gleich_k2": (set(k1) == set(tx.get("k2", {}))) if "k2" in tx else "",
            "gueltige_minuten": sum(r["gueltig"] for r in aus),
-           "minuten_im_fenster": m1 - m0}
+           "minuten_im_fenster": m1 - m0, "familien": fam, "mempool_nach_end": mempool_lesen(mempool)}
     ntp = []
     for p in stp_dateien(stp, "ntp.csv") if stp else []:
         ntp += [dict(z, datei=os.path.relpath(p, stp)) for z in csv_lesen(p)]
@@ -289,10 +324,14 @@ def zusammensetzen(zaehlung, stp, submit, von_ms, bis_ms):
     return aus, zus
 
 
+def spalten(aus):
+    return SPALTEN + [c for c in (aus[0] if aus else {}) if c not in SPALTEN]
+
+
 def schreiben(out, aus, zus):
     os.makedirs(out, exist_ok=True)
     with open(os.path.join(out, "contention-je-minute.csv"), "w", encoding="utf-8", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=SPALTEN)
+        w = csv.DictWriter(fh, fieldnames=spalten(aus))
         w.writeheader()
         w.writerows(aus)
     with open(os.path.join(out, "contention.json"), "w", encoding="utf-8") as fh:
@@ -321,19 +360,27 @@ def selbsttest():
         za, st = os.path.join(d, "zaehlung"), os.path.join(d, "stp")
         # zaehlung: 18:00 bis 18:03 fenster, dazu grundlast; 18:02 bei k2 nicht voll
         kopf = ["minute_utc", "k1_voll", "k2_voll", "knoten_gleich", "k1_cov_angenommen", "k1_cov_in_bloecken",
-                "k1_cov_nie_angenommen"]
+                "k1_cov_nie_angenommen", "k1_cov_f1_angenommen", "k1_cov_f1_nie_angenommen",
+                "k1_cov_f2_angenommen", "k1_cov_f2_nie_angenommen"]
         zeilen = []
         for i in range(-30, 33):
             mm = minute(t0 // 60000 + i)
             voll2 = 0 if i == 2 else 1
-            zeilen.append([mm, 1, voll2, "1" if voll2 else "", 5 if 0 <= i < 3 else 0, 8 if 0 <= i < 3 else 0,
-                           3 if 0 <= i < 3 else 0])
+            im = 0 <= i < 3
+            zeilen.append([mm, 1, voll2, "1" if voll2 else "", 5 if im else 0, 8 if im else 0,
+                           3 if im else 0, 42 if im else 0, 3 if im else 0, 0, 0])
         schreib(os.path.join(za, "nach.csv"), kopf, zeilen)
-        txk = ["tx_id", "erster_block_ms", "bloecke", "angenommen", "annehmender_block_ms"]
-        schreib(os.path.join(za, "k1-covenant.csv"), txk,
-                [["aa", t0 + 1500, 1, 1, t0 + 2500], ["bb", t0 + 61000, 2, 1, t0 + 61800], ["cc", t0 + 3000, 1, 0, ""]])
-        schreib(os.path.join(za, "k2-covenant.csv"), txk,
-                [["aa", t0 + 1500, 1, 1, t0 + 2500], ["bb", t0 + 61000, 2, 1, t0 + 61800], ["cc", t0 + 3000, 1, 0, ""]])
+        txk = ["tx_id", "familie", "erster_block_ms", "bloecke", "angenommen", "annehmender_block_ms"]
+        txz = [["aa", "f1", t0 + 1500, 1, 1, t0 + 2500], ["bb", "f1", t0 + 61000, 2, 1, t0 + 61800],
+               ["cc", "f1", t0 + 3000, 1, 0, ""]]
+        schreib(os.path.join(za, "k1-covenant.csv"), txk, txz)
+        schreib(os.path.join(za, "k2-covenant.csv"), txk, txz)
+        mpd = os.path.join(d, "mempool")
+        os.makedirs(mpd)
+        for n in ("k1", "k2"):
+            with open(os.path.join(mpd, "mempool-%s.json" % n), "w", encoding="utf-8") as fh:
+                json.dump({"status": "gelesen", "kennung": "0123456789", "eintraege": 7, "orphans": 2,
+                           "familien": {"f1": {"orphans": 1, "wartend": 0}}}, fh)
         sub = os.path.join(d, "submit.csv")
         schreib(sub, ["tx_id", "submit_ms"], [["AA", t0 + 1000], ["bb", t0 + 60100]])
         # stp: bot sendet 18:00 bis 18:02, in 18:01 fehlen zwei sekunden; build ohne luecke
@@ -353,7 +400,7 @@ def selbsttest():
                 [["2026-10-29T17:59Z", 20, 1], ["2026-10-29T18:00Z", 20, 1], ["2026-10-29T18:01Z", 16, 1],
                  ["2026-10-29T18:02Z", 16, 1]])
         schreib(os.path.join(st, "bot", "ntp.csv"), ["utc", "offset_ms"], [["2026-10-29T17:30:00Z", 3]])
-        aus, zus = zusammensetzen(za, st, sub, t0, t0 + 180000)
+        aus, zus = zusammensetzen(za, st, sub, t0, t0 + 180000, mpd)
         r = {x["minute_utc"][11:16]: x for x in aus}
     ok("63 zeilen, 30 grundlast davor und danach", len(aus) == 63 and r["17:30"]["phase"] == "grundlast_vor"
        and r["18:03"]["phase"] == "grundlast_nach" and r["18:32"]["phase"] == "grundlast_nach")
@@ -379,8 +426,14 @@ def selbsttest():
        and all(x["sender_luecke"] == "unbekannt" for x in aus2 if x["phase"] == "fenster")
        and all(x["abgelehnt_konflikt"] == "" for x in aus2))
     buf = io.StringIO()
-    csv.DictWriter(buf, fieldnames=SPALTEN).writerows(aus)
+    csv.DictWriter(buf, fieldnames=spalten(aus)).writerows(aus)
     ok("keine adresse in der ausgabe", "://" not in buf.getvalue())
+    ok("familien: f1 42 angenommen, 0.7 je sekunde, f2 0", zus["familien"] == ["f1", "f2"]
+       and r["18:00"]["cov_f1_angenommen"] == "42" and r["18:00"]["cov_f1_pro_s"] == 0.7
+       and r["18:00"]["cov_f2_angenommen"] == "0" and r["18:00"]["cov_f1_bis_block_ms_median"] == 500, r["18:00"])
+    ok("familien: spalten in der csv", "cov_f2_pro_s" in spalten(aus))
+    ok("mempool nach end in der zusammenfassung", zus["mempool_nach_end"]["k1"]["orphans"] == 2
+       and zus["mempool_nach_end"]["k2"]["familien"]["f1"]["orphans"] == 1)
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 
@@ -391,12 +444,13 @@ def main(argv=None):
     ap.add_argument("--stp", default="", help="ordner mit STPs logs (bot/, build/)")
     ap.add_argument("--submit", default="", help="csv tx_id,submit_ms aus STPs logs, falls vorhanden")
     ap.add_argument("--fenster", nargs=2, metavar=("VON", "BIS"))
+    ap.add_argument("--mempool", default="", help="ordner mit mempool-k1.json und mempool-k2.json")
     ap.add_argument("--out", default="out/contention")
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args(argv)
     if a.selbsttest:
         return selbsttest()
-    aus, zus = zusammensetzen(a.zaehlung, a.stp, a.submit, ms(a.fenster[0]), ms(a.fenster[1]))
+    aus, zus = zusammensetzen(a.zaehlung, a.stp, a.submit, ms(a.fenster[0]), ms(a.fenster[1]), a.mempool)
     schreiben(a.out, aus, zus)
     print("minuten %d, im fenster %d, gueltig %d, submit-zeiten %d" % (
         len(aus), zus["minuten_im_fenster"], zus["gueltige_minuten"], zus["submit_zeiten"]))
