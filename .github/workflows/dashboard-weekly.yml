@@ -91,6 +91,12 @@ jobs:
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
           git add index.html data/weekly.json data/weekly-notes.md data/dashboard-input.json kaspa-supply.html kaspa-smart-contracts.html kaspa-hashrate.html sitemap.xml data/seiten-stand.json
+          # die wochenseiten, das archiv und method baut startseite.py mit
+          # (archiv.py). je ordner ein eigenes add, ein fehlender ordner darf
+          # das add davor nicht mitreissen.
+          git add week/ 2>/dev/null || true
+          git add archive/ 2>/dev/null || true
+          git add method/ 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "nothing changed"
           else
