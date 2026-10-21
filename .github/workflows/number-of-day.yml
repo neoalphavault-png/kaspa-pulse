@@ -160,6 +160,10 @@ jobs:
           git add data/ 2>/dev/null || true
           git add *.html 2>/dev/null || true
           git add sitemap.xml 2>/dev/null || true
+          # wochenseiten, archiv und method (archiv.py, ueber startseite.py)
+          git add week/ 2>/dev/null || true
+          git add archive/ 2>/dev/null || true
+          git add method/ 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "nothing changed"
           else
