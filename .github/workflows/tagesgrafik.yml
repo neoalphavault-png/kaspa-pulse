@@ -1,9 +1,15 @@
 name: tagesgrafik
 
-# Eine Grafik pro Tag fuer X und Discord (Ben, 29.09.2026). Der Workflow
-# postet NICHTS oeffentlich. PNG, Vorschau 390 px, Discord-Text, X-Text und
-# die Selbstpruefung gehen ueber DISCORD_WEBHOOK_OPS nach #moderator-only.
-# Ben prueft, postet Discord um 09:00 und plant X fuer 17:00.
+# Eine Grafik pro Tag fuer X und Discord (Ben, 29.09.2026). PNG, Vorschau
+# 390 px, Discord-Text, X-Text und die Selbstpruefung gehen ueber
+# DISCORD_WEBHOOK_OPS nach #moderator-only, der Kontrolle.
+#
+# OEFFENTLICH NACH #daily-graphic (Ben, 21.10.2026): derselbe Lauf schickt
+# zusaetzlich den Discord-Text mit dem Discord-Bild oeffentlich, ueber das
+# Secret DISCORD_WEBHOOK_DAILY_GRAPHIC. Die Adresse steht nur im Secret, nie
+# in einer Datei. Fehlt das Secret, wird nur protokolliert, der Lauf bleibt
+# gruen. #moderator-only bleibt vorerst als Kontrolle daneben: Ben prueft
+# dort und plant X fuer 17:00.
 #
 # 07:30 Berlin, sommer- und winterzeitfest wie die Montagskette: zwei
 # Termine. 05:30 UTC ist im Sommer 07:30 Berlin, 06:30 UTC im Winter.
@@ -95,11 +101,16 @@ jobs:
         if: github.event_name == 'schedule'
         env:
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          # oeffentlich nach #daily-graphic. Fehlt das Secret, wird nur
+          # protokolliert, der Lauf bleibt gruen (Ben, 21.10.2026).
+          DISCORD_WEBHOOK_DAILY_GRAPHIC: ${{ secrets.DISCORD_WEBHOOK_DAILY_GRAPHIC }}
         run: python3 scripts/tagesgrafik.py --zeitplan --senden --log-schreiben --out graphics/tagesgrafik
       - name: grafik, von hand
         if: github.event_name == 'workflow_dispatch'
         env:
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          # nur mit senden=true geht etwas raus, dann auch oeffentlich
+          DISCORD_WEBHOOK_DAILY_GRAPHIC: ${{ secrets.DISCORD_WEBHOOK_DAILY_GRAPHIC }}
           FORM: ${{ inputs.form }}
           SENDEN: ${{ inputs.senden }}
         run: |
