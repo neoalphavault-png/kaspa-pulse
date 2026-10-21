@@ -126,7 +126,6 @@ sys.path.insert(0, str(HERE))
 
 LOG = REPO / "data" / "tagesgrafik-log.json"
 COMMUNITY = REPO / "data" / "tagesgrafik-community.json"
-FALKE = REPO / "graphics" / "falcon.b64"
 W, H = 1080, 1350
 VORSCHAU = 390
 REST = "https://api.kaspa.org"
@@ -368,18 +367,17 @@ BG, AK, RESTTON, WEISS = "#080B0F", "#49EACB", "#2B7A6C", "#FFFFFF"
 # Seit dem Look-Takt (Ben, 15.10.2026) setzt look_setzen() diese Farben je
 # Bild aus look_takt.LOOKS. TEXT2 ist die zweite Textfarbe (Datum, kleine
 # Beschriftung), MARK die Markierung (Pulslinie).
-TEXT2, MARK, FALKE_FILTER, LOOK = "#A9B7B4", "#49EACB", "none", "dunkel"
+TEXT2, MARK, LOOK = "#A9B7B4", "#49EACB", "dunkel"
 
 
 def look_setzen(name):
     """Stellt alle Farben auf einen Look. Die Vorlagen lesen die Farben beim
     Zeichnen, also gilt der Look fuer das naechste html()."""
-    global BG, AK, RESTTON, WEISS, AK_DUNKEL, TEXT2, MARK, FALKE_FILTER, LOOK
+    global BG, AK, RESTTON, WEISS, AK_DUNKEL, TEXT2, MARK, LOOK
     import look_takt
     lk = look_takt.look(name)
     BG, AK, RESTTON, WEISS = lk["grund"], lk["akzent"], lk["rest"], lk["text"]
-    AK_DUNKEL, TEXT2, MARK, FALKE_FILTER, LOOK = (lk["akzent2"], lk["text2"], lk["markierung"],
-                                                  lk["falke"], name)
+    AK_DUNKEL, TEXT2, MARK, LOOK = lk["akzent2"], lk["text2"], lk["markierung"], name
 
 
 def schrift(farbe):
@@ -1506,8 +1504,6 @@ body{width:1080px;height:1350px;background:%(grund)s;position:relative;overflow:
   font-weight:400;font-size:34px;line-height:1.28;color:%(text2)s;letter-spacing:-0.5px}
 .sig{position:absolute;left:50%%;transform:translateX(-50%%);bottom:60px;height:48px;display:flex;
   align-items:center;gap:16px}
-.sig img{width:38px;height:auto;display:block;filter:%(falke)s}
-.sig span{font-weight:600;font-size:34px;letter-spacing:4px;color:%(text)s;white-space:nowrap}
 .sig svg{width:170px;height:48px;display:block}
 .obj{position:absolute;left:0;top:0}
 """
@@ -1550,10 +1546,11 @@ def objektzone(zg, zahl_im_objekt=False):
     return x, y, w, Y_OBJ_ENDE - y
 
 
-def html(s, falke, look=None):
+def html(s, look=None):
     if look:
         look_setzen(look)
     import look_takt
+    import wortmarke
     zg = zahlgroesse(s["zahl"])
     x, y, w, h = objektzone(zg, s.get("zahl_im_objekt"))
     if s.get("zahl_im_objekt"):
@@ -1564,12 +1561,13 @@ def html(s, falke, look=None):
                 % (zg, esc(ziffern), "<span class='einheit' data-rolle='einheit'>%s</span>" % esc(einheit)
                    if einheit else ""))
     obj = s["objekt"](x, y, w, h)
-    sig = ("<div class='sig' data-rolle='fuss'><img src='%s' alt=''><span>KASPA PULSE</span>"
+    sig = ("<div class='sig' data-rolle='fuss'>%s"
            "<svg viewBox='0 0 230 48'><path d='%s' fill='none' "
            "stroke='%s' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'/></svg></div>"
-           % (falke, PULS, MARK))
-    css = look_takt.schriften_css() + CSS % {
-        "grund": BG, "text": WEISS, "text2": TEXT2, "akzent": AK, "falke": FALKE_FILTER}
+           % (wortmarke.html(), PULS, MARK))
+    css = (look_takt.schriften_css() + CSS % {
+        "grund": BG, "text": WEISS, "text2": TEXT2, "akzent": AK}
+        + wortmarke.css(look=LOOK))
     return ("<!DOCTYPE html><html><head><meta charset='utf-8'><style>%s</style></head><body data-look='%s'>"
             "<div class='kopf' data-rolle='titel'>%s</div>%s"
             "<svg class='obj' width='1080' height='1350' viewBox='0 0 1080 1350' "
@@ -1928,13 +1926,6 @@ def messen(form, now):
     return {"form": form, "messzeit_utc": now.isoformat(timespec="seconds"), "werte": werte}
 
 
-def falke_lesen(pfad=None):
-    for p in [pfad, FALKE, Path.home() / "pulse-studio" / "kp" / "falcon.b64"]:
-        if p and Path(p).exists():
-            return Path(p).read_text().strip()
-    raise Stop("falke fehlt (graphics/falcon.b64)")
-
-
 # Welche gemessenen Werte je Form mit ins Tageslog gehen (Ben, 10.10.2026,
 # fuer das Cheat Sheet). Bisher stand im Log nur, WELCHE Form lief, nie WAS
 # sie gemessen hat. Die Werte lagen damit allein im Artefakt des Laufs, und
@@ -2048,7 +2039,7 @@ def gebuehren_bruch_text(geb, letzter_gut, frist=GEB_FRIST_TAGE):
                                                   tag(g["bis"]), frist, bis.isoformat()))
 
 
-def kanaele_rendern(s, falke, png, heute, speicher=None):
+def kanaele_rendern(s, png, heute, speicher=None):
     """Ein Bild je Kanal, jedes im Look aus seinem Takt. Das Instagram-Bild
     behaelt den alten Namen (instagram.py holt es so aus dem Artefakt), die
     anderen tragen den Kanal im Namen. Bis die eigenen Formate kommen, sind
@@ -2064,11 +2055,11 @@ def kanaele_rendern(s, falke, png, heute, speicher=None):
     with sync_playwright() as p:
         b = chromium_start(p)
         try:
-            png, vpng = rendern(html(s, falke, looks["instagram"]), png, VORSCHAU, b, "instagram")
+            png, vpng = rendern(html(s, looks["instagram"]), png, VORSCHAU, b, "instagram")
             for k in look_takt.KANAELE:
                 if k == "instagram":
                     continue
-                kanalbilder[k], _ = rendern(html(s, falke, looks[k]),
+                kanalbilder[k], _ = rendern(html(s, looks[k]),
                                             png.with_name("%s-%s.png" % (png.stem, k)), 0, b, k)
         finally:
             b.close()
@@ -2080,7 +2071,6 @@ def kontaktbogen_bilder(ziel, browser, looks=("dunkel", "hell", "teal")):
     """Alle Formen aus dem Selbsttest in allen Looks, fuer den Kontaktbogen.
     Gibt [(beschriftung, png)]. Eine Form, die die Layoutpruefung nicht
     besteht, steht als Fehler in der Liste statt als Bild."""
-    falke = falke_lesen()
     aus = []
     Path(ziel).mkdir(parents=True, exist_ok=True)
     for f in sorted(FAKE):
@@ -2094,7 +2084,7 @@ def kontaktbogen_bilder(ziel, browser, looks=("dunkel", "hell", "teal")):
         for lk in looks:
             name = "tagesgrafik f%d %s %s" % (f, GERUEST.get(f, ""), lk)
             try:
-                png, _ = rendern(html(s, falke, lk), Path(ziel) / ("tg-f%02d-%s.png" % (f, lk)), 0, browser)
+                png, _ = rendern(html(s, lk), Path(ziel) / ("tg-f%02d-%s.png" % (f, lk)), 0, browser)
                 aus.append((name, png))
             except Stop as exc:
                 aus.append((name + " FEHLER " + str(exc), None))
@@ -2124,7 +2114,6 @@ def main(argv=None):
     ap.add_argument("--zeitplan", action="store_true",
                     help="geplanter lauf, nur ab 07:00 Berlin und einmal am tag")
     ap.add_argument("--log-schreiben", action="store_true")
-    ap.add_argument("--falke")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args(argv)
     if a.selftest:
@@ -2196,7 +2185,7 @@ def main(argv=None):
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     png, vpng, kanalbilder, looks = kanaele_rendern(
-        s, falke_lesen(a.falke), out / ("tagesgrafik-%s-form%02d.png" % (messzeit.date().isoformat(), form)),
+        s, out / ("tagesgrafik-%s-form%02d.png" % (messzeit.date().isoformat(), form)),
         heute)
     (out / (png.stem + ".txt")).write_text(
         "DISCORD\n%s\n\nX (%d zeichen)\n%s\n\nANTWORT unter dem X-Post\n%s\n\nSELBSTPRUEFUNG\n"
@@ -2751,10 +2740,16 @@ def selbsttest():
     ok("grosse zahl nie unter 200", all(zahlgroesse(z) >= 200 for z in
                                         ("1", "293,501", "1,234,567,890", "344.5 PH/s")))
     for lk in ("dunkel", "hell", "teal"):
-        h = html(seite_bauen(8, FAKE[8], FAKE_NOW, log), "data:,", lk)
+        h = html(seite_bauen(8, FAKE[8], FAKE_NOW, log), lk)
         import look_takt
+        import wortmarke
         ok("html im look %s, grund und schriften eingebettet" % lk,
            look_takt.LOOKS[lk]["grund"] in h and "@font-face" in h and "fonts.googleapis" not in h)
+        # Marken-Umstellung (Ben, 21.10.2026): kein falke mehr, die wortmarke
+        # aus scripts/wortmarke.py steht im fuss, je look in seinen farben
+        ok("look %s traegt die wortmarke und kein bild" % lk,
+           wortmarke.html() in h and "<img" not in h
+           and all(f in h for f in wortmarke.farben(lk)))
     look_setzen("dunkel")
     try:
         import playwright  # noqa: F401
@@ -2762,7 +2757,7 @@ def selbsttest():
         import look_takt
         with tempfile.TemporaryDirectory() as td:
             sp = {"kanaele": {"tagesgrafik/x": [{"datum": "2026-09-28", "schritt": 0, "look": "dunkel"}]}}
-            png, vpng, kb, looks = kanaele_rendern(seite_bauen(8, FAKE[8], FAKE_NOW, log), falke_lesen(),
+            png, vpng, kb, looks = kanaele_rendern(seite_bauen(8, FAKE[8], FAKE_NOW, log),
                                                    Path(td) / "tagesgrafik-2026-09-29-form08.png",
                                                    dt.date(2026, 9, 29), sp)
             ok("vier kanaele gerendert, instagram unter dem alten namen",

@@ -134,9 +134,14 @@ LOOK_FARBEN = {
 
 def look_css(look: str = "dunkel") -> str:
     import look_takt
+    import wortmarke
     f = LOOK_FARBEN[look]
+    # die wortmarke steht in scripts/wortmarke.py. txt und teal fuehrt diese
+    # datei schon je look, deshalb gehen die variablen hinein statt zahlen.
     return (look_takt.schriften_css() + ":root{"
-            + "".join("--%s:%s;" % (k, v) for k, v in f.items()) + "}")
+            + "".join("--%s:%s;" % (k, v) for k, v in f.items()) + "}"
+            + wortmarke.css("wm", groesse=34, sperrung=5,
+                            kaspa="var(--txt)", pulse="var(--teal)"))
 
 
 CSS = """
@@ -149,8 +154,6 @@ body{
 }
 .top{display:flex;justify-content:space-between;align-items:baseline;
      border-bottom:2px solid var(--line);padding-bottom:12px}
-.brand{font-family:'Archivo',sans-serif;font-size:34px;letter-spacing:5px;font-weight:800}
-.brand span{color:var(--teal)}
 .iss{font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:0;color:var(--dimmer)}
 .eyebrow{font-size:34px;letter-spacing:4px;color:var(--teal-dk);
          margin:12px 0 4px;font-weight:600}
@@ -223,7 +226,7 @@ body[data-look=teal] em,body[data-look=teal] .anchor .a em{background:var(--txt)
 PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><style>{fonts}{css}</style></head>
 <body data-look="{look}">
   <div class="top">
-    <div class="brand">KASPA <span>PULSE</span></div>
+    <div class="brand" data-rolle="fuss">{wortmarke}</div>
     <div class="iss">{issue}</div>
   </div>
   <div class="eyebrow">{eyebrow}</div>
@@ -396,7 +399,9 @@ def render_html(d: dict, look: str = "dunkel") -> str:
     # seit die marke selbst kaspa pulse heisst, stuende der name doppelt im
     # kopf. hier bleibt nur das datum stehen, bis der generator nachzieht.
     issue = re.sub(r"^\s*KASPA\s+PULSE\s*[·.]?\s*", "", d.get("issue", ""), flags=re.I)
+    import wortmarke
     return PAGE.format(
+        wortmarke=wortmarke.html("wm"),
         fonts=look_css(look),
         look=look,
         css=CSS,

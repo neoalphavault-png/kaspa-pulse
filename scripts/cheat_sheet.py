@@ -854,6 +854,15 @@ def schriften(ordner=SCHRIFTEN):
     return "".join(aus)
 
 
+def marke_css():
+    """Die Wortmarke steht in scripts/wortmarke.py. Groesse und Sperrung
+    bleiben beim Kopf (.mark setzt sie in em), nur Schnitt und Farben kommen
+    von dort. INK und ACC sind hier schon #F2F5F4 und #49EACB, also genau
+    die Marke (Ben, 21.10.2026)."""
+    import wortmarke
+    return wortmarke.css("wm", groesse=None, sperrung=None, kaspa=INK, pulse=ACC)
+
+
 def css(fonts):
     return """
 %s
@@ -914,12 +923,13 @@ body{font-family:Plex,sans-serif;color:%s;-webkit-font-smoothing:antialiased}
 .links span,.links span a{font-family:PlexMono;font-size:22px;color:%s}
 """ % (fonts, BG, INK, SEITE_PX[0], SEITE_PX[1], BG, INK3, LINE, INK, ACC, ACC, INK2, INK2,
        SURF, LINE, INK3, INK2, ACCD, ACC, INK, LINE, INK3, INK2, ACC, INK2, LINE, LINE,
-       ACC, INK, INK3, ACC, INK2, ACC, BG, BG, ACC, LINE, SURF, INK, ACC)
+       ACC, INK, INK3, ACC, INK2, ACC, BG, BG, ACC, LINE, SURF, INK, ACC) + marke_css()
 
 
 def top(rechts):
-    return ('<div class="top"><div class="mark"><i></i>KASPA PULSE</div><div>%s</div></div>'
-            % rechts)
+    import wortmarke
+    return ('<div class="top"><div class="mark"><i></i>%s</div><div>%s</div></div>'
+            % (wortmarke.html("wm"), rechts))
 
 
 def seite(c):

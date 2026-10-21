@@ -1,0 +1,285 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+wortmarke.py - DIE EINE STELLE fuer das Logo von Kaspa Pulse.
+
+Marken-Umstellung (Ben, 21.10.2026): Kaspa Pulse und PulseHawk sind
+getrennte Marken. Kaspa Pulse erscheint ohne Falken und ohne den Schriftzug
+"PULSEHAWK". An die Stelle des Bildzeichens tritt die Wortmarke:
+
+    KASPA  #F2F5F4   PULSE  #49EACB   Archivo 900
+
+Wer die Marke aendert, aendert sie hier. Alles andere holt sie von hier:
+die Tagesgrafik, das Karussell, die Meme-Seite, die Zahl des Tages, der
+Cheat-Sheet-Generator, die OG-Bilder und das Favicon.
+
+Die Website traegt ihr Logo im Quelltext jeder Seite, ein Python-Modul kann
+sie nicht importieren. Deshalb gibt es hier zwei Befehle:
+
+    python3 scripts/wortmarke.py pruefen      # steht die Marke ueberall gleich?
+    python3 scripts/wortmarke.py anwenden     # schreibt sie in jede Seite
+    python3 scripts/wortmarke.py bilder       # favicon und die og-karten neu
+    python3 scripts/wortmarke.py --selbsttest
+
+"pruefen" ist der Waechter und endet rot, sobald eine Seite abweicht oder
+irgendwo wieder ein Falke oder "PULSEHAWK" auftaucht.
+
+FARBEN JE LOOK. Die beiden Marken-Farben sind die des dunklen Looks
+(look_takt.LOOKS["dunkel"]: text #F2F5F4, akzent #49EACB). Auf hellem und
+tealem Grund waeren sie nicht zu lesen, deshalb nimmt die Marke dort die
+Toene desselben Looks. Ein Selbsttest haelt fest, dass "dunkel" genau die
+beiden Marken-Farben ergibt.
+"""
+import argparse
+import re
+import sys
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+
+# ------------------------------------------------------------------ marke --
+WORT_1 = "KASPA"
+WORT_2 = "PULSE"
+TEXT = "%s %s" % (WORT_1, WORT_2)
+FARBE_1 = "#F2F5F4"                  # KASPA
+FARBE_2 = "#49EACB"                  # PULSE
+SCHRIFT = "'Archivo', sans-serif"
+GEWICHT = 900
+
+# Der Falke ist raus. Diese Namen duerfen in keinem Erzeuger mehr vorkommen.
+# "alphavault" steht NICHT dabei: der Github-Eigner heisst neoalphavault-png
+# und taucht in Adressen auf, das ist keine Marke im Bild.
+VERBOTEN_IN_AUSGABEN = ("pulsehawk", "pulse hawk", "falcon.b64", "falke_lesen")
+# Dateien, die ueber die ANDERE Marke reden statt sie zu zeigen.
+REDET_UEBER = ("wortmarke.py", "wortmarke_bilder.py", "x_post.py", "grafik_check.py")
+# Der Kopf der Startseite traegt PULSEHAWK noch genau einmal; er wird im
+# Startseiten-Umbau neu gebaut (Ben, 21.10.2026). Faellt dort eine zweite
+# Stelle an, soll der Waechter rot werden.
+NOCH_OFFEN = {"index.html": 1}
+
+
+def farben(look=None):
+    """(KASPA, PULSE) fuer einen Look. Ohne Look die Marken-Farben."""
+    if not look:
+        return FARBE_1, FARBE_2
+    import look_takt
+    lk = look_takt.LOOKS[look]
+    # text traegt KASPA, akzent traegt PULSE. Im dunklen Look sind das genau
+    # die Marken-Farben; im hellen ist akzent #0F9A80, weil #49EACB dort nur
+    # Markierung ist und auf hellem Grund nicht zu lesen waere.
+    return lk["text"], lk["akzent"]
+
+
+def css(klasse="wm", groesse=34, sperrung=4, look=None, kaspa=None, pulse=None):
+    """Der Stilblock fuer die Wortmarke. %%-sicher: diese Funktion gibt
+    fertiges CSS zurueck, es laeuft durch kein weiteres %-Format.
+
+    groesse und sperrung duerfen None sein, dann bestimmt sie der Aufrufer
+    (der Cheat-Sheet-Kopf setzt sie in em). kaspa und pulse duerfen CSS-
+    Variablen tragen, wo die Seite ihre Farben schon je Look fuehrt."""
+    k, p = farben(look)
+    k, p = kaspa or k, pulse or p
+    teile = ["font-family:%s" % SCHRIFT, "font-weight:%d" % GEWICHT, "color:%s" % k,
+             "white-space:nowrap"]
+    if groesse is not None:
+        teile.insert(2, "font-size:%dpx" % groesse)
+    if sperrung is not None:
+        teile.insert(3, "letter-spacing:%dpx" % sperrung)
+    return (".%s{%s}.%s b{font-weight:inherit;color:%s}" % (
+        klasse, ";".join(teile), klasse, p))
+
+
+def html(klasse="wm", rolle=None):
+    """Die Wortmarke als Schnipsel. KASPA steht im Element, PULSE im <b>."""
+    r = " data-rolle='%s'" % rolle if rolle else ""
+    return "<span class='%s'%s>%s <b>%s</b></span>" % (klasse, r, WORT_1, WORT_2)
+
+
+def svg(breite=1200, groesse=34, sperrung=8, x=0, y=0, kaspa=None, pulse=None):
+    """Die Wortmarke als SVG-Text, fuer Bilder ohne Stilblock (OG-Karten)."""
+    k, p = kaspa or FARBE_1, pulse or FARBE_2
+    return ("<text x='%d' y='%d' font-family=\"%s\" font-weight='%d' font-size='%d' "
+            "letter-spacing='%d'><tspan fill='%s'>%s </tspan>"
+            "<tspan fill='%s'>%s</tspan></text>" % (
+                x, y, SCHRIFT.replace("'", ""), GEWICHT, groesse, sperrung,
+                k, WORT_1, p, WORT_2))
+
+
+# ------------------------------------------------------------- die website --
+# Jede Seite traegt das Logo in genau einer Zeile. nlogo ist der Kopf der
+# Unterseiten, brand der Fuss. Der Kopf der Startseite bleibt unberuehrt, er
+# wird im Startseiten-Umbau neu gebaut (Ben, 21.10.2026).
+WEB_KOPF = '<div class="nlogo"><a href="/">KASPA <span>PULSE</span></a></div>'
+WEB_FUSS = '<div class="brand">KASPA <span>PULSE</span></div>'
+WEB_RECHT = '<a class="logo" href="/">KASPA <span>PULSE</span></a>'
+_ALT_KOPF = re.compile(r'<div class="nlogo"><a href="/">.*?</a></div>')
+_ALT_FUSS = re.compile(r'<div class="brand">.*?</div>')
+_ALT_RECHT = re.compile(r'<a class="logo" href="/">.*?</a>')
+OHNE_KOPF = ("index.html",)          # Startseiten-Kopf: Umbau, nicht hier
+SEITEN = sorted(p.name for p in REPO.glob("*.html"))
+
+# Die Farben der Marke stehen hier als Zahl, nicht als var(--txt): --txt ist
+# auf der Website #FFFFFF, die Marke traegt #F2F5F4. Der Block haengt am Ende
+# des Stilblocks jeder Seite und schlaegt die Regeln davor. Die Schriftart
+# bleibt die der Seite; Archivo gehoert zum Startseiten-Umbau, der ueber das
+# Laden der Schnitte entscheidet (Ben, 21.10.2026).
+MARKE_AUF = "/* wortmarke.py, nicht von hand aendern */"
+MARKE_ZU = "/* ende wortmarke.py */"
+WEB_CSS = """  %s
+  .nav .nlogo a, .logo, footer .brand { color:%s; font-weight:%d; }
+  .nav .nlogo span, .logo span, footer .brand span { color:%s; }
+  footer .brand { opacity:1; }
+  %s""" % (MARKE_AUF, FARBE_1, GEWICHT, FARBE_2, MARKE_ZU)
+_ALT_CSS = re.compile(re.escape(MARKE_AUF) + r".*?" + re.escape(MARKE_ZU), re.S)
+
+
+def seite_umschreiben(text, name):
+    """(neuer text, zahl der ersetzungen) fuer eine Seite."""
+    n = 0
+    if name not in OHNE_KOPF:
+        text, k = _ALT_KOPF.subn(WEB_KOPF, text)
+        n += k
+    for muster, neu in ((_ALT_FUSS, WEB_FUSS), (_ALT_RECHT, WEB_RECHT)):
+        text, k = muster.subn(neu, text)
+        n += k
+    if n or MARKE_AUF in text:
+        text = _css_setzen(text)
+    return text, n
+
+
+def _css_setzen(text):
+    """Haengt den Marken-Block ans Ende des Stilblocks, genau einmal."""
+    if MARKE_AUF in text:
+        return _ALT_CSS.sub(lambda m: WEB_CSS, text, count=1)
+    i = text.find("</style>")
+    if i < 0:
+        return text
+    return text[:i] + WEB_CSS + "\n" + text[i:]
+
+
+def anwenden(schreiben=True):
+    """Schreibt die Wortmarke in jede Seite. Gibt die geaenderten Namen."""
+    geaendert = []
+    for name in SEITEN:
+        p = REPO / name
+        alt = p.read_text(encoding="utf-8")
+        neu, n = seite_umschreiben(alt, name)
+        if n and neu != alt:
+            geaendert.append(name)
+            if schreiben:
+                p.write_text(neu, encoding="utf-8")
+    return geaendert
+
+
+def erzeuger_treffer():
+    """Erzeuger, die noch Falke oder PulseHawk tragen."""
+    quellen = sorted((REPO / "scripts").glob("*.py")) + [REPO / "capture.js"]
+    treffer = []
+    for q in quellen:
+        if q.name in REDET_UEBER:
+            continue
+        t = q.read_text(encoding="utf-8").lower()
+        treffer += ["%s: %s" % (q.name, w) for w in VERBOTEN_IN_AUSGABEN if w in t]
+    return treffer
+
+
+def seiten_treffer():
+    """Seiten mit mehr PULSEHAWK, als noch offen stehen darf."""
+    aus = []
+    for name in SEITEN:
+        n = (REPO / name).read_text(encoding="utf-8").lower().count("pulsehawk")
+        if n > NOCH_OFFEN.get(name, 0):
+            aus.append("%s: %dx" % (name, n))
+    return aus
+
+
+def pruefen():
+    """Befunde als Liste. Leer heisst: die Marke steht ueberall gleich."""
+    befunde = erzeuger_treffer() + seiten_treffer()
+    for name in SEITEN:
+        text = (REPO / name).read_text(encoding="utf-8")
+        for m in _ALT_KOPF.finditer(text):
+            if name in OHNE_KOPF:
+                continue
+            if m.group(0) != WEB_KOPF:
+                befunde.append("%s, kopf weicht ab: %s" % (name, m.group(0)[:80]))
+        for m in _ALT_FUSS.finditer(text):
+            if m.group(0) != WEB_FUSS:
+                befunde.append("%s, fuss weicht ab: %s" % (name, m.group(0)[:80]))
+    return befunde
+
+
+def _main():
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("befehl", nargs="?", choices=("pruefen", "anwenden", "bilder"))
+    ap.add_argument("--selbsttest", action="store_true")
+    a = ap.parse_args()
+    if a.selbsttest:
+        return selbsttest()
+    if a.befehl == "anwenden":
+        g = anwenden()
+        print("wortmarke geschrieben in %d seiten%s" % (len(g), (": " + ", ".join(g)) if g else ""))
+        return 0
+    if a.befehl == "bilder":
+        import wortmarke_bilder
+        return wortmarke_bilder.alle()
+    befunde = pruefen()
+    for b in befunde:
+        print("  " + b)
+    print("%d abweichung(en)" % len(befunde))
+    return 1 if befunde else 0
+
+
+def selbsttest():
+    fehler = []
+
+    def ok(was, bedingung):
+        print("  %s   %s" % ("ok " if bedingung else "FEHL", was))
+        if not bedingung:
+            fehler.append(was)
+
+    print("wortmarke")
+    ok("die marken-farben stehen fest", (FARBE_1, FARBE_2) == ("#F2F5F4", "#49EACB"))
+    ok("archivo 900", GEWICHT == 900 and "Archivo" in SCHRIFT)
+    ok("der dunkle look gibt genau die marken-farben", farben("dunkel") == (FARBE_1, FARBE_2))
+    ok("der helle look nimmt einen lesbaren akzent, nicht die markierung",
+       farben("hell") == ("#0B1A17", "#0F9A80"))
+    ok("der teale look bleibt dunkel auf teal", farben("teal") == ("#04211C", "#04211C"))
+    ok("im schnipsel steht KASPA und PULSE getrennt",
+       html() == "<span class='wm'>KASPA <b>PULSE</b></span>")
+    ok("das css faerbt KASPA und PULSE verschieden",
+       FARBE_1 in css() and FARBE_2 in css() and "900" in css())
+    ok("kein prozentzeichen im css, es laeuft durch kein format", "%" not in css())
+    ok("groesse und sperrung lassen sich dem aufrufer ueberlassen",
+       "font-size" not in css(groesse=None, sperrung=None)
+       and "letter-spacing" not in css(groesse=None, sperrung=None))
+    ok("css-variablen statt zahlen gehen auch",
+       "var(--txt)" in css(kaspa="var(--txt)", pulse="var(--teal)")
+       and "var(--teal)" in css(kaspa="var(--txt)", pulse="var(--teal)"))
+    ok("das svg traegt beide woerter mit ihrer farbe",
+       FARBE_1 in svg() and FARBE_2 in svg() and ">KASPA <" in svg())
+    # die website
+    auf, _ = seite_umschreiben(
+        '<div class="nlogo"><a href="/">PULSE<span>HAWK</span> · KASPA PULSE</a></div>',
+        "kaspa-hashrate.html")
+    ok("der alte kopf wird zur wortmarke", auf == WEB_KOPF)
+    auf, _ = seite_umschreiben('<div class="brand">PULSEHAWK</div>', "index.html")
+    ok("der alte fuss wird zur wortmarke", auf == WEB_FUSS)
+    auf, n = seite_umschreiben(
+        '<div class="nlogo"><a href="/">PULSE<span>HAWK</span></a></div>', "index.html")
+    ok("der kopf der startseite bleibt unberuehrt", n == 0 and "HAWK" in auf)
+    ok("zweimal anwenden aendert nichts mehr",
+       seite_umschreiben(WEB_KOPF, "kaspa-tvl.html") == (WEB_KOPF, 1))
+    ok("keine seite weicht ab", not pruefen())
+    ok("kein erzeuger traegt noch falke oder pulsehawk: %s" % (erzeuger_treffer() or "keiner"),
+       not erzeuger_treffer())
+    ok("keine seite traegt pulsehawk ausser dem offenen startseiten-kopf: %s"
+       % (seiten_treffer() or "keine"), not seiten_treffer())
+    ok("graphics/falcon.b64 ist weg", not (REPO / "graphics" / "falcon.b64").exists())
+    print("%d fehler" % len(fehler))
+    return 1 if fehler else 0
+
+
+if __name__ == "__main__":
+    sys.exit(_main())
