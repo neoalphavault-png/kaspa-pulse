@@ -1,5 +1,5 @@
 # Stichzeit fuer den Abgleich der geteilten Skripte mit Tony (Ben, 22.10.2026). Erste Zahl = Hauptstichzeit
-# 2026-10-22T10:58:40Z (Tonys census_at), dazu 10:58:00 und 10:59:00 nur als Zaehlung. Aenderung startet den Lauf.
+# 2026-10-22T10:58:40Z (Tonys census_at), dazu 10:58:00 und 10:59:00 nur als Zaehlung. Aenderung startet den Lauf (2. versuch).
 stichzeiten_ms=1792666720000 1792666680000 1792666740000
 spaeteste_ms=1792666740000
 tony=messung/covenants-stichzeit/tony/tony-skripte-2026-10-22.json

@@ -87,7 +87,8 @@ jobs:
       - name: rusty-kaspa quelle und werkzeug bauen
         run: |
           set -euo pipefail
-          sudo apt-get install -y -q protobuf-compiler clang > /dev/null
+          # kein apt: das werkzeug braucht weder protoc noch extra pakete, und apt schreibt
+          # bei fehlern die adresse seines spiegels ins log (22.10.2026)
           git clone -q --depth 1 --branch "$KASPA_TAG" https://github.com/kaspanet/rusty-kaspa /mnt/kp/rk
           cp -r messung/covenants-stichzeit/werkzeug /mnt/kp/rk/kp-stichzeit
           cd /mnt/kp/rk
