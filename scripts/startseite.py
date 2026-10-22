@@ -929,7 +929,10 @@ def ansehen(ziel, seite="index.html"):
                                    % (int(dt.datetime.now().timestamp() * 1000)))
                 pg.goto(url, wait_until="networkidle")
                 pg.evaluate("document.fonts.ready")
-                pg.evaluate("document.querySelectorAll('section.step').forEach(s=>s.classList.add('seen'))")
+                # die unterseiten blenden ihre bloecke beim scrollen ein (.rv/.vis),
+                # ein bild der ganzen seite ohne scrollen saehe sonst leer aus
+                pg.evaluate("document.querySelectorAll('section.step').forEach(s=>s.classList.add('seen'));"
+                            "document.querySelectorAll('.rv').forEach(e=>e.classList.add('vis'))")
                 pg.wait_for_timeout(600)
                 quer = pg.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
                 if quer > 0:
