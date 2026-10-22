@@ -6,7 +6,8 @@
 # rechnet ihn auf die Stichzeit zurueck (Zweitpruefung vorwaerts vom
 # Pruning-Punkt). Knoten-Logs gehen in eine Datei, die nie ausgegeben und nie
 # hochgeladen wird: dort stehen Peer-Adressen. Keine Wallet, keine Schluessel,
-# keine Secrets. Ergebnis nur als Artefakt, nichts ins Repo.
+# keine Secrets. Ergebnis nur als Artefakt, nichts ins Repo. Die Bestandsdatei
+# mit Adressen bleibt im Runner (seit 22.10.2026), hochgeladen werden nur Summen.
 
 name: covenants stichzeit
 
@@ -45,6 +46,7 @@ jobs:
         run: |
           python3 scripts/kp_stichzeit_warten.py --selbsttest | tail -n 1
           python3 scripts/kp_stichzeit_auswertung.py --selbsttest | tail -n 1
+          python3 scripts/kp_stichzeit_skripte.py --selbsttest | tail -n 1
 
       - name: platz schaffen
         run: |
@@ -152,11 +154,32 @@ jobs:
               fi
             done
           done
-          python3 scripts/kp_stichzeit_auswertung.py /mnt/kp/aus/bestand.csv /mnt/kp/aus/stand.json /mnt/kp/aus/auswertung.json
+          # Auswertung, mit eigener Reparaturschleife: die Bestandsdatei mit
+          # Adressen bleibt im Runner und wird nie hochgeladen (Ben, 22.10.2026).
+          tony=$(sed -n 's/^tony=//p' messung/covenants-stichzeit/start.txt)
+          auswerten() {
+            python3 scripts/kp_stichzeit_auswertung.py /mnt/kp/aus/bestand.csv /mnt/kp/aus/stand.json /mnt/kp/aus/auswertung.json || return 1
+            if [ -n "$tony" ]; then
+              python3 scripts/kp_stichzeit_skripte.py /mnt/kp/aus/bestand.csv "$tony" /mnt/kp/aus || return 1
+            fi
+          }
+          sstand=$(git rev-parse HEAD:scripts)
+          bis=$(( $(date +%s) + 90 * 60 ))
+          until auswerten; do
+            [ "$(date +%s)" -lt "$bis" ] || { echo "auswertung gescheitert, keine reparatur bis zum ende"; exit 1; }
+            echo "warte auf reparatur an der auswertung"
+            while [ "$(date +%s)" -lt "$bis" ]; do
+              sleep 60
+              git fetch -q origin messung/covenants-stichzeit || continue
+              neu=$(git rev-parse FETCH_HEAD:scripts)
+              if [ "$neu" != "$sstand" ]; then
+                git checkout -q FETCH_HEAD -- scripts messung/covenants-stichzeit/tony && sstand=$neu && echo "auswertung neu geholt" && break
+              fi
+            done
+          done
           python3 -c "import json; d=json.load(open('/mnt/kp/aus/stand.json')); print(json.dumps({k: d[k] for k in ('hauptstichzeit','hauptstichblock','pruning_punkt_zeit','kettenspitze_zeit','zweitpruefung')}, indent=2))"
           wc -l /mnt/kp/aus/bestand.csv
-          sha256sum /mnt/kp/aus/bestand.csv /mnt/kp/aus/stand.json /mnt/kp/aus/auswertung.json
-          gzip -k /mnt/kp/aus/bestand.csv
+          sha256sum /mnt/kp/aus/bestand.csv /mnt/kp/aus/stand.json /mnt/kp/aus/auswertung.json /mnt/kp/aus/skripte-abgleich.* 2>/dev/null || true
 
       - name: ergebnis hochladen
         if: always()
@@ -166,6 +189,7 @@ jobs:
           path: |
             /mnt/kp/aus/stand.json
             /mnt/kp/aus/auswertung.json
-            /mnt/kp/aus/bestand.csv.gz
+            /mnt/kp/aus/skripte-abgleich.csv
+            /mnt/kp/aus/skripte-abgleich.json
           if-no-files-found: ignore
           retention-days: 30
