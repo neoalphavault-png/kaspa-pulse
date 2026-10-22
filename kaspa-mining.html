@@ -44,28 +44,30 @@
 </script>
 <!--/AUTO:seo-kopf-->
 <link rel="icon" type="image/png" href="favicon.png">
+<link rel="preload" href="/graphics/fonts/archivo-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/rahmen.css">
 <style>
   :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
   * { margin:0; padding:0; box-sizing:border-box; }
   html { scroll-behavior:smooth; }
   body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
-         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
+         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, color-mix(in srgb, var(--teal) 10%, transparent), transparent 60%); }
   .wrap { max-width:780px; margin:0 auto; padding:8px 18px 56px; }
 
   /* nav */
-  .nav { position:sticky; top:0; z-index:60; background:rgba(5,6,8,0.88); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
+  .nav { position:sticky; top:0; z-index:60; background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
   .nav .nt { max-width:820px; margin:0 auto; padding:13px 18px 9px; display:flex; justify-content:space-between; align-items:center; }
   .nav .nlogo { font-size:13px; letter-spacing:4px; font-weight:700; }
   .nav .nlogo a { color:var(--txt); text-decoration:none; }
   .nav .nlogo span { color:var(--teal); }
-  .nav-cta { font-size:10px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color:var(--teal); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:5px 12px; text-decoration:none; background:rgba(73,234,203,0.07); white-space:nowrap; }
+  .nav-cta { font-size:10px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color:var(--teal); border:1px solid color-mix(in srgb, var(--teal) 35%, transparent); border-radius:999px; padding:5px 12px; text-decoration:none; background:color-mix(in srgb, var(--teal) 7%, transparent); white-space:nowrap; }
   .nright { display:flex; align-items:center; gap:8px; }
   .nburger { display:none; background:none; border:1px solid var(--line); color:var(--txt); border-radius:10px; padding:8px 14px; font-size:19px; line-height:1.2; cursor:pointer; font-family:inherit; }
   .nav .nc { max-width:820px; margin:0 auto; padding:0 10px 10px; display:flex; flex-wrap:wrap; gap:2px; row-gap:3px; }
   .nav .nc::-webkit-scrollbar { display:none; }
   .nav .nc a { font-size:12px; color:var(--dim); text-decoration:none; padding:5px 8px; border-radius:999px; white-space:nowrap; border:1px solid transparent; }
   .nav .nc a:hover { color:var(--txt); }
-  .nav .nc a.on { color:var(--teal); background:rgba(73,234,203,0.08); border-color:rgba(73,234,203,0.25); }
+  .nav .nc a.on { color:var(--teal); background:color-mix(in srgb, var(--teal) 8%, transparent); border-color:color-mix(in srgb, var(--teal) 25%, transparent); }
   @media (max-width:640px){
     .nburger { display:block; }
     .nav .nc { display:none; }
@@ -84,27 +86,27 @@
   p b, li b { color:var(--txt); font-weight:600; }
   ul { margin:0 0 14px 20px; }
   li { font-size:15px; line-height:24px; color:var(--dim); margin-bottom:8px; }
-  .answer { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:24px 26px; margin:34px 0; }
+  .answer { background:var(--card); border:1px solid color-mix(in srgb, var(--teal) 35%, transparent); border-radius:16px; padding:24px 26px; margin:34px 0; }
   .answer .lbl { font-size:12px; letter-spacing:3px; color:var(--teal); text-transform:uppercase; font-weight:700; margin-bottom:10px; }
   .answer p { margin:0; font-size:16px; line-height:25px; color:var(--txt); }
 
-  .live { background:var(--card); border:1px solid #15181C; border-radius:18px; padding:26px 26px 22px; margin:30px 0 8px; }
+  .live { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:26px 26px 22px; margin:30px 0 8px; }
   .live .lbl { font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700; }
   .live .lbl i { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--teal); margin-right:7px; vertical-align:1px; }
   .live .big { font-size:52px; font-weight:700; letter-spacing:-2px; color:var(--teal); line-height:1.05; margin:10px 0 4px; }
   .live .cap { font-size:13px; color:var(--dimmer); line-height:19px; }
-  .split { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; border-top:1px solid #15181C; padding-top:18px; }
+  .split { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; border-top:1px solid var(--line); padding-top:18px; }
   .split div .v { font-size:19px; font-weight:700; }
   .split div .k { font-size:11.5px; color:var(--dimmer); margin-top:4px; line-height:16px; }
 
   /* calculator */
-  .calc { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:18px; padding:24px 26px; margin:24px 0 8px; }
+  .calc { background:var(--card); border:1px solid color-mix(in srgb, var(--teal) 35%, transparent); border-radius:18px; padding:24px 26px; margin:24px 0 8px; }
   .calc .clbl { font-size:11px; letter-spacing:3px; color:var(--teal); text-transform:uppercase; font-weight:700; margin-bottom:14px; }
   .calc .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-  .calc input { background:#050608; border:1px solid var(--line); border-radius:10px; padding:12px 14px; color:var(--txt); font-size:16px; font-family:inherit; width:150px; }
+  .calc input { background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:12px 14px; color:var(--txt); font-size:16px; font-family:inherit; width:150px; }
   .calc input:focus { outline:none; border-color:var(--teal); }
   .calc .unit { font-size:13px; color:var(--dimmer); }
-  .calc .out { margin-top:18px; border-top:1px solid #15181C; padding-top:16px; display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .calc .out { margin-top:18px; border-top:1px solid var(--line); padding-top:16px; display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
   .calc .out .v { font-size:22px; font-weight:700; color:var(--teal); }
   .calc .out .k { font-size:11.5px; color:var(--dimmer); margin-top:4px; line-height:16px; }
   .calc .fine { font-size:11.5px; color:var(--dimmer); margin-top:14px; line-height:16px; }
@@ -113,14 +115,14 @@
   table { width:100%; border-collapse:collapse; margin:20px 0 8px; }
   th { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--dimmer); text-align:left; font-weight:700; padding:0 0 10px; border-bottom:1px solid var(--line); }
   th.r, td.r { text-align:right; }
-  td { font-size:14.5px; color:var(--dim); padding:12px 0; border-bottom:1px solid #101317; }
+  td { font-size:14.5px; color:var(--dim); padding:12px 0; border-bottom:1px solid var(--grid); }
   td.n { color:var(--txt); font-weight:600; }
   tr.me td { color:var(--teal); font-weight:700; }
   .tblwrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
   .tblwrap table { min-width:540px; }
 
   .facts { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:24px 0 8px; }
-  .fact { background:var(--card); border:1px solid #15181C; border-radius:14px; padding:18px; }
+  .fact { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; }
   .fact .v { font-size:22px; font-weight:700; }
   .fact .v.teal { color:var(--teal); } .fact .v.red { color:var(--red); }
   .fact .l { font-size:12.5px; color:var(--dimmer); margin-top:6px; line-height:17px; }
@@ -128,8 +130,8 @@
   a { color:var(--teal); }
   @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} .live .big{font-size:40px;} .split{grid-template-columns:1fr; gap:14px;} td,th{font-size:13px;} }
 
-  .band { background:linear-gradient(180deg, #0B0E14, #090C10); border-top:1px solid #181C23; border-bottom:1px solid #181C23; box-shadow:inset 0 1px 0 rgba(255,255,255,0.02); }
-  .band .fact, .band .note { background:#0F1218; }
+  .band { background:linear-gradient(180deg, var(--grid), var(--grid)); border-top:1px solid var(--line); border-bottom:1px solid var(--line); box-shadow:inset 0 1px 0 color-mix(in srgb, var(--txt) 2%, transparent); }
+  .band .fact, .band .note { background:var(--card); }
   .wrap2 { max-width:780px; margin:0 auto; padding:10px 18px 40px; }
   .wrap2 h2:first-child { margin-top:40px; }
 
@@ -137,18 +139,18 @@
   .rv.vis { opacity:1; transform:none; }
   @media (prefers-reduced-motion: reduce){ .rv { opacity:1; transform:none; transition:none; } }
 
-  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
-  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
+  .subscribe { background:linear-gradient(160deg, color-mix(in srgb, var(--teal) 9%, transparent), color-mix(in srgb, var(--teal) 2%, transparent)); border:1px solid color-mix(in srgb, var(--teal) 35%, transparent); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
+  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:color-mix(in srgb, var(--teal) 10%, transparent); border:1px solid color-mix(in srgb, var(--teal) 35%, transparent); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
   .subscribe .st { font-size:18px; font-weight:700; }
   .subscribe .st b { color:var(--teal); }
   .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
   .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
-  .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
+  .subscribe input { flex:1; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
   .subscribe input::placeholder { color:var(--dimmer); }
-  .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .subscribe button { background:var(--teal); color:var(--bg); border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
   .subscribe .msg { display:none; font-size:13px; font-weight:600; margin-top:14px; padding:10px 14px; border-radius:8px; }
-  .subscribe .msg.ok { display:block; color:var(--teal); background:rgba(73,234,203,0.08); border:1px solid rgba(73,234,203,0.35); }
-  .subscribe .msg.err { display:block; color:var(--red); background:rgba(227,106,106,0.08); border:1px solid rgba(227,106,106,0.35); }
+  .subscribe .msg.ok { display:block; color:var(--teal); background:color-mix(in srgb, var(--teal) 8%, transparent); border:1px solid color-mix(in srgb, var(--teal) 35%, transparent); }
+  .subscribe .msg.err { display:block; color:var(--red); background:color-mix(in srgb, var(--red) 8%, transparent); border:1px solid color-mix(in srgb, var(--red) 35%, transparent); }
   .subscribe .fine { font-size:11px; color:var(--dimmer); margin-top:10px; }
   @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
   footer { border-top:1px solid var(--line); margin-top:48px; padding-top:16px; text-align:center; font-size:11px; color:var(--dimmer); }
@@ -157,41 +159,41 @@
   .nav .nlogo a, .logo, footer .brand { color:#F2F5F4; font-weight:900; }
   .nav .nlogo span, .logo span, footer .brand span { color:#49EACB; }
   footer .brand { opacity:1; }
+  /* nur der fuss steht auf dem grund der seite und folgt dem look,
+     der balken oben bleibt in beiden looks dunkel */
+  footer .brand { color:#0B1A17; }
+  footer .brand span { color:#0F9A80; }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) footer .brand { color:#F2F5F4; }
+    :root:not([data-theme="light"]) footer .brand span { color:#49EACB; }
+  }
+  :root[data-theme="dark"] footer .brand { color:#F2F5F4; }
+  :root[data-theme="dark"] footer .brand span { color:#49EACB; }
   /* ende wortmarke.py */
 </style>
 </head>
 <body>
-<nav class="nav">
-  <div class="nt">
-    <div class="nlogo"><a href="/">KASPA <span>PULSE</span></a></div>
-    <div class="nright"><a class="nav-cta" href="#subForm">free cheat sheet</a><button class="nburger" aria-label="menu">☰</button></div>
-  </div>
-    <div class="nc">
-    <a href="/">dashboard</a>
+<!--AUTO:rahmen-kopf-->
+<div class="kpbar">
+<header class="top">
+  <a class="logo" href="/">KASPA <span>PULSE</span></a>
+<nav class="menu" id="menu" aria-label="main">
+  <div class="mtop">
+    <a href="/">this week</a>
     <a href="/kaspa-weekly.html">weekly</a>
     <a href="/for-builders.html">for builders</a>
-    <a href="/kaspa-hashrate.html">hashrate</a>
-    <a href="/kaspa-mining.html" class="on">mining</a>
-    <a href="/merged-mining.html">merged mining</a>
-    <a href="/kaspa-halving.html">the halving</a>
-    <a href="/kaspa-security-budget.html">security budget</a>
-    <a href="/kaspa-toccata.html">toccata</a>
-    <a href="/kaspa-covenants.html">covenants</a>
-    <a href="/kaspa-supply.html">supply</a>
-    <a href="/entity-x.html">entity x</a>
-    <a href="/kaspa-staking.html">staking</a>
-    <a href="/kaspa-token-standard.html">token standards</a>
-    <a href="/kaspa-smart-contracts.html">smart contracts</a>
-    <a href="/kron.html">kron</a>
-    <a href="/kaspa-tvl.html">tvl</a>
-    <a href="/kaspa-wallets.html">wallets</a>
-    <a href="/kaspa-web-wallet-safe.html">web wallet safety</a>
-    <a href="/kaspa-data-sources.html">data sources</a>
-    <a href="/method/">method</a>
-    <a href="/archive/">archive</a>
-    <a href="/how-we-fund-this.html">how we fund this</a>
   </div>
+  <div class="grp"><button class="gbtn on" type="button" aria-expanded="false">network</button><div class="drop"><a href="/kaspa-hashrate.html">hashrate</a><a href="/kaspa-mining.html" aria-current="page">mining</a><a href="/merged-mining.html">merged mining</a><a href="/kaspa-halving.html">the halving</a><a href="/kaspa-security-budget.html">security budget</a><a href="/kaspa-toccata.html">toccata</a><a href="/kaspa-covenants.html">covenants</a></div></div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">supply</button><div class="drop"><a href="/kaspa-supply.html">supply</a><a href="/entity-x.html">entity x</a><a href="/kaspa-staking.html">staking</a></div></div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">tokens</button><div class="drop"><a href="/kaspa-token-standard.html">token standards</a><a href="/kaspa-smart-contracts.html">smart contracts</a><a href="/kron.html">kron</a><a href="/kaspa-tvl.html">tvl</a></div></div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">tools</button><div class="drop"><a href="/kaspa-wallets.html">wallets</a><a href="/kaspa-web-wallet-safe.html">web wallet safety</a><a href="/kaspa-data-sources.html">data sources</a></div></div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">about</button><div class="drop"><a href="/method/">method</a><a href="/archive/">archive</a><a href="/how-we-fund-this.html">how we fund this</a></div></div>
 </nav>
+  <button class="burger" type="button" aria-expanded="false" aria-controls="menu">menu</button>
+  <a class="subbtn" href="#subForm">subscribe</a>
+</header>
+</div>
+<!--/AUTO:rahmen-kopf-->
 <div class="wrap">
 
   <h1>Mining Kaspa, explained. <b>What it takes, what it pays — with the numbers live.</b></h1>
@@ -313,15 +315,29 @@
   </div>
 
   <div class="discordbox" style="background:linear-gradient(160deg, rgba(88,101,242,0.13), rgba(88,101,242,0.03)); border:1px solid rgba(88,101,242,0.45); border-radius:16px; padding:30px 24px; margin:18px 0 0; text-align:center;">
-    <div style="display:inline-block; font-size:10px; letter-spacing:2px; color:#9BA6F8; background:rgba(88,101,242,0.14); border:1px solid rgba(88,101,242,0.45); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700;">free · wallet alerts</div>
-    <div style="font-size:18px; font-weight:700; letter-spacing:-0.3px;">the chain, <span style="color:#9BA6F8;">watched for you</span></div>
-    <div style="font-size:12px; color:#7A828C; margin-top:6px; line-height:17px; max-width:460px; margin-left:auto; margin-right:auto;">the entity x wallet and the reward cuts get checked several times a day, and a post goes to discord when a check finds a move. plus the monday numbers and a place to request the data you're missing.</div>
+    <div style="display:inline-block; font-size:10px; letter-spacing:2px; color:var(--discord); background:rgba(88,101,242,0.14); border:1px solid rgba(88,101,242,0.45); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700;">free · wallet alerts</div>
+    <div style="font-size:18px; font-weight:700; letter-spacing:-0.3px;">the chain, <span style="color:var(--discord);">watched for you</span></div>
+    <div style="font-size:12px; color:var(--dimmer); margin-top:6px; line-height:17px; max-width:460px; margin-left:auto; margin-right:auto;">the entity x wallet and the reward cuts get checked several times a day, and a post goes to discord when a check finds a move. plus the monday numbers and a place to request the data you're missing.</div>
     <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener" style="display:inline-block; background:#5865F2; color:#FFFFFF; border-radius:8px; padding:11px 22px; font-size:14px; font-weight:700; text-decoration:none; margin-top:16px;">join the kaspa pulse discord</a>
-    <div style="font-size:11px; color:#7A828C; margin-top:10px;">one click, no email · alerts land in #entity-x-alerts</div>
+    <div style="font-size:11px; color:var(--dimmer); margin-top:10px;">one click, no email · alerts land in #entity-x-alerts</div>
   </div>
 
+<!--AUTO:rahmen-kanaele-->
+<section class="kpkanal" aria-label="follow kaspa pulse">
+  <p>follow kaspa pulse</p>
+  <nav aria-label="channels">
+    <a href="https://x.com/gokugalax" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.8 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg>X</a>
+    <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.7 15V9l5.8 3-5.8 3z"/></svg>YouTube</a>
+    <a href="https://discord.gg/e6snta6Rfg" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18 18 0 0 0-5.6 0L8.6 3a19.6 19.6 0 0 0-4.9 1.4C.6 9 0 13.5.3 18a19.8 19.8 0 0 0 6 3l1.3-2a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4-2 1 1.3 2a19.7 19.7 0 0 0 6-3c.4-5.2-.7-9.6-3.4-13.6zM8.7 15.3c-1.2 0-2.1-1-2.1-2.3s.9-2.3 2.1-2.3 2.1 1 2.1 2.3-.9 2.3-2.1 2.3zm6.6 0c-1.2 0-2.1-1-2.1-2.3s.9-2.3 2.1-2.3 2.1 1 2.1 2.3-.9 2.3-2.1 2.3z"/></svg>Discord</a>
+    <a href="https://www.instagram.com/kaspapulse" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.3a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm6-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM17 2H7a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5zm3.2 15a3.2 3.2 0 0 1-3.2 3.2H7A3.2 3.2 0 0 1 3.8 17V7A3.2 3.2 0 0 1 7 3.8h10A3.2 3.2 0 0 1 20.2 7v10z"/></svg>Instagram</a>
+  </nav>
+</section>
+<!--/AUTO:rahmen-kanaele-->
   <footer>
     <div class="stand"><!--AUTO:seitenstand-->page last updated 13 October 2026<!--/AUTO:seitenstand--></div>
+    <!--AUTO:rahmen-marke-->
+<div class="brand">KASPA <span>PULSE</span></div>
+<!--/AUTO:rahmen-marke-->
     <div>not financial advice · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
     <div class="fund" style="margin-top:10px;"><a href="/how-we-fund-this.html" style="display:inline-block;padding:12px 10px;">how we fund this</a> · <a href="/for-builders.html" style="display:inline-block;padding:12px 10px;">for builders</a></div>
   </footer>
@@ -463,6 +479,7 @@
   });
 })();
 </script>
+<script src="/rahmen.js" defer></script>
 <script src="/capture.js" defer></script>
 <script src="/utm.js" defer></script>
 </body>

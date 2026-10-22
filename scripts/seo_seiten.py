@@ -111,6 +111,12 @@ def menue(js=None):
 
 def nav(s, datei, punkte):
     hier = "/" if datei == "index.html" else "/" + datei
+    # unterseiten im rahmen (rahmen.py, PR 3): das menue steht im kopf und
+    # kommt aus MENUE in capture.js, dieselbe quelle wie die liste unten
+    if "<!--AUTO:rahmen-kopf-->" in s:
+        sys.path.insert(0, str(REPO / "scripts"))
+        import rahmen
+        return rahmen.kopf_setzen(s, datei)
     m = re.search(r'(?s)(<nav class="nav">.*?<div class="nc">\n)(.*?)(\s*</div>\n</nav>)', s)
     if not m:
         return s
@@ -218,6 +224,8 @@ def ohne_div(s, muster):
 def inhalt_hash(s):
     b = s[s.find("<body"):] if "<body" in s else s
     b = re.sub(r"(?s)<nav\b.*?</nav>", " ", b)
+    # der rahmen der unterseiten (rahmen.py) ist kein inhalt der seite
+    b = re.sub(r"(?s)<!--AUTO:(rahmen-[a-z]+)-->.*?<!--/AUTO:\1-->", " ", b)
     b = re.sub(r"(?s)<(script|style|noscript|template)\b.*?</\1>", " ", b)
     b = re.sub(r'(?s)<div class="fund"[^>]*>.*?</div>', " ", b)
     # Der Anmeldeblock zaehlt nicht zum Seiteninhalt (Ben, 11.10.2026): am

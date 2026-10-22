@@ -136,18 +136,22 @@ def menue_gruppen(js=None):
     return oben, gruppen
 
 
-def menue_html(js=None):
+def menue_html(js=None, hier="/"):
+    """Das Menue aus MENUE. hier ist der Pfad der Seite: ihr Punkt bekommt
+    aria-current, ihre Gruppe die Klasse on (rahmen.py fuer die Unterseiten)."""
     oben, gruppen = menue_gruppen(js)
     z = ['<nav class="menu" id="menu" aria-label="main">', '  <div class="mtop">']
     for t, h in oben:
         t = OBEN_UMBENANNT.get(h, t)
-        cur = ' aria-current="page"' if h == "/" else ""
+        cur = ' aria-current="page"' if h == hier else ""
         z.append('    <a href="%s"%s>%s</a>' % (h, cur, esc(t)))
     z.append("  </div>")
     for g, punkte in gruppen:
-        z.append('  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">%s</button>'
+        on = " on" if any(h == hier for _, h in punkte) else ""
+        z.append('  <div class="grp"><button class="gbtn%s" type="button" aria-expanded="false">%s</button>'
                  '<div class="drop">%s</div></div>'
-                 % (esc(g), "".join('<a href="%s">%s</a>' % (h, esc(t)) for t, h in punkte)))
+                 % (on, esc(g), "".join('<a href="%s"%s>%s</a>' % (h, ' aria-current="page"' if h == hier else "",
+                                                                    esc(t)) for t, h in punkte)))
     z.append("</nav>")
     return "\n".join(z)
 

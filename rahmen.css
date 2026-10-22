@@ -1,0 +1,113 @@
+/* rahmen.css, der gemeinsame Rahmen aller Unterseiten (Ben, 22.10.2026, PR 3).
+
+   Kopf, Menue, Fuss, Farben und Schrift wie auf der Startseite. Die Inhalte
+   der Seiten bleiben, wie sie sind. scripts/rahmen.py setzt Kopf und Fuss in
+   jede Seite und stellt ihre festen Farbwerte auf die Variablen unten um.
+
+   REIHENFOLGE. Diese Datei steht im Kopf jeder Seite VOR deren eigenem
+   Stilblock. Damit sie trotzdem gewinnt, wo sie muss, tragen ihre Regeln
+   eine hoehere Spezifitaet (html:root, html body, .kpbar ...). Der Block von
+   wortmarke.py am Ende des Stilblocks kommt danach und behaelt das letzte
+   Wort ueber die Farben der Marke.
+
+   Schriften aus graphics/fonts (OFL), keine Anfrage an Dritte. */
+
+@font-face{font-family:Archivo;font-weight:800;font-display:swap;src:url(/graphics/fonts/archivo-latin-800-normal.woff2) format("woff2")}
+@font-face{font-family:Archivo;font-weight:900;font-display:swap;src:url(/graphics/fonts/archivo-latin-900-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;src:url(/graphics/fonts/ibm-plex-mono-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:500;font-display:swap;src:url(/graphics/fonts/ibm-plex-mono-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-weight:400;font-display:swap;src:url(/graphics/fonts/ibm-plex-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-weight:500;font-display:swap;src:url(/graphics/fonts/ibm-plex-sans-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-weight:600;font-display:swap;src:url(/graphics/fonts/ibm-plex-sans-latin-600-normal.woff2) format("woff2")}
+
+/* Die Variablen, die die Seiten schon fuehren (--bg, --card, --line, --teal,
+   --red, --txt, --dim, --dimmer), bekommen die Toene der Startseite. Dazu
+   --amber und --discord, auf die rahmen.py die festen Werte umstellt.
+   Hell ist der Grundfall, dunkel ueber dieselben zwei Abfragen wie auf der
+   Startseite. Der Balken oben ist in beiden Looks dunkel. */
+html:root{
+  --bg:#EEF3F1; --card:#FFFFFF; --line:#D3DEDA; --grid:#E2ECE9; --teal:#0F9A80; --red:#C2553A;
+  --txt:#0B1A17; --dim:#4F625D; --dimmer:#5B6B67; --amber:#8A5A00; --discord:#4752C4; --chip:#E2ECE9;
+  --bar:#080B0F; --bar-ink:#F2F5F4; --bar-muted:#A9B7B4; --bar-line:#1B252B; --bar-chip:#1B252B; --brand:#49EACB;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  html:root:not([data-theme="light"]){
+    --bg:#080B0F; --card:#0F1519; --line:#1F2A2E; --grid:#152025; --teal:#49EACB; --red:#F08A6C;
+    --txt:#F2F5F4; --dim:#A9B7B4; --dimmer:#93A39F; --amber:#E8B04B; --discord:#9BA6F8; --chip:#152025;
+    color-scheme:dark;
+  }
+}
+html:root[data-theme="dark"]{
+  --bg:#080B0F; --card:#0F1519; --line:#1F2A2E; --grid:#152025; --teal:#49EACB; --red:#F08A6C;
+  --txt:#F2F5F4; --dim:#A9B7B4; --dimmer:#93A39F; --amber:#E8B04B; --discord:#9BA6F8; --chip:#152025;
+  color-scheme:dark;
+}
+
+html body{font-family:"IBM Plex Sans",system-ui,sans-serif;background-color:var(--bg);color:var(--txt);overflow-x:hidden}
+html body h1,html body h2,html body h3{font-family:Archivo,"IBM Plex Sans",sans-serif}
+html{scroll-padding-top:72px}
+
+/* Diagramme, die Skripte oder Generatoren mit festen Farben zeichnen
+   (halving, weekly, covenants ...). Eine CSS-Eigenschaft schlaegt das
+   Attribut, so folgen auch sie dem Look, ohne dass jemand die Skripte
+   anfasst. */
+[fill="#49EACB" i]{fill:var(--teal)} [stroke="#49EACB" i]{stroke:var(--teal)}
+[fill="#E8B04B" i]{fill:var(--amber)} [stroke="#E8B04B" i]{stroke:var(--amber)}
+[fill="#E36A6A" i]{fill:var(--red)} [stroke="#E36A6A" i]{stroke:var(--red)}
+[fill="#FFFFFF" i],[fill="#FFF" i],[fill="#F2F5F4" i]{fill:var(--txt)}
+[fill="#9BA3AB" i]{fill:var(--dim)}
+[fill="#7A828C" i],[fill="#5C6672" i]{fill:var(--dimmer)} [stroke="#7A828C" i],[stroke="#5C6672" i]{stroke:var(--dimmer)}
+[stroke="#1A1D21" i],[stroke="#15181C" i],[stroke="#181C23" i]{stroke:var(--line)}
+[stroke="#101317" i],[stroke="#14171B" i]{stroke:var(--grid)}
+[fill="#050608" i]{fill:var(--bg)} [fill="#0B0E12" i],[fill="#0F1218" i]{fill:var(--card)}
+[stop-color="#49EACB" i]{stop-color:var(--teal)}
+
+/* ---------------------------------------------------------------- kopf */
+.kpbar{position:sticky;top:0;z-index:60;background:var(--bar);border-bottom:1px solid var(--bar-line);font-family:"IBM Plex Sans",system-ui,sans-serif}
+.kpbar header.top{max-width:1080px;margin:0 auto;padding:0 16px;height:56px;display:flex;align-items:center;justify-content:flex-start;gap:16px;border:0}
+.kpbar .logo{font:900 18px/1 Archivo,sans-serif;letter-spacing:.04em;text-decoration:none;white-space:nowrap;margin:0}
+.kpbar .menu{display:flex;align-items:center;gap:2px;margin-left:auto}
+.kpbar .mtop{display:flex;gap:2px}
+.kpbar .menu a,.kpbar .gbtn{font:500 14px/1 "IBM Plex Sans",system-ui,sans-serif;color:var(--bar-muted);text-decoration:none;padding:10px 9px;border-radius:6px;background:none;border:0;cursor:pointer;white-space:nowrap;margin:0;letter-spacing:0;text-transform:none}
+.kpbar .menu a:hover,.kpbar .gbtn:hover{color:var(--bar-ink);background:var(--bar-chip)}
+.kpbar .mtop a[aria-current="page"],.kpbar .gbtn.on{color:var(--bar-ink);box-shadow:inset 0 -2px 0 var(--brand);border-radius:0}
+.kpbar .gbtn::after{content:"";display:inline-block;width:6px;height:6px;margin-left:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-3px) rotate(45deg)}
+.kpbar .grp{position:relative}
+.kpbar .drop{display:none;position:absolute;top:100%;left:0;min-width:200px;flex-direction:column;background:var(--bar);border:1px solid var(--bar-line);border-radius:10px;padding:6px;box-shadow:0 12px 32px rgba(0,0,0,.35)}
+.kpbar .drop a{color:var(--bar-ink);padding:10px 12px}
+.kpbar .drop a[aria-current="page"]{color:var(--brand)}
+.kpbar .grp:hover .drop,.kpbar .grp:focus-within .drop,.kpbar .grp.open .drop{display:flex}
+.kpbar .subbtn{font:600 14px/1 "IBM Plex Sans",system-ui,sans-serif;background:var(--brand);color:#04211C;text-decoration:none;padding:10px 14px;border-radius:8px;white-space:nowrap}
+.kpbar .burger{display:none;margin-left:auto;font:500 13px/1 "IBM Plex Mono",monospace;background:var(--bar-chip);color:var(--bar-ink);border:1px solid var(--bar-line);border-radius:8px;padding:9px 12px;cursor:pointer}
+.kpbar a:focus-visible,.kpbar button:focus-visible,.kpkanal a:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+@media (max-width:1000px){
+  .kpbar header.top{gap:10px}
+  .kpbar .burger{display:inline-block}
+  .kpbar .subbtn{padding:9px 12px}
+  /* handy: alle gruppen offen, zwei spalten, passt ohne scrollen auf 360 x 640 */
+  .kpbar .menu{display:none;position:absolute;left:0;right:0;top:56px;margin:0;background:var(--bar);border-bottom:1px solid var(--bar-line);padding:8px 16px 14px;max-height:calc(100vh - 56px);max-height:calc(100dvh - 56px);overflow-y:auto;overscroll-behavior:contain}
+  .kpbar .menu.open{display:block;columns:2;column-gap:16px}
+  .kpbar .mtop{column-span:all;display:flex;flex-wrap:wrap;gap:0 14px;border-bottom:1px solid var(--bar-line);margin-bottom:6px}
+  .kpbar .mtop a{padding:9px 0;font-size:15px;color:var(--bar-ink)}
+  .kpbar .mtop a[aria-current="page"]{box-shadow:none;color:var(--brand)}
+  .kpbar .grp{break-inside:avoid;padding-top:6px}
+  .kpbar .gbtn,.kpbar .gbtn.on{pointer-events:none;padding:4px 0 2px;font:500 11px/1 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--bar-muted);box-shadow:none}
+  .kpbar .gbtn::after{display:none}
+  .kpbar .drop{display:flex;position:static;min-width:0;border:0;box-shadow:none;padding:0;background:none}
+  .kpbar .drop a{padding:5px 0;font-size:14.5px;white-space:normal}
+}
+@media (max-width:380px){.kpbar .logo{font-size:16px}.kpbar .subbtn{padding:8px 10px;font-size:13px}.kpbar .burger{padding:8px 10px}}
+/* das aufgeklappte menue verdeckt sonst der schwebende knopf aus capture.js */
+body:has(.kpbar .menu.open) #kpcBtn{display:none}
+
+/* ---------------------------------------------------------------- fuss */
+.kpkanal{max-width:780px;margin:56px auto 0;padding:32px 18px 0;border-top:1px solid var(--line)}
+.kpkanal p{font:500 12px/1 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 0 12px}
+.kpkanal nav{display:flex;flex-wrap:wrap;gap:8px}
+.kpkanal a{display:inline-flex;align-items:center;gap:8px;font:500 14px/1 "IBM Plex Sans",system-ui,sans-serif;color:var(--txt);text-decoration:none;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:11px 14px}
+.kpkanal a:hover{border-color:var(--teal)}
+.kpkanal svg{width:16px;height:16px;fill:currentColor}
+html body footer{font:400 12px/1.7 "IBM Plex Mono",monospace;color:var(--dim);text-align:left}
+html body footer a{color:var(--dim)}
+html body footer .brand{font:900 16px/1 Archivo,sans-serif;letter-spacing:.04em;margin:8px 0 10px}
