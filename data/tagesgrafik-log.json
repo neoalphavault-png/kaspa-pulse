@@ -267,6 +267,28 @@
      "verhaeltnis": 750.24
     }
    }
+  },
+  {
+   "datum": "2026-10-22",
+   "form": 3,
+   "grund": "rotation, 2 laeufe in 30 tagen, zahl des tages whale_weight (vorab gerechnet), uebersprungen [2, 7]",
+   "messzeit_utc": "2026-10-22T05:30:41+00:00",
+   "looks": {
+    "instagram": "hell",
+    "threads": "hell",
+    "x": "hell",
+    "discord": "hell"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-09-22",
+     "bis": "2026-10-21",
+     "fees": 74945.8335051,
+     "emission": 54790018.58066471,
+     "verhaeltnis": 731.06
+    }
+   }
   }
  ]
 }
