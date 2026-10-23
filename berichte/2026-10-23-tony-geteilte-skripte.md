@@ -66,13 +66,22 @@ Spalten: IDs, Outputs und KAS laut Tony (beansprucht), dann laut Knoten. "Output
 
 Geprüft auf Gedankenstrich, Doppelpunkt (nur die Uhrzeit), Pfeil, Echtzeitwörter, Preis und Kursziel.
 
-## Offene Fragen an Ben
+## Kurzfassung in zwei Teilen für Threads
 
-1. In deiner Nachricht vom 22.10. stand statt Tonys Link nur ein Platzhalter. Ich habe die Datei aus seinem Repo genommen (Commit 3f18000, `examples/shared_scripts_2026-10-22.json`). Zeigt dein Link auf dieselbe Datei?
-2. Das Artefakt von Lauf 39551527664 (21.10.) enthält die Bestandsliste vom 20.10. mit Adressen. Löschen?
-3. Lauf 39840060676 hat beim Paket-Install die IP eines Ubuntu-Paketspiegels ins Log geschrieben, keinen Kaspa-Knoten. Lauf löschen?
+Teil 1 (203 Zeichen)
+
+> counted on our own node at 10:58:40 utc on 22 oct. your 33 scripts hold 3,089 outputs and 22,819,501.45 kas, exactly what your node check shows on all 33, and the same 20 of 33 match the claims as a sum.
+
+Teil 2 (368 Zeichen)
+
+> the difference is the covenant id, only 103 of those outputs carry one on chain, under 100 ids, and 13 of the 33 scripts carry none at all, so 1,127 of the 1,173 ids (source tony's indexer) have no unspent output with that id on their script. on our definition, two or more on-chain covenant ids on one script, we count 114 shared scripts with 158 ids and 492 outputs.
+
+## Antworten von Ben (23.10.)
+
+1. Tonys Link zeigt auf `examples/shared_scripts_2026-10-22.json`, Commit 3f18000. Passt.
+2. Artefakt von Lauf 39551527664 mit der Bestandsliste vom 20.10. ist gelöscht (23.10., der Lauf hat jetzt 0 Artefakte). Feste Regel ab jetzt: Bestandslisten mit Adressen nie als Artefakt, nur Summen. Geprüft auf allen Branches: kein Workflow lädt eine Adressliste hoch. Die KCC-20-Zählung lädt nur Summen je Token, Tx-Listen ohne Skripte und Namen hoch.
+3. Lauf 39840060676 bleibt.
 
 ## Was Ben tun muss
 
-- Kurzfassung prüfen und posten (falls die Tabelle vom 22.10. schon in Tonys Thread steht, ist das nur der Text dazu).
-- Fragen 1 bis 3 beantworten.
+- Die zwei Teile auf Threads posten.
