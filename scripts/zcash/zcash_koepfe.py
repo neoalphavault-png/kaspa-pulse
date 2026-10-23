@@ -426,7 +426,8 @@ def main():
     # Lauf 4 (15.10.2026) hing ueber 20 min in der Suche nach Zakura-Peers, die
     # auf getheaders nicht antworten. Deshalb ein festes Zeitbudget.
     budget_ende = time.time() + 360
-    while len(proben) < args.gegenproben + 1 and versuche < 25 and time.time() < budget_ende:
+    # --gegenproben 0: keine Gegenprobe (kurzer Abruf, etwa im Zuhoerer)
+    while args.gegenproben > 0 and len(proben) < args.gegenproben + 1 and versuche < 25 and time.time() < budget_ende:
         versuche += 1
         a2, p2 = verbinden(adressen, benutzt, mindesthoehe=letzte_h - 50)
         if p2 is None:
