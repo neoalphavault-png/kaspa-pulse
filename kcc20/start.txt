@@ -1,7 +1,5 @@
-# KCC-20-Zaehlung (Ben, 23.10.2026). Aenderung dieser Datei startet einen Lauf.
-# Lauf 1, Fr 23.10.: Quellen pruefen, Covenant-Tx ab Pruning-Punkt sichern, Probezaehlung auf 13:30 UTC.
-stichzeit=2026-10-23T13:30:00Z
-stichzeiten_ms=1792762200000
-spaeteste_ms=1792762200000
+stichzeit=2026-10-23T14:30:00Z
+stichzeiten_ms=1792765800000
+spaeteste_ms=1792765800000
 seit=2026-10-21T00:00:00Z
 vorlaeufe=

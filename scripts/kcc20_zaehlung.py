@@ -183,6 +183,7 @@ class Zaehlung:
         for p, s in seed_templates:
             self._tpl(p, s, None)
         self.bewiesen = {}              # "txid:i" -> zustand
+        self.cov_von = {}               # "txid:i" -> covenant-id, nur bewiesene
         self.tx_info = {}               # txid -> {...}
 
     def _tpl(self, p, s, cov):
@@ -227,9 +228,21 @@ class Zaehlung:
                     break
             if gefunden:
                 self.bewiesen["%s:%d" % (t["id"], i)] = gefunden
+                self.cov_von["%s:%d" % (t["id"], i)] = cov
                 bewiesen += 1
-        art = "transfer" if TAG_TRANSFER in tags else ("kcc20_ausgang" if bewiesen else "andere")
-        self.tx_info[t["id"]] = {"t": t.get("t"), "art": art, "covs": sorted(covs), "bewiesen": bewiesen}
+        # ein transfer zaehlt nur fuer die tokens, deren bewiesene ausgaenge er
+        # erzeugt oder ausgibt. andere covenants in derselben tx (pools, maerkte)
+        # sind keine tokens und bekommen keinen transfer.
+        aus_covs = {self.cov_von[k] for k in ("%s:%d" % (t["id"], i) for i in range(len(t["out"])))
+                    if k in self.cov_von}
+        ein_covs = {self.cov_von[prev] for prev, _s in t["in"] if prev in self.cov_von}
+        ist_transfer = TAG_TRANSFER in tags or TAG_DELEGATOR in tags
+        k20 = aus_covs | ein_covs
+        if ist_transfer:
+            art = "transfer" if k20 else "transfer_unbewiesen"
+        else:
+            art = "kcc20_ausgang" if aus_covs else "andere"
+        self.tx_info[t["id"]] = {"t": t.get("t"), "art": art, "covs": sorted(k20), "bewiesen": bewiesen}
 
 
 def seed_aus_artefakt(pfad):
@@ -288,11 +301,18 @@ def auswerten(bestand_pfad, tx_pfade, stichzeit_ms, seit_ms, seed=(), fruehere=N
     tok = collections.defaultdict(lambda: {"outputs": 0, "menge": 0, "halter": set(), "kas_sompi": 0,
                                           "unter_token": set(), "transfers": 0, "kcc20_tx": 0})
     nicht = {"outputs": 0, "kas_sompi": 0, "covenants": set()}
+    token_covs = set(z.cov_von.values())
+    luecke = {"outputs": 0, "kas_sompi": 0, "covenants": set()}
     for op, cov, sompi, zst in lebend:
         if zst is None:
             nicht["outputs"] += 1
             nicht["kas_sompi"] += sompi
             nicht["covenants"].add(cov)
+            if cov in token_covs:
+                # covenant ist ein bewiesener kcc20-token, dieser output aber nicht
+                luecke["outputs"] += 1
+                luecke["kas_sompi"] += sompi
+                luecke["covenants"].add(cov)
             continue
         t = tok[cov]
         t["outputs"] += 1
@@ -306,12 +326,14 @@ def auswerten(bestand_pfad, tx_pfade, stichzeit_ms, seit_ms, seed=(), fruehere=N
     if liste_aus:
         with open(liste_aus, "w", encoding="utf-8") as fh:
             for k, v in sorted(z.tx_info.items(), key=lambda kv: (kv[1]["t"] or 0, kv[0])):
-                if v["art"] in ("transfer", "kcc20_ausgang"):
+                if v["art"] in ("transfer", "kcc20_ausgang", "transfer_unbewiesen"):
                     fh.write(json.dumps({"id": k, "t": v["t"], "art": v["art"], "covs": v["covs"]}) + "\n")
-    seit_quelle = collections.Counter()
+    seit_quelle, unbewiesen_seit = collections.Counter(), 0
     for txid, info in alle_info.items():
         if info["t"] is None or not (seit_ms <= info["t"] <= stichzeit_ms):
             continue
+        if info["art"] == "transfer_unbewiesen":
+            unbewiesen_seit += 1
         if info["art"] in ("transfer", "kcc20_ausgang"):
             for c in info["covs"]:
                 if info["art"] == "transfer":
@@ -333,9 +355,15 @@ def auswerten(bestand_pfad, tx_pfade, stichzeit_ms, seit_ms, seed=(), fruehere=N
         "tokens_mit_lebenden_outputs": len(lebende_tokens),
         "tokens_mit_aktivitaet_seit": sum(1 for r in zeilen if r["kcc20_tx_seit"] > 0),
         "halter_outputs": sum(r["halter_outputs"] for r in lebende_tokens),
-        "halter": sum(r["halter"] for r in lebende_tokens),
-        "transfers_seit": sum(r["transfers_seit"] for r in zeilen),
+        "halter_je_token_summiert": sum(r["halter"] for r in lebende_tokens),
+        "halter_eindeutig": len({h for t in tok.values() for h in t["halter"]}),
+        "transfers_seit": sum(seit_quelle.values()),
         "transfers_seit_je_quelle": dict(seit_quelle),
+        "transfers_je_token_summiert": sum(r["transfers_seit"] for r in zeilen),
+        "transfer_tx_ohne_bewiesenen_token_seit": unbewiesen_seit,
+        "token_outputs_nicht_bewiesen": luecke["outputs"],
+        "token_outputs_nicht_bewiesen_kas": round(luecke["kas_sompi"] / 1e8, 8),
+        "tokens_mit_unbewiesenen_outputs": len(luecke["covenants"]),
         "covenant_utxos_gesamt": len(lebend),
         "covenant_utxos_nicht_dekodiert": nicht["outputs"],
         "covenant_utxos_nicht_dekodiert_kas": round(nicht["kas_sompi"] / 1e8, 8),
@@ -391,7 +419,8 @@ def selbsttest():
     cov = "c0" * 32
     t1 = {"id": "aa" * 32, "t": ms("2026-10-22T10:00:00Z"),
           "in": [["bb" * 32 + ":0", sig(gruppen, TAG_TRANSFER, r0)]],
-          "out": [[100, 0, spk(a1), cov, 0], [100, 0, spk(a2), cov, 0], [5000, 0, "20" + "ab" * 32 + "ac", None, None]]}
+          "out": [[100, 0, spk(a1), cov, 0], [100, 0, spk(a2), cov, 0], [5000, 0, "20" + "ab" * 32 + "ac", None, None],
+                  [100, 0, "aa20" + "33" * 32 + "87", "e5" * 32, 0]]}
     m = (5, b"\x55" * 32, 0, 0, b"\x00" * 32, a1[5])
     minter_r = b"\x51\x52" + b"\x99" * 30
     t2 = {"id": "dd" * 32, "t": ms("2026-10-23T10:00:00Z"),
@@ -425,6 +454,10 @@ def selbsttest():
        and zs["transfers_seit_je_quelle"] == {"tx.jsonl": 1, "frueherer lauf": 1}, (r[cov], zs["transfers_seit_je_quelle"]))
     ok("eigene liste ohne skripte geschrieben", {e["id"] for e in liste} == {"aa" * 32, "dd" * 32}
        and all(set(e) == {"id", "t", "art", "covs"} for e in liste), liste)
+    ok("fremder covenant im transfer bekommt keinen transfer", "e5" * 32 not in r, sorted(r))
+    ok("minter-ausgang des tokens als luecke gezaehlt", zs["token_outputs_nicht_bewiesen"] == 1
+       and zs["tokens_mit_unbewiesenen_outputs"] == 1, zs)
+    ok("halter eindeutig 3", zs["halter_eindeutig"] == 3, zs["halter_eindeutig"])
     ok("lebender output ohne erzeugende tx gezaehlt", zs["lebende_outputs_ohne_erzeugende_tx"] == 1)
     ok("tokens mit lebenden outputs 1", zs["tokens_mit_lebenden_outputs"] == 1)
     seed = seed_aus_artefakt(os.path.join(hier, "..", "kcc20", "vektoren", "public-mint-artifact.json"))
