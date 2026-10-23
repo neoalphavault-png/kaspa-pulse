@@ -203,6 +203,52 @@ def kcc20info(url="https://kcc20.info/"):
     return 0
 
 
+OHNE = ("address", "owner", "deployer", "wallet", "creator", "minter", "recipient", "sender", "avatar", "image",
+        "logo", "icon", "url", "link", "website", "twitter", "telegram", "discord")
+
+
+def sauber(d, tiefe=0):
+    """nur Skalarfelder und kleine Unterobjekte, ohne Adressen und Links."""
+    if isinstance(d, dict):
+        aus = {}
+        for k, v in d.items():
+            if any(w in k.lower() for w in OHNE):
+                continue
+            if isinstance(v, (dict, list)):
+                if tiefe < 2:
+                    aus[k] = sauber(v, tiefe + 1)
+            elif not (isinstance(v, str) and ("kaspa:" in v or "://" in v or len(v) > 120)):
+                aus[k] = v
+        return aus
+    if isinstance(d, list):
+        return [sauber(x, tiefe + 1) for x in d[:5]] + (["... %d mehr" % (len(d) - 5)] if len(d) > 5 else [])
+    return d
+
+
+def kcc20info_api(basis="https://kcc20.info"):
+    """/v1/status und /v1/tokens von kcc20.info, nur als 'source kcc20.info'."""
+    def get(pfad):
+        req = urllib.request.Request(basis + pfad, headers={"User-Agent": UA, "Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read().decode("utf-8"))
+    aus = {"quelle": "source kcc20.info", "abgerufen_utc": dt.datetime.now(dt.timezone.utc).isoformat()}
+    for pfad in ("/v1/status", "/v1/stats/timeseries"):
+        try:
+            aus[pfad] = sauber(get(pfad))
+        except Exception as exc:                    # noqa: BLE001
+            aus[pfad] = {"fehler": type(exc).__name__}
+    try:
+        t = get("/v1/tokens?limit=500")
+        liste = t if isinstance(t, list) else next((v for v in t.values() if isinstance(v, list)), [])
+        aus["/v1/tokens"] = {"rahmen": sauber({k: v for k, v in t.items() if not isinstance(v, list)})
+                             if isinstance(t, dict) else None, "anzahl": len(liste),
+                             "tokens": [sauber(x, 1) for x in liste]}
+    except Exception as exc:                        # noqa: BLE001
+        aus["/v1/tokens"] = {"fehler": type(exc).__name__}
+    print(json.dumps(aus, indent=1, ensure_ascii=False))
+    return 0
+
+
 def selbsttest():
     fehler = []
 
@@ -242,6 +288,9 @@ def selbsttest():
     z, l = seite_text('<html><style>x{}</style><a href="/api/tokens">97</a><p>KCC20 Tokens</p><script>fetch("/api/v1/stats")</script></html>')
     ok("seitentext ohne skript und stil, pfade", z == ["97", "KCC20 Tokens"] and l == ["/api/tokens", "/api/v1/stats"],
        (z, l))
+    sx = sauber({"ticker": "ABC", "deployer_address": "kaspa:qq", "supply": 5, "x": "kaspa:qz", "logo_url": "a",
+                 "liste": [{"holders": 3, "owner": "o"}]})
+    ok("sauber ohne adressen und links", sx == {"ticker": "ABC", "supply": 5, "liste": [{"holders": 3}]}, sx)
     print("%d fehler" % len(fehler))
     return 1 if fehler else 0
 
@@ -254,6 +303,7 @@ def main():
     ap.add_argument("--out", default="api-tx.jsonl")
     ap.add_argument("--probe", action="store_true")
     ap.add_argument("--kcc20info", nargs="?", const="https://kcc20.info/")
+    ap.add_argument("--kcc20info-api", nargs="?", const="https://kcc20.info")
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args()
     if a.selbsttest:
@@ -262,6 +312,8 @@ def main():
         return probe()
     if a.kcc20info:
         return kcc20info(a.kcc20info)
+    if a.kcc20info_api:
+        return kcc20info_api(a.kcc20info_api)
     laufen(a.bestand, a.tx, ms(a.seit), a.out)
     return 0
 

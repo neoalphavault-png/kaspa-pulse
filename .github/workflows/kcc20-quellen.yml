@@ -37,3 +37,9 @@ jobs:
           for u in $(sed -n 's/^url=//p' kcc20/quellen.txt); do
             python3 scripts/kcc20_api.py --kcc20info "$u" || echo "nicht lesbar"
           done
+
+      - name: kcc20.info api lesen (nur skalarfelder, ohne adressen und links)
+        run: |
+          for b in $(sed -n 's/^api=//p' kcc20/quellen.txt); do
+            python3 scripts/kcc20_api.py --kcc20info-api "$b" || echo "nicht lesbar"
+          done
