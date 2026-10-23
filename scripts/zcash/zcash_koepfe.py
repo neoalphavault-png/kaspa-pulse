@@ -48,24 +48,27 @@ from datetime import datetime, timezone
 
 CP_BASIS = "https://raw.githubusercontent.com/ZcashFoundation/zebra/main/zebra-chain/src/parameters/checkpoint/"
 NETZE = {
-    "testnet": {"magic": "fa1af9bf", "port": 18233, "nu7": 4_465_026,
+    # protokoll: die Version, die die Knoten des Netzes selbst melden. Testnet
+    # Zebra 7.0.0-rc.0 170180 (15.10.2026), Mainnet Zebra 7.0.0 und Zakura 1.7.0
+    # 170190 (23.10.2026). Nach NU7 trennen Knoten aeltere Versionen.
+    "testnet": {"magic": "fa1af9bf", "port": 18233, "nu7": 4_465_026, "protokoll": 170180,
                 "seeds": ["testnet.seeder.zfnd.org", "dnsseed.testnet.z.cash", "testnet.is.yolo.money"],
                 "checkpoints": CP_BASIS + "test-checkpoints.txt"},
-    "mainnet": {"magic": "24e92764", "port": 8233, "nu7": 3_543_405,
+    "mainnet": {"magic": "24e92764", "port": 8233, "nu7": 3_543_405, "protokoll": 170190,
                 "seeds": ["mainnet.seeder.zfnd.org", "dnsseed.z.cash", "dnsseed.str4d.xyz",
                           "mainnet.is.yolo.money"],
                 "checkpoints": CP_BASIS + "main-checkpoints.txt"},
 }
 # Gesetzt in main() aus --netz.
 MAGIC, PORT, SEEDS, CHECKPOINTS_URL, NU7_HOEHE = b"", 0, [], "", 0
-# Die Version, die Zebra 7.0.0-rc.0 selbst meldet (Lauf 1, 15.10.2026).
-PROTOKOLL = int(os.environ.get("ZC_PROTOKOLL", "170180"))
+PROTOKOLL = 0
 USER_AGENT = b"/kaspa-pulse-zaehler:0.1/"
 
 
 def netz_setzen(name):
-    global MAGIC, PORT, SEEDS, CHECKPOINTS_URL, NU7_HOEHE
+    global MAGIC, PORT, SEEDS, CHECKPOINTS_URL, NU7_HOEHE, PROTOKOLL
     n = NETZE[name]
+    PROTOKOLL = int(os.environ.get("ZC_PROTOKOLL", n["protokoll"]))
     MAGIC, PORT, SEEDS, NU7_HOEHE = bytes.fromhex(n["magic"]), n["port"], n["seeds"], n["nu7"]
     CHECKPOINTS_URL = os.environ.get("ZC_CHECKPOINTS_URL", n["checkpoints"])
 
@@ -434,19 +437,26 @@ def main():
             p2.zu()
             continue  # genug Proben dieser Software, wir suchen nur noch eine andere
         try:
+            # Mainnet 23.10.2026: Zakura-Peers antworten auf einen Locator mit
+            # nur einem Hash nicht (wie im Testnet am 17.10.); deshalb ein
+            # Locator wie bei echten Knoten, danach je der letzte Hash.
             roh = []
-            h_hash = gp_hash
+            h_hash = [nach_h[gp_h - i] for i in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 20, 50, 100, 200)
+                      if gp_h - i in nach_h] or gp_hash
             for _ in range(5):
-                stueck = p2.koepfe(h_hash, warten=20)
+                stueck = p2.koepfe(h_hash, warten=45)
                 if not stueck:
                     break
                 roh += stueck
                 h_hash = sha256d(stueck[-1])
-            gleich = sum(1 for i, r in enumerate(roh) if nach_h.get(gp_h + 1 + i) == sha256d(r))
-            ueberlapp = sum(1 for i in range(len(roh)) if gp_h + 1 + i in nach_h)
+            # Die Antwort haengt an einem Hash des Locators; ab dort zaehlen.
+            hoehe_von = {x: h for h, x in nach_h.items()}
+            ab_h = hoehe_von.get(roh[0][4:36], gp_h) + 1 if roh else gp_h + 1
+            gleich = sum(1 for i, r in enumerate(roh) if nach_h.get(ab_h + i) == sha256d(r))
+            ueberlapp = sum(1 for i in range(len(roh)) if ab_h + i in nach_h)
             proben.append({"agent": p2.agent, "verglichen": ueberlapp, "gleich": gleich,
-                           "spitze_peer": gp_h + len(roh)})
-            log(f"gegenprobe {p2.agent}: {gleich}/{ueberlapp} gleich, spitze peer {gp_h + len(roh)}")
+                           "spitze_peer": ab_h + len(roh) - 1})
+            log(f"gegenprobe {p2.agent}: {gleich}/{ueberlapp} gleich, spitze peer {ab_h + len(roh) - 1}")
         except (OSError, ConnectionError, TimeoutError) as e:
             log(f"gegenprobe abgebrochen ({type(e).__name__})")
             fehlversuche.append({"agent": p2.agent, "fehler": type(e).__name__})
