@@ -188,6 +188,52 @@ def laufen(tokens, bestand, tx_pfade, out, abruf=kcc20_api.hole, krc=True):
     return zeilen, zus
 
 
+def diagnose(tokens, bestand, tx_pfade, vergleich=None, n=40):
+    """Covenant-IDs mit lebenden UTXOs, die kein bewiesener KCC-20-Token sind:
+    Anzahl UTXOs und KAS je ID, dazu die 4-Byte-Dispatch-Tags in den
+    erzeugenden Tx. Mit --vergleich (kcc20.info token_ids, nur als source)
+    wird markiert, welche IDs dort gefuehrt werden. Nur IDs und Summen."""
+    import collections
+    from kcc20_zaehlung import kcc1_aufruf
+    with open(tokens, encoding="utf-8") as fh:
+        tok = {r["covenant_id"] for r in csv.DictReader(fh) if int(r.get("halter_outputs") or 0) > 0}
+    je = collections.defaultdict(lambda: [0, 0, set()])
+    with open(bestand, encoding="utf-8") as fh:
+        for r in csv.DictReader(fh):
+            c = r["covenant_id"]
+            if c and c not in tok:
+                je[c][0] += 1
+                je[c][1] += int(r["sompi"])
+                je[c][2].add(r["outpoint"].split(":")[0])
+    tags = collections.defaultdict(collections.Counter)
+    gesucht = {t: c for c, v in je.items() for t in v[2]}
+    for p in tx_pfade:
+        if not os.path.exists(p):
+            continue
+        for z in open(p, encoding="utf-8"):
+            t = json.loads(z)
+            c = gesucht.get(t["id"])
+            if not c:
+                continue
+            for _prev, sig in t["in"]:
+                auf = kcc1_aufruf(bytes.fromhex(sig or ""))
+                if auf:
+                    tags[c][auf[1].hex()] += 1
+    vg = set(vergleich or ())
+    zeilen = sorted(je.items(), key=lambda kv: -kv[1][0])
+    print(json.dumps({"diagnose": "covenant-ids ohne bewiesenen kcc20-token", "ids": len(je),
+                      "utxos": sum(v[0] for v in je.values()),
+                      "davon_bei_kcc20info": sum(1 for c in je if c in vg),
+                      "tokens_bei_kcc20info_ohne_lebende_utxos_hier": len(vg - set(je) - tok)}))
+    alle_tags = collections.Counter()
+    for c in tags:
+        alle_tags.update(tags[c])
+    print(json.dumps({"dispatch_tags_in_erzeugenden_tx": alle_tags.most_common(15)}))
+    for c, (k, sompi, _t) in zeilen[:n]:
+        print("%s utxos %d kas %.2f kcc20info %s tags %s" % (c, k, sompi / 1e8, "ja" if c in vg else "nein",
+                                                          ",".join("%s:%d" % x for x in tags[c].most_common(3))))
+
+
 def selbsttest():
     fehler = []
 
@@ -252,10 +298,19 @@ def main():
     ap.add_argument("--tx", action="append", default=[])
     ap.add_argument("--out", default="aus")
     ap.add_argument("--ohne-krc20", action="store_true")
+    ap.add_argument("--vergleich", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "kcc20",
+                                                       "vektoren", "kcc20info-token-ids.txt"))
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args()
     if a.selbsttest:
         return selbsttest()
+    try:
+        vg = []
+        if a.vergleich and os.path.exists(a.vergleich):
+            vg = [x.strip() for x in open(a.vergleich, encoding="utf-8") if x.strip()]
+        diagnose(a.tokens, a.bestand, a.tx, vg)
+    except Exception as exc:                        # noqa: BLE001
+        print("diagnose gescheitert (%s)" % type(exc).__name__)
     laufen(a.tokens, a.bestand, a.tx, a.out, krc=not a.ohne_krc20)
     return 0
 

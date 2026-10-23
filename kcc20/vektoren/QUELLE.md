@@ -9,3 +9,5 @@
 Unverändert übernommen. Der Selbsttest von `scripts/kcc20_zaehlung.py` prüft die eigene Kodierung gegen die Konformitätsvektoren. Das Artefakt liefert das öffentliche Referenz-Template des KCC-20-Programms, mit dem auch frisch geminte Outputs bewiesen werden können.
 
 `scripts/kcc20_namen.py` prüft gegen `kcc-0023-conformance.json` die KIP-20-Covenant-ID (Genesis-Beweis) und die Regeln für den Metadaten-Payload.
+
+`kcc20info-token-ids.txt` sind die 97 `token_id` aus `https://kcc20.info/v1/tokens`, abgerufen am 23.10.2026 um 14:32 UTC, nur als "source kcc20.info". Die Diagnose in `scripts/kcc20_namen.py` markiert damit, welche Covenant-IDs ohne bewiesenen KCC-20-Zustand dort gefuehrt werden.
