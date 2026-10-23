@@ -1,0 +1,40 @@
+{
+  "quelle": "Zcash-Mainnet P2P (getheaders), Peers aus DNS-Seeds",
+  "netz": "mainnet",
+  "nu7_hoehe": 3543405,
+  "abruf_utc": "2026-10-23T12:44:46Z",
+  "start_checkpoint": 3489716,
+  "erste_hoehe": 3489717,
+  "spitze_hoehe": 3527836,
+  "spitze_hash": "00000000006f8a10fdf4492f5216164419aaaa6730360ec98b3a8696a7c5ee3c",
+  "checkpoints_quelle": "https://raw.githubusercontent.com/ZcashFoundation/zebra/main/zebra-chain/src/parameters/checkpoint/main-checkpoints.txt",
+  "checkpoints_geprueft": 89,
+  "peer_software": [
+    "/Zebra:7.0.0/",
+    "/Zakura:1.7.0/"
+  ],
+  "peer_fehler": 0,
+  "zielhoehe_gemeldet": 3527836,
+  "abzweige_verworfen": [],
+  "gegenproben": [],
+  "gegenproben_ohne_antwort": [
+    {
+      "agent": "/Zakura:1.7.0/",
+      "fehler": "TimeoutError"
+    },
+    {
+      "agent": "/Zakura:1.7.0/",
+      "fehler": "TimeoutError"
+    }
+  ],
+  "pruefungen": [
+    "prev-hash-kette",
+    "hash <= ziel aus nbits",
+    "zebra-checkpoints"
+  ],
+  "nicht_geprueft": [
+    "equihash-loesung",
+    "block-inhalt",
+    "konsensregeln jenseits des kopfes"
+  ]
+}
