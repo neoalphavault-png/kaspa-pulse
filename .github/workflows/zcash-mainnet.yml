@@ -1,0 +1,90 @@
+# zcash-mainnet.yml - eigene Zaehlung des Zcash-Mainnets rund um NU7.
+#
+# Ben, 23.10.2026: Baseline gegen die 75-s-Kette ab sofort, jeden Mittwoch die
+# Vorhersage fuer die Aktivierungshoehe 3.543.405 (laut Zakura etwa 06.11.2026
+# 00:50 UTC), ab dem ersten NU7-Block die Abstaende gegen 25 s.
+#
+# Quelle sind eigene Header ueber P2P (scripts/zcash/zcash_koepfe.py --netz
+# mainnet): Verkettung, Arbeitsnachweis aus nBits und Zebras Checkpoints
+# geprueft. Peers aus den DNS-Seeds; keine Adresse und kein Hostname steht im
+# Repo oder im Log, nur die Software der Peers.
+#
+# Daten (Roh-Header, Kennzahlen, Vorhersage) gehen auf den Branch
+# messung/zcash-mainnet, nie nach main (Ben, 22.10.2026).
+#
+# Ausloeser:
+# - push auf zcash/mainnet (Testlaeufe vor dem Merge)
+# - taeglich 05:23 UTC, sobald die Datei auf main liegt. Geplante Laeufe kommen
+#   in diesem Konto Stunden zu spaet; fuer den Mittwochsstand (bis 18:00
+#   Berlin) reicht das, sonst von Hand ueber workflow_dispatch.
+name: zcash mainnet
+
+on:
+  push:
+    branches: ["zcash/mainnet"]
+    paths:
+      - "scripts/zcash/**"
+      - ".github/workflows/zcash-mainnet.yml"
+  schedule:
+    - cron: "23 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: zcash-mainnet
+  cancel-in-progress: false
+
+env:
+  # Baseline ab Hoehe 3.490.000 (um den 20.09.2026), gut 5 Wochen vor NU7
+  BASELINE_AB: "3490000"
+
+jobs:
+  zaehlen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          ref: messung/zcash-mainnet
+          path: daten
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: koepfe holen
+        run: |
+          set -eu
+          python3 scripts/zcash/zcash_koepfe.py --netz mainnet --ab "$BASELINE_AB" --vorlauf 0 \
+            --aus daten/data/zcash-mainnet/koepfe.csv.gz --meta daten/data/zcash-mainnet/koepfe-meta.json
+
+      - name: auswerten
+        run: |
+          set -eu
+          if [ ! -f scripts/zcash/mainnet_auswertung.py ]; then echo "noch keine auswertung"; exit 0; fi
+          TAG=$(date -u +%Y-%m-%d)
+          python3 scripts/zcash/mainnet_auswertung.py \
+            --koepfe daten/data/zcash-mainnet/koepfe.csv.gz --meta daten/data/zcash-mainnet/koepfe-meta.json \
+            --json "daten/data/zcash-mainnet/stand-$TAG.json" --md "daten/data/zcash-mainnet/stand-$TAG.md"
+          { echo "## Zcash Mainnet, Stand $TAG"; cat "daten/data/zcash-mainnet/stand-$TAG.md"; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: committen
+        working-directory: daten
+        run: |
+          set -eu
+          git config user.name "zcash mainnet bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/zcash-mainnet
+          # secret_scan.py prueft das Repo, in dem es liegt; eine Kopie unter
+          # .scan/ prueft also diesen Datenbranch samt vorgemerkter Dateien.
+          mkdir -p .scan && cp ../scripts/secret_scan.py ../scripts/bip39_english.txt .scan/
+          python3 .scan/secret_scan.py --baum
+          rm -rf .scan
+          if git diff --cached --quiet; then echo "nichts neu"; exit 0; fi
+          git commit -m "zcash mainnet: koepfe und stand [bot]"
+          git pull --rebase -X theirs origin messung/zcash-mainnet
+          git push origin HEAD:messung/zcash-mainnet
