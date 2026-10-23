@@ -1,0 +1,205 @@
+# Kaspa Pulse - erste unabhaengige KCC-20-Zaehlung vom eigenen Mainnet-Knoten (Ben, 23.10.2026)
+#
+# Eigener Knoten im Runner (rusty-kaspa v2.1.0), synchronisiert neu, wird
+# gestoppt. kp-stichzeit liest den UTXO-Bestand zur Stichzeit (mit
+# Zweitpruefung) und mit KP_TX=1 jede angenommene Covenant-Tx ab dem
+# Pruning-Punkt. kcc20_api.py holt aeltere erzeugende Tx und die Luecke ab
+# "seit" von api.kaspa.org; kcc20_zaehlung.py beweist jeden KCC-20-Zustand per
+# Blake2b-Hash. Knoten-Logs nur in eine Datei, nie ausgegeben, nie hochgeladen.
+# Bestand und Tx mit Skripten bleiben im Runner; hochgeladen werden Summen je
+# Token und Tx-Listen ohne Skripte. Keine Wallet, keine Schluessel, keine Secrets.
+# Gestartet ueber kcc20/start.txt (push) oder von Hand.
+
+name: kcc20 zaehlung
+
+on:
+  push:
+    branches:
+      - fix/kcc20-zaehlung
+    paths:
+      - kcc20/start.txt
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: kcc20-zaehlung
+  cancel-in-progress: false
+
+jobs:
+  zaehlen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    env:
+      KASPA_TAG: v2.1.0
+      APP: /mnt/kp/app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: sdk, version und pruefsumme fest
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+
+      - name: selbsttests
+        run: |
+          python3 scripts/kp_stichzeit_warten.py --selbsttest | tail -n 1
+          python3 scripts/kcc20_zaehlung.py --selbsttest | tail -n 1
+          python3 scripts/kcc20_api.py --selbsttest | tail -n 1
+
+      - name: quellen pruefen (nur feldnamen und erreichbarkeit)
+        run: python3 scripts/kcc20_api.py --probe
+
+      - name: platz schaffen
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost || true
+          sudo mkdir -p /mnt/kp && sudo chown "$USER" /mnt/kp
+          df -h / /mnt | tail -n 2
+
+      - name: kaspad holen (fertiges release)
+        id: bin
+        run: |
+          set -euo pipefail
+          mkdir -p /mnt/kp/bin && cd /mnt/kp/bin
+          curl -fsSL -H "Authorization: Bearer ${{ github.token }}" \
+            "https://api.github.com/repos/kaspanet/rusty-kaspa/releases/tags/${KASPA_TAG}" > rel.json
+          url=$(python3 -c "
+          import json
+          a=[x for x in json.load(open('rel.json'))['assets'] if 'linux' in x['name'] and ('amd64' in x['name'] or 'x86_64' in x['name']) and x['name'].endswith('.zip')]
+          print(a[0]['browser_download_url'] if a else '')")
+          if [ -z "$url" ]; then echo "kein fertiges linux-release gefunden"; echo "ok=nein" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo "release-datei: $(basename "$url")"
+          curl -fsSL "$url" -o k.zip && unzip -q k.zip
+          k=$(find . -type f -name kaspad | head -n 1)
+          chmod +x "$k" && cp "$k" /mnt/kp/kaspad
+          sha256sum /mnt/kp/kaspad | cut -c1-64
+          /mnt/kp/kaspad --version > /mnt/kp/version.txt 2>&1 || true; head -n 1 /mnt/kp/version.txt
+          echo "ok=ja" >> "$GITHUB_OUTPUT"
+
+      - name: knoten starten, ausgabe nur in datei
+        if: steps.bin.outputs.ok == 'ja'
+        run: |
+          mkdir -p "$APP"
+          nohup /mnt/kp/kaspad --yes --appdir="$APP" --nologfiles --disable-upnp \
+            --rpclisten-borsh > /mnt/kp/kaspad.log 2>&1 &
+          echo $! > /mnt/kp/kaspad.pid
+          sleep 20
+          kill -0 "$(cat /mnt/kp/kaspad.pid)" && echo "knoten laeuft"
+
+      - name: rusty-kaspa quelle und werkzeug bauen
+        run: |
+          set -euo pipefail
+          # kein apt: das werkzeug braucht weder protoc noch extra pakete, und apt schreibt
+          # bei fehlern die adresse seines spiegels ins log (22.10.2026)
+          git clone -q --depth 1 --branch "$KASPA_TAG" https://github.com/kaspanet/rusty-kaspa /mnt/kp/rk
+          cp -r kcc20/werkzeug /mnt/kp/rk/kp-stichzeit
+          cd /mnt/kp/rk
+          sed -i '0,/^members = \[/s//members = [\n    "kp-stichzeit",/' Cargo.toml
+          export CARGO_TARGET_DIR=/mnt/kp/target
+          if [ "${{ steps.bin.outputs.ok }}" = "ja" ]; then
+            nice cargo build -q --release -p kp-stichzeit
+          else
+            cargo build -q --release -p kp-stichzeit -p kaspad
+            cp /mnt/kp/target/release/kaspad /mnt/kp/kaspad
+            mkdir -p "$APP"
+            nohup /mnt/kp/kaspad --yes --appdir="$APP" --nologfiles --disable-upnp \
+              --rpclisten-borsh > /mnt/kp/kaspad.log 2>&1 &
+            echo $! > /mnt/kp/kaspad.pid
+          fi
+          ls -la /mnt/kp/target/release/kp-stichzeit | awk '{print $5, $9}'
+
+      - name: warten bis synchron
+        run: |
+          python3 scripts/kp_stichzeit_warten.py --stichzeit-ms "$(sed -n 's/^spaeteste_ms=//p' kcc20/start.txt)" --max-min 290 --vorlauf-min 15
+          df -h /mnt | tail -n 1
+          du -sh "$APP" | cut -f1
+
+      - name: knoten stoppen
+        if: always()
+        run: |
+          p=$(cat /mnt/kp/kaspad.pid 2>/dev/null || true)
+          [ -n "$p" ] && kill -INT "$p" 2>/dev/null || true
+          for i in $(seq 1 120); do kill -0 "$p" 2>/dev/null || break; sleep 5; done
+          kill -0 "$p" 2>/dev/null && echo "knoten noch nicht beendet" || echo "knoten beendet"
+
+
+      - name: fruehere laeufe holen (tx-listen ohne skripte)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /mnt/kp/vorher
+          for r in $(sed -n 's/^vorlaeufe=//p' kcc20/start.txt | tr ',' ' '); do
+            gh run download "$r" -n kcc20-zaehlung -D "/mnt/kp/vorher/$r" -R "$GITHUB_REPOSITORY" && echo "lauf $r geholt" || echo "lauf $r nicht geholt"
+          done
+
+      - name: bestand, tx und kcc20-zaehlung
+        run: |
+          set -uo pipefail
+          zeiten=$(sed -n 's/^stichzeiten_ms=//p' kcc20/start.txt)
+          stichzeit=$(sed -n 's/^stichzeit=//p' kcc20/start.txt)
+          seit=$(sed -n 's/^seit=//p' kcc20/start.txt)
+          mkdir -p /mnt/kp/aus
+          versuch() {
+            for d in $(ls -d "$APP"/kaspa-mainnet/datadir/consensus/consensus-* | sort -r); do
+              echo "versuche $(basename "$d")"
+              if KP_TX=1 /mnt/kp/target/release/kp-stichzeit "$d" /mnt/kp/aus $zeiten > /mnt/kp/aus/stdout.json 2> /mnt/kp/aus/stderr.txt; then
+                grep -v -E '([0-9]{1,3}\.){3}[0-9]{1,3}' /mnt/kp/aus/stderr.txt | tail -n 5
+                return 0
+              fi
+              grep -v -E '([0-9]{1,3}\.){3}[0-9]{1,3}' /mnt/kp/aus/stderr.txt | tail -n 5
+            done
+            return 1
+          }
+          zaehlen() {
+            python3 scripts/kcc20_api.py --bestand /mnt/kp/aus/bestand.csv --tx /mnt/kp/aus/tx.jsonl --seit "$seit" --out /mnt/kp/aus/api-tx.jsonl || return 1
+            listen=""
+            for l in $(find /mnt/kp/vorher -name kcc20-tx-liste.jsonl 2>/dev/null); do listen="$listen --liste $l"; done
+            python3 scripts/kcc20_zaehlung.py --bestand /mnt/kp/aus/bestand.csv --tx /mnt/kp/aus/tx.jsonl --tx /mnt/kp/aus/api-tx.jsonl \
+              --stichzeit "$stichzeit" --seit "$seit" --artefakt kcc20/vektoren/public-mint-artifact.json $listen --out /mnt/kp/aus || return 1
+          }
+          # Reparaturschleife wie bei der Stichzeit-Zaehlung: die gestoppte
+          # Datenbank bleibt liegen, ein neuer Stand von kcc20/werkzeug oder
+          # scripts auf diesem Branch wird geholt und noch einmal versucht.
+          stand=$(git rev-parse HEAD:kcc20/werkzeug)
+          sstand=$(git rev-parse HEAD:scripts)
+          bis=$(( $(date +%s) + 150 * 60 ))
+          until versuch && zaehlen; do
+            [ "$(date +%s)" -lt "$bis" ] || { echo "gescheitert, keine reparatur bis zum ende"; exit 1; }
+            echo "warte auf reparatur"
+            while [ "$(date +%s)" -lt "$bis" ]; do
+              sleep 60
+              git fetch -q origin "$GITHUB_REF_NAME" || continue
+              neu=$(git rev-parse FETCH_HEAD:kcc20/werkzeug)
+              sneu=$(git rev-parse FETCH_HEAD:scripts)
+              if [ "$sneu" != "$sstand" ]; then
+                git checkout -q FETCH_HEAD -- scripts kcc20/vektoren && sstand=$sneu && echo "scripts neu geholt" && break
+              fi
+              if [ "$neu" != "$stand" ]; then
+                git checkout -q FETCH_HEAD -- kcc20/werkzeug
+                rm -rf /mnt/kp/rk/kp-stichzeit && cp -r kcc20/werkzeug /mnt/kp/rk/kp-stichzeit
+                ( cd /mnt/kp/rk && CARGO_TARGET_DIR=/mnt/kp/target cargo build -q --release -p kp-stichzeit ) && stand=$neu && echo "werkzeug neu gebaut" && break
+              fi
+            done
+          done
+          python3 -c "import json; d=json.load(open('/mnt/kp/aus/stand.json')); print(json.dumps({k: d[k] for k in ('hauptstichzeit','hauptstichblock','pruning_punkt_zeit','kettenspitze_zeit','zweitpruefung')}, indent=2))"
+          cat /mnt/kp/aus/tx-stand.json
+          wc -l /mnt/kp/aus/bestand.csv /mnt/kp/aus/tx.jsonl /mnt/kp/aus/api-tx.jsonl
+          sha256sum /mnt/kp/aus/kcc20-tokens.csv /mnt/kp/aus/kcc20-zaehlung.json /mnt/kp/aus/kcc20-tx-liste.jsonl
+
+      - name: ergebnis hochladen (summen und tx-listen, keine skripte, keine adressen)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kcc20-zaehlung
+          path: |
+            /mnt/kp/aus/stand.json
+            /mnt/kp/aus/tx-stand.json
+            /mnt/kp/aus/kcc20-tokens.csv
+            /mnt/kp/aus/kcc20-zaehlung.json
+            /mnt/kp/aus/kcc20-tx-liste.jsonl
+          if-no-files-found: ignore
+          retention-days: 30
