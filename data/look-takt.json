@@ -24,6 +24,12 @@
     "look": "teal",
     "schritt": 2,
     "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-10-24",
+    "look": "dunkel",
+    "schritt": 0,
+    "serie": "karussell"
    }
   ],
   "tagesgrafik/discord": [
