@@ -26,6 +26,7 @@ nur als "source kasplex". Ein Weg der Migration wird nicht geraten.
     python3 scripts/kcc20_namen.py --selbsttest
 """
 import argparse
+import collections
 import csv
 import hashlib
 import json
@@ -127,8 +128,7 @@ def suchen(starts, eigen, abruf, budget=20000):
             continue
         t = cache.get(p)
         a["payload_quelle"] = (t or {}).get("quelle", "eigener knoten") if t else None
-        md = metadaten((t or {}).get("payload", ""))
-        a["metadaten"] = md
+        a["metadaten"] = namen_aus((t or {}).get("payload", ""), a.get("genesis_payload", ""))
         a["vorbereitung_payload"] = payload_info((t or {}).get("payload", ""))
     return aus, geholt
 
@@ -163,6 +163,36 @@ def payload_info(payload_hex):
                     teile.append("%s=%s" % (k, str(v).replace(",", " ").replace("\n", " ")))
             break
     return "; ".join(teile)
+
+
+def json_payload(payload_hex):
+    """JSON-Objekt aus einem Payload ohne Praefix (Launchpad-Format im Genesis), sonst None."""
+    try:
+        d = json.loads(bytes.fromhex(payload_hex or "").decode("utf-8"))
+        return d if isinstance(d, dict) else None
+    except (ValueError, UnicodeDecodeError):
+        return None
+
+
+def kurz(v):
+    return v.strip() if isinstance(v, str) and "://" not in v and 0 < len(v.strip()) <= 40 else None
+
+
+def namen_aus(prep_payload, gen_payload):
+    """Name, Symbol, Dezimalstellen mit Quelle. KCC-23 aus der Vorbereitung hat
+    Vorrang, sonst JSON im Genesis-Payload. Hinweis auf den Weg nur, wenn die
+    Metadaten ihn selbst nennen (z.B. bridge_covenant_id), sonst unbekannt."""
+    md = metadaten(prep_payload)
+    quelle = "kcc-23 vorbereitung" if md else None
+    if not md:
+        md = json_payload(gen_payload)
+        quelle = "genesis-payload, kein kcc-23" if md else None
+    md = md or {}
+    sym = kurz(md.get("symbol")) or kurz(md.get("ticker"))
+    dec = md.get("decimals") if isinstance(md.get("decimals"), int) else None
+    bruecke = sorted(k for k in md if "bridge" in k.lower() or "vault" in k.lower())
+    return {"symbol": sym, "name": kurz(md.get("name")), "decimals": dec, "namensquelle": quelle,
+            "weg_hinweis": ("metadaten nennen " + "/".join(bruecke)) if bruecke else "unbekannt"}
 
 
 def kasplex(symbol):
@@ -204,7 +234,8 @@ def laufen(tokens, bestand, tx_pfade, out, abruf=kcc20_api.hole, krc=True):
         a = aus.get(cov, {"status": "kein lebender output"})
         md = a.get("metadaten") or {}
         z = {"covenant_id": cov, "status": a["status"], "symbol": md.get("symbol"), "name": md.get("name"),
-             "decimals": md.get("decimals"), "genesis_tx": a.get("genesis_tx"), "genesis_t": a.get("genesis_t"),
+             "decimals": md.get("decimals"), "namensquelle": md.get("namensquelle"),
+             "weg_hinweis": md.get("weg_hinweis"), "genesis_tx": a.get("genesis_tx"), "genesis_t": a.get("genesis_t"),
              "payload_quelle": a.get("payload_quelle"), "schritte": a.get("schritte"),
              "vorbereitung_payload": a.get("vorbereitung_payload"),
              "genesis_payload": payload_info(a["genesis_payload"]) if "genesis_payload" in a else None}
@@ -223,7 +254,8 @@ def laufen(tokens, bestand, tx_pfade, out, abruf=kcc20_api.hole, krc=True):
         w.writeheader()
         w.writerows(zeilen)
     zus = {"tokens": len(covs), "genesis_bewiesen": sum(1 for z in zeilen if z["status"] == "genesis bewiesen"),
-           "mit_metadaten": sum(1 for z in zeilen if z["symbol"] or z["name"]), "api_abrufe": geholt}
+           "mit_metadaten": sum(1 for z in zeilen if z["symbol"] or z["name"]),
+           "namensquelle": dict(collections.Counter(z["namensquelle"] for z in zeilen)), "api_abrufe": geholt}
     print(json.dumps(zus))
     w = csv.DictWriter(sys.stdout, fieldnames=felder)
     w.writeheader()
@@ -236,7 +268,7 @@ def diagnose(tokens, bestand, tx_pfade, vergleich=None, n=40):
     Anzahl UTXOs und KAS je ID, dazu die 4-Byte-Dispatch-Tags in den
     erzeugenden Tx. Mit --vergleich (kcc20.info token_ids, nur als source)
     wird markiert, welche IDs dort gefuehrt werden. Nur IDs und Summen."""
-    import collections
+
     from kcc20_zaehlung import kcc1_aufruf
     with open(tokens, encoding="utf-8") as fh:
         tok = {r["covenant_id"] for r in csv.DictReader(fh) if int(r.get("halter_outputs") or 0) > 0}
@@ -292,11 +324,11 @@ def payloads(pfad, abruf=kcc20_api.hole, krc=True):
             prep_von[cov] = t["in"][auth][0].split(":")[0]
     prep = kcc20_api.holen(set(prep_von.values()), abruf)
     w = csv.writer(sys.stdout)
-    w.writerow(["covenant_id", "symbol", "name", "decimals", "krc20", "krc20_max", "krc20_minted", "krc20_dec",
+    w.writerow(["covenant_id", "symbol", "name", "decimals", "namensquelle", "weg_hinweis", "krc20", "krc20_max", "krc20_minted", "krc20_dec",
                 "krc20_holder", "vorbereitung_payload", "genesis_payload"])
     for cov, g in paare:
         pt = prep.get(prep_von.get(cov), {})
-        md = metadaten(pt.get("payload", "")) or {}
+        md = namen_aus(pt.get("payload", ""), (gen.get(g) or {}).get("payload", ""))
         k = {}
         if krc and isinstance(md.get("symbol"), str):
             try:
@@ -304,7 +336,8 @@ def payloads(pfad, abruf=kcc20_api.hole, krc=True):
             except Exception as exc:                # noqa: BLE001
                 k = {"krc20": "abfrage gescheitert (%s)" % type(exc).__name__}
             time.sleep(0.2)
-        w.writerow([cov, md.get("symbol"), md.get("name"), md.get("decimals"), k.get("krc20"), k.get("krc20_max"),
+        w.writerow([cov, md.get("symbol"), md.get("name"), md.get("decimals"), md.get("namensquelle"),
+                    md.get("weg_hinweis"), k.get("krc20"), k.get("krc20_max"),
                     k.get("krc20_minted"), k.get("krc20_dec"), k.get("krc20_holder"),
                     payload_info(pt.get("payload", "")) if pt else "nicht geholt",
                     payload_info((gen.get(g) or {}).get("payload", ""))])
@@ -360,7 +393,13 @@ def selbsttest():
     a = aus[soll]
     ok("genesis ueber zwei schritte gefunden", a["status"] == "genesis bewiesen" and a["genesis_tx"] == g0["id"]
        and a["schritte"] == 3, a)
-    ok("metadaten aus der vorbereitung", (a.get("metadaten") or {}).get("symbol") == "EXT", a)
+    ok("metadaten aus der vorbereitung", (a.get("metadaten") or {}).get("symbol") == "EXT"
+       and a["metadaten"]["namensquelle"] == "kcc-23 vorbereitung", a)
+    gp = json.dumps({"name": "Frog", "ticker": "FROG", "image": "https://x"}).encode().hex()
+    ok("genesis-payload als ersatz", namen_aus("", gp) == {"symbol": "FROG", "name": "Frog", "decimals": None,
+       "namensquelle": "genesis-payload, kein kcc-23", "weg_hinweis": "unbekannt"}, namen_aus("", gp))
+    bp = "00" + json.dumps({"symbol": "W", "decimals": 6, "bridge_covenant_id": "ab", "eth_vault": "x"}).encode().hex()
+    ok("weg nur aus den metadaten", namen_aus(bp, "")["weg_hinweis"] == "metadaten nennen bridge_covenant_id/eth_vault")
     ok("zwei api-abrufe (genesis, vorbereitung)", rufe == [1, 1], rufe)
     ok("payload_info kcc23", payload_info(p["payload_hex"]).startswith("53 byte; erstes 00; json nach 00")
        and "symbol=EXT" in payload_info(p["payload_hex"]), payload_info(p["payload_hex"]))
