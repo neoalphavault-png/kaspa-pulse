@@ -35,4 +35,4 @@ Branch `design/rahmen-unterseiten`, PR #134, geöffnet im Sammelfenster am Fr 23
 
 ## Was Ben tun muss
 - #134 prüfen und mergen. Workflow-Dateien sind diesmal nicht betroffen.
-- Die beiden Fragen oben beantworten.
+- Die drei Fragen oben beantworten.
