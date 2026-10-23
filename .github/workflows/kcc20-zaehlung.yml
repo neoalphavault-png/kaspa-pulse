@@ -50,6 +50,7 @@ jobs:
           python3 scripts/kp_stichzeit_warten.py --selbsttest | tail -n 1
           python3 scripts/kcc20_zaehlung.py --selbsttest | tail -n 1
           python3 scripts/kcc20_api.py --selbsttest | tail -n 1
+          python3 scripts/kcc20_namen.py --selbsttest | tail -n 1
 
       - name: quellen pruefen (nur feldnamen und erreichbarkeit)
         run: python3 scripts/kcc20_api.py --probe
@@ -190,6 +191,13 @@ jobs:
           wc -l /mnt/kp/aus/bestand.csv /mnt/kp/aus/tx.jsonl /mnt/kp/aus/api-tx.jsonl
           sha256sum /mnt/kp/aus/kcc20-tokens.csv /mnt/kp/aus/kcc20-zaehlung.json /mnt/kp/aus/kcc20-tx-liste.jsonl
 
+      - name: namen aus kcc-23 und krc-20 vergleich (nur beschriftung, die zaehlung steht schon)
+        continue-on-error: true
+        run: |
+          git fetch -q origin "$GITHUB_REF_NAME" && git checkout -q FETCH_HEAD -- scripts kcc20/vektoren || true
+          python3 scripts/kcc20_namen.py --tokens /mnt/kp/aus/kcc20-tokens.csv --bestand /mnt/kp/aus/bestand.csv \
+            --tx /mnt/kp/aus/tx.jsonl --tx /mnt/kp/aus/api-tx.jsonl --out /mnt/kp/aus
+
       - name: ergebnis hochladen (summen und tx-listen, keine skripte, keine adressen)
         if: always()
         uses: actions/upload-artifact@v4
@@ -201,5 +209,6 @@ jobs:
             /mnt/kp/aus/kcc20-tokens.csv
             /mnt/kp/aus/kcc20-zaehlung.json
             /mnt/kp/aus/kcc20-tx-liste.jsonl
+            /mnt/kp/aus/kcc20-namen.csv
           if-no-files-found: ignore
           retention-days: 30
