@@ -225,7 +225,7 @@ def sauber(d, tiefe=0):
     return d
 
 
-def kcc20info_api(basis="https://kcc20.info"):
+def kcc20info_api(basis="https://kcc20.info", ids=None, cursor=None):
     """/v1/status und /v1/tokens von kcc20.info, nur als 'source kcc20.info'."""
     def get(pfad):
         req = urllib.request.Request(basis + pfad, headers={"User-Agent": UA, "Accept": "application/json"})
@@ -237,6 +237,17 @@ def kcc20info_api(basis="https://kcc20.info"):
             aus[pfad] = sauber(get(pfad))
         except Exception as exc:                    # noqa: BLE001
             aus[pfad] = {"fehler": type(exc).__name__}
+    for tid in (ids or []):
+        for pfad in ("/v1/tokens/%s" % tid, "/v1/tokens/%s/holders?limit=3" % tid):
+            try:
+                aus[pfad] = sauber(get(pfad))
+            except Exception as exc:                # noqa: BLE001
+                aus[pfad] = {"fehler": type(exc).__name__}
+    if cursor:
+        try:
+            aus["/v1/tokens?cursor"] = sauber(get("/v1/tokens?limit=500&cursor=%s" % cursor))
+        except Exception as exc:                    # noqa: BLE001
+            aus["/v1/tokens?cursor"] = {"fehler": type(exc).__name__}
     try:
         t = get("/v1/tokens?limit=500")
         liste = t if isinstance(t, list) else next((v for v in t.values() if isinstance(v, list)), [])
@@ -304,6 +315,8 @@ def main():
     ap.add_argument("--probe", action="store_true")
     ap.add_argument("--kcc20info", nargs="?", const="https://kcc20.info/")
     ap.add_argument("--kcc20info-api", nargs="?", const="https://kcc20.info")
+    ap.add_argument("--token-id", action="append", default=[])
+    ap.add_argument("--cursor")
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args()
     if a.selbsttest:
@@ -313,7 +326,7 @@ def main():
     if a.kcc20info:
         return kcc20info(a.kcc20info)
     if a.kcc20info_api:
-        return kcc20info_api(a.kcc20info_api)
+        return kcc20info_api(a.kcc20info_api, a.token_id, a.cursor)
     laufen(a.bestand, a.tx, ms(a.seit), a.out)
     return 0
 

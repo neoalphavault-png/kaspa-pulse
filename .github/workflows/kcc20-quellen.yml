@@ -41,5 +41,7 @@ jobs:
       - name: kcc20.info api lesen (nur skalarfelder, ohne adressen und links)
         run: |
           for b in $(sed -n 's/^api=//p' kcc20/quellen.txt); do
-            python3 scripts/kcc20_api.py --kcc20info-api "$b" || echo "nicht lesbar"
+            ids=""; for i in $(sed -n 's/^token=//p' kcc20/quellen.txt); do ids="$ids --token-id $i"; done
+            c=$(sed -n 's/^cursor=//p' kcc20/quellen.txt)
+            python3 scripts/kcc20_api.py --kcc20info-api "$b" $ids ${c:+--cursor "$c"} | python3 -c "import json,sys; d=json.load(sys.stdin); d['/v1/tokens'].pop('tokens', None); print(json.dumps(d, indent=1, ensure_ascii=False))" || echo "nicht lesbar"
           done
