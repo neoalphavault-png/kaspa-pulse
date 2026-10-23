@@ -289,6 +289,28 @@
      "verhaeltnis": 731.06
     }
    }
+  },
+  {
+   "datum": "2026-10-23",
+   "form": 5,
+   "grund": "rotation, 2 laeufe in 30 tagen, zahl des tages mined_left (vorab gerechnet), uebersprungen [7, 10]",
+   "messzeit_utc": "2026-10-23T05:30:36+00:00",
+   "looks": {
+    "instagram": "teal",
+    "threads": "teal",
+    "x": "teal",
+    "discord": "teal"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-09-23",
+     "bis": "2026-10-22",
+     "fees": 75857.0683681,
+     "emission": 54684174.93803505,
+     "verhaeltnis": 720.88
+    }
+   }
   }
  ]
 }
