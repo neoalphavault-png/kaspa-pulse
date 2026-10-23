@@ -45,3 +45,9 @@ jobs:
             c=$(sed -n 's/^cursor=//p' kcc20/quellen.txt)
             python3 scripts/kcc20_api.py --kcc20info-api "$b" $ids ${c:+--cursor "$c"} | python3 -c "import json,sys; d=json.load(sys.stdin); d['/v1/tokens'].pop('tokens', None); print(json.dumps(d, indent=1, ensure_ascii=False))" || echo "nicht lesbar"
           done
+
+      - name: payloads der bewiesenen genesis (kcc-23, sonst nur format und namensfelder)
+        run: |
+          for f in $(sed -n 's/^genesis=//p' kcc20/quellen.txt); do
+            python3 scripts/kcc20_namen.py --payloads "$f" || echo "nicht lesbar"
+          done

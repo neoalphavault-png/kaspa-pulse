@@ -30,9 +30,11 @@ import csv
 import hashlib
 import json
 import os
+import re
 import struct
 import sys
 import time
+import urllib.error
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -105,7 +107,7 @@ def suchen(starts, eigen, abruf, budget=20000):
             aus[cov]["schritte"] += 1
             if art == "genesis":
                 aus[cov].update({"status": "genesis bewiesen", "genesis_tx": txid, "genesis_t": t.get("t"),
-                                 "vorbereitung_tx": nxt})
+                                 "vorbereitung_tx": nxt, "genesis_payload": t.get("payload") or ""})
             elif art == "weiter":
                 weiter[cov] = nxt
             else:
@@ -127,14 +129,53 @@ def suchen(starts, eigen, abruf, budget=20000):
         a["payload_quelle"] = (t or {}).get("quelle", "eigener knoten") if t else None
         md = metadaten((t or {}).get("payload", ""))
         a["metadaten"] = md
+        a["vorbereitung_payload"] = payload_info((t or {}).get("payload", ""))
     return aus, geholt
 
 
+NAMENSFELDER = ("name", "symbol", "ticker", "tick", "decimals", "dec")
+
+
+def payload_info(payload_hex):
+    """kurze Beschreibung eines Payloads ohne Inhalt ausser Namensfeldern:
+    Laenge, erstes Byte, ob JSON (mit oder ohne 0x00 davor), Feldnamen und die
+    Werte von name, symbol, ticker, tick, decimals, dec (kurz, ohne Links)."""
+    try:
+        b = bytes.fromhex(payload_hex or "")
+    except ValueError:
+        return "kein hex"
+    if not b:
+        return "leer"
+    teile = ["%d byte" % len(b), "erstes %02x" % b[0]]
+    for name, roh in (("json nach 00", b[1:] if b[0] == 0 else None), ("json ohne praefix", b)):
+        if roh is None:
+            continue
+        try:
+            d = json.loads(roh.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            continue
+        if isinstance(d, dict):
+            teile.append(name)
+            teile.append("felder " + "/".join(sorted(d)[:10]))
+            for k in NAMENSFELDER:
+                v = d.get(k)
+                if isinstance(v, (str, int)) and "://" not in str(v) and len(str(v)) <= 40:
+                    teile.append("%s=%s" % (k, str(v).replace(",", " ").replace("\n", " ")))
+            break
+    return "; ".join(teile)
+
+
 def kasplex(symbol):
+    import re
+    if not re.fullmatch(r"[A-Za-z]{4,6}", symbol or ""):
+        return {"krc20": "kein moeglicher krc20-ticker"}
     req = urllib.request.Request(KASPLEX + urllib.request.quote(symbol.upper()),
                                  headers={"User-Agent": kcc20_api.UA, "Accept": "application/json"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        d = json.loads(r.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            d = json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        return {"krc20": "http %d" % exc.code}
     res = (d.get("result") or [{}])[0]
     if not res or res.get("state") in (None, "unused"):
         return {"krc20": "nicht gefunden"}
@@ -164,7 +205,9 @@ def laufen(tokens, bestand, tx_pfade, out, abruf=kcc20_api.hole, krc=True):
         md = a.get("metadaten") or {}
         z = {"covenant_id": cov, "status": a["status"], "symbol": md.get("symbol"), "name": md.get("name"),
              "decimals": md.get("decimals"), "genesis_tx": a.get("genesis_tx"), "genesis_t": a.get("genesis_t"),
-             "payload_quelle": a.get("payload_quelle"), "schritte": a.get("schritte")}
+             "payload_quelle": a.get("payload_quelle"), "schritte": a.get("schritte"),
+             "vorbereitung_payload": a.get("vorbereitung_payload"),
+             "genesis_payload": payload_info(a["genesis_payload"]) if "genesis_payload" in a else None}
         if krc and isinstance(md.get("symbol"), str):
             try:
                 z.update(kasplex(md["symbol"]))
@@ -234,6 +277,40 @@ def diagnose(tokens, bestand, tx_pfade, vergleich=None, n=40):
                                                           ",".join("%s:%d" % x for x in tags[c].most_common(3))))
 
 
+def payloads(pfad, abruf=kcc20_api.hole, krc=True):
+    """Ohne Knoten: je Zeile covenant_id,genesis_tx (Genesis schon bewiesen) die
+    Payloads von Genesis und Vorbereitung beschreiben, KCC-23 lesen, KRC-20 fragen."""
+    paare = [z.strip().split(",")[:2] for z in open(pfad, encoding="utf-8") if re.match(r"^[0-9a-f]{64},[0-9a-f]{64}", z)]
+    gen = kcc20_api.holen({g for _c, g in paare}, abruf)
+    prep_von = {}
+    for cov, g in paare:
+        t = gen.get(g)
+        if not t:
+            continue
+        auth = next((o[4] for o in t["out"] if o[3] == cov), None)
+        if auth is not None and auth < len(t["in"]):
+            prep_von[cov] = t["in"][auth][0].split(":")[0]
+    prep = kcc20_api.holen(set(prep_von.values()), abruf)
+    w = csv.writer(sys.stdout)
+    w.writerow(["covenant_id", "symbol", "name", "decimals", "krc20", "krc20_max", "krc20_minted", "krc20_dec",
+                "krc20_holder", "vorbereitung_payload", "genesis_payload"])
+    for cov, g in paare:
+        pt = prep.get(prep_von.get(cov), {})
+        md = metadaten(pt.get("payload", "")) or {}
+        k = {}
+        if krc and isinstance(md.get("symbol"), str):
+            try:
+                k = kasplex(md["symbol"])
+            except Exception as exc:                # noqa: BLE001
+                k = {"krc20": "abfrage gescheitert (%s)" % type(exc).__name__}
+            time.sleep(0.2)
+        w.writerow([cov, md.get("symbol"), md.get("name"), md.get("decimals"), k.get("krc20"), k.get("krc20_max"),
+                    k.get("krc20_minted"), k.get("krc20_dec"), k.get("krc20_holder"),
+                    payload_info(pt.get("payload", "")) if pt else "nicht geholt",
+                    payload_info((gen.get(g) or {}).get("payload", ""))])
+    return 0
+
+
 def selbsttest():
     fehler = []
 
@@ -285,6 +362,11 @@ def selbsttest():
        and a["schritte"] == 3, a)
     ok("metadaten aus der vorbereitung", (a.get("metadaten") or {}).get("symbol") == "EXT", a)
     ok("zwei api-abrufe (genesis, vorbereitung)", rufe == [1, 1], rufe)
+    ok("payload_info kcc23", payload_info(p["payload_hex"]).startswith("53 byte; erstes 00; json nach 00")
+       and "symbol=EXT" in payload_info(p["payload_hex"]), payload_info(p["payload_hex"]))
+    ok("payload_info ohne praefix, link weg", payload_info(json.dumps({"tick": "ABCD", "name": "https://x"}).encode().hex())
+       .endswith("json ohne praefix; felder name/tick; tick=ABCD"), payload_info(json.dumps({"tick": "ABCD"}).encode().hex()))
+    ok("kein krc20-ticker", kasplex("Wobbly.k") == {"krc20": "kein moeglicher krc20-ticker"})
     falsch = dict(g0, out=[[90000001, 0, "51", soll, 0]])
     ok("falscher wert in der genesis wird nicht genesis", schritt(falsch, soll) == ("weiter", prep_id))
     print("%d fehler" % len(fehler))
@@ -298,12 +380,15 @@ def main():
     ap.add_argument("--tx", action="append", default=[])
     ap.add_argument("--out", default="aus")
     ap.add_argument("--ohne-krc20", action="store_true")
+    ap.add_argument("--payloads")
     ap.add_argument("--vergleich", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "kcc20",
                                                        "vektoren", "kcc20info-token-ids.txt"))
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args()
     if a.selbsttest:
         return selbsttest()
+    if a.payloads:
+        return payloads(a.payloads, krc=not a.ohne_krc20)
     try:
         vg = []
         if a.vergleich and os.path.exists(a.vergleich):
