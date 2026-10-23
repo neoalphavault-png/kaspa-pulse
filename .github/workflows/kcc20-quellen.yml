@@ -1,0 +1,39 @@
+# Kaspa Pulse - KCC-20 Quellen ohne Knoten (Ben, 23.10.2026)
+#
+# Liest nur oeffentliche Seiten fuer den Abgleich: kcc20.info (Zahlen nur als
+# "source kcc20.info") und die Feldnamen von api.kaspa.org. Kein Knoten, keine
+# Wallet, keine Schluessel, keine Secrets, kein Artefakt. Gestartet ueber
+# kcc20/quellen.txt (push) oder von Hand.
+
+name: kcc20 quellen
+
+on:
+  push:
+    branches:
+      - fix/kcc20-zaehlung
+    paths:
+      - kcc20/quellen.txt
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lesen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: selbsttest
+        run: python3 scripts/kcc20_api.py --selbsttest | tail -n 1
+
+      - name: kcc20.info lesen (nur textzeilen mit zahlen und pfade)
+        run: |
+          for u in $(sed -n 's/^url=//p' kcc20/quellen.txt); do
+            python3 scripts/kcc20_api.py --kcc20info "$u" || echo "nicht lesbar"
+          done

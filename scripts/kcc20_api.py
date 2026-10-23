@@ -174,6 +174,34 @@ def probe():
     return 0
 
 
+def seite_text(html):
+    """sichtbarer Text einer HTML-Seite, ohne Skripte und Stile, Leerraum zusammengefasst."""
+    import re
+    html = re.sub(r"(?is)<(script|style|noscript)[^>]*>.*?</\1>", " ", html)
+    links = sorted(set(re.findall(r'(?i)(?:href|src)="(/[^"#?]*|[^"]*\.json)"', html)))
+    text = re.sub(r"(?s)<[^>]+>", "\n", html)
+    for a, b in (("&amp;", "&"), ("&nbsp;", " "), ("&#x27;", "'"), ("&quot;", '"')):
+        text = text.replace(a, b)
+    zeilen = [" ".join(z.split()) for z in text.split("\n")]
+    return [z for z in zeilen if z], links
+
+
+def kcc20info(url="https://kcc20.info/"):
+    """Zahlen von kcc20.info, nur als 'source kcc20.info'. Druckt Textzeilen mit
+    Ziffern oder Stichwoertern und die Pfade der Seite (fuer eine moegliche API)."""
+    import re
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        html = r.read().decode("utf-8", "replace")
+    zeilen, links = seite_text(html)
+    wort = re.compile(r"(?i)token|utxo|covenant|holder|transfer|mint|supply|kcc|krc|stand|updated|as of")
+    treffer = [z for z in zeilen if (re.search(r"\d", z) or wort.search(z)) and len(z) <= 160]
+    print(json.dumps({"quelle": "source kcc20.info", "url": url, "zeilen": treffer[:150],
+                      "pfade": [l for l in links if not re.search(r"\.(css|png|svg|ico|woff2?|jpg|webp)$", l)][:80]},
+                     indent=1, ensure_ascii=False))
+    return 0
+
+
 def selbsttest():
     fehler = []
 
@@ -210,6 +238,8 @@ def selbsttest():
     n = normal(kette["t3"])
     ok("normalform wie kp-stichzeit", n["in"][0] == ["t2:0", tag_sig] and n["out"][0][3] == "c0" * 32
        and n["out"][0][2] == "aa20" + "11" * 32 + "87", n)
+    z, l = seite_text('<html><style>x{}</style><a href="/api/tokens">97</a><p>KCC20 Tokens</p><script>1</script></html>')
+    ok("seitentext ohne skript und stil, pfade", z == ["97", "KCC20 Tokens"] and l == ["/api/tokens"], (z, l))
     print("%d fehler" % len(fehler))
     return 1 if fehler else 0
 
@@ -221,12 +251,15 @@ def main():
     ap.add_argument("--seit", default="2026-10-21T00:00:00Z")
     ap.add_argument("--out", default="api-tx.jsonl")
     ap.add_argument("--probe", action="store_true")
+    ap.add_argument("--kcc20info", nargs="?", const="https://kcc20.info/")
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args()
     if a.selbsttest:
         return selbsttest()
     if a.probe:
         return probe()
+    if a.kcc20info:
+        return kcc20info(a.kcc20info)
     laufen(a.bestand, a.tx, ms(a.seit), a.out)
     return 0
 
