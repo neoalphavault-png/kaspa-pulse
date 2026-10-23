@@ -1,6 +1,6 @@
 # Abgleich mit Tony, geteilte Skripte, Stand 22.10.2026 10:58:40 UTC
 
-Bericht für Ben zu Aufgabe B vom 23.10.2026. Die Aufgabe war schon am 22.10. erledigt (Bericht `berichte/2026-10-22-geteilte-skripte-tony.md` auf dem Messbranch `messung/covenants-stichzeit`, der nie gemergt wird). Diese Datei bringt dasselbe Ergebnis in den PR-Branch `fix/kcc20-zaehlung`, damit es mit dem PR auf GitHub lesbar ist. Neu gegenüber dem 22.10. ist nur die Kurzfassung: sie folgt jetzt den Textregeln vom 23.10. (kein Doppelpunkt, kein Wort "live", vier Sätze). Die Zahlen sind unverändert.
+Bericht für Ben zu Aufgabe B vom 23.10.2026. Die Aufgabe war schon am 22.10. erledigt (Bericht `berichte/2026-10-22-geteilte-skripte-tony.md` auf dem Messbranch `messung/covenants-stichzeit`, der nie gemergt wird). Diese Datei bringt dasselbe Ergebnis in den PR-Branch `fix/kcc20-zaehlung`, damit es mit dem PR [#136](https://github.com/neoalphavault-png/kaspa-pulse/pull/136) auf GitHub lesbar ist. Neu gegenüber dem 22.10. ist nur die Kurzfassung: sie folgt jetzt den Textregeln vom 23.10. (kein Doppelpunkt, kein Wort "live", vier Sätze). Die Zahlen sind unverändert.
 
 Unsere Zahlen sind "counted", Tonys tragen "source tony's indexer".
 

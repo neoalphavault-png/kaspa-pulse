@@ -1,6 +1,6 @@
 # Erste öffentliche KCC-20-Zählung vom eigenen Knoten
 
-Bericht für Ben zu Aufgabe A vom 23.10.2026. Branch `fix/kcc20-zaehlung`.
+Bericht für Ben zu Aufgabe A vom 23.10.2026. Branch `fix/kcc20-zaehlung`, PR [#136](https://github.com/neoalphavault-png/kaspa-pulse/pull/136) (Entwurf bis Montag).
 
 **Stand dieses Berichts: Zwischenstand vom Freitag, 23.10.2026, Lauf 2 mit Stichzeit 14:30 UTC.** Die Hauptzählung zur Stichzeit Mo 26.10.2026 12:00 UTC ersetzt diese Zahlen am Montag. Nichts hieraus veröffentlichen, bevor der Montag eingetragen ist.
 
