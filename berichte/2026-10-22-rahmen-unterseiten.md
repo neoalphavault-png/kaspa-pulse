@@ -1,6 +1,6 @@
 # Bericht 22.10.2026: Rahmen der Startseite für alle Unterseiten (PR 3)
 
-Branch `design/rahmen-unterseiten`. Ich öffne den PR im Sammelfenster am Fr 23.10.2026 um 16:00 Berlin und trage die Nummer dann hier nach.
+Branch `design/rahmen-unterseiten`, PR #134, geöffnet im Sammelfenster am Fr 23.10.2026 um 16:00 Berlin. Vorher habe ich main gemergt: Die drei Seiten, die die Generatoren seit dem 22.10. neu geschrieben hatten (covenants, hashrate, smart-contracts), kommen aus main, der Rahmen ist darauf neu gesetzt. Kein Seitendatum weicht von main ab.
 
 ## Was gemacht wurde
 - **Rahmen:** Alle 22 Unterseiten tragen jetzt den Rahmen der Startseite.
@@ -24,12 +24,15 @@ Branch `design/rahmen-unterseiten`. Ich öffne den PR im Sammelfenster am Fr 23.
 ## PR-Nummern
 - PR 1 Startseite: #127, Nachbesserung #128, beide gemergt
 - PR 2 Archiv und method: #131, gemergt
-- PR 3 Rahmen: öffne ich am 23.10. um 16:00, die Nummer folgt hier
+- PR 3 Rahmen: #134, offen
 
 ## Offene Fragen an Ben
 1. **Textregeln auf den Unterseiten:** Mehrere Unterseiten verletzen die heutigen Textregeln, mit „right now“ und „live“ auf hashrate, mining, supply und entity x und mit Gedankenstrichen. Nach deiner Vorgabe bleiben die Inhalte in PR 3 unverändert. Soll ein eigener Text-PR je Seite folgen?
 2. **Roter Selbsttest auf main:** `number_of_day_data.py --selbsttest` ist auf main rot, auch ohne PR 3. Die „now“-Wache aus #124 trifft eine feste Vorlage („the network now mints …“). Soll ich prüfen, ob das den täglichen Lauf von number-of-day betrifft, und einen Fix vorschlagen?
 
+## Offen aus diesem Gespräch
+3. **Jekyll und Markdown:** Das Repo hat weder `.nojekyll` noch `_config.yml`. GitHub Pages macht deshalb aus jeder Markdown-Datei eine öffentliche Seite, auch aus diesen Berichten und aus `docs/`, `deploy/` und `data/weekly-notes.md`. Ein `_config.yml` mit `exclude` würde sie aus der Website nehmen, auf GitHub blieben sie lesbar. Soll ich das als kleinen PR bauen?
+
 ## Was Ben tun muss
-- PR 3 prüfen und mergen, sobald er offen ist. Workflow-Dateien sind diesmal nicht betroffen.
+- #134 prüfen und mergen. Workflow-Dateien sind diesmal nicht betroffen.
 - Die beiden Fragen oben beantworten.
