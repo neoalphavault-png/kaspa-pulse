@@ -159,6 +159,8 @@ jobs:
             python3 scripts/kcc20_api.py --bestand /mnt/kp/aus/bestand.csv --tx /mnt/kp/aus/tx.jsonl --seit "$seit" --out /mnt/kp/aus/api-tx.jsonl || return 1
             listen=""
             for l in $(find /mnt/kp/vorher -name kcc20-tx-liste.jsonl 2>/dev/null); do listen="$listen --liste $l"; done
+            # eigene knotenfenster dieses und frueherer laeufe: counted nur im lueckenlosen fenster
+            for st in /mnt/kp/aus/tx-stand.json $(find /mnt/kp/vorher -name tx-stand.json 2>/dev/null); do listen="$listen --stand $st"; done
             python3 scripts/kcc20_zaehlung.py --bestand /mnt/kp/aus/bestand.csv --tx /mnt/kp/aus/tx.jsonl --tx /mnt/kp/aus/api-tx.jsonl \
               --stichzeit "$stichzeit" --seit "$seit" --artefakt kcc20/vektoren/public-mint-artifact.json $listen --out /mnt/kp/aus || return 1
           }

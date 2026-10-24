@@ -38,6 +38,9 @@ import tempfile
 TAG_TRANSFER = bytes.fromhex("79c71c23")
 TAG_DELEGATOR = bytes.fromhex("fd3ef14a")
 STATE_LEN = 112
+# Quellen, die "counted" tragen duerfen: die eigene Knoten-Ausgabe dieses Laufs
+# und Eintraege frueherer Laeufe, die dort aus dem eigenen Knoten kamen.
+EIGEN = ("tx.jsonl", "eigener knoten")
 SCHEMES = set(range(5))
 BORROW = set(range(4))
 
@@ -274,7 +277,39 @@ def listen_lesen(pfade):
     return aus
 
 
-def auswerten(bestand_pfad, tx_pfade, stichzeit_ms, seit_ms, seed=(), fruehere=None, liste_aus=None):
+def fenster_lesen(pfade):
+    """[(von_ms, bis_ms)] aus tx-stand.json der Laeufe (eigenes Knotenfenster)."""
+    aus = []
+    for p in pfade:
+        try:
+            d = json.load(open(p, encoding="utf-8"))
+            aus.append((ms(d["von"]), ms(d["bis"])))
+        except (OSError, ValueError, KeyError, TypeError):
+            continue
+    return aus
+
+
+def fenster_ab(fenster, stichzeit_ms):
+    """Beginn des lueckenlosen eigenen Fensters, das bis zur Stichzeit reicht.
+    None, wenn kein Fenster die Stichzeit erreicht."""
+    rest = sorted(fenster, key=lambda f: -f[1])
+    if not rest or rest[0][1] < stichzeit_ms:
+        return None
+    ab = rest[0][0]
+    for von, bis in rest[1:]:
+        if bis >= ab:
+            ab = min(ab, von)
+    return ab
+
+
+def ist_counted(info, ab):
+    """eigene Quelle und im lueckenlosen eigenen Fenster. Aeltere Listen ohne
+    Quelle zaehlen nur im Fenster: dort kam nichts von der api."""
+    q = info["quelle"]
+    return ab is not None and info["t"] >= ab and (q in EIGEN or q == "frueherer lauf")
+
+
+def auswerten(bestand_pfad, tx_pfade, stichzeit_ms, seit_ms, seed=(), fruehere=None, liste_aus=None, fenster=None):
     z = Zaehlung(seed)
     txs, quellen = {}, {}
     for p in tx_pfade:
@@ -299,7 +334,8 @@ def auswerten(bestand_pfad, tx_pfade, stichzeit_ms, seit_ms, seed=(), fruehere=N
                 ohne_tx += 1
             lebend.append((r["outpoint"], r["covenant_id"], int(r["sompi"]), z.bewiesen.get(r["outpoint"])))
     tok = collections.defaultdict(lambda: {"outputs": 0, "menge": 0, "halter": set(), "kas_sompi": 0,
-                                          "unter_token": set(), "transfers": 0, "kcc20_tx": 0})
+                                          "unter_token": set(), "transfers": 0, "kcc20_tx": 0,
+                                          "transfers_counted": 0})
     nicht = {"outputs": 0, "kas_sompi": 0, "covenants": set()}
     token_covs = set(z.cov_von.values())
     luecke = {"outputs": 0, "kas_sompi": 0, "covenants": set()}
@@ -320,15 +356,21 @@ def auswerten(bestand_pfad, tx_pfade, stichzeit_ms, seit_ms, seed=(), fruehere=N
         t["kas_sompi"] += sompi
         t["halter"].add((zst[2], zst[1].hex()))
         t["unter_token"].add(zst[5].hex())
-    alle_info = {k: dict(v, quelle="frueherer lauf") for k, v in (fruehere or {}).items()}
+    alle_info = {k: dict(v, quelle=v.get("quelle") or "frueherer lauf") for k, v in (fruehere or {}).items()}
     for k, v in z.tx_info.items():
         alle_info[k] = dict(v, quelle=quellen[k])
+    ab = fenster_ab(fenster or [], stichzeit_ms)
+
+    def counted(info):
+        return ist_counted(info, ab)
     if liste_aus:
         with open(liste_aus, "w", encoding="utf-8") as fh:
             for k, v in sorted(z.tx_info.items(), key=lambda kv: (kv[1]["t"] or 0, kv[0])):
                 if v["art"] in ("transfer", "kcc20_ausgang", "transfer_unbewiesen"):
-                    fh.write(json.dumps({"id": k, "t": v["t"], "art": v["art"], "covs": v["covs"]}) + "\n")
+                    fh.write(json.dumps({"id": k, "t": v["t"], "art": v["art"], "covs": v["covs"],
+                                         "quelle": "eigener knoten" if quellen[k] in EIGEN else "api.kaspa.org"}) + "\n")
     seit_quelle, unbewiesen_seit = collections.Counter(), 0
+    counted_n, vor_n = 0, 0
     for txid, info in alle_info.items():
         if info["t"] is None or not (seit_ms <= info["t"] <= stichzeit_ms):
             continue
@@ -338,17 +380,23 @@ def auswerten(bestand_pfad, tx_pfade, stichzeit_ms, seit_ms, seed=(), fruehere=N
             for c in info["covs"]:
                 if info["art"] == "transfer":
                     tok[c]["transfers"] += 1
+                    if counted(info):
+                        tok[c]["transfers_counted"] += 1
                 tok[c]["kcc20_tx"] += 1
             if info["art"] == "transfer":
                 seit_quelle[info["quelle"]] += 1
+                if counted(info):
+                    counted_n += 1
+                elif ab is None or info["t"] < ab:
+                    vor_n += 1
     zeilen = []
     for cov, t in sorted(tok.items(), key=lambda kv: (-kv[1]["outputs"], kv[0])):
         if t["outputs"] == 0 and t["transfers"] == 0:
             continue
         zeilen.append({"covenant_id": cov, "halter_outputs": t["outputs"], "halter": len(t["halter"]),
                        "menge_basis": t["menge"], "unter_token": len(t["unter_token"]),
-                       "kas": round(t["kas_sompi"] / 1e8, 8), "transfers_seit": t["transfers"],
-                       "kcc20_tx_seit": t["kcc20_tx"]})
+                       "kas": round(t["kas_sompi"] / 1e8, 8), "transfers_counted": t["transfers_counted"],
+                       "transfers_seit": t["transfers"], "kcc20_tx_seit": t["kcc20_tx"]})
     lebende_tokens = [r for r in zeilen if r["halter_outputs"] > 0]
     zus = {
         "quelle": "counted by kaspa pulse, eigener knoten, zustaende per blake2b-hash bewiesen",
@@ -357,6 +405,12 @@ def auswerten(bestand_pfad, tx_pfade, stichzeit_ms, seit_ms, seed=(), fruehere=N
         "halter_outputs": sum(r["halter_outputs"] for r in lebende_tokens),
         "halter_je_token_summiert": sum(r["halter"] for r in lebende_tokens),
         "halter_eindeutig": len({h for t in tok.values() for h in t["halter"]}),
+        "transfers_counted": counted_n,
+        "transfers_counted_ab_utc": dt.datetime.fromtimestamp(ab / 1000, dt.timezone.utc).isoformat() if ab else None,
+        "eigene_fenster_utc": [[dt.datetime.fromtimestamp(a / 1000, dt.timezone.utc).isoformat(),
+                                dt.datetime.fromtimestamp(b / 1000, dt.timezone.utc).isoformat()]
+                               for a, b in sorted(fenster or [])],
+        "transfers_vor_eigenem_fenster_nicht_counted": vor_n,
         "transfers_seit": sum(seit_quelle.values()),
         "transfers_seit_je_quelle": dict(seit_quelle),
         "transfers_je_token_summiert": sum(r["transfers_seit"] for r in zeilen),
@@ -442,7 +496,8 @@ def selbsttest():
         fr = {"77" * 32: {"t": ms("2026-10-21T05:00:00Z"), "art": "transfer", "covs": [cov]},
               "aa" * 32: {"t": t1["t"], "art": "transfer", "covs": [cov]}}
         la = os.path.join(d, "liste.jsonl")
-        zl, zs = auswerten(bp, [txp], ms("2026-10-26T12:00:00Z"), ms("2026-10-21T00:00:00Z"), (), fr, la)
+        fe = [(ms("2026-10-22T00:00:00Z"), ms("2026-10-24T00:00:00Z")), (ms("2026-10-23T20:00:00Z"), ms("2026-10-26T12:30:00Z"))]
+        zl, zs = auswerten(bp, [txp], ms("2026-10-26T12:00:00Z"), ms("2026-10-21T00:00:00Z"), (), fr, la, fe)
         liste = [json.loads(x) for x in open(la, encoding="utf-8")]
     r = {x["covenant_id"]: x for x in zl}
     ok("transfer bewiesen: 600 und 400, mint 5 ueber das template aus dem transfer", r.get(cov, {}).get("menge_basis")
@@ -453,7 +508,14 @@ def selbsttest():
        and r[cov]["kcc20_tx_seit"] == 3 and zs["transfers_seit"] == 2
        and zs["transfers_seit_je_quelle"] == {"tx.jsonl": 1, "frueherer lauf": 1}, (r[cov], zs["transfers_seit_je_quelle"]))
     ok("eigene liste ohne skripte geschrieben", {e["id"] for e in liste} == {"aa" * 32, "dd" * 32}
-       and all(set(e) == {"id", "t", "art", "covs"} for e in liste), liste)
+       and all(set(e) == {"id", "t", "art", "covs", "quelle"} and e["quelle"] == "eigener knoten" for e in liste), liste)
+    ok("counted nur im eigenen fenster ab 22.10. 00:00", zs["transfers_counted"] == 1 and r[cov]["transfers_counted"] == 1
+       and zs["transfers_vor_eigenem_fenster_nicht_counted"] == 1
+       and zs["transfers_counted_ab_utc"].startswith("2026-10-22T00:00:00"), zs)
+    ok("fenster mit luecke beginnt nach der luecke", fenster_ab([(1, 5), (7, 20)], 18) == 7
+       and fenster_ab([(1, 8), (7, 20)], 18) == 1 and fenster_ab([(1, 5)], 18) is None)
+    ok("api-eintrag aus frueherer liste nie counted", not ist_counted({"quelle": "api.kaspa.org", "t": 10}, 5)
+       and ist_counted({"quelle": "eigener knoten", "t": 10}, 5) and not ist_counted({"quelle": "tx.jsonl", "t": 4}, 5))
     ok("fremder covenant im transfer bekommt keinen transfer", "e5" * 32 not in r, sorted(r))
     ok("minter-ausgang des tokens als luecke gezaehlt", zs["token_outputs_nicht_bewiesen"] == 1
        and zs["tokens_mit_unbewiesenen_outputs"] == 1, zs)
@@ -486,13 +548,14 @@ def main():
     ap.add_argument("--artefakt", default="")
     ap.add_argument("--out", default="aus")
     ap.add_argument("--liste", action="append", default=[], help="kcc20-tx-listen frueherer laeufe")
+    ap.add_argument("--stand", action="append", default=[], help="tx-stand.json dieses und frueherer laeufe")
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args()
     if a.selbsttest:
         return selbsttest()
     os.makedirs(a.out, exist_ok=True)
     zl, zs = auswerten(a.bestand, a.tx, ms(a.stichzeit), ms(a.seit), seed_aus_artefakt(a.artefakt),
-                       listen_lesen(a.liste), os.path.join(a.out, "kcc20-tx-liste.jsonl"))
+                       listen_lesen(a.liste), os.path.join(a.out, "kcc20-tx-liste.jsonl"), fenster_lesen(a.stand))
     with open(os.path.join(a.out, "kcc20-tokens.csv"), "w", encoding="utf-8", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=list(zl[0]) if zl else ["covenant_id"])
         w.writeheader()
