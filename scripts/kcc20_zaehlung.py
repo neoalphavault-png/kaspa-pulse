@@ -273,7 +273,10 @@ def listen_lesen(pfade):
         if os.path.exists(p):
             for z in open(p, encoding="utf-8"):
                 e = json.loads(z)
-                aus.setdefault(e["id"], e)
+                alt = aus.get(e["id"])
+                # ein eigener eintrag schlaegt einen api-eintrag, egal in welcher reihenfolge
+                if alt is None or (alt.get("quelle") == "api.kaspa.org" and e.get("quelle") != "api.kaspa.org"):
+                    aus[e["id"]] = e
     return aus
 
 
@@ -357,9 +360,18 @@ def auswerten(bestand_pfad, tx_pfade, stichzeit_ms, seit_ms, seed=(), fruehere=N
         t["halter"].add((zst[2], zst[1].hex()))
         t["unter_token"].add(zst[5].hex())
     alle_info = {k: dict(v, quelle=v.get("quelle") or "frueherer lauf") for k, v in (fruehere or {}).items()}
-    for k, v in z.tx_info.items():
-        alle_info[k] = dict(v, quelle=quellen[k])
     ab = fenster_ab(fenster or [], stichzeit_ms)
+    # hat ein frueherer lauf die tx aus seinem eigenen knoten gelesen, bleibt sie
+    # eigen, auch wenn dieser lauf sie fuer die vorfahren von der api holt. listen
+    # ohne quelle (lauf 2) gelten nur im eigenen fenster als eigen.
+    frueher_eigen = {k for k, v in (fruehere or {}).items()
+                     if v.get("quelle") == "eigener knoten"
+                     or (v.get("quelle") is None and ab is not None and (v.get("t") or 0) >= ab)}
+    for k, v in z.tx_info.items():
+        q = quellen[k]
+        if q not in EIGEN and k in frueher_eigen:
+            q = "frueherer lauf"
+        alle_info[k] = dict(v, quelle=q)
 
     def counted(info):
         return ist_counted(info, ab)
@@ -368,7 +380,8 @@ def auswerten(bestand_pfad, tx_pfade, stichzeit_ms, seit_ms, seed=(), fruehere=N
             for k, v in sorted(z.tx_info.items(), key=lambda kv: (kv[1]["t"] or 0, kv[0])):
                 if v["art"] in ("transfer", "kcc20_ausgang", "transfer_unbewiesen"):
                     fh.write(json.dumps({"id": k, "t": v["t"], "art": v["art"], "covs": v["covs"],
-                                         "quelle": "eigener knoten" if quellen[k] in EIGEN else "api.kaspa.org"}) + "\n")
+                                         "quelle": "eigener knoten" if quellen[k] in EIGEN or k in frueher_eigen
+                                         else "api.kaspa.org"}) + "\n")
     seit_quelle, unbewiesen_seit = collections.Counter(), 0
     counted_n, vor_n = 0, 0
     for txid, info in alle_info.items():
@@ -499,6 +512,15 @@ def selbsttest():
         fe = [(ms("2026-10-22T00:00:00Z"), ms("2026-10-24T00:00:00Z")), (ms("2026-10-23T20:00:00Z"), ms("2026-10-26T12:30:00Z"))]
         zl, zs = auswerten(bp, [txp], ms("2026-10-26T12:00:00Z"), ms("2026-10-21T00:00:00Z"), (), fr, la, fe)
         liste = [json.loads(x) for x in open(la, encoding="utf-8")]
+        # derselbe transfer kommt diesmal von der api, ein frueherer lauf hatte ihn aus dem eigenen knoten
+        apip = os.path.join(d, "api-tx.jsonl")
+        with open(apip, "w", encoding="utf-8") as fh:
+            for t in (t1, t2, t3):
+                fh.write(json.dumps(t) + "\n")
+        fr2 = {"aa" * 32: {"t": t1["t"], "art": "transfer", "covs": [cov], "quelle": "eigener knoten"}}
+        la2 = os.path.join(d, "liste2.jsonl")
+        _zl2, zs2 = auswerten(bp, [apip], ms("2026-10-26T12:00:00Z"), ms("2026-10-21T00:00:00Z"), (), fr2, la2, fe)
+        liste2 = {e["id"]: e for e in (json.loads(x) for x in open(la2, encoding="utf-8"))}
     r = {x["covenant_id"]: x for x in zl}
     ok("transfer bewiesen: 600 und 400, mint 5 ueber das template aus dem transfer", r.get(cov, {}).get("menge_basis")
        == 1005 and r[cov]["halter_outputs"] == 3 and r[cov]["halter"] == 3, r.get(cov))
@@ -514,6 +536,16 @@ def selbsttest():
        and zs["transfers_counted_ab_utc"].startswith("2026-10-22T00:00:00"), zs)
     ok("fenster mit luecke beginnt nach der luecke", fenster_ab([(1, 5), (7, 20)], 18) == 7
        and fenster_ab([(1, 8), (7, 20)], 18) == 1 and fenster_ab([(1, 5)], 18) is None)
+    with tempfile.TemporaryDirectory() as d:
+        l1, l2 = os.path.join(d, "a.jsonl"), os.path.join(d, "b.jsonl")
+        open(l1, "w").write(json.dumps({"id": "x", "t": 1, "quelle": "api.kaspa.org"}) + "\n")
+        open(l2, "w").write(json.dumps({"id": "x", "t": 1}) + "\n" + json.dumps({"id": "y", "t": 2, "quelle": "api.kaspa.org"}) + "\n")
+        m1, m2 = listen_lesen([l1, l2]), listen_lesen([l2, l1])
+    ok("eigen aus frueherem lauf bleibt counted, obwohl jetzt von der api", zs2["transfers_counted"] == 1
+       and liste2["aa" * 32]["quelle"] == "eigener knoten" and liste2["dd" * 32]["quelle"] == "api.kaspa.org",
+       (zs2["transfers_counted"], liste2))
+    ok("eigener eintrag schlaegt api-eintrag in jeder reihenfolge", m1["x"].get("quelle") is None
+       and m2["x"].get("quelle") is None and m1["y"]["quelle"] == "api.kaspa.org", (m1, m2))
     ok("api-eintrag aus frueherer liste nie counted", not ist_counted({"quelle": "api.kaspa.org", "t": 10}, 5)
        and ist_counted({"quelle": "eigener knoten", "t": 10}, 5) and not ist_counted({"quelle": "tx.jsonl", "t": 4}, 5))
     ok("fremder covenant im transfer bekommt keinen transfer", "e5" * 32 not in r, sorted(r))
