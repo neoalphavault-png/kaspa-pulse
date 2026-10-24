@@ -27,6 +27,12 @@
    },
    {
     "datum": "2026-10-24",
+    "look": "hell",
+    "schritt": 3,
+    "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-10-24",
     "look": "dunkel",
     "schritt": 0,
     "serie": "karussell"
@@ -67,6 +73,11 @@
     "datum": "2026-10-23",
     "look": "teal",
     "schritt": 2
+   },
+   {
+    "datum": "2026-10-24",
+    "look": "hell",
+    "schritt": 3
    }
   ],
   "tagesgrafik/instagram": [
@@ -121,6 +132,11 @@
     "datum": "2026-10-23",
     "look": "teal",
     "schritt": 2
+   },
+   {
+    "datum": "2026-10-24",
+    "look": "hell",
+    "schritt": 3
    }
   ],
   "tagesgrafik/x": [
@@ -158,6 +174,11 @@
     "datum": "2026-10-23",
     "look": "teal",
     "schritt": 2
+   },
+   {
+    "datum": "2026-10-24",
+    "look": "hell",
+    "schritt": 3
    }
   ]
  }
