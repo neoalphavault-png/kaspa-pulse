@@ -29,7 +29,7 @@
  "description": "The Toccata hard fork activated on Kaspa mainnet on 30 June 2026 at DAA score 474,165,565. What changed at consensus level and what runs on it now.",
  "url": "https://kaspapulse.com/kaspa-toccata.html",
  "inLanguage": "en",
- "dateModified": "2026-10-17",
+ "dateModified": "2026-10-24",
  "isPartOf": {
   "@type": "WebSite",
   "name": "Kaspa Pulse",
@@ -184,10 +184,10 @@
   <div class="sub">The Toccata hard fork activated on Kaspa mainnet on 30 June 2026 at DAA score 474,165,565, according to the developer documentation at docs.kaspa.org. It is the largest consensus change in the chain's history, it was covered widely, and a lot of what was written about it does not match the developer documentation. This page separates the two, and then counts what is actually running on it.</div>
   <div class="answer">
     <div class="lbl">The short answer</div>
-    <p><b>Toccata made Kaspa's layer 1 programmable without turning it into an account chain.</b> It added six things at consensus level: a new transaction format with a compute budget, covenant IDs, introspection opcodes, runtime pricing for scripts, zero knowledge proof verification built into the script engine, and sequencing commitments for apps that bind themselves to layer 1 ordering. Together those let a coin carry rules about how it may be spent next. That is what a covenant is, and it is the foundation everything else on this page rests on.</p>
+    <p><b>Toccata made Kaspa's layer 1 programmable without turning it into an account chain.</b> It added six things at consensus level, a new transaction format with a compute budget, covenant IDs, introspection opcodes, runtime pricing for scripts, zero knowledge proof verification built into the script engine, and sequencing commitments for apps that bind themselves to layer 1 ordering. Together those let a coin carry rules about how it may be spent next. That is what a covenant is, and it is the foundation everything else on this page rests on.</p>
   </div>
   <div class="live">
-    <div class="lbl"><i></i>live on mainnet since 30 june 2026</div>
+    <div class="lbl"><i></i>active on mainnet since 30 june 2026</div>
     <div class="big">474,165,565</div>
     <div class="cap">the DAA score at which Toccata activated. the chain has been running on the new consensus rules ever since, on Rusty Kaspa v2.0.0 and later.</div>
     <div class="split">
@@ -204,31 +204,31 @@
   <div class="tblwrap"><table>
     <thead><tr><th>What it is called</th><th>What it actually does</th></tr></thead>
     <tbody>
-      <tr><td class="n">Transaction v1</td><td>every transaction now carries a <b>compute budget</b>, a binding to the covenant it belongs to, and its own lane. In effect the chain now knows, before it runs a script, how much work that script is allowed to do</td></tr>
-      <tr><td class="n">Covenant IDs</td><td class="hl">the chain itself now tracks which contract a coin belongs to across its entire life, even though the address hash changes at every step. before this, following a contract meant reassembling it from the outside</td></tr>
-      <tr><td class="n">Introspection opcodes</td><td class="hl">a script can now look at the transaction it sits in, at its own inputs and outputs. that is the piece that makes a rule like "this coin may only move to an address that carries the same rule" possible at all</td></tr>
+      <tr><td class="n">Transaction v1</td><td>every transaction carries a <b>compute budget</b>, a binding to the covenant it belongs to, and its own lane. In effect the chain knows, before it runs a script, how much work that script is allowed to do</td></tr>
+      <tr><td class="n">Covenant IDs</td><td class="hl">the chain itself tracks which contract a coin belongs to across its entire life, even though the address hash changes at every step. before this, following a contract meant reassembling it from the outside</td></tr>
+      <tr><td class="n">Introspection opcodes</td><td class="hl">a script can look at the transaction it sits in, at its own inputs and outputs. that is the piece that makes a rule like "this coin may only move to an address that carries the same rule" possible at all</td></tr>
       <tr><td class="n">Script pricing</td><td>a runtime meter for stack growth, hashing, signatures and proof verification, so a heavy script costs more than a light one instead of being refused outright</td></tr>
       <tr><td class="n">ZK precompiles</td><td>the script engine can verify Groth16 and RISC Zero proofs directly, which is what lets a chain check a computation it never performed</td></tr>
       <tr><td class="n">Seqcommit lanes</td><td>an application can commit its own activity to layer 1 ordering without proving the whole DAG, which is the groundwork for apps that inherit Kaspa's sequencing</td></tr>
     </tbody>
   </table></div>
-  <p>The short version: <b>before Toccata, a Kaspa coin could be locked. After Toccata, a Kaspa coin can carry rules.</b> Everything from a permanently locked liquidity pool to a proof verified on chain follows from that one change.</p>
+  <p>The short version. <b>Before Toccata, a Kaspa coin could be locked. After Toccata, a Kaspa coin can carry rules.</b> Everything from a permanently locked liquidity pool to a proof verified on chain follows from that one change.</p>
 </div></div>
 <div class="wrap2">
   <h2>The claim that keeps getting repeated, and what the documentation says</h2>
   <p>If you followed the coverage in June you will have read that Toccata brought Kaspa native tokens, or native KRC-20 issuance, or simply "smart contracts". Those claims travelled a long way. They are worth checking against the source rather than against each other.</p>
   <p><b>The official developer guide lists six additions, and native token issuance is not among them.</b> The core developer's own outlook written before activation does not mention native tokens either. We are not saying the feature is impossible or unplanned, and we are not correcting anyone's roadmap. We are saying that if you read that Toccata introduced native tokens, that claim does not come from the documentation.</p>
   <p>The guide is equally direct about the bigger framing. It states plainly that <b>Toccata does not turn Kaspa into an account chain smart contract system</b>. Kaspa stays a UTXO chain, in which coins carry their own rules, rather than becoming a chain of accounts and balances with contracts sitting above them. That distinction is not pedantry. It decides what can be built, how it has to be written, and why tooling from other chains does not simply carry over.</p>
-  <div class="note">This is the part worth taking away if you take away nothing else. Toccata is a programmability upgrade to a UTXO chain, not a port of the account model onto Kaspa. And when tokens do arrive on this foundation, they arrive the covenant way: the KCC20 draft from 2 July 2026 defines a fungible token as a covenant instance, token logic on top of what Toccata added, not issuance at consensus level.</div>
+  <div class="note">This is the part worth taking away if you take away nothing else. Toccata is a programmability upgrade to a UTXO chain, not a port of the account model onto Kaspa. And when tokens do arrive on this foundation, they arrive the covenant way. The KCC20 draft from 2 July 2026 defines a fungible token as a covenant instance, token logic on top of what Toccata added, not issuance at consensus level.</div>
   <h2>Eight weeks in, what actually runs on it</h2>
   <p>Consensus features being active and an ecosystem using them are two different things, and the guide says so itself, noting that developer tooling is younger than the consensus it targets. So here is the honest state of it, measured rather than claimed, with its source named. Since 22 September 2026 we log the Kaspalytics count every day and publish the whole series, quiet days included, on <a href="/kaspa-covenants.html">is Toccata being used?</a></p>
   <div class="facts">
     <div class="fact"><div class="v teal">403 a day</div><div class="l">covenant transactions on mainnet in the week of 24 August 2026, source kaspalytics, against about 450 the week before. small in absolute terms, and not zero, which is the point eight weeks after activation. <a href="/kaspa-covenants.html">the daily series since activation</a></div></div>
     <div class="fact"><div class="v teal">Kron</div><div class="l">the first launchpad built on the new capability, launching tokens on a bonding curve whose locked liquidity is enforced by layer 1 logic. <a href="/kron.html">what it is and what to check</a></div></div>
-    <div class="fact"><div class="v">Tooling is young</div><div class="l">the consensus rules are live, the libraries, wallets and explorers that expose them are still catching up. expect rough edges rather than finished products</div></div>
+    <div class="fact"><div class="v">Tooling is young</div><div class="l">the consensus rules are active, the libraries, wallets and explorers that expose them are still catching up. expect rough edges rather than finished products</div></div>
     <div class="fact"><div class="v">Not the same as the L2s</div><div class="l">Kasplex and Igra remain EVM layer 2s and are unaffected by this. Toccata is about what layer 1 itself can do. <a href="/kaspa-smart-contracts.html">how the two compare</a></div></div>
   </div>
-  <div class="note">We publish what moved on Kaspa every Monday, counted from the chain, on <a href="/">the Kaspa Pulse dashboard</a>, and we print the definition next to every number. Related reading: <a href="/kaspa-token-standard.html">Kaspa's token standards</a> and <a href="/kaspa-data-sources.html">where every Kaspa number comes from</a>.</div>
+  <div class="note">We publish what moved on Kaspa every Monday, counted from the chain, on <a href="/">the Kaspa Pulse dashboard</a>, and we print the definition next to every number. Related reading, <a href="/kaspa-token-standard.html">Kaspa's token standards</a> and <a href="/kaspa-data-sources.html">where every Kaspa number comes from</a>.</div>
 <!--AUTO:faq-->
   <div class="faq">
   <h2>Questions people ask</h2>
@@ -236,7 +236,7 @@
   <p>Toccata is a consensus level upgrade to Kaspa that activated on mainnet on 30 June 2026 at DAA score 474,165,565. It makes Kaspa's layer 1 programmable by adding six things, namely a transaction format carrying a compute budget, covenant IDs that let the chain track which contract a coin belongs to, introspection opcodes that let a script read its own transaction, runtime pricing for scripts, zero knowledge proof verification inside the script engine, and sequencing commitments for applications that bind to layer 1 ordering.</p>
   <h3>Did Toccata give Kaspa native tokens?</h3>
   <p>The official Kaspa developer guide lists six consensus additions in Toccata and native token issuance is not among them. The core developer's own pre-activation outlook does not mention native tokens either. Several news articles and widely shared posts described Toccata as introducing native token issuance, but that description does not come from the documentation. Since 2 July 2026 there is a draft community standard called KCC20 that defines fungible tokens as covenant instances built on top of what Toccata added, which is token logic above the consensus layer rather than native issuance at consensus level.</p>
-  <h3>Does Toccata mean Kaspa now has smart contracts?</h3>
+  <h3>Does Toccata mean Kaspa has smart contracts?</h3>
   <p>It depends what you mean by the term. The developer guide states directly that Toccata does not turn Kaspa into an account chain smart contract system. Kaspa remains a UTXO chain, so instead of contracts holding balances in accounts, individual coins carry rules about how they may be spent next. That is called a covenant. It enables things like permanently locked liquidity and on chain proof verification, but it is a different programming model from account-based chains and tooling does not carry over directly.</p>
   <h3>What is a covenant on Kaspa?</h3>
   <p>A covenant is a rule attached to a coin that restricts how it may be spent, for example a rule saying the coin may only move to an address that carries the same rule. Toccata made this practical by adding introspection opcodes, which let a script read the inputs and outputs of the transaction it sits in, and covenant IDs, which let the chain track a contract across its whole life even though its address hash changes at every step.</p>
@@ -285,11 +285,11 @@
 </section>
 <!--/AUTO:rahmen-kanaele-->
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 17 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 24 October 2026<!--/AUTO:seitenstand--></div>
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
-    <div>page last reviewed 30 August 2026 · not financial advice · further reading: <a href="/kron.html">kron, explained</a> &middot; <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> · <a href="/kaspa-data-sources.html">where kaspa numbers come from</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener">youtube</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>page last reviewed 30 August 2026 · not financial advice · further reading <a href="/kron.html">kron, explained</a> &middot; <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> · <a href="/kaspa-data-sources.html">where kaspa numbers come from</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener">youtube</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
     <div class="fund" style="margin-top:10px;"><a href="/how-we-fund-this.html" style="display:inline-block;padding:12px 10px;">how we fund this</a> · <a href="/for-builders.html" style="display:inline-block;padding:12px 10px;">for builders</a></div>
   </footer>
 </div>
@@ -310,7 +310,7 @@
     },
     {
       "@type": "Question",
-      "name": "Does Toccata mean Kaspa now has smart contracts?",
+      "name": "Does Toccata mean Kaspa has smart contracts?",
       "acceptedAnswer": { "@type": "Answer", "text": "It depends what you mean by the term. The developer guide states directly that Toccata does not turn Kaspa into an account chain smart contract system. Kaspa remains a UTXO chain, so instead of contracts holding balances in accounts, individual coins carry rules about how they may be spent next. That is called a covenant. It enables things like permanently locked liquidity and on chain proof verification, but it is a different programming model from account-based chains and tooling does not carry over directly." }
     },
     {
