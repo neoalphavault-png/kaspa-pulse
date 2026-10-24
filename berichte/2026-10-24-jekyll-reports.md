@@ -21,7 +21,7 @@ Trage ich nach dem Merge nach: 404 für `deploy/c2/`, `berichte/` und `reports/`
 
 ## PR-Nummern
 - #137 (Jekyll, gemergt), #138 (Zahl des Tages, gemergt)
-- dieser PR: die Nummer trage ich beim Öffnen nach
+- dieser PR: #139
 
 ## Offene Fragen an Ben
 Keine.
