@@ -37,7 +37,8 @@ Branch `fix/textregeln-unterseiten`, eigener Text-PR von main nach #134 (Ben, 24
 - **Die Meldungen des Anmeldekastens** („✓ almost there — check your inbox …“, „something went wrong — please try again“): Sie stehen gleich auf der Startseite und allen Unterseiten, die Startseite baut `startseite.py`. Siehe Frage 2.
 
 ## PR-Nummern
-- dieser PR: folgt im Sammelfenster 16:00
+- dieser PR: #141 (geöffnet im Sammelfenster 24.10.2026, 16:00)
+- Story-Vorlagen: #140
 - Zusammenhang: #134 (Rahmen), #124 (Echtzeit-Wache)
 
 ## Offene Fragen an Ben
