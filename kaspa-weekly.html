@@ -29,7 +29,7 @@
  "description": "The numbers behind every Kaspa weekly close, no targets. The close against the 21 and 50 week averages, KAS in satoshis and the price bands, every Monday.",
  "url": "https://kaspapulse.com/kaspa-weekly.html",
  "inLanguage": "en",
- "dateModified": "2026-10-13",
+ "dateModified": "2026-10-24",
  "isPartOf": {
   "@type": "WebSite",
   "name": "Kaspa Pulse",
@@ -231,7 +231,7 @@
   <h2>The two lines</h2>
   <p>Both lines are mechanical. Nothing is drawn by hand, because a line dragged with a cursor cannot be checked by anyone.</p>
   <h3>The 21 week average</h3>
-  <p>The average of the last 21 weekly closes, weighted so recent weeks count more (an exponential average, seeded with the plain average of the first 21 weeks). It reacts within a few weeks, so it answers a short question: is this week trading above or below where the last few months traded? Right now the close sits <b><span id="g21b">—</span></b> it, and Kaspa has closed <span id="streakSideB">—</span> this line <b><span id="streakB">—</span> weeks in a row</b>. The last weekly close above it was <b><span id="lastAbove">—</span></b>.</p>
+  <p>The average of the last 21 weekly closes, weighted so recent weeks count more (an exponential average, seeded with the plain average of the first 21 weeks). It reacts within a few weeks, so it answers a short question. Is this week trading above or below where the last few months traded? This week the close sits <b><span id="g21b">—</span></b> it, and Kaspa has closed <span id="streakSideB">—</span> this line <b><span id="streakB">—</span> weeks in a row</b>. The last weekly close above it was <b><span id="lastAbove">—</span></b>.</p>
   <h3>The 50 week average</h3>
   <p>The plain average of the last 50 weekly closes. Longer memory, slower to turn, so it answers the year-shaped question. The close sits <b><span id="g50b">—</span></b> it. In our data window, Kaspa has closed a week above that line <b><span id="above50">—</span></b>.</p>
 
@@ -242,7 +242,7 @@
   </div>
 
   <h2>Kaspa priced in bitcoin</h2>
-  <p>The chart almost nobody shows, because the answer is often uncomfortable. A satoshi is the smallest piece of a bitcoin, one hundred millionth. Pricing KAS in sats answers the only question a bitcoin holder actually has: was holding Kaspa instead of bitcoin worth it?</p>
+  <p>The chart almost nobody shows, because the answer is often uncomfortable. A satoshi is the smallest piece of a bitcoin, one hundred millionth. Pricing KAS in sats answers the only question a bitcoin holder actually has. Was holding Kaspa instead of bitcoin worth it?</p>
   <div class="facts">
     <div class="fact"><div class="v teal" id="satNow">—</div><div class="l">sats per KAS at the last weekly close</div></div>
     <div class="fact"><div class="v" id="sat12">—</div><div class="l">twelve weeks ago</div></div>
@@ -296,14 +296,14 @@
   <h2>How we count</h2>
   <p><b>The data window.</b> Our candle file starts on <b><span id="winStart">—</span></b>, the first day of the exchange feed we log ourselves. It is not the start of Kaspa trading. Every "since" and every "in our window" on this page and in the videos means that window, and we say so rather than implying we have the full history.</p>
   <p><b>The source.</b> Kraken daily candles, UTC close, logged by us into a file in the open. A week ends Sunday 00:00 UTC, which makes Saturday's reading the weekly close. Bitcoin comes from the same log, so the sats number is one file divided by another, not a figure copied from a third party.</p>
-  <p><b>What we refuse to do.</b> No price targets, no time frames, no "could" and no "should", in the video, in the comments and in replies. Every line is either mechanical or counted by us. If someone asks for a target, the answer is always the same one: we do not do targets, the levels are on this page, the chain numbers are counted, the call is yours.</p>
-  <p><b>Where the rest lives.</b> The chart is only half the format. The other half is the chain, the numbers a price chart cannot show, and each of those has its own page with its own definition: <a href="/kaspa-hashrate.html">hashrate</a>, <a href="/kaspa-halving.html">the monthly reward cut</a>, <a href="/kaspa-supply.html">supply</a>, <a href="/entity-x.html">the largest wallet</a>, <a href="/kaspa-tvl.html">layer two value</a>. The <a href="/">dashboard</a> carries all eight, refreshed every Monday morning.</p>
+  <p><b>What we refuse to do.</b> No price targets, no time frames, no "could" and no "should", in the video, in the comments and in replies. Every line is either mechanical or counted by us. If someone asks for a target, the answer is always the same one. We do not do targets, the levels are on this page, the chain numbers are counted, the call is yours.</p>
+  <p><b>Where the rest lives.</b> The chart is only half the format. The other half is the chain, the numbers a price chart cannot show, and each of those has its own page with its own definition, <a href="/kaspa-hashrate.html">hashrate</a>, <a href="/kaspa-halving.html">the monthly reward cut</a>, <a href="/kaspa-supply.html">supply</a>, <a href="/entity-x.html">the largest wallet</a>, <a href="/kaspa-tvl.html">layer two value</a>. The <a href="/">dashboard</a> carries all eight, refreshed every Monday morning.</p>
 
 <!--AUTO:faq-->
   <div class="faq">
   <h2>Questions people ask</h2>
   <h3>What is the Kaspa 21 week average and where does the price sit?</h3>
-  <p>The 21 week average is the exponential average of the last 21 weekly closes, seeded with the plain average of the first 21 weeks in the window. It is mechanical, so anyone can rebuild it. This page shows the current value, how far the last weekly close sits from it, and how many weeks in a row the close has stayed on the same side of it, computed live from our own Kraken candle file.</p>
+  <p>The 21 week average is the exponential average of the last 21 weekly closes, seeded with the plain average of the first 21 weeks in the window. It is mechanical, so anyone can rebuild it. This page shows the current value, how far the last weekly close sits from it, and how many weeks in a row the close has stayed on the same side of it, computed from our own Kraken candle file when the page loads.</p>
   <h3>How many satoshis does one KAS buy?</h3>
   <p>The page divides the Kaspa weekly close by the bitcoin close from the same log and shows the result in satoshis, alongside the readings from twelve weeks and one year earlier. Pricing Kaspa in bitcoin answers whether holding KAS instead of BTC has paid, which the dollar chart alone cannot answer.</p>
   <h3>Does Kaspa Pulse give Kaspa price predictions or targets?</h3>
@@ -317,7 +317,7 @@
   <div class="subscribe">
     <div class="badge">free · one email to confirm</div>
     <div class="st">get the <b>8 kaspa numbers whales watch</b></div>
-    <div class="ss">the 8 numbers whales watch and how to read each one · plus the weekly pulse every monday, before the video goes live</div>
+    <div class="ss">the 8 numbers whales watch and how to read each one · plus the weekly pulse every monday, before the video is published</div>
     <form id="subForm" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
       <input type="email" name="EMAIL" placeholder="you@email.com" required>
       <input type="hidden" name="UTM_SOURCE" id="utmSource" value="direct">
@@ -353,11 +353,11 @@
 </section>
 <!--/AUTO:rahmen-kanaele-->
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 13 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 24 October 2026<!--/AUTO:seitenstand--></div>
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
-    <div>not financial advice · we describe what the chart did, we never say what it will do · further reading: <a href="/kaspa-halving.html">the monthly halving</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/kaspa-supply.html">kaspa supply</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>not financial advice · we describe what the chart did, we never say what it will do · further reading <a href="/kaspa-halving.html">the monthly halving</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/kaspa-supply.html">kaspa supply</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
     <div class="fund" style="margin-top:10px;"><a href="/how-we-fund-this.html" style="display:inline-block;padding:12px 10px;">how we fund this</a> · <a href="/for-builders.html" style="display:inline-block;padding:12px 10px;">for builders</a></div>
   </footer>
 </div>
@@ -370,7 +370,7 @@
     {
       "@type": "Question",
       "name": "What is the Kaspa 21 week average and where does the price sit?",
-      "acceptedAnswer": { "@type": "Answer", "text": "The 21 week average is the exponential average of the last 21 weekly closes, seeded with the plain average of the first 21 weeks in the window. It is mechanical, so anyone can rebuild it. This page shows the current value, how far the last weekly close sits from it, and how many weeks in a row the close has stayed on the same side of it, computed live from our own Kraken candle file." }
+      "acceptedAnswer": { "@type": "Answer", "text": "The 21 week average is the exponential average of the last 21 weekly closes, seeded with the plain average of the first 21 weeks in the window. It is mechanical, so anyone can rebuild it. This page shows the current value, how far the last weekly close sits from it, and how many weeks in a row the close has stayed on the same side of it, computed from our own Kraken candle file when the page loads." }
     },
     {
       "@type": "Question",
