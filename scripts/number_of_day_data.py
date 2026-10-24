@@ -423,7 +423,7 @@ def cand_cut_today(ctx):
     pct = 100.0 * (1.0 - R)
     verb = "fell" if landed else "falls"
     if landed:
-        tail = "*%s fewer KAS* minted every day from now on." % fmt_int(gone)
+        tail = "*%s fewer KAS* minted every day from this cut on." % fmt_int(gone)
     else:
         tail = "*%s KAS* per day stop being minted today." % fmt_int(gone)
     return {
@@ -461,8 +461,8 @@ def cand_cut_today(ctx):
                 "the kaspa block reward %s %.2f%% %s. bitcoin does 50%% "
                 "once every four years. kaspa does one small step every "
                 "month, and twelve of them land on the same 50%%. the "
-                "network now mints %s fewer KAS per day, emission went from %s "
-                "to %s."
+                "network mints %s fewer KAS per day than before the cut, "
+                "emission went from %s to %s."
                 % (verb, pct, when, fmt_int(gone),
                    fmt_millions(e_before), fmt_millions(e_after)),
                 "the emission numbers are on " + HALVING_URL + ". the exact "
@@ -904,7 +904,7 @@ def cand_weekly_line(ctx):
             "post": post_block(
                 "kas closed the week at $%.5f. the 21 week average of its own "
                 "weekly closes sits at $%.5f, so the close is %.1f%% %s it. "
-                "that has now been true for %d weeks in a row. one weekly close "
+                "that has been true for %d weeks in a row. one weekly close "
                 "either way settles it."
                 % (close, line, abs(dist), "below" if below else "above", streak),
                 "the line and the streak are recomputed every monday from our own "
