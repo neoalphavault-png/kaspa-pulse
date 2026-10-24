@@ -31,6 +31,7 @@ on:
       - "scripts/zcash/**"
       - ".github/workflows/zcash-mainnet.yml"
   schedule:
+    # 05:23 UTC = 07:23 Berlin bis 25.10.2026 (Sommerzeit), danach 06:23 Berlin
     - cron: "23 5 * * *"
   workflow_dispatch:
     inputs:
@@ -100,18 +101,5 @@ jobs:
           { echo "## Zcash Mainnet, $TAG ${GRUND:+(stand, $GRUND)}"; cat $D/aktuell.md; } >> "$GITHUB_STEP_SUMMARY"
 
       - name: committen
-        working-directory: daten
         run: |
-          set -eu
-          git config user.name "zcash mainnet bot"
-          git config user.email "bot@users.noreply.github.com"
-          git add data/zcash-mainnet
-          # secret_scan.py prueft das Repo, in dem es liegt; eine Kopie unter
-          # .scan/ prueft also diesen Datenbranch samt vorgemerkter Dateien.
-          mkdir -p .scan && cp ../scripts/secret_scan.py ../scripts/bip39_english.txt .scan/
-          python3 .scan/secret_scan.py --baum
-          rm -rf .scan
-          if git diff --cached --quiet; then echo "nichts neu"; exit 0; fi
-          git commit -m "zcash mainnet: koepfe und stand [bot]"
-          git pull --rebase -X theirs origin messung/zcash-mainnet
-          git push origin HEAD:messung/zcash-mainnet
+          scripts/zcash/daten_committen.sh "zcash mainnet: koepfe und stand [bot]"
