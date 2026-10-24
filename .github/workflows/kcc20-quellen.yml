@@ -51,3 +51,8 @@ jobs:
           for f in $(sed -n 's/^genesis=//p' kcc20/quellen.txt); do
             python3 scripts/kcc20_namen.py --payloads "$f" || echo "nicht lesbar"
           done
+
+      - name: kcc20.info zeitreihe fuer einen zeitraum (nur summen, source kcc20.info)
+        run: |
+          z=$(sed -n 's/^zeitraum=//p' kcc20/quellen.txt)
+          [ -n "$z" ] && python3 scripts/kcc20_api.py --kcc20info-api https://kcc20.info --zeitraum $z || echo "kein zeitraum"

@@ -260,6 +260,37 @@ def kcc20info_api(basis="https://kcc20.info", ids=None, cursor=None):
     return 0
 
 
+def kcc20info_zeitraum(basis, von, bis):
+    """Summen der Zeitreihe von kcc20.info (token_actions, covenant_events) fuer
+    Buckets mit Beginn in [von, bis). Gilt fuer die dort indizierten Tokens,
+    nur als 'source kcc20.info'."""
+    von_ms, bis_ms = ms(von), ms(bis)
+    aus = {"quelle": "source kcc20.info", "von": von, "bis": bis, "abgerufen_utc": dt.datetime.now(dt.timezone.utc).isoformat()}
+    for rng in ("7d", "30d"):
+        req = urllib.request.Request(basis + "/v1/stats/timeseries?range=" + rng,
+                                     headers={"User-Agent": UA, "Accept": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                d = json.loads(r.read().decode("utf-8"))
+        except Exception as exc:                    # noqa: BLE001
+            aus[rng] = {"fehler": type(exc).__name__}
+            continue
+        pts = [x for x in d.get("points") or [] if isinstance(x, dict) and "timestamp" in x]
+        drin = [x for x in pts if von_ms <= int(x["timestamp"]) < bis_ms]
+        summe = {}
+        for x in drin:
+            for k, v in x.items():
+                if k != "timestamp" and isinstance(v, (int, float)):
+                    summe[k] = summe.get(k, 0) + v
+        aus[rng] = {"range": d.get("range"), "time_basis": d.get("time_basis"), "bucket_seconds": d.get("bucket_seconds"),
+                    "punkte": len(pts), "buckets_im_zeitraum": len(drin),
+                    "erster_bucket_utc": dt.datetime.fromtimestamp(int(drin[0]["timestamp"]) / 1000, dt.timezone.utc).isoformat() if drin else None,
+                    "letzter_bucket_utc": dt.datetime.fromtimestamp(int(drin[-1]["timestamp"]) / 1000, dt.timezone.utc).isoformat() if drin else None,
+                    "summen": summe}
+    print(json.dumps(aus, indent=1))
+    return 0
+
+
 def selbsttest():
     fehler = []
 
@@ -317,6 +348,7 @@ def main():
     ap.add_argument("--kcc20info-api", nargs="?", const="https://kcc20.info")
     ap.add_argument("--token-id", action="append", default=[])
     ap.add_argument("--cursor")
+    ap.add_argument("--zeitraum", nargs=2, metavar=("VON", "BIS"))
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args()
     if a.selbsttest:
@@ -325,6 +357,8 @@ def main():
         return probe()
     if a.kcc20info:
         return kcc20info(a.kcc20info)
+    if a.kcc20info_api and a.zeitraum:
+        return kcc20info_zeitraum(a.kcc20info_api, *a.zeitraum)
     if a.kcc20info_api:
         return kcc20info_api(a.kcc20info_api, a.token_id, a.cursor)
     laufen(a.bestand, a.tx, ms(a.seit), a.out)
