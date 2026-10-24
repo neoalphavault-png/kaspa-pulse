@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kaspa Hashrate Today, Live PH/s and Weekly History</title>
+<title>Kaspa Hashrate Today in PH/s and Weekly History</title>
 <meta name="description" content="Kaspa's hashrate today in PH/s, the weekly averages of the last two months and the highest daily average on record, each with its date and source.">
 <!--AUTO:seo-kopf-->
 <link rel="canonical" href="https://kaspapulse.com/kaspa-hashrate.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Kaspa Pulse">
-<meta property="og:title" content="Kaspa Hashrate Today, Live PH/s and Weekly History">
+<meta property="og:title" content="Kaspa Hashrate Today in PH/s and Weekly History">
 <meta property="og:description" content="Kaspa&#x27;s hashrate today in PH/s, the weekly averages of the last two months and the highest daily average on record, each with its date and source.">
 <meta property="og:url" content="https://kaspapulse.com/kaspa-hashrate.html">
 <meta property="og:image" content="https://kaspapulse.com/og-card.png">
@@ -17,7 +17,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Kaspa Pulse, on-chain numbers for Kaspa">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Kaspa Hashrate Today, Live PH/s and Weekly History">
+<meta name="twitter:title" content="Kaspa Hashrate Today in PH/s and Weekly History">
 <meta name="twitter:description" content="Kaspa&#x27;s hashrate today in PH/s, the weekly averages of the last two months and the highest daily average on record, each with its date and source.">
 <meta name="twitter:image" content="https://kaspapulse.com/og-card.png">
 <meta name="twitter:image:alt" content="Kaspa Pulse, on-chain numbers for Kaspa">
@@ -25,7 +25,7 @@
 {
  "@context": "https://schema.org",
  "@type": "WebPage",
- "name": "Kaspa Hashrate Today, Live PH/s and Weekly History",
+ "name": "Kaspa Hashrate Today in PH/s and Weekly History",
  "description": "Kaspa's hashrate today in PH/s, the weekly averages of the last two months and the highest daily average on record, each with its date and source.",
  "url": "https://kaspapulse.com/kaspa-hashrate.html",
  "inLanguage": "en",
@@ -194,20 +194,20 @@
 
   <div class="answer">
     <div class="lbl">The short answer</div>
-    <p>Kaspa's hashrate is the total computing power miners aim at the network every second. It is produced almost entirely by <b>purpose-built ASIC machines</b> running Kaspa's own algorithm, <b>kHeavyHash</b>. The live figure is below. The number matters because it is a price tag: it tells you roughly what it would cost to attack the chain — and rebuilding this much specialised hardware is not something an attacker does quietly.</p>
+    <p>Kaspa's hashrate is the total computing power miners aim at the network every second. It is produced almost entirely by <b>purpose-built ASIC machines</b> running Kaspa's own algorithm, <b>kHeavyHash</b>. Today's figure is below. The number matters because it works like a price tag. It tells you roughly what it would cost to attack the chain, and rebuilding this much specialised hardware is not something an attacker does quietly.</p>
   </div>
 
   <div class="live">
-    <div class="lbl"><i></i>Kaspa network hashrate · live</div>
+    <div class="lbl"><i></i>Kaspa network hashrate · today</div>
     <div class="big" id="hrBig">—</div>
     <div class="cap" id="hrCap">fetching from the kaspa network…</div>
     <div class="split">
       <div><div class="v" id="hrEh">—</div><div class="k">in exahash terms</div></div>
-      <div><div class="v" id="hrVsBtc">—</div><div class="k">Bitcoin's network vs. this one — different algorithm, see the trap section below</div></div>
+      <div><div class="v" id="hrVsBtc">—</div><div class="k">Bitcoin's network vs. this one, different algorithm, see the trap section below</div></div>
       <div><div class="v">kHeavyHash</div><div class="k">Kaspa's proof-of-work · ASIC-mined</div></div>
     </div>
   </div>
-  <div class="note">This figure is fetched live from the public Kaspa API every time the page loads — the same source we use for the weekly <a href="/">Kaspa Pulse dashboard</a>. Nothing here is hardcoded.</div>
+  <div class="note">This figure is fetched from the public Kaspa API every time the page loads, the same source we use for the weekly <a href="/">Kaspa Pulse dashboard</a>. Nothing here is hardcoded.</div>
 
 </div>
 
@@ -219,20 +219,20 @@
 <div class="band"><div class="wrap2">
   <h2>What hashrate actually measures</h2>
   <p>Every second, each mining machine makes billions of attempts at solving the current block. Hashrate is the sum of all those attempts across every machine in the world pointed at Kaspa. More hashrate means an attacker needs more physical hardware and more electricity to overpower the honest majority.</p>
-  <p>That's why hashrate is best read as a <b>security budget</b>. It represents real capital — machines bought, facilities built, power contracts signed — committed by people who only earn their money back if the network keeps running honestly. Like TVL for smart contracts, it is a number someone has to pay for, which is what makes it hard to fake.</p>
-  <p>What hashrate is <b>not</b>: it is not adoption, not transaction demand, and not a price signal. A chain can have enormous hashrate and empty blocks, or modest hashrate and a busy economy. It measures the wall around the city, not the life inside it.</p>
+  <p>That's why hashrate is best read as a <b>security budget</b>. It represents real capital, machines bought, facilities built and power contracts signed, committed by people who only earn their money back if the network keeps running honestly. Like TVL for smart contracts, it is a number someone has to pay for, which is what makes it hard to fake.</p>
+  <p>What hashrate is <b>not</b>. It is not adoption, not transaction demand, and not a price signal. A chain can have enormous hashrate and empty blocks, or modest hashrate and a busy economy. It measures the wall around the city, not the life inside it.</p>
 
 </div></div>
 
 <div class="wrap2">
   <h2>How Kaspa mining works</h2>
   <ul>
-    <li><b>The algorithm is kHeavyHash</b> — Kaspa's own proof-of-work, mined by dedicated ASIC hardware. GPU mining stopped being competitive when the first ASICs arrived in 2023.</li>
-    <li><b>Blocks come fast.</b> The Crescendo upgrade in 2025 took Kaspa to 10 blocks per second — the blockDAG structure lets parallel blocks coexist instead of being thrown away.</li>
+    <li><b>The algorithm is kHeavyHash</b>, Kaspa's own proof-of-work, mined by dedicated ASIC hardware. GPU mining stopped being competitive when the first ASICs arrived in 2023.</li>
+    <li><b>Blocks come fast.</b> The Crescendo upgrade in 2025 took Kaspa to 10 blocks per second. The blockDAG structure lets parallel blocks coexist instead of being thrown away.</li>
     <li><b>Difficulty adjusts continuously.</b> Where Bitcoin retunes every two weeks, Kaspa's difficulty tracks the hashrate block by block, so swings in mining power don't cause long disruptions in block times.</li>
-    <li><b>Rewards decline every month.</b> Kaspa's emission follows a smooth curve: block rewards drop by about 5.6% each month — Bitcoin's four-yearly halving, spread into small monthly steps. Each step slightly squeezes the oldest, least efficient machines. The full schedule, with the current reward live, is in <a href="/kaspa-halving.html">the Kaspa halving, explained</a>.</li>
+    <li><b>Rewards decline every month.</b> Kaspa's emission follows a smooth curve. Block rewards drop by about 5.6% each month, Bitcoin's four-yearly halving spread into small monthly steps. Each step slightly squeezes the oldest, least efficient machines. The full schedule, with today's reward, is in <a href="/kaspa-halving.html">the Kaspa halving, explained</a>.</li>
   </ul>
-  <p>One thing that does <b>not</b> affect the hashrate: merged mining. Networks like ZKas reuse the exact same kHeavyHash work Kaspa miners already produce, so no mining power leaves Kaspa — participating requires mining Kaspa. We explain the mechanism in full in <a href="/merged-mining.html">Kaspa merged mining, explained</a>.</p>
+  <p>One thing does <b>not</b> affect the hashrate, and that is merged mining. Networks like ZKas reuse the exact same kHeavyHash work Kaspa miners already produce, so no mining power leaves Kaspa. Participating requires mining Kaspa. We explain the mechanism in full in <a href="/merged-mining.html">Kaspa merged mining, explained</a>.</p>
 
 </div>
 
@@ -241,50 +241,50 @@
   <p>These apply to every proof-of-work chain, and they're the reason hashrate headlines mislead so reliably.</p>
 
   <h3>1. Cross-chain comparisons are physically meaningless</h3>
-  <p>A kHeavyHash hash and a SHA-256 hash are different computations on different hardware. Saying "Bitcoin has thousands of times Kaspa's hashrate" is like comparing kilometres to kilograms — the units don't convert. What <b>is</b> comparable across chains is the economics: how much real hardware and electricity stands behind each network. The table below shows the raw factor anyway, because you'll see it quoted everywhere — just read it as a statement of scale, never as a security ratio.</p>
+  <p>A kHeavyHash hash and a SHA-256 hash are different computations on different hardware. Saying "Bitcoin has thousands of times Kaspa's hashrate" is like comparing kilometres to kilograms, the units don't convert. What <b>is</b> comparable across chains is the economics, how much real hardware and electricity stands behind each network. The table below shows the raw factor anyway, because you'll see it quoted everywhere. Just read it as a statement of scale, never as a security ratio.</p>
 
   <h3>2. Hashrate follows price, with a lag</h3>
-  <p>Miners are businesses. When the coin price falls, margins compress, and the least efficient machines eventually shut off — weeks or months later, once hosting contracts and hope run out. A falling hashrate usually tells you about <b>yesterday's</b> miner economics, not tomorrow's network health. The same works in reverse: hashrate keeps climbing long after a rally starts, as ordered machines come online.</p>
+  <p>Miners are businesses. When the coin price falls, margins compress, and the least efficient machines eventually shut off, weeks or months later, once hosting contracts and hope run out. A falling hashrate usually tells you about <b>yesterday's</b> miner economics, not tomorrow's network health. The same works in reverse. Hashrate keeps climbing long after a rally starts, as ordered machines come online.</p>
 
   <h3>3. More hashrate is not more decentralisation</h3>
-  <p>Total hashrate says nothing about how it's distributed. A network where three pools control the majority of blocks has a different risk profile than one with dozens of independent operators, at identical total hashrate. When you evaluate security, ask both questions: how big is the wall, and how many hands hold it.</p>
+  <p>Total hashrate says nothing about how it's distributed. A network where three pools control the majority of blocks has a different risk profile than one with dozens of independent operators, at identical total hashrate. When you evaluate security, ask both questions. How big is the wall, and how many hands hold it?</p>
 
 </div></div>
 
 <div class="wrap2">
-  <h2>For context: Kaspa next to Bitcoin</h2>
-  <p>Both figures are fetched live, so this table is current whenever you're reading it. Remember trap number one: the factor is scale, not security.</p>
+  <h2>For context, Kaspa next to Bitcoin</h2>
+  <p>Both figures are fetched when the page loads, so this table is current whenever you're reading it. Remember trap number one, the factor is scale, not security.</p>
   <div class="tblwrap"><table>
     <thead><tr><th>Network</th><th class="r">Hashrate</th><th class="r">vs. Kaspa</th></tr></thead>
     <tbody id="cmpBody">
       <tr><td colspan="3" style="color:var(--dimmer)">loading…</td></tr>
     </tbody>
   </table></div>
-  <p>Bitcoin's SHA-256 network is the largest computing effort in crypto and has a 12-year head start in ASIC development. The honest reading for Kaspa: it is secured by a dedicated, single-purpose ASIC fleet — which is the strongest form of proof-of-work security a young chain can have, because that hardware is useless for anything except mining kHeavyHash. An attacker can't rent it from a general-purpose market the way GPU-mined chains can be attacked.</p>
+  <p>Bitcoin's SHA-256 network is the largest computing effort in crypto and has a 12-year head start in ASIC development. The honest reading for Kaspa is that it is secured by a dedicated, single-purpose ASIC fleet, which is the strongest form of proof-of-work security a young chain can have, because that hardware is useless for anything except mining kHeavyHash. An attacker can't rent it from a general-purpose market the way GPU-mined chains can be attacked.</p>
 
 </div>
 
 <div class="band"><div class="wrap2">
   <h2>What actually matters at this stage</h2>
-  <p>The absolute number is a headline. Four readings carry actual information:</p>
+  <p>The absolute number is a headline. Four readings carry actual information.</p>
 
   <div class="facts">
     <div class="fact"><div class="v teal">Direction vs. price</div><div class="l">Hashrate holding steady while price falls means miners with conviction (or long contracts). Hashrate falling faster than price means margins are breaking.</div></div>
     <div class="fact"><div class="v teal">After each reward cut</div><div class="l">Kaspa cuts block rewards monthly. Watching whether hashrate dips and recovers after a cut shows how much margin the miner base has left.</div></div>
-    <div class="fact"><div class="v teal">Recovery speed</div><div class="l">After a squeeze, how fast the hashrate rebuilds tells you whether efficient new machines are replacing the old ones — fleet turnover is a health signal.</div></div>
-    <div class="fact"><div class="v red">Pool concentration</div><div class="l">Total hashrate says nothing about distribution. A handful of pools controlling most blocks is the quieter risk — check both numbers.</div></div>
+    <div class="fact"><div class="v teal">Recovery speed</div><div class="l">After a squeeze, how fast the hashrate rebuilds tells you whether efficient new machines are replacing the old ones. Fleet turnover is a health signal.</div></div>
+    <div class="fact"><div class="v red">Pool concentration</div><div class="l">Total hashrate says nothing about distribution. A handful of pools controlling most blocks is the quieter risk, so check both numbers.</div></div>
   </div>
 
 </div></div>
 
 <div class="wrap2">
-  <div class="note">We publish Kaspa's hashrate with weekly context every Monday on the <a href="/">Kaspa Pulse dashboard</a> — including honest reads on what moved it (reward cuts, price, efficiency turnover) and what didn't (merged mining).</div>
+  <div class="note">We publish Kaspa's hashrate with weekly context every Monday on the <a href="/">Kaspa Pulse dashboard</a>, including honest reads on what moved it (reward cuts, price, efficiency turnover) and what didn't (merged mining).</div>
 
 <!--AUTO:faq-->
   <div class="faq">
   <h2>Questions people ask</h2>
   <h3>What is Kaspa's hashrate?</h3>
-  <p>Kaspa's hashrate is the total computing power miners direct at the network, produced by purpose-built ASIC machines running the kHeavyHash algorithm. The live figure is published on this page, fetched directly from the public Kaspa API.</p>
+  <p>Kaspa's hashrate is the total computing power miners direct at the network, produced by purpose-built ASIC machines running the kHeavyHash algorithm. Today's figure is published on this page, fetched directly from the public Kaspa API.</p>
   <h3>What algorithm does Kaspa use for mining?</h3>
   <p>Kaspa uses kHeavyHash, its own proof-of-work algorithm, mined by dedicated ASIC hardware. GPU mining stopped being competitive after the first Kaspa ASICs arrived in 2023.</p>
   <h3>Can you compare Kaspa's hashrate to Bitcoin's?</h3>
@@ -338,7 +338,7 @@
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
-    <div>not financial advice · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">kaspa merged mining, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>not financial advice · further reading <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">kaspa merged mining, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
     <div class="fund" style="margin-top:10px;"><a href="/how-we-fund-this.html" style="display:inline-block;padding:12px 10px;">how we fund this</a> · <a href="/for-builders.html" style="display:inline-block;padding:12px 10px;">for builders</a></div>
   </footer>
 </div>
@@ -351,7 +351,7 @@
     {
       "@type": "Question",
       "name": "What is Kaspa's hashrate?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Kaspa's hashrate is the total computing power miners direct at the network, produced by purpose-built ASIC machines running the kHeavyHash algorithm. The live figure is published on this page, fetched directly from the public Kaspa API." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Kaspa's hashrate is the total computing power miners direct at the network, produced by purpose-built ASIC machines running the kHeavyHash algorithm. Today's figure is published on this page, fetched directly from the public Kaspa API." }
     },
     {
       "@type": "Question",
@@ -392,7 +392,7 @@
     if (!th) throw new Error("no data");
     const kasPH = th/1e3;
     document.getElementById("hrBig").textContent = fmtPH(kasPH);
-    document.getElementById("hrCap").textContent = "total mining power aimed at kaspa right now · source: api.kaspa.org";
+    document.getElementById("hrCap").textContent = "total mining power aimed at kaspa when this page loaded · source api.kaspa.org";
     document.getElementById("hrEh").textContent = (kasPH/1000).toFixed(3)+" EH/s";
 
     // bitcoin for the comparison table — separate fetch, page still works if it fails
@@ -408,13 +408,13 @@
     }).catch(()=>{
       document.getElementById("cmpBody").innerHTML =
         "<tr class='me'><td>Kaspa (kHeavyHash)</td><td class='r'>"+fmtPH(kasPH)+"</td><td class='r'>1×</td></tr>"+
-        "<tr><td colspan='3' style='color:var(--dimmer)'>bitcoin reference feed unavailable — kaspa figure above is live</td></tr>";
+        "<tr><td colspan='3' style='color:var(--dimmer)'>bitcoin reference feed unavailable, the kaspa figure above is from the kaspa api</td></tr>";
     });
   }).catch(()=>{
     document.getElementById("hrBig").textContent = "—";
-    document.getElementById("hrCap").innerHTML = "live feed temporarily unavailable · the current weekly reading is always on the <a href='/'>dashboard</a>";
+    document.getElementById("hrCap").innerHTML = "kaspa api temporarily unavailable · the weekly reading is always on the <a href='/'>dashboard</a>";
     document.getElementById("cmpBody").innerHTML =
-      "<tr><td colspan='3' style='color:var(--dimmer)'>comparison table needs the live feed — <a href='/'>see the dashboard</a> for this week's figures</td></tr>";
+      "<tr><td colspan='3' style='color:var(--dimmer)'>comparison table needs the kaspa api, <a href='/'>see the dashboard</a> for this week's figures</td></tr>";
   });
 })();
 </script>
