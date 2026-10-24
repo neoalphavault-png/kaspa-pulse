@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kron Kaspa, the DEX and Launchpad on Layer 1, Explained</title>
-<meta name="description" content="Kron is a DEX and token launchpad on Kaspa layer 1. How a launch on its bonding curve works, what is live so far and three numbers to check before trading.">
+<meta name="description" content="Kron is a DEX and token launchpad on Kaspa layer 1. How a launch on its bonding curve works, what runs so far and three numbers to check before trading.">
 <!--AUTO:seo-kopf-->
 <link rel="canonical" href="https://kaspapulse.com/kron.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Kaspa Pulse">
 <meta property="og:title" content="Kron Kaspa, the DEX and Launchpad on Layer 1, Explained">
-<meta property="og:description" content="Kron is a DEX and token launchpad on Kaspa layer 1. How a launch on its bonding curve works, what is live so far and three numbers to check before trading.">
+<meta property="og:description" content="Kron is a DEX and token launchpad on Kaspa layer 1. How a launch on its bonding curve works, what runs so far and three numbers to check before trading.">
 <meta property="og:url" content="https://kaspapulse.com/kron.html">
 <meta property="og:image" content="https://kaspapulse.com/og-card.png">
 <meta property="og:image:width" content="1200">
@@ -18,7 +18,7 @@
 <meta property="og:image:alt" content="Kaspa Pulse, on-chain numbers for Kaspa">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Kron Kaspa, the DEX and Launchpad on Layer 1, Explained">
-<meta name="twitter:description" content="Kron is a DEX and token launchpad on Kaspa layer 1. How a launch on its bonding curve works, what is live so far and three numbers to check before trading.">
+<meta name="twitter:description" content="Kron is a DEX and token launchpad on Kaspa layer 1. How a launch on its bonding curve works, what runs so far and three numbers to check before trading.">
 <meta name="twitter:image" content="https://kaspapulse.com/og-card.png">
 <meta name="twitter:image:alt" content="Kaspa Pulse, on-chain numbers for Kaspa">
 <script type="application/ld+json">
@@ -26,10 +26,10 @@
  "@context": "https://schema.org",
  "@type": "WebPage",
  "name": "Kron Kaspa, the DEX and Launchpad on Layer 1, Explained",
- "description": "Kron is a DEX and token launchpad on Kaspa layer 1. How a launch on its bonding curve works, what is live so far and three numbers to check before trading.",
+ "description": "Kron is a DEX and token launchpad on Kaspa layer 1. How a launch on its bonding curve works, what runs so far and three numbers to check before trading.",
  "url": "https://kaspapulse.com/kron.html",
  "inLanguage": "en",
- "dateModified": "2026-10-13",
+ "dateModified": "2026-10-24",
  "isPartOf": {
   "@type": "WebSite",
   "name": "Kaspa Pulse",
@@ -181,10 +181,10 @@
 <!--/AUTO:rahmen-kopf-->
 <div class="wrap">
   <h1>Kron on Kaspa, explained. <b>The first native launchpad, the model behind it, and the three numbers to check before you buy.</b></h1>
-  <div class="sub">Kron describes itself as a Kaspa DEX and token launchpad on native layer 1, with a permanently locked AMM and a bonding curve for new launches, according to kron.technology on 6 October 2026. A new kind of token has started trading on Kaspa, launched directly on layer 1 instead of as a side-chain asset. Here's how the model works, where it fits in the stack, and the honest read on what's live so far.</div>
+  <div class="sub">Kron describes itself as a Kaspa DEX and token launchpad on native layer 1, with a permanently locked AMM and a bonding curve for new launches, according to kron.technology on 6 October 2026. A new kind of token has started trading on Kaspa, launched directly on layer 1 instead of as a side-chain asset. Here's how the model works, where it fits in the stack, and the honest read on what's running so far.</div>
   <div class="answer">
     <div class="lbl">The short answer</div>
-    <p><b>KRON is a decentralized exchange and token launchpad built directly on Kaspa's layer 1</b> — not an EVM layer 2 like Kasplex or Igra. New tokens launch on a bonding curve (an automatic, algorithmic price curve with no presale and no team allocation to dump), and once a token hits a market cap threshold it "graduates" into a permanently-locked liquidity pool that trades against KAS. The platform describes itself as non-custodial: KRON never takes custody of user funds, the contract logic does.</p>
+    <p><b>KRON is a decentralized exchange and token launchpad built directly on Kaspa's layer 1</b>, not an EVM layer 2 like Kasplex or Igra. New tokens launch on a bonding curve (an automatic, algorithmic price curve with no presale and no team allocation to dump), and once a token hits a market cap threshold it "graduates" into a permanently-locked liquidity pool that trades against KAS. The platform describes itself as non-custodial. KRON never takes custody of user funds, the contract logic does.</p>
   </div>
   <div class="live">
     <div class="lbl"><i></i>before you buy anything launched on Kron</div>
@@ -196,43 +196,43 @@
       <div><div class="v">Age</div><div class="k">how long ago it launched. on every chain that has run this model, most bonding curve tokens are dead within weeks</div></div>
     </div>
   </div>
-  <div class="note">Kron publishes no public price feed we can pull, so this page carries no live token price and no rolling volume figure. Those you read at <a href="https://kron.technology" target="_blank" rel="noopener">kron.technology</a> in the moment you need them. What this page explains is the machine underneath, and that does not change from week to week.</div>
+  <div class="note">Kron publishes no public price feed we can pull, so this page carries no current token price and no rolling volume figure. Those you read at <a href="https://kron.technology" target="_blank" rel="noopener">kron.technology</a> in the moment you need them. What this page explains is the machine underneath, and that does not change from week to week.</div>
 </div>
 <div class="band"><div class="wrap2">
   <h2>How a bonding-curve launchpad works</h2>
-  <p>The model KRON runs isn't unique to Kaspa — the same pattern (popularized by launchpads like pump.fun on Solana) has spread to most chains that support programmable tokens. It's worth understanding once, because the mechanics explain both why it's harder to rug than a typical presale, and why most tokens launched this way still go to zero.</p>
-  <h3>Step one: launch on the curve</h3>
-  <p>Anyone can create a token with no coding and no fundraise. The token's price isn't set by a team — it's set by a formula: the more people buy, the higher the price climbs along a predefined curve, and the more people sell, the more it falls back down. There's no presale allocation to unlock and dump, because there was never a presale.</p>
-  <h3>Step two: graduation</h3>
-  <p>Once enough buying pushes the token's market cap past a threshold, it "graduates" — the accumulated KAS backing it gets deposited into an automated market maker pool, and that liquidity is <b>permanently locked</b>. This is the specific claim worth understanding: locked liquidity means the token's trading pool can't be pulled out from under holders later, which is the single most common way small-cap launches turn into an outright rug. It does not mean the token's price can't fall to near zero through ordinary selling — it only removes one specific failure mode, not all of them.</p>
+  <p>The model KRON runs isn't unique to Kaspa. The same pattern (popularized by launchpads like pump.fun on Solana) has spread to most chains that support programmable tokens. It's worth understanding once, because the mechanics explain both why it's harder to rug than a typical presale, and why most tokens launched this way still go to zero.</p>
+  <h3>Step one, launch on the curve</h3>
+  <p>Anyone can create a token with no coding and no fundraise. The token's price isn't set by a team, it's set by a formula. The more people buy, the higher the price climbs along a predefined curve, and the more people sell, the more it falls back down. There's no presale allocation to unlock and dump, because there was never a presale.</p>
+  <h3>Step two, graduation</h3>
+  <p>Once enough buying pushes the token's market cap past a threshold, it "graduates", and the accumulated KAS backing it gets deposited into an automated market maker pool, and that liquidity is <b>permanently locked</b>. This is the specific claim worth understanding. Locked liquidity means the token's trading pool can't be pulled out from under holders later, which is the single most common way small-cap launches turn into an outright rug. It does not mean the token's price can't fall to near zero through ordinary selling. It only removes one specific failure mode, not all of them.</p>
   <h3>Where this sits versus the rest of Kaspa's token stack</h3>
-  <p>Kaspa now has three distinct ways to hold a token, and they are not interchangeable:</p>
+  <p>Kaspa has three distinct ways to hold a token today, and they are not interchangeable.</p>
   <div class="tblwrap"><table>
     <thead><tr><th></th><th>KRC-20</th><th>Kasplex / Igra (L2)</th><th>KRON launches</th></tr></thead>
     <tbody>
       <tr><td class="n">Where it lives</td><td>inscriptions on L1</td><td>EVM layer 2</td><td class="hl">native L1</td></tr>
       <tr><td class="n">How it's created</td><td>mint/deploy inscription</td><td>Solidity contract</td><td class="hl">bonding curve, no presale</td></tr>
       <tr><td class="n">Initial liquidity</td><td>none built in</td><td>set up by deployer</td><td class="hl">algorithmic, then locked at graduation</td></tr>
-      <tr><td class="n">Programmability</td><td>none — metadata only</td><td>full EVM</td><td>covenant-based on L1</td></tr>
-      <tr><td class="n">Maturity</td><td>since 2024</td><td>since 2025–2026</td><td class="hl">since 2026</td></tr>
+      <tr><td class="n">Programmability</td><td>none, metadata only</td><td>full EVM</td><td>covenant-based on L1</td></tr>
+      <tr><td class="n">Maturity</td><td>since 2024</td><td>since 2025 and 2026</td><td class="hl">since 2026</td></tr>
     </tbody>
   </table></div>
-  <p>KRC-20 tokens are the older standard — inscriptions that carry metadata but no executable logic. Kasplex and Igra tokens are standard EVM assets, identical in kind to any Ethereum token, just settling to Kaspa. KRON's launches are the newest category: tokens whose supply, curve and locked liquidity are enforced by layer-1 logic itself, with no separate side chain involved.</p>
+  <p>KRC-20 tokens are the older standard, inscriptions that carry metadata but no executable logic. Kasplex and Igra tokens are standard EVM assets, identical in kind to any Ethereum token, just settling to Kaspa. KRON's launches are the newest category, tokens whose supply, curve and locked liquidity are enforced by layer-1 logic itself, with no separate side chain involved.</p>
 </div></div>
 <div class="wrap2">
   <h2>Is Kron legit, and is it safe to use?</h2>
-  <p>Those are two different questions and they deserve two different answers. <b>The platform</b> is what it says it is: a launchpad and exchange whose logic runs in layer-1 covenant code rather than in a company's database, which means it does not hold user funds and cannot walk off with them. That is a real structural property, not a promise, and it is verifiable in the code.</p>
+  <p>Those are two different questions and they deserve two different answers. <b>The platform</b> is what it says it is, a launchpad and exchange whose logic runs in layer-1 covenant code rather than in a company's database, which means it does not hold user funds and cannot walk off with them. That is a real structural property, not a promise, and it is verifiable in the code.</p>
   <p><b>The tokens launched on it are a separate matter entirely, and most of them will go to zero.</b> That is not a criticism of Kron, it is what this launch model produces everywhere it has ever run. Anyone can create a token in a minute with no funding, no team and no purpose, and the overwhelming majority of them are exactly that. A launchpad being sound says nothing about what people launch on it, in the same way a functioning stock exchange says nothing about the worst company listed on it.</p>
   <p>So the honest read is this. Treat the platform as young infrastructure, meaning unaudited contract code that has not yet been through a full market cycle. Treat every individual token on it as a bet you should be able to lose entirely. And check the three numbers above before the chart, every single time.</p>
   <h2>The one number that matters more than the chart</h2>
-  <p>Every token launched this way produces the same seductive chart shape — flat, then a spike. The chart tells you what happened. It does not tell you who owns it. That's the number worth checking before anything else:</p>
+  <p>Every token launched this way produces the same seductive chart shape, flat, then a spike. The chart tells you what happened. It does not tell you who owns it. That's the number worth checking before anything else.</p>
   <div class="facts">
     <div class="fact"><div class="v red">295 holders</div><div class="l">the KRON token itself when we first counted it, on 1 August 2026, against a market cap of 10.22M KAS. we keep that reading as a marker of how early this all still is</div></div>
-    <div class="fact"><div class="v teal">Locked liquidity ≠ safe token</div><div class="l">graduation removes the classic "pull the liquidity" rug — it says nothing about concentration, team allocation history, or whether the token has any use beyond trading</div></div>
-    <div class="fact"><div class="v teal">Launch ≠ audit</div><div class="l">a bonding curve launching without a presale is a fairer starting mechanism, not a security review — the underlying covenant code carries the same young-contract risk as anything else on Kaspa's new L1 stack</div></div>
+    <div class="fact"><div class="v teal">Locked liquidity ≠ safe token</div><div class="l">graduation removes the classic "pull the liquidity" rug. It says nothing about concentration, team allocation history, or whether the token has any use beyond trading</div></div>
+    <div class="fact"><div class="v teal">Launch ≠ audit</div><div class="l">a bonding curve launching without a presale is a fairer starting mechanism, not a security review. The underlying covenant code carries the same young-contract risk as anything else on Kaspa's new L1 stack</div></div>
     <div class="fact"><div class="v teal">Graduation rate over time</div><div class="l">the more useful long-run signal is not any single token's price, it is what share of everything launched on Kron ever reaches graduation. that is a number to judge over a year, not over a week</div></div>
   </div>
-  <div class="note">Every Monday we publish what actually moved on Kaspa, counted from the chain, on <a href="/">the Kaspa Pulse dashboard</a>. Related reading: <a href="/kaspa-smart-contracts.html">how Kaspa's covenants and L2s work</a> and <a href="/kaspa-tvl.html">what TVL on Kaspa actually means</a>.</div>
+  <div class="note">Every Monday we publish what actually moved on Kaspa, counted from the chain, on <a href="/">the Kaspa Pulse dashboard</a>. Related reading, <a href="/kaspa-smart-contracts.html">how Kaspa's covenants and L2s work</a> and <a href="/kaspa-tvl.html">what TVL on Kaspa actually means</a>.</div>
 <!--AUTO:faq-->
   <div class="faq">
   <h2>Questions people ask</h2>
@@ -289,11 +289,11 @@
 </section>
 <!--/AUTO:rahmen-kanaele-->
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 13 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 24 October 2026<!--/AUTO:seitenstand--></div>
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
-    <div>page last reviewed 6 October 2026 against kron.technology, the holder count stays dated 1 August 2026 · not financial advice · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener">youtube</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>page last reviewed 6 October 2026 against kron.technology, the holder count stays dated 1 August 2026 · not financial advice · further reading <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener">youtube</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
     <div class="fund" style="margin-top:10px;"><a href="/how-we-fund-this.html" style="display:inline-block;padding:12px 10px;">how we fund this</a> · <a href="/for-builders.html" style="display:inline-block;padding:12px 10px;">for builders</a></div>
   </footer>
 </div>
