@@ -1,0 +1,11 @@
+[Unit]
+Description=Kaspa Pulse Takt, Story-Vorlage, Mo bis Sa 07:45 Berlin, nach #moderator-only
+
+[Timer]
+Unit=takt@story-vorlage.service
+OnCalendar=Mon..Sat *-*-* 07:45:00 Europe/Berlin
+Persistent=true
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target
