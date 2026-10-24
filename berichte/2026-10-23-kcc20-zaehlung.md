@@ -73,12 +73,23 @@ Unterschiede durch Definition, kein Fehler auf einer Seite:
 2. **Lebende UTXOs.** Deren 17.137 sind alle lebenden Covenant-UTXOs, nicht nur Tokens. Unser Gegenstück sind 17.150 Covenant-UTXOs zur Stichzeit 14:30 UTC, zwei Minuten vor deren Abruf.
 3. **Covenants.** Deren 188.808 zählen alle je gesehenen Covenant-Ausgänge seit Beginn ihres Archivs. Das zählen wir nicht.
 
-## Offene Fragen an Ben
+## Antworten von Ben (24.10.) und was daraus folgt
 
-1. Kron-native ist kein KCC-20 im Sinne der finalen Spezifikation. Ich führe Kron deshalb nicht unter "KCC-20 counted", sondern nur als "source kcc20.info" daneben. Einverstanden?
-2. Für den Post: Die Transfers vor dem 22.10. 05:53 UTC kommen als Transaktionen von api.kaspa.org (der Zustand ist trotzdem von uns bewiesen). Soll "counted" im Post nur den Zeitraum ab dem eigenen Fenster nennen, oder die ganze Zahl seit 21.10. mit einem Satz zur Herkunft im Bericht?
+1. **Kron:** Wo wir keine eigenen Daten haben, steht nur "source kcc20.info", nie "counted". Kron-Tokens erscheinen deshalb nur im Abgleich, mit Quelle.
+2. **Transfers:** "counted" gilt nur ab unserem eigenen Knotenfenster, also ab 22.10.2026 05:53:20 UTC (07:53 Berlin). Umsetzung im Zähler (Commit 1478157):
+   - Jede Tx in den Listen trägt jetzt ihre Quelle ("eigener knoten" oder "api.kaspa.org").
+   - Der Zähler liest die Fenster aller Läufe (`tx-stand.json`) und zählt "counted" nur im lückenlosen eigenen Fenster bis zur Stichzeit. Hat das Fenster eine Lücke, beginnt "counted" erst nach der Lücke.
+   - Neue Spalten und Felder: `transfers_counted` je Token, `transfers_counted_ab_utc`, `eigene_fenster_utc`, `transfers_vor_eigenem_fenster_nicht_counted`.
+   - Die Läufe am Samstag, Sonntag und Montag schließen die Fenster bis Montag 12:00 UTC.
+3. **Die Zeit davor (21.10. 00:00 bis 22.10. 05:53 UTC) als "source kcc20.info":** Deren Zeitreihe hat 6-Stunden-Blöcke, deren Grenzen am Abrufzeitpunkt hängen. Die Zeiten sind aus der DAA geschätzt (`daa_10bps`). Abruf 24.10. 06:26 UTC: 5 Blöcke von 21.10. 00:26 bis 22.10. 06:26 UTC, 165 Token-Aktionen und 3.005 Covenant-Ereignisse. Am Montag rufe ich um 11:53 UTC ab, dann endet ein Block genau um 05:53 UTC.
+
+## Offene Frage an Ben
+
+1. Die 165 Token-Aktionen von kcc20.info gelten für **deren** Tokens (Kron und ältere KCC-20-Vorläufer), nicht für die 133 finalen KCC-20-Tokens, die wir zählen. Für finale KCC-20-Tokens vor dem 22.10. 05:53 UTC hat kcc20.info keine Zahl. Mein Vorschlag für den Post: unsere Zahl zuerst, dann getrennt "source kcc20.info" mit dem Hinweis, dass es dort um Kron und ältere Tokens geht. Die andere Möglichkeit ist, die Zeit vor unserem Fenster im Post offen zu lassen und nur im Bericht zu erklären. Was ist dir lieber?
 
 ## Was Ben tun muss
 
+- Frage oben beantworten, falls es nicht so passt.
+- Wünsche aus Discord #data-requests bis Montag vor dem Hauptlauf an mich geben. Ich prüfe sie vor dem Start um 10:30 UTC.
 - Am Montag den fertigen Bericht, die Grafik und den Post prüfen.
-- Den PR mergen, wenn er passt. Die Workflows starten nur auf diesem Branch, auf main tun sie nichts.
+- Den PR [#136](https://github.com/neoalphavault-png/kaspa-pulse/pull/136) mergen, wenn er passt. Die Workflows starten nur auf diesem Branch, auf main tun sie nichts.
