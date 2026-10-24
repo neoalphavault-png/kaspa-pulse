@@ -58,7 +58,8 @@ Branch `design/story-vorlagen`, eigener PR von main. Nichts wird automatisch auf
   - **301 für /story:** GitHub Pages leitet `/story` mit 301 auf `/story/` weiter, von dort führt die meta refresh auf die UTM-Adresse, genau wie bei `/ig` und `/x`. Einen echten 301 direkt auf die UTM-Adresse kann Pages nicht. Ich prüfe das nach dem Deploy und trage es nach.
 
 ## PR-Nummern
-- dieser PR: folgt im Sammelfenster 16:00
+- dieser PR: #140 (geöffnet im Sammelfenster 24.10.2026, 16:00)
+- Text-PR für die Unterseiten: #141
 - Zusammenhang: #134 (Rahmen), #137 und #139 (Jekyll)
 
 ## Offene Fragen an Ben
