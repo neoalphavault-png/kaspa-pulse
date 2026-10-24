@@ -20,7 +20,7 @@ Branch `fix/nod-now-vorlage`, eigener kleiner PR von main (Ben, 24.10.2026).
   - Secret-Scan sauber.
 
 ## PR-Nummern
-- dieser PR: die Nummer trage ich beim Öffnen nach
+- dieser PR: #138
 - Zusammenhang: #124 (die Wache), #137 (Jekyll)
 
 ## Offene Fragen an Ben
