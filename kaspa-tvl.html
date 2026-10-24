@@ -29,7 +29,7 @@
  "description": "Why Kaspa's base layer holds no TVL, where the value locked on its two layer 2 networks sits, the three traps in any TVL number and what to watch instead.",
  "url": "https://kaspapulse.com/kaspa-tvl.html",
  "inLanguage": "en",
- "dateModified": "2026-10-13",
+ "dateModified": "2026-10-24",
  "isPartOf": {
   "@type": "WebSite",
   "name": "Kaspa Pulse",
@@ -189,16 +189,16 @@
 <!--/AUTO:rahmen-kopf-->
 <div class="wrap">
 
-  <h1>Kaspa TVL, explained. <b>Why the number is small — and what it actually tells you.</b></h1>
+  <h1>Kaspa TVL, explained. <b>Why the number is small, and what it actually tells you.</b></h1>
   <div class="sub">Kaspa's total value locked is a rounding error next to the whole DeFi market. That comparison is real, but it's also the least interesting thing about the number. Here's how to read it properly.</div>
 
   <div class="answer">
     <div class="lbl">The short answer</div>
-    <p>Kaspa's base layer holds <b>no TVL at all</b> — it has no general smart contracts, by design. Every dollar counted as "Kaspa TVL" sits on two layer-2 networks, <b>Kasplex</b> and <b>Igra</b>, both of which opened for business in 2025–2026. The number is small because the surface capital can sit on has only existed since mid-2025 — not because capital looked at Kaspa and walked away.</p>
+    <p>Kaspa's base layer holds <b>no TVL at all</b>. It has no general smart contracts, by design. Every dollar counted as "Kaspa TVL" sits on two layer-2 networks, <b>Kasplex</b> and <b>Igra</b>, both of which opened for business in 2025 and 2026. The number is small because the surface capital can sit on has only existed since mid-2025, not because capital looked at Kaspa and walked away.</p>
   </div>
 
   <div class="live">
-    <div class="lbl"><i></i>Total value locked on Kaspa · live</div>
+    <div class="lbl"><i></i>Total value locked on Kaspa · today</div>
     <div class="big" id="tvlTotal">—</div>
     <div class="cap" id="tvlCap">fetching from DefiLlama…</div>
     <div class="split">
@@ -207,26 +207,26 @@
       <div><div class="v" id="vShare">—</div><div class="k">share of all DeFi</div></div>
     </div>
   </div>
-  <div class="note">These figures are pulled live from DefiLlama every time this page loads — the same source we use for the weekly <a href="/">Kaspa Pulse dashboard</a>. Nothing here is hardcoded.</div>
+  <div class="note">These figures are pulled from DefiLlama every time this page loads, the same source we use for the weekly <a href="/">Kaspa Pulse dashboard</a>. Nothing here is hardcoded.</div>
 
 </div>
 
 <div class="band"><div class="wrap2">
   <h2>What TVL actually measures</h2>
-  <p>Total value locked is the dollar value of assets people have deposited into a chain's smart contracts — liquidity sitting in decentralised exchange pools, collateral parked in lending markets, tokens committed to staking contracts.</p>
+  <p>Total value locked is the dollar value of assets people have deposited into a chain's smart contracts, liquidity sitting in decentralised exchange pools, collateral parked in lending markets, tokens committed to staking contracts.</p>
   <p>The reason anyone cares is that TVL is a <b>trust measure</b>. It is capital that someone deliberately handed over to a piece of code and left there, accepting the risk that the code fails. People do not do that casually. A chain with real TVL has convinced real money that its contracts work.</p>
-  <p>What TVL is <b>not</b>: it is not the value of the network, not trading volume, not a user count, and not a measure of how good the technology is. A chain can have excellent engineering and near-zero TVL simply because nothing has been built on it yet. That is precisely Kaspa's situation.</p>
+  <p>What TVL is <b>not</b>. It is not the value of the network, not trading volume, not a user count, and not a measure of how good the technology is. A chain can have excellent engineering and near-zero TVL simply because nothing has been built on it yet. That is precisely Kaspa's situation.</p>
 
 </div></div>
 
 <div class="wrap2">
-  <h2>Why Kaspa's layer 1 holds nothing — and why that's deliberate</h2>
+  <h2>Why Kaspa's layer 1 holds nothing, and why that's deliberate</h2>
   <p>Kaspa's base layer is a UTXO chain, close in design to Bitcoin. It moves coins and secures them with proof-of-work; it does not run arbitrary programs. There is nowhere on layer 1 to lock value, so the honest figure for Kaspa L1 TVL is <b>zero</b>.</p>
-  <p>Bitcoin is in the same position, and it's a useful sanity check: Bitcoin's several billion dollars of counted TVL doesn't live on Bitcoin's base chain either. It lives in wrapped assets and sidechain-style constructions built alongside it. Nobody reads Bitcoin's low base-layer programmability as a flaw.</p>
-  <p>Smart contracts on Kaspa live one layer up:</p>
+  <p>Bitcoin is in the same position, and it's a useful sanity check. Bitcoin's several billion dollars of counted TVL doesn't sit on Bitcoin's base chain either. It sits in wrapped assets and sidechain-style constructions built alongside it. Nobody reads Bitcoin's low base-layer programmability as a flaw.</p>
+  <p>Smart contracts on Kaspa sit one layer up.</p>
   <ul>
-    <li><b>Kasplex</b> — an EVM-compatible layer 2, live since mid-2025 and the first place Kaspa DeFi actually existed.</li>
-    <li><b>Igra</b> — a second EVM layer 2, launched in 2026. How the total splits between the two at any moment is shown live at the top of this page.</li>
+    <li><b>Kasplex</b>, an EVM-compatible layer 2, running since mid-2025 and the first place Kaspa DeFi actually existed.</li>
+    <li><b>Igra</b>, a second EVM layer 2, launched in 2026. How the total splits between the two is shown at the top of this page, as of the day you read it.</li>
   </ul>
   <p>So whenever you see "Kaspa TVL", read it as <b>"Kaspa layer-2 TVL"</b>. It is a measure of how far the smart-contract ecosystem has come, not of Kaspa itself.</p>
 
@@ -234,22 +234,22 @@
 
 <div class="band"><div class="wrap2">
   <h2>Three traps in reading any TVL number</h2>
-  <p>These apply to every chain, not just Kaspa — and they're the reason TVL headlines are so often misleading.</p>
+  <p>These apply to every chain, not just Kaspa, and they're the reason TVL headlines are so often misleading.</p>
 
   <h3>1. It's denominated in dollars, not tokens</h3>
-  <p>If the price of the assets locked falls 20% and not a single person moves a coin, TVL falls 20%. A large share of the "TVL growth" reported across crypto in any bull market is just price appreciation on capital that was already there. The inverse is worse: a chain can be <b>gaining real deposits while its TVL chart falls</b>, purely because the market is red. Always check the direction of TVL against the direction of price before you conclude anything.</p>
+  <p>If the price of the assets locked falls 20% and not a single person moves a coin, TVL falls 20%. A large share of the "TVL growth" reported across crypto in any bull market is just price appreciation on capital that was already there. The inverse is worse. A chain can be <b>gaining real deposits while its TVL chart falls</b>, purely because the market is red. Always check the direction of TVL against the direction of price before you conclude anything.</p>
 
   <h3>2. Incentives buy TVL, and rented TVL leaves</h3>
-  <p>Chains and protocols routinely pay for deposits with token emissions. That capital is mercenary: it arrives for the yield and exits the week the yield stops. A TVL chart that spikes vertically on the back of an incentive programme tells you about the size of the budget, not the depth of the interest.</p>
+  <p>Chains and protocols routinely pay for deposits with token emissions. That capital is mercenary. It arrives for the yield and exits the week the yield stops. A TVL chart that spikes vertically on the back of an incentive programme tells you about the size of the budget, not the depth of the interest.</p>
 
   <h3>3. The same dollar gets counted more than once</h3>
-  <p>Deposit an asset into protocol A, receive a receipt token, deposit that receipt into protocol B — and the underlying dollar now shows up in two TVL figures. In mature ecosystems built on looping and restaking, this inflates headline numbers substantially. It's less of a factor on a young chain like Kaspa, which is one of the few advantages of being early: the number is comparatively clean.</p>
+  <p>Deposit an asset into protocol A, receive a receipt token, deposit that receipt into protocol B, and the underlying dollar shows up in two TVL figures. In mature ecosystems built on looping and restaking, this inflates headline numbers substantially. It's less of a factor on a young chain like Kaspa, which is one of the few advantages of being early. The number is comparatively clean.</p>
 
 </div></div>
 
 <div class="wrap2">
-  <h2>For context: where Kaspa sits</h2>
-  <p>All figures live from DefiLlama, so this table is current whenever you're reading it.</p>
+  <h2>For context, where Kaspa sits</h2>
+  <p>All figures come from DefiLlama when the page loads, so this table is current whenever you're reading it.</p>
   <div class="tblwrap"><table>
     <thead><tr><th>Chain</th><th class="r">TVL</th><th class="r">vs. Kaspa</th></tr></thead>
     <tbody id="cmpBody">
@@ -262,11 +262,11 @@
 
 <div class="band"><div class="wrap2">
   <h2>What actually matters at this stage</h2>
-  <p>At this size, the absolute number is close to meaningless. Three readings are not:</p>
+  <p>At this size, the absolute number is close to meaningless. Three readings are not.</p>
 
   <div class="facts">
     <div class="fact"><div class="v teal">Direction vs. price</div><div class="l">TVL rising while KAS is flat or down means genuine new deposits, not price effects. This is the single most useful read on the chart.</div></div>
-    <div class="fact"><div class="v teal">The split</div><div class="l">How the total divides between Kasplex and Igra shows which layer 2 builders and liquidity are actually choosing — and whether it's consolidating.</div></div>
+    <div class="fact"><div class="v teal">The split</div><div class="l">How the total divides between Kasplex and Igra shows which layer 2 builders and liquidity are actually choosing, and whether it's consolidating.</div></div>
     <div class="fact"><div class="v teal">Turnover</div><div class="l">TVL against daily DEX volume. Capital that trades is working capital; capital that sits is a parked number. High turnover on small TVL beats the reverse.</div></div>
     <div class="fact"><div class="v red">Concentration risk</div><div class="l">On a chain this size, a single large depositor entering or leaving can move total TVL by double digits. Don't read one week's swing as a trend.</div></div>
   </div>
@@ -276,23 +276,23 @@
 </div></div>
 
 <div class="wrap2">
-  <div class="note">We publish Kaspa's TVL, its layer-2 split and the DEX volume behind it every Monday on the <a href="/">Kaspa Pulse dashboard</a> — with a plain-language read on what changed and why, not just the figures.</div>
+  <div class="note">We publish Kaspa's TVL, its layer-2 split and the DEX volume behind it every Monday on the <a href="/">Kaspa Pulse dashboard</a>, with a plain-language read on what changed and why, not just the figures.</div>
 
 <!--AUTO:faq-->
   <div class="faq">
   <h2>Questions people ask</h2>
   <h3>What is Kaspa's TVL?</h3>
-  <p>Kaspa's total value locked is the combined TVL of its two EVM layer-2 networks, Kasplex and Igra. The live figure is published on this page, pulled directly from DefiLlama. Kaspa's base layer holds no TVL because it does not run general smart contracts.</p>
+  <p>Kaspa's total value locked is the combined TVL of its two EVM layer-2 networks, Kasplex and Igra. Today's figure is published on this page, pulled directly from DefiLlama. Kaspa's base layer holds no TVL because it does not run general smart contracts.</p>
   <h3>Why does Kaspa's layer 1 have no TVL?</h3>
   <p>Kaspa layer 1 is a UTXO proof-of-work chain, similar in design to Bitcoin. It has no general smart contract platform where DeFi capital is pooled, so the TVL counted for Kaspa sits on its two layer 2s. Since the Toccata hard fork of 30 June 2026, layer 1 also runs covenant contracts inside UTXOs, which we count on our covenant page rather than in TVL.</p>
   <h3>Where does Kaspa DeFi actually run?</h3>
-  <p>On two EVM-compatible layer 2s, Kasplex, live since mid-2025, and Igra, which followed in 2026. The base layer runs covenant contracts since the Toccata hard fork, but the DeFi capital counted as TVL sits on the layer 2s.</p>
+  <p>On two EVM-compatible layer 2s, Kasplex, running since mid-2025, and Igra, which followed in 2026. The base layer runs covenant contracts since the Toccata hard fork, but the DeFi capital counted as TVL sits on the layer 2s.</p>
   <h3>Is a low TVL bad for Kaspa?</h3>
   <p>It reflects age more than rejection. Kaspa's smart-contract layers launched in 2025 and 2026, so the capital on them has had little time to arrive. At this size the absolute figure is not a robust signal. The direction of TVL against price, the split between the two layer 2s and the ratio of TVL to DEX volume are more informative.</p>
   <h3>What is Kasplex's TVL?</h3>
-  <p>Kasplex is the first of Kaspa's two EVM layer 2s. Its live TVL is shown in the split on this page, tracked separately from Igra's and refreshed from DefiLlama.</p>
+  <p>Kasplex is the first of Kaspa's two EVM layer 2s. Its TVL is shown in the split on this page, tracked separately from Igra's and refreshed from DefiLlama.</p>
   <h3>What is Igra's TVL?</h3>
-  <p>Igra's mainnet launched in March 2026. Its live TVL and its share of total Kaspa TVL are shown in the split on this page, refreshed from DefiLlama.</p>
+  <p>Igra's mainnet launched in March 2026. Its TVL and its share of total Kaspa TVL are shown in the split on this page, refreshed from DefiLlama.</p>
   </div>
 <!--/AUTO:faq-->
   <div class="subscribe">
@@ -334,11 +334,11 @@
 </section>
 <!--/AUTO:rahmen-kanaele-->
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 13 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 24 October 2026<!--/AUTO:seitenstand--></div>
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
-    <div>not financial advice · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">kaspa merged mining, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>not financial advice · further reading <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">kaspa merged mining, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
     <div class="fund" style="margin-top:10px;"><a href="/how-we-fund-this.html" style="display:inline-block;padding:12px 10px;">how we fund this</a> · <a href="/for-builders.html" style="display:inline-block;padding:12px 10px;">for builders</a></div>
   </footer>
 </div>
@@ -353,7 +353,7 @@
       "name": "What is Kaspa's TVL?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Kaspa's total value locked is the combined TVL of its two EVM layer-2 networks, Kasplex and Igra. The live figure is published on this page, pulled directly from DefiLlama. Kaspa's base layer holds no TVL because it does not run general smart contracts."
+        "text": "Kaspa's total value locked is the combined TVL of its two EVM layer-2 networks, Kasplex and Igra. Today's figure is published on this page, pulled directly from DefiLlama. Kaspa's base layer holds no TVL because it does not run general smart contracts."
       }
     },
     {
@@ -369,7 +369,7 @@
       "name": "Where does Kaspa DeFi actually run?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "On two EVM-compatible layer 2s, Kasplex, live since mid-2025, and Igra, which followed in 2026. The base layer runs covenant contracts since the Toccata hard fork, but the DeFi capital counted as TVL sits on the layer 2s."
+        "text": "On two EVM-compatible layer 2s, Kasplex, running since mid-2025, and Igra, which followed in 2026. The base layer runs covenant contracts since the Toccata hard fork, but the DeFi capital counted as TVL sits on the layer 2s."
       }
     },
     {
@@ -385,7 +385,7 @@
       "name": "What is Kasplex's TVL?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Kasplex is the first of Kaspa's two EVM layer 2s. Its live TVL is shown in the split on this page, tracked separately from Igra's and refreshed from DefiLlama."
+        "text": "Kasplex is the first of Kaspa's two EVM layer 2s. Its TVL is shown in the split on this page, tracked separately from Igra's and refreshed from DefiLlama."
       }
     },
     {
@@ -393,7 +393,7 @@
       "name": "What is Igra's TVL?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Igra's mainnet launched in March 2026. Its live TVL and its share of total Kaspa TVL are shown in the split on this page, refreshed from DefiLlama."
+        "text": "Igra's mainnet launched in March 2026. Its TVL and its share of total Kaspa TVL are shown in the split on this page, refreshed from DefiLlama."
       }
     }
   ]
@@ -420,7 +420,7 @@
     const share = (total/allDefi)*100;
     document.getElementById("vShare").textContent = share < 0.01 ? share.toFixed(4)+"%" : share.toFixed(3)+"%";
     document.getElementById("tvlCap").textContent =
-      "Kasplex + Igra combined · Kaspa layer 1 holds none of it · source: DefiLlama";
+      "Kasplex + Igra combined · Kaspa layer 1 holds none of it · source DefiLlama";
 
     const peers = [
       {n:"Bitcoin", k:"bitcoin"}
@@ -435,9 +435,9 @@
     document.getElementById("cmpBody").innerHTML = html;
   }).catch(()=>{
     document.getElementById("tvlTotal").textContent = "—";
-    document.getElementById("tvlCap").innerHTML = "live feed temporarily unavailable · the current weekly reading is always on the <a href='/'>dashboard</a>";
+    document.getElementById("tvlCap").innerHTML = "defillama temporarily unavailable · the weekly reading is always on the <a href='/'>dashboard</a>";
     document.getElementById("cmpBody").innerHTML =
-      "<tr><td colspan='3' style='color:var(--dimmer)'>comparison table needs the live feed — <a href='/'>see the dashboard</a> for this week's figures</td></tr>";
+      "<tr><td colspan='3' style='color:var(--dimmer)'>comparison table needs defillama, <a href='/'>see the dashboard</a> for this week's figures</td></tr>";
   });
 })();
 </script>
