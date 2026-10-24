@@ -13,8 +13,14 @@ Branch `fix/jekyll-reports`, kleiner Folge-PR von main nach #137 (Ben, 24.10.202
   - Keine Datei kommt hinzu.
   - Alle übrigen Dateien bleiben Byte für Byte gleich.
 
-## Abnahme von #137 nach dem Deploy
-Trage ich unten nach, sobald Pages den Stand mit `_config.yml` ausgeliefert hat.
+## Abnahme von #137 nach dem Deploy (24.10.2026, 11:35 UTC)
+Pages hat den Stand mit `_config.yml` ausgeliefert. Die Läufe für #137 und #138 hat GitHub zugunsten des Laufs nach #135 abgebrochen; dieser Lauf enthält die Datei.
+
+- **404:**
+  - `/berichte/2026-10-23-zcash-mainnet.html`, `.md` und ohne Endung
+  - `/docs/cheat-sheet.html`, `/data/weekly-notes.html` und `/deploy/c2/setup.sh`
+- **200:** `/`, `/archive/`, `/method/`, `/week/2026-10-19/`, `/entity-x.html`, `/impressum.html`, `/datenschutz.html`, `/kaspa-hashrate.html` und `/data/weekly.json`
+- **Unverändert:** Die ausgelieferten Seiten Startseite, Archiv, method, die Wochenseite 19.10., entity-x, Impressum und Datenschutz sind Byte für Byte gleich mit main.
 
 ## Abnahme dieses PR nach dem Deploy
 Trage ich nach dem Merge nach: 404 für `deploy/c2/`, `berichte/` und `reports/`.
