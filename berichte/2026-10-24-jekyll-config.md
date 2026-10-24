@@ -24,7 +24,7 @@ Branch `fix/jekyll-config`, eigener kleiner PR von main. Er wird vor #134, #135 
   - Startseite, `/archive/`, `/method/`, die Wochenseiten, entity-x, Impressum, Datenschutz, `CNAME`, `robots.txt`, `sitemap.xml`, `capture.js`, die JSON-Dateien unter `data/`, die Schriften und die Kurzlinks entsprechen dem Repo
 
 ## PR-Nummern
-- dieser PR: siehe unten, die Nummer trage ich beim Öffnen nach
+- dieser PR: #137
 - danach: #134 (Rahmen), #135, #136
 
 ## Abnahme nach dem Deploy
