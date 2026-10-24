@@ -29,7 +29,7 @@
  "description": "Kaspalytics, the Kaspa explorers and the public APIs side by side. Which source answers which question and why two of them can show different numbers.",
  "url": "https://kaspapulse.com/kaspa-data-sources.html",
  "inLanguage": "en",
- "dateModified": "2026-10-13",
+ "dateModified": "2026-10-24",
  "isPartOf": {
   "@type": "WebSite",
   "name": "Kaspa Pulse",
@@ -184,7 +184,7 @@
     <div class="cap">Ask these three of any chart on any site, including ours. Nearly every argument about Kaspa numbers dissolves once all three are answered.</div>
     <div class="split">
       <div><div class="v">What counts?</div><div class="k">does a transaction mean every one in every block, or each one once after the DAG has accepted it. this single choice can move a number by 5x</div></div>
-      <div><div class="v">Over what window?</div><div class="k">a live per-second ticker and a 24 hour average of the same thing are different numbers, and neither is a mistake</div></div>
+      <div><div class="v">Over what window?</div><div class="k">a per-second ticker and a 24 hour average of the same thing are different numbers, and neither is a mistake</div></div>
       <div><div class="v">How fresh?</div><div class="k">network views refresh in seconds, supply and address aging usually once a day. a flat line can just mean today has not been written yet</div></div>
     </div>
   </div>
@@ -194,14 +194,14 @@
   <div class="tblwrap"><table>
     <thead><tr><th>Source</th><th>Best for</th><th>Refresh</th><th>Access</th></tr></thead>
     <tbody>
-      <tr><td class="n">Kaspalytics</td><td class="hl">on-chain history and supply structure: hash rate, difficulty, active addresses, fees, supply aging and HODL waves, exchange holdings, address balance buckets, script types and covenant activity</td><td>network and fee views in seconds, supply and address aging about once a day around 00:00 UTC</td><td>free, no account</td></tr>
-      <tr><td class="n">kaspa.stream</td><td>watching the chain move in real time: blocks and transactions as they land, top addresses, miner and node metrics</td><td>live</td><td>free, no account</td></tr>
-      <tr><td class="n">explorer.kaspa.org</td><td class="hl">one specific transaction, address or block, with the same explorer available for the testnets</td><td>live</td><td>free, no account</td></tr>
-      <tr><td class="n">api.kaspa.org</td><td class="hl">pulling that same data yourself in code, documented as an OpenAPI page you can click through</td><td>live</td><td>free, no key</td></tr>
-      <tr><td class="n">kas.fyi</td><td>KRC-20 tokens, with a page per token</td><td>live</td><td>site free, the developer platform at docs.kas.fyi uses API keys and paid plans</td></tr>
-      <tr><td class="n">KasLens</td><td>the market side: price across exchanges, volume, order book heatmap, a KRC-20 dashboard</td><td>live</td><td>free, no account</td></tr>
-      <tr><td class="n">KASLIVE</td><td>a live monitoring terminal, including large address movement, a mining calculator and an attack cost estimate</td><td>live</td><td>free, no account</td></tr>
-      <tr><td class="n">DeFiLlama</td><td>money inside the layer 2s, meaning TVL and volume for Kasplex and Igra and the apps on them</td><td>live</td><td>free, no account</td></tr>
+      <tr><td class="n">Kaspalytics</td><td class="hl">on-chain history and supply structure, hash rate, difficulty, active addresses, fees, supply aging and HODL waves, exchange holdings, address balance buckets, script types and covenant activity</td><td>network and fee views in seconds, supply and address aging about once a day around 00:00 UTC</td><td>free, no account</td></tr>
+      <tr><td class="n">kaspa.stream</td><td>watching the chain move block by block, blocks and transactions as they land, top addresses, miner and node metrics</td><td>continuous</td><td>free, no account</td></tr>
+      <tr><td class="n">explorer.kaspa.org</td><td class="hl">one specific transaction, address or block, with the same explorer available for the testnets</td><td>continuous</td><td>free, no account</td></tr>
+      <tr><td class="n">api.kaspa.org</td><td class="hl">pulling that same data yourself in code, documented as an OpenAPI page you can click through</td><td>continuous</td><td>free, no key</td></tr>
+      <tr><td class="n">kas.fyi</td><td>KRC-20 tokens, with a page per token</td><td>continuous</td><td>site free, the developer platform at docs.kas.fyi uses API keys and paid plans</td></tr>
+      <tr><td class="n">KasLens</td><td>the market side, price across exchanges, volume, order book heatmap, a KRC-20 dashboard</td><td>continuous</td><td>free, no account</td></tr>
+      <tr><td class="n">KASLIVE</td><td>a continuous monitoring terminal, including large address movement, a mining calculator and an attack cost estimate</td><td>continuous</td><td>free, no account</td></tr>
+      <tr><td class="n">DeFiLlama</td><td>money inside the layer 2s, meaning TVL and volume for Kasplex and Igra and the apps on them</td><td>continuous</td><td>free, no account</td></tr>
       <tr><td class="n">Kaspa Pulse</td><td>one weekly reading of the numbers that carry weight, with the definition printed next to each one</td><td>every Monday</td><td>free, no account</td></tr>
     </tbody>
   </table></div>
@@ -209,12 +209,12 @@
 </div></div>
 <div class="wrap2">
   <h2>Why two sites show a different transactions per second</h2>
-  <p>This is the one that catches people out most often, so it is worth walking through with the real numbers rather than in the abstract. In August 2026 a live counter on one site was showing somewhere around <b>11 transactions per second</b> while our own dashboard was publishing <b>2.34</b> for the same week. Both figures are defensible. They count different things.</p>
+  <p>This is the one that catches people out most often, so it is worth walking through with the real numbers rather than in the abstract. In August 2026 a running counter on one site was showing somewhere around <b>11 transactions per second</b> while our own dashboard was publishing <b>2.34</b> for the same week. Both figures are defensible. They count different things.</p>
   <h3>What we count, exactly</h3>
-  <p>We take the <b>accepted</b> transactions for a full day, standard transactions plus coinbase transactions, and divide by the 86,400 seconds in that day. Accepted matters: Kaspa produces around ten blocks a second in parallel, so the same transaction can appear in more than one block before the DAG settles which of them counts. Counting accepted transactions counts each one once, after that has been decided. Dividing by a whole day means we publish an average across quiet nights and busy afternoons alike, not a moment.</p>
-  <h3>What a live ticker counts</h3>
-  <p>A real-time counter is built to show flow, so it counts what is streaming past right now, which includes the coinbase transaction that every one of those ten blocks a second carries with it. We cannot see anyone else's code and we do not claim to know exactly how another site counts. What we can say is that a per-second live reading and a per-day accepted average are different measurements, and that the gap between them on Kaspa is structural, not a bug in either.</p>
-  <div class="note">The practical rule: a transactions per second figure means nothing without the word before it. Ask whether it is accepted or raw, whether coinbase transactions are included, and whether it is an average or a live reading. Every number on <a href="/">our dashboard</a> carries its definition for exactly this reason.</div>
+  <p>We take the <b>accepted</b> transactions for a full day, standard transactions plus coinbase transactions, and divide by the 86,400 seconds in that day. Accepted matters, because Kaspa produces around ten blocks a second in parallel, so the same transaction can appear in more than one block before the DAG settles which of them counts. Counting accepted transactions counts each one once, after that has been decided. Dividing by a whole day means we publish an average across quiet nights and busy afternoons alike, not a moment.</p>
+  <h3>What a running ticker counts</h3>
+  <p>A running counter is built to show flow, so it counts what is streaming past as it happens, which includes the coinbase transaction that every one of those ten blocks a second carries with it. We cannot see anyone else's code and we do not claim to know exactly how another site counts. What we can say is that a per-second reading and a per-day accepted average are different measurements, and that the gap between them on Kaspa is structural, not a bug in either.</p>
+  <div class="note">The practical rule is that a transactions per second figure means nothing without the word before it. Ask whether it is accepted or raw, whether coinbase transactions are included, and whether it is an average or a single moment. Every number on <a href="/">our dashboard</a> carries its definition for exactly this reason.</div>
   <h2>Which source answers which question</h2>
   <div class="facts">
     <div class="fact"><div class="v teal">How much KAS has not moved?</div><div class="l">supply aging and HODL waves on Kaspalytics. we publish the share untouched for a year every Monday, and it has been sitting above half of all coins</div></div>
@@ -227,7 +227,7 @@
   <h2>Where our own numbers come from</h2>
   <p>We are a source on this list, so the same standard applies to us. The weekly figures on the dashboard come from Kaspalytics for supply aging, exchange holdings, active addresses and accepted transaction counts, from api.kaspa.org where we count something ourselves transaction by transaction, and from DeFiLlama for layer 2 value. Hash rate and difficulty are cross-checked against more than one source before they go out.</p>
   <p><b>Where we cannot verify a number, we print a dash instead of a guess.</b> That is why the dashboard occasionally shows blanks while other sites show a figure for the same tile. A dash means we could not stand behind it that week, and we would rather be visibly incomplete than quietly wrong. When we do make a claim about what a wallet did, we counted every transaction ourselves and we report the movement, never the motive.</p>
-  <div class="note">The weekly reading lands every Monday on <a href="/">the Kaspa Pulse dashboard</a>, with the definition printed next to each number. Related reading: <a href="/kaspa-supply.html">Kaspa's supply, explained</a> and <a href="/kaspa-hashrate.html">what hash rate actually tells you</a>.</div>
+  <div class="note">The weekly reading lands every Monday on <a href="/">the Kaspa Pulse dashboard</a>, with the definition printed next to each number. Related reading, <a href="/kaspa-supply.html">Kaspa's supply, explained</a> and <a href="/kaspa-hashrate.html">what hash rate actually tells you</a>.</div>
 <!--AUTO:faq-->
   <div class="faq">
   <h2>Questions people ask</h2>
@@ -236,9 +236,9 @@
   <h3>Is there a free Kaspa API?</h3>
   <p>Yes. The REST API behind the public Kaspa explorer is available at api.kaspa.org with a documentation page you can click through, and it needs no key. Equivalent endpoints exist for the testnets. Separately, kas.fyi runs a developer platform at docs.kas.fyi that uses API keys and paid plans for higher volume access.</p>
   <h3>Why do two Kaspa sites show a different transactions per second?</h3>
-  <p>Because they measure different things. Kaspa produces roughly ten blocks per second in parallel, and every block carries a coinbase transaction, so a live counter showing raw flow will read far higher than a figure built from accepted transactions. Kaspa Pulse divides the accepted transactions of a full day, standard plus coinbase, by 86,400 seconds, which counts each transaction once and averages across the whole day. A live per second reading and a per day accepted average are both valid, and neither is an error.</p>
+  <p>Because they measure different things. Kaspa produces roughly ten blocks per second in parallel, and every block carries a coinbase transaction, so a running counter showing raw flow will read far higher than a figure built from accepted transactions. Kaspa Pulse divides the accepted transactions of a full day, standard plus coinbase, by 86,400 seconds, which counts each transaction once and averages across the whole day. A per second reading and a per day accepted average are both valid, and neither is an error.</p>
   <h3>Which Kaspa explorer should I use?</h3>
-  <p>For a single transaction, address or block, explorer.kaspa.org is the straightforward choice and covers the testnets too. For watching blocks and transactions arrive in real time, along with miner and node metrics, kaspa.stream is built for that view. For KRC-20 tokens, kas.fyi has a page per token.</p>
+  <p>For a single transaction, address or block, explorer.kaspa.org is the straightforward choice and covers the testnets too. For watching blocks and transactions arrive block by block, along with miner and node metrics, kaspa.stream is built for that view. For KRC-20 tokens, kas.fyi has a page per token.</p>
   <h3>Where does Kaspa Pulse get its data?</h3>
   <p>Supply aging, exchange holdings, active addresses and accepted transaction counts come from Kaspalytics. Anything counted transaction by transaction, such as the movement out of the largest wallet on the chain, is counted from api.kaspa.org directly. Layer 2 value comes from DeFiLlama. Hash rate and difficulty are cross checked against more than one source. Where a number cannot be verified, the dashboard prints a dash instead of an estimate.</p>
   <h3>Where can I see how much Kaspa sits on exchanges?</h3>
@@ -282,11 +282,11 @@
 </section>
 <!--/AUTO:rahmen-kanaele-->
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 13 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 24 October 2026<!--/AUTO:seitenstand--></div>
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
-    <div>page last reviewed 19 August 2026 · not financial advice · further reading: <a href="/kaspa-supply.html">kaspa's supply, explained</a> &middot; <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/kron.html">kron, explained</a> · <a href="/kaspa-wallets.html">kaspa wallets</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener">youtube</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>page last reviewed 19 August 2026 · not financial advice · further reading <a href="/kaspa-supply.html">kaspa's supply, explained</a> &middot; <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/kron.html">kron, explained</a> · <a href="/kaspa-wallets.html">kaspa wallets</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener">youtube</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
     <div class="fund" style="margin-top:10px;"><a href="/how-we-fund-this.html" style="display:inline-block;padding:12px 10px;">how we fund this</a> · <a href="/for-builders.html" style="display:inline-block;padding:12px 10px;">for builders</a></div>
   </footer>
 </div>
@@ -308,12 +308,12 @@
     {
       "@type": "Question",
       "name": "Why do two Kaspa sites show a different transactions per second?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Because they measure different things. Kaspa produces roughly ten blocks per second in parallel, and every block carries a coinbase transaction, so a live counter showing raw flow will read far higher than a figure built from accepted transactions. Kaspa Pulse divides the accepted transactions of a full day, standard plus coinbase, by 86,400 seconds, which counts each transaction once and averages across the whole day. A live per second reading and a per day accepted average are both valid, and neither is an error." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Because they measure different things. Kaspa produces roughly ten blocks per second in parallel, and every block carries a coinbase transaction, so a running counter showing raw flow will read far higher than a figure built from accepted transactions. Kaspa Pulse divides the accepted transactions of a full day, standard plus coinbase, by 86,400 seconds, which counts each transaction once and averages across the whole day. A per second reading and a per day accepted average are both valid, and neither is an error." }
     },
     {
       "@type": "Question",
       "name": "Which Kaspa explorer should I use?",
-      "acceptedAnswer": { "@type": "Answer", "text": "For a single transaction, address or block, explorer.kaspa.org is the straightforward choice and covers the testnets too. For watching blocks and transactions arrive in real time, along with miner and node metrics, kaspa.stream is built for that view. For KRC-20 tokens, kas.fyi has a page per token." }
+      "acceptedAnswer": { "@type": "Answer", "text": "For a single transaction, address or block, explorer.kaspa.org is the straightforward choice and covers the testnets too. For watching blocks and transactions arrive block by block, along with miner and node metrics, kaspa.stream is built for that view. For KRC-20 tokens, kas.fyi has a page per token." }
     },
     {
       "@type": "Question",
