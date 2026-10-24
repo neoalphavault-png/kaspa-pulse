@@ -198,16 +198,16 @@
 <div class="wrap">
 
   <h1>Does Kaspa have smart contracts? <b>Yes, since the Toccata hard fork.</b></h1>
-  <div class="sub">"Kaspa has no smart contracts" was true for years — and repeating it today marks you as out of date. Contracts now run in two places on Kaspa, built two very different ways. Here's the full stack, in plain language.</div>
+  <div class="sub">"Kaspa has no smart contracts" was true for years, and repeating it today marks you as out of date. Contracts run in two places on Kaspa today, built two very different ways. Here's the full stack, in plain language.</div>
 
   <div class="answer">
     <div class="lbl">The short answer</div>
-    <p><b>Yes, Kaspa has smart contracts.</b> Since the Toccata hard fork, Kaspa's layer 1 runs native <b>covenant contracts</b>, spending rules that live inside the coins themselves. The developer documentation at <a href="https://docs.kaspa.org/toccata" target="_blank" rel="noopener">docs.kaspa.org</a> puts it in two sentences, <i>"Toccata makes Kaspa UTXOs expressive enough to carry real application state. It is active on mainnet as of June 30, 2026, at DAA score 474_165_565."</i></p>
+    <p><b>Yes, Kaspa has smart contracts.</b> Since the Toccata hard fork, Kaspa's layer 1 runs native <b>covenant contracts</b>, spending rules that sit inside the coins themselves. The developer documentation at <a href="https://docs.kaspa.org/toccata" target="_blank" rel="noopener">docs.kaspa.org</a> puts it in two sentences, <i>"Toccata makes Kaspa UTXOs expressive enough to carry real application state. It is active on mainnet as of June 30, 2026, at DAA score 474_165_565."</i></p>
     <p><!--AUTO:covenant-zahl-->On layer 1, <b>18,006 covenant outputs</b> were unspent on chain at the end of 25 October 2026, source kaspalytics, logged daily in <a href="/kaspa-covenants.html">our covenant log</a>.<!--/AUTO:covenant-zahl--> On top of layer 1, two EVM layer 2s, Kasplex and Igra, run contracts written for the EVM, with the capital committed to them shown below.</p>
   </div>
 
   <div class="live">
-    <div class="lbl"><i></i>Capital in Kaspa smart contracts · live</div>
+    <div class="lbl"><i></i>Capital in Kaspa smart contracts · today</div>
     <div class="big" id="scTvl">—</div>
     <div class="cap" id="scCap">fetching from DefiLlama…</div>
     <div class="split">
@@ -216,22 +216,22 @@
       <div><div class="v">jun 30, 2026</div><div class="k">native covenants activated on layer 1 (Toccata hard fork)</div></div>
     </div>
   </div>
-  <div class="note">The layer-2 figures are fetched live from DefiLlama on every page load. Native layer-1 covenants hold spending rules, not pooled capital — which is exactly the point, as explained below.</div>
+  <div class="note">The layer-2 figures are fetched from DefiLlama on every page load. Native layer-1 covenants hold spending rules, not pooled capital, which is exactly the point, as explained below.</div>
 </div>
 
 <div class="band"><div class="wrap2">
   <h2>The stack, from bottom to top</h2>
-  <p>Kaspa's answer to smart contracts is unusual because it refuses the standard shortcut. Most chains bolt a single global virtual machine onto their base layer. Kaspa instead built three distinct levels, each with its own job:</p>
+  <p>Kaspa's answer to smart contracts is unusual because it refuses the standard shortcut. Most chains bolt a single global virtual machine onto their base layer. Kaspa instead built three distinct levels, each with its own job.</p>
 
-  <h3>Layer 1: covenants — contracts that live inside coins</h3>
-  <p>Kaspa's base layer is a UTXO chain, like Bitcoin. A covenant is a <b>programmable spending rule attached to a UTXO</b>: the coin itself carries code plus a piece of state, committed on chain as a hash. Whoever wants to spend that coin must reveal the code and state, and the network verifies that the spend follows the rules. There is no global computer executing everyone's programs — <b>each contract is a small, self-contained state machine partitioned across UTXOs</b>, which is why covenant apps inherit layer 1's speed and parallelism instead of competing for one shared engine.</p>
-  <p>What covenants do not yet come with is an agreed way to build tokens on top of them. That work is happening in a separate set of proposals, and as of August 2026 none of them is finished &mdash; we track where that stands on <a href="/kaspa-token-standard.html">Kaspa's token standards</a>.</p>
+  <h3>Layer 1 covenants, contracts that sit inside coins</h3>
+  <p>Kaspa's base layer is a UTXO chain, like Bitcoin. A covenant is a <b>programmable spending rule attached to a UTXO</b>. The coin itself carries code plus a piece of state, committed on chain as a hash. Whoever wants to spend that coin must reveal the code and state, and the network verifies that the spend follows the rules. There is no global computer executing everyone's programs. <b>Each contract is a small, self-contained state machine partitioned across UTXOs</b>, which is why covenant apps inherit layer 1's speed and parallelism instead of competing for one shared engine.</p>
+  <p>What covenants do not yet come with is an agreed way to build tokens on top of them. That work is happening in a separate set of proposals, and as of August 2026 none of them is finished. We track where that stands on <a href="/kaspa-token-standard.html">Kaspa's token standards</a>.</p>
 
-  <h3>Argent: the language that makes covenants writable</h3>
-  <p>Raw covenant scripting is unforgiving — one wrong byte and funds are stuck. <b>Argent</b> is the high-level language built to fix that: developers define <b>actors</b> (a contract plus the state it owns), entries (the operations you can call), and transition rules, and the compiler generates the underlying script. Two design choices matter for non-developers too. Every app is a <b>closed system under one covenant ID</b> — outside code cannot inject itself into an app's state machine. And the compiler is only needed at build time; creating transactions afterwards needs only a lightweight runtime, <b>so tooling in other languages can drive the same apps</b>. Core developer Michael Sutton documents the whole workflow in public live-coding sessions on the Kaspa Native channel — episode one builds a working ticketing app from scratch.</p>
+  <h3>Argent, the language that makes covenants writable</h3>
+  <p>Raw covenant scripting is unforgiving, one wrong byte and funds are stuck. <b>Argent</b> is the high-level language built to fix that. Developers define <b>actors</b> (a contract plus the state it owns), entries (the operations you can call), and transition rules, and the compiler generates the underlying script. Two design choices matter for non-developers too. Every app is a <b>closed system under one covenant ID</b>, so outside code cannot inject itself into an app's state machine. And the compiler is only needed at build time; creating transactions afterwards needs only a lightweight runtime, <b>so tooling in other languages can drive the same apps</b>. Core developer Michael Sutton documents the whole workflow in public coding sessions on the Kaspa Native channel. Episode one builds a working ticketing app from scratch.</p>
 
-  <h3>Layer 2: full EVM, familiar tooling</h3>
-  <p>For everything built for the EVM, Solidity contracts, MetaMask and existing DeFi codebases, Kaspa has two EVM layer 2s that settle against layer 1: <b>Kasplex</b>, a zkEVM live since 2025, and <b>Igra</b>, live since 2026. This is where Kaspa's DeFi actually operates today, and where the TVL shown above lives. The trade-off is the standard one: EVM compatibility and rich tooling, in exchange for each L2's own performance and trust profile.</p>
+  <h3>Layer 2, full EVM and familiar tooling</h3>
+  <p>For everything built for the EVM, Solidity contracts, MetaMask and existing DeFi codebases, Kaspa has two EVM layer 2s that settle against layer 1, <b>Kasplex</b>, a zkEVM running since 2025, and <b>Igra</b>, running since 2026. This is where Kaspa's DeFi actually operates today, and where the TVL shown above sits. The trade-off is the standard one, EVM compatibility and rich tooling, in exchange for each L2's own performance and trust profile.</p>
 </div></div>
 
 <div class="wrap2">
@@ -253,25 +253,25 @@
   <h2>Three traps in reading "kaspa smart contracts"</h2>
 
   <h3>1. The old answer still circulates</h3>
-  <p>Years of "Kaspa is payments only, no smart contracts" left a deep imprint — you will still hear it from commentators and see it in older articles. It stopped being true on June 30, 2026. Anyone repeating it today is describing a chain that no longer exists; check the activation date, not the vibes.</p>
+  <p>Years of "Kaspa is payments only, no smart contracts" left a deep imprint. You will still hear it from commentators and see it in older articles. It stopped being true on June 30, 2026. Anyone repeating it today is describing a chain that no longer exists, so check the activation date, not the vibes.</p>
 
   <h3>2. "EVM on Kaspa" is not "Kaspa speed for EVM"</h3>
-  <p>The layer 2s are their own systems. They inherit settlement from Kaspa's layer 1, but their throughput, latency and trust assumptions are their own. When you see EVM performance claims, ask which layer they describe — the honest answer is almost never "layer 1."</p>
+  <p>The layer 2s are their own systems. They inherit settlement from Kaspa's layer 1, but their throughput, latency and trust assumptions are their own. When you see EVM performance claims, ask which layer they describe. The honest answer is almost never "layer 1."</p>
 
   <h3>3. Young contracts are unaudited contracts</h3>
-  <p>The first wave of covenant apps and L2 protocols is weeks-to-months old. Some launched anonymous, some unaudited, and the standard advice from Kaspa's own core contributors is blunt: know what you buy. A working demo is not a security review. The mechanism being sound says nothing about any individual app being safe.</p>
+  <p>The first wave of covenant apps and L2 protocols is weeks-to-months old. Some launched anonymous, some unaudited, and the standard advice from Kaspa's own core contributors is blunt. Know what you buy. A working demo is not a security review. The mechanism being sound says nothing about any individual app being safe.</p>
 </div></div>
 
 <div class="wrap2">
   <h2>What actually matters at this stage</h2>
   <div class="facts">
-    <div class="fact"><div class="v teal">Covenant activity</div><div class="l">daily covenant transactions show whether apps are actually being used — we track the weekly count every monday</div></div>
-    <div class="fact"><div class="v teal">L2 capital direction</div><div class="l">the live TVL above, read as a trend — whether builders and liquidity keep arriving matters more than the absolute size</div></div>
-    <div class="fact"><div class="v teal">Developer tooling</div><div class="l">languages, templates and public teaching material lower the entry cost — the input that precedes every usage number</div></div>
+    <div class="fact"><div class="v teal">Covenant activity</div><div class="l">daily covenant transactions show whether apps are actually being used, and we track the weekly count every monday</div></div>
+    <div class="fact"><div class="v teal">L2 capital direction</div><div class="l">today's TVL above, read as a trend. Whether builders and liquidity keep arriving matters more than the absolute size</div></div>
+    <div class="fact"><div class="v teal">Developer tooling</div><div class="l">languages, templates and public teaching material lower the entry cost, the input that precedes every usage number</div></div>
     <div class="fact"><div class="v red">Audit status</div><div class="l">until the first wave of apps is independently audited, position sizes should assume contract risk is real</div></div>
   </div>
 
-  <div class="note">We publish the covenant transaction count, the L2 split and what changed every Monday on the <a href="/">Kaspa Pulse dashboard</a> — with a plain-language read, not just figures. Related: <a href="/kaspa-tvl.html">what TVL on Kaspa means</a> and <a href="/merged-mining.html">how merged mining works</a>.</div>
+  <div class="note">We publish the covenant transaction count, the L2 split and what changed every Monday on the <a href="/">Kaspa Pulse dashboard</a>, with a plain-language read, not just figures. Related reading, <a href="/kaspa-tvl.html">what TVL on Kaspa means</a> and <a href="/merged-mining.html">how merged mining works</a>.</div>
 
 <!--AUTO:faq-->
   <div class="faq">
@@ -283,9 +283,9 @@
   <h3>What is Argent on Kaspa?</h3>
   <p>Argent is the high-level language for writing covenant applications on Kaspa's layer 1. Developers define actors (a contract plus its state) and entries (callable operations), and the compiler generates the underlying script. Each app is a closed system under one covenant ID, and transactions can be created with a lightweight runtime without the compiler.</p>
   <h3>Are Kaspa smart contracts EVM compatible?</h3>
-  <p>Layer 1 covenants are not EVM compatible, they use a different, UTXO-native model. Full EVM compatibility lives on Kaspa's layer 2s, Kasplex, a zkEVM live since 2025, and Igra, live since 2026, which run Solidity contracts and standard EVM tooling.</p>
+  <p>Layer 1 covenants are not EVM compatible, they use a different, UTXO-native model. Full EVM compatibility sits on Kaspa's layer 2s, Kasplex, a zkEVM running since 2025, and Igra, running since 2026, which run Solidity contracts and standard EVM tooling.</p>
   <h3>Are smart contracts on Kaspa safe to use?</h3>
-  <p>The mechanisms are live on mainnet, but the first wave of applications launched in 2025 and 2026 and much of it is young, some of it anonymous or unaudited. Kaspa's own core contributors advise users to understand exactly what they are buying. Treat individual apps as carrying real contract risk until independently audited.</p>
+  <p>The mechanisms are active on mainnet, but the first wave of applications launched in 2025 and 2026 and much of it is young, some of it anonymous or unaudited. Kaspa's own core contributors advise users to understand exactly what they are buying. Treat individual apps as carrying real contract risk until independently audited.</p>
   <h3>What did the Toccata hard fork actually add?</h3>
   <p>Toccata activated on Kaspa mainnet on June 30, 2026 at DAA score 474,165,565. It added covenant rules, covenant IDs, transaction introspection opcodes and zero-knowledge proof verification to layer 1. It did not add account-based smart contracts. Kaspa's own documentation states that Toccata does not turn Kaspa into an account-chain smart contract system. Full EVM contracts run on the layer 2s, Kasplex and Igra.</p>
   </div>
@@ -334,7 +334,7 @@
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
-    <div>not financial advice · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>not financial advice · further reading <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-staking.html">can you stake kaspa?</a> · <a href="/kaspa-tvl.html">kaspa tvl, explained</a> · <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/kaspa-mining.html">mining kaspa, explained</a> · <a href="/kaspa-supply.html">kaspa's supply, explained</a> · <a href="/entity-x.html">what is entity x?</a> · <a href="/merged-mining.html">merged mining, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
     <div class="fund" style="margin-top:10px;"><a href="/how-we-fund-this.html" style="display:inline-block;padding:12px 10px;">how we fund this</a> · <a href="/for-builders.html" style="display:inline-block;padding:12px 10px;">for builders</a></div>
   </footer>
 </div>
@@ -362,12 +362,12 @@
     {
       "@type": "Question",
       "name": "Are Kaspa smart contracts EVM compatible?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Layer 1 covenants are not EVM compatible, they use a different, UTXO-native model. Full EVM compatibility lives on Kaspa's layer 2s, Kasplex, a zkEVM live since 2025, and Igra, live since 2026, which run Solidity contracts and standard EVM tooling." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Layer 1 covenants are not EVM compatible, they use a different, UTXO-native model. Full EVM compatibility sits on Kaspa's layer 2s, Kasplex, a zkEVM running since 2025, and Igra, running since 2026, which run Solidity contracts and standard EVM tooling." }
     },
     {
       "@type": "Question",
       "name": "Are smart contracts on Kaspa safe to use?",
-      "acceptedAnswer": { "@type": "Answer", "text": "The mechanisms are live on mainnet, but the first wave of applications launched in 2025 and 2026 and much of it is young, some of it anonymous or unaudited. Kaspa's own core contributors advise users to understand exactly what they are buying. Treat individual apps as carrying real contract risk until independently audited." }
+      "acceptedAnswer": { "@type": "Answer", "text": "The mechanisms are active on mainnet, but the first wave of applications launched in 2025 and 2026 and much of it is young, some of it anonymous or unaudited. Kaspa's own core contributors advise users to understand exactly what they are buying. Treat individual apps as carrying real contract risk until independently audited." }
     },
     {
       "@type": "Question",
@@ -391,10 +391,10 @@
     document.getElementById("scTvl").textContent = fmt(total);
     document.getElementById("vKasplex").textContent = fmt(kasplex);
     document.getElementById("vIgra").textContent = fmt(igra);
-    document.getElementById("scCap").textContent = "total value locked across both EVM layer 2s · source: DefiLlama";
+    document.getElementById("scCap").textContent = "total value locked across both EVM layer 2s · source DefiLlama";
   }).catch(()=>{
     document.getElementById("scTvl").textContent = "—";
-    document.getElementById("scCap").innerHTML = "live feed temporarily unavailable · the weekly reading is always on the <a href='/'>dashboard</a>";
+    document.getElementById("scCap").innerHTML = "defillama temporarily unavailable · the weekly reading is always on the <a href='/'>dashboard</a>";
   });
 })();
 </script>
