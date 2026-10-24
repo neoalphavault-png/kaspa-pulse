@@ -83,13 +83,12 @@ Unterschiede durch Definition, kein Fehler auf einer Seite:
    - Die Läufe am Samstag, Sonntag und Montag schließen die Fenster bis Montag 12:00 UTC.
 3. **Die Zeit davor (21.10. 00:00 bis 22.10. 05:53 UTC) als "source kcc20.info":** Deren Zeitreihe hat 6-Stunden-Blöcke, deren Grenzen am Abrufzeitpunkt hängen. Die Zeiten sind aus der DAA geschätzt (`daa_10bps`). Abruf 24.10. 06:26 UTC: 5 Blöcke von 21.10. 00:26 bis 22.10. 06:26 UTC, 165 Token-Aktionen und 3.005 Covenant-Ereignisse. Am Montag rufe ich um 11:53 UTC ab, dann endet ein Block genau um 05:53 UTC.
 
-## Offene Frage an Ben
+## Antwort von Ben (24.10.) zur Zeit vor dem eigenen Fenster
 
-1. Die 165 Token-Aktionen von kcc20.info gelten für **deren** Tokens (Kron und ältere KCC-20-Vorläufer), nicht für die 133 finalen KCC-20-Tokens, die wir zählen. Für finale KCC-20-Tokens vor dem 22.10. 05:53 UTC hat kcc20.info keine Zahl. Mein Vorschlag für den Post: unsere Zahl zuerst, dann getrennt "source kcc20.info" mit dem Hinweis, dass es dort um Kron und ältere Tokens geht. Die andere Möglichkeit ist, die Zeit vor unserem Fenster im Post offen zu lassen und nur im Bericht zu erklären. Was ist dir lieber?
+Die 165 Token-Aktionen von kcc20.info (Kron und ältere Tokens, source kcc20.info) stehen nur hier im Bericht, nicht im Post. Der Post trägt nur unsere eigene gezählte Zahl aus dem lückenlosen Knotenfenster.
 
 ## Was Ben tun muss
 
-- Frage oben beantworten, falls es nicht so passt.
 - Wünsche aus Discord #data-requests bis Montag vor dem Hauptlauf an mich geben. Ich prüfe sie vor dem Start um 10:30 UTC.
 - Am Montag den fertigen Bericht, die Grafik und den Post prüfen.
 - Den PR [#136](https://github.com/neoalphavault-png/kaspa-pulse/pull/136) mergen, wenn er passt. Die Workflows starten nur auf diesem Branch, auf main tun sie nichts.
