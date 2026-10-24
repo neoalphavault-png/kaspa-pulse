@@ -1,0 +1,115 @@
+# ph-entwurf-zcash-mainnet.yml - Post-Entwurf fuer @pulsehawkio nach jedem Zcash-Mainnet-Stand.
+#
+# Ben, 23.10.2026: nach jedem Stand (Mittwoch vor NU7, Kurznotiz nach der
+# Aktivierung, danach woechentlich) ein Entwurf mit Grafik in den privaten
+# Discord-Kanal, wie beim BCH Tempnet (ph-entwurf-bch.yml, dasselbe Skript,
+# derselbe Kanal). Kein Posten auf X. Das Secret DISCORD_WEBHOOK_PH_DRAFTS
+# kommt nur in die Umgebung des einen Schritts, der sendet.
+#
+# Ausloeser:
+# - workflow_run nach "zcash mainnet" (gruen): gesendet wird nur, wenn dieser
+#   Lauf einen neuen stand-JJJJ-MM-TT.json auf messung/zcash-mainnet geschrieben
+#   hat. Greift erst, wenn diese Datei auf main liegt.
+# - push auf zcash/mainnet (Testlauf vor dem Merge) und workflow_dispatch:
+#   der juengste Stand oder der aus der Eingabe.
+name: ph entwurf zcash mainnet
+
+on:
+  workflow_run:
+    workflows: ["zcash mainnet"]
+    types: [completed]
+  push:
+    branches: ["zcash/mainnet"]
+    paths:
+      - "scripts/ph/**"
+      - ".github/workflows/ph-entwurf-zcash-mainnet.yml"
+  workflow_dispatch:
+    inputs:
+      stand:
+        description: "Datum JJJJ-MM-TT des Stands (leer = juengster)"
+        required: false
+        default: ""
+      layout:
+        description: "auto, verteilung oder verlauf"
+        required: false
+        default: "auto"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ph-entwurf-zcash-mainnet
+  cancel-in-progress: false
+
+jobs:
+  entwurf:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          ref: messung/zcash-mainnet
+          path: daten
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install --quiet matplotlib pillow
+
+      - name: selbsttest regeln
+        run: python3 scripts/ph/ph_entwurf.py --selbsttest
+
+      - name: neuer stand
+        id: stand
+        env:
+          EREIGNIS: ${{ github.event_name }}
+          LAUF_START: ${{ github.event.workflow_run.created_at }}
+          EINGABE: ${{ inputs.stand }}
+          LAYOUT: ${{ inputs.layout }}
+        run: |
+          set -eu
+          D=daten/data/zcash-mainnet
+          case "${LAYOUT:-auto}" in auto|verteilung|verlauf) ;; *) echo "layout unklar"; exit 1;; esac
+          if [ -n "${EINGABE:-}" ]; then
+            case "$EINGABE" in [0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]) ;; *) echo "datum unklar"; exit 1;; esac
+            DATEI="$D/stand-$EINGABE.json"
+          else
+            DATEI=$(ls $D/stand-*.json 2>/dev/null | sort | tail -1 || true)
+          fi
+          if [ -z "$DATEI" ] || [ ! -f "$DATEI" ]; then
+            echo "kein stand, nichts zu senden"; echo "senden=nein" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if [ "$EREIGNIS" = "workflow_run" ]; then
+            GESCHRIEBEN=$(git -C daten log -1 --format=%cI -- "${DATEI#daten/}")
+            NEU=$(python3 -c 'import sys;from datetime import datetime as d;print("ja" if d.fromisoformat(sys.argv[1])>=d.fromisoformat(sys.argv[2].replace("Z","+00:00")) else "nein")' "$GESCHRIEBEN" "$LAUF_START")
+            if [ "$NEU" != "ja" ]; then
+              echo "$DATEI nicht von diesem lauf geschrieben, nichts zu senden"
+              echo "senden=nein" >> "$GITHUB_OUTPUT"; exit 0
+            fi
+          fi
+          echo "stand $DATEI"
+          { echo "senden=ja"; echo "datei=$DATEI"; echo "layout=${LAYOUT:-auto}"; } >> "$GITHUB_OUTPUT"
+
+      - name: entwurf bauen und senden
+        if: steps.stand.outputs.senden == 'ja'
+        env:
+          DISCORD_WEBHOOK_PH_DRAFTS: ${{ secrets.DISCORD_WEBHOOK_PH_DRAFTS }}
+          DATEI: ${{ steps.stand.outputs.datei }}
+          LAYOUT: ${{ steps.stand.outputs.layout }}
+        run: |
+          set -eu
+          python3 scripts/ph/ph_entwurf.py zcash-mainnet --stand "$DATEI" \
+            --koepfe daten/data/zcash-mainnet/koepfe.csv.gz --layout "$LAYOUT" --aus entwurf --senden
+          { echo "## Entwurf fuer @pulsehawkio"; echo '```'; cat entwurf/text.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: steps.stand.outputs.senden == 'ja'
+        with:
+          name: ph-entwurf-zcash-mainnet
+          path: entwurf/
+          retention-days: 30

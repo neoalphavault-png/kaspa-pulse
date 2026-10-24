@@ -1,0 +1,105 @@
+# zcash-mainnet.yml - eigene Zaehlung des Zcash-Mainnets rund um NU7.
+#
+# Ben, 23.10.2026: Baseline gegen die 75-s-Kette ab sofort, jeden Mittwoch die
+# Vorhersage fuer die Aktivierungshoehe 3.543.405 (laut Zakura etwa 06.11.2026
+# 00:50 UTC), ab dem ersten NU7-Block die Abstaende gegen 25 s.
+#
+# Quelle sind eigene Header ueber P2P (scripts/zcash/zcash_koepfe.py --netz
+# mainnet): Verkettung, Arbeitsnachweis aus nBits und Zebras Checkpoints
+# geprueft. Peers aus den DNS-Seeds; keine Adresse und kein Hostname steht im
+# Repo oder im Log, nur die Software der Peers.
+#
+# Daten (Roh-Header, Kennzahlen, Vorhersage) gehen auf den Branch
+# messung/zcash-mainnet, nie nach main (Ben, 22.10.2026).
+#
+# Taeglich wird aktuell.json/md ueberschrieben. Ein datierter Stand
+# stand-JJJJ-MM-TT.json (und ab NU7 die CSV der Abstaende) entsteht mittwochs,
+# von Hand, beim Testlauf und einmal als Kurznotiz nach der Aktivierung; jeder
+# neue Stand loest ph-entwurf-zcash-mainnet.yml aus (Entwurf nach Discord).
+#
+# Ausloeser:
+# - push auf zcash/mainnet (Testlaeufe vor dem Merge)
+# - taeglich 05:23 UTC, sobald die Datei auf main liegt. Geplante Laeufe kommen
+#   in diesem Konto Stunden zu spaet; fuer den Mittwochsstand (bis 18:00
+#   Berlin) reicht das, sonst von Hand ueber workflow_dispatch.
+name: zcash mainnet
+
+on:
+  push:
+    branches: ["zcash/mainnet"]
+    paths:
+      - "scripts/zcash/**"
+      - ".github/workflows/zcash-mainnet.yml"
+  schedule:
+    # 05:23 UTC = 07:23 Berlin bis 25.10.2026 (Sommerzeit), danach 06:23 Berlin
+    - cron: "23 5 * * *"
+  workflow_dispatch:
+    inputs:
+      stand:
+        description: "Datierten Stand schreiben (loest den Discord-Entwurf aus)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: zcash-mainnet
+  cancel-in-progress: false
+
+env:
+  # Baseline ab Hoehe 3.490.000 (um den 20.09.2026), gut 5 Wochen vor NU7
+  BASELINE_AB: "3490000"
+
+jobs:
+  zaehlen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          ref: messung/zcash-mainnet
+          path: daten
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: koepfe holen
+        run: |
+          set -eu
+          python3 scripts/zcash/zcash_koepfe.py --netz mainnet --ab "$BASELINE_AB" --vorlauf 0 \
+            --aus daten/data/zcash-mainnet/koepfe.csv.gz --meta daten/data/zcash-mainnet/koepfe-meta.json
+
+      - name: auswerten
+        env:
+          EREIGNIS: ${{ github.event_name }}
+          STAND_EINGABE: ${{ inputs.stand }}
+        run: |
+          set -eu
+          D=daten/data/zcash-mainnet
+          TAG=$(date -u +%Y-%m-%d)
+          python3 scripts/zcash/mainnet_auswertung.py --koepfe $D/koepfe.csv.gz --meta $D/koepfe-meta.json \
+            --json $D/aktuell.json --md $D/aktuell.md
+          # Datierter Stand (loest den Discord-Entwurf aus): mittwochs, von Hand,
+          # beim Testlauf auf dem PR-Branch und einmal gleich nach der
+          # Aktivierung (Kurznotiz, sobald 100 NU7-Bloecke da sind).
+          GRUND=""
+          [ "$(date -u +%u)" = "3" ] && GRUND="mittwoch"
+          [ "$EREIGNIS" = "push" ] && GRUND="testlauf"
+          [ "$EREIGNIS" = "workflow_dispatch" ] && [ "${STAND_EINGABE:-false}" = "true" ] && GRUND="von hand"
+          NACH=$(python3 -c 'import json,sys;r=json.load(open(sys.argv[1]));print("ja" if r.get("nach_nu7",{}).get("abstaende",0)>=100 else "nein")' $D/aktuell.json)
+          if [ "$NACH" = "ja" ] && ! grep -lq '"nach_nu7"' $D/stand-*.json 2>/dev/null; then GRUND="kurznotiz nach nu7"; fi
+          if [ -n "$GRUND" ]; then
+            CSV=""; [ "$NACH" = "ja" ] && CSV="--csv $D/zcash-mainnet-nu7-intervals-$TAG.csv"
+            python3 scripts/zcash/mainnet_auswertung.py --koepfe $D/koepfe.csv.gz --meta $D/koepfe-meta.json \
+              --json "$D/stand-$TAG.json" --md "$D/stand-$TAG.md" $CSV
+            echo "stand $TAG ($GRUND)"
+          fi
+          { echo "## Zcash Mainnet, $TAG ${GRUND:+(stand, $GRUND)}"; cat $D/aktuell.md; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: committen
+        run: |
+          scripts/zcash/daten_committen.sh "zcash mainnet: koepfe und stand [bot]"

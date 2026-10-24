@@ -1,32 +1,43 @@
 {
-  "issue": "OCT 23 2026",
+  "issue": "OCT 24 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "96.75%",
-  "value_label": "of every KAS that will ever exist is already mined",
-  "headline": "the supply story is *almost over*.",
+  "value": "11",
+  "value_label": "days until the next kaspa reward cut",
+  "headline": "bitcoin waits *540 days*.\nkaspa cuts 17 times before then.",
   "panes": [
     {
-      "kind": "dots",
-      "title": "EVERY KAS THAT WILL EVER EXIST",
-      "sub": "one dot is 1% of the maximum",
-      "total": 100,
-      "lit": 96.74989268963103,
-      "tone": "teal",
-      "note": "*96.75%* mined, 3.25% still to come."
+      "kind": "compare",
+      "title": "TIME TO THE NEXT REDUCTION",
+      "sub": "counted from today, in days",
+      "rows": [
+        {
+          "label": "kaspa",
+          "sub": "monthly",
+          "value": "11",
+          "pct": 2.0798742023213617,
+          "tone": "teal"
+        },
+        {
+          "label": "bitcoin",
+          "sub": "estimated",
+          "value": "540",
+          "pct": 100.0,
+          "tone": "grey"
+        }
+      ]
     },
     {
       "kind": "anchor",
-      "title": "WHAT IS LEFT",
+      "title": "WHAT CHANGES",
       "lines": [
-        "*932,911,960 KAS* are still to come.",
-        "99% is reached in may 2028."
+        "daily emission drops from 1.78 million to *1.68 million KAS*. no vote, no announcement."
       ]
     }
   ],
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "96.75% of every KAS that will ever exist is already mined. 932,911,960 KAS are still to come, and 99% is reached in may 2028 at the current schedule. what comes after keeps halving every twelve months.",
-    "reply": "the full emission schedule is on kaspapulse.com/kaspa-halving.html. the remaining amount shrinks and never quite reaches the maximum."
+    "x": "the next kaspa reward cut lands in 11 days. bitcoin waits about 540 days for its next one, and kaspa cuts 17 more times before that date. daily emission drops from 1.78 million to 1.68 million KAS, the block reward from 2.0602 to 1.9445.",
+    "reply": "the countdown runs on kaspapulse.com/kaspa-halving.html. the kaspa date is arithmetic, the bitcoin date is an estimate."
   }
 }

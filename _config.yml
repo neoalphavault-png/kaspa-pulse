@@ -1,0 +1,29 @@
+# _config.yml, Jekyll auf GitHub Pages (Ben, 24.10.2026)
+#
+# Die Website besteht aus fertigem HTML. Jekyll baut sie trotzdem, und ohne
+# diese Datei hat es jede Markdown-Datei des Repos als oeffentliche Seite
+# ausgeliefert: die Berichte, die Pruefnotizen, die Einrichtung des Servers.
+# Das Repo ist oeffentlich, auf GitHub bleiben diese Dateien lesbar. Auf
+# kaspapulse.com gehoeren sie nicht.
+#
+# exclude ersetzt bei Jekyll 3 die eingebaute Liste, deshalb stehen deren
+# Eintraege unten mit dabei. Ordner mit Punkt oder Unterstrich am Anfang
+# (.github, .githooks) laesst Jekyll ohnehin aus.
+exclude:
+  # nur fuer das repo, nicht fuer die website
+  - berichte/
+  - docs/
+  - deploy/
+  - CLAUDE.md
+  - data/weekly-notes.md
+  # die eingebaute liste von jekyll 3
+  - .sass-cache/
+  - .jekyll-cache/
+  - gemfiles/
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/

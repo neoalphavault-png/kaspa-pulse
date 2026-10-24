@@ -1,0 +1,186 @@
+# zcash-mainnet-lauscher.yml - Zuhoerer im Zcash-Mainnet rund um NU7.
+#
+# Ben, 23.10.2026: nach der Aktivierung (Hoehe 3.543.405) 48 Stunden lang
+# zuhoeren wie am 17.10.2026 im Testnet. Die wichtigste Zahl ist der Anteil
+# angekuendigter Bloecke, die nicht in die Kette kommen, bei 25 s.
+#
+# EIN Zuhoerer, kein eigener Knoten. Er haelt Verbindungen zu Zebra- und
+# Zakura-Knoten und schreibt jede Block-Ankuendigung mit Ankunftszeit mit
+# (scripts/zcash/zcash_lauscher.py). Peers heissen zebra-1, zakura-2 usw.;
+# keine Adresse und kein Hostname in Daten oder Log.
+#
+# Kette von Laeufen: ein Job darf hoechstens 6 h laufen. Jeder Lauf hoert bis
+# zu dauer_min Minuten zu und startet 8 Minuten vor seinem Ende den naechsten
+# (workflow_dispatch mit segment+1), damit keine Luecke entsteht. Schluss ist,
+# wenn das Ende des Laufs mehr als stunden_nach_nu7 nach dem NU7-Block liegt
+# oder spaetestens_utc erreicht ist. Start des ersten Laufs von Hand, einige
+# Stunden vor der Aktivierung (so gibt es auch ein Stueck 75 s zum Vergleich).
+#
+# Rohdaten je Lauf gehen sofort auf messung/zcash-mainnet unter
+# data/zcash-mainnet/lauscher-<name>/, danach die Auswertung ueber alle
+# Laeufe bis dahin (scripts/zcash/lauscher_auswertung.py --nu7).
+name: zcash mainnet lauscher
+
+on:
+  push:
+    branches: ["zcash/mainnet-lauscher"]
+    paths:
+      - "scripts/zcash/zcash_lauscher.py"
+      - "scripts/zcash/lauscher_auswertung.py"
+      - ".github/workflows/zcash-mainnet-lauscher.yml"
+  workflow_dispatch:
+    inputs:
+      name:
+        description: "Name der Messreihe (Ordner lauscher-<name>)"
+        default: "nu7"
+      segment:
+        description: "Nummer des Laufs in der Kette (1 beim Start von Hand)"
+        default: "1"
+      dauer_min:
+        description: "Minuten zuhoeren je Lauf, hoechstens 330"
+        default: "330"
+      stunden_nach_nu7:
+        description: "So lange nach dem ersten NU7-Block weiter zuhoeren"
+        default: "48"
+      spaetestens_utc:
+        description: "Harte Grenze, danach kein neuer Lauf"
+        default: "2026-11-10T00:00:00Z"
+
+permissions:
+  contents: write
+  actions: write
+
+env:
+  NU7: "3543405"
+
+jobs:
+  lauschen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          ref: messung/zcash-mainnet
+          path: daten
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: eingaben
+        id: ein
+        env:
+          EREIGNIS: ${{ github.event_name }}
+          NAME: ${{ inputs.name }}
+          SEGMENT: ${{ inputs.segment }}
+          DAUER: ${{ inputs.dauer_min }}
+          STUNDEN: ${{ inputs.stunden_nach_nu7 }}
+          SPAETESTENS: ${{ inputs.spaetestens_utc }}
+        run: |
+          set -eu
+          if [ "$EREIGNIS" = "push" ]; then
+            # Testlauf auf dem PR-Branch: kurz, ohne Kette
+            NAME=test; SEGMENT=1; DAUER=8; STUNDEN=0; SPAETESTENS=2000-01-01T00:00:00Z
+          fi
+          case "$NAME" in ''|*[!a-z0-9-]*) echo "name unklar"; exit 1;; esac
+          case "$SEGMENT$DAUER$STUNDEN" in *[!0-9]*) echo "zahl unklar"; exit 1;; esac
+          [ "$DAUER" -le 330 ] || { echo "dauer_min ueber 330"; exit 1; }
+          case "$SPAETESTENS" in [0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z) ;; *) echo "spaetestens_utc unklar"; exit 1;; esac
+          {
+            echo "name=$NAME"; echo "segment=$(printf %02d "$SEGMENT")"; echo "nummer=$SEGMENT"
+            echo "dauer=$DAUER"; echo "stunden=$STUNDEN"; echo "spaetestens=$SPAETESTENS"
+            # Kette fuer die Auswertung ab hier; der Testlauf liegt vor 3.540.000
+            if [ "$NAME" = "test" ]; then echo "kette_ab=3527000"; else echo "kette_ab=3540000"; fi
+          } >> "$GITHUB_OUTPUT"
+          echo "messreihe $NAME, lauf $SEGMENT, $DAUER min"
+
+      - name: zuhoeren und naechsten lauf starten
+        env:
+          EREIGNIS: ${{ github.event_name }}
+          GH_TOKEN: ${{ github.token }}
+          NAME: ${{ steps.ein.outputs.name }}
+          NUMMER: ${{ steps.ein.outputs.nummer }}
+          DAUER: ${{ steps.ein.outputs.dauer }}
+          STUNDEN: ${{ steps.ein.outputs.stunden }}
+          SPAETESTENS: ${{ steps.ein.outputs.spaetestens }}
+          EINGABE_DAUER: ${{ inputs.dauer_min }}
+        run: |
+          set -eu
+          T="$RUNNER_TEMP"
+          python3 scripts/zcash/zcash_lauscher.py --netz mainnet --dauer "$DAUER" \
+            --ereignisse "$T/ereignisse.jsonl" --koepfe "$T/koepfe.jsonl" --meta "$T/lauscher-meta.json" &
+          PID=$!
+          if [ "$EREIGNIS" = "workflow_dispatch" ] && [ "$DAUER" -gt 15 ]; then
+            sleep $(( (DAUER - 8) * 60 ))
+            # Ist NU7 schon da, und wann? Kurzer Kopfabruf ab kurz vor der Aktivierung.
+            timeout 240 python3 scripts/zcash/zcash_koepfe.py --netz mainnet --ab $((NU7 - 50)) --vorlauf 0 \
+              --gegenproben 0 --aus "$T/kurz.csv.gz" --meta "$T/kurz.json" > /dev/null 2>&1 || true
+            WEITER=$(python3 - "$T/kurz.csv.gz" "$NU7" "$STUNDEN" "$SPAETESTENS" <<'PY'
+          import csv, gzip, os, sys, time
+          from datetime import datetime
+          pfad, nu7, stunden, spaet = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]
+          ende_dieses_laufs = time.time() + 8 * 60
+          if ende_dieses_laufs >= datetime.fromisoformat(spaet.replace("Z", "+00:00")).timestamp():
+              print("nein, spaetestens erreicht"); sys.exit()
+          t_nu7 = None
+          if os.path.exists(pfad):
+              with gzip.open(pfad, "rt") as f:
+                  t_nu7 = next((int(z["zeit"]) for z in csv.DictReader(f) if int(z["hoehe"]) == nu7), None)
+          if t_nu7 and ende_dieses_laufs >= t_nu7 + stunden * 3600:
+              print(f"nein, {stunden} h nach nu7 erreicht"); sys.exit()
+          print("ja" + (", nu7 noch nicht erreicht" if t_nu7 is None else ""))
+          PY
+            )
+            echo "naechster lauf: $WEITER"
+            case "$WEITER" in
+              ja*) gh workflow run zcash-mainnet-lauscher.yml --ref "$GITHUB_REF_NAME" \
+                     -f name="$NAME" -f segment=$((NUMMER + 1)) -f dauer_min="$EINGABE_DAUER" \
+                     -f stunden_nach_nu7="$STUNDEN" -f spaetestens_utc="$SPAETESTENS" ;;
+            esac
+          fi
+          wait $PID
+
+      # Wie im Testnet (Lauf 17.10.2026): Rohdaten sofort sichern und
+      # committen, bevor irgendetwas anderes scheitern kann.
+      - name: rohdaten committen
+        env:
+          NAME: ${{ steps.ein.outputs.name }}
+          SEG: ${{ steps.ein.outputs.segment }}
+        run: |
+          set -eu
+          O="daten/data/zcash-mainnet/lauscher-$NAME"
+          mkdir -p "$O"
+          gzip -n -c "$RUNNER_TEMP/ereignisse.jsonl" > "$O/s$SEG-ereignisse.jsonl.gz"
+          gzip -n -c "$RUNNER_TEMP/koepfe.jsonl" > "$O/s$SEG-koepfe.jsonl.gz"
+          cp "$RUNNER_TEMP/lauscher-meta.json" "$O/s$SEG-meta.json"
+          scripts/zcash/daten_committen.sh "zcash mainnet: zuhoerer $NAME lauf $SEG [bot]"
+
+      - name: kette danach abrufen
+        env:
+          AB: ${{ steps.ein.outputs.kette_ab }}
+        run: |
+          set -eu
+          python3 scripts/zcash/zcash_koepfe.py --netz mainnet --ab "$AB" --vorlauf 0 --gegenproben 1 \
+            --aus "$RUNNER_TEMP/kette.csv.gz" --meta "$RUNNER_TEMP/kette-meta.json"
+
+      - name: auswerten ueber alle laeufe
+        env:
+          NAME: ${{ steps.ein.outputs.name }}
+        run: |
+          set -eu
+          O="daten/data/zcash-mainnet/lauscher-$NAME"
+          E=(); K=(); M=()
+          for m in $(ls "$O"/s*-meta.json | sort); do
+            s="${m%-meta.json}"; E+=("$s-ereignisse.jsonl.gz"); K+=("$s-koepfe.jsonl.gz"); M+=("$m")
+          done
+          python3 scripts/zcash/lauscher_auswertung.py --ereignisse "${E[@]}" --koepfe "${K[@]}" --meta "${M[@]}" \
+            --kette "$RUNNER_TEMP/kette.csv.gz" --nu7 "$NU7" --aus "$O/zusammenfassung.json"
+          {
+            echo "## Zcash Mainnet Zuhoerer, $NAME, ${#M[@]} laeufe"
+            echo '```'
+            python3 -c 'import json,sys;d=json.load(open(sys.argv[1]));[print(k, json.dumps(d[k], ensure_ascii=False)) for k in ("fenster_utc","abgedeckt_min","peers_je_software","kettenbloecke_im_fenster","davon_angekuendigt_gesehen","abgehaengt_anzahl","groesste_tiefe","phasen","zakura_minus_zebra_ms")]' "$O/zusammenfassung.json"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          scripts/zcash/daten_committen.sh "zcash mainnet: zuhoerer $NAME auswertung [bot]"

@@ -21,18 +21,49 @@ Branch `design/rahmen-unterseiten`, PR #134, geöffnet im Sammelfenster am Fr 23
   - Der Secret-Scan ist sauber.
 - **Bilder:** `docs/startseite/rahmen-handy-hell.png`, `rahmen-handy-dunkel.png`, `rahmen-diagramme-hell.png`.
 
+## Zweiter Merge mit main (24.10.2026)
+Nach den Merges von #137, #138 und #135 hatte #134 Konflikte in `kaspa-hashrate.html`, `kaspa-covenants.html` und `kaspa-smart-contracts.html`.
+
+- **Was main geändert hatte:** nur AUTO-Blöcke und Datenwerte, durch die Bots vom 24.10. (`seiten zahlen 2026-10-24`, `covenants log 2026-10-24`):
+  - hashrate: `hashrate-satz`, `hashrate-wochen`, `seitenstand`
+  - covenants: `kacheln`, `skala`, `stand`, `summe`, `tabelle`, `txchart`, `utxochart`, `seitenstand`
+  - smart-contracts: `covenant-zahl`, `seitenstand`
+- **Wie gelöst:** Die drei Seiten kommen aus main, `scripts/rahmen.py` hat den Rahmen darauf neu gesetzt. Der Rahmen (Kopf, Menü, Fuß, Farben hell und dunkel, Schrift) stammt aus diesem Branch, alle AUTO-Blöcke und Datenwerte aus main.
+- **Nachgeprüft:**
+  - Jeder AUTO-Block der drei Seiten ist zeichengleich mit main.
+  - Kein Seitendatum weicht von main ab.
+  - `_config.yml` aus #137 ist unverändert (kein Unterschied zu main).
+- **Probebau:** mit `github-pages` 232. `berichte/`, `docs/` und `deploy/` sind nicht in der Ausgabe, `rahmen.css` ist dabei.
+- **Angesehen:** hashrate, covenants und smart-contracts aus dem gebauten Stand, bei 390 px und 1280 px, hell und dunkel.
+  - Keine Seite scrollt quer, `rahmen.css` ist überall geladen.
+  - Die Zahlen von main stehen da: 386.9 PH/s am 24. Oktober, 17,479 Covenant-UTXOs am 23. Oktober, die Wochentabelle bis 12. Oktober.
+- **Selbsttests, alle grün:**
+  - `rahmen.py --selbsttest` und `--pruefen`
+  - `seo_seiten.py --selbsttest` und `--pruefen`
+  - `seo_pruefung.py --gegen origin/main` (0 Fehler)
+  - `wortmarke.py pruefen` und `--selbsttest`
+  - `startseite.py --selbsttest` und `--pruefen`
+  - `archiv.py --selbsttest`
+  - `weekly_pruefung.py --selbsttest`
+  - `seiten_zahlen.py --selbsttest`
+  - `covenants_page.py --selftest` und `--check` (20 Zahlen stimmen mit dem Log)
+  - `entity_x_page.py --selftest`
+  - `check_reads.py index.html`
+  - `number_of_day_data.py --selftest`, seit #138 grün
+
 ## PR-Nummern
 - PR 1 Startseite: #127, Nachbesserung #128, beide gemergt
 - PR 2 Archiv und method: #131, gemergt
 - PR 3 Rahmen: #134, offen
+- dazwischen gemergt: #137 (Jekyll), #138 (Zahl des Tages), #135; offen: #139 (Jekyll-Folge)
 
 ## Offene Fragen an Ben
-1. **Textregeln auf den Unterseiten:** Mehrere Unterseiten verletzen die heutigen Textregeln, mit „right now“ und „live“ auf hashrate, mining, supply und entity x und mit Gedankenstrichen. Nach deiner Vorgabe bleiben die Inhalte in PR 3 unverändert. Soll ein eigener Text-PR je Seite folgen?
-2. **Roter Selbsttest auf main:** `number_of_day_data.py --selbsttest` ist auf main rot, auch ohne PR 3. Die „now“-Wache aus #124 trifft eine feste Vorlage („the network now mints …“). Soll ich prüfen, ob das den täglichen Lauf von number-of-day betrifft, und einen Fix vorschlagen?
+1. **Textregeln auf den Unterseiten:** beantwortet (Ben, 24.10.). Ein eigener Text-PR folgt nach dem Merge von #134, eine Seite pro Commit.
+2. **Roter Selbsttest auf main:** erledigt mit #138 (Ben, 24.10.).
 
 ## Offen aus diesem Gespräch
-3. **Jekyll und Markdown:** Das Repo hat weder `.nojekyll` noch `_config.yml`. GitHub Pages macht deshalb aus jeder Markdown-Datei eine öffentliche Seite, auch aus diesen Berichten und aus `docs/`, `deploy/` und `data/weekly-notes.md`. Ein `_config.yml` mit `exclude` würde sie aus der Website nehmen, auf GitHub blieben sie lesbar. Soll ich das als kleinen PR bauen?
+3. **Jekyll und Markdown:** erledigt mit #137, Folge-PR #139.
 
 ## Was Ben tun muss
-- #134 prüfen und mergen. Workflow-Dateien sind diesmal nicht betroffen.
-- Die drei Fragen oben beantworten.
+- #134 von Hand mergen. Workflow-Dateien sind nicht betroffen.
+- Keine offenen Fragen mehr zu diesem PR.
