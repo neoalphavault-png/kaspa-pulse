@@ -1,0 +1,36 @@
+# Bericht 24.10.2026: Folge-PR zu #137, reports/ und die Schrift-README raus aus kaspapulse.com
+
+Branch `fix/jekyll-reports`, kleiner Folge-PR von main nach #137 (Ben, 24.10.2026).
+
+## Was gemacht wurde
+- **Ausgenommen:** `_config.yml` nimmt zusätzlich `reports/` und `graphics/fonts/README.md` aus.
+- **Bleibt öffentlich:**
+  - `data/covenants/abgleich-2026-10-09/METHOD.md`, wie Ben entschieden hat: Die Methode gehört zu unserer Transparenz.
+  - `graphics/fonts/LICENSE-OFL-1.1.txt`, denn die Lizenz gehört zu den Schriftdateien.
+- **Vorher geprüft:** Keine öffentliche Seite verweist auf `reports/` oder auf die Schrift-README.
+- **Probebau** mit `github-pages` 232, vorher und nachher:
+  - Es fallen genau zwei Dateien weg: `reports/uhrwerk-roh-2026-10-19.md` und `graphics/fonts/README.md`.
+  - Keine Datei kommt hinzu.
+  - Alle übrigen Dateien bleiben Byte für Byte gleich.
+
+## Abnahme von #137 nach dem Deploy (24.10.2026, 11:35 UTC)
+Pages hat den Stand mit `_config.yml` ausgeliefert. Die Läufe für #137 und #138 hat GitHub zugunsten des Laufs nach #135 abgebrochen; dieser Lauf enthält die Datei.
+
+- **404:**
+  - `/berichte/2026-10-23-zcash-mainnet.html`, `.md` und ohne Endung
+  - `/docs/cheat-sheet.html`, `/data/weekly-notes.html` und `/deploy/c2/setup.sh`
+- **200:** `/`, `/archive/`, `/method/`, `/week/2026-10-19/`, `/entity-x.html`, `/impressum.html`, `/datenschutz.html`, `/kaspa-hashrate.html` und `/data/weekly.json`
+- **Unverändert:** Die ausgelieferten Seiten Startseite, Archiv, method, die Wochenseite 19.10., entity-x, Impressum und Datenschutz sind Byte für Byte gleich mit main.
+
+## Abnahme dieses PR nach dem Deploy
+Trage ich nach dem Merge nach: 404 für `deploy/c2/`, `berichte/` und `reports/`.
+
+## PR-Nummern
+- #137 (Jekyll, gemergt), #138 (Zahl des Tages, gemergt)
+- dieser PR: #139
+
+## Offene Fragen an Ben
+Keine.
+
+## Was Ben tun muss
+- Diesen PR prüfen und mergen.
