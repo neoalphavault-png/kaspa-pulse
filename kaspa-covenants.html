@@ -44,11 +44,13 @@
 </script>
 <!--/AUTO:seo-kopf-->
 <link rel="icon" type="image/png" href="favicon.png">
+<link rel="preload" href="/graphics/fonts/archivo-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/rahmen.css">
 <style>
   :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --amber:#E8B04B; --red:#E36A6A; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--txt); font-family:'Helvetica Neue',Arial,sans-serif;
-         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, rgba(73,234,203,0.10), transparent 60%); }
+         background-image:radial-gradient(ellipse 120% 60% at 50% 115%, color-mix(in srgb, var(--teal) 10%, transparent), transparent 60%); }
   .wrap { max-width:780px; margin:0 auto; padding:28px 18px 56px; }
   h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
   h1 b { color:var(--teal); }
@@ -60,55 +62,55 @@
   p b, li b { color:var(--txt); font-weight:600; }
   ul { margin:0 0 14px 20px; }
   li { font-size:15px; line-height:24px; color:var(--dim); margin-bottom:8px; }
-  .live { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:28px 26px; margin:34px 0; text-align:center; }
+  .live { background:var(--card); border:1px solid color-mix(in srgb, var(--teal) 35%, transparent); border-radius:16px; padding:28px 26px; margin:34px 0; text-align:center; }
   .live .lbl { font-size:12px; letter-spacing:3px; color:var(--dim); text-transform:uppercase; }
   .live .bal { font-size:52px; font-weight:700; color:var(--teal); margin:10px 0 4px; letter-spacing:-1px; }
   .live .usd { font-size:14px; color:var(--dimmer); }
   .live .upd { font-size:11px; color:var(--dimmer); margin-top:10px; }
   .facts { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:24px 0 8px; }
   @media (max-width:520px){ .facts{grid-template-columns:1fr;} h1{font-size:30px;} .live .bal{font-size:40px;} }
-  .fact { background:var(--card); border:1px solid #15181C; border-radius:14px; padding:18px; }
+  .fact { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; }
   .fact .v { font-size:28px; font-weight:700; }
   .fact .v.teal { color:var(--teal); } .fact .v.amber { color:var(--amber); }
   .fact .l { font-size:12.5px; color:var(--dimmer); margin-top:6px; line-height:17px; }
-  .chart { background:var(--card); border:1px solid #15181C; border-radius:18px; padding:22px 22px 14px; margin:24px 0 8px; }
+  .chart { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px 22px 14px; margin:24px 0 8px; }
   .chart .clbl { font-size:11px; letter-spacing:3px; color:var(--dimmer); text-transform:uppercase; font-weight:700; margin-bottom:14px; }
   .chart svg { width:100%; height:auto; display:block; }
   .chart .lg { font-size:11px; color:var(--dimmer); margin-top:10px; display:flex; gap:16px; flex-wrap:wrap; }
   .chart .lg i { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:0px; }
   .note { font-size:13px; color:var(--dimmer); font-style:italic; border-left:3px solid var(--teal); padding:4px 0 4px 14px; margin:20px 0; line-height:20px; }
-  .read { background:var(--card); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:24px 26px; margin:28px 0; }
+  .read { background:var(--card); border:1px solid color-mix(in srgb, var(--teal) 35%, transparent); border-radius:16px; padding:24px 26px; margin:28px 0; }
   .read .rl { font-size:11px; letter-spacing:3px; color:var(--dim); text-transform:uppercase; font-weight:700; }
   .read .rt { font-size:24px; font-weight:700; letter-spacing:-0.4px; margin-top:10px; line-height:1.3; color:var(--txt); }
   a { color:var(--teal); }
-  .subscribe { background:linear-gradient(160deg, rgba(73,234,203,0.09), rgba(73,234,203,0.02)); border:1px solid rgba(73,234,203,0.35); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
+  .subscribe { background:linear-gradient(160deg, color-mix(in srgb, var(--teal) 9%, transparent), color-mix(in srgb, var(--teal) 2%, transparent)); border:1px solid color-mix(in srgb, var(--teal) 35%, transparent); border-radius:16px; padding:32px 24px; margin:60px 0 0; text-align:center; }
   .subscribe .st { font-size:18px; font-weight:700; }
   .subscribe .st b { color:var(--teal); font-weight:700; }
-  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:rgba(73,234,203,0.10); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
+  .subscribe .badge { display:inline-block; font-size:10px; letter-spacing:2px; color:var(--teal); background:color-mix(in srgb, var(--teal) 10%, transparent); border:1px solid color-mix(in srgb, var(--teal) 35%, transparent); border-radius:999px; padding:3px 10px; margin-bottom:10px; text-transform:uppercase; font-weight:700; }
   .subscribe .ss { font-size:12px; color:var(--dimmer); margin-top:5px; }
   .subscribe form { display:flex; gap:8px; max-width:420px; margin:16px auto 0; }
-  .subscribe input { flex:1; background:#050608; border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
+  .subscribe input { flex:1; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:11px 13px; color:var(--txt); font-size:14px; font-family:inherit; }
   .subscribe input::placeholder { color:var(--dimmer); }
-  .subscribe button { background:var(--teal); color:#050608; border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .subscribe button { background:var(--teal); color:var(--bg); border:none; border-radius:8px; padding:11px 18px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
   .subscribe .msg { display:none; font-size:13px; font-weight:600; margin-top:14px; padding:10px 14px; border-radius:8px; }
-  .subscribe .msg.ok { display:block; color:var(--teal); background:rgba(73,234,203,0.08); border:1px solid rgba(73,234,203,0.35); }
-  .subscribe .msg.err { display:block; color:var(--red); background:rgba(227,106,106,0.08); border:1px solid rgba(227,106,106,0.35); }
+  .subscribe .msg.ok { display:block; color:var(--teal); background:color-mix(in srgb, var(--teal) 8%, transparent); border:1px solid color-mix(in srgb, var(--teal) 35%, transparent); }
+  .subscribe .msg.err { display:block; color:var(--red); background:color-mix(in srgb, var(--red) 8%, transparent); border:1px solid color-mix(in srgb, var(--red) 35%, transparent); }
   .subscribe .fine { font-size:11px; color:var(--dimmer); margin-top:10px; }
   @media (max-width:440px){ .subscribe form{ flex-direction:column; } }
   footer { border-top:1px solid var(--line); margin-top:48px; padding-top:16px; text-align:center; font-size:11px; color:var(--dimmer); }
   footer a { color:var(--dim); text-decoration:none; }
   html { scroll-behavior:smooth; }
-  .nav { position:sticky; top:0; z-index:60; background:rgba(5,6,8,0.88); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
+  .nav { position:sticky; top:0; z-index:60; background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); }
   .nav .nt { max-width:820px; margin:0 auto; padding:13px 18px 9px; display:flex; justify-content:space-between; align-items:center; }
   .nav .nlogo { font-size:13px; letter-spacing:4px; font-weight:700; }
   .nav .nlogo a { color:var(--txt); text-decoration:none; }
   .nav .nlogo span { color:var(--teal); }
-  .nav-cta { font-size:10px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color:var(--teal); border:1px solid rgba(73,234,203,0.35); border-radius:999px; padding:5px 12px; text-decoration:none; background:rgba(73,234,203,0.07); white-space:nowrap; }
+  .nav-cta { font-size:10px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color:var(--teal); border:1px solid color-mix(in srgb, var(--teal) 35%, transparent); border-radius:999px; padding:5px 12px; text-decoration:none; background:color-mix(in srgb, var(--teal) 7%, transparent); white-space:nowrap; }
   .nav .nc { max-width:820px; margin:0 auto; padding:0 10px 10px; display:flex; flex-wrap:wrap; gap:2px; row-gap:3px; }
   .nav .nc::-webkit-scrollbar { display:none; }
   .nav .nc a { font-size:12px; color:var(--dim); text-decoration:none; padding:5px 8px; border-radius:999px; white-space:nowrap; border:1px solid transparent; }
   .nav .nc a:hover { color:var(--txt); }
-  .nav .nc a.on { color:var(--teal); background:rgba(73,234,203,0.08); border-color:rgba(73,234,203,0.25); }
+  .nav .nc a.on { color:var(--teal); background:color-mix(in srgb, var(--teal) 8%, transparent); border-color:color-mix(in srgb, var(--teal) 25%, transparent); }
   .rv { opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
   .rv.vis { opacity:1; transform:none; }
   @media (prefers-reduced-motion: reduce){ .rv { opacity:1; transform:none; transition:none; } }
@@ -123,20 +125,20 @@
     .nav .nc.open a { font-size:15px; padding:11px 12px; }
     .nav .nlogo { font-size:12px; letter-spacing:3px; }
   }
-  .band { background:linear-gradient(180deg, #0B0E14, #090C10); border-top:1px solid #181C23; border-bottom:1px solid #181C23; box-shadow:inset 0 1px 0 rgba(255,255,255,0.02); }
-  .band .fact, .band .note, .band .chart, .band .live, .band .read { background:#0F1218; }
+  .band { background:linear-gradient(180deg, var(--grid), var(--grid)); border-top:1px solid var(--line); border-bottom:1px solid var(--line); box-shadow:inset 0 1px 0 color-mix(in srgb, var(--txt) 2%, transparent); }
+  .band .fact, .band .note, .band .chart, .band .live, .band .read { background:var(--card); }
   .wrap2 { max-width:780px; margin:0 auto; padding:10px 18px 40px; }
   .wrap2 h2:first-child { margin-top:40px; }
   table { border-collapse:collapse; width:100%; font-size:13.5px; }
   th { text-align:left; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--dimmer);
        font-weight:700; padding:0 12px 9px 0; border-bottom:1px solid var(--line); white-space:nowrap; }
   th.n { text-align:right; }
-  td { padding:10px 12px 10px 0; border-bottom:1px solid #101317; color:var(--dim); white-space:nowrap; }
+  td { padding:10px 12px 10px 0; border-bottom:1px solid var(--grid); color:var(--dim); white-space:nowrap; }
   td.n { text-align:right; color:var(--txt); font-variant-numeric:tabular-nums; font-weight:600; }
   @media (max-width:520px){ .tblwrap table{min-width:0;} table{font-size:12px;} th,td{padding-right:6px;}
     .chart{padding:16px 8px 8px 8px;} .chart .clbl{padding-left:8px;} .read .rt{font-size:19px;} }
   /* for builders als kleine karte am seitenende (Ben, 08.10.2026), text unveraendert */
-  .bkarte { background:var(--card); border:1px solid rgba(73,234,203,0.28); border-radius:14px; padding:16px 18px; margin:28px 0 0; }
+  .bkarte { background:var(--card); border:1px solid color-mix(in srgb, var(--teal) 28%, transparent); border-radius:14px; padding:16px 18px; margin:28px 0 0; }
   .bkarte p { margin:0; font-size:14px; line-height:22px; }
   .bkarte b { display:block; color:var(--txt); font-size:15px; font-weight:700; margin-bottom:2px; }
   .bkarte a { display:inline-block; padding:4px 0; color:var(--teal); text-decoration:none; font-weight:600; }
@@ -146,41 +148,41 @@
   .nav .nlogo a, .logo, footer .brand { color:#F2F5F4; font-weight:900; }
   .nav .nlogo span, .logo span, footer .brand span { color:#49EACB; }
   footer .brand { opacity:1; }
+  /* nur der fuss steht auf dem grund der seite und folgt dem look,
+     der balken oben bleibt in beiden looks dunkel */
+  footer .brand { color:#0B1A17; }
+  footer .brand span { color:#0F9A80; }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) footer .brand { color:#F2F5F4; }
+    :root:not([data-theme="light"]) footer .brand span { color:#49EACB; }
+  }
+  :root[data-theme="dark"] footer .brand { color:#F2F5F4; }
+  :root[data-theme="dark"] footer .brand span { color:#49EACB; }
   /* ende wortmarke.py */
 </style>
 </head>
 <body>
-<nav class="nav">
-  <div class="nt">
-    <div class="nlogo"><a href="/">KASPA <span>PULSE</span></a></div>
-    <div class="nright"><a class="nav-cta" href="#subForm">free cheat sheet</a><button class="nburger" aria-label="menu">☰</button></div>
-  </div>
-    <div class="nc">
-    <a href="/">dashboard</a>
+<!--AUTO:rahmen-kopf-->
+<div class="kpbar">
+<header class="top">
+  <a class="logo" href="/">KASPA <span>PULSE</span></a>
+<nav class="menu" id="menu" aria-label="main">
+  <div class="mtop">
+    <a href="/">this week</a>
     <a href="/kaspa-weekly.html">weekly</a>
     <a href="/for-builders.html">for builders</a>
-    <a href="/kaspa-hashrate.html">hashrate</a>
-    <a href="/kaspa-mining.html">mining</a>
-    <a href="/merged-mining.html">merged mining</a>
-    <a href="/kaspa-halving.html">the halving</a>
-    <a href="/kaspa-security-budget.html">security budget</a>
-    <a href="/kaspa-toccata.html">toccata</a>
-    <a href="/kaspa-covenants.html" class="on">covenants</a>
-    <a href="/kaspa-supply.html">supply</a>
-    <a href="/entity-x.html">entity x</a>
-    <a href="/kaspa-staking.html">staking</a>
-    <a href="/kaspa-token-standard.html">token standards</a>
-    <a href="/kaspa-smart-contracts.html">smart contracts</a>
-    <a href="/kron.html">kron</a>
-    <a href="/kaspa-tvl.html">tvl</a>
-    <a href="/kaspa-wallets.html">wallets</a>
-    <a href="/kaspa-web-wallet-safe.html">web wallet safety</a>
-    <a href="/kaspa-data-sources.html">data sources</a>
-    <a href="/method/">method</a>
-    <a href="/archive/">archive</a>
-    <a href="/how-we-fund-this.html">how we fund this</a>
   </div>
+  <div class="grp"><button class="gbtn on" type="button" aria-expanded="false">network</button><div class="drop"><a href="/kaspa-hashrate.html">hashrate</a><a href="/kaspa-mining.html">mining</a><a href="/merged-mining.html">merged mining</a><a href="/kaspa-halving.html">the halving</a><a href="/kaspa-security-budget.html">security budget</a><a href="/kaspa-toccata.html">toccata</a><a href="/kaspa-covenants.html" aria-current="page">covenants</a></div></div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">supply</button><div class="drop"><a href="/kaspa-supply.html">supply</a><a href="/entity-x.html">entity x</a><a href="/kaspa-staking.html">staking</a></div></div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">tokens</button><div class="drop"><a href="/kaspa-token-standard.html">token standards</a><a href="/kaspa-smart-contracts.html">smart contracts</a><a href="/kron.html">kron</a><a href="/kaspa-tvl.html">tvl</a></div></div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">tools</button><div class="drop"><a href="/kaspa-wallets.html">wallets</a><a href="/kaspa-web-wallet-safe.html">web wallet safety</a><a href="/kaspa-data-sources.html">data sources</a></div></div>
+  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">about</button><div class="drop"><a href="/method/">method</a><a href="/archive/">archive</a><a href="/how-we-fund-this.html">how we fund this</a></div></div>
 </nav>
+  <button class="burger" type="button" aria-expanded="false" aria-controls="menu">menu</button>
+  <a class="subbtn" href="#subForm">subscribe</a>
+</header>
+</div>
+<!--/AUTO:rahmen-kopf-->
 <div class="wrap">
   <h1>Is Kaspa's <b>Toccata</b> upgrade being used?</h1>
   <div class="sub">Toccata went live on 30 June 2026 and gave Kaspa covenants, a way to attach spending rules to an output. Whether anyone actually uses them is a counting question, not an opinion. So we log the Kaspalytics count every day, source kaspalytics, and publish the whole series, the quiet days included.</div>
@@ -208,7 +210,7 @@
   <div class="chart">
     <div class="clbl">covenant transactions per day · since toccata</div>
     <svg viewBox="0 0 720 300" preserveAspectRatio="none" role="img" aria-label="Covenant transactions per day on Kaspa since the Toccata activation"><!--AUTO:txchart--><line x1="10" x2="710" y1="209.5" y2="209.5" stroke="#1A1D21" stroke-width="1"/><text x="710" y="205.5" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">8,365</text><line x1="10" x2="710" y1="145.0" y2="145.0" stroke="#1A1D21" stroke-width="1"/><text x="710" y="141.0" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">16,730</text><line x1="10" x2="710" y1="80.5" y2="80.5" stroke="#1A1D21" stroke-width="1"/><text x="710" y="76.5" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">25,096</text><line x1="10" x2="710" y1="16.0" y2="16.0" stroke="#1A1D21" stroke-width="1"/><text x="710" y="12.0" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">33,461</text><rect x="10.0" y="273.7" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>30 jun · 33 transactions</title></rect><rect x="16.0" y="268.2" width="5.0" height="5.8" fill="#E8B04B" rx="0.8"><title>1 jul · 757 transactions</title></rect><rect x="22.1" y="264.2" width="5.0" height="9.8" fill="#E8B04B" rx="0.8"><title>2 jul · 1,272 transactions</title></rect><rect x="28.1" y="273.0" width="5.0" height="1.0" fill="#E8B04B" rx="0.8"><title>3 jul · 125 transactions</title></rect><rect x="34.1" y="270.9" width="5.0" height="3.1" fill="#E8B04B" rx="0.8"><title>4 jul · 400 transactions</title></rect><rect x="40.2" y="273.0" width="5.0" height="1.0" fill="#E8B04B" rx="0.8"><title>5 jul · 136 transactions</title></rect><rect x="46.2" y="269.7" width="5.0" height="4.3" fill="#E8B04B" rx="0.8"><title>6 jul · 553 transactions</title></rect><rect x="52.2" y="273.3" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>7 jul · 94 transactions</title></rect><rect x="58.3" y="273.5" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>8 jul · 71 transactions</title></rect><rect x="64.3" y="273.9" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>9 jul · 13 transactions</title></rect><rect x="70.3" y="273.7" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>10 jul · 35 transactions</title></rect><rect x="76.4" y="273.8" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>11 jul · 26 transactions</title></rect><rect x="82.4" y="273.9" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>12 jul · 8 transactions</title></rect><rect x="88.4" y="273.8" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>13 jul · 22 transactions</title></rect><rect x="94.5" y="273.6" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>14 jul · 54 transactions</title></rect><rect x="100.5" y="273.9" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>15 jul · 14 transactions</title></rect><rect x="106.6" y="273.8" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>16 jul · 28 transactions</title></rect><rect x="112.6" y="273.7" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>17 jul · 40 transactions</title></rect><rect x="118.6" y="273.7" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>18 jul · 37 transactions</title></rect><rect x="124.7" y="273.9" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>19 jul · 18 transactions</title></rect><rect x="130.7" y="261.7" width="5.0" height="12.3" fill="#E8B04B" rx="0.8"><title>20 jul · 1,597 transactions</title></rect><rect x="136.7" y="273.9" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>21 jul · 19 transactions</title></rect><rect x="142.8" y="274.0" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>22 jul · 5 transactions</title></rect><rect x="148.8" y="273.7" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>23 jul · 39 transactions</title></rect><rect x="154.8" y="273.9" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>24 jul · 9 transactions</title></rect><rect x="160.9" y="273.8" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>25 jul · 20 transactions</title></rect><rect x="166.9" y="268.0" width="5.0" height="6.0" fill="#E8B04B" rx="0.8"><title>26 jul · 779 transactions</title></rect><rect x="172.9" y="265.3" width="5.0" height="8.7" fill="#E8B04B" rx="0.8"><title>27 jul · 1,132 transactions</title></rect><rect x="179.0" y="262.4" width="5.0" height="11.6" fill="#E8B04B" rx="0.8"><title>28 jul · 1,498 transactions</title></rect><rect x="185.0" y="267.0" width="5.0" height="7.0" fill="#E8B04B" rx="0.8"><title>29 jul · 903 transactions</title></rect><rect x="191.0" y="245.7" width="5.0" height="28.3" fill="#E8B04B" rx="0.8"><title>30 jul · 3,664 transactions</title></rect><rect x="197.1" y="253.8" width="5.0" height="20.2" fill="#E8B04B" rx="0.8"><title>31 jul · 2,616 transactions</title></rect><rect x="203.1" y="198.2" width="5.0" height="75.8" fill="#E8B04B" rx="0.8"><title>1 aug · 9,837 transactions</title></rect><rect x="209.1" y="225.9" width="5.0" height="48.1" fill="#E8B04B" rx="0.8"><title>2 aug · 6,240 transactions</title></rect><rect x="215.2" y="246.5" width="5.0" height="27.5" fill="#E8B04B" rx="0.8"><title>3 aug · 3,565 transactions</title></rect><rect x="221.2" y="217.9" width="5.0" height="56.1" fill="#E8B04B" rx="0.8"><title>4 aug · 7,273 transactions</title></rect><rect x="227.2" y="255.8" width="5.0" height="18.2" fill="#E8B04B" rx="0.8"><title>5 aug · 2,358 transactions</title></rect><rect x="233.3" y="262.3" width="5.0" height="11.7" fill="#E8B04B" rx="0.8"><title>6 aug · 1,518 transactions</title></rect><rect x="239.3" y="261.8" width="5.0" height="12.2" fill="#E8B04B" rx="0.8"><title>7 aug · 1,578 transactions</title></rect><rect x="245.3" y="265.4" width="5.0" height="8.6" fill="#E8B04B" rx="0.8"><title>8 aug · 1,116 transactions</title></rect><rect x="251.4" y="265.9" width="5.0" height="8.1" fill="#E8B04B" rx="0.8"><title>9 aug · 1,056 transactions</title></rect><rect x="257.4" y="269.2" width="5.0" height="4.8" fill="#E8B04B" rx="0.8"><title>10 aug · 628 transactions</title></rect><rect x="263.4" y="268.0" width="5.0" height="6.0" fill="#E8B04B" rx="0.8"><title>11 aug · 773 transactions</title></rect><rect x="269.5" y="268.4" width="5.0" height="5.6" fill="#E8B04B" rx="0.8"><title>12 aug · 728 transactions</title></rect><rect x="275.5" y="266.2" width="5.0" height="7.8" fill="#E8B04B" rx="0.8"><title>13 aug · 1,013 transactions</title></rect><rect x="281.6" y="269.8" width="5.0" height="4.2" fill="#E8B04B" rx="0.8"><title>14 aug · 549 transactions</title></rect><rect x="287.6" y="270.5" width="5.0" height="3.5" fill="#E8B04B" rx="0.8"><title>15 aug · 454 transactions</title></rect><rect x="293.6" y="270.5" width="5.0" height="3.5" fill="#E8B04B" rx="0.8"><title>16 aug · 450 transactions</title></rect><rect x="299.7" y="265.3" width="5.0" height="8.7" fill="#E8B04B" rx="0.8"><title>17 aug · 1,133 transactions</title></rect><rect x="305.7" y="270.1" width="5.0" height="3.9" fill="#E8B04B" rx="0.8"><title>18 aug · 512 transactions</title></rect><rect x="311.7" y="269.4" width="5.0" height="4.6" fill="#E8B04B" rx="0.8"><title>19 aug · 595 transactions</title></rect><rect x="317.8" y="265.5" width="5.0" height="8.5" fill="#E8B04B" rx="0.8"><title>20 aug · 1,102 transactions</title></rect><rect x="323.8" y="267.6" width="5.0" height="6.4" fill="#E8B04B" rx="0.8"><title>21 aug · 824 transactions</title></rect><rect x="329.8" y="270.9" width="5.0" height="3.1" fill="#E8B04B" rx="0.8"><title>22 aug · 403 transactions</title></rect><rect x="335.9" y="272.1" width="5.0" height="1.9" fill="#E8B04B" rx="0.8"><title>23 aug · 241 transactions</title></rect><rect x="341.9" y="271.2" width="5.0" height="2.8" fill="#E8B04B" rx="0.8"><title>24 aug · 369 transactions</title></rect><rect x="347.9" y="270.2" width="5.0" height="3.8" fill="#E8B04B" rx="0.8"><title>25 aug · 496 transactions</title></rect><rect x="354.0" y="272.6" width="5.0" height="1.4" fill="#E8B04B" rx="0.8"><title>26 aug · 186 transactions</title></rect><rect x="360.0" y="272.6" width="5.0" height="1.4" fill="#E8B04B" rx="0.8"><title>27 aug · 187 transactions</title></rect><rect x="366.0" y="194.7" width="5.0" height="79.3" fill="#E8B04B" rx="0.8"><title>28 aug · 10,288 transactions</title></rect><rect x="372.1" y="272.9" width="5.0" height="1.1" fill="#E8B04B" rx="0.8"><title>29 aug · 143 transactions</title></rect><rect x="378.1" y="149.0" width="5.0" height="125.0" fill="#E8B04B" rx="0.8"><title>30 aug · 16,214 transactions</title></rect><rect x="384.1" y="157.6" width="5.0" height="116.4" fill="#E8B04B" rx="0.8"><title>31 aug · 15,091 transactions</title></rect><rect x="390.2" y="43.5" width="5.0" height="230.5" fill="#E8B04B" rx="0.8"><title>1 sep · 29,898 transactions</title></rect><rect x="396.2" y="272.5" width="5.0" height="1.5" fill="#E8B04B" rx="0.8"><title>2 sep · 197 transactions</title></rect><rect x="402.2" y="157.9" width="5.0" height="116.1" fill="#E8B04B" rx="0.8"><title>3 sep · 15,059 transactions</title></rect><rect x="408.3" y="273.0" width="5.0" height="1.0" fill="#E8B04B" rx="0.8"><title>4 sep · 124 transactions</title></rect><rect x="414.3" y="273.6" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>5 sep · 47 transactions</title></rect><rect x="420.3" y="157.8" width="5.0" height="116.2" fill="#E8B04B" rx="0.8"><title>6 sep · 15,071 transactions</title></rect><rect x="426.4" y="16.0" width="5.0" height="258.0" fill="#E8B04B" rx="0.8"><title>7 sep · 33,461 transactions</title></rect><rect x="432.4" y="273.2" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>8 sep · 110 transactions</title></rect><rect x="438.4" y="273.2" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>9 sep · 106 transactions</title></rect><rect x="444.5" y="273.0" width="5.0" height="1.0" fill="#E8B04B" rx="0.8"><title>10 sep · 130 transactions</title></rect><rect x="450.5" y="273.5" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>11 sep · 65 transactions</title></rect><rect x="456.6" y="273.4" width="5.0" height="0.8" fill="#E8B04B" rx="0.8"><title>12 sep · 72 transactions</title></rect><rect x="462.6" y="271.5" width="5.0" height="2.5" fill="#E8B04B" rx="0.8"><title>13 sep · 328 transactions</title></rect><rect x="468.6" y="272.7" width="5.0" height="1.3" fill="#E8B04B" rx="0.8"><title>14 sep · 166 transactions</title></rect><rect x="474.7" y="254.0" width="5.0" height="20.0" fill="#E8B04B" rx="0.8"><title>15 sep · 2,591 transactions</title></rect><rect x="480.7" y="255.0" width="5.0" height="19.0" fill="#E8B04B" rx="0.8"><title>16 sep · 2,463 transactions</title></rect><rect x="486.7" y="67.6" width="5.0" height="206.4" fill="#E8B04B" rx="0.8"><title>17 sep · 26,774 transactions</title></rect><rect x="492.8" y="265.6" width="5.0" height="8.4" fill="#E8B04B" rx="0.8"><title>18 sep · 1,085 transactions</title></rect><rect x="498.8" y="269.8" width="5.0" height="4.2" fill="#E8B04B" rx="0.8"><title>19 sep · 542 transactions</title></rect><rect x="504.8" y="269.9" width="5.0" height="4.1" fill="#E8B04B" rx="0.8"><title>20 sep · 534 transactions</title></rect><rect x="510.9" y="270.3" width="5.0" height="3.7" fill="#E8B04B" rx="0.8"><title>21 sep · 482 transactions</title></rect><rect x="516.9" y="271.7" width="5.0" height="2.3" fill="#E8B04B" rx="0.8"><title>22 sep · 301 transactions</title></rect><rect x="522.9" y="271.6" width="5.0" height="2.4" fill="#E8B04B" rx="0.8"><title>23 sep · 310 transactions</title></rect><rect x="529.0" y="271.3" width="5.0" height="2.7" fill="#E8B04B" rx="0.8"><title>24 sep · 353 transactions</title></rect><rect x="535.0" y="268.0" width="5.0" height="6.0" fill="#E8B04B" rx="0.8"><title>25 sep · 776 transactions</title></rect><rect x="541.0" y="269.8" width="5.0" height="4.2" fill="#E8B04B" rx="0.8"><title>26 sep · 543 transactions</title></rect><rect x="547.1" y="271.4" width="5.0" height="2.6" fill="#E8B04B" rx="0.8"><title>27 sep · 342 transactions</title></rect><rect x="553.1" y="272.5" width="5.0" height="1.5" fill="#E8B04B" rx="0.8"><title>28 sep · 192 transactions</title></rect><rect x="559.1" y="272.9" width="5.0" height="1.1" fill="#E8B04B" rx="0.8"><title>29 sep · 146 transactions</title></rect><rect x="565.2" y="271.1" width="5.0" height="2.9" fill="#E8B04B" rx="0.8"><title>30 sep · 382 transactions</title></rect><rect x="571.2" y="271.8" width="5.0" height="2.2" fill="#E8B04B" rx="0.8"><title>1 oct · 279 transactions</title></rect><rect x="577.2" y="272.0" width="5.0" height="2.0" fill="#E8B04B" rx="0.8"><title>2 oct · 265 transactions</title></rect><rect x="583.3" y="272.5" width="5.0" height="1.5" fill="#E8B04B" rx="0.8"><title>3 oct · 194 transactions</title></rect><rect x="589.3" y="272.1" width="5.0" height="1.9" fill="#E8B04B" rx="0.8"><title>4 oct · 245 transactions</title></rect><rect x="595.3" y="272.7" width="5.0" height="1.3" fill="#E8B04B" rx="0.8"><title>5 oct · 175 transactions</title></rect><rect x="601.4" y="271.5" width="5.0" height="2.5" fill="#E8B04B" rx="0.8"><title>6 oct · 324 transactions</title></rect><rect x="607.4" y="269.9" width="5.0" height="4.1" fill="#E8B04B" rx="0.8"><title>7 oct · 538 transactions</title></rect><rect x="613.4" y="272.1" width="5.0" height="1.9" fill="#E8B04B" rx="0.8"><title>8 oct · 248 transactions</title></rect><rect x="619.5" y="273.0" width="5.0" height="1.0" fill="#E8B04B" rx="0.8"><title>9 oct · 132 transactions</title></rect><rect x="625.5" y="272.2" width="5.0" height="1.8" fill="#E8B04B" rx="0.8"><title>10 oct · 227 transactions</title></rect><rect x="631.6" y="272.3" width="5.0" height="1.7" fill="#E8B04B" rx="0.8"><title>11 oct · 219 transactions</title></rect><rect x="637.6" y="272.8" width="5.0" height="1.2" fill="#E8B04B" rx="0.8"><title>12 oct · 157 transactions</title></rect><rect x="643.6" y="272.9" width="5.0" height="1.1" fill="#E8B04B" rx="0.8"><title>13 oct · 141 transactions</title></rect><rect x="649.7" y="272.1" width="5.0" height="1.9" fill="#E8B04B" rx="0.8"><title>14 oct · 245 transactions</title></rect><rect x="655.7" y="272.0" width="5.0" height="2.0" fill="#E8B04B" rx="0.8"><title>15 oct · 257 transactions</title></rect><rect x="661.7" y="270.8" width="5.0" height="3.2" fill="#E8B04B" rx="0.8"><title>16 oct · 420 transactions</title></rect><rect x="667.8" y="272.4" width="5.0" height="1.6" fill="#E8B04B" rx="0.8"><title>17 oct · 209 transactions</title></rect><rect x="673.8" y="272.9" width="5.0" height="1.1" fill="#E8B04B" rx="0.8"><title>18 oct · 141 transactions</title></rect><rect x="679.8" y="273.0" width="5.0" height="1.0" fill="#E8B04B" rx="0.8"><title>19 oct · 125 transactions</title></rect><rect x="685.9" y="272.8" width="5.0" height="1.2" fill="#E8B04B" rx="0.8"><title>20 oct · 151 transactions</title></rect><rect x="691.9" y="265.0" width="5.0" height="9.0" fill="#E8B04B" rx="0.8"><title>21 oct · 1,166 transactions</title></rect><rect x="697.9" y="259.8" width="5.0" height="14.2" fill="#E8B04B" rx="0.8"><title>22 oct · 1,847 transactions</title></rect><rect x="704.0" y="252.3" width="5.0" height="21.7" fill="#E8B04B" rx="0.8"><title>23 oct · 2,816 transactions</title></rect><text x="18.0" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">jun</text><text x="18.0" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">jul</text><text x="204.8" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">aug</text><text x="393.5" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">sep</text><text x="576.1" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">oct</text><text x="710" y="294" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">23 oct</text><!--/AUTO:txchart--></svg>
-    <div class="lg"><span><i style="background:#E8B04B"></i>covenant transactions, one bar per day</span></div>
+    <div class="lg"><span><i style="background:var(--amber)"></i>covenant transactions, one bar per day</span></div>
   </div>
   <p style="font-size:13px;"><!--AUTO:skala-->The tallest bar is <b><span data-v="tx_max2">33,461</span></b> transactions on <span data-v="tx_max_datum2">7 sep 2026</span>. On the median day the count is <b><span data-v="tx_median">348</span></b>, which at the same scale is a hairline. We leave it that way. A log axis or a clipped outlier would make this chart easier on the eye and would hide the one property the chart exists to show.<!--/AUTO:skala--></p>
 </div>
@@ -218,7 +220,7 @@
   <div class="chart">
     <div class="clbl">covenant utxos on chain · end of day · since toccata</div>
     <svg viewBox="0 0 720 300" preserveAspectRatio="none" role="img" aria-label="Number of covenant bound unspent outputs on Kaspa at the end of each day since Toccata"><!--AUTO:utxochart--><line x1="10" x2="710" y1="209.5" y2="209.5" stroke="#1A1D21" stroke-width="1"/><text x="710" y="205.5" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">4,370</text><line x1="10" x2="710" y1="145.0" y2="145.0" stroke="#1A1D21" stroke-width="1"/><text x="710" y="141.0" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">8,740</text><line x1="10" x2="710" y1="80.5" y2="80.5" stroke="#1A1D21" stroke-width="1"/><text x="710" y="76.5" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">13,109</text><line x1="10" x2="710" y1="16.0" y2="16.0" stroke="#1A1D21" stroke-width="1"/><text x="710" y="12.0" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">17,479</text><path d="M10.0 273.7 L16.1 273.6 L22.3 273.5 L28.4 273.4 L34.6 273.1 L40.7 273.1 L46.8 273.1 L53.0 273.1 L59.1 273.0 L65.3 273.0 L71.4 272.9 L77.5 272.9 L83.7 272.9 L89.8 272.9 L96.0 272.7 L102.1 272.7 L108.2 272.7 L114.4 272.5 L120.5 272.4 L126.7 272.4 L132.8 272.3 L138.9 272.1 L145.1 272.1 L151.2 271.7 L157.4 271.6 L163.5 271.5 L169.6 266.7 L175.8 263.0 L181.9 258.2 L188.1 258.1 L194.2 254.8 L200.4 253.2 L206.5 249.3 L212.6 247.4 L218.8 244.9 L224.9 239.9 L231.1 238.6 L237.2 236.6 L243.3 236.2 L249.5 235.9 L255.6 235.5 L261.8 235.0 L267.9 234.4 L274.0 233.7 L280.2 232.8 L286.3 230.5 L292.5 229.1 L298.6 228.3 L304.7 226.3 L310.9 225.0 L317.0 223.6 L323.2 221.2 L329.3 220.1 L335.4 219.7 L341.6 219.6 L347.7 221.5 L353.9 218.8 L360.0 218.4 L366.1 218.5 L372.3 218.4 L378.4 218.0 L384.6 218.1 L390.7 217.7 L396.8 217.5 L403.0 217.2 L409.1 217.3 L415.3 217.3 L421.4 217.1 L427.5 217.1 L433.7 216.6 L439.8 216.6 L446.0 216.1 L452.1 217.1 L458.2 217.1 L464.4 216.8 L470.5 218.7 L476.7 218.2 L482.8 184.1 L488.9 150.1 L495.1 127.8 L501.2 114.9 L507.4 111.1 L513.5 107.7 L519.6 103.0 L525.8 100.0 L531.9 98.0 L538.1 96.6 L544.2 88.7 L550.4 84.6 L556.5 80.7 L562.6 79.9 L568.8 74.9 L574.9 73.1 L581.1 72.4 L587.2 71.7 L593.3 70.9 L599.5 70.3 L605.6 69.7 L611.8 69.1 L617.9 68.5 L624.0 68.3 L630.2 66.2 L636.3 65.0 L642.5 64.1 L648.6 63.2 L654.7 60.8 L660.9 59.8 L667.0 54.3 L673.2 52.8 L679.3 52.4 L685.4 51.3 L691.6 50.0 L697.7 40.3 L703.9 27.8 L710.0 16.0 L710.0 274.0 L10.0 274.0 Z" fill="#49EACB" fill-opacity="0.12"/><path d="M10.0 273.7 L16.1 273.6 L22.3 273.5 L28.4 273.4 L34.6 273.1 L40.7 273.1 L46.8 273.1 L53.0 273.1 L59.1 273.0 L65.3 273.0 L71.4 272.9 L77.5 272.9 L83.7 272.9 L89.8 272.9 L96.0 272.7 L102.1 272.7 L108.2 272.7 L114.4 272.5 L120.5 272.4 L126.7 272.4 L132.8 272.3 L138.9 272.1 L145.1 272.1 L151.2 271.7 L157.4 271.6 L163.5 271.5 L169.6 266.7 L175.8 263.0 L181.9 258.2 L188.1 258.1 L194.2 254.8 L200.4 253.2 L206.5 249.3 L212.6 247.4 L218.8 244.9 L224.9 239.9 L231.1 238.6 L237.2 236.6 L243.3 236.2 L249.5 235.9 L255.6 235.5 L261.8 235.0 L267.9 234.4 L274.0 233.7 L280.2 232.8 L286.3 230.5 L292.5 229.1 L298.6 228.3 L304.7 226.3 L310.9 225.0 L317.0 223.6 L323.2 221.2 L329.3 220.1 L335.4 219.7 L341.6 219.6 L347.7 221.5 L353.9 218.8 L360.0 218.4 L366.1 218.5 L372.3 218.4 L378.4 218.0 L384.6 218.1 L390.7 217.7 L396.8 217.5 L403.0 217.2 L409.1 217.3 L415.3 217.3 L421.4 217.1 L427.5 217.1 L433.7 216.6 L439.8 216.6 L446.0 216.1 L452.1 217.1 L458.2 217.1 L464.4 216.8 L470.5 218.7 L476.7 218.2 L482.8 184.1 L488.9 150.1 L495.1 127.8 L501.2 114.9 L507.4 111.1 L513.5 107.7 L519.6 103.0 L525.8 100.0 L531.9 98.0 L538.1 96.6 L544.2 88.7 L550.4 84.6 L556.5 80.7 L562.6 79.9 L568.8 74.9 L574.9 73.1 L581.1 72.4 L587.2 71.7 L593.3 70.9 L599.5 70.3 L605.6 69.7 L611.8 69.1 L617.9 68.5 L624.0 68.3 L630.2 66.2 L636.3 65.0 L642.5 64.1 L648.6 63.2 L654.7 60.8 L660.9 59.8 L667.0 54.3 L673.2 52.8 L679.3 52.4 L685.4 51.3 L691.6 50.0 L697.7 40.3 L703.9 27.8 L710.0 16.0" fill="none" stroke="#49EACB" stroke-width="2" stroke-linejoin="round"/><text x="18.0" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">jun</text><text x="18.0" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">jul</text><text x="206.5" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">aug</text><text x="396.8" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">sep</text><text x="574.9" y="294" fill="#5C6672" font-size="10" text-anchor="middle" font-family="Helvetica Neue,Arial,sans-serif">oct</text><text x="710" y="294" fill="#5C6672" font-size="10" text-anchor="end" font-family="Helvetica Neue,Arial,sans-serif">23 oct</text><!--/AUTO:utxochart--></svg>
-    <div class="lg"><span><i style="background:#49EACB"></i>covenant utxos on chain at end of day</span></div>
+    <div class="lg"><span><i style="background:var(--teal)"></i>covenant utxos on chain at end of day</span></div>
   </div>
   <div class="read">
     <div class="rl">how to read the two charts together</div>
@@ -302,8 +304,22 @@
     <div class="msg" id="subMsg"></div>
     <div class="fine">free · unsubscribe anytime · cheat sheet delivered after email confirmation</div>
   </div>
+<!--AUTO:rahmen-kanaele-->
+<section class="kpkanal" aria-label="follow kaspa pulse">
+  <p>follow kaspa pulse</p>
+  <nav aria-label="channels">
+    <a href="https://x.com/gokugalax" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.8 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg>X</a>
+    <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.7 15V9l5.8 3-5.8 3z"/></svg>YouTube</a>
+    <a href="https://discord.gg/e6snta6Rfg" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18 18 0 0 0-5.6 0L8.6 3a19.6 19.6 0 0 0-4.9 1.4C.6 9 0 13.5.3 18a19.8 19.8 0 0 0 6 3l1.3-2a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4-2 1 1.3 2a19.7 19.7 0 0 0 6-3c.4-5.2-.7-9.6-3.4-13.6zM8.7 15.3c-1.2 0-2.1-1-2.1-2.3s.9-2.3 2.1-2.3 2.1 1 2.1 2.3-.9 2.3-2.1 2.3zm6.6 0c-1.2 0-2.1-1-2.1-2.3s.9-2.3 2.1-2.3 2.1 1 2.1 2.3-.9 2.3-2.1 2.3z"/></svg>Discord</a>
+    <a href="https://www.instagram.com/kaspapulse" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.3a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm6-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM17 2H7a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5zm3.2 15a3.2 3.2 0 0 1-3.2 3.2H7A3.2 3.2 0 0 1 3.8 17V7A3.2 3.2 0 0 1 7 3.8h10A3.2 3.2 0 0 1 20.2 7v10z"/></svg>Instagram</a>
+  </nav>
+</section>
+<!--/AUTO:rahmen-kanaele-->
   <footer>
     <div class="stand"><!--AUTO:seitenstand-->page last updated 24 October 2026<!--/AUTO:seitenstand--></div>
+    <!--AUTO:rahmen-marke-->
+<div class="brand">KASPA <span>PULSE</span></div>
+<!--/AUTO:rahmen-marke-->
     <div>not financial advice · data: kaspalytics · further reading: <a href="/kaspa-toccata.html">toccata, explained</a> · <a href="/kaspa-smart-contracts.html">kaspa smart contracts</a> · <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> · <a href="/kaspa-data-sources.html">where our numbers come from</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q" target="_blank" rel="noopener">youtube</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://t.me/kaspapulse" target="_blank" rel="noopener">telegram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
     <div class="fund" style="margin-top:10px;"><a href="/how-we-fund-this.html" style="display:inline-block;padding:12px 10px;">how we fund this</a> · <a href="/for-builders.html" style="display:inline-block;padding:12px 10px;">for builders</a></div>
   </footer>
@@ -373,6 +389,7 @@
   ]
 }
 </script>
+<script src="/rahmen.js" defer></script>
 <script src="/capture.js" defer></script>
 <script src="/utm.js" defer></script>
 </body>

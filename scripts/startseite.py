@@ -136,18 +136,22 @@ def menue_gruppen(js=None):
     return oben, gruppen
 
 
-def menue_html(js=None):
+def menue_html(js=None, hier="/"):
+    """Das Menue aus MENUE. hier ist der Pfad der Seite: ihr Punkt bekommt
+    aria-current, ihre Gruppe die Klasse on (rahmen.py fuer die Unterseiten)."""
     oben, gruppen = menue_gruppen(js)
     z = ['<nav class="menu" id="menu" aria-label="main">', '  <div class="mtop">']
     for t, h in oben:
         t = OBEN_UMBENANNT.get(h, t)
-        cur = ' aria-current="page"' if h == "/" else ""
+        cur = ' aria-current="page"' if h == hier else ""
         z.append('    <a href="%s"%s>%s</a>' % (h, cur, esc(t)))
     z.append("  </div>")
     for g, punkte in gruppen:
-        z.append('  <div class="grp"><button class="gbtn" type="button" aria-expanded="false">%s</button>'
+        on = " on" if any(h == hier for _, h in punkte) else ""
+        z.append('  <div class="grp"><button class="gbtn%s" type="button" aria-expanded="false">%s</button>'
                  '<div class="drop">%s</div></div>'
-                 % (esc(g), "".join('<a href="%s">%s</a>' % (h, esc(t)) for t, h in punkte)))
+                 % (on, esc(g), "".join('<a href="%s"%s>%s</a>' % (h, ' aria-current="page"' if h == hier else "",
+                                                                    esc(t)) for t, h in punkte)))
     z.append("</nav>")
     return "\n".join(z)
 
@@ -925,7 +929,10 @@ def ansehen(ziel, seite="index.html"):
                                    % (int(dt.datetime.now().timestamp() * 1000)))
                 pg.goto(url, wait_until="networkidle")
                 pg.evaluate("document.fonts.ready")
-                pg.evaluate("document.querySelectorAll('section.step').forEach(s=>s.classList.add('seen'))")
+                # die unterseiten blenden ihre bloecke beim scrollen ein (.rv/.vis),
+                # ein bild der ganzen seite ohne scrollen saehe sonst leer aus
+                pg.evaluate("document.querySelectorAll('section.step').forEach(s=>s.classList.add('seen'));"
+                            "document.querySelectorAll('.rv').forEach(e=>e.classList.add('vis'))")
                 pg.wait_for_timeout(600)
                 quer = pg.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
                 if quer > 0:

@@ -36,7 +36,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 SEITE = "kaspa-weekly.html"
-BEIWERK = ("capture.js", "utm.js", "favicon.png")
+BEIWERK = ("capture.js", "utm.js", "favicon.png", "rahmen.css", "rahmen.js")
 TEAL = "rgb(73, 234, 203)"
 
 # Die Seite braucht genug Wochen fuer den 50-Wochen-Schnitt. 60 reichen,
@@ -112,8 +112,11 @@ def lesen(wurzel_pfad, seite=SEITE, warten=True):
                 pg.wait_for_timeout(600)
             aus = pg.evaluate("""() => {
               const t = i => (document.getElementById(i) || {}).textContent || "";
-              const aktiv = [...document.querySelectorAll('.nav .nc a, .nav .nc .ntop')]
-                .filter(e => getComputedStyle(e).color === '%s')
+              // seit dem rahmen (PR 3, 22.10.2026) markiert das menue die
+              // eigene seite mit aria-current und ihre gruppe mit .on. aktiv
+              // sieht aus, was den unterstrich in markenfarbe traegt.
+              const aktiv = [...document.querySelectorAll('#menu a, #menu .gbtn')]
+                .filter(e => getComputedStyle(e).boxShadow.indexOf('%s') >= 0)
                 .map(e => (e.textContent || '').trim().replace(/\\s+/g, ' ').slice(0, 24));
               return {g21: t('g21'), g21b: t('g21b'), streak: t('vStreak'), streakB: t('streakB'),
                       seite: t('streakSide'), seiteB: t('streakSideB'), aktiv: aktiv};

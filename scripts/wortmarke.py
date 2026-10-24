@@ -147,6 +147,7 @@ _DUNKEL_2 = ':root[data-theme="dark"]'
 # sind immer dunkel. Das steht als Regel hier und nicht als Liste von
 # Dateinamen, damit es von allein stimmt, wenn der Umbau weitergeht.
 _DUNKELABFRAGE = "prefers-color-scheme: dark"
+_RAHMEN = 'href="/rahmen.css"'
 
 
 def _regel(auswahl, farbe, zusatz="", vor=""):
@@ -211,9 +212,10 @@ def seite_umschreiben(text, name):
 
 
 def hat_hellen_look(text):
-    """True, wenn die Seite selbst eine Dunkel-Abfrage fuehrt. Dann ist hell
-    ihr Grundfall und die Marke braucht beide Looks."""
-    return _DUNKELABFRAGE in _ALT_CSS.sub(" ", text)
+    """True, wenn die Seite selbst eine Dunkel-Abfrage fuehrt oder den Rahmen
+    rahmen.css laedt, der die Abfrage fuer sie fuehrt (PR 3, 22.10.2026).
+    Dann ist hell ihr Grundfall und die Marke braucht beide Looks."""
+    return _DUNKELABFRAGE in _ALT_CSS.sub(" ", text) or _RAHMEN in text
 
 
 def fremde_markenfarbe(text):
@@ -393,9 +395,13 @@ def selbsttest():
        not fremde_markenfarbe(".nav .nlogo a { color:var(--txt); }"))
     ok("keine seite faerbt die marke neben dem block: %s"
        % (farb_treffer() or "keine"), not farb_treffer())
-    ok("nur die startseite traegt den hellen block",
-       [n for n in SEITEN
-        if "#0B1A17" in (REPO / n).read_text(encoding="utf-8")] == ["index.html"])
+    # seit PR 3 (22.10.2026) tragen alle seiten im rahmen den hellen block,
+    # sie folgen dem look ueber rahmen.css. ohne rahmen bleibt es dunkel.
+    ok("genau die seiten mit hellem look tragen den hellen block",
+       all(("#0B1A17" in t) == hat_hellen_look(t)
+           for t in ((REPO / n).read_text(encoding="utf-8") for n in SEITEN)))
+    ok("eine seite mit rahmen.css hat den hellen look",
+       hat_hellen_look('<link rel="stylesheet" href="/rahmen.css">') and not hat_hellen_look("<style></style>"))
     ok("keine seite weicht ab", not pruefen())
     ok("kein erzeuger traegt noch falke oder pulsehawk: %s" % (erzeuger_treffer() or "keiner"),
        not erzeuger_treffer())
