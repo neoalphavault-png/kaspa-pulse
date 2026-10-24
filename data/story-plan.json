@@ -1,0 +1,20 @@
+{
+ "_hinweis": "Story-Vorlagen (scripts/story_vorlage.py). Je Woche ein Schluessel mit dem Montag, darin je Tag mo, di, mi, do, fr ein Eintrag. Ein Eintrag hier schlaegt die feste Vorlage aus den Daten. Pflichtfelder je Art im Kopf von aus_plan(). Jede Zahl braucht ein Datum in datum, fremde Zahlen 'source ...', eigene 'counted by kaspa pulse'. Nie der Kurs.",
+ "_beispiel": {
+  "mi": {
+   "text": "which moved more in the week to 24 oct, hashrate or addresses?",
+   "frage": "which moved more this week?",
+   "optionen": ["hashrate", "addresses"],
+   "richtig": 0,
+   "loesung": "hashrate, up 2.2% against 0.3% for addresses",
+   "loesung_zahl": "+2.2%",
+   "datum": "week to 24 oct 2026 · source kaspa rest api, kaspalytics"
+  },
+  "do": {
+   "text": "the strongest sentence from this week's explainer",
+   "zahl": "17",
+   "datum": "29 oct 2026 · source kaspa emission schedule"
+  }
+ },
+ "wochen": {}
+}

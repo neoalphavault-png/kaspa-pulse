@@ -1,0 +1,103 @@
+name: story-vorlage
+
+# Instagram-Story-Vorlage, NICHT SCHARF (Ben, 24.10.2026). Dieser Workflow
+# baut die Story des Tages (1080x1920) und die Aufloesung von gestern und
+# schickt beide mit der Anleitung nach #moderator-only. Er postet NICHTS
+# auf Instagram. Ben postet von Hand, die Aufloesung frueh, die Vorlage um
+# 17:30, und legt das Instagram-Element auf die gestrichelte Flaeche.
+#
+# Der Takt kommt von c2: Mo bis Sa 07:45 Berlin (takt-story-vorlage.timer).
+# Um 07:45 ist der Feed-Post von 09:30 noch nicht draussen; seine Zahl
+# steht im Artefakt der Tagesgrafik von 07:30, darum actions: read. Die
+# Story nimmt nie dieselbe Zahl. Ein Lauf mit senden merkt die Antwort in
+# data/story-log.json (fuer die Aufloesung morgen) und den Look.
+
+on:
+  workflow_dispatch:
+    inputs:
+      datum:
+        description: "JJJJ-MM-TT, leer = heute in berlin"
+        required: false
+        default: ""
+      senden:
+        description: "vorlage nach #moderator-only schicken, antwort und look merken"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: story-vorlage
+  cancel-in-progress: false
+
+jobs:
+  vorlage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: playwright
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: selbsttest
+        run: python3 scripts/story_vorlage.py --selbsttest
+      - name: vorlage
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          GITHUB_TOKEN: ${{ github.token }}
+          DATUM: ${{ inputs.datum }}
+          SENDEN: ${{ inputs.senden }}
+        run: |
+          ARGS="--out graphics/story"
+          if [ -n "$DATUM" ]; then
+            case "$DATUM" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) ;; *) echo "datum muss JJJJ-MM-TT sein"; exit 1;; esac
+            ARGS="$ARGS --datum $DATUM"
+          fi
+          if [ "$SENDEN" = "true" ]; then ARGS="$ARGS --senden"; fi
+          python3 scripts/story_vorlage.py $ARGS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: story-vorlage
+          path: |
+            graphics/story/*.png
+            graphics/story/*.txt
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: log und look sichern
+        if: inputs.senden
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/story-log.json data/look-takt.json 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "story-log unveraendert, kein commit"
+          else
+            git commit -m "story vorlage [bot]"
+            git pull --rebase --autostash origin "$GITHUB_REF_NAME"
+            git push
+          fi
+      - name: ops bei rot
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
+          text = "story-vorlage ist rot, keine vorlage heute\n%s" % os.environ.get("LAUF", "")
+          print(text)
+          if hook:
+              req = urllib.request.Request(hook, data=json.dumps({"content": text,
+                    "allowed_mentions": {"parse": []}}).encode(), headers={
+                    "Content-Type": "application/json", "User-Agent": "kaspa-pulse-bot"})
+              urllib.request.urlopen(req, timeout=30)
+          PY

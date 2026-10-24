@@ -41,6 +41,12 @@ case "$1" in
   karussell-story)
     "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=story fuer= senden=true
     ;;
+  story-vorlage)
+    # story-vorlage.yml (Ben, 24.10.2026), Mo bis Sa 07:45. Nur Vorlage und
+    # Anleitung nach #moderator-only, Ben postet von Hand. senden=true wie
+    # bei der Tagesgrafik ausdruecklich, die Vorbelegung ist false.
+    "$HIER/takt.sh" "$REPO_PULSE" story-vorlage.yml datum= senden=true
+    ;;
   karussell-meme)
     # "Meme, but true", entwurf am posttag, misst die blockrate am posttag
     "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=meme fuer= senden=true

@@ -89,8 +89,11 @@ QUELLEN = {
 # die dauerhafte Stelle im Profil, in der Videobeschreibung und im
 # Discord-Kanal. Sie sind absichtlich nicht "post" oder "video" - ein
 # Biografie-Link liegt Monate, ein Beitrag einen Tag.
+#
+# story kam am 24.10.2026 dazu: der Link-Sticker in der Instagram-Story
+# (Kurzlink /story). Eine Story liegt 24 Stunden, ein Profil-Link Monate.
 MEDIEN = ("shorts", "video", "post", "chat", "mail", "email", "site", "reply",
-          "bio", "description", "channel")
+          "bio", "description", "channel", "story")
 
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 
