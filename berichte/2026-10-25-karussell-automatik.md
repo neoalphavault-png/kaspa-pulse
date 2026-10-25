@@ -1,6 +1,6 @@
 # Bericht 25.10.2026: Karussell und Meme automatisch auf Instagram
 
-Branch `feat/karussell-automatik`, PR siehe unten.
+Branch `feat/karussell-automatik`, PR #143.
 
 ## Befund
 - **Nur Entwürfe:** `karussell.yml` baute bisher nur Entwürfe nach #moderator-only. Den Wochen-Entwurf vom Fr 23.10. 18:00 hat niemand gepostet.
