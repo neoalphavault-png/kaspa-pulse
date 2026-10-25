@@ -69,8 +69,8 @@ Ergebnis: 11 FAIL, 9 WARN. Die wichtigsten Befunde für die eigene Marke mit Fal
 **Vorschlag:** derselbe Durchgang wie hier, im Repo pulsehawk-site, mit eigener Prüfung der PulseHawk-Marke (Falke, Farben, Schriften): erst die Befundliste, dann ein PR mit Vorher-Nachher. **Ich warte auf deine Freigabe.**
 
 ## PR-Nummern
-- Werkzeug: folgt
-- Startseite: folgt
+- Werkzeug: #145
+- Startseite: #146
 
 ## Offene Fragen an Ben
 1. Welche der fünf Vorschläge für die Startseite soll ich umsetzen?
