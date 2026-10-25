@@ -1,6 +1,6 @@
 # BCH Tempnet Woche 2, Machbarkeit des Zuhörers (25.10.2026)
 
-**Ja, der Zuhörer kann durchgehend laufen: als Kette von Läufen zu je 330 min, jeder startet den nächsten 8 min vor seinem Ende. Erste Daten liegen seit 25.10.2026 09:15 UTC vor (Testlauf), der Dauerlauf beginnt am 25.10. gegen 09:50 UTC und läuft bis 15.11. 12:00 UTC.**
+**Ja, der Zuhörer kann durchgehend laufen: als Kette von Läufen zu je 330 min, jeder startet den nächsten 8 min vor seinem Ende. Erste Daten liegen seit 25.10.2026 09:15 UTC vor (Testlauf), der Dauerlauf läuft seit 25.10. 09:34 UTC und läuft bis 15.11. 12:00 UTC.**
 
 Einschränkung: Das automatische Weiterreichen geht erst, wenn `.github/workflows/bch-tempnet-lauscher.yml` auf main liegt (`workflow_dispatch` verlangt das). Bis zum Merge stoße ich jeden Lauf von Hand mit einem Push auf `data/bch/lauscher-anstoss.txt` an, etwa alle 5 h 20 min. An den Übergängen kann dabei eine Lücke von einigen Minuten entstehen; jede Lücke steht in den Lauf-Metadaten und kommt in den Bericht.
 
