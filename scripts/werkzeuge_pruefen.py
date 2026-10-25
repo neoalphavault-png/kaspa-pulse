@@ -17,7 +17,11 @@ import tempfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-WERKZEUGE = {"skills/taste-skill": "docs/taste-skill.sha256"}
+WERKZEUGE = {"skills/taste-skill": "docs/taste-skill.sha256",
+             # web-design-guidelines (agent-skills 063bee9), SKILL.md lokal angepasst
+             "skills/web-design-guidelines": "docs/web-design-guidelines.sha256"}
+# einzelne dateien: die gepruefte kopie der web interface guidelines (434b7f9)
+DATEIEN = {"docs/web-interface-guidelines.md": "docs/web-interface-guidelines.sha256"}
 EIGEN = {"LICENSE"}           # von uns dazugelegt, MIT verlangt den lizenztext
 
 
@@ -48,7 +52,9 @@ def selbsttest():
     for name, bed in (("gleicher stand ist gruen", gut), ("aenderung faellt auf", "geaendert a.md" in a),
                       ("neue datei faellt auf", "neu b.md" in a),
                       ("das repo ist auf dem gepinnten stand", not any(
-                          abweichungen(REPO / o, REPO / l) for o, l in WERKZEUGE.items()))):
+                          abweichungen(REPO / o, REPO / l) for o, l in WERKZEUGE.items())
+                       and all(hashlib.sha256((REPO / d).read_bytes()).hexdigest()
+                               == (REPO / l).read_text(encoding="utf-8").split()[0] for d, l in DATEIEN.items()))):
         print("%-4s %s" % ("ok" if bed else "FEHL", name))
         fehler += 0 if bed else 1
     print("%d fehler" % fehler)
@@ -61,6 +67,10 @@ def main(argv):
     aus = []
     for o, l in WERKZEUGE.items():
         aus += ["%s: %s" % (o, x) for x in abweichungen(REPO / o, REPO / l)]
+    for d, l in DATEIEN.items():
+        h = (REPO / l).read_text(encoding="utf-8").split()[0]
+        if not (REPO / d).exists() or hashlib.sha256((REPO / d).read_bytes()).hexdigest() != h:
+            aus.append("%s: geaendert oder fehlt" % d)
     for x in aus:
         print("ABWEICHUNG", x)
     print("werkzeuge: %s" % ("auf dem gepinnten stand" if not aus else "%d abweichung(en), neue pruefung noetig" % len(aus)))

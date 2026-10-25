@@ -68,9 +68,67 @@ Ergebnis: 11 FAIL, 9 WARN. Die wichtigsten Befunde für die eigene Marke mit Fal
 
 **Vorschlag:** derselbe Durchgang wie hier, im Repo pulsehawk-site, mit eigener Prüfung der PulseHawk-Marke (Falke, Farben, Schriften): erst die Befundliste, dann ein PR mit Vorher-Nachher. **Ich warte auf deine Freigabe.**
 
+## Ergänzung 25.10.2026: Web Interface Guidelines
+
+### Was eingebunden wurde (Werkzeug-PR #145)
+- **Skill:** `skills/web-design-guidelines/` aus github.com/vercel-labs/agent-skills, Commit `063bee94c3f4df8453406c830b0a7df0f2860278` (063bee9). Das Original liegt als `SKILL.upstream.md` daneben.
+- **Regeln, einmal geholt:** `docs/web-interface-guidelines.md` ist `command.md` aus github.com/vercel-labs/web-interface-guidelines, Commit `434b7f91364665f2f733b310ec54809bf8f37937`, geholt am 25.10.2026. Quelle, Datum, Commit, Lizenz und SHA-256 stehen im Kopf der Datei.
+- **Skill angepasst:** Das Original lädt die Regeln bei jedem Lauf frisch von main. Unser `SKILL.md` liest nur die Kopie im Repo und darf nichts nachladen.
+- **Gepinnt:** `docs/web-design-guidelines.sha256` und `docs/web-interface-guidelines.sha256`. `scripts/werkzeuge_pruefen.py` prüft beide und fällt bei jeder Änderung durch, also auch dann, wenn jemand die Regeln ohne Prüfung austauscht.
+- **Nicht auf der Website:** liegt unter `skills/` bzw. als Doku, `skills/` steht schon in `exclude`.
+- Der Eintrag steht in `docs/werkzeuge.md`, dazu der neue Ablauf für Seiten-PRs.
+
+### Prüfung der Regeln
+- **Nichts über das Prüfen von Code hinaus.** `command.md` enthält nur Prüfkriterien für UI-Code und ein Ausgabeformat. Es fordert kein Netzwerk, keine Installation, kein Schreiben, kein Posten; zu melden war nichts davon. Das einzige Nachladen stand im Skill selbst (frisch von main) und ist abgestellt.
+- **Regeln gegen unsere Marke.** Hier gehen Marke und Textregeln vor:
+  - Title Case für Überschriften und Knöpfe: unser Hausstil ist klein
+  - „second person, avoid first person“: wir schreiben „we count“
+  - typografische Anführungszeichen
+  - `Intl.DateTimeFormat` statt fester Datumsformate: unsere Seiten sind fertig gebaut, „19 oct 2026“ ist Hausstil
+  - Pfeile im Ausgabeformat: in unseren Berichten stehen keine
+- **Lizenz:** agent-skills hat an Commit 063bee9 keine LICENSE-Datei, MIT steht nur in der README. web-interface-guidelines hat eine LICENSE (MIT, Vercel Labs), der Text steht am Ende der Kopie.
+
+### Erster Lauf an der Startseite (zusammen mit dem Taste-Test)
+Reihenfolge wie künftig bei jedem Seiten-PR: erst die Gestaltung nach dem Taste Skill (oben), dann die Prüfung gegen die Guidelines. Die Fixes stehen im Startseiten-PR #146 als zweiter Commit (2c1fa8d). Zeilen beziehen sich auf den Stand vor den Fixes. `startseite.py` baut auch Archiv, `/method/` und die Wochenseiten, die Fixes gelten dort ebenso.
+
+| Datei:Zeile | Befund | Status |
+| --- | --- | --- |
+| index.html:222 | kein Link zum Überspringen der Navigation | behoben, „skip to content“ als erstes Element |
+| index.html:245 | `<main>` ohne Sprungziel | behoben, `id="main"` |
+| index.html:282 | E-Mail-Feld ohne `autocomplete="email"` und `spellcheck="false"`, Platzhalter ohne Beispiel | behoben, mit `aria-label`, Platzhalter „you@example.com“ |
+| index.html:314 | dasselbe Feld im zweiten Formular | behoben |
+| scripts/startseite.py:661 | Vorlage des Felds | behoben, daher in allen Seiten gleich |
+| index.html:5 | kein `theme-color` | behoben, #080B0F |
+| index.html:83 | kein `color-scheme`, kein `touch-action: manipulation`, keine Tap-Farbe | behoben, `color-scheme` folgt dem Umschalter hell und dunkel, Tap-Farbe in #49EACB |
+| index.html:109 | Menü auf dem Telefon ohne `overscroll-behavior: contain` | behoben |
+| index.html:127 | `.next` ohne Hover-Zustand | behoben |
+| index.html:155 | `.bridge a` ohne Hover-Zustand | behoben |
+| index.html:200 | `footer a` ohne Hover-Zustand | behoben |
+| index.html:225 | Wortmarke im Kopf ohne `translate="no"` | behoben |
+| index.html:342 | Wortmarke im Fuß ohne `translate="no"` | behoben |
+| index.html (alle Überschriften) | kein Title Case | bleibt, Hausstil klein |
+| index.html (Fließtext) | erste Person „our“ | bleibt, Markenstimme |
+| index.html (Datumsangaben) | feste Datumsformate | bleibt, fertig gebaute Seite, Hausstil |
+| index.html:83 | kein `overscroll-behavior: none` für die ganze Seite | bleibt, das Federn der Seite ist gewollt |
+| index.html (Fokus) | Fokusrahmen | in Ordnung, der Rahmen des Browsers bleibt; `scroll-padding-top` hält Ziele unter dem festen Kopf frei |
+| index.html (Anmeldeknopf) | Knopf nur während der Anfrage gesperrt | in Ordnung |
+| index.html (`.msg`) | Rückmeldung mit `role="status"` | in Ordnung, wird vorgelesen |
+
+Danach habe ich wieder geprüft:
+- `inspect.mjs` meldet weiter 9 FAIL und 6 WARN, dieselben Befunde wie nach den Taste-Fixes
+- `startseite.py --selbsttest` und `--pruefen`, `archiv.py --selbsttest`, `seo_pruefung.py --gegen origin/main` (0 Fehler), `wortmarke.py pruefen` und der Secret-Scan sind grün
+
+### Ablauf ab jetzt bei jedem Seiten-PR
+1. Gestaltung nach dem Taste Skill bei 360, 768 und 1440 px.
+2. Prüfung gegen die Guidelines.
+3. Befunde als Liste Datei:Zeile im Bericht.
+4. Fixes im selben PR.
+
+Festgehalten in `docs/werkzeuge.md`.
+
 ## PR-Nummern
-- Werkzeug: #145
-- Startseite: #146
+- Werkzeug: #145 (Taste Skill, Web Interface Guidelines, Pin-Wache, dieser Bericht)
+- Startseite: #146 (Taste-Fixes 8a3ba80, Guidelines-Fixes 2c1fa8d)
 
 ## Offene Fragen an Ben
 1. Welche der fünf Vorschläge für die Startseite soll ich umsetzen?
@@ -79,4 +137,5 @@ Ergebnis: 11 FAIL, 9 WARN. Die wichtigsten Befunde für die eigene Marke mit Fal
 
 ## Was Ben tun muss
 - Beide PRs prüfen und mergen; Workflow-Dateien sind nicht betroffen.
+- Ein neuer Stand der Guidelines kommt nur über einen PR, den Claude geprüft hat; `werkzeuge_pruefen.py` hält sonst jede Änderung auf.
 - Die drei Fragen beantworten.
