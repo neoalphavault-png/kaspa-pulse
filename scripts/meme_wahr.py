@@ -180,7 +180,8 @@ def pruefen(ss, cap):
     return fehler
 
 
-def bauen(fuer, out, zahl="", looks=("dunkel",)):
+def bauen(fuer, out, zahl="", looks=("dunkel",), motiv=None):
+    import hintergrund
     import tagesgrafik as tg
     from playwright.sync_api import sync_playwright
     ss = seiten(fuer, zahl_seite2(zahl, fuer) if zahl else None)
@@ -197,7 +198,10 @@ def bauen(fuer, out, zahl="", looks=("dunkel",)):
             for lk in looks:
                 for s in ss:
                     png = out / ("meme-wahr-%s-%d-%s.png" % (fuer, s["seite"], lk))
-                    tg.rendern(seite_html(s, lk), png, 0, b, "instagram")
+                    seite = seite_html(s, lk)
+                    if motiv:
+                        seite = hintergrund.setzen(seite, motiv, lk)
+                    tg.rendern(seite, png, 0, b, "instagram")
                     bilder.append(png)
         finally:
             b.close()
@@ -288,7 +292,7 @@ def main(argv=None):
     sp = look_takt.lesen()
     lk = a.look or look_takt.raster_faellig(sp, "meme", a.fuer)[1]
     looks = ("dunkel", "hell", "teal") if a.alle_looks else (lk,)
-    ss, cap, bilder = bauen(a.fuer, a.out, a.zahl, looks)
+    ss, cap, bilder = bauen(a.fuer, a.out, a.zahl, looks, look_takt.raster_motiv(sp, "meme", a.fuer))
     if a.senden:
         import karussell
         hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")

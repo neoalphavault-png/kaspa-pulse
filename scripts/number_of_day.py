@@ -117,17 +117,20 @@ def echtzeit_treffer(text):
 # look aus LOOK_FARBEN, die schriften eingebettet aus graphics/fonts
 # (look_takt.schriften_css), nichts wird zur laufzeit geladen.
 LOOK_FARBEN = {
-    "dunkel": {"bg": "#080B0F", "card": "#11181D", "line": "#1B252B", "teal": "#49EACB",
+    # kontrast 7:1 fuer jeden text (Ben, 25.10.2026): hell teal, dim und red
+    # und teal dim und red sind dunkler geworden, gleicher farbton. marke
+    # traegt die wortmarke, ein logo zaehlt nicht zur kontrastregel.
+    "dunkel": {"bg": "#080B0F", "card": "#11181D", "line": "#1B252B", "teal": "#49EACB", "marke": "#49EACB",
                "teal-dk": "#49EACB", "red": "#E36A6A", "txt": "#F2F5F4", "dim": "#A9B7B4",
                "dimmer": "#A9B7B4", "faint": "#2B3A40", "grid": "#1B252B", "ctx": "#7E8A94",
                "bar": "#2B3A40", "dot": "#1B252B", "track": "#1B252B"},
-    "hell":   {"bg": "#EEF3F1", "card": "#F8FBFA", "line": "#D3DFDB", "teal": "#0F9A80",
-               "teal-dk": "#0F9A80", "red": "#B83F3F", "txt": "#0B1A17", "dim": "#4F625D",
-               "dimmer": "#4F625D", "faint": "#B4CCC5", "grid": "#D3DFDB", "ctx": "#7A8D88",
+    "hell":   {"bg": "#EEF3F1", "card": "#F8FBFA", "line": "#D3DFDB", "teal": "#085042", "marke": "#0F9A80",
+               "teal-dk": "#085042", "red": "#8A2F2F", "txt": "#0B1A17", "dim": "#3B4A46",
+               "dimmer": "#3B4A46", "faint": "#B4CCC5", "grid": "#D3DFDB", "ctx": "#7A8D88",
                "bar": "#C9D9D4", "dot": "#D3DFDB", "track": "#DCE6E2"},
-    "teal":   {"bg": "#49EACB", "card": "#3BD3B6", "line": "#2FBFA3", "teal": "#04211C",
-               "teal-dk": "#04211C", "red": "#7A1414", "txt": "#04211C", "dim": "#0F4A40",
-               "dimmer": "#0F4A40", "faint": "#9AF5E3", "grid": "#2FBFA3", "ctx": "#0F4A40",
+    "teal":   {"bg": "#49EACB", "card": "#3BD3B6", "line": "#2FBFA3", "teal": "#04211C", "marke": "#04211C",
+               "teal-dk": "#04211C", "red": "#5B0F0F", "txt": "#04211C", "dim": "#0A332C",
+               "dimmer": "#0A332C", "faint": "#9AF5E3", "grid": "#2FBFA3", "ctx": "#0F4A40",
                "bar": "#9AF5E3", "dot": "#2FBFA3", "track": "#2FBFA3"},
 }
 
@@ -141,7 +144,7 @@ def look_css(look: str = "dunkel") -> str:
     return (look_takt.schriften_css() + ":root{"
             + "".join("--%s:%s;" % (k, v) for k, v in f.items()) + "}"
             + wortmarke.css("wm", groesse=34, sperrung=5,
-                            kaspa="var(--txt)", pulse="var(--teal)"))
+                            kaspa="var(--txt)", pulse="var(--marke)"))
 
 
 CSS = """
@@ -445,6 +448,8 @@ def shoot(html: str, out_png: Path, browser=None, kanal: str = "x") -> None:
         page.goto(tmp.resolve().as_uri())
         page.evaluate("document.fonts.ready")
         page.wait_for_timeout(250)
+        import hintergrund
+        hintergrund.warten(page)
         # ueberlaufwaechter. bei groesserer schrift passt mehr text nicht mehr
         # von allein. wenn der inhalt die leinwand sprengt, wird nicht leise
         # abgeschnitten, sondern der lauf bricht ab und nennt den ueberstand.
@@ -494,7 +499,10 @@ def kanaele_rendern(d: dict, out: Path, tag: str, speicher=None, merken=False):
         try:
             for k in KANAELE:
                 ziel = kanal_pfad(out, k)
-                shoot(render_html(d, looks[k]), ziel, b, k)
+                # motiv je kanal, mit dem datum weiter (Ben, 25.10.2026)
+                import hintergrund as hg
+                shoot(hg.setzen(render_html(d, looks[k]), hg.motiv_datum(tag, hg.KANAL_VERSATZ[k] + 1), looks[k]),
+                      ziel, b, k)
                 ziel.with_suffix(".html").unlink(missing_ok=True)
                 aus[k] = (ziel, looks[k])
         finally:

@@ -227,6 +227,10 @@ def pruefe_seite(page, kanal, png=None):
     m = page.evaluate(MESS_JS)
     aus = groessen_verstoesse(m, p)
     aus += seite_text_verstoesse([t["text"] for t in m["texte"]])
+    # kontrast 7:1 fuer jeden text gegen seinen grund (Ben, 25.10.2026), im
+    # fertigen bild gemessen, mit motiv und schleier
+    import hintergrund
+    aus += hintergrund.kontrast_verstoesse(page)
     if png is not None and p["rahmen"]:
         daten = "data:image/png;base64," + base64.b64encode(Path(png).read_bytes()).decode()
         treffer = page.evaluate(RAHMEN_JS, [daten, p["rahmen"], m["grund"]])

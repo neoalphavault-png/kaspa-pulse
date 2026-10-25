@@ -183,17 +183,17 @@ def fuer_aufloesen(art, fuer, now=None):
 
 # ------------------------------------------------------------ entwurf
 
-def bauen(art, fuer, out, look):
+def bauen(art, fuer, out, look, motiv=None):
     """(seiten-texte, caption, bilder, motiv) im Look aus dem Raster."""
     import karussell
     if art == "meme":
         import meme_wahr
-        ss, cap, bilder = meme_wahr.bauen(fuer, out, "messung", (look,))
+        ss, cap, bilder = meme_wahr.bauen(fuer, out, "messung", (look,), motiv)
         fehler = meme_wahr.pruefen(ss, cap) + karussell.caption_pruefen(cap) + karussell.deckblatt_pruefen(ss)
         motiv = meme_wahr.MOTIV
     else:
         ss, cap = karussell.vorbereiten(art, fuer)
-        bilder = karussell.rendern(art, fuer, ss, (look,), out)
+        bilder = karussell.rendern(art, fuer, ss, (look,), out, motiv)
         fehler = karussell.deckblatt_pruefen(ss)
         motiv = ""
     if fehler:
@@ -220,11 +220,12 @@ def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, send
     sp = look_takt.lesen(speicher_pfad)
     serie = "meme" if art == "meme" else "karussell"
     look = look_takt.raster_faellig(sp, serie, fuer)[1]
+    motiv = look_takt.raster_motiv(sp, serie, fuer)
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
-    ss, cap, bilder, motiv = bauen(art, fuer, out, look)
+    ss, cap, bilder, motiv_meme = bauen(art, fuer, out, look, motiv)
     m = {"art": art, "fuer": fuer, "postzeit": postzeit(art, fuer).isoformat(), "look": look,
-         "caption": cap, "motiv": motiv, "probe": probe,
+         "caption": cap, "motiv": motiv_meme, "hintergrund": motiv, "probe": probe,
          "bilder": [{"datei": Path(b).name, "sha256": sha(b)} for b in bilder]}
     (out / "manifest.json").write_text(json.dumps(m, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     sag("entwurf %s fuer %s, look %s, %d seiten" % (art, fuer, look, len(bilder)))

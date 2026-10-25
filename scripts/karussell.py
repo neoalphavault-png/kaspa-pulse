@@ -460,7 +460,10 @@ def vorbereiten(art, fuer, history=None, story=None):
     return ss, cap
 
 
-def rendern(art, fuer, ss, looks, out):
+def rendern(art, fuer, ss, looks, out, motiv=None):
+    """motiv: das Hintergrundmotiv aus dem Raster (look_takt.raster_motiv),
+    alle Seiten eines Karussells tragen dasselbe."""
+    import hintergrund
     import tagesgrafik as tg
     from playwright.sync_api import sync_playwright
     out = Path(out)
@@ -472,7 +475,10 @@ def rendern(art, fuer, ss, looks, out):
             for lk in looks:
                 for s in ss:
                     png = out / ("karussell-%s-%s-%d-%s.png" % (art, fuer, s["seite"], lk))
-                    tg.rendern(seite_html(s, lk), png, 0, b, "instagram")
+                    seite = seite_html(s, lk)
+                    if motiv:
+                        seite = hintergrund.setzen(seite, motiv, lk)
+                    tg.rendern(seite, png, 0, b, "instagram")
                     bilder.append(png)
         finally:
             b.close()
@@ -527,7 +533,7 @@ def entwurf(art, fuer, out, senden=False, alle_looks=False, look="", speicher_pf
     sp = look_takt.lesen(speicher_pfad)
     lk = look or look_takt.raster_faellig(sp, "karussell", fuer)[1]
     looks = ("dunkel", "hell", "teal") if alle_looks else (lk,)
-    bilder = rendern(art, fuer, ss, looks, out)
+    bilder = rendern(art, fuer, ss, looks, out, look_takt.raster_motiv(sp, "karussell", fuer))
     Path(out, "karussell-%s-%s-caption.txt" % (art, fuer)).write_text(cap + "\n", encoding="utf-8")
     if senden:
         hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
