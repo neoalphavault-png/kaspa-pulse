@@ -1,93 +1,114 @@
 name: karussell
 
-# Instagram-Karussell, ENTWURF (Ben, 18.10.2026). Dieser Workflow baut die
-# Seiten und schickt Bilder und Caption nach #moderator-only. Er postet
-# NICHTS auf Instagram. Ben gibt frei und postet bis zur Freigabe-Strecke
-# von Hand. Das Posten ueber die Graph API kommt spaeter mit dem Schalter
-# KARUSSELL_LIVE (aus), wenn zwei Entwuerfe sauber durchgelaufen sind.
+# Instagram-Karussell und "Meme, but true", automatisch (Ben, 25.10.2026).
+# Jeder Termin laeuft in zwei Schritten, beide vom Takt auf c2:
 #
-# Der Takt kommt von c2: Fr 18:00 Berlin "woche" fuer Sa 11:00, Di 18:00
-# Berlin "story" fuer Mi 18:00. "meme" ist der Einzelpost "Meme, but true"
-# (scripts/meme_wahr.py), Entwurf am Posttag 09:00 Berlin, weil Seite 2 die
-# Blockrate am Posttag 10 Minuten misst; scheitert die Messung, faellt sie auf
-# die Crescendo-Blockrate zurueck (ohne "counted"). Erster Termin So 25.10. Ein Lauf mit senden=true merkt den Look im
-# gemeinsamen Instagram-Raster (data/look-takt.json), weil Ben genau diese
-# Bilder postet.
+#   entwurf  2 Stunden vor dem Post. Bilder und Caption nach #moderator-only
+#            mit "geht um HH:MM raus, Veto: karussell-stopp", alles als
+#            Artefakt karussell-entwurf-<art>-<datum>, Look im Raster gemerkt.
+#   posten   zum Termin. Holt genau die Bilder aus dem Entwurf, legt sie kurz
+#            in kaspapulse-media ab (wie die Reels) und postet ueber die
+#            Graph API, ein Karussell bis 10 Seiten oder ein Einzelbild.
+#   probe    beides in einem Lauf, nie veroeffentlicht, nichts gemerkt. Der
+#            Vorschau-Lauf vor dem Scharfschalten.
+#
+# SCHARF nur mit start=takt UND der Variable KARUSSELL_LIVE=true, im Fenster
+# um die Postzeit und ohne Stopp. Von Hand ist immer trocken. Notbremse:
+# Variable KARUSSELL_STOPP auf JJJJ-MM-TT oder immer.
+#
+# Termine: woche Sa 11:00, story Mi 18:00, meme Sa 15:00 (Berlin), Entwurf je
+# 2 Stunden vorher. Die Logik steht in scripts/karussell_post.py.
 
 on:
   workflow_dispatch:
     inputs:
       art:
-        description: "woche (sa 11:00), story (mi 18:00) oder meme (einzelpost)"
+        description: "woche (sa 11:00), story (mi 18:00) oder meme (sa 15:00)"
         type: choice
         options:
           - woche
           - story
           - meme
         default: woche
+      schritt:
+        description: "entwurf (2 h vorher), posten (zum termin) oder probe (beides, nie veroeffentlicht)"
+        type: choice
+        options:
+          - entwurf
+          - posten
+          - probe
+        default: probe
       fuer:
-        description: "post-datum JJJJ-MM-TT, leer = der naechste sa bzw. mi, beim meme heute"
+        description: "post-datum JJJJ-MM-TT, leer = der termin heute oder der naechste"
         required: false
         default: ""
-      senden:
-        description: "entwurf nach #moderator-only schicken und look merken"
-        type: boolean
-        default: false
+      start:
+        description: "hand (immer trocken) oder takt (darf scharf sein, setzt nur c2)"
+        type: choice
+        options:
+          - hand
+          - takt
+        default: hand
 
 permissions:
   contents: write
+  actions: read
 
 concurrency:
-  group: karussell
+  group: karussell-${{ inputs.art }}
   cancel-in-progress: false
 
 jobs:
-  entwurf:
+  karussell:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
+    env:
+      ART: ${{ inputs.art }}
+      FUER: ${{ inputs.fuer }}
+      START: ${{ inputs.start }}
+      SCHRITT: ${{ inputs.schritt }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: playwright
+      - name: pakete
         run: |
           python -m pip install --upgrade pip
-          pip install playwright
-          python -m playwright install --with-deps chromium
+          pip install "playwright" "pillow==11.3.0"
+          if [ "$SCHRITT" != "posten" ]; then python -m playwright install --with-deps chromium; fi
+      - name: eingaben
+        id: e
+        run: |
+          if [ -n "$FUER" ]; then
+            case "$FUER" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) ;; *) echo "fuer muss JJJJ-MM-TT sein"; exit 1;; esac
+          fi
+          python3 scripts/karussell_post.py datum --art "$ART" --fuer "$FUER"
       - name: selbsttest
         run: |
           python3 scripts/karussell.py --selbsttest
           python3 scripts/meme_wahr.py --selbsttest
+          python3 scripts/karussell_post.py --selbsttest
       - name: entwurf
+        id: w
+        if: inputs.schritt != 'posten'
         env:
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
-          ART: ${{ inputs.art }}
-          FUER: ${{ inputs.fuer }}
-          SENDEN: ${{ inputs.senden }}
-        run: |
-          if [ "$ART" = "meme" ]; then
-            SKRIPT=scripts/meme_wahr.py
-            ARGS="--zahl messung --out graphics/karussell"
-          else
-            SKRIPT=scripts/karussell.py
-            ARGS="$ART --out graphics/karussell"
-          fi
-          if [ -n "$FUER" ]; then
-            case "$FUER" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) ;; *) echo "fuer muss JJJJ-MM-TT sein"; exit 1;; esac
-            ARGS="$ARGS --fuer $FUER"
-          fi
-          if [ "$SENDEN" = "true" ]; then ARGS="$ARGS --senden"; fi
-          python3 "$SKRIPT" $ARGS
+          KARUSSELL_STOPP: ${{ vars.KARUSSELL_STOPP }}
+          PROBE: ${{ inputs.schritt == 'probe' && '--probe' || '' }}
+          F: ${{ steps.e.outputs.fuer }}
+        run: python3 scripts/karussell_post.py entwurf --art "$ART" --fuer "$F" --out out/entwurf $PROBE
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: inputs.schritt != 'posten' && steps.w.outputs.gebaut == '1'
         with:
-          name: karussell
-          path: graphics/karussell/
-          if-no-files-found: ignore
+          name: karussell-entwurf-${{ inputs.art }}-${{ steps.e.outputs.fuer }}${{ inputs.schritt == 'probe' && '-probe' || '' }}
+          path: |
+            out/entwurf/*.png
+            out/entwurf/manifest.json
+          if-no-files-found: error
           retention-days: 14
       - name: look sichern
-        if: inputs.senden
+        if: inputs.schritt == 'entwurf' && steps.w.outputs.gebaut == '1'
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
@@ -99,17 +120,53 @@ jobs:
             git pull --rebase --autostash origin "$GITHUB_REF_NAME"
             git push
           fi
+      - name: posten
+        if: inputs.schritt == 'posten' || (inputs.schritt == 'probe' && steps.w.outputs.gebaut == '1')
+        env:
+          INSTAGRAM_PAGE_TOKEN: ${{ secrets.INSTAGRAM_PAGE_TOKEN }}
+          IG_USER_ID: ${{ vars.IG_USER_ID }}
+          IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
+          MEDIA_REPO_TOKEN: ${{ secrets.MEDIA_REPO_TOKEN }}
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          GITHUB_TOKEN: ${{ github.token }}
+          KARUSSELL_LIVE: ${{ vars.KARUSSELL_LIVE }}
+          KARUSSELL_STOPP: ${{ vars.KARUSSELL_STOPP }}
+          F: ${{ steps.e.outputs.fuer }}
+        run: |
+          if [ "$SCHRITT" = "probe" ]; then
+            python3 scripts/karussell_post.py posten --art "$ART" --fuer "$F" --quelle out/entwurf --start hand --probe
+          else
+            python3 scripts/karussell_post.py posten --art "$ART" --fuer "$F" --start "$START"
+          fi
+      - name: log sichern
+        if: always() && inputs.schritt == 'posten'
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add data/karussell-log.json 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "log unveraendert, kein commit"
+            exit 0
+          fi
+          git commit -m "karussell log [bot]"
+          for N in 1 2 3; do
+            git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && exit 0
+            echo "push $N fehlgeschlagen"
+            sleep "$N"
+          done
+          echo "::error::karussell-log nicht gepusht, der naechste lauf koennte denselben termin noch einmal posten"
+          exit 1
       - name: ops bei rot
         if: failure()
         env:
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
           LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          ART: ${{ inputs.art }}
         run: |
           python3 - <<'PY'
           import json, os, urllib.request
           hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
-          text = "karussell %s ist rot, kein entwurf\n%s" % (os.environ.get("ART", ""), os.environ.get("LAUF", ""))
+          text = "karussell %s %s ist rot, nichts gepostet\n%s" % (
+              os.environ.get("ART", ""), os.environ.get("SCHRITT", ""), os.environ.get("LAUF", ""))
           print(text)
           if hook:
               req = urllib.request.Request(hook, data=json.dumps({"content": text,

@@ -1,0 +1,11 @@
+[Unit]
+Description=Kaspa Pulse Takt, Meme but true, posten Sa 15:00 Berlin
+
+[Timer]
+Unit=takt@karussell-meme.service
+OnCalendar=Sat *-*-* 15:00:00 Europe/Berlin
+Persistent=true
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

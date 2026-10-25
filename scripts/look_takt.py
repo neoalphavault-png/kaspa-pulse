@@ -174,7 +174,9 @@ def merken(speicher, serie, kanal, datum, sonder=None):
 # Rang davor steht, und rechnet vom Vortag weiter. Das Karussell nimmt den
 # Schritt nach ihr.
 RASTER = "raster/instagram"
-RANG = {"tagesgrafik": 1, "meme": 2, "karussell": 3}
+# Seit dem 25.10.2026 (Ben) postet der Samstag dreimal: Tagesgrafik 09:30,
+# Karussell 11:00, Meme 15:00. Das Meme steht deshalb hinter dem Karussell.
+RANG = {"tagesgrafik": 1, "karussell": 2, "meme": 3}
 
 
 def _raster_ort(e):
@@ -327,6 +329,15 @@ def selbsttest():
        raster_faellig(sp4, "meme", "2026-10-25")[0] == (raster_faellig(sp4, "tagesgrafik", "2026-10-25")[0] + 1) % 4)
     ok("tagesgrafik am montag folgt dem meme",
        raster_faellig(sp4, "tagesgrafik", "2026-10-26")[0] == (raster_faellig(sp4, "meme", "2026-10-25")[0] + 1) % 4)
+    # samstag mit karussell 11:00 und meme 15:00 (Ben, 25.10.2026)
+    sp5 = {"kanaele": {}}
+    raster_merken(sp5, "tagesgrafik", "2026-10-31")
+    raster_merken(sp5, "karussell", "2026-10-31")
+    raster_merken(sp5, "meme", "2026-10-31")
+    t5, k5, m5 = (raster_faellig(sp5, x, "2026-10-31")[0] for x in ("tagesgrafik", "karussell", "meme"))
+    ok("samstag, tagesgrafik, karussell, meme in dieser folge (%d %d %d)" % (t5, k5, m5),
+       k5 == (t5 + 1) % 4 and m5 == (t5 + 2) % 4
+       and raster_faellig(sp5, "tagesgrafik", "2026-11-01")[0] == (t5 + 3) % 4)
     ok("ein zweiter entwurf am selben tag schiebt nicht weiter",
        raster_merken(sp4, "karussell", "2026-10-24") == k)
     ok("hell, #49EACB nur als markierung", LOOKS["hell"]["akzent"] == "#0F9A80"
