@@ -16,6 +16,12 @@ exclude:
   - deploy/
   - CLAUDE.md
   - data/weekly-notes.md
+  # Folge-PR (Ben, 24.10.2026): Rohdaten des Uhrwerks und die Notiz zu den
+  # Schriften. Die Lizenz der Schriften (LICENSE-OFL-1.1.txt) bleibt
+  # oeffentlich, sie gehoert zu den Dateien. data/covenants/.../METHOD.md
+  # bleibt bewusst oeffentlich, die Methode gehoert zur Transparenz.
+  - reports/
+  - graphics/fonts/README.md
   # die eingebaute liste von jekyll 3
   - .sass-cache/
   - .jekyll-cache/
