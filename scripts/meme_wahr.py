@@ -292,7 +292,9 @@ def main(argv=None):
     sp = look_takt.lesen()
     lk = a.look or look_takt.raster_faellig(sp, "meme", a.fuer)[1]
     looks = ("dunkel", "hell", "teal") if a.alle_looks else (lk,)
-    ss, cap, bilder = bauen(a.fuer, a.out, a.zahl, looks, look_takt.raster_motiv(sp, "meme", a.fuer))
+    import hintergrund
+    ss, cap, bilder = bauen(a.fuer, a.out, a.zahl, looks,
+                            look_takt.raster_motiv(sp, "meme", a.fuer) if hintergrund.aktiv(a.fuer) else None)
     if a.senden:
         import karussell
         hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")

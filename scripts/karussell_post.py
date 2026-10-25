@@ -220,7 +220,8 @@ def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, send
     sp = look_takt.lesen(speicher_pfad)
     serie = "meme" if art == "meme" else "karussell"
     look = look_takt.raster_faellig(sp, serie, fuer)[1]
-    motiv = look_takt.raster_motiv(sp, serie, fuer)
+    import hintergrund
+    motiv = look_takt.raster_motiv(sp, serie, fuer) if hintergrund.aktiv(fuer) else None
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     ss, cap, bilder, motiv_meme = bauen(art, fuer, out, look, motiv)

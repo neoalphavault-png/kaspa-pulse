@@ -501,8 +501,10 @@ def kanaele_rendern(d: dict, out: Path, tag: str, speicher=None, merken=False):
                 ziel = kanal_pfad(out, k)
                 # motiv je kanal, mit dem datum weiter (Ben, 25.10.2026)
                 import hintergrund as hg
-                shoot(hg.setzen(render_html(d, looks[k]), hg.motiv_datum(tag, hg.KANAL_VERSATZ[k] + 1), looks[k]),
-                      ziel, b, k)
+                seite = render_html(d, looks[k])
+                if hg.aktiv(tag):
+                    seite = hg.setzen(seite, hg.motiv_datum(tag, hg.KANAL_VERSATZ[k] + 1), looks[k])
+                shoot(seite, ziel, b, k)
                 ziel.with_suffix(".html").unlink(missing_ok=True)
                 aus[k] = (ziel, looks[k])
         finally:

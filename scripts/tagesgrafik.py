@@ -2057,17 +2057,21 @@ def kanaele_rendern(s, png, heute, speicher=None):
     import hintergrund as hg
     motive = {k: hg.motiv_datum(heute, hg.KANAL_VERSATZ[k]) for k in look_takt.KANAELE}
     motive["instagram"] = look_takt.raster_motiv(sp, "tagesgrafik", heute)
+    if not hg.aktiv(heute):
+        motive = {k: None for k in motive}
+
+    def mit(seite, k):
+        return hg.setzen(seite, motive[k], looks[k]) if motive[k] else seite
     png = Path(png)
     kanalbilder = {}
     with sync_playwright() as p:
         b = chromium_start(p)
         try:
-            png, vpng = rendern(hg.setzen(html(s, looks["instagram"]), motive["instagram"], looks["instagram"]),
-                                png, VORSCHAU, b, "instagram")
+            png, vpng = rendern(mit(html(s, looks["instagram"]), "instagram"), png, VORSCHAU, b, "instagram")
             for k in look_takt.KANAELE:
                 if k == "instagram":
                     continue
-                kanalbilder[k], _ = rendern(hg.setzen(html(s, looks[k]), motive[k], looks[k]),
+                kanalbilder[k], _ = rendern(mit(html(s, looks[k]), k),
                                             png.with_name("%s-%s.png" % (png.stem, k)), 0, b, k)
         finally:
             b.close()

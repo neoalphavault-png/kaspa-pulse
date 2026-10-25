@@ -57,6 +57,9 @@ MOTIVE = ("blockstrom", "knotennetz", "punktraster", "hoehenlinien", "partikel-p
 FASSUNGEN = ("dunkel", "hell")
 FORMATE = {"feed": (1080, 1350), "story": (1080, 1920)}
 KONTRAST_MIN = 7.0
+# ab diesem tag tragen die bilder ein motiv (Ben, 25.10.2026). farben und
+# kontrast-wache gelten sofort.
+AB = "2026-10-28"
 # Schleier hinter jedem Text: so viel Grundton liegt ueber dem Motiv
 SCHLEIER_DECKUNG = 0.95
 
@@ -449,6 +452,10 @@ def kontrast_verstoesse(page, minimum=KONTRAST_MIN, quantil=0.05):
 
 # ------------------------------------------------------------ takt
 
+def aktiv(datum):
+    return str(datum)[:10] >= AB
+
+
 def motiv_nach(vorher, schritte=1):
     i = MOTIVE.index(vorher) if vorher in MOTIVE else -1
     return MOTIVE[(i + schritte) % len(MOTIVE)]
@@ -542,6 +549,7 @@ def selbsttest():
         print("%-4s %s" % ("ok" if bed else "FEHL", name))
         fehler += 0 if bed else 1
 
+    ok("motive erst ab mi 28.10.", not aktiv("2026-10-27") and aktiv("2026-10-28") and aktiv("2026-11-02"))
     ok("acht motive aus dem auftrag", MOTIVE == ("blockstrom", "knotennetz", "punktraster", "hoehenlinien",
                                                   "partikel-puls", "zahnraeder", "sternenfeld", "glitch-raster"))
     ok("jedes motiv hat einen zeichner", set(ZEICHNER) == set(MOTIVE))

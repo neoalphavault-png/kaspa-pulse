@@ -533,7 +533,9 @@ def entwurf(art, fuer, out, senden=False, alle_looks=False, look="", speicher_pf
     sp = look_takt.lesen(speicher_pfad)
     lk = look or look_takt.raster_faellig(sp, "karussell", fuer)[1]
     looks = ("dunkel", "hell", "teal") if alle_looks else (lk,)
-    bilder = rendern(art, fuer, ss, looks, out, look_takt.raster_motiv(sp, "karussell", fuer))
+    import hintergrund
+    bilder = rendern(art, fuer, ss, looks, out,
+                     look_takt.raster_motiv(sp, "karussell", fuer) if hintergrund.aktiv(fuer) else None)
     Path(out, "karussell-%s-%s-caption.txt" % (art, fuer)).write_text(cap + "\n", encoding="utf-8")
     if senden:
         hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")

@@ -858,7 +858,8 @@ def bauen(datum, out, log=None, plan=None, quellen=None, look=None, feed_zahl=No
     if look is None:
         look = look_takt.faellig(sp, "story", "instagram", datum)[1]
     # das motiv der story ruckt mit dem datum, nie das des feed-posts vom tag
-    motiv = hintergrund.motiv_story(datum, look_takt.raster_motiv(sp, "tagesgrafik", datum))
+    motiv = (hintergrund.motiv_story(datum, look_takt.raster_motiv(sp, "tagesgrafik", datum))
+             if hintergrund.aktiv(datum) else None)
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     pngs = []
@@ -1060,7 +1061,10 @@ def selbsttest():
                 for lk in ("dunkel", "hell", "teal"):
                     png = out / ("story-%s-%s-%s.png" % (s["datum_tag"], s["art"], lk))
                     try:
-                        rendern(s, lk, png, b)
+                        # jede story mit motiv, je look ein anderes (Ben, 25.10.2026)
+                        import hintergrund
+                        rendern(s, lk, png, b, hintergrund.motiv_datum(
+                            s["datum_tag"], 3 * ("dunkel", "hell", "teal").index(lk)))
                         gut = True
                     except Stopp as exc:
                         gut = str(exc)
