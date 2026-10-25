@@ -22,6 +22,7 @@ import argparse
 import csv
 import datetime as dt
 import glob
+import hashlib
 import json
 import os
 import statistics
@@ -90,6 +91,15 @@ def zeit_aus_daa(anker, daa):
             return t0 + (daa - d0) * (t1 - t0) / (d1 - d0)
     (d0, t0), (d1, t1) = (a[0], a[1]) if daa < a[0][0] else (a[-2], a[-1])
     return t0 + (daa - d0) * (t1 - t0) / (d1 - d0)
+
+
+def skript_hash(adr):
+    """sha256(version u16 le || skript), wie kp-stichzeit die Absender im Fenster hasht."""
+    try:
+        return hashlib.sha256(b"\x00\x00" + bytes.fromhex(adresse_zu_skript(adr))).hexdigest()
+    except ValueError:
+        # nicht umrechenbar: zaehlt eigen, ohne vereinigung mit dem fenster
+        return "adr:" + hashlib.sha256(adr.encode()).hexdigest()
 
 
 def tag(ms):
@@ -205,6 +215,7 @@ def auswerten(bestand, tx_zeilen, stand, absender, vorher, seite, stichzeit_ms, 
         "einzahlungen_im_fenster": sum(1 for e in ein if e["quelle"] == "fenster"),
         "fenster_utc": [iso(zeit_aus_daa(anker, f_von)), iso(zeit_aus_daa(anker, f_bis))],
         "fenster_luecken": len(luecken),
+        "absender_eindeutig_gesamt": len(set(absender) | {skript_hash(x) for x in api_menge}),
         "absender_eigenes_fenster": len(absender),
         "absender_aeltere_ueber_api_kaspa_org": len(api_menge),
         "absender_eingaenge_ohne_adresse_api": api_offen,
@@ -308,6 +319,11 @@ def selbsttest():
     ok("median 6, groesste 10 von 21", erg["median_spende_kas"] == 6 and erg["groesste_spende_anteil_prozent"] == 47.62, erg)
     ok("absender: fenster 1, api 2 (nur alte tx gefragt)", erg["absender_eigenes_fenster"] == 1
        and erg["absender_aeltere_ueber_api_kaspa_org"] == 2 and rufe == [["aa", "bb"]], (erg, rufe))
+    ok("absender vereinigt, kein doppelter", erg["absender_eindeutig_gesamt"] == 3, erg["absender_eindeutig_gesamt"])
+    ab2, _ = auswerten(bestand, txz, stand, {skript_hash("kaspa:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkx9awp4e")}, [], None,
+                       1792800000000, lambda ids: [{"inputs": [{"previous_outpoint_address":
+                                                                "kaspa:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkx9awp4e"}]}])
+    ok("gleicher absender in fenster und api zaehlt einmal", ab2["absender_eindeutig_gesamt"] == 1, ab2["absender_eindeutig_gesamt"])
     ok("bestand passt, keine abweichung", erg["pruefung_einzahlungen_minus_abgaenge_gleich_bestand"]
        and erg["abweichung_kas"] == 0 and erg["abweichung_ueber_1_prozent"] is False, erg)
     ok("tageskurve ab 23.10.", list(erg["tage"])[0] == "2026-10-23", list(erg["tage"]))
