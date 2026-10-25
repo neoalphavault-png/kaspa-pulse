@@ -623,7 +623,8 @@ def hero_html(z, st, oben=None):
         '    <p class="eyebrow">%s</p>' % (oben or "number of the week · reading %s · next %s" % (
             d_kurz(st), d_kurz(st + dt.timedelta(days=7), False))),
         '    <p class="big"><a class="mref" href="/method/#week">%s</a></p>' % pct(abs(z["abstand"])),
-        '    <p class="lead">%s</p>' % esc(satz),
+        # die ueberschrift der seite (taste-skill-pruefung 25.10.2026: kein sichtbares h1)
+        '    <h1 class="lead">%s</h1>' % esc(satz),
         '    <p class="note">week to %s · weekly close against the average of the last 50 weekly closes, '
         'source kraken daily candles · our own series since %s</p>' % (d_kurz(z["datum"]), d_kurz(z["seit"])),
         "    " + cs if cs else "",
