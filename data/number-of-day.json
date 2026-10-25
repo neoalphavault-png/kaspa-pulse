@@ -1,43 +1,44 @@
 {
-  "issue": "OCT 24 2026",
+  "issue": "OCT 25 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "11",
-  "value_label": "days until the next kaspa reward cut",
-  "headline": "bitcoin waits *540 days*.\nkaspa cuts 17 times before then.",
+  "value": "380 PH",
+  "value_label": "petahash per second securing the network on 25 oct",
+  "headline": "hashrate is *up 7%*\nagainst 4 weeks ago.",
   "panes": [
     {
       "kind": "compare",
-      "title": "TIME TO THE NEXT REDUCTION",
-      "sub": "counted from today, in days",
+      "title": "NETWORK HASHRATE",
+      "sub": "same measurement, two dates",
       "rows": [
         {
-          "label": "kaspa",
-          "sub": "monthly",
-          "value": "11",
-          "pct": 2.0798742023213617,
+          "label": "today",
+          "sub": "",
+          "value": "380 PH",
+          "pct": 100.0,
           "tone": "teal"
         },
         {
-          "label": "bitcoin",
-          "sub": "estimated",
-          "value": "540",
-          "pct": 100.0,
+          "label": "4 weeks ago",
+          "sub": "",
+          "value": "357 PH",
+          "pct": 93.85014939176924,
           "tone": "grey"
         }
       ]
     },
     {
       "kind": "anchor",
-      "title": "WHAT CHANGES",
+      "title": "WHAT THE NUMBER IS",
       "lines": [
-        "daily emission drops from 1.78 million to *1.68 million KAS*. no vote, no announcement."
+        "the difference is *23 PH*.",
+        "*read* from api.kaspa.org, both days."
       ]
     }
   ],
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "the next kaspa reward cut lands in 11 days. bitcoin waits about 540 days for its next one, and kaspa cuts 17 more times before that date. daily emission drops from 1.78 million to 1.68 million KAS, the block reward from 2.0602 to 1.9445.",
-    "reply": "the countdown runs on kaspapulse.com/kaspa-halving.html. the kaspa date is arithmetic, the bitcoin date is an estimate."
+    "x": "hashrate on kaspa is up 7% against 4 weeks ago. 380 PH today, 357 PH then, both read from api.kaspa.org 27 days apart.",
+    "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
   }
 }
