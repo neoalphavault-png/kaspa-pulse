@@ -1,0 +1,78 @@
+{
+  "art": "ein Zuhoerer (kein eigener Knoten), Verbindungen zu Tempnet-Knoten aus der oeffentlichen Konfiguration",
+  "start_utc": "2026-10-25T09:15:47Z",
+  "ende_utc": "2026-10-25T09:27:47Z",
+  "geplantes_ende_utc": "2026-10-25T09:27:47Z",
+  "dauer_min": 12.0,
+  "protokoll": 70016,
+  "peers": [
+    {
+      "peer": "peer_1",
+      "software": "/Bitcoin Cash Node:29.2.1(my-tempnet-node)/",
+      "version": 70016,
+      "gemeldete_hoehe": 341251,
+      "verbunden_utc": "2026-10-25T09:15:49Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 12,
+      "getrennt_utc": "2026-10-25T09:27:49Z"
+    },
+    {
+      "peer": "peer_2",
+      "software": "/Vcash:0.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 341251,
+      "verbunden_utc": "2026-10-25T09:15:51Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 11
+    },
+    {
+      "peer": "peer_3",
+      "software": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+      "version": 70016,
+      "gemeldete_hoehe": 341251,
+      "verbunden_utc": "2026-10-25T09:15:51Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 13,
+      "getrennt_utc": "2026-10-25T09:27:49Z"
+    },
+    {
+      "peer": "peer_4",
+      "software": "/Bitcoin Cash Node:29.2.1(9500-tempnet)/",
+      "version": 70016,
+      "gemeldete_hoehe": 341251,
+      "verbunden_utc": "2026-10-25T09:15:53Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 12
+    },
+    {
+      "peer": "peer_5",
+      "software": "/Vcash:0.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 341251,
+      "verbunden_utc": "2026-10-25T09:15:54Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 13,
+      "getrennt_utc": "2026-10-25T09:27:49Z"
+    }
+  ],
+  "peers_ohne_abzweig_abgelehnt": 7,
+  "block_hashes_gesehen": 13,
+  "koepfe_geholt": 12,
+  "zeitquelle": "Uhr des Runners (NTP), Millisekunden",
+  "labels": "peer_N je Lauf neu vergeben, nicht lauf-uebergreifend"
+}
