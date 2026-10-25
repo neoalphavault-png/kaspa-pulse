@@ -334,6 +334,28 @@
      "verhaeltnis": 696.95
     }
    }
+  },
+  {
+   "datum": "2026-10-25",
+   "form": 10,
+   "grund": "rotation, 2 laeufe in 30 tagen, zahl des tages hashrate_move (vorab gerechnet), uebersprungen [7, 8]",
+   "messzeit_utc": "2026-10-25T06:30:47+00:00",
+   "looks": {
+    "instagram": "hell",
+    "threads": "dunkel",
+    "x": "dunkel",
+    "discord": "dunkel"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-09-25",
+     "bis": "2026-10-24",
+     "fees": 77978.6487549,
+     "emission": 54472487.65277573,
+     "verhaeltnis": 698.56
+    }
+   }
   }
  ]
 }
