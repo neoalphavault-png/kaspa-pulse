@@ -36,7 +36,9 @@ GITHUB_ED25519="SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU"
 # dreimal da, und ein neuer Takt fehlte genau in nachziehen - also dort, wo
 # er auf c2 ankommen muesste. Wer einen Takt hinzufuegt, legt die
 # .timer-Datei unter taktgeber/ ab und schreibt den Namen hier hin.
-TAKTE="tagesgrafik instagram-bild reel weeklynumbers number-of-day cheat-sheet shorts-nachtrag story-vorlage ig-story-auto"
+TAKTE="tagesgrafik instagram-bild reel weeklynumbers number-of-day cheat-sheet shorts-nachtrag story-vorlage ig-story-auto
+karussell-woche-entwurf karussell-woche karussell-story-entwurf karussell-story
+karussell-meme-entwurf karussell-meme"
 ALARM_UNITS="entity-x-alarm.service entity-x-sync.service entity-x-sync.timer"
 
 meldung() { printf '\n== %s\n' "$*"; }

@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """meme_wahr.py, Einzelpost "Meme, but true" fuer Instagram (Ben, 18.10.2026).
 
-ENTWURF, NICHT SCHARF. Baut eine oder zwei Seiten und die Caption und
-schickt sie hoechstens nach #moderator-only. Ben gibt frei und postet von
-Hand. Kein fester Termin, gedacht fuer einen Samstag vor dem Wochen-Karussell
-oder einen Tag ohne Reel.
+Baut eine oder zwei Seiten und die Caption. Den Entwurf nach
+#moderator-only und das Posten uebernimmt scripts/karussell_post.py.
 
 SEITE 1  drei Element-Kacheln wie im Periodensystem, K (19, Potassium),
          As (33, Arsenic), Pa (91, Protactinium), darunter klein "KAsPa".
@@ -19,9 +17,11 @@ SEITE 2  (optional, macht den Post zum Karussell) "the chemistry checks out.
                              das ist auch der Rueckfall, wenn die Messung scheitert,
                              und dann steht nirgends "counted" (Ben, 19.10.2026)
 
-TERMIN (Ben, 19.10.2026): So 25.10. 11:00, eigener Rang "meme" im
-Instagram-Raster nach der Tagesgrafik. Entwurf am Posttag 09:00 Berlin, weil
-die Messung am Posttag laeuft.
+TERMIN (Ben, 25.10.2026): jeden Samstag 15:00, Serie "Meme, but true", Rang
+"meme" im Instagram-Raster nach Tagesgrafik und Karussell. Entwurf am
+Posttag 13:00 Berlin, weil die Messung am Posttag laeuft; gepostet wird von
+scripts/karussell_post.py. MOTIV nennt das Bild, ein Motiv geht nur einmal
+raus (der Posten-Lauf prueft das gegen data/karussell-log.json).
 
 Ordnungszahlen und Namen stehen fest im Skript (IUPAC); geprueft wird, dass
 sie zu den Symbolen passen. Jede Seite traegt ein Datum, weil Ziffern im
@@ -49,6 +49,7 @@ WORT = "KAsPa"
 SEITE2 = ("the chemistry checks out.", "so does the speed.")
 FRAGE = "what other word can you build from the table?"
 CRESCENDO = "2025-05-05"
+MOTIV = "kaspa-chemie"
 
 CSS = """
 *{margin:0;padding:0;box-sizing:border-box}
@@ -109,7 +110,8 @@ def zahl_seite2(art, fuer, messen=None):
 
 
 def seiten(fuer, zweite=None):
-    s = [{"art": "kacheln", "datum": "%s · atomic numbers, source IUPAC periodic table" % tag(fuer)}]
+    s = [{"art": "kacheln", "datum": "%s · atomic numbers, source IUPAC periodic table" % tag(fuer),
+          "datum_iso": fuer}]
     if zweite:
         z, satz, datum, cap = zweite
         s.append({"art": "zahl", "zahl": z, "satz": satz, "datum": datum, "caption": cap})
@@ -155,12 +157,14 @@ def seite_html(s, look):
 
 
 def caption(ss):
-    teile = ["K is potassium, As is arsenic, Pa is protactinium. put them together and you get %s." % WORT]
+    """Fuenf Bloecke nach den Content-Regeln (karussell.caption)."""
+    import karussell
+    haken = ("K is potassium 19, As is arsenic 33, Pa is protactinium 91, together they spell %s, "
+             "source IUPAC periodic table" % WORT)
     zw = [x for x in ss if x["art"] == "zahl"]
-    if zw:
-        teile.append("the chemistry checks out, and so does the speed. " + zw[0]["caption"])
-    teile += ["#kaspa #kas #blockdag", FRAGE]
-    return "\n\n".join(teile)
+    satz = ("the chemistry checks out, and so does the speed, " + zw[0]["caption"].rstrip(".")) if zw else \
+        "the chemistry checks out, %s" % tag(ss[0]["datum_iso"])
+    return karussell.caption(haken, satz, FRAGE)
 
 
 def pruefen(ss, cap):
@@ -214,7 +218,11 @@ def selbsttest():
     ok("zwei seiten, jede mit datum", len(ss) == 2 and all("2026" in x["datum"] or "2025" in x["datum"] for x in ss))
     ok("symbole ergeben KAsPa, ordnungszahlen nach IUPAC", not [f for f in pruefen(ss, cap) if "ordnung" in f or "symbol" in f])
     ok("texte und caption halten die wachen (%s)" % "; ".join(pruefen(ss, cap)), not pruefen(ss, cap))
-    ok("caption ohne link, frage am ende", cap.rstrip().endswith(FRAGE) and "http" not in cap)
+    ok("caption nach den content-regeln, frage an dritter stelle",
+       cap.split("\n\n")[2] == FRAGE and "http" not in cap)
+    c1 = caption(seiten("2026-10-31"))
+    ok("caption ohne seite 2 haelt die regeln (%s)" % "; ".join(pruefen(seiten("2026-10-31"), c1)),
+       not pruefen(seiten("2026-10-31"), c1))
     ok("seite 1 allein geht auch", len(seiten("2026-10-24")) == 1)
     g = zahl_seite2("messung", "2026-10-25", messen=lambda: (9.87, 1))
     ok("messung traegt den posttag und counted (%s)" % g[0], g[0] == "9.9 blocks a second"
@@ -257,7 +265,6 @@ def main(argv=None):
         hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
         if not hook:
             raise SystemExit("ABBRUCH kein DISCORD_WEBHOOK_OPS, nichts geschickt")
-        karussell.UHRZEIT["meme"] = "So 11:00" if dt.date.fromisoformat(a.fuer).weekday() == 6 else "nach freigabe"
         karussell.ops_senden(hook, "meme", a.fuer, lk, [b for b in bilder if b.stem.endswith("-" + lk)], cap)
         look_takt.raster_merken(sp, "meme", a.fuer)
         look_takt.schreiben(sp)

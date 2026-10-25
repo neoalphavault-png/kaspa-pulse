@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
 """karussell.py, Instagram-Karussell zweimal die Woche (Ben, 18.10.2026).
 
-ENTWURF, NICHT SCHARF. Dieses Skript baut die Seiten und die Caption und
-schickt den Entwurf hoechstens nach #moderator-only. Es postet nirgendwo.
-Das Posten ueber die Graph API kommt mit dem Schalter KARUSSELL_LIVE (aus),
-wenn zwei Entwuerfe sauber durch #moderator-only gelaufen sind. Bis dahin
-postet Ben von Hand aus dem Entwurf. Karussells gehen ohne Musik raus, die
+Dieses Skript baut die Seiten und die Caption. Gepostet wird seit dem
+25.10.2026 von scripts/karussell_post.py: Entwurf 2 Stunden vor dem Termin
+nach #moderator-only, zum Termin ueber die Graph API, scharf nur mit der
+Variable KARUSSELL_LIVE=true (Ben, 25.10.2026). Karussells gehen ohne Musik raus, die
 Graph API kann keine anhaengen; bei Handposts darf Ben Pixabay-Musik dazulegen.
 
 ZWEI FORMATE
-  woche   Sa 11:00 "The week in numbers", 4 Seiten, Entwurf Fr 18:00.
+  woche   Sa 11:00 "The week in numbers", 4 Seiten, Entwurf Sa 09:00.
           Seite 1 ein Haken-Satz und die staerkste Zahl der Woche, die stolz
           macht. Seite 2 und 3 je eine weitere Wochenzahl mit einem Satz und
           zwei Balken, Vorwoche gegen Woche, ab null, jeder Wert am Balken.
           Seite 4 der Abbinder. Die Zahlen kommen aus der Montagsausgabe der
           Weekly Numbers (data/weekly-history.json), jede Seite traegt
           "week to <samstag>" und die Quelle.
-  story   Mi 18:00 "The story of ...", 4 bis 5 Seiten, Entwurf Di 18:00.
+  story   Mi 18:00 "The story of ...", 4 bis 5 Seiten, Entwurf Mi 16:00.
           Thema ist der Donnerstags-Erklaerer der Vorwoche. Die Routine
           "Donnerstags-Erklaerer vorbereiten" schreibt danach
           data/karussell-story.json:
@@ -30,6 +29,10 @@ ZWEI FORMATE
           (Stand der Fakten im Erklaerer). Die Caption nennt "full explainer on
           YouTube", ohne Link.
 
+CAPTION (Ben, 25.10.2026), fuenf Bloecke: Haken mit Zahl, ein Satz mit
+Stichtag und Quelle, eine Frage, "Weekly Kaspa numbers in our newsletter,
+link in bio.", hoechstens fuenf Hashtags. Kein Link (caption_pruefen).
+
 LOOK. Ein gemeinsamer Takt fuer alle Instagram-Posts (look_takt.RASTER), das
 Karussell nimmt den Schritt nach der Tagesgrafik desselben Tages. Im
 teal-Look tragen die Balken den Restton #178270 statt #9AF5E3 (Ben,
@@ -39,8 +42,9 @@ REGELN, vor dem Rendern und am gerenderten Bild erzwungen
   jede Seite 1080x1350, Groessen der Feed-Zeile (content_wache misst jede
   Seite), jede Zahl mit Datum und Quelle, "counted" nur bei eigener Zaehlung,
   fremde Reihen "source ...", kein Echtzeit-Wort, "%" statt "percent", kein
-  Kursziel, kein Versprechen ueber die Zahl hinaus, Caption ohne Link mit
-  Frage am Ende.
+  Kursziel, kein Versprechen ueber die Zahl hinaus, Caption nach den
+  Content-Regeln, Seite 1 ohne Diagramm (im Profilraster steht sie neben der
+  Tagesgrafik, nie zwei Diagramme nebeneinander).
 
     python3 scripts/karussell.py woche --out /tmp/k [--fuer 2026-10-24] [--alle-looks]
     python3 scripts/karussell.py story --out /tmp/k [--story datei.json]
@@ -69,7 +73,17 @@ BALKEN_REST = {"teal": "#178270"}          # sonst der restton des looks
 # die balken enden ueber der datumszeile, auch wenn sie zwei zeilen hat
 # (unterkante 1218, zwei zeilen mono 34 sind 87 px)
 BALKEN_UNTEN = 1100
-UHRZEIT = {"woche": "Sa 11:00", "story": "Mi 18:00"}
+# Posttermine (Ben, 25.10.2026): der Entwurf kommt 2 Stunden vorher nach
+# #moderator-only, zum Termin postet scripts/karussell_post.py. Wochentag
+# 0 = montag.
+POSTZEIT = {"woche": (5, "11:00"), "story": (2, "18:00"), "meme": (5, "15:00")}
+UHRZEIT = {a: "%s %s" % (("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")[t], hm) for a, (t, hm) in POSTZEIT.items()}
+# Die Caption nach den Content-Regeln (Ben, 25.10.2026): fuenf Bloecke,
+# Haken mit Zahl, ein Satz, eine Frage, die Newsletter-Zeile, hoechstens
+# fuenf Hashtags, kein Link.
+ZEILE_BIO = "Weekly Kaspa numbers in our newsletter, link in bio."
+TAGS = "#kaspa #kas #blockdag"
+MAX_TAGS = 5
 UA = "kaspa-pulse-bot (+https://kaspapulse.com)"
 
 
@@ -324,6 +338,11 @@ FRAGEN = ("which of these numbers would you have guessed?",
           "did any of these surprise you?")
 
 
+def caption(haken, satz, frage, tags=TAGS):
+    """Die fuenf Bloecke in Bens Reihenfolge."""
+    return "\n\n".join([haken.rstrip(" .") + ".", satz.rstrip(" .") + ".", frage, ZEILE_BIO, tags])
+
+
 def caption_woche(ss, nummer=0):
     zeilen = [x for x in ss if x["art"] in ("haken", "zahl")]
     quellen = []
@@ -331,19 +350,27 @@ def caption_woche(ss, nummer=0):
         q = "kaspalytics" if "kaspalytics" in x["quelle"] else x["quelle"].replace("source ", "")
         if q not in quellen:
             quellen.append(q)
-    return "\n\n".join([
-        "the week in numbers, week to %s." % tag(zeilen[0]["woche"]),
-        "\n".join("%s %s" % (x["zahl"], x["satz"]) for x in zeilen),
-        "source %s." % " and ".join(quellen),
-        "#kaspa #kas #blockdag",
-        FRAGEN[nummer % len(FRAGEN)]])
+    erste = zeilen[0]
+    weitere = " and ".join(x["kopf"].lower() for x in zeilen[1:])
+    return caption("%s %s" % (erste["zahl"], erste["satz"]),
+                   "the week in numbers, with %s inside, week to %s, source %s"
+                   % (weitere, tag(erste["woche"]), " and ".join(quellen)),
+                   FRAGEN[nummer % len(FRAGEN)])
 
 
 def caption_story(st, ss):
-    # steht die zahl nur im bild, nennt die caption sie mit
-    gedanken = [x["satz"] + (", %s" % x["zahl"] if x.get("zahl") else "") for x in ss if x["art"] == "gedanke"]
-    return "\n\n".join([st["titel"] + ".", "\n".join(gedanken), "full explainer on YouTube.",
-                        "#kaspa #kas #blockdag", st.get("frage") or "what would you add to this story?"])
+    # der haken traegt die erste zahl der story mit ihrer quelle
+    gedanken = [x for x in ss if x["art"] == "gedanke"]
+    mit_zahl = [x for x in gedanken if x.get("zahl")]
+    titel = st["titel"][len("the story of"):].strip()
+    if mit_zahl:
+        x = mit_zahl[0]
+        haken = "%s, %s" % (x["zahl"], x["satz"])
+        satz = "the story of %s, %s, full explainer on YouTube" % (titel, x["datum"].replace(" \u00b7 ", ", "))
+    else:
+        haken = st["titel"]
+        satz = "%s, full explainer on YouTube" % ss[0]["datum"].split(" \u00b7 ")[0]
+    return caption(haken, satz, st.get("frage") or "what would you add to this story?")
 
 
 def text_pruefen(texte):
@@ -366,11 +393,39 @@ def text_pruefen(texte):
 
 
 def caption_pruefen(c):
-    fehler = text_pruefen([c.replace("#", "")])
-    if re.search(r"https?://|www\.|\.com/|youtu\.be|youtube\.com", c, re.I):
+    """Content-Regeln fuer die Caption (Ben, 25.10.2026). Jeder Block geht
+    einzeln durch die Textwachen, damit "counted" in einem Block und eine
+    fremde Quelle in einem anderen nicht verwechselt werden."""
+    import content_wache
+    bloecke = c.split("\n\n")
+    fehler = []
+    for b in bloecke[:3]:
+        fehler += text_pruefen([b])
+    if re.search(r"https?://|www\.|\.com\b|\.org\b|youtu\.be|youtube\.com", c, re.I):
         fehler.append("link in der caption")
-    if not c.rstrip().endswith("?"):
-        fehler.append("caption endet nicht mit einer frage")
+    if len(bloecke) != 5:
+        return fehler + ["caption hat %d bloecke, richtig sind 5 (haken, satz, frage, newsletter, hashtags)"
+                         % len(bloecke)]
+    haken, satz, frage, bio, tags = bloecke
+    if not re.search(r"\d", haken):
+        fehler.append("haken ohne zahl")
+    if haken.count(". ") or satz.count(". "):
+        fehler.append("haken und satz sind je ein satz")
+    if not frage.endswith("?") or frage.count("?") != 1:
+        fehler.append("block 3 ist nicht genau eine frage")
+    if bio != ZEILE_BIO:
+        fehler.append("block 4 ist nicht die newsletter-zeile")
+    t = tags.split()
+    if not 1 <= len(t) <= MAX_TAGS or not all(re.fullmatch(r"#[a-z0-9]+", x) for x in t):
+        fehler.append("block 5 hat %d hashtags oder anderes, erlaubt 1 bis %d" % (len(t), MAX_TAGS))
+    if "#" in " ".join(bloecke[:4]):
+        fehler.append("hashtag ausserhalb des letzten blocks")
+    if not content_wache.DATUM.search(haken + " " + satz):
+        fehler.append("caption ohne datum")
+    if not re.search(r"\bsource\b|counted by kaspa pulse", haken + " " + satz, re.I):
+        fehler.append("caption ohne quelle")
+    if len(c) > 2200:
+        fehler.append("caption hat %d zeichen, erlaubt 2200" % len(c))
     return fehler
 
 
@@ -399,7 +454,7 @@ def vorbereiten(art, fuer, history=None, story=None):
         st = json.loads(Path(story or STORY).read_text(encoding="utf-8"))
         ss = seiten_story(st, fuer)
         cap = caption_story(st, ss)
-    fehler = text_pruefen(seiten_texte(ss)) + caption_pruefen(cap)
+    fehler = text_pruefen(seiten_texte(ss)) + caption_pruefen(cap) + deckblatt_pruefen(ss)
     if fehler:
         raise Stopp("textpruefung, %s" % "; ".join(fehler))
     return ss, cap
@@ -424,13 +479,30 @@ def rendern(art, fuer, ss, looks, out):
     return bilder
 
 
-def ops_senden(hook, art, fuer, look, bilder, cap):
+def veto_satz(art, fuer):
+    """Der Satz im Entwurf (Ben, 25.10.2026). Das Veto ist die Variable
+    KARUSSELL_STOPP, wie IG_STOPP bei der Tagesgrafik."""
+    return ("geht um %s raus, Veto: karussell-stopp (Variable KARUSSELL_STOPP auf %s oder immer)"
+            % (POSTZEIT[art][1], fuer))
+
+
+def deckblatt_pruefen(ss):
+    """Nie zwei Diagramme nebeneinander (Ben, 25.10.2026). Im Profilraster
+    steht nur Seite 1, neben der Tagesgrafik, die oft ein Diagramm ist.
+    Seite 1 traegt deshalb nie ein Diagramm, und keine Seite mehr als eins."""
+    fehler = []
+    if ss and ss[0].get("balken"):
+        fehler.append("seite 1 traegt ein diagramm, im raster stuende es neben der tagesgrafik")
+    return fehler
+
+
+def ops_senden(hook, art, fuer, look, bilder, cap, vor=""):
     """Der Entwurf nach #moderator-only, Text und alle Seiten in einer Nachricht."""
     import look_takt
-    inhalt = ("%sENTWURF karussell %s fuer %s, %s Berlin, look %s. nicht oeffentlich, nicht posten bis "
-              "zur freigabe. %d seiten in der reihenfolge der bilder, ohne musik.\n\nCAPTION\n```\n%s\n```"
+    inhalt = (vor + "%sENTWURF karussell %s fuer %s, look %s, %d seiten in der reihenfolge der bilder, ohne musik.\n"
+              "%s\n\nCAPTION\n```\n%s\n```"
               % ("TROCKENLAUF (ZIEL=moderator). " if look_takt.trockenlauf() else "",
-                 art, fuer, UHRZEIT[art], look, len(bilder), cap))[:1990]
+                 art, fuer, look, len(bilder), veto_satz(art, fuer), cap))[:1990]
     grenze = "----ka" + uuid.uuid4().hex
     teile = [("--%s\r\nContent-Disposition: form-data; name=\"payload_json\"\r\nContent-Type: application/json"
               "\r\n\r\n" % grenze).encode()
@@ -509,7 +581,16 @@ def selbsttest():
         ok("ohne montagsausgabe der woche kein entwurf", True)
     ok("texte halten die wachen", not text_pruefen(seiten_texte(ss)))
     c = caption_woche(ss)
-    ok("caption ohne link, frage am ende", not caption_pruefen(c))
+    ok("caption nach den content-regeln (%s)" % "; ".join(caption_pruefen(c)), not caption_pruefen(c))
+    bl = c.split("\n\n")
+    ok("fuenf bloecke, haken mit zahl, frage an dritter stelle, newsletter, hashtags",
+       len(bl) == 5 and re.search(r"\d", bl[0]) and bl[2].endswith("?") and bl[3] == ZEILE_BIO
+       and bl[4].startswith("#"))
+    ok("sechs hashtags fallen auf", bool(caption_pruefen(c.replace(TAGS, TAGS + " #a #b #c"))))
+    ok("caption ohne quelle faellt auf", bool(caption_pruefen(c.replace("source ", "from "))))
+    ok("deckblatt ohne diagramm", not deckblatt_pruefen(ss) and bool(deckblatt_pruefen(ss[1:])))
+    ok("entwurf nennt postzeit und veto", veto_satz("woche", "2026-10-31")
+       .startswith("geht um 11:00 raus, Veto: karussell-stopp"))
     ok("caption mit link faellt auf", bool(caption_pruefen(c + " kaspapulse.com/ig")))
     ok("echtzeit faellt auf", bool(text_pruefen(["hashrate right now at 360 PH/s on 10 oct"])))
     ok("counted bei fremder quelle faellt auf", bool(text_pruefen(["week to 10 oct, counted · source defillama"])))
@@ -521,7 +602,8 @@ def selbsttest():
     ok("jede story-seite traegt ein datum", all(re.search(r"\d{1,2} [a-z]{3} \d{4}", x["datum"]) for x in st))
     ok("story-texte halten die wachen", not text_pruefen(seiten_texte(st)))
     cs = caption_story(PROBE_STORY, st)
-    ok("story-caption nennt das video ohne link", "full explainer on YouTube" in cs and not caption_pruefen(cs))
+    ok("story-caption nennt das video ohne link (%s)" % "; ".join(caption_pruefen(cs)),
+       "full explainer on YouTube" in cs and not caption_pruefen(cs))
     for name, kaputt in (("falscher mittwoch", dict(PROBE_STORY, mittwoch="2026-10-21")),
                          ("zahl ohne quelle", dict(PROBE_STORY, seiten=[dict(PROBE_STORY["seiten"][1], quelle="")]
                                                    + PROBE_STORY["seiten"][:3])),
