@@ -1,0 +1,18 @@
+[package]
+name = "kp-stichzeit"
+description = "Kaspa Pulse: UTXO-Bestand zu einer Stichzeit aus der Datenbank eines gestoppten Knotens, mit Zielskript fuer Spendenzaehlung"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+kaspa-addresses.workspace = true
+kaspa-consensus.workspace = true
+kaspa-consensus-core.workspace = true
+kaspa-database.workspace = true
+kaspa-hashes.workspace = true
+kaspa-txscript.workspace = true
+faster-hex = { workspace = true, features = ["std"] }
+serde_json.workspace = true
+sha2.workspace = true

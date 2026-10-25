@@ -1,0 +1,173 @@
+# Kaspa Pulse - KaspaDollar-Spenden vom eigenen Mainnet-Knoten (Ben, 25.10.2026)
+#
+# Die Spendenadresse kommt nur von kaspadollar.com (Feld neben "Copy") und
+# bleibt im Runner (/mnt/kp/geheim). Sie wird nie ausgegeben: jede Ausgabe laeuft
+# durch einen Filter, der Kaspa-Adressen ersetzt. Eigener Knoten (rusty-kaspa
+# v2.1.0), gestoppt, kp-stichzeit mit KP_SPK liest die UTXOs der Adresse zur
+# Stichzeit und ihre Ein- und Abgaenge im Knotenfenster. Hochgeladen werden nur
+# Ereignisse ohne Tx-ID (Zeit, DAA, Art, Betrag), Fenster, Tagessummen und das
+# Ergebnis. Bestand, Absender und Adresse bleiben im Runner. Keine Wallet,
+# keine Schluessel, keine Secrets. Gestartet ueber kaspadollar/start.txt.
+
+name: kaspadollar spenden
+
+on:
+  push:
+    branches:
+      - messung/kaspadollar-spenden
+    paths:
+      - kaspadollar/start.txt
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: kaspadollar-spenden
+  cancel-in-progress: false
+
+jobs:
+  zaehlen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    env:
+      KASPA_TAG: v2.1.0
+      APP: /mnt/kp/app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: sdk, version und pruefsumme fest
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+
+      - name: selbsttests
+        run: |
+          python3 scripts/kp_stichzeit_warten.py --selbsttest | tail -n 1
+          python3 scripts/kaspadollar_quelle.py --selbsttest | tail -n 1
+          python3 scripts/kaspadollar_zaehlung.py --selbsttest | tail -n 1
+
+      - name: platz schaffen
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost || true
+          sudo mkdir -p /mnt/kp && sudo chown "$USER" /mnt/kp
+          mkdir -p /mnt/kp/geheim /mnt/kp/aus && chmod 700 /mnt/kp/geheim
+
+      - name: adresse von kaspadollar.com (nur hash im log)
+        run: |
+          set -o pipefail
+          python3 scripts/kaspadollar_quelle.py --adresse-nach /mnt/kp/geheim/adresse.txt 2>&1 | sed -E 's/kaspa:[a-z0-9]{40,}/[adresse]/g'
+          python3 scripts/kaspadollar_zaehlung.py --adresse /mnt/kp/geheim/adresse.txt --skript-aus /mnt/kp/geheim/skript.txt 2>&1 | sed -E 's/kaspa:[a-z0-9]{40,}/[adresse]/g'
+
+      - name: stand der seite zur stichzeit vormerken (source kaspadollar.com)
+        run: |
+          um=$(sed -n 's/^seite_um=//p' kaspadollar/start.txt)
+          nohup python3 scripts/kaspadollar_quelle.py --stand --um "$um" --nach /mnt/kp/aus/seite.json > /mnt/kp/geheim/seite.log 2>&1 &
+          echo "seite wird um $um gelesen"
+
+      - name: kaspad holen (fertiges release)
+        id: bin
+        run: |
+          set -euo pipefail
+          mkdir -p /mnt/kp/bin && cd /mnt/kp/bin
+          curl -fsSL -H "Authorization: Bearer ${{ github.token }}" \
+            "https://api.github.com/repos/kaspanet/rusty-kaspa/releases/tags/${KASPA_TAG}" > rel.json
+          url=$(python3 -c "
+          import json
+          a=[x for x in json.load(open('rel.json'))['assets'] if 'linux' in x['name'] and ('amd64' in x['name'] or 'x86_64' in x['name']) and x['name'].endswith('.zip')]
+          print(a[0]['browser_download_url'] if a else '')")
+          if [ -z "$url" ]; then echo "kein fertiges linux-release gefunden"; echo "ok=nein" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo "release-datei: $(basename "$url")"
+          curl -fsSL "$url" -o k.zip && unzip -q k.zip
+          k=$(find . -type f -name kaspad | head -n 1)
+          chmod +x "$k" && cp "$k" /mnt/kp/kaspad
+          sha256sum /mnt/kp/kaspad | cut -c1-64
+          echo "ok=ja" >> "$GITHUB_OUTPUT"
+
+      - name: knoten starten, ausgabe nur in datei
+        if: steps.bin.outputs.ok == 'ja'
+        run: |
+          mkdir -p "$APP"
+          nohup /mnt/kp/kaspad --yes --appdir="$APP" --nologfiles --disable-upnp \
+            --rpclisten-borsh > /mnt/kp/kaspad.log 2>&1 &
+          echo $! > /mnt/kp/kaspad.pid
+          sleep 20
+          kill -0 "$(cat /mnt/kp/kaspad.pid)" && echo "knoten laeuft"
+
+      - name: rusty-kaspa quelle und werkzeug bauen
+        run: |
+          set -euo pipefail
+          # kein apt (22.10.2026): das werkzeug braucht keine extra pakete
+          git clone -q --depth 1 --branch "$KASPA_TAG" https://github.com/kaspanet/rusty-kaspa /mnt/kp/rk
+          cp -r kaspadollar/werkzeug /mnt/kp/rk/kp-stichzeit
+          cd /mnt/kp/rk
+          sed -i '0,/^members = \[/s//members = [\n    "kp-stichzeit",/' Cargo.toml
+          export CARGO_TARGET_DIR=/mnt/kp/target
+          nice cargo build -q --release -p kp-stichzeit
+          ls -la /mnt/kp/target/release/kp-stichzeit | awk '{print $5, $9}'
+
+      - name: warten bis synchron
+        run: |
+          python3 scripts/kp_stichzeit_warten.py --stichzeit-ms "$(sed -n 's/^stichzeit_ms=//p' kaspadollar/start.txt)" --max-min 290 --vorlauf-min 15
+
+      - name: knoten stoppen
+        if: always()
+        run: |
+          p=$(cat /mnt/kp/kaspad.pid 2>/dev/null || true)
+          [ -n "$p" ] && kill -INT "$p" 2>/dev/null || true
+          for i in $(seq 1 120); do kill -0 "$p" 2>/dev/null || break; sleep 5; done
+          kill -0 "$p" 2>/dev/null && echo "knoten noch nicht beendet" || echo "knoten beendet"
+
+      - name: fruehere laeufe holen (ereignisse ohne tx-id)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /mnt/kp/vorher
+          for r in $(sed -n 's/^vorlaeufe=//p' kaspadollar/start.txt | tr ',' ' '); do
+            gh run download "$r" -n kaspadollar-spenden -D "/mnt/kp/vorher/$r" -R "$GITHUB_REPOSITORY" && echo "lauf $r geholt" || echo "lauf $r nicht geholt"
+          done
+
+      - name: bestand der adresse und zaehlung
+        run: |
+          set -uo pipefail
+          ms=$(sed -n 's/^stichzeit_ms=//p' kaspadollar/start.txt)
+          stichzeit=$(sed -n 's/^stichzeit=//p' kaspadollar/start.txt)
+          versuch() {
+            for d in $(ls -d "$APP"/kaspa-mainnet/datadir/consensus/consensus-* | sort -r); do
+              echo "versuche $(basename "$d")"
+              if KP_SPK="$(cat /mnt/kp/geheim/skript.txt)" /mnt/kp/target/release/kp-stichzeit "$d" /mnt/kp/geheim "$ms" > /mnt/kp/geheim/stdout.json 2> /mnt/kp/geheim/stderr.txt; then
+                grep -v -E '([0-9]{1,3}\.){3}[0-9]{1,3}' /mnt/kp/geheim/stderr.txt | sed -E 's/kaspa:[a-z0-9]{40,}/[adresse]/g' | tail -n 5
+                return 0
+              fi
+              grep -v -E '([0-9]{1,3}\.){3}[0-9]{1,3}' /mnt/kp/geheim/stderr.txt | sed -E 's/kaspa:[a-z0-9]{40,}/[adresse]/g' | tail -n 5
+            done
+            return 1
+          }
+          versuch || { echo "werkzeug gescheitert"; exit 1; }
+          # warten, bis der stand der seite zur stichzeit gelesen ist (hoechstens 10 minuten)
+          for i in $(seq 1 60); do [ -s /mnt/kp/aus/seite.json ] && break; sleep 10; done
+          cp /mnt/kp/geheim/adr-stand.json /mnt/kp/aus/adr-stand.json
+          python3 -c "import json; d=json.load(open('/mnt/kp/geheim/stand.json')); print(json.dumps({k: d[k] for k in ('hauptstichzeit','hauptstichblock','pruning_punkt_zeit','kettenspitze_zeit','zweitpruefung')}, indent=2))"
+          python3 -c "import json; d=json.load(open('/mnt/kp/aus/adr-stand.json')); d.pop('anker_daa_ms'); print(json.dumps(d, indent=2))"
+          python3 scripts/kaspadollar_zaehlung.py --bestand /mnt/kp/geheim/bestand.csv --tx /mnt/kp/geheim/adr-tx.jsonl \
+            --stand /mnt/kp/aus/adr-stand.json --absender /mnt/kp/geheim/absender.txt --vorher /mnt/kp/vorher \
+            --seite /mnt/kp/aus/seite.json --stichzeit "$stichzeit" --out /mnt/kp/aus 2>&1 | sed -E 's/kaspa:[a-z0-9]{40,}/[adresse]/g'
+          grep -c . /mnt/kp/aus/ereignisse.jsonl
+          ! grep -l -E 'kaspa:[a-z0-9]{40,}' /mnt/kp/aus/* && echo "keine adresse in den ausgaben"
+
+      - name: ergebnis hochladen (ohne adressen, ohne tx-id)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaspadollar-spenden
+          path: |
+            /mnt/kp/aus/ereignisse.jsonl
+            /mnt/kp/aus/adr-stand.json
+            /mnt/kp/aus/ergebnis.json
+            /mnt/kp/aus/tage.csv
+            /mnt/kp/aus/seite.json
+          if-no-files-found: ignore
+          retention-days: 30

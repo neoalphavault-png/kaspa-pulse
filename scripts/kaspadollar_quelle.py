@@ -7,7 +7,7 @@ geschrieben. Ausgaben tragen statt jeder Kaspa-Adresse "[adresse <sha256 10>]".
 
     python3 scripts/kaspadollar_quelle.py --erkunden            # Aufbau der Seite, ohne Adressen
     python3 scripts/kaspadollar_quelle.py --adresse-nach DATEI  # Adresse in eine Datei im Runner, druckt nur den Hash
-    python3 scripts/kaspadollar_quelle.py --stand               # angezeigter Spendenstand, source kaspadollar.com
+    python3 scripts/kaspadollar_quelle.py --stand [--um ISO] [--nach DATEI]  # angezeigter Stand, source kaspadollar.com
     python3 scripts/kaspadollar_quelle.py --selbsttest
 """
 import argparse
@@ -102,6 +102,36 @@ def adresse_nach(pfad):
     return 0
 
 
+def stand_aus(html):
+    """angezeigter Spendenstand: '<zahl>' 'of <ziel> KAS has' ... '<prozent>%'."""
+    text = " ".join(text_zeilen(html))
+    m = re.search(r"([\d][\d,\.]*)\s+of\s+([\d][\d,\.]*)\s*KAS", text)
+    p = re.search(r"([\d]+(?:\.\d+)?)\s*%", text)
+    if not m:
+        return None
+    zahl = lambda x: float(x.replace(",", ""))  # noqa: E731
+    return {"kas": zahl(m.group(1)), "ziel_kas": zahl(m.group(2)), "prozent": float(p.group(1)) if p else None}
+
+
+def stand(um=None, nach=None):
+    """Stand laut kaspadollar.com; mit --um erst zu dieser Zeit (UTC) abrufen."""
+    if um:
+        ziel = dt.datetime.fromisoformat(um.replace("Z", "+00:00"))
+        warte = (ziel - dt.datetime.now(dt.timezone.utc)).total_seconds()
+        if warte > 0:
+            import time
+            time.sleep(warte)
+    html, _t = holen(SEITE)
+    d = stand_aus(html) or {}
+    d.update({"quelle": "source kaspadollar.com", "abgerufen_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+              "adresse_neben_copy_sha256": [h(a) for a, c in adresse_neben_copy(html) if c]})
+    if nach:
+        with open(nach, "w", encoding="utf-8") as fh:
+            json.dump(d, fh)
+    print(json.dumps(d))
+    return 0
+
+
 def selbsttest():
     fehler = []
 
@@ -114,6 +144,8 @@ def selbsttest():
     html = "<div>Donate <span>%s</span><button>Copy</button></div>" % a + "x" * 900 + "kaspa:" + "p" * 61
     f = adresse_neben_copy(html)
     ok("adresse neben copy erkannt, die ferne nicht", f == [(a, True), ("kaspa:" + "p" * 61, False)], f)
+    st = stand_aus("<p>91,352</p><p>of 5,000,000 KAS has</p><p>been raised so far</p><p>1.8%</p>")
+    ok("stand gelesen", st == {"kas": 91352.0, "ziel_kas": 5000000.0, "prozent": 1.8}, st)
     ok("textzeilen ohne skript", text_zeilen("<p>91,352 KAS</p><script>x</script>") == ["91,352 KAS"])
     print("%d fehler" % len(fehler))
     return 1 if fehler else 0
@@ -123,12 +155,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--erkunden", action="store_true")
     ap.add_argument("--adresse-nach")
+    ap.add_argument("--stand", action="store_true")
+    ap.add_argument("--um")
+    ap.add_argument("--nach")
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args()
     if a.selbsttest:
         return selbsttest()
     if a.erkunden:
         return erkunden()
+    if a.stand:
+        return stand(a.um, a.nach)
     if a.adresse_nach:
         return adresse_nach(a.adresse_nach)
     ap.print_help()
