@@ -1,0 +1,39 @@
+# Kaspa Pulse - KaspaDollar-Spenden, Quelle kaspadollar.com ohne Knoten (Ben, 25.10.2026)
+#
+# Liest nur die oeffentliche Seite kaspadollar.com. Jede Kaspa-Adresse wird vor
+# der Ausgabe durch "[adresse <sha256 10>]" ersetzt, zusaetzlich filtert sed die
+# ganze Ausgabe. Kein Knoten, keine Wallet, keine Schluessel, keine Secrets,
+# kein Artefakt. Gestartet ueber kaspadollar/quelle.txt (push) oder von Hand.
+
+name: kaspadollar quelle
+
+on:
+  push:
+    branches:
+      - messung/kaspadollar-spenden
+    paths:
+      - kaspadollar/quelle.txt
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lesen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: selbsttest
+        run: python3 scripts/kaspadollar_quelle.py --selbsttest | tail -n 1
+
+      - name: kaspadollar.com lesen (ohne adressen)
+        run: |
+          set -o pipefail
+          m=$(sed -n 's/^modus=//p' kaspadollar/quelle.txt)
+          python3 scripts/kaspadollar_quelle.py --"$m" 2>&1 | sed -E 's/kaspa:[a-z0-9]{40,}/[adresse]/g'
