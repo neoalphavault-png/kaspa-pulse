@@ -658,7 +658,10 @@ def anmeldung(nr, sid, titel, text):
             '    <h3>%s</h3>\n'
             '    <p>%s</p>\n'
             '    <form class="subform" action="%s" method="POST" target="_blank">\n'
-            '      <input type="email" name="EMAIL" placeholder="your email" aria-label="email" required>\n'
+            # web interface guidelines (25.10.2026): autocomplete, keine rechtschreibpruefung,
+            # der platzhalter zeigt das muster
+            '      <input type="email" name="EMAIL" placeholder="you@example.com" aria-label="email" '
+            'autocomplete="email" spellcheck="false" required>\n'
             '%s'
             '      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" '
             'tabindex="-1" autocomplete="off" aria-hidden="true">\n'

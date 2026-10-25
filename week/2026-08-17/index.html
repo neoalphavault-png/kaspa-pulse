@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080B0F">
 <title>Kaspa Pulse Issue 6, the Reading of 17 Aug 2026</title>
 <meta name="description" content="The Kaspa Pulse reading of monday 17 aug 2026, issue 6. The weekly close sat 38.26% below the 50 week average, plus 3 more numbers, dated and sourced.">
 <!--AUTO:seo-kopf-->
@@ -78,7 +79,11 @@
   --accent:#49EACB; --accent-soft:#103A33; --neg:#A9B7B4; --chip:#152025; --accent-ink:#49EACB;
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:110px}
+html{scroll-behavior:smooth;scroll-padding-top:110px;color-scheme:light dark;touch-action:manipulation}
+:root[data-theme="light"]{color-scheme:light} :root[data-theme="dark"]{color-scheme:dark}
+a,button{-webkit-tap-highlight-color:rgba(73,234,203,.25)}
+.skip{position:absolute;left:12px;top:-60px;z-index:100;background:var(--brand);color:#04211C;font:600 15px/1 "IBM Plex Sans",system-ui,sans-serif;padding:12px 14px;border-radius:8px;text-decoration:none}
+.skip:focus{top:12px}
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;line-height:1.55;overflow-x:hidden}
 a{color:inherit}
@@ -104,7 +109,7 @@ header.top{max-width:1080px;margin:0 auto;padding:0 16px;height:56px;display:fle
   .burger{display:inline-block}
   .subbtn{padding:9px 12px}
   /* handy: alle gruppen offen, zwei spalten, passt ohne scrollen auf 360 x 640 */
-  .menu{display:none;position:absolute;left:0;right:0;top:56px;margin:0;background:var(--bar);border-bottom:1px solid var(--bar-line);padding:8px 16px 14px;max-height:calc(100vh - 56px);max-height:calc(100dvh - 56px);overflow-y:auto;overscroll-behavior:contain}
+  .menu{display:none;position:absolute;left:0;right:0;top:56px;margin:0;background:var(--bar);border-bottom:1px solid var(--bar-line);padding:8px 16px 14px;max-height:calc(100vh - 56px);max-height:calc(100dvh - 56px);overscroll-behavior:contain;overflow-y:auto;overscroll-behavior:contain}
   .menu.open{display:block;columns:2;column-gap:16px}
   .mtop{column-span:all;display:flex;flex-wrap:wrap;gap:0 14px;border-bottom:1px solid var(--bar-line);margin-bottom:6px}
   .mtop a{padding:9px 0;font-size:15px;color:var(--bar-ink)}
@@ -139,6 +144,7 @@ h2 em{font-style:normal;color:var(--accent)}
 /* die hervorgehobene zahl verlinkt auf ihren eintrag in method */
 a.mref{color:inherit;text-decoration:underline dotted;text-decoration-thickness:2px;text-underline-offset:.15em}
 a.mref:hover{text-decoration-style:solid}
+.next:hover{border-color:var(--accent)} .bridge a:hover{text-decoration-thickness:2px} footer a:hover{color:var(--ink)}
 .big a.mref{text-decoration-thickness:4px}
 p.body{max-width:62ch;margin:0 0 18px}
 figure{margin:0 0 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
@@ -218,9 +224,10 @@ footer .fund a{display:inline-block;padding:10px 0}
 </style>
 </head>
 <body>
+<a class="skip" href="#main">skip to content</a>
 <div class="bar">
 <header class="top">
-  <a class="logo" href="/">KASPA <span>PULSE</span></a>
+  <a class="logo" href="/" translate="no">KASPA <span>PULSE</span></a>
 <!--AUTO:menue-->
 <nav class="menu" id="menu" aria-label="main">
   <div class="mtop">
@@ -240,7 +247,7 @@ footer .fund a{display:inline-block;padding:10px 0}
 </header>
 </div>
 
-<main>
+<main id="main">
 <!--AUTO:startseite-->
   <section class="hero" id="week">
     <p class="eyebrow">issue 6 · the monday reading of 17 aug 2026</p>
@@ -279,7 +286,7 @@ footer .fund a{display:inline-block;padding:10px 0}
     <h3>all the weekly numbers in one mail, every monday</h3>
     <p>the numbers of each monday reading, dated and sourced, in one mail.</p>
     <form class="subform" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
-      <input type="email" name="EMAIL" placeholder="your email" aria-label="email" required>
+      <input type="email" name="EMAIL" placeholder="you@example.com" aria-label="email" autocomplete="email" spellcheck="false" required>
       <input type="hidden" name="UTM_SOURCE" id="utmSource" value="direct">
       <input type="hidden" name="UTM_MEDIUM" id="utmMedium" value="none">
       <input type="hidden" name="UTM_CAMPAIGN" id="utmCampaign" value="none">
@@ -307,7 +314,7 @@ footer .fund a{display:inline-block;padding:10px 0}
 
   <footer>
     <div class="stand"><!--AUTO:seitenstand-->page last updated 21 October 2026<!--/AUTO:seitenstand--></div>
-    <div class="brand">KASPA <span>PULSE</span></div>
+    <div class="brand" translate="no">KASPA <span>PULSE</span></div>
     <div>kaspapulse.com · Kaspa Pulse. We keep track. · not financial advice · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
     <div class="fund"><a href="/how-we-fund-this.html">how we fund this</a> · <a href="/for-builders.html">for builders</a></div>
   </footer>
