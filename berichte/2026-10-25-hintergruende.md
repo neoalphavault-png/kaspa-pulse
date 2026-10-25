@@ -64,7 +64,7 @@ Die 7:1-Regel trifft schon die bestehenden Looks, unabhängig vom Motiv. Ohne Ä
 - **Kanal-Renderer:** Tagesgrafik und Zahl des Tages für den 28.10. über `kanaele_rendern` gebaut, alle Kanäle mit Motiv und Wache grün.
 
 ## PR-Nummern
-- dieser PR: folgt
+- dieser PR: #144
 - baut auf: #140, #143
 
 ## Offene Fragen an Ben
