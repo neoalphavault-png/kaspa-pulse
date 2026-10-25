@@ -689,6 +689,9 @@ def main(argv=None):
                 " (probe)" if a.probe else ""))
             sag(text)
             ig().ops(text)
+    except Stopp as exc:
+        sag("STOPP %s" % exc)
+        return 1
     except NichtFaellig as exc:
         sag("nicht dran, %s" % exc)
         ig().ops("karussell %s fuer %s nicht dran, %s" % (a.art, fuer, exc))

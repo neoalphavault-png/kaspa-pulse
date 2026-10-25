@@ -72,7 +72,7 @@ body{width:1080px;height:1350px;background:%(grund)s;position:relative;overflow:
 .satz2{color:%(akzent)s;margin-top:8px}
 .zahl{margin-top:90px;font-family:'Archivo',sans-serif;font-weight:900;line-height:0.86;
   letter-spacing:-4px;white-space:nowrap}
-.zahl .einheit{font-size:0.3em;font-weight:800;letter-spacing:0;margin-left:18px}
+.zahl .einheit{display:block;font-size:0.3em;font-weight:800;letter-spacing:0;margin-top:26px}
 .satz{margin-top:40px;font-weight:500;font-size:48px;line-height:1.2;color:%(akzent)s}
 .datum{position:absolute;left:60px;right:60px;bottom:132px;font-family:'IBM Plex Mono',monospace;
   font-size:34px;line-height:1.28;color:%(text2)s;letter-spacing:-0.5px}
@@ -238,6 +238,35 @@ def selbsttest():
        == "10 blocks a second")
     ss2 = seiten("2026-10-25", r)
     ok("rueckfall haelt die wachen", not pruefen(ss2, caption(ss2)))
+    # gerendert, mit gemessener zahl: "9.9 blocks a second" war am 25.10. im
+    # probelauf 123 px zu breit, die einheit steht seitdem unter der zahl
+    try:
+        import tempfile
+        import tagesgrafik as tg
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            try:
+                b = tg.chromium_start(p)
+            except Exception as exc:                  # noqa: BLE001
+                # der posten-lauf installiert keinen browser, er baut nichts
+                print("kein browser (%s), bildprobe uebersprungen" % str(exc).splitlines()[0][:80])
+                b = None
+            try:
+                for z in (() if b is None else ("9.9 blocks a second", "10.0 blocks a second", "12.4 blocks a second")):
+                    s2 = seiten("2026-10-31", (z, "measured on the kaspa network over 10 minutes",
+                                               "31 oct 2026 \u00b7 counted by kaspa pulse from the kaspa rest api",
+                                               z + " on 31 oct 2026."))[1]
+                    try:
+                        for lk in ("dunkel", "hell", "teal"):
+                            tg.rendern(seite_html(s2, lk), Path(tempfile.mkdtemp()) / "m.png", 0, b, "instagram")
+                        ok("seite 2 mit %s passt in allen looks" % z, True)
+                    except Exception as exc:          # noqa: BLE001
+                        ok("seite 2 mit %s passt in allen looks (%s)" % (z, exc), False)
+            finally:
+                if b is not None:
+                    b.close()
+    except ImportError:
+        print("ohne playwright, bildprobe uebersprungen")
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 
