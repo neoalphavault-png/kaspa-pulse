@@ -57,8 +57,18 @@ Branch `feat/karussell-automatik`, PR siehe unten.
 - **Secret-Scan:** sauber.
 - **Lokal gebaut:** woche für Sa 24.10. und meme. Kontaktbogen `docs/karussell/probe-2026-10-24.png`.
 - **Trockenläufe auf GitHub** (`schritt=probe`, Branch `feat/karussell-automatik`):
-  - art=meme: ERGEBNIS_MEME
-  - art=woche: ERGEBNIS_WOCHE
+  - **Erste Runde**, Läufe [6](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/40206486025) (meme) und [7](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/40206488612) (woche):
+    - **meme:** Die Probe hat einen alten Fehler in `meme_wahr.py` gefunden. Mit echter Messung („9.9 blocks a second“) lief Seite 2 um 123 px rechts aus dem Bild. Nur der Rückfall „10 blocks a second“ passte, und mit dem war der Entwurf lokal gebaut worden. Das wäre am Samstag beim echten Meme genauso passiert.
+    - **Behoben:** Die Einheit steht jetzt unter der Zahl. Der Selbsttest rendert drei gemessene Werte in allen drei Looks.
+  - **Zweite Runde**, Läufe [8](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/40207525942) (meme, 31.10.) und [9](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/40207527933) (woche, 24.10.):
+    - **Entwurf in beiden grün:**
+      - Selbsttests grün, Seiten gebaut und von der Wache gemessen
+      - Entwurf mit „PROBE“ und dem Veto-Satz in #moderator-only
+      - Artefakt mit Manifest hochgeladen
+      - Das Meme hat diesmal echt gemessen, 10 Minuten lang, mit 2 Seiten
+    - **Posten in beiden sauber gestoppt** mit „kein MEDIA_REPO_TOKEN, die bilder haben keinen oeffentlichen ort“. Das Secret ist in kaspa-pulse nicht gesetzt (Frage 1).
+    - **Noch offen:** Ablage, Container-Anlage und Graph-Antwort sind auf GitHub noch nicht durchgelaufen. Den Schritt deckt bisher nur der Selbsttest gegen die nachgebaute API ab. Nach dem Setzen des Secrets bitte eine Probe starten: Actions, `karussell`, `schritt=probe`, `art=woche`, `fuer=2026-10-24`.
+    - Die Läufe sind rot, weil der Posten-Schritt stoppt. Nach jedem roten Lauf ging die Meldung „karussell … probe ist rot“ nach #moderator-only.
 
 ## Offene Fragen an Ben
 1. **MEDIA_REPO_TOKEN:** Das Secret gibt es in pulse-studio. Ist es auch in kaspa-pulse gesetzt? Ohne es hat der Posten-Lauf keinen öffentlichen Ort für die Bilder und stoppt mit „kein MEDIA_REPO_TOKEN“. Bitte denselben Token als Secret in kaspa-pulse eintragen. Er braucht Schreibrecht auf Releases in kaspapulse-media. Den Wert bitte nicht schicken.
