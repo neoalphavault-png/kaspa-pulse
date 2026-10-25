@@ -81,3 +81,14 @@ Branch `feat/karussell-automatik`, PR #143.
 2. Das Secret `MEDIA_REPO_TOKEN` in kaspa-pulse setzen, falls es fehlt (Frage 1).
 3. Auf c2 die Befehle aus dem README des Taktgebers ausführen, Abschnitt „Karussell und Meme einspielen“: alten Meme-Timer abschalten, `setup.sh nachziehen`, die sechs Timer aktivieren, `list-timers` prüfen.
 4. Nach dem ersten sauberen Vorschau-Lauf die Variable `KARUSSELL_LIVE=true` setzen. Ein sauberer Vorschau-Lauf ist ein `probe` oder ein Takt-Lauf mit „trocken durchgelaufen, container …“. Vorher bleibt alles trocken.
+
+## Nachtrag: Abnahme von #139 (Jekyll, reports/ und graphics/fonts/README.md)
+#139 ist am 25.10.2026 gemergt. Geprüft nach dem Deploy auf kaspapulse.com, 25.10.2026 gegen 20:20 UTC:
+- **404**, wie gewünscht:
+  - `/deploy/c2/` und `/deploy/c2/setup.sh`
+  - `/berichte/` und `/berichte/2026-10-23-zcash-mainnet.html`
+  - `/reports/` und `/reports/uhrwerk-roh-2026-10-19.html` (auch `.md` und ohne Endung)
+  - `/graphics/fonts/README.html` und `.md`
+- **200:** `/data/covenants/abgleich-2026-10-09/METHOD.html` bleibt öffentlich (Ben, 24.10.).
+- **200** auch für Startseite, `/archive/`, `/method/`, `/entity-x.html`, `/impressum.html` und `/datenschutz.html`.
+- Gleich nach dem Merge lieferte `/reports/…` noch 200, fünf Minuten später 404. Das war der laufende Pages-Deploy.
