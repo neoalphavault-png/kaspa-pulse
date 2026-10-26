@@ -51,3 +51,23 @@ Branch `fix/textregeln-unterseiten`, eigener Text-PR von main nach #134 (Ben, 24
 ## Was Ben tun muss
 - PR prüfen, gern Commit für Commit, und mergen. Workflow-Dateien sind nicht betroffen.
 - Die Fragen 1 bis 3 beantworten.
+
+## Nachtrag 26.10.2026: Rebase auf main und Nachzug
+- **Rebase:** Alle 24 Commits liegen auf dem aktuellen main.
+  - **Konflikte** in `data/seiten-stand.json`, `sitemap.xml`, `entity-x.html`, `kaspa-smart-contracts.html` und `kaspa-supply.html`.
+  - **Auflösung:** Die Bot-Zahlen von main bleiben, nur die Wortänderungen dieses PRs sind neu angewendet. Seitenstand und Sitemap hat `seo_seiten.py` danach neu geschrieben.
+- **Kontrolle je Seite:**
+  - Die Textregel-Treffer sind nach dem Rebase dieselben wie im PR vorher.
+  - Die Zahlen im sichtbaren Text sind dieselben wie auf main, bis auf die Zeile „page last updated“.
+- **Nachzug** (eigener Commit), weil die Prüfung noch echte Treffer fand:
+  - „N percent“ wird „N%“ auf kaspa-security-budget (6 Stellen), kaspa-staking, kaspa-toccata und kaspa-weekly
+  - „percentage“ wird „share“ (kaspa-halving, kaspa-supply), „double-digit percentages“ wird „10% or more“, „a fraction of a percent“ wird „well under 1%“ (kaspa-tvl)
+  - kaspa-wallets: Das Zitat „Currently, Trezor does not support Kaspa“ steht jetzt als „Trezor's own page says it does not support Kaspa“, Quelle und Lesedatum bleiben
+  - kron: „and most of them will go to zero“ war eine Kursaussage, jetzt heißt es „and most of them are not projects at all“
+- **Textregel-Prüfung danach:** `content_wache` über den sichtbaren Text aller Seiten außer Impressum und Datenschutz, 0 echte Treffer.
+- **Bewusst gelassene Fehlalarme:**
+  - der Platzhalter „—“ in Datenzellen, bevor das Skript Werte einsetzt
+  - der Produktname „Ledger Live“
+  - der Satz „No price targets“ und die FAQ-Frage nach Kurszielen, beides sagt, dass wir keine nennen
+  - die öffentliche Adresse von entity x
+- **Offen für Ben:** Impressum und Datenschutz haben Doppelpunkte und Gedankenstriche im Rechtstext („Email:“, „Legal basis:“). Ich habe sie nicht angefasst, weil es Rechtstexte sind.
