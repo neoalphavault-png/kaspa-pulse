@@ -41,7 +41,7 @@ Beide Teile sind am 26.10.2026 als PR fertig. Claude prüft, Ben merged.
   | 2 | 13.6% auf Börsen, 4 oct 2026 | source kaspalytics |
   | 3 | 50.7% seit einem Jahr unbewegt, 6 oct 2026 | source kaspalytics |
   | 4 | 293,978 Adressen ab 100 KAS, 4 oct 2026 | source kaspalytics |
-  | 5 | nächste Reward-Senkung 4 nov, 13:45 utc | computed from the emission schedule |
+  | 5 | nächste Reward-Senkung 4 nov (nur Datum, wie im Newsletter) | computed from the emission schedule |
   | 6 | 765x neue Coins gegen Gebühren, 3 sep bis 2 oct 2026 | fees source kaspalytics, new coins computed from the emission schedule |
   | 7 | 339 PH/s, Mittel 4 bis 10 oct 2026 | source kaspa rest api, 7 day mean computed by kaspa pulse |
   | 8 | 292,292 Covenant-Ausgaben seit 30 june, 9 oct 2026 | source kaspalytics |

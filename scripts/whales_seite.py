@@ -84,9 +84,16 @@ def ziffern(t):
                   if m.group(1) in ZAHLWORT else m.group(0), t)
 
 
+def einheit(k):
+    """Beim Reward Cut nur das Datum, ohne Uhrzeit, wie im Newsletter (Ben, 26.10.2026)."""
+    if k["n"] == 5:
+        return re.sub(r",\s*\d{1,2}:\d{2} utc$", "", k["unit"])
+    return ziffern(k["unit"])
+
+
 def karten(p):
     h = herkunft(p)
-    return [dict(n=k["n"], q=k["q"], big=k["big"], unit=ziffern(k["unit"]), date=k["date"], src=h[k["n"]])
+    return [dict(n=k["n"], q=k["q"], big=k["big"], unit=einheit(k), date=k["date"], src=h[k["n"]])
             for k in cheat_sheet.karten(p)]
 
 
@@ -300,6 +307,8 @@ def selbsttest():
     ok("e-mail-feld nach den guidelines", 'autocomplete="email" spellcheck="false"' in s)
     ok("noindex", 'content="noindex, follow"' in s)
     ok("kein falke", "falke" not in s.lower() and "falcon" not in s.lower() and "hawk" not in s.lower())
+    ok("reward cut ohne uhrzeit", ks[4]["big"] == "4 nov" and ks[4]["unit"] == "next block reward cut"
+       and "13:45" not in s, ks[4]["unit"])
     ok("1 in 7 in ziffern", ks[1]["unit"] == "of all KAS, about 1 in 7", ks[1]["unit"])
     ok("whales nur im versprechen erlaubt",
        pruefen_inhalt(s.replace("source kaspalytics</p>", "whales source kaspalytics</p>", 1), ks) != [])
