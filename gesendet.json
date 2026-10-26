@@ -1,0 +1,25 @@
+{
+ "eintraege": [
+  {
+   "branch": "bericht/stp-rat-2026-10-27",
+   "datei": "berichte/2026-10-27-stp-rat.md",
+   "sha256": "ea752b4b33b4c492582ae304510ce03ec09367ff2010ef3935a3a52b050bccb1",
+   "utc": "2026-10-26",
+   "hinweis": "nachgetragen am 26.10.2026, uhrzeit des versands nicht gemerkt"
+  },
+  {
+   "branch": "bericht/weekly-verteilung-2026-10-30",
+   "datei": "berichte/2026-10-27-stp-rat.md",
+   "sha256": "ea752b4b33b4c492582ae304510ce03ec09367ff2010ef3935a3a52b050bccb1",
+   "utc": "2026-10-26",
+   "hinweis": "nachgetragen am 26.10.2026, uhrzeit des versands nicht gemerkt, doppelt gesendet"
+  },
+  {
+   "branch": "bericht/weekly-verteilung-2026-10-30",
+   "datei": "berichte/2026-10-30-weekly-verteilung.md",
+   "sha256": "ae878bec9c7acdf739e6ae7b742852be0b5d89261295df77eb66a6a2646e4c93",
+   "utc": "2026-10-26",
+   "hinweis": "nachgetragen am 26.10.2026, uhrzeit des versands nicht gemerkt"
+  }
+ ]
+}
