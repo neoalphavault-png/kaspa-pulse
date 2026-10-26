@@ -1,6 +1,6 @@
 # Weekly-Verteilung automatisch
 
-Bericht für Ben zum Auftrag vom 26.10.2026. Frist Fr 30.10. 18:00 Berlin, erster echter Lauf Mo 02.11.2026. Branch `feature/weekly-verteilung`.
+Bericht für Ben zum Auftrag vom 26.10.2026. Frist Fr 30.10. 18:00 Berlin, erster echter Lauf Mo 02.11.2026. Branch `feature/weekly-verteilung`, PR [#154](https://github.com/neoalphavault-png/kaspa-pulse/pull/154).
 
 ## Was gebaut wurde
 
