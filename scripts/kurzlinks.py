@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""kurzlinks.py, fuenf kurze Adressen fuer die Profile.
+"""kurzlinks.py, kurze Adressen fuer die Profile und die Story.
 
 WARUM ES DAS GIBT
 In einer Instagram-Biografie steht bisher der ganze Link:
@@ -53,7 +53,7 @@ sys.path.insert(0, HIER)
 ANKER = "#subscribe"
 CAMPAIGN = "cheatsheet"
 
-# Ordner -> (utm_source, utm_medium). campaign ist bei allen fuenf
+# Ordner -> (utm_source, utm_medium). campaign ist bei den fuenf Profilen
 # "cheatsheet": das Cheat Sheet ist das, was am Ende des Klicks wartet.
 KURZLINKS = {
     "ig": ("instagram", "bio"),
@@ -61,6 +61,16 @@ KURZLINKS = {
     "x": ("x", "bio"),
     "threads": ("threads", "bio"),
     "discord": ("discord", "channel"),
+    "story": ("instagram", "story"),
+}
+
+# Abweichende campaign und Anker je Ordner (Ben, 24.10.2026): /story kommt
+# aus dem Link-Sticker der Instagram-Story (scripts/story_vorlage.py) und
+# fuehrt auf die Startseite selbst, ohne Anker. Quelle ist "instagram",
+# nicht "ig": "ig" steht nicht in utm.QUELLEN und wuerde in der Auswertung
+# eine zweite Zeile neben "instagram" eroeffnen.
+EIGEN = {
+    "story": ("story", ""),
 }
 
 ORDNER = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
@@ -87,13 +97,16 @@ def kurzlink(kanal):
 def ziel(ordner):
     """Der Pfad, auf den weitergeleitet wird, relativ zur Wurzel."""
     quelle, medium = KURZLINKS[ordner]
+    campaign, anker = EIGEN.get(ordner, (CAMPAIGN, ANKER))
     import utm
     if quelle not in utm.QUELLEN:
         raise SystemExit("ABBRUCH quelle %r steht nicht in utm.QUELLEN" % quelle)
     if medium not in utm.MEDIEN:
         raise SystemExit("ABBRUCH gattung %r steht nicht in utm.MEDIEN" % medium)
+    if not utm.SLUG.match(campaign):
+        raise SystemExit("ABBRUCH campaign %r ist kein slug" % campaign)
     return "/?utm_source=%s&utm_medium=%s&utm_campaign=%s%s" % (
-        quelle, medium, CAMPAIGN, ANKER)
+        quelle, medium, campaign, anker)
 
 
 def seite(ordner):
@@ -131,7 +144,7 @@ def pfad(ordner):
 
 
 def bauen(schreiben=True):
-    """Legt die fuenf Dateien an. Liefert die Liste der geaenderten."""
+    """Legt die Dateien an. Liefert die Liste der geaenderten."""
     anders = []
     for ordner in sorted(KURZLINKS):
         soll = seite(ordner)
@@ -160,10 +173,13 @@ def selbsttest():
         if not bedingung:
             schlecht += 1
 
-    ok("fuenf kurzlinks aus dem auftrag",
-       sorted(KURZLINKS) == ["discord", "ig", "threads", "x", "yt"], sorted(KURZLINKS))
-    ok("jedes ziel geht auf den anmeldebereich der startseite",
-       all(ziel(k).startswith("/?utm_source=") and ziel(k).endswith(ANKER) for k in KURZLINKS))
+    ok("fuenf profile und die story aus dem auftrag",
+       sorted(KURZLINKS) == ["discord", "ig", "story", "threads", "x", "yt"], sorted(KURZLINKS))
+    ok("jedes profil-ziel geht auf den anmeldebereich der startseite",
+       all(ziel(k).startswith("/?utm_source=") and ziel(k).endswith(ANKER) for k in KURZLINKS
+           if k not in EIGEN))
+    ok("story geht auf die startseite mit utm_medium=story (Ben, 24.10.2026)",
+       ziel("story") == "/?utm_source=instagram&utm_medium=story&utm_campaign=story", ziel("story"))
     ok("die werte je kurzlink",
        [ziel(k) for k in ("ig", "yt", "x", "threads", "discord")] == [
            "/?utm_source=instagram&utm_medium=bio&utm_campaign=cheatsheet#subscribe",
@@ -200,7 +216,10 @@ def selbsttest():
        all(q in utm.QUELLEN for q, _ in KURZLINKS.values()))
     ok("alle gattungen stehen in der utm-liste",
        all(m in utm.MEDIEN for _, m in KURZLINKS.values()))
-    ok("campaign ist ein slug", bool(utm.SLUG.match(CAMPAIGN)))
+    ok("campaign ist ein slug", bool(utm.SLUG.match(CAMPAIGN))
+       and all(utm.SLUG.match(c) for c, _ in EIGEN.values()))
+    ok("story-seite leitet ohne anker weiter", 'url=/?utm_source=instagram&amp;utm_medium=story'
+       '&amp;utm_campaign=story">' in seite("story"))
 
     offen = bauen(schreiben=False)
     ok("die dateien im repo stimmen mit der tabelle ueberein", not offen, offen)
