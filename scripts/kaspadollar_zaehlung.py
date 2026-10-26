@@ -192,7 +192,10 @@ def auswerten(bestand, tx_zeilen, stand, absender, vorher, seite, stichzeit_ms, 
 
     # absender: eigenes fenster aus dem knoten (sha256), aeltere einzahlungen ueber die api
     try:
-        api_menge, api_offen = api_absender(alt.keys(), abruf) if alt else (set(), 0)
+        # absender kennt dieser lauf nur fuer sein eigenes fenster; alle einzahlungen
+        # davor (auch aus fenstern frueherer laeufe) werden ueber die api aufgeloest
+        vor_eigenem = [k for k, v in je_tx.items() if v["daa"] < stand["von_daa"]]
+        api_menge, api_offen = api_absender(vor_eigenem, abruf) if vor_eigenem else (set(), 0)
         api_fehler = None
     except Exception as exc:                        # noqa: BLE001
         api_menge, api_offen, api_fehler = set(), 0, type(exc).__name__
@@ -217,7 +220,8 @@ def auswerten(bestand, tx_zeilen, stand, absender, vorher, seite, stichzeit_ms, 
         "fenster_luecken": len(luecken),
         "absender_eindeutig_gesamt": len(set(absender) | {skript_hash(x) for x in api_menge}),
         "absender_eigenes_fenster": len(absender),
-        "absender_aeltere_ueber_api_kaspa_org": len(api_menge),
+        "absender_vor_eigenem_fenster_ueber_api_kaspa_org": len(api_menge),
+        "absender_api_ab_utc": iso(zeit_aus_daa(anker, stand["von_daa"])),
         "absender_eingaenge_ohne_adresse_api": api_offen,
         "absender_api_fehler": api_fehler,
         "median_spende_kas": round(statistics.median(betraege) / SOMPI, 8) if betraege else None,
@@ -318,7 +322,14 @@ def selbsttest():
     ok("summe 21 kas, 3 einzahlungen, je tx gebuendelt", erg["einzahlungen_kas"] == 21 and erg["einzahlungen_anzahl"] == 3, erg)
     ok("median 6, groesste 10 von 21", erg["median_spende_kas"] == 6 and erg["groesste_spende_anteil_prozent"] == 47.62, erg)
     ok("absender: fenster 1, api 2 (nur alte tx gefragt)", erg["absender_eigenes_fenster"] == 1
-       and erg["absender_aeltere_ueber_api_kaspa_org"] == 2 and rufe == [["aa", "bb"]], (erg, rufe))
+       and erg["absender_vor_eigenem_fenster_ueber_api_kaspa_org"] == 2 and rufe == [["aa", "bb"]], (erg, rufe))
+    # einzahlung im fenster eines frueheren laufs, vor dem eigenen fenster: absender ueber die api
+    vorher = [{"stand": {"von_daa": 400, "bis_daa": 1200, "anker_daa_ms": []},
+               "ereignisse": [{"t": 1792713500000, "daa": 900, "art": "ein", "sompi": 10 * SOMPI}]}]
+    rufe.clear()
+    erg3, _ = auswerten(bestand, txz, stand, {"h1"}, vorher, None, 1792800000000, abruf)
+    ok("einzahlung aus frueherem fenster: absender ueber api", rufe == [["aa", "bb"]]
+       and erg3["einzahlungen_kas"] == 16, (rufe, erg3["einzahlungen_kas"]))
     ok("absender vereinigt, kein doppelter", erg["absender_eindeutig_gesamt"] == 3, erg["absender_eindeutig_gesamt"])
     ab2, _ = auswerten(bestand, txz, stand, {skript_hash("kaspa:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkx9awp4e")}, [], None,
                        1792800000000, lambda ids: [{"inputs": [{"previous_outpoint_address":
