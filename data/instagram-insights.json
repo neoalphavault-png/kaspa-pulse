@@ -1195,6 +1195,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-26": {
+     "reach": 78,
+     "likes": 7,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -1243,6 +1250,13 @@
     },
     "2026-10-25": {
      "reach": 1890,
+     "likes": 5,
+     "comments": 0,
+     "saved": 0,
+     "shares": 3
+    },
+    "2026-10-26": {
+     "reach": 1892,
      "likes": 5,
      "comments": 0,
      "saved": 0,
@@ -1296,6 +1310,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-26": {
+     "reach": 109,
+     "likes": 7,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -1341,6 +1362,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-26": {
+     "reach": 59,
+     "likes": 13,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -1371,6 +1399,13 @@
      "shares": 1
     },
     "2026-10-25": {
+     "reach": 1368,
+     "likes": 10,
+     "comments": 0,
+     "saved": 0,
+     "shares": 1
+    },
+    "2026-10-26": {
      "reach": 1368,
      "likes": 10,
      "comments": 0,
@@ -1414,6 +1449,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-26": {
+     "reach": 35,
+     "likes": 5,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -1445,6 +1487,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-26": {
+     "reach": 30,
+     "likes": 2,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -1469,6 +1518,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-26": {
+     "reach": 33,
+     "likes": 3,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -1486,9 +1542,47 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-10-26": {
+     "reach": 20,
+     "likes": 7,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    }
+   }
+  },
+  "17895121734681953": {
+   "gepostet_utc": "2026-10-26T08:31:48+0000",
+   "typ": "IMAGE",
+   "permalink": "https://www.instagram.com/p/De83AMLDW4J/",
+   "form": 1,
+   "caption_sha": "542a56af8526",
+   "frage": null,
+   "tage": {
+    "2026-10-26": {
+     "reach": 12,
+     "likes": 3,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    }
+   }
+  },
+  "18096944768407083": {
+   "gepostet_utc": "2026-10-25T15:28:46+0000",
+   "typ": "CAROUSEL_ALBUM",
+   "permalink": "https://www.instagram.com/p/De7B84yCCoV/",
+   "tage": {
+    "2026-10-26": {
+     "reach": 113,
+     "likes": 30,
+     "comments": 0,
+     "saved": 1,
+     "shares": 3
     }
    }
   }
  },
- "stand_utc": "2026-10-25T10:08:02+00:00"
+ "stand_utc": "2026-10-26T11:32:18+00:00"
 }
