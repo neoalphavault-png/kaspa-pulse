@@ -1,0 +1,58 @@
+# Kaspa Pulse - KCC-20 Quellen ohne Knoten (Ben, 23.10.2026)
+#
+# Liest nur oeffentliche Seiten fuer den Abgleich: kcc20.info (Zahlen nur als
+# "source kcc20.info") und die Feldnamen von api.kaspa.org. Kein Knoten, keine
+# Wallet, keine Schluessel, keine Secrets, kein Artefakt. Gestartet ueber
+# kcc20/quellen.txt (push) oder von Hand.
+
+name: kcc20 quellen
+
+on:
+  push:
+    branches:
+      - fix/kcc20-zaehlung
+    paths:
+      - kcc20/quellen.txt
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lesen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: selbsttest
+        run: python3 scripts/kcc20_api.py --selbsttest | tail -n 1
+
+      - name: kcc20.info lesen (nur textzeilen mit zahlen und pfade)
+        run: |
+          for u in $(sed -n 's/^url=//p' kcc20/quellen.txt); do
+            python3 scripts/kcc20_api.py --kcc20info "$u" || echo "nicht lesbar"
+          done
+
+      - name: kcc20.info api lesen (nur skalarfelder, ohne adressen und links)
+        run: |
+          for b in $(sed -n 's/^api=//p' kcc20/quellen.txt); do
+            ids=""; for i in $(sed -n 's/^token=//p' kcc20/quellen.txt); do ids="$ids --token-id $i"; done
+            c=$(sed -n 's/^cursor=//p' kcc20/quellen.txt)
+            python3 scripts/kcc20_api.py --kcc20info-api "$b" $ids ${c:+--cursor "$c"} | python3 -c "import json,sys; d=json.load(sys.stdin); d['/v1/tokens'].pop('tokens', None); print(json.dumps(d, indent=1, ensure_ascii=False))" || echo "nicht lesbar"
+          done
+
+      - name: payloads der bewiesenen genesis (kcc-23, sonst nur format und namensfelder)
+        run: |
+          for f in $(sed -n 's/^genesis=//p' kcc20/quellen.txt); do
+            python3 scripts/kcc20_namen.py --payloads "$f" || echo "nicht lesbar"
+          done
+
+      - name: kcc20.info zeitreihe fuer einen zeitraum (nur summen, source kcc20.info)
+        run: |
+          z=$(sed -n 's/^zeitraum=//p' kcc20/quellen.txt)
+          [ -n "$z" ] && python3 scripts/kcc20_api.py --kcc20info-api https://kcc20.info --zeitraum $z || echo "kein zeitraum"
