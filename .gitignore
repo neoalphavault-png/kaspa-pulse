@@ -15,3 +15,7 @@ client_secret*.json
 # Bauausgabe des Cheat Sheets. Veroeffentlicht wird nur
 # kaspa-pulse-cheat-sheet.pdf im Wurzelverzeichnis.
 graphics/cheat-sheet/
+
+# Arbeitsdateien des Taste Skill (scripts/inspect.mjs, draw.mjs), Screenshots
+# und Messungen. Was in einen Bericht gehoert, wird nach docs/ kopiert.
+.taste-skill/
