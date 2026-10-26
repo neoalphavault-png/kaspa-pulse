@@ -27,7 +27,7 @@
      Liste zuhause, hier braucht sie der Browser. utm.py --selftest liest
      diese Zeile und vergleicht beide, damit sie nicht auseinanderlaufen. */
   var MEDIEN = ["shorts", "video", "post", "chat", "mail", "email", "site", "reply",
-                "bio", "description", "channel", "story"];
+                "bio", "description", "channel", "story", "paid"];
   var STORE = "kp_utm";
   var FELD = {
     utm_source: "utmSource",

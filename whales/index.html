@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080B0F">
+<meta name="robots" content="noindex, follow">
+<title>The 8 Kaspa Numbers Whales Watch, Kaspa Pulse</title>
+<meta name="description" content="8 Kaspa numbers whales watch, each with its date and source. The largest wallet, exchange balances, unmoved coins, holders, block reward, fees, hashrate and covenants.">
+<link rel="canonical" href="https://kaspapulse.com/whales/">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preload" href="/graphics/fonts/archivo-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:Archivo;font-weight:900;font-display:swap;src:url(/graphics/fonts/archivo-latin-900-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;src:url(/graphics/fonts/ibm-plex-mono-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-weight:400;font-display:swap;src:url(/graphics/fonts/ibm-plex-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Sans";font-weight:600;font-display:swap;src:url(/graphics/fonts/ibm-plex-sans-latin-600-normal.woff2) format("woff2")}
+/* in beiden looks dunkel wie die anzeige: #080B0F, #F2F5F4, #49EACB (Ben, 26.10.2026) */
+:root{--bg:#080B0F;--card:#0F1519;--ink:#F2F5F4;--muted:#A9B7B4;--brand:#49EACB;--chip:#1B252B;color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;touch-action:manipulation}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 "IBM Plex Sans",system-ui,sans-serif}
+a{color:inherit}
+a,button{-webkit-tap-highlight-color:rgba(73,234,203,.25)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+.top{height:56px;display:flex;align-items:center}
+.logo{font:900 18px/1 Archivo,sans-serif;letter-spacing:.04em;color:var(--ink);text-decoration:none}
+.logo span{color:var(--brand)}
+.kopf{display:grid;gap:0 56px;padding:20px 0 36px}
+.kopf .lead{margin-bottom:22px}
+@media (min-width:900px){.kopf{grid-template-columns:minmax(0,6fr) minmax(0,5fr);align-items:start;padding:48px 0 64px}.kopf h1{grid-column:1/-1;margin-bottom:24px}.kopf .lead{margin:0}}
+h1{font:900 clamp(28px,7.4vw,56px)/1.04 Archivo,sans-serif;letter-spacing:-.015em;margin:0 0 14px;text-wrap:balance}
+@media (min-width:900px){h1{font-size:clamp(56px,5.6vw,80px)}}
+.lead{font-size:17px;color:var(--muted);margin:0;max-width:40ch}
+.subscribe{background:var(--card);border-radius:14px;padding:20px}
+.subscribe h2{font:900 21px/1.2 Archivo,sans-serif;margin:0 0 6px}
+.subscribe p{margin:0 0 14px;color:var(--muted)}
+.subscribe form{display:flex;gap:8px;flex-wrap:wrap}
+.subscribe input[type=email]{flex:1 1 180px;min-width:0;padding:14px 16px;border-radius:8px;border:0;background:#F2F5F4;color:#080B0F;font:400 16px "IBM Plex Sans",system-ui,sans-serif}
+.subscribe input::placeholder{color:#4F625D;opacity:1}
+.subscribe button{padding:14px 22px;border:0;border-radius:8px;background:var(--brand);color:#04211C;font:600 16px "IBM Plex Sans",system-ui,sans-serif;cursor:pointer}
+.subscribe button:hover{background:#7FF0DA}
+.subscribe button:disabled{opacity:.6;cursor:wait}
+.subscribe .msg{display:none;margin-top:12px;font-size:15px;font-weight:600}
+.subscribe .msg.ok{display:block;color:var(--brand)} .subscribe .msg.err{display:block;color:var(--ink)}
+.zahlen{list-style:none;margin:0;padding:0 0 40px;display:grid;gap:12px;grid-template-columns:1fr}
+@media (min-width:600px){.zahlen{grid-template-columns:1fr 1fr}}
+@media (min-width:1100px){.zahlen{grid-template-columns:repeat(4,1fr)}}
+.zahlen li{background:var(--card);border-radius:14px;padding:20px;display:flex;flex-direction:column}
+/* die frage ist die ueberschrift der karte, keine kleine kopfzeile (taste-skill) */
+.q{font:600 19px/1.3 "IBM Plex Sans",system-ui,sans-serif;color:var(--ink);margin:0 0 12px}
+.big{font:900 46px/1 Archivo,sans-serif;color:var(--brand);margin:0 0 6px;font-variant-numeric:tabular-nums}
+.unit{margin:0 0 12px;font-weight:600}
+.date,.src{font:400 14px/1.5 "IBM Plex Mono",monospace;color:var(--muted);margin:0}
+.src{margin-top:auto;padding-top:6px}
+footer{padding:8px 0 40px;font:400 13px/1.7 "IBM Plex Mono",monospace;color:var(--muted)}
+footer a{color:var(--muted);display:inline-block;padding:6px 0}
+footer a:hover{color:var(--ink)}
+</style>
+<!--AUTO:plausible-->
+<!-- Privacy-friendly analytics by Plausible -->
+<script async src="https://plausible.io/js/pa-o1R2wMI1l5uanq2mIzp0P.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
+<!--/AUTO:plausible-->
+</head>
+<body>
+<!-- gebaut von scripts/whales_seite.py, nicht von hand aendern -->
+<div class="wrap">
+<header class="top"><a class="logo" href="/" translate="no">KASPA <span>PULSE</span></a></header>
+<main>
+<section class="kopf">
+  <h1>the 8 kaspa numbers whales watch</h1>
+  <p class="lead">the october edition, read on 11 oct 2026. every number with its date and where it comes from.</p>
+  <div class="subscribe" id="subscribe">
+    <h2>get the next edition every monday</h2>
+    <p>the weekly kaspa numbers in one mail every monday, free, unsubscribe anytime.</p>
+    <form class="subform" action="https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutIFsyZ5cbZXGXBYqZGd1a7G_WknNhFvbOZBCI4w0NMVg902P0LTdsllkJVLWfGjkublTW32QT5hFY_LTqkN6ihwbEvTmL5P34zQ6SKTHugFPnR90YZeWSMdEkK8mr6HAvO4-S9dXwuZdkQMA==" method="POST" target="_blank">
+      <input type="email" name="EMAIL" placeholder="you@example.com" aria-label="email" autocomplete="email" spellcheck="false" required>
+      <input type="hidden" name="UTM_SOURCE" id="utmSource" value="direct">
+      <input type="hidden" name="UTM_MEDIUM" id="utmMedium" value="none">
+      <input type="hidden" name="UTM_CAMPAIGN" id="utmCampaign" value="none">
+      <input type="hidden" name="UTM_MEDIUM_RAW" id="utmMediumRaw" value="none">
+      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="locale" value="en">
+      <input type="hidden" name="html_type" value="simple">
+      <button type="submit">subscribe</button>
+    </form>
+    <div class="msg" role="status"></div>
+  </div>
+</section>
+<ul class="zahlen" aria-label="the 8 numbers">
+  <li>
+    <h2 class="q">how much does the biggest wallet hold?</h2>
+    <p class="big">5.5%</p>
+    <p class="unit">of all KAS in circulation</p>
+    <p class="date">1,527,589,469 KAS · 10 oct 2026</p>
+    <p class="src">counted by kaspa pulse from the public address, supply as of 5 oct 2026</p>
+  </li>
+  <li>
+    <h2 class="q">how much KAS sits on exchanges?</h2>
+    <p class="big">13.6%</p>
+    <p class="unit">of all KAS, about 1 in 7</p>
+    <p class="date">3,781,925,849 KAS · 4 oct 2026</p>
+    <p class="src">source kaspalytics</p>
+  </li>
+  <li>
+    <h2 class="q">how much KAS has not moved in a year?</h2>
+    <p class="big">50.7%</p>
+    <p class="unit">of all KAS, untouched for 1 year or more</p>
+    <p class="date">6 oct 2026 · 26.1% untouched for 2 years</p>
+    <p class="src">source kaspalytics</p>
+  </li>
+  <li>
+    <h2 class="q">how many wallets hold a real stake?</h2>
+    <p class="big">293,978</p>
+    <p class="unit">addresses with 100 KAS or more</p>
+    <p class="date">4 oct 2026 · +520 in 7 days · +2,061 in 30 · −718 in 90</p>
+    <p class="src">source kaspalytics</p>
+  </li>
+  <li>
+    <h2 class="q">when do miners get paid less again?</h2>
+    <p class="big">4 nov</p>
+    <p class="unit">next block reward cut, 13:45 utc</p>
+    <p class="date">2.06 to 1.94 KAS per block · 24 days from 11 oct</p>
+    <p class="src">computed from the emission schedule</p>
+  </li>
+  <li>
+    <h2 class="q">what actually pays the miners?</h2>
+    <p class="big">765x</p>
+    <p class="unit">more KAS from new coins than from fees</p>
+    <p class="date">30 days, 3 sep to 2 oct 2026</p>
+    <p class="src">fees source kaspalytics, new coins computed from the emission schedule</p>
+  </li>
+  <li>
+    <h2 class="q">how much computing power guards kaspa?</h2>
+    <p class="big">339</p>
+    <p class="unit">PH/s, mean of the last 7 days</p>
+    <p class="date">4 to 10 oct 2026 · single day 362 on 10 oct</p>
+    <p class="src">source kaspa rest api, 7 day mean computed by kaspa pulse</p>
+  </li>
+  <li>
+    <h2 class="q">are kaspa smart contracts being used?</h2>
+    <p class="big">292,292</p>
+    <p class="unit">covenant outputs created since 30 june</p>
+    <p class="date">9 oct 2026 · 13,936 still unspent</p>
+    <p class="src">source kaspalytics</p>
+  </li>
+</ul>
+</main>
+<footer><a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a> · not financial advice</footer>
+</div>
+<script>
+(function () {
+  // anmeldung im hintergrund, bestaetigung im kasten, wie auf der startseite
+  document.querySelectorAll(".subform").forEach(function (form) {
+    var box = form.parentNode, msg = box.querySelector(".msg"), btn = form.querySelector("button");
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      btn.disabled = true; var alt = btn.textContent; btn.textContent = "\u2026";
+      msg.className = "msg";
+      fetch(form.action, { method: "POST", body: new FormData(form) })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (j && j.success) {
+            try { if (window.plausible) plausible("Signup", { props: { page: location.pathname, utm_campaign: ((form.querySelector('[name="UTM_CAMPAIGN"]') || document.getElementById("utmCampaign") || {}).value || "none") } }); } catch (kpE) {}
+            msg.textContent = "\u2713 almost there. check your inbox and click the confirmation link.";
+            msg.className = "msg ok"; form.reset();
+          } else {
+            msg.textContent = (j && j.message) || "something went wrong, please try again";
+            msg.className = "msg err";
+          }
+        })
+        .catch(function () { form.submit(); })
+        .then(function () { btn.disabled = false; btn.textContent = alt; });
+    });
+  });
+})();
+</script>
+<script src="/utm.js" defer></script>
+</body>
+</html>
