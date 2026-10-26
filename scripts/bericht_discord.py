@@ -28,7 +28,10 @@ GRENZE = 1900
 VERBOTEN = (
     (re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b"), "ip"),
     (re.compile(r"\b(?:kaspa|kaspatest):[a-z0-9]{20,}"), "adresse"),
-    (re.compile(r"(?i)\b(?!github\.com\b)(?:[a-z0-9-]+\.)+(?:com|io|org|net|de|blue|red|green|stream|xyz|app|dev)\b"), "hostname"),
+    # erlaubt sind github.com und unsere eigene, oeffentliche Domain kaspapulse.com: Ben
+    # muss Links wie die Ziel-URL einer Anzeige kopieren koennen (Ben, 26.10.2026).
+    # Unterdomains davon bleiben gesperrt, sie koennten Infrastruktur sein.
+    (re.compile(r"(?i)(?<![a-z0-9.-])(?!(?:github|kaspapulse)\.com(?![.\w-]))(?:[a-z0-9-]+\.)+(?:com|io|org|net|de|blue|red|green|stream|xyz|app|dev)\b"), "hostname"),
     (re.compile(r"ghp_|github_pat_|xox[bap]-|sk-[A-Za-z0-9]{20}|BEGIN [A-Z ]*PRIVATE KEY|discord(?:app)?\.com/api/webhooks"), "schluessel"),
 )
 
@@ -106,6 +109,10 @@ def selbsttest():
     ok("zwei teile", teile(md) == ["eins", "zwei"], teile(md))
     ok("ohne abschnitt leer", teile("# nur text") == [])
     ok("sauberer text ohne fund", pruefen(["see github.com/x and 18:03 to 18:14"]) == [])
+    ok("eigene domain erlaubt", pruefen(["https://kaspapulse.com/whales?utm_source=ig&utm_medium=paid"]) == [],
+       pruefen(["https://kaspapulse.com/whales?utm_source=ig"]))
+    ok("unterdomain der eigenen domain gesperrt", any("hostname" in f for f in pruefen(["x." + "kaspapulse" + ".com"])))
+    ok("fremde domain mit kaspapulse im namen gesperrt", any("hostname" in f for f in pruefen(["kaspapulse" + ".com.evil.io"])))
     # testwerte erst zur laufzeit zusammengesetzt, kein echter host und keine echte ip in der datei
     ip = ".".join(["192", "0", "2", "7"])
     host = "-".join(["knoten", "1"]) + "." + "beispiel" + ".blue"
