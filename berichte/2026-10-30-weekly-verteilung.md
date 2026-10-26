@@ -59,6 +59,10 @@ Es werden nur vorhandene Secrets genutzt, dazu `STUDIO_READ_TOKEN` zum Lesen des
 2. **Preise im Text:** Die Blöcke aus 6a nennen den Wochenschluss und eine Schwelle in USD, zum Beispiel "0.03605 usd". Deine Textregel vom 23.10. sagte "keine Preise" für Entwürfe, die Regel in diesem Auftrag nennt sie nicht. Der Automat übernimmt den Text so, wie die Sonntagsaufgabe ihn baut. Soll er Preise blockieren?
 3. **Fremde Gruppen:** `data/weekly-verteilung-gruppen.json` ist leer. Dann kommt eine englische und eine deutsche Fassung ohne Gruppennamen. Mit Namen kommt je Gruppe eine eigene Nachricht. Willst du die Liste füllen (Name, Sprache en oder de, Art telegram oder discord)?
 
+## Hinweis zu einem eigenen Fehler
+
+Beim Zustellen dieses Berichts am 26.10. hat der Bericht-Workflow aus PR #151 den STP-Rat ein zweites Mal nach #moderator-only geschickt, 8 Nachrichten doppelt. Ursache: Auf einem neuen Branch verglich er mit main, und dieser Branch baut auf dem noch nicht gemergten STP-Branch auf. Behoben auf dem Branch von PR #151: Ein neuer Branch sendet nur Berichte aus seinem letzten Commit.
+
 ## Was Ben tun muss
 
 Die Schritte stehen unten auch als Nachrichten zum Kopieren.
