@@ -606,7 +606,7 @@ def schritte(D):
     return aus
 
 
-def hero_html(z, st, oben=None):
+def hero_html(z, st, oben=None, h1=True):
     if not z:
         return ""
     unter = z["abstand"] < 0
@@ -623,12 +623,45 @@ def hero_html(z, st, oben=None):
         '    <p class="eyebrow">%s</p>' % (oben or "number of the week · reading %s · next %s" % (
             d_kurz(st), d_kurz(st + dt.timedelta(days=7), False))),
         '    <p class="big"><a class="mref" href="/method/#week">%s</a></p>' % pct(abs(z["abstand"])),
-        '    <p class="lead">%s</p>' % esc(satz),
+        # die ueberschrift der seite (taste-skill-pruefung 25.10.2026: kein sichtbares h1)
+        ('    <h1 class="lead">%s</h1>' if h1 else '    <p class="lead">%s</p>') % esc(satz),
         '    <p class="note">week to %s · weekly close against the average of the last 50 weekly closes, '
         'source kraken daily candles · our own series since %s</p>' % (d_kurz(z["datum"]), d_kurz(z["seit"])),
         "    " + cs if cs else "",
         '    <a class="next" href="#%s">6 numbers, 2 minutes</a>',
         "  </section>"]).replace("\n\n", "\n")
+
+
+# was jede zahl im versprechen heisst, in der reihenfolge der schritte
+WORT = {"chain": "block rate", "fees": "miner fees", "emission": "emission", "holders": "holders",
+        "layer2": "layer 2", "addresses": "addresses"}
+
+
+def aufzaehlung(woerter):
+    return woerter[0] if len(woerter) == 1 else "%s and %s" % (", ".join(woerter[:-1]), woerter[-1])
+
+
+def intro_html(z, st, ss):
+    """Das erste Bild der Startseite (taste-skill, Ben 26.10.2026): links, was
+    man hier bekommt, und die Anmeldung, rechts die Zahl der Woche. Ein
+    Kaspa-Fan soll in fuenf Sekunden wissen, was das ist, und sich eintragen
+    koennen, ohne zu scrollen. Die Wochenseiten behalten hero_html."""
+    nx = st + dt.timedelta(days=7)
+    n = len(ss) + (1 if z else 0)
+    sub = "%s, each with its date and source. one free mail every monday, the next on %s." % (
+        # geschuetztes leerzeichen: "2 nov" bricht nicht um (web interface guidelines)
+        aufzaehlung([WORT[s["id"]] for s in ss]), d_kurz(nx, False).replace(" ", "\u00a0"))
+    zdw = hero_html(z, st, h1=False).replace('<section class="hero" id="week">', '<div class="nod">') \
+        .replace("  </section>", "  </div>") if z else ""
+    return "\n".join([
+        '  <section class="intro" id="week">',
+        '  <div class="pitch">',
+        '    <h1>kaspa in %d numbers, every monday</h1>' % n,
+        '    <p class="sub">%s</p>' % esc(sub),
+        anmeldung(1, "subscribe", None, None),
+        '  </div>',
+        zdw,
+        '  </section>']).replace("\n\n", "\n")
 
 
 def mref(h, sid):
@@ -641,6 +674,7 @@ def h2_text(h):
 
 
 def anmeldung(nr, sid, titel, text):
+    # ohne titel steht das formular im ersten bild unter dem h1 der seite
     """Das bestehende Brevo-Formular. Die UTM-Felder mit id stehen nur im ersten,
     utm.js fuellt sie, das zweite bekommt die Werte beim Absenden."""
     if nr == 1:
@@ -653,11 +687,14 @@ def anmeldung(nr, sid, titel, text):
                '      <input type="hidden" name="UTM_MEDIUM" data-utm="utmMedium" value="none">\n'
                '      <input type="hidden" name="UTM_CAMPAIGN" data-utm="utmCampaign" value="none">\n'
                '      <input type="hidden" name="UTM_MEDIUM_RAW" data-utm="utmMediumRaw" value="none">\n')
-    return ('  <div class="subscribe" id="%s">\n'
-            '    <h3>%s</h3>\n'
-            '    <p>%s</p>\n'
+    kopf = ('    <h3>%s</h3>\n    <p>%s</p>\n' % (esc(titel), esc(text))) if titel else ""
+    return ('  <div class="subscribe%s" id="%s">\n'
+            '%s'
             '    <form class="subform" action="%s" method="POST" target="_blank">\n'
-            '      <input type="email" name="EMAIL" placeholder="your email" aria-label="email" required>\n'
+            # web interface guidelines (25.10.2026): autocomplete, keine rechtschreibpruefung,
+            # der platzhalter zeigt das muster
+            '      <input type="email" name="EMAIL" placeholder="you@example.com" aria-label="email" '
+            'autocomplete="email" spellcheck="false" required>\n'
             '%s'
             '      <input type="text" name="email_address_check" value="" style="position:absolute;left:-9999px;" '
             'tabindex="-1" autocomplete="off" aria-hidden="true">\n'
@@ -667,7 +704,7 @@ def anmeldung(nr, sid, titel, text):
             '    </form>\n'
             '    <div class="msg" role="status"></div>\n'
             '    <small>free · unsubscribe anytime · cheat sheet delivered after email confirmation</small>\n'
-            '  </div>') % (sid, esc(titel), esc(text), BREVO, utm)
+            '  </div>') % ("" if titel else " first", sid, kopf, BREVO, utm)
 
 
 BREVO = ("https://f926321f.sibforms.com/serve/MUIFAFRuw_TYaNSX3EkJvy138Dd428wMUmHj9SzFap7QLCSAeGmK2p9tHNGmw4FZsutI"
@@ -684,16 +721,16 @@ def inhalt_html(D, url=SEITE, archiv=None):
     if not ss:
         raise Abbruch("kein einziger schritt hat daten")
     n = len(ss)
-    teile = [hero_html(D["zdw"], st, archiv and archiv["oben"]).replace('href="#%s"', 'href="#%s"' % ss[0]["id"])
+    kopf = intro_html(D["zdw"], st, ss) if not archiv else hero_html(D["zdw"], st, archiv["oben"])
+    teile = [kopf.replace('href="#%s"', 'href="#%s"' % ss[0]["id"])
              .replace("6 numbers, 2 minutes", "%d numbers, 2 minutes" % n)]
     teile.append('  <nav class="progress" aria-label="progress">%s</nav>' % "".join(
         '<a href="#%s" aria-label="step %d"></a>' % (s["id"], i + 1) for i, s in enumerate(ss)))
     for i, s in enumerate(ss):
         nxt = ss[i + 1]["id"] if i + 1 < n else None
-        z = ['  <section class="step" id="%s">' % s["id"],
-             '    <div class="steprow"><div class="stepnum">%d / %d · %s</div>'
-             '<a class="share" href="%s" target="_blank" rel="noopener">share on x</a></div>'
-             % (i + 1, n, s["kopf"], esc(teilen(s["id"], h2_text(s["h2"]), url))),
+        # keine kopfzeile "1 / 5 · the chain" ueber der ueberschrift (taste-skill,
+        # 26.10.2026): die stelle zeigt die leiste, das thema sagt das h2
+        z = ['  <section class="step" id="%s" aria-label="%d of %d, %s">' % (s["id"], i + 1, n, s["kopf"]),
              "    <h2>%s</h2>" % mref(s["h2"], s["id"]),
              '    <p class="body">%s</p>' % esc(s["satz"])]
         if s["chips"]:
@@ -701,6 +738,8 @@ def inhalt_html(D, url=SEITE, archiv=None):
         if s["grafik"]:
             z.append('    <figure><p class="ftitle">%s</p>%s<figcaption>%s</figcaption></figure>'
                      % (esc(s["ftitel"]), s["grafik"], esc(s["fcap"])))
+        z.append('    <p class="sharerow"><a class="share" href="%s" target="_blank" rel="noopener">share on x</a></p>'
+                 % esc(teilen(s["id"], h2_text(s["h2"]), url)))
         if nxt and HIN.get(nxt):
             z.append('    <p class="bridge">%s <a href="#%s">next</a></p>' % (esc(HIN[nxt]), nxt))
         if not nxt:
@@ -709,17 +748,11 @@ def inhalt_html(D, url=SEITE, archiv=None):
                      '<a href="/entity-x.html">largest wallet</a><a href="/kaspa-covenants.html">covenants</a></div>')
         z.append("  </section>")
         teile.append("\n".join(z))
-        if i == 2 and n > 3 and not archiv:
-            teile.append(anmeldung(1, "subscribe", "all the weekly numbers in one mail, every monday",
-                                   "the %d numbers on this page, dated and sourced, in one mail." % n))
     if archiv:
         teile.append(archiv["unten"])
         teile.append(anmeldung(1, "subscribe", "all the weekly numbers in one mail, every monday",
                                "the numbers of each monday reading, dated and sourced, in one mail."))
         return "\n".join(teile)
-    if n <= 3:
-        teile.append(anmeldung(1, "subscribe", "all the weekly numbers in one mail, every monday",
-                               "the %d numbers on this page, dated and sourced, in one mail." % n))
     nx = st + dt.timedelta(days=7)
     teile.append(anmeldung(2, "subscribe-end", "next reading %s %s" % (TAGE[nx.weekday()], d_kurz(nx, False)),
                            "get it in your inbox, every number with its date and source."))
@@ -734,7 +767,7 @@ def sichtbare_texte(inhalt):
     s = re.sub(r"(?s)<svg\b.*?</svg>", " ", inhalt)
     s = re.sub(r"(?s)<form\b.*?</form>", " ", s)
     texte = []
-    for m in re.finditer(r"(?s)<(p|h2|h3|li|figcaption|div class=\"stepnum\")[^>]*>(.*?)</(?:p|h2|h3|li|figcaption|div)>", s):
+    for m in re.finditer(r"(?s)<(p|h1|h2|h3|li|figcaption)[^>]*>(.*?)</(?:p|h1|h2|h3|li|figcaption)>", s):
         t = " ".join(htmlmod.unescape(re.sub(r"<[^>]+>", " ", m.group(2))).split())
         if t:
             texte.append(t)
@@ -827,8 +860,16 @@ def selbsttest():
     ok("sechs schritte", len(ss) == 6)
     ok("wachen gruen", pruefen(inhalt, ss) == [], pruefen(inhalt, ss))
     ok("anker subscribe genau einmal", inhalt.count('id="subscribe"') == 1)
-    ok("anmeldung nach schritt 3", inhalt.index('id="emission"') < inhalt.index('id="subscribe"')
-       < inhalt.index('id="holders"'))
+    ok("anmeldung im ersten bild, vor dem ersten schritt",
+       inhalt.index('class="intro"') < inhalt.index('id="subscribe"') < inhalt.index('id="chain"'))
+    ok("genau ein h1, das versprechen", inhalt.count("<h1") == 1 and "<h1>kaspa in 7 numbers, every monday</h1>" in inhalt,
+       re.findall(r"<h1[^>]*>.*?</h1>", inhalt))
+    ok("versprechen nennt jede zahl und den naechsten montag",
+       "block rate, miner fees, emission, holders, layer 2 and addresses, each with its date and source" in inhalt
+       and "the next on 26\u00a0oct." in inhalt)
+    ok("keine kopfzeile ueber den schritten", "stepnum" not in inhalt and 'aria-label="1 of 6, the chain"' in inhalt)
+    ok("wochenseite behaelt ihr h1", "<h1 class=\"lead\">" in inhalt_html(D, SEITE + "week/2026-10-19/",
+                                                                        {"oben": "x 19 oct", "unten": ""}))
     ok("utm-felder mit id nur einmal", inhalt.count('id="utmSource"') == 1 and 'data-utm="utmSource"' in inhalt)
     ok("share-link auf genau diesen schritt", "kaspapulse.com%2F%23holders" in inhalt)
     ok("kein platzhalter-chip", "todo" not in inhalt and "from the series" not in inhalt)
@@ -846,7 +887,8 @@ def selbsttest():
     ss2 = schritte(D2)
     in2 = inhalt_html(D2)
     ok("frage fuehrt in den naechsten schritt", 'quoted wrong a lot. <a href="#addresses">' in inhalt_html(dict(D, layer2=None)))
-    ok("fehlende daten, schritt faellt weg", len(ss2) == 4 and "1 / 4" in in2 and pruefen(in2, ss2) == [])
+    ok("fehlende daten, schritt faellt weg", len(ss2) == 4 and "1 of 4" in in2 and "kaspa in 5 numbers" in in2
+       and pruefen(in2, ss2) == [])
     ok("echtzeit-wort faellt auf", pruefen(inhalt.replace("blocks keep landing", "blocks currently land"), ss) != [])
     ok("percent faellt auf", pruefen(inhalt.replace("fees paid", "fees paid 1 percent"), ss) != [])
     ok("counted mit source faellt auf",
