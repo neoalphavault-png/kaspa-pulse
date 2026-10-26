@@ -290,6 +290,7 @@
       .then(function (r) { return r.json(); })
       .then(function (j) {
         if (j && j.success) {
+          try { if (window.plausible) plausible("Signup", { props: { page: location.pathname, utm_campaign: ((f.querySelector('[name="UTM_CAMPAIGN"]') || document.getElementById("utmCampaign") || {}).value || "none") } }); } catch (kpE) {}
           msg.className = "ok";
           msg.textContent = "✓ check your inbox and click the confirmation link. the sheet lands right after.";
           state.done = 1; save();
