@@ -30,7 +30,7 @@
  "description": "The Kaspa Pulse reading of monday 13 jul 2026, issue 1. The weekly close sat 38.88% below the 50 week average, plus 3 more numbers, dated and sourced.",
  "url": "https://kaspapulse.com/week/2026-07-13/",
  "inLanguage": "en",
- "dateModified": "2026-10-21",
+ "dateModified": "2026-10-26",
  "isPartOf": {
   "@type": "WebSite",
   "name": "Kaspa Pulse",
@@ -60,7 +60,7 @@
 @font-face{font-family:"IBM Plex Sans";font-weight:500;font-display:swap;src:url(/graphics/fonts/ibm-plex-sans-latin-500-normal.woff2) format("woff2")}
 @font-face{font-family:"IBM Plex Sans";font-weight:600;font-display:swap;src:url(/graphics/fonts/ibm-plex-sans-latin-600-normal.woff2) format("woff2")}
 :root{
-  --bg:#EEF3F1; --surface:#FFFFFF; --ink:#0B1A17; --muted:#4F625D; --line:#D3DEDA;
+  --bg:#F2F5F4; --surface:#FFFFFF; --ink:#0B1A17; --muted:#4F625D; --line:#D3DEDA;
   --accent:#0F9A80; --accent-soft:#CDEBE4; --neg:#4F625D; --chip:#E2ECE9;
   /* text im akzent auf hellem grund: #0F9A80 erreicht nur 3.1:1, kleiner text
      braucht 4.5:1 (taste-skill-pruefung, Ben 25.10.2026). gleicher farbton. */
@@ -87,7 +87,7 @@ a,button{-webkit-tap-highlight-color:rgba(73,234,203,.25)}
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;line-height:1.55;overflow-x:hidden}
 a{color:inherit}
-.bar{position:sticky;top:0;z-index:60;background:var(--bar);border-bottom:1px solid var(--bar-line)}
+.bar{position:sticky;top:0;z-index:60;background:var(--bar)}
 header.top{max-width:1080px;margin:0 auto;padding:0 16px;height:56px;display:flex;align-items:center;gap:16px}
 .logo{font:900 18px/1 Archivo,sans-serif;letter-spacing:.04em;color:var(--bar-ink);text-decoration:none;white-space:nowrap}
 .logo span{color:var(--brand)}
@@ -121,33 +121,38 @@ header.top{max-width:1080px;margin:0 auto;padding:0 16px;height:56px;display:fle
   .drop a{padding:5px 0;font-size:14.5px;white-space:normal}
 }
 @media (max-width:380px){.logo{font-size:16px}.subbtn{padding:8px 10px;font-size:13px}.burger{padding:8px 10px}}
-main{max-width:760px;margin:0 auto;padding:0 16px 40px}
-.hero{padding:44px 0 36px;border-bottom:1px solid var(--line)}
-.eyebrow{font:500 13px/1.4 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+/* main ist so breit wie das fenster, damit das erste bild bis an den rand reicht.
+   alles andere steht wie bisher in 760 px, mit prozent statt vw, sonst zaehlt die
+   bildlaufleiste mit und die raender werden ungleich */
+main{padding:0 0 40px}
+main > :not(.intro){margin-left:max(16px,calc(50% - 364px));margin-right:max(16px,calc(50% - 364px))}
+.hero{padding:44px 0 36px}
+.eyebrow{font:500 14px/1.4 "IBM Plex Mono",monospace;color:var(--muted);margin:0 0 14px}
 .big{font:900 clamp(64px,18vw,128px)/.9 Archivo,sans-serif;letter-spacing:-.02em;margin:0;color:var(--accent);font-variant-numeric:tabular-nums}
 .lead{font:800 clamp(20px,4.6vw,26px)/1.3 Archivo,sans-serif;margin:18px 0 8px;max-width:32ch;text-wrap:balance}
 .note{font:400 13px/1.5 "IBM Plex Mono",monospace;color:var(--muted);margin:0}
-.next{display:inline-flex;gap:8px;align-items:center;margin-top:26px;font:500 14px/1 "IBM Plex Sans",system-ui,sans-serif;color:var(--ink);text-decoration:none;border:1px solid var(--line);padding:12px 16px;border-radius:999px}
+.next{display:inline-flex;gap:8px;align-items:center;margin-top:26px;font:500 16px/1 "IBM Plex Sans",system-ui,sans-serif;color:var(--ink);text-decoration:none;background:var(--chip);padding:13px 18px;border-radius:999px}
 .progress{position:sticky;top:57px;z-index:4;display:flex;gap:6px;padding:12px 0;background:var(--bg)}
 .progress a{flex:1;height:4px;border-radius:2px;background:var(--line)}
 .progress a.on{background:var(--accent)}
-section.step{padding:48px 0 24px;border-bottom:1px solid var(--line);transition:opacity .4s}
+section.step{padding:64px 0 24px;transition:opacity .4s}
 .js section.step{opacity:.35}
 .js section.step.seen{opacity:1}
 @media (prefers-reduced-motion: reduce){.js section.step{opacity:1;transition:none}}
 .steprow{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .stepnum{font:500 13px/1 "IBM Plex Mono",monospace;color:var(--muted);letter-spacing:.08em}
-.share{font:500 13px/1 "IBM Plex Mono",monospace;color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:7px 10px;white-space:nowrap}
-.share:hover{color:var(--accent-ink);border-color:var(--accent)}
-h2{font:800 clamp(24px,5.6vw,34px)/1.15 Archivo,sans-serif;margin:12px 0 14px;max-width:24ch;text-wrap:balance}
+.share{display:inline-block;font:500 13px/1 "IBM Plex Mono",monospace;color:var(--muted);text-decoration:none;background:var(--chip);border-radius:999px;padding:9px 12px;white-space:nowrap}
+.share:hover{color:var(--accent-ink)}
+.sharerow{margin:4px 0 0}
+h2{font:800 clamp(24px,5.6vw,34px)/1.15 Archivo,sans-serif;margin:0 0 14px;max-width:24ch;text-wrap:balance}
 h2 em{font-style:normal;color:var(--accent)}
 /* die hervorgehobene zahl verlinkt auf ihren eintrag in method */
 a.mref{color:inherit;text-decoration:underline dotted;text-decoration-thickness:2px;text-underline-offset:.15em}
 a.mref:hover{text-decoration-style:solid}
-.next:hover{border-color:var(--accent)} .bridge a:hover{text-decoration-thickness:2px} footer a:hover{color:var(--ink)}
+.next:hover{background:var(--accent-soft)} .bridge a:hover{text-decoration-thickness:2px} footer a:hover{color:var(--ink)}
 .big a.mref{text-decoration-thickness:4px}
 p.body{max-width:62ch;margin:0 0 18px}
-figure{margin:0 0 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+figure{margin:0 0 12px;background:var(--surface);border-radius:12px;padding:18px}
 .ftitle{font:800 16px/1.3 Archivo,sans-serif;margin:0 0 10px}
 figcaption{font:400 13px/1.5 "IBM Plex Mono",monospace;color:var(--muted);margin-top:10px}
 figure svg{display:block;max-width:100%;height:auto}
@@ -155,7 +160,7 @@ svg text{font-family:"IBM Plex Mono",monospace;fill:var(--muted);font-size:13px}
 svg .lab{fill:var(--ink);font-weight:500}
 /* auf dem handy wird die grafik auf rund die halbe breite gestaucht, die schrift waechst mit */
 @media (max-width:560px){svg text{font-size:21px}}
-.bridge{font:500 15px/1.4 "IBM Plex Sans",system-ui,sans-serif;color:var(--muted);margin:18px 0 0}
+.bridge{font:500 16px/1.45 "IBM Plex Sans",system-ui,sans-serif;color:var(--muted);margin:18px 0 0}
 .bridge a{color:var(--accent-ink);font-weight:600}
 .cmp{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px;padding:0;list-style:none}
 .cmp li{font:500 13px/1 "IBM Plex Mono",monospace;background:var(--chip);border-radius:999px;padding:8px 12px;font-variant-numeric:tabular-nums;color:var(--ink)}
@@ -166,12 +171,39 @@ svg .lab{fill:var(--ink);font-weight:500}
    und zwei anmeldungen, hier braucht es ihn nicht. auf den unterseiten bleibt er.
    die id-regel mit !important schlaegt den stilblock, den capture.js spaeter einfuegt. */
 #kpcBtn,#kpcPad{display:none!important}
+/* das erste bild (taste-skill, Ben 26.10.2026): in beiden looks dunkel wie der
+   kopf, links was man bekommt und die anmeldung, rechts die zahl der woche.
+   farben fest aus der marke: #080B0F, #F2F5F4, #49EACB. kein bild, damit der
+   groesste inhalt text bleibt und die seite nicht langsamer wird. */
+.intro{--i-ink:#F2F5F4;--i-muted:#A9B7B4;--i-chip:#1B252B;background:#080B0F;color:var(--i-ink);
+  padding:40px max(16px,calc(50% - 524px)) 48px;display:grid;gap:36px;grid-template-columns:1fr}
+@media (min-width:900px){.intro{grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:56px;padding-top:72px;padding-bottom:80px;align-items:center}}
+.intro h1{font:900 clamp(29px,7.2vw,56px)/1.04 Archivo,sans-serif;letter-spacing:-.015em;margin:0 0 18px;text-wrap:balance}
+.intro .sub{font:400 18px/1.5 "IBM Plex Sans",system-ui,sans-serif;color:var(--i-ink);margin:0 0 22px;max-width:42ch}
+.intro .subscribe{margin:0;padding:0;background:none}
+.intro .subscribe input[type=email]{background:#F2F5F4;color:#080B0F;border:0;padding:14px 16px;font-size:16px}
+.intro .subscribe button{background:#49EACB;color:#04211C;padding:14px 22px;font-size:16px}
+.intro .subscribe button:hover{background:#7FF0DA}
+.intro .subscribe input::placeholder{color:#4F625D;opacity:1}
+.intro .subscribe small{color:var(--i-muted)}
+.intro .subscribe .msg.ok{color:#49EACB} .intro .subscribe .msg.err{color:var(--i-ink)}
+.intro .nod{border-radius:14px;background:#0F1519;padding:24px}
+@media (min-width:900px){.intro .nod{padding:28px}.intro h1{font-size:clamp(40px,3.5vw,52px)}}
+.intro .eyebrow,.intro .note{color:var(--i-muted)}
+.intro .big{color:#49EACB;font-size:clamp(64px,16vw,104px)}
+.intro .lead{color:var(--i-ink);font-size:20px;max-width:none}
+.intro .cmp{margin:16px 0 0}
+.intro .cmp li{background:var(--i-chip);color:var(--i-ink)}
+.intro .cmp li .up{color:#49EACB} .intro .cmp li .dn{color:var(--i-muted)}
+.intro .next{background:var(--i-chip);color:var(--i-ink)}
+.intro .next:hover{background:#25333A}
+.intro + .progress{margin-top:0}
 .subscribe{margin:40px 0;padding:24px;border-radius:12px;background:var(--accent-soft)}
-.subscribe h3{font:800 22px/1.2 Archivo,sans-serif;margin:0 0 6px}
+.subscribe h3{font:800 20px/1.2 Archivo,sans-serif;margin:0 0 6px}
 .subscribe p{margin:0 0 14px}
 .subscribe form{display:flex;gap:8px;flex-wrap:wrap}
-.subscribe input[type=email]{flex:1 1 200px;min-width:0;padding:12px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:400 15px "IBM Plex Sans",system-ui,sans-serif}
-.subscribe button{padding:12px 18px;border:0;border-radius:8px;background:var(--accent-ink);color:var(--bg);font:600 15px "IBM Plex Sans",system-ui,sans-serif;cursor:pointer}
+.subscribe input[type=email]{flex:1 1 200px;min-width:0;padding:12px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:400 16px "IBM Plex Sans",system-ui,sans-serif}
+.subscribe button{padding:12px 18px;border:0;border-radius:8px;background:var(--accent-ink);color:var(--bg);font:600 16px "IBM Plex Sans",system-ui,sans-serif;cursor:pointer}
 .subscribe button:disabled{opacity:.6;cursor:wait}
 .subscribe small{display:block;margin-top:10px;font:400 13px/1.5 "IBM Plex Mono",monospace;color:var(--muted)}
 .subscribe .msg{display:none;margin-top:12px;font-size:14px;font-weight:600}
@@ -194,11 +226,11 @@ section.mentry h2{margin:0}
 section.mentry .steprow{flex-wrap:wrap;align-items:baseline}
 .art{font:500 13px/1.3 "IBM Plex Mono",monospace;background:var(--chip);border-radius:999px;padding:7px 12px}
 .deeper a{font:500 13px "IBM Plex Mono",monospace;color:var(--ink);background:var(--chip);border-radius:999px;padding:9px 12px;text-decoration:none}
-.channels{max-width:760px;margin:0 auto;padding:32px 16px 0;border-top:1px solid var(--line)}
-.channels p{font:500 13px/1 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+.channels{max-width:760px;margin:0 auto;padding:32px 16px 0}
+.channels p{font:500 14px/1 "IBM Plex Mono",monospace;color:var(--muted);margin:0 0 12px}
 .channels nav{display:flex;flex-wrap:wrap;gap:8px}
-.channels a{display:inline-flex;align-items:center;gap:8px;font:500 14px/1 "IBM Plex Sans",system-ui,sans-serif;color:var(--ink);text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:11px 14px}
-.channels a:hover{border-color:var(--accent)}
+.channels a{display:inline-flex;align-items:center;gap:8px;font:500 14px/1 "IBM Plex Sans",system-ui,sans-serif;color:var(--ink);text-decoration:none;background:var(--surface);border-radius:8px;padding:12px 14px}
+.channels a:hover{background:var(--chip)}
 .channels svg{width:16px;height:16px;fill:currentColor}
 footer{max-width:760px;margin:0 auto;padding:24px 16px 32px;font:400 13px/1.7 "IBM Plex Mono",monospace;color:var(--muted)}
 footer a{color:var(--muted)}
@@ -258,27 +290,27 @@ footer .fund a{display:inline-block;padding:10px 0}
     <a class="next" href="#emission">3 numbers, 2 minutes</a>
   </section>
   <nav class="progress" aria-label="progress"><a href="#emission" aria-label="step 1"></a><a href="#holders" aria-label="step 2"></a><a href="#addresses" aria-label="step 3"></a></nav>
-  <section class="step" id="emission">
-    <div class="steprow"><div class="stepnum">1 / 3 · emission</div><a class="share" href="https://x.com/intent/post?text=daily%20emission%20steps%20down%20to%201%2C997%2C970%20KAS%20on%205%20aug.%20source%20kaspa%20pulse&amp;url=https%3A%2F%2Fkaspapulse.com%2Fweek%2F2026-07-13%2F%23emission" target="_blank" rel="noopener">share on x</a></div>
+  <section class="step" id="emission" aria-label="1 of 3, emission">
     <h2>daily emission steps down to <a class="mref" href="/method/#emission"><em>1,997,970 KAS</em></a> on 5 aug</h2>
     <p class="body">it steps down every month by the same factor and halves once a year. at flat fees, each step is close to a 5.6% cut in miner income in KAS.</p>
     <ul class="cmp" aria-label="comparison"><li><span class="dn">▼ 5.6%</span> vs 5 jul</li><li><span class="dn">▼ 15.9%</span> vs 5 may</li></ul>
     <figure><p class="ftitle">1,997,970 KAS a day on 5 aug, after 2,116,775 on 5 jul</p><svg viewBox="0 0 640 240" width="100%" role="img" aria-label="daily emission in KAS per month, 3 feb 2026 to 3 feb 2027, stepping down from 2,825,556 to 1,412,778"><line x1="56" x2="626" y1="179.3" y2="179.3" stroke="var(--line)"/><text x="48" y="183.3" text-anchor="end" font-size="11">1.5M</text><line x1="56" x2="626" y1="125.4" y2="125.4" stroke="var(--line)"/><text x="48" y="129.4" text-anchor="end" font-size="11">2.0M</text><line x1="56" x2="626" y1="71.4" y2="71.4" stroke="var(--line)"/><text x="48" y="75.4" text-anchor="end" font-size="11">2.5M</text><path d="M56.0,36.3 H103.5 V53.4 H151.0 V69.6 H198.5 V84.8 H246.0 V99.2 H293.5 V112.8 H341.0 V125.6 H388.5 V137.7 H436.0 V149.1 H483.5 V159.9 H531.0 V170.1 H578.5 V179.7 H626.0 V188.8" fill="none" stroke="var(--muted)" stroke-width="2"/><line x1="341.0" x2="341.0" y1="112.8" y2="125.6" stroke="var(--accent)" stroke-width="4"/><circle cx="341.0" cy="125.6" r="5" fill="var(--accent)"/><text x="349.0" y="117.6" class="lab" font-size="12">5 aug · 1,997,970</text><text x="8.0" y="228" text-anchor="start" font-size="11">feb 26</text><text x="198.5" y="228" text-anchor="middle" font-size="11">may 26</text><text x="341.0" y="228" text-anchor="middle" font-size="11">aug 26</text><text x="483.5" y="228" text-anchor="middle" font-size="11">nov 26</text><text x="626.0" y="228" text-anchor="end" font-size="11">feb 27</text></svg><figcaption>computed from the emission schedule, factor 2^(1/12) down per month · KAS per day</figcaption></figure>
+    <p class="sharerow"><a class="share" href="https://x.com/intent/post?text=daily%20emission%20steps%20down%20to%201%2C997%2C970%20KAS%20on%205%20aug.%20source%20kaspa%20pulse&amp;url=https%3A%2F%2Fkaspapulse.com%2Fweek%2F2026-07-13%2F%23emission" target="_blank" rel="noopener">share on x</a></p>
     <p class="bridge">who is holding all those coins? <a href="#holders">next</a></p>
   </section>
-  <section class="step" id="holders">
-    <div class="steprow"><div class="stepnum">2 / 3 · holders</div><a class="share" href="https://x.com/intent/post?text=294%2C929%20addresses%20hold%20at%20least%20100%20KAS.%20source%20kaspa%20pulse&amp;url=https%3A%2F%2Fkaspapulse.com%2Fweek%2F2026-07-13%2F%23holders" target="_blank" rel="noopener">share on x</a></div>
+  <section class="step" id="holders" aria-label="2 of 3, holders">
     <h2><a class="mref" href="/method/#holders"><em>294,929</em></a> addresses hold at least 100 KAS</h2>
     <p class="body">233 more than on 6 jul. 1 day fell, on 7 jul. read on 13 jul 2026, source kaspalytics.</p>
     <ul class="cmp" aria-label="comparison"><li><span class="up">▲ 233 · 0.08%</span> vs 6 jul</li><li><span class="up">▲ 6,192 · 2.14%</span> vs 13 apr</li></ul>
     <figure><p class="ftitle">net change per day, 6 of 7 days up</p><svg viewBox="0 0 640 220" width="100%" role="img" aria-label="net change per day of addresses with at least 100 KAS, 7 jul 2026 to 13 jul 2026"><line x1="44" x2="628" y1="105.8" y2="105.8" stroke="var(--muted)"/><text x="36" y="109.8" text-anchor="end" font-size="11">0</text><rect x="59.0" y="105.8" width="53.4" height="60.9" rx="3" fill="var(--neg)"/><text x="85.7" y="208" text-anchor="middle" font-size="11">7</text><text x="85.7" y="180.6" text-anchor="middle" font-size="11" class="lab">-81</text><rect x="142.4" y="86.2" width="53.4" height="19.5" rx="3" fill="var(--accent)"/><text x="169.1" y="208" text-anchor="middle" font-size="11">8</text><rect x="225.9" y="74.2" width="53.4" height="31.6" rx="3" fill="var(--accent)"/><text x="252.6" y="208" text-anchor="middle" font-size="11">9</text><rect x="309.3" y="37.4" width="53.4" height="68.4" rx="3" fill="var(--accent)"/><text x="336.0" y="208" text-anchor="middle" font-size="11">10</text><text x="336.0" y="31.4" text-anchor="middle" font-size="11" class="lab">+91</text><rect x="392.7" y="66.7" width="53.4" height="39.1" rx="3" fill="var(--accent)"/><text x="419.4" y="208" text-anchor="middle" font-size="11">11</text><rect x="476.2" y="92.2" width="53.4" height="13.5" rx="3" fill="var(--accent)"/><text x="502.9" y="208" text-anchor="middle" font-size="11">12</text><rect x="559.6" y="41.9" width="53.4" height="63.9" rx="3" fill="var(--accent)"/><text x="586.3" y="208" text-anchor="middle" font-size="11">13</text><text x="586.3" y="35.9" text-anchor="middle" font-size="11" class="lab">+85</text></svg><figcaption>net change per day, 7 jul to 13 jul 2026 · source kaspalytics address thresholds</figcaption></figure>
+    <p class="sharerow"><a class="share" href="https://x.com/intent/post?text=294%2C929%20addresses%20hold%20at%20least%20100%20KAS.%20source%20kaspa%20pulse&amp;url=https%3A%2F%2Fkaspapulse.com%2Fweek%2F2026-07-13%2F%23holders" target="_blank" rel="noopener">share on x</a></p>
     <p class="bridge">one more number, and it gets quoted wrong a lot. <a href="#addresses">next</a></p>
   </section>
-  <section class="step" id="addresses">
-    <div class="steprow"><div class="stepnum">3 / 3 · the quoted number</div><a class="share" href="https://x.com/intent/post?text=54.9%20million%20addresses%2C%20but%20not%2054.9%20million%20holders.%20source%20kaspa%20pulse&amp;url=https%3A%2F%2Fkaspapulse.com%2Fweek%2F2026-07-13%2F%23addresses" target="_blank" rel="noopener">share on x</a></div>
+  <section class="step" id="addresses" aria-label="3 of 3, the quoted number">
     <h2>54.9 million addresses, but not <a class="mref" href="/method/#addresses"><em>54.9 million holders</em></a></h2>
     <p class="body">most hold dust. above 0.01 KAS it is 747,667 addresses, read on 13 jul 2026, source kaspalytics.</p>
     <figure><p class="ftitle">only 1.4% of all addresses hold more than 0.01 KAS</p><svg viewBox="0 0 640 112" width="100%" role="img" aria-label="54,867,346 addresses with any balance, 747,667 above 0.01 KAS"><text x="0" y="22" class="lab">addresses with any balance</text><rect x="0" y="30" width="440.0" height="22" rx="3" fill="var(--muted)"/><text x="448.0" y="46">54,867,346</text><text x="0" y="76" class="lab">addresses above 0.01 KAS</text><rect x="0" y="84" width="6.0" height="22" rx="3" fill="var(--accent)"/><text x="14.0" y="100">747,667</text></svg><figcaption>13 jul 2026 · source kaspalytics address thresholds</figcaption></figure>
+    <p class="sharerow"><a class="share" href="https://x.com/intent/post?text=54.9%20million%20addresses%2C%20but%20not%2054.9%20million%20holders.%20source%20kaspa%20pulse&amp;url=https%3A%2F%2Fkaspapulse.com%2Fweek%2F2026-07-13%2F%23addresses" target="_blank" rel="noopener">share on x</a></p>
     <div class="deeper"><a href="/kaspa-hashrate.html">network</a><a href="/kaspa-supply.html">supply</a><a href="/kaspa-token-standard.html">tokens</a><a href="/entity-x.html">largest wallet</a><a href="/kaspa-covenants.html">covenants</a></div>
   </section>
   <nav class="weeknav" aria-label="weeks"><a href="/archive/">all weeks</a><a href="/week/2026-07-20/">next week, 20 jul 2026</a></nav>
@@ -313,7 +345,7 @@ footer .fund a{display:inline-block;padding:10px 0}
 </section>
 
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 21 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 26 October 2026<!--/AUTO:seitenstand--></div>
     <div class="brand" translate="no">KASPA <span>PULSE</span></div>
     <div>kaspapulse.com · Kaspa Pulse. We keep track. · not financial advice · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
     <div class="fund"><a href="/how-we-fund-this.html">how we fund this</a> · <a href="/for-builders.html">for builders</a></div>
