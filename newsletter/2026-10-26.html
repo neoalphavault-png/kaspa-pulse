@@ -15,8 +15,11 @@
   Emission 1,779,989 minus 1,680,086 = 99,903. Keine Kaspalytics-Zahl in dieser Ausgabe, kein
   Gebuehrenanteil (data/pruefung/ liegt nicht auf main, die letzte Messung ist 31 Tage alt).
 
-  VIDEO_URL ist offen: Link der Folge 9 stand nicht in der Sonntagsdatei, Ben liefert ihn nach.
-  brevo_send.py weist die Kampagne mit Platzhalter ab, also keine Testmail vor dem Link.
+  VIDEO_URL ist ab jetzt https://youtu.be/qAT9Y33A4f4 (Ben, 26.10. 13:05, Folge 9,
+  Veroeffentlichung geplant auf 16:00 Berlin, vorher nicht abspielbar und das ist in
+  Ordnung). Der Knopf "watch this week's episode" zeigt darauf, die Mail geht um 18:00
+  raus. Bis 13:05 trug der Knopf den Platzhalter, und brevo_send.py haette jede
+  Kampagne damit abgewiesen.
   Videotitel aus kw/2026-10-26/uploadpaket.md (review-Branch).
 
   Ausgabennummer: scripts/newsletter_issue.py (letzte Ausgabe 15 plus eins).
@@ -151,7 +154,7 @@
         <div style="font-size:13px; line-height:21px; color:#9BA3AB; padding:8px 0 14px 0;">
           the week's close, both lines and the numbers behind them. new chart breakdown every monday, subscribe so you don't miss it.
         </div>
-        <a href="VIDEO_URL" style="display:inline-block; background:#49EACB; color:#050608; font-size:14px; font-weight:700; text-decoration:none; padding:11px 20px; border-radius:8px;">watch this week's episode</a>
+        <a href="https://youtu.be/qAT9Y33A4f4" style="display:inline-block; background:#49EACB; color:#050608; font-size:14px; font-weight:700; text-decoration:none; padding:11px 20px; border-radius:8px;">watch this week's episode</a>
       </td></tr>
     </table>
   </td></tr>
