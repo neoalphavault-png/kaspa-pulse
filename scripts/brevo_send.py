@@ -175,6 +175,23 @@ def note(q, what, **kw):
     q["history"] = q["history"][-40:]
 
 
+def bestaetige(pfad, q, **felder):
+    """Den letzten History-Eintrag um das ergaenzen, was wirklich passiert ist.
+
+    Der Eintrag wird geschrieben und gespeichert, BEVOR der Versand losgeht,
+    denn die frische Kampagnen-ID darf nicht verloren gehen, wenn der Aufruf
+    danach bricht. Nur deshalb steht er schon da. Was erst der Aufruf beweist,
+    gehoert also hierher und nicht dort hinauf.
+
+    Am 26.10.2026 hat Brevo eine Testmail abgelehnt, der Kontakt fehlte im
+    Konto. Im Merkzettel stand trotzdem test_to mit Bens Adresse, weil der
+    Eintrag vor dem Aufruf geschrieben war. Wer das spaeter liest, haelt eine
+    Mail fuer verschickt, die nie jemand bekommen hat."""
+    if q.get("history"):
+        q["history"][-1].update(felder)
+    save_queue(pfad, q)
+
+
 # ---------------------------------------------------------------- Pruefung
 
 BILD_RE = re.compile(r'src="(?:https?://(?:www\.)?kaspapulse\.com)?/?([^":?#]+\.(?:png|jpg|jpeg|gif|webp))"', re.I)
@@ -279,9 +296,10 @@ def mode_test(a, key, q):
     q["status"] = "draft"
     q["scheduled_at"] = None
     q["created_at"] = now_z()
-    note(q, "test", campaign_id=cid, test_to=test_to)
+    note(q, "test", campaign_id=cid)
     save_queue(a.queue, q)          # ID sofort merken, bevor irgendetwas anderes passiert
     call("POST", "/emailCampaigns/%s/sendTest" % cid, key, {"emailTo": [test_to]})
+    bestaetige(a.queue, q, test_to=test_to)   # erst jetzt ist die Mail belegt
     print("testmail an %s raus. an die liste geht nichts, die kampagne bleibt entwurf." % test_to)
     return 0
 
@@ -319,9 +337,10 @@ def mode_update(a, key, q):
     test_to = (a.test_to or "").strip() or q.get("sender") or ""
     if not test_to:
         sys.exit("FEHLT: keine Testadresse (vars.NEWSLETTER_TEST_TO oder --test-to)")
-    note(q, "update", campaign_id=cid, html_path=q["html_path"], test_to=test_to)
+    note(q, "update", campaign_id=cid, html_path=q["html_path"])
     save_queue(a.queue, q)
     call("POST", "/emailCampaigns/%s/sendTest" % cid, key, {"emailTo": [test_to]})
+    bestaetige(a.queue, q, test_to=test_to)   # erst jetzt ist die Mail belegt
     print("testmail an %s raus. an die liste geht nichts, die kampagne bleibt entwurf." % test_to)
     return 0
 
@@ -463,6 +482,7 @@ def mode_fix(a, key, q, call_fn=None):
     test_to = (a.test_to or "").strip() or q.get("sender") or ""
     if test_to:
         call_fn("POST", "/emailCampaigns/%s/sendTest" % cid, key, {"emailTo": [test_to]})
+        bestaetige(a.queue, q, test_to=test_to)   # erst jetzt ist die Mail belegt
         print("testmail an %s raus, damit die korrigierte Fassung nachweisbar ist" % test_to)
     return 0
 
@@ -545,6 +565,11 @@ def selftest():
     save_queue(tmp, q)
     again = load_queue(tmp)
     assert again["campaign_id"] == 42 and again["history"][-1]["step"] == "test"
+    # der empfaenger kommt erst nach dem versand in den eintrag (Ben, 26.10.2026)
+    assert "test_to" not in again["history"][-1], again["history"][-1]
+    bestaetige(tmp, q, test_to="ben@example.com")
+    assert load_queue(tmp)["history"][-1]["test_to"] == "ben@example.com"
+    bestaetige(tmp, {"history": []}, test_to="x")   # ohne eintrag faellt nichts um
     # planung: ein PUT, ein GET, kein zweiter statusaufruf (25.09.2026)
     soll = "2126-09-28T18:00:00+02:00"
     assert pruefe_geplant({"status": "queued",
@@ -618,6 +643,32 @@ def selftest():
     assert fixe[3][2] == ("scheduledAt",), fixe[3]
     assert load_queue(F.queue)["history"][-1]["result"] == "wieder geplant"
     assert load_queue(F.queue)["scheduled_at"] == weit
+    assert load_queue(F.queue)["history"][-1]["test_to"] == "ben@example.com"
+
+    # bricht die testmail, steht im merkzettel kein empfaenger. genau das ist
+    # am 26.10.2026 schiefgegangen, nur anders herum.
+    def attrappe_fix_mail_rot(method, path, key, body=None):
+        if method == "GET":
+            return {"status": "queued", "scheduledAt": weit}
+        if path.endswith("/sendTest"):
+            raise RuntimeError("HTTP 400 auf POST %s: contact does not exist" % path)
+        return {}
+
+    class FR:
+        html = hpfad
+        subject = ""
+        test_to = "ben@example.com"
+        queue = os.path.join(_tf2.mkdtemp(), "q.json")
+    try:
+        mode_fix(FR, "k", {"campaign_id": 36, "history": [], "html_path": hpfad},
+                 call_fn=attrappe_fix_mail_rot)
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError("die rote testmail haette durchschlagen muessen")
+    letzter = load_queue(FR.queue)["history"][-1]
+    assert letzter["result"] == "wieder geplant", letzter
+    assert "test_to" not in letzter, letzter
 
     # kurz vor dem versand wird nichts angefasst
     gleich = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=4)
@@ -681,7 +732,8 @@ def selftest():
           "entwurf wird nicht storniert, queue haelt, planung ist ein PUT plus "
           "ein lesender GET, ein nicht geplanter stand wird rot, und ein HTML "
           "mit krummer Differenz geht nicht an Brevo, und fix plant auf denselben "
-          "termin zurueck")
+          "termin zurueck, und der empfaenger steht erst nach dem versand im "
+          "merkzettel")
     return 0
 
 
