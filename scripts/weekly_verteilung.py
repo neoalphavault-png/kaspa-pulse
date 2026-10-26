@@ -399,6 +399,7 @@ def lauf_probe(paket_dir, datum=None, abruf=yt.fetch):
         video, grund = passendes_video(e, dt.date.fromisoformat(datum), paket["titel"])
     except Exception as exc:                        # noqa: BLE001
         video, grund = None, "feed nicht lesbar (%s)" % type(exc).__name__
+    print("probe paket %s weekly %s, video %s" % (datum, paket["nummer"], video["video_id"] if video else "nicht gefunden (%s)" % grund))
     url = "https://www.youtube.com/watch?v=" + video["video_id"] if video else "https://www.youtube.com/watch?v=PROBE"
     nachrichten = ["PROBE Weekly-Verteilung %s, Weekly %s. Video %s. So sähen die Posts aus, gesendet wird nur hierher."
                    % (datum, paket["nummer"], "gefunden" if video else "nicht gefunden (%s), Platzhalter-Link" % grund)]
