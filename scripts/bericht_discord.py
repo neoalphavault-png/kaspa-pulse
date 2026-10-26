@@ -106,8 +106,11 @@ def selbsttest():
     ok("zwei teile", teile(md) == ["eins", "zwei"], teile(md))
     ok("ohne abschnitt leer", teile("# nur text") == [])
     ok("sauberer text ohne fund", pruefen(["see github.com/x and 18:03 to 18:14"]) == [])
-    for bad, art in (("node 10.0.0.1", "ip"), ("kaspatest:" + "q" * 61, "adresse"), ("muon-10.kaspa.blue", "hostname"),
-                     ("ghp_abc", "schluessel")):
+    # testwerte erst zur laufzeit zusammengesetzt, kein echter host und keine echte ip in der datei
+    ip = ".".join(["192", "0", "2", "7"])
+    host = "-".join(["knoten", "1"]) + "." + "beispiel" + ".blue"
+    for bad, art in (("node " + ip, "ip"), ("kaspatest:" + "q" * 61, "adresse"), (host, "hostname"),
+                     ("ghp" + "_abc", "schluessel")):
         ok("fund %s" % art, any(art in f for f in pruefen([bad])), pruefen([bad]))
     ok("zu lang", any("zeichen" in f for f in pruefen(["x" * 2000])))
     import tempfile
