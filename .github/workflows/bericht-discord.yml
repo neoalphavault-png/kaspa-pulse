@@ -49,8 +49,10 @@ jobs:
           if git cat-file -e "$VORHER^{commit}" 2>/dev/null; then
             dateien=$(git diff --name-only "$VORHER" HEAD -- berichte/)
           else
-            git fetch -q origin main
-            dateien=$(git diff --name-only origin/main...HEAD -- berichte/)
+            # neuer branch: nur berichte aus dem letzten commit. ein vergleich mit
+            # main wuerde berichte aus noch nicht gemergten eltern-branches
+            # erneut senden (so am 26.10.2026 mit dem stp-rat passiert)
+            dateien=$(git diff --name-only HEAD~1 HEAD -- berichte/)
           fi
           rc=0
           for f in $dateien; do
