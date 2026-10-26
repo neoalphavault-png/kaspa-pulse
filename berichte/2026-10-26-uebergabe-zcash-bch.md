@@ -19,7 +19,7 @@ Für eine neue Sitzung mit demselben Namen. Wichtig: Die geplanten Aufgaben unte
 
 | Kette | Wo | Stand | Wer stößt an |
 |---|---|---|---|
-| BCH-Tempnet-Zuhörer (Woche 2) | Workflow `bch-tempnet-lauscher.yml` auf `messung/bch-tempnet-woche2` (PR kaspa-pulse#142), Daten auf `messung/bch-tempnet` unter `data/bch/lauscher/<lauf>/`, Auswertung `bloecke.csv`, `zusammenfassung.json` | Läufe 0934, 1457, 2020 (25.10.), 0143, 0707 (26.10.) lückenlos, je 330 min mit Überlappung; bis 26.10. 07:14 986 Kettenblöcke, alle angekündigt gesehen, 4 Stale | Bis zum Merge von #142: Brücke per Push auf `data/bch/lauscher-anstoss.txt` (neue Zeile `anstoss=<UTC> dauerlauf N`, `dauer_min=330`, `bis_utc=2026-11-15T12:00:00Z`) alle 322 min, nächste 26.10. 12:29 UTC (trig_01K4gPKAFYDWSfjGQTvTiwpP). Nach dem Merge reicht sich die Kette selbst weiter (workflow_dispatch), dann keine Brücke mehr. |
+| BCH-Tempnet-Zuhörer (Woche 2) | Workflow `bch-tempnet-lauscher.yml` auf `messung/bch-tempnet-woche2` (PR kaspa-pulse#142), Daten auf `messung/bch-tempnet` unter `data/bch/lauscher/<lauf>/`, Auswertung `bloecke.csv`, `zusammenfassung.json` | Läufe 0934, 1457, 2020 (25.10.), 0143, 0707 (26.10.) lückenlos, je 330 min mit Überlappung; bis 26.10. 07:14 986 Kettenblöcke, alle angekündigt gesehen, 4 Stale | #142 am 26.10. gemergt. Seit Lauf 9 (26.10. 23:14:59 UTC, workflow_dispatch auf main) reicht sich die Kette selbst weiter bis 15.11. 12:00 UTC; keine Brücken mehr. Einzige Lücke: etwa 1,5 min am 26.10. 12:37:49 bis 12:39:25 UTC. Prüfen: bei jedem Wochenlauf, ob die Kette noch läuft (gh run list / actions_list); reißt sie ab, per workflow_dispatch auf main neu starten. |
 | BCH-Tempnet-Wochenzählung | `bch-tempnet.yml` auf `messung/bch-tempnet`, Anstoß über `data/bch/stichtag.txt` | Stand 21.10. fertig | Mi 28.10., 4.11., 11.11. 10:05 UTC, Abschluss So 15.11. 12:05 UTC |
 | Zcash-Mainnet-Zählung | `zcash-mainnet.yml` auf main (täglich 05:23 UTC, workflow_dispatch mit stand=true), Daten `messung/zcash-mainnet` | Baseline ab 3.489.717; Vorhersage NU7 (3.543.405) vom 23.10.: Median 06.11. 02:21 UTC, Band 05.11. 22:02 bis 06.11. 06:40 | Mittwochsstände, Kurznotiz nach Aktivierung |
 | Zcash-Mainnet-Zuhörer | `zcash-mainnet-lauscher.yml` auf main (#135 gemergt) | noch nicht gestartet; Kettentest am 28.10. | Start 05.11. 17:00 UTC, Auswertung 08.11. |
@@ -30,7 +30,6 @@ Für eine neue Sitzung mit demselben Namen. Wichtig: Die geplanten Aufgaben unte
 
 | Wann | Was | Trigger (alte Sitzung) |
 |---|---|---|
-| 26.10. 12:29, dann alle 322 min | Brücke BCH-Tempnet-Zuhörer bis Merge #142 | trig_01K4gPKAFYDWSfjGQTvTiwpP (legt jeweils den nächsten an) |
 | 28.10. 10:05 | BCH-Tempnet Wochenlauf Teil A plus Woche 2 Teil B (Zuhörer-Auswertung, CSV je Block auf messung/bch-tempnet, Vergleich rufitnes, Bericht `berichte/2026-10-28-bch-tempnet-woche2.md`, Forum-Entwurf englisch) | trig_01XCfXqktm64uLYnZZE7VYMC |
 | 28.10. 14:00 | chipnet/XO-Bericht nachziehen (nach Woche 2) | trig_01L2bnuQ1N1FZ2JqncBEUVVs |
 | 28.10. 15:00 | Zcash Mainnet Stand 28.10. plus Kettentest Zuhörer | trig_017yJ5U84oRgXJnMvyMr1sfW |
@@ -53,7 +52,7 @@ Für eine neue Sitzung mit demselben Namen. Wichtig: Die geplanten Aufgaben unte
    - "chipnet becomes the place for 1-minute blocks" nicht behaupten.
 2. **PH-Post Sa 31.10., Format F** (Bens Zahlen am 26.10. geprüft: 3.455 von 7.572 Mindestschwierigkeit, über 5 min 51 computed gegen 29 counted, Stand 21.10., stimmen) ("Wie wir zählen": eine Methodenentscheidung mit einer Grafik), Entwurf bis Fr 30.10. 18:00 Berlin. Thema: warum Header-Abstände auf Testnetzen allein nicht reichen. Zahlen von Ben: 3,455 von 7,572 Blöcken mit Mindestschwierigkeit; über 5 min 51 computed (reiner Poisson, 60 s) gegen 29 counted. Vor Verwendung gegen `data/bch/tempnet-2026-10-21.json` auf `messung/bch-tempnet` prüfen (unser Stand 21.10.: 7.572 Blöcke). XO nur als Ausblick ohne Zahl. Format A = Messwert (ein Netz getaggt, ein counted-Wert mit Vergleich, eine Zeile Deutung, Grafik "Data from PulseHawk").
 3. **BCH Woche 2** läuft über den Wochenlauf 28.10. (Teil B im Trigger). Forum-Entwurf: Ben postet.
-4. **PRs, die Ben mergen muss:** kaspa-pulse#142 (BCH-Tempnet-Zuhörer; danach Brücke beenden).
+4. kaspa-pulse#142 ist gemergt (26.10.).
 
 ## Branches
 
