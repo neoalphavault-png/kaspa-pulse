@@ -29,7 +29,7 @@
  "description": "Kaspa is proof of work, so new blocks and new KAS come only from mining. Where the yield in Kaspa staking offers really comes from, and what it risks.",
  "url": "https://kaspapulse.com/kaspa-staking.html",
  "inLanguage": "en",
- "dateModified": "2026-10-13",
+ "dateModified": "2026-10-26",
  "isPartOf": {
   "@type": "WebSite",
   "name": "Kaspa Pulse",
@@ -203,16 +203,16 @@
   <div class="answer">
     <div class="lbl">The short answer</div>
     <p><b>Kaspa blocks come only from mining, so there is nothing to stake.</b> New KAS is created by mining and only by mining. kaspa.org describes the mainnet launch in November 2021 as <i>"a fair-launched proof-of-work network. No premine, insider allocation, or pre-sales. Every coin in circulation has been mined in the open from genesis onward."</i> (<a href="https://kaspa.org/features/" target="_blank" rel="noopener">kaspa.org</a>, read on 6 October 2026). There are no validators to delegate to, no staking contract on layer 1, no masternodes and no governance token. Holding KAS in your own wallet earns exactly nothing, forever, by design.</p>
-    <p>Every service advertising a "Kaspa staking APY" is doing one of two things: taking custody of your coins and lending them out, or offering a DeFi product on a layer 2 where what you deposit is not native KAS. Neither is staking. Both carry a risk that holding KAS does not.</p>
+    <p>Every service advertising a "Kaspa staking APY" is doing one of two things, taking custody of your coins and lending them out, or offering a DeFi product on a layer 2 where what you deposit is not native KAS. Neither is staking. Both carry a risk that holding KAS does not.</p>
   </div>
 
   <div class="live">
     <div class="lbl"><i></i>Kaspa protocol staking reward</div>
     <div class="big">0.00%</div>
-    <div class="cap">not "currently low" and not "coming soon" — the mechanism does not exist in the consensus rules. What follows is what does exist.</div>
+    <div class="cap">not "temporarily low" and not "coming soon". The mechanism does not exist in the consensus rules. What follows is what does exist.</div>
     <div class="split">
-      <div><div class="v" id="rwBig">—</div><div class="k">current block reward, live from the emission schedule — paid to miners, not to holders</div></div>
-      <div><div class="v" id="supPct">—</div><div class="k">of all KAS already mined and in circulation, live</div></div>
+      <div><div class="v" id="rwBig">—</div><div class="k">current block reward, from the emission schedule, paid to miners, not to holders</div></div>
+      <div><div class="v" id="supPct">—</div><div class="k">of all KAS already mined and in circulation, today</div></div>
       <div><div class="v">~320 PH/s</div><div class="k">hashrate securing the chain instead of a stake weighting (august 2026)</div></div>
     </div>
   </div>
@@ -222,15 +222,15 @@
 
 <div class="band"><div class="wrap2">
   <h2>Why there is nothing to stake</h2>
-  <p>Staking exists in proof of stake networks for one specific reason: the chain has to decide who is allowed to write the next block, and it decides by asking who has locked up the most coins. The reward is the fee the network pays validators for doing that job and for having capital at risk.</p>
+  <p>Staking exists in proof of stake networks for one specific reason. The chain has to decide who is allowed to write the next block, and it decides by asking who has locked up the most coins. The reward is the fee the network pays validators for doing that job and for having capital at risk.</p>
   <p>Kaspa answers that same question with work instead of capital. Blocks are produced by miners solving kHeavyHash, and the GHOSTDAG protocol orders every block that arrives rather than throwing competing ones away. There is no role for a locked coin anywhere in that process. No validator set exists, so there is nobody to delegate to, and no slashing, no unbonding period and no staking APY, because none of those concepts has anything to attach to.</p>
-  <p>The blunt consequence, which the yield sites do not print: <b>the correct return on holding Kaspa is zero.</b> A proof of work coin does not pay its holders. It pays the people spending electricity to secure it.</p>
+  <p>The blunt consequence, which the yield sites do not print, is that <b>the correct return on holding Kaspa is zero.</b> A proof of work coin does not pay its holders. It pays the people spending electricity to secure it.</p>
 
   <h3>Did the recent upgrades change this?</h3>
   <p>No, and it is worth being precise, because both upgrades were widely misreported.</p>
   <ul>
-    <li><b>Crescendo (2025)</b> raised the chain from one block per second to ten. It explicitly left monetary policy untouched: the specification keeps "the reward system and the emission schedule precisely intact" by converting the reward per block into a reward per second of equal value. Throughput changed, issuance did not.</li>
-    <li><b>Toccata</b>, live on mainnet since <b>30 June 2026</b> at DAA score 474,165,565, added covenant rules and zero knowledge proof verification to layer 1. Kaspa's own documentation states plainly that Toccata "does not turn Kaspa into an account-chain smart contract system." There is no account layer, no deployment mechanism, no global state, and certainly no staking module.</li>
+    <li><b>Crescendo (2025)</b> raised the chain from one block per second to ten. It explicitly left monetary policy untouched. The specification keeps "the reward system and the emission schedule precisely intact" by converting the reward per block into a reward per second of equal value. Throughput changed, issuance did not.</li>
+    <li><b>Toccata</b>, active on mainnet since <b>30 June 2026</b> at DAA score 474,165,565, added covenant rules and zero knowledge proof verification to layer 1. Kaspa's own documentation states plainly that Toccata "does not turn Kaspa into an account-chain smart contract system." There is no account layer, no deployment mechanism, no global state, and certainly no staking module.</li>
   </ul>
   <p>Neither upgrade introduced a stake, and none is proposed. Anyone telling you Kaspa staking is "launching soon" is describing a roadmap that does not exist.</p>
 
@@ -238,23 +238,23 @@
 
 <div class="wrap2">
   <h2>Where the yield in Kaspa staking offers comes from</h2>
-  <p>Search "stake Kaspa" and the first page fills with platforms quoting double and triple digit annual returns. The most visible of them, CoinUnited.io, headlines "earn up to 125% APY" — a figure that is not the Kaspa rate at all. On its own Kaspa page the advertised number is 37%. The 125% is a maximum across all assets, used as the headline on the page you land on.</p>
-  <p>More useful than the number is their own description of where it comes from:</p>
+  <p>Search "stake Kaspa" and the first page fills with platforms quoting double and triple digit annual returns. The most visible of them, CoinUnited.io, headlines "earn up to 125% APY", a figure that is not the Kaspa rate at all. On its own Kaspa page the advertised number is 37%. The 125% is a maximum across all assets, used as the headline on the page you land on.</p>
+  <p>More useful than the number is their own description of where it comes from.</p>
 
   <div class="quote">
     "The interest rate is determined based on the crypto supply that retail clients store on CoinUnited.io and the crypto borrowing demand which comes from financial institutions, commercial, retail loans, and staking."
     <span class="src">CoinUnited.io, "How to stake Kaspa", retrieved 5 august 2026</span>
   </div>
 
-  <p>Read it once more. The rate depends on <b>how many coins customers hand over</b> and <b>how much other people want to borrow them</b>. There is no mention of a Kaspa protocol reward, because there is none to mention. Strip the branding and the product is an unsecured loan: you give a company your KAS, the company lends it to someone else, and it promises to pay you part of the interest. Your coins are on their balance sheet, not in your wallet.</p>
+  <p>Read it once more. The rate depends on <b>how many coins customers hand over</b> and <b>how much other people want to borrow them</b>. There is no mention of a Kaspa protocol reward, because there is none to mention. Strip the branding and the product is an unsecured loan. You give a company your KAS, the company lends it to someone else, and it promises to pay you part of the interest. Your coins are on their balance sheet, not in your wallet.</p>
 
   <div class="warn">
     <div class="wl">Public record, verify it yourself</div>
     <p>CoinUnited.io has been on the <b>Hong Kong Securities and Futures Commission alert list since 25 july 2024</b>, in the category "suspicious virtual asset trading platforms", as suspected of conducting unlicensed activities. That is the regulator's own published entry, not an opinion of ours, and you can read it directly at <a href="https://www.sfc.hk/en/alert-list/3058" target="_blank" rel="noopener nofollow">sfc.hk/en/alert-list/3058</a>.</p>
-    <p>To be exact about what that does and does not say: it says unlicensed and suspected. It is not a finding of fraud, and we make no such claim. We also found no credible reports of unpaid withdrawals. What it does establish is that the counterparty asking to hold your coins is operating without a licence in at least one jurisdiction that has said so publicly. With an unsecured loan, the counterparty is the entire product.</p>
+    <p>To be exact about what that does and does not say, it says unlicensed and suspected. It is not a finding of fraud, and we make no such claim. We also found no credible reports of unpaid withdrawals. What it does establish is that the counterparty asking to hold your coins is operating without a licence in at least one jurisdiction that has said so publicly. With an unsecured loan, the counterparty is the entire product.</p>
   </div>
 
-  <p>The same structure sits under most of the others: thecoinearn, stakingy, coinando and the rest of the first page are either the same custodial lending model or affiliate pages sending you to one. The tell is always identical. Ask <b>who pays the yield</b>. If the honest answer is a company rather than the protocol, it is not staking, whatever the button says.</p>
+  <p>The same structure sits under most of the others. Thecoinearn, stakingy, coinando and the rest of the first page are either the same custodial lending model or affiliate pages sending you to one. The tell is always identical. Ask <b>who pays the yield</b>. If the honest answer is a company rather than the protocol, it is not staking, whatever the button says.</p>
 
   <div class="tblwrap"><table>
     <thead><tr><th></th><th class="r">Staking in proof of stake networks</th><th class="r">"Kaspa staking" offers</th></tr></thead>
@@ -273,12 +273,12 @@
 <div class="band"><div class="wrap2">
   <h2>The honest complication, layer 2</h2>
   <p>There is one place where the answer stops being a flat no, and the yield sites never explain it, so we will.</p>
-  <p>Kaspa now has layer 2 networks on top of it, chiefly <b>Kasplex</b> and <b>Igra</b>, which brought a mainnet EVM layer live in march 2026. Both are based rollups, meaning they hand transaction ordering back to the Kaspa layer 1 rather than running their own sequencer or validator set. That design detail matters here more than anywhere else: <b>a based rollup has no validators to stake against either.</b> The property that removes staking from Kaspa layer 1 carries straight up into its layer 2. Kasplex says so in its own documentation, <i>"Sequencing and data availability are managed by Kaspa's Layer 1, eliminating centralized sequencers."</i> (<a href="https://docs-kasplex.gitbook.io/l2-network" target="_blank" rel="noopener">docs-kasplex.gitbook.io</a>, read on 6 October 2026)</p>
-  <p>What does exist on those layers is ordinary DeFi. On Igra, lending markets such as Kaskad let you supply assets and earn interest paid by borrowers, plus a separate incentive token. That is a real product, and it can be a reasonable thing to use with eyes open. It is simply not staking, and three differences decide whether you should care:</p>
+  <p>Kaspa has layer 2 networks on top of it today, chiefly <b>Kasplex</b> and <b>Igra</b>, which brought a mainnet EVM layer online in march 2026. Both are based rollups, meaning they hand transaction ordering back to the Kaspa layer 1 rather than running their own sequencer or validator set. That design detail matters here more than anywhere else. <b>A based rollup has no validators to stake against either.</b> The property that removes staking from Kaspa layer 1 carries straight up into its layer 2. Kasplex says so in its own documentation, <i>"Sequencing and data availability are managed by Kaspa's Layer 1, eliminating centralized sequencers."</i> (<a href="https://docs-kasplex.gitbook.io/l2-network" target="_blank" rel="noopener">docs-kasplex.gitbook.io</a>, read on 6 October 2026)</p>
+  <p>What does exist on those layers is ordinary DeFi. On Igra, lending markets such as Kaskad let you supply assets and earn interest paid by borrowers, plus a separate incentive token. That is a real product, and it can be a reasonable thing to use with eyes open. It is simply not staking, and three differences decide whether you should care.</p>
   <ul>
     <li><b>It is not native KAS.</b> What you supply is iKAS, a wrapped representation minted when real KAS is locked in a bridge contract on layer 1. Your claim is on the bridge, not on the chain.</li>
     <li><b>The yield comes from borrowers,</b> plus an incentive token whose value can go to zero. It does not come from Kaspa's emission, which is unaffected by any of this.</li>
-    <li><b>You inherit new failure modes</b> that holding KAS does not have: bridge risk, smart contract risk, liquidation and utilisation risk, and the incentive token's own price risk.</li>
+    <li><b>You inherit new failure modes</b> that holding KAS does not have, bridge risk, smart contract risk, liquidation and utilisation risk, and the incentive token's own price risk.</li>
   </ul>
   <p>So the complete answer is layered rather than complicated. On layer 1 there is no staking and never has been. On layer 2 there are yield products that are worth judging on their own merits, none of which are staking, and all of which sit further from your keys than simply holding does.</p>
   <p class="note" style="font-style:italic;">We could not find any staking or yield product on Kasplex, so we make no claim about one. Where we have not verified something ourselves, we say so rather than filling the gap.</p>
@@ -290,7 +290,7 @@
   <p>One protocol level answer, one market level answer, and a straight admission about the third.</p>
 
   <h3>Mining, which is the only way new KAS is created</h3>
-  <p>Miners are paid the block reward shown live at the top of this page, and it falls by <b>5.613% every month</b>, a factor of (1/2)<sup>1/12</sup> per step. Twelve of those steps compound to exactly one half, so Kaspa halves its issuance once a year, delivered smoothly rather than as a single overnight cliff. There is no four year halving and no halving day to trade. Mining today needs a kHeavyHash ASIC and cheap electricity. With roughly 320 PH/s securing the network, solo mining is a lottery ticket for a private setup, so payouts in practice come through pools. Full detail is on our <a href="/kaspa-mining.html">mining page</a> and the schedule is on the <a href="/kaspa-halving.html">halving page</a>.</p>
+  <p>Miners are paid the block reward shown at the top of this page, and it falls by <b>5.613% every month</b>, a factor of (1/2)<sup>1/12</sup> per step. Twelve of those steps compound to exactly one half, so Kaspa halves its issuance once a year, delivered smoothly rather than as a single overnight cliff. There is no four year halving and no halving day to trade. Mining today needs a kHeavyHash ASIC and cheap electricity. With roughly 320 PH/s securing the network, solo mining is a lottery ticket for a private setup, so payouts in practice come through pools. Full detail is on our <a href="/kaspa-mining.html">mining page</a> and the schedule is on the <a href="/kaspa-halving.html">halving page</a>.</p>
 
   <h3>Layer 2 DeFi, with the caveats above</h3>
   <p>Supplying assets to lending markets or liquidity pools on Igra pays real yield from real borrowers. Judge it as what it is, a credit and smart contract position, and size it accordingly.</p>
@@ -321,7 +321,7 @@
   <h3>Will Kaspa add staking in the future?</h3>
   <p>There is no such proposal. The Crescendo upgrade in 2025 raised throughput to ten blocks per second while keeping the emission schedule precisely intact, and the Toccata hard fork that activated on 30 June 2026 added covenants and zero knowledge proof verification. Kaspa's documentation states that Toccata does not turn Kaspa into an account-chain smart contract system. Neither upgrade introduced staking and no staking mechanism is on the roadmap.</p>
   <h3>How can you earn KAS if you cannot stake it?</h3>
-  <p>By mining, which is the only way new KAS is created, and which requires a kHeavyHash ASIC and low electricity costs. The block reward falls by about 5.613 percent every month, twelve steps compounding to a halving each year. Beyond mining, layer 2 lending and liquidity provision pay yield from borrowers rather than from the protocol. Simply holding KAS pays nothing, which is the design of a proof of work coin.</p>
+  <p>By mining, which is the only way new KAS is created, and which requires a kHeavyHash ASIC and low electricity costs. The block reward falls by about 5.613% every month, twelve steps compounding to a halving each year. Beyond mining, layer 2 lending and liquidity provision pay yield from borrowers rather than from the protocol. Simply holding KAS pays nothing, which is the design of a proof of work coin.</p>
   </div>
 <!--/AUTO:faq-->
   <div class="subscribe">
@@ -363,11 +363,11 @@
 </section>
 <!--/AUTO:rahmen-kanaele-->
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 13 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 26 October 2026<!--/AUTO:seitenstand--></div>
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
-    <div>not financial advice · further reading: <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-mining.html">kaspa mining, explained</a> · <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
+    <div>not financial advice · further reading <a href="/kaspa-token-standard.html">kaspa token standards, explained</a> &middot; <a href="/kaspa-halving.html">the kaspa halving, explained</a> · <a href="/kaspa-mining.html">kaspa mining, explained</a> · <a href="/kaspa-smart-contracts.html">kaspa smart contracts, explained</a> · <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a> · <a href="/">kaspapulse.com</a> · <a href="https://www.instagram.com/kaspapulse/" target="_blank" rel="noopener">instagram</a> · <a href="https://discord.gg/h33JBhrPP7" target="_blank" rel="noopener">discord</a> · <a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a></div>
     <div class="fund" style="margin-top:10px;"><a href="/how-we-fund-this.html" style="display:inline-block;padding:12px 10px;">how we fund this</a> · <a href="/for-builders.html" style="display:inline-block;padding:12px 10px;">for builders</a></div>
   </footer>
 </div>
@@ -405,7 +405,7 @@
     {
       "@type": "Question",
       "name": "How can you earn KAS if you cannot stake it?",
-      "acceptedAnswer": { "@type": "Answer", "text": "By mining, which is the only way new KAS is created, and which requires a kHeavyHash ASIC and low electricity costs. The block reward falls by about 5.613 percent every month, twelve steps compounding to a halving each year. Beyond mining, layer 2 lending and liquidity provision pay yield from borrowers rather than from the protocol. Simply holding KAS pays nothing, which is the design of a proof of work coin." }
+      "acceptedAnswer": { "@type": "Answer", "text": "By mining, which is the only way new KAS is created, and which requires a kHeavyHash ASIC and low electricity costs. The block reward falls by about 5.613% every month, twelve steps compounding to a halving each year. Beyond mining, layer 2 lending and liquidity provision pay yield from borrowers rather than from the protocol. Simply holding KAS pays nothing, which is the design of a proof of work coin." }
     }
   ]
 }
