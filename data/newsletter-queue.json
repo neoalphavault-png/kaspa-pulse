@@ -133,6 +133,13 @@
    "step": "test",
    "campaign_id": 45,
    "test_to": "benni.alkanli@gmail.com"
+  },
+  {
+   "at": "2026-10-26T12:32:12Z",
+   "step": "update",
+   "campaign_id": 45,
+   "html_path": "newsletter/2026-10-26.html",
+   "test_to": "benni.alkanli@gmail.com"
   }
  ],
  "_hinweise": {
