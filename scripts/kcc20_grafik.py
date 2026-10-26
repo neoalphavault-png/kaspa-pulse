@@ -67,7 +67,7 @@ def lesen(tokens_pfad, zaehlung_pfad, namen=None):
 def texte(d, stichzeit, transfers=None):
     bed = "%s holder outputs" % tausend(d["halter_outputs"])
     if transfers is not None:
-        bed += ", %s transfers since 21 oct" % tausend(transfers)
+        bed += ", %s transfers counted since 22 oct" % tausend(transfers)
     return {"kopf": "KCC-20 TOKENS ON KASPA",
             "einheit": "tokens with holders",
             "bedeutung": bed,
