@@ -356,6 +356,28 @@
      "verhaeltnis": 698.56
     }
    }
+  },
+  {
+   "datum": "2026-10-26",
+   "form": 1,
+   "grund": "montag, zahl des tages sats_divergence (vorab gerechnet)",
+   "messzeit_utc": "2026-10-26T06:30:38+00:00",
+   "looks": {
+    "instagram": "teal",
+    "threads": "hell",
+    "x": "hell",
+    "discord": "hell"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-09-26",
+     "bis": "2026-10-25",
+     "fees": 78449.8992972,
+     "emission": 54366644.01014607,
+     "verhaeltnis": 693.01
+    }
+   }
   }
  ]
 }
