@@ -80,6 +80,9 @@ QUELLEN = {
     # das medium den Biografie-Klick vom Klick unter einem Beitrag.
     "instagram": "bio",
     "threads": "bio",
+    # Anzeigen auf Instagram (Ben, 26.10.2026): eigene Quelle, damit sie nicht
+    # mit der Biografie unter "instagram" zusammenfallen.
+    "ig": "paid",
 }
 
 # Gattungen, die es gibt. Ein Tippfehler im medium ist genauso teuer wie
@@ -92,8 +95,12 @@ QUELLEN = {
 #
 # story kam am 24.10.2026 dazu: der Link-Sticker in der Instagram-Story
 # (Kurzlink /story). Eine Story liegt 24 Stunden, ein Profil-Link Monate.
+#
+# paid kam am 26.10.2026 mit der Landingpage /whales dazu: der Klick aus einer
+# bezahlten Anzeige (Ben, ad1-whales-v3). Ohne den Eintrag kaeme er als
+# "other" an, und die Anzeige liesse sich in Brevo nicht abgrenzen.
 MEDIEN = ("shorts", "video", "post", "chat", "mail", "email", "site", "reply",
-          "bio", "description", "channel", "story")
+          "bio", "description", "channel", "story", "paid")
 
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 
