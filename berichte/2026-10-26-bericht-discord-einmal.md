@@ -1,6 +1,6 @@
 # Bericht-Versand in den Ops-Kanal, nur einmal je Inhalt
 
-Bericht für Ben zum Auftrag vom 26.10.2026. Branch `fix/bericht-discord-einmal`, PR folgt unten.
+Bericht für Ben zum Auftrag vom 26.10.2026. Branch `fix/bericht-discord-einmal`, PR [#156](https://github.com/neoalphavault-png/kaspa-pulse/pull/156).
 
 ## Anlass
 
