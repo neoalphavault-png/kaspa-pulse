@@ -212,6 +212,14 @@ footer .fund a{display:inline-block;padding:10px 0}
   :root[data-theme="dark"] footer .brand span { color:#49EACB; }
   /* ende wortmarke.py */
 </style>
+<!--AUTO:plausible-->
+<!-- Privacy-friendly analytics by Plausible -->
+<script async src="https://plausible.io/js/pa-o1R2wMI1l5uanq2mIzp0P.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
+<!--/AUTO:plausible-->
 </head>
 <body>
 <div class="bar">
@@ -365,6 +373,7 @@ footer .fund a{display:inline-block;padding:10px 0}
         .then(function (r) { return r.json(); })
         .then(function (j) {
           if (j && j.success) {
+            try { if (window.plausible) plausible("Signup", { props: { page: location.pathname, utm_campaign: ((form.querySelector('[name="UTM_CAMPAIGN"]') || document.getElementById("utmCampaign") || {}).value || "none") } }); } catch (kpE) {}
             msg.textContent = "✓ almost there. check your inbox and click the confirmation link.";
             msg.className = "msg ok"; form.reset();
           } else {
