@@ -36,6 +36,7 @@ Log steht es am 01.10. wörtlich: *„kein cron im fenster"*.
 | `takt-weeklynumbers` | Mo 18:40 | `weeklynumbers.yml` in kaspa-pulse |
 | `takt-cheat-sheet` | am 1. im Monat 09:00 | `cheat-sheet.yml` in kaspa-pulse |
 | `takt-number-of-day` | täglich 10:12 und 11:42 | `number-of-day.yml` in kaspa-pulse |
+| `takt-story-vorlage` | Mo–Sa 07:45 | `story-vorlage.yml` in kaspa-pulse, `senden=true`, nur nach #moderator-only |
 
 Die Uhrzeiten stehen in Ortszeit, als Anhang an der Kalenderzeile:
 

@@ -29,7 +29,7 @@
  "description": "Yes. Since the Toccata hard fork of 30 June 2026 Kaspa runs covenant contracts on layer 1, with EVM layer 2s above it. What runs where, with dated numbers.",
  "url": "https://kaspapulse.com/kaspa-smart-contracts.html",
  "inLanguage": "en",
- "dateModified": "2026-10-25",
+ "dateModified": "2026-10-26",
  "isPartOf": {
   "@type": "WebSite",
   "name": "Kaspa Pulse",
@@ -164,6 +164,14 @@
   :root[data-theme="dark"] footer .brand span { color:#49EACB; }
   /* ende wortmarke.py */
 </style>
+<!--AUTO:plausible-->
+<!-- Privacy-friendly analytics by Plausible -->
+<script async src="https://plausible.io/js/pa-o1R2wMI1l5uanq2mIzp0P.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
+<!--/AUTO:plausible-->
 </head>
 <body>
 <!--AUTO:rahmen-kopf-->
@@ -195,7 +203,7 @@
   <div class="answer">
     <div class="lbl">The short answer</div>
     <p><b>Yes, Kaspa has smart contracts.</b> Since the Toccata hard fork, Kaspa's layer 1 runs native <b>covenant contracts</b>, spending rules that live inside the coins themselves. The developer documentation at <a href="https://docs.kaspa.org/toccata" target="_blank" rel="noopener">docs.kaspa.org</a> puts it in two sentences, <i>"Toccata makes Kaspa UTXOs expressive enough to carry real application state. It is active on mainnet as of June 30, 2026, at DAA score 474_165_565."</i></p>
-    <p><!--AUTO:covenant-zahl-->On layer 1, <b>17,855 covenant outputs</b> were unspent on chain at the end of 24 October 2026, source kaspalytics, logged daily in <a href="/kaspa-covenants.html">our covenant log</a>.<!--/AUTO:covenant-zahl--> On top of layer 1, two EVM layer 2s, Kasplex and Igra, run contracts written for the EVM, with the capital committed to them shown below.</p>
+    <p><!--AUTO:covenant-zahl-->On layer 1, <b>18,006 covenant outputs</b> were unspent on chain at the end of 25 October 2026, source kaspalytics, logged daily in <a href="/kaspa-covenants.html">our covenant log</a>.<!--/AUTO:covenant-zahl--> On top of layer 1, two EVM layer 2s, Kasplex and Igra, run contracts written for the EVM, with the capital committed to them shown below.</p>
   </div>
 
   <div class="live">
@@ -322,7 +330,7 @@
 </section>
 <!--/AUTO:rahmen-kanaele-->
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 25 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 26 October 2026<!--/AUTO:seitenstand--></div>
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
@@ -417,7 +425,7 @@
     try {
       const res = await fetch(form.action, { method:"POST", body:new FormData(form) });
       const j = await res.json();
-      if (j.success) { msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
+      if (j.success) { try { if (window.plausible) plausible("Signup", { props: { page: location.pathname, utm_campaign: ((form.querySelector('[name="UTM_CAMPAIGN"]') || document.getElementById("utmCampaign") || {}).value || "none") } }); } catch (kpE) {} msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
       else { msg.textContent = j.message || "something went wrong — please try again"; msg.className = "msg err"; }
     } catch(_) { form.submit(); }
     btn.disabled = false; btn.textContent = old;

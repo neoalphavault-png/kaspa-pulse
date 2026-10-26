@@ -164,6 +164,14 @@
   :root[data-theme="dark"] footer .brand span { color:#49EACB; }
   /* ende wortmarke.py */
 </style>
+<!--AUTO:plausible-->
+<!-- Privacy-friendly analytics by Plausible -->
+<script async src="https://plausible.io/js/pa-o1R2wMI1l5uanq2mIzp0P.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
+<!--/AUTO:plausible-->
 </head>
 <body>
 <!--AUTO:rahmen-kopf-->
@@ -190,7 +198,7 @@
 <div class="wrap">
 
   <h1>Kaspa hashrate today. <b>What the number secures, and what actually moves it.</b></h1>
-  <div class="sub"><!--AUTO:hashrate-satz-->Kaspa's hashrate was <b>375.5 PH/s</b> on 26 October 2026 at 06:37 UTC, according to api.kaspa.org. The highest daily average on record is <b>1483.7 PH/s</b>, on 30 December 2024.<!--/AUTO:hashrate-satz--> Hashrate is the most quoted and most misread number in proof-of-work. Here's what Kaspa's actually measures, how to place it next to Bitcoin's without fooling yourself, and which moves in the chart mean something.</div>
+  <div class="sub"><!--AUTO:hashrate-satz-->Kaspa's hashrate was <b>358.9 PH/s</b> on 26 October 2026 at 13:29 UTC, according to api.kaspa.org. The highest daily average on record is <b>1484.1 PH/s</b>, on 30 December 2024.<!--/AUTO:hashrate-satz--> Hashrate is the most quoted and most misread number in proof-of-work. Here's what Kaspa's actually measures, how to place it next to Bitcoin's without fooling yourself, and which moves in the chart mean something.</div>
 
   <div class="answer">
     <div class="lbl">The short answer</div>
@@ -213,7 +221,7 @@
 
 <div class="wrap2">
   <h2>Weekly history</h2>
-  <div class="tblwrap"><!--AUTO:hashrate-wochen--><table><thead><tr><th>Week, Monday to Sunday</th><th>Average hashrate</th></tr></thead><tbody><tr><td>week of 31 August 2026</td><td>320.6 PH/s</td></tr><tr><td>week of 7 September 2026</td><td>331.2 PH/s</td></tr><tr><td>week of 14 September 2026</td><td>340.1 PH/s</td></tr><tr><td>week of 21 September 2026</td><td>343.4 PH/s</td></tr><tr><td>week of 28 September 2026</td><td>347.4 PH/s</td></tr><tr><td>week of 5 October 2026</td><td>341.6 PH/s</td></tr><tr><td>week of 12 October 2026</td><td>360.4 PH/s</td></tr><tr><td>week of 19 October 2026</td><td>369.0 PH/s</td></tr></tbody></table><p class="note">Weekly averages of the daily means in api.kaspa.org's hashrate history, read on 26 October 2026.</p><!--/AUTO:hashrate-wochen--></div>
+  <div class="tblwrap"><!--AUTO:hashrate-wochen--><table><thead><tr><th>Week, Monday to Sunday</th><th>Average hashrate</th></tr></thead><tbody><tr><td>week of 31 August 2026</td><td>320.6 PH/s</td></tr><tr><td>week of 7 September 2026</td><td>331.2 PH/s</td></tr><tr><td>week of 14 September 2026</td><td>340.1 PH/s</td></tr><tr><td>week of 21 September 2026</td><td>343.4 PH/s</td></tr><tr><td>week of 28 September 2026</td><td>347.4 PH/s</td></tr><tr><td>week of 5 October 2026</td><td>341.8 PH/s</td></tr><tr><td>week of 12 October 2026</td><td>360.3 PH/s</td></tr><tr><td>week of 19 October 2026</td><td>369.1 PH/s</td></tr></tbody></table><p class="note">Weekly averages of the daily means in api.kaspa.org's hashrate history, read on 26 October 2026.</p><!--/AUTO:hashrate-wochen--></div>
 </div>
 
 <div class="band"><div class="wrap2">
@@ -429,7 +437,7 @@
     try {
       const res = await fetch(form.action, { method:"POST", body:new FormData(form) });
       const j = await res.json();
-      if (j.success) { msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
+      if (j.success) { try { if (window.plausible) plausible("Signup", { props: { page: location.pathname, utm_campaign: ((form.querySelector('[name="UTM_CAMPAIGN"]') || document.getElementById("utmCampaign") || {}).value || "none") } }); } catch (kpE) {} msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
       else { msg.textContent = j.message || "something went wrong — please try again"; msg.className = "msg err"; }
     } catch(_) { form.submit(); }
     btn.disabled = false; btn.textContent = old;
