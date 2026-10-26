@@ -1,11 +1,11 @@
 {
   "archive/index.html": {
-    "datum": "2026-10-21",
-    "hash": "0a483754624b2115"
+    "datum": "2026-10-26",
+    "hash": "cb374864e6c22a8f"
   },
   "entity-x.html": {
-    "datum": "2026-10-19",
-    "hash": "5522b1aebbdaea0a"
+    "datum": "2026-10-26",
+    "hash": "5857256930fcc782"
   },
   "for-builders.html": {
     "datum": "2026-10-13",
@@ -16,8 +16,8 @@
     "hash": "7dfa160579b296ad"
   },
   "index.html": {
-    "datum": "2026-10-21",
-    "hash": "ffc3cf6290697163"
+    "datum": "2026-10-26",
+    "hash": "5b134b2b1789fa64"
   },
   "kaspa-covenants.html": {
     "datum": "2026-10-25",
@@ -32,8 +32,8 @@
     "hash": "c9a4136d4def7cac"
   },
   "kaspa-hashrate.html": {
-    "datum": "2026-10-25",
-    "hash": "02948ce9111726ad"
+    "datum": "2026-10-26",
+    "hash": "a0dd5f05f26168bd"
   },
   "kaspa-mining.html": {
     "datum": "2026-10-13",
@@ -52,8 +52,8 @@
     "hash": "17778dbd043c0a46"
   },
   "kaspa-supply.html": {
-    "datum": "2026-10-19",
-    "hash": "89b0011c72d4d731"
+    "datum": "2026-10-26",
+    "hash": "c159e70527c90de5"
   },
   "kaspa-toccata.html": {
     "datum": "2026-10-17",
@@ -148,7 +148,11 @@
     "hash": "02b26809a3ce7e59"
   },
   "week/2026-10-19/index.html": {
-    "datum": "2026-10-21",
-    "hash": "a93aefab42bafe97"
+    "datum": "2026-10-26",
+    "hash": "641209b2b0111af7"
+  },
+  "week/2026-10-26/index.html": {
+    "datum": "2026-10-26",
+    "hash": "d7121ac864137625"
   }
 }

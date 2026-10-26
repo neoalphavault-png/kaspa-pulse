@@ -1,10 +1,9 @@
 {
-  "week": "2026-10-19",
+  "week": "2026-10-26",
   "manual": {},
-  "read": "the close fell 13.34% from saturday 10 october to saturday 17 october, the third weekly drop in a row and 26.22% down since saturday 26 september. it sits 1.46% below the 50 week average, which ends four closes above that line in a row. in the 50 weeks the line exists in our series, which starts on 24 november 2024, it is the 46th close below it. hashrate read 383.01 PH/s on saturday 17 october, the highest of the 63 days in our own log since 13 august 2026, and averaged 351.97 PH/s from 11 to 17 october, against 339.06 PH/s from 4 to 10 october.",
+  "read": "the close rose 2.01% from saturday 17 october to saturday 24 october, the first green week since the week that closed on saturday 26 september, after drops of 9.98%, 5.43% and 13.34% in the 3 weeks before. it sits 1.41% above the 50 week average, the 5th close above that line in the 51 weeks our series carries it, since 2 november 2025. hashrate read 380.94 PH/s on saturday 24 october and averaged 361.41 PH/s from 18 to 24 october, against 351.97 PH/s from 11 to 17 october, in our own daily log.",
   "override": {
-    "chain_fees": 220,
-    "hashrate": 383.01
+    "hashrate": 380.94
   },
   "issue": null,
   "_hinweise": {
