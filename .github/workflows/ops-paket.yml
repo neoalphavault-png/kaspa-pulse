@@ -1,0 +1,36 @@
+name: ops paket
+
+# Lieferpakete an Ben nach #moderator-only (Ben, 26.10.2026).
+#
+# WARUM. Auftraege enden mit "Lieferung an Ben nach Discord". Der Webhook
+# liegt nur als Secret DISCORD_WEBHOOK_OPS vor. Eine Arbeitssitzung legt das
+# Paket als Markdown unter berichte/ in ihren PR-Branch und startet diesen
+# Lauf von Hand auf genau diesem Branch.
+#
+# WAS ER DARF. Nur eine .md unter berichte/ lesen und als Nachrichten
+# schicken (scripts/ops_paket.py). Kein Schreiben ins Repo, keine anderen
+# Secrets, keine Erwaehnungen. Der Webhook wird nie gedruckt.
+
+on:
+  workflow_dispatch:
+    inputs:
+      datei:
+        description: "Pfad unter berichte/, z. B. berichte/2026-10-28-landingpage-whales-discord.md"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  senden:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: selbsttest
+        run: python3 scripts/ops_paket.py --selbsttest
+      - name: senden
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DATEI: ${{ inputs.datei }}
+        run: python3 scripts/ops_paket.py "$DATEI"
