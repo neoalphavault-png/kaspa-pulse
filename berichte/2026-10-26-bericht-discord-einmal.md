@@ -8,11 +8,15 @@ Der Rat an STP kam am 26.10. zweimal in #moderator-only. Der Branch `bericht/wee
 
 ## Was gemacht wurde
 
-1. **Rebase:** `bericht/weekly-verteilung-2026-10-30` liegt jetzt auf main (d899ea8). Im Diff steht nur noch `berichte/2026-10-30-weekly-verteilung.md`. Vor dem Force-Push habe ich durchgespielt, was der Workflow auf main dabei tut: kein Abschnitt wäre gesendet worden. Gepusht mit `--force-with-lease`, nur auf meinem eigenen Branch.
+1. **Rebase:** `bericht/weekly-verteilung-2026-10-30` liegt jetzt auf main (d899ea8). Im Diff steht nur noch `berichte/2026-10-30-weekly-verteilung.md`. Gepusht mit `--force-with-lease`, nur auf meinem eigenen Branch.
 2. **Nur Berichte dieses Pushes:** Der Workflow liest jetzt das Push-Ereignis. Es zählen nur Berichte, die in Commits dieses Pushes hinzukamen oder geändert wurden, und nur Commits, die mit diesem Push zum ersten Mal ins Repo kamen. Berichte aus einem Eltern-Branch fallen damit heraus.
 3. **Prüfsumme merken:** Je Bericht wird die sha256-Prüfsumme des Discord-Abschnitts in `gesendet.json` auf dem Branch `ops/bericht-gesendet` gemerkt. Derselbe Abschnitt desselben Berichts geht nie ein zweites Mal raus. Das gilt auch nach Rebase oder Force-Push und auf jedem anderen Branch, also strenger als "je Branch". Gemerkt wird erst nach erfolgreichem Versand. Alle Läufe stehen in einer Warteschlange, damit zwei Läufe nicht gleichzeitig schreiben.
 4. **Kopfzeile:** Die Zahl in "Bitte die folgenden N Nachrichten" wird aus der fertigen Liste der folgenden Nachrichten gezählt, bei einer Nachricht heißt es "die folgende Nachricht". Die 7 vom 26.10. war schon gezählt und stimmte, beide Berichte hatten 7 Teile nach der Kopfzeile. Neu ist, dass ein Selbsttest die Zahl gegen die wirklich folgenden Nachrichten prüft.
 5. **Merkdatei vorbelegt:** `ops/bericht-gesendet` trägt schon die drei Abschnitte, die am 26.10. rausgingen: STP-Rat (zweimal, von beiden Branches) und Weekly-Verteilung. Die Uhrzeit steht dort nicht, ich habe sie nicht gemerkt. In der Datei stehen nur Branch, Pfad, Prüfsumme und Datum.
+
+## Eigener Fehler beim Rebase
+
+Der Force-Push hat den Weekly-Bericht noch einmal nach #moderator-only geschickt, am 26.10. um 19:36 UTC, 8 Nachrichten ([Lauf 40388259035](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/40388259035)). Vorher hatte ich den Workflow von main durchgespielt, aber in meiner lokalen Kopie. Dort gab es den alten Stand des Branches noch. Im Runner war er nach dem Force-Push nicht mehr erreichbar. Deshalb nahm der alte Workflow den Weg für einen neuen Branch, verglich mit dem letzten Commit und sendete ohne Vergleich mit dem alten Stand. Mit diesem PR wäre das nicht passiert: Der Abschnitt steht mit seiner Prüfsumme in der Merkdatei, ein Rebase sendet ihn nicht erneut. Bis zum Merge pushe ich nichts mehr auf `bericht/`-Branches.
 
 ## Prüfung
 
