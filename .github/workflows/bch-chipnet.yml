@@ -1,0 +1,77 @@
+# bch-chipnet.yml - eigene Zaehlung des BCH chipnet (Ben, 26.10.2026: chipnet und XO).
+#
+# Laeuft nur auf dem Branch messung/bch-chipnet-xo, bei jedem Push auf
+# scripts/bch/chipnet_*.py, data/bch-chipnet/anstoss.txt oder diese Datei.
+# Quelle sind eigene Header ueber P2P (scripts/bch/chipnet_koepfe.py): Peers aus
+# BCHN chainparams (CChipNetParams), Verkettung, Arbeitsnachweis, BCHN-Checkpoints,
+# Gegenprobe mit zwei Peers. Ein Peer zaehlt nur, wenn er bei 327.989 nicht
+# den Tempnet-Block liefert. Keine Adresse und kein Hostname im Repo oder Log.
+# Danach: Kennzahlen seit 01.10.2026 gegen 600 s (chipnet_auswertung.py) und
+# die Transaktionen mit der wBCH-Kategorie aus dem XO-Template fuer chipnet
+# (chipnet_wbch.py), aus vollen Bloecken.
+name: bch chipnet
+
+on:
+  push:
+    branches: ["messung/bch-chipnet-xo"]
+    paths:
+      - "scripts/bch/chipnet_*.py"
+      - "data/bch-chipnet/anstoss.txt"
+      - ".github/workflows/bch-chipnet.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bch-chipnet
+  cancel-in-progress: false
+
+jobs:
+  zaehlen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: messung/bch-chipnet-xo
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: koepfe holen
+        run: |
+          set -eu
+          mkdir -p data/bch-chipnet
+          python3 scripts/bch/chipnet_koepfe.py --aus data/bch-chipnet/koepfe.csv.gz --meta data/bch-chipnet/koepfe-meta.json
+
+      - name: auswerten
+        run: |
+          set -eu
+          TAG=$(date -u +%Y-%m-%d)
+          python3 scripts/bch/chipnet_auswertung.py --koepfe data/bch-chipnet/koepfe.csv.gz \
+            --meta data/bch-chipnet/koepfe-meta.json --ab 2026-10-01 \
+            --json "data/bch-chipnet/stand-$TAG.json" --md "data/bch-chipnet/stand-$TAG.md"
+          { echo "## BCH chipnet, Stand $TAG"; cat "data/bch-chipnet/stand-$TAG.md"; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: wbch-transaktionen
+        if: hashFiles('scripts/bch/chipnet_wbch.py') != ''
+        run: |
+          set -eu
+          TAG=$(date -u +%Y-%m-%d)
+          python3 scripts/bch/chipnet_wbch.py --koepfe data/bch-chipnet/koepfe.csv.gz --ab 2026-10-01 \
+            --aus "data/bch-chipnet/wbch-$TAG.json"
+
+      - name: secret-scan
+        run: python3 scripts/secret_scan.py --baum
+
+      - name: committen
+        run: |
+          set -eu
+          git config user.name "bch chipnet bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/bch-chipnet
+          if git diff --cached --quiet; then echo "nichts neu"; exit 0; fi
+          git commit -m "bch chipnet: koepfe und zaehlung [bot]"
+          for v in 1 2 3; do git pull -q --rebase -X theirs origin messung/bch-chipnet-xo && git push -q origin HEAD:messung/bch-chipnet-xo && exit 0; sleep 10; done
+          exit 1
