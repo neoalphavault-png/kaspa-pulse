@@ -35,6 +35,16 @@
 # (workflow_call, mit secrets: inherit). weekly-guard.yml, weekly-send.yml und
 # weekly-cancel.yml rufen genau diese Datei auf, damit es nur einen Weg zu
 # Brevo gibt.
+#
+# KEIN Dispatch aus einem nicht gemergten Branch, solange Secrets im Spiel
+# sind (Ben, 26.10.2026). Ein Dispatch mit ref=<branch> fuehrt die
+# Workflow-Fassung DIESES Branches aus, und der Lauf bekommt trotzdem
+# secrets.BREVO_API_KEY. Wer den Branch schreibt, bestimmt damit, was mit dem
+# Schluessel passiert, und niemand hat die Datei vorher gelesen. Am 26.10.2026
+# lief mode update genau so, weil der Modus hier schon in der Dispatch-Liste
+# stand und auf main noch nicht. Ab jetzt gilt: erst Bescheid geben, dann liest
+# Ben die Workflow-Datei, dann wird ausgeloest. Nach dem Merge ist die Frage
+# weg, denn dann steht der Modus auf main.
 name: brevo send
 
 on:
