@@ -1,0 +1,130 @@
+# bch-tempnet-lauscher.yml - Zuhoerer im BCH Tempnet (Woche 2, Ben 25.10.2026).
+#
+# EIN Zuhoerer, kein eigener Knoten, ein Netzwerkpfad (der des Runners). Er
+# haelt Verbindungen zu Tempnet-Knoten, die den Abzweig 327.989 bestaetigen,
+# und schreibt jede Block-Ankuendigung mit Nachrichtentyp (inv, headers,
+# cmpctblock) und Ankunftszeit mit (scripts/bch/tempnet_lauscher.py).
+# Peers heissen peer_1, peer_2 usw.; keine Adresse und kein Hostname in Daten
+# oder Log. Die Peers liest das Skript zur Laufzeit aus der oeffentlichen
+# Tempnet-Konfiguration, wie tempnet_koepfe.py.
+#
+# Durchgehend als Kette von Laeufen: ein Job darf hoechstens 6 h laufen. Jeder
+# Lauf hoert bis zu dauer_min Minuten zu und startet 8 Minuten vor seinem Ende
+# den naechsten (workflow_dispatch auf main), wenn nicht schon ein spaeterer
+# Lauf aktiv ist. Schluss bei bis_utc (Tempnet-Ende 15.11.2026 12:00 UTC).
+# workflow_dispatch geht erst, wenn diese Datei auf main liegt; bis dahin
+# startet ein Push auf data/bch/lauscher-anstoss.txt (Branch
+# messung/bch-tempnet-woche2) je einen Lauf.
+#
+# Rohdaten je Lauf sofort auf messung/bch-tempnet unter data/bch/lauscher/<lauf>/,
+# danach Kette abrufen und alle Laeufe auswerten (bloecke.csv, zusammenfassung.json).
+name: bch tempnet lauscher
+
+on:
+  push:
+    branches: ["messung/bch-tempnet-woche2"]
+    paths:
+      - "data/bch/lauscher-anstoss.txt"
+  workflow_dispatch:
+    inputs:
+      dauer_min:
+        description: "Minuten zuhoeren je Lauf, hoechstens 330"
+        default: "330"
+      bis_utc:
+        description: "Kein neuer Lauf, wenn das Ende danach laege"
+        default: "2026-11-15T12:00:00Z"
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  lauschen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          ref: messung/bch-tempnet
+          path: daten
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: eingaben
+        id: ein
+        env:
+          EREIGNIS: ${{ github.event_name }}
+          DAUER: ${{ inputs.dauer_min }}
+          BIS: ${{ inputs.bis_utc }}
+        run: |
+          set -eu
+          if [ "$EREIGNIS" = "push" ]; then
+            DAUER=$(sed -n 's/^dauer_min=\([0-9]*\).*/\1/p' data/bch/lauscher-anstoss.txt)
+            BIS=$(sed -n 's/^bis_utc=\(.*\)$/\1/p' data/bch/lauscher-anstoss.txt)
+          fi
+          case "$DAUER" in ''|*[!0-9]*) echo "dauer_min unklar"; exit 1;; esac
+          [ "$DAUER" -le 330 ] || { echo "dauer_min ueber 330"; exit 1; }
+          case "$BIS" in [0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z) ;; *) echo "bis_utc unklar"; exit 1;; esac
+          LAUF=$(date -u +%Y%m%dT%H%M)
+          { echo "dauer=$DAUER"; echo "bis=$BIS"; echo "lauf=$LAUF"; } >> "$GITHUB_OUTPUT"
+          echo "lauf $LAUF, $DAUER min, bis $BIS"
+
+      - name: zuhoeren und naechsten lauf starten
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DAUER: ${{ steps.ein.outputs.dauer }}
+          BIS: ${{ steps.ein.outputs.bis }}
+        run: |
+          set -eu
+          python3 scripts/bch/tempnet_lauscher.py --dauer "$DAUER" --aus "$RUNNER_TEMP/lauf" &
+          PID=$!
+          if [ "$DAUER" -gt 15 ]; then
+            sleep $(( (DAUER - 8) * 60 ))
+            ENDE=$(( $(date +%s) + 8 * 60 ))
+            if [ "$ENDE" -ge "$(date -d "$BIS" +%s)" ]; then
+              echo "naechster lauf: nein, bis_utc erreicht"
+            elif [ "$(gh run list --workflow bch-tempnet-lauscher.yml --json status,databaseId \
+                     --jq "[.[] | select((.status==\"queued\" or .status==\"in_progress\") and .databaseId != $GITHUB_RUN_ID)] | length")" != "0" ]; then
+              echo "naechster lauf: nein, ein anderer lauf ist schon aktiv"
+            elif gh workflow run bch-tempnet-lauscher.yml --ref main -f dauer_min="$DAUER" -f bis_utc="$BIS"; then
+              echo "naechster lauf: gestartet"
+            else
+              echo "::warning::naechster lauf nicht startbar (workflow noch nicht auf main?), anstoss per push noetig"
+            fi
+          fi
+          wait $PID
+
+      # Rohdaten sofort sichern (Lehre aus dem Zcash-Testnet, 17.10.2026)
+      - name: rohdaten committen
+        env:
+          LAUF: ${{ steps.ein.outputs.lauf }}
+        run: |
+          set -eu
+          O="daten/data/bch/lauscher/$LAUF"
+          mkdir -p "$O"
+          for n in ereignisse koepfe compact; do gzip -n -c "$RUNNER_TEMP/lauf/$n.jsonl" > "$O/$n.jsonl.gz"; done
+          cp "$RUNNER_TEMP/lauf/meta.json" "$O/meta.json"
+          scripts/bch/daten_committen.sh "bch tempnet: zuhoerer lauf $LAUF [bot]"
+
+      - name: kette danach abrufen
+        run: |
+          set -eu
+          python3 scripts/bch/tempnet_koepfe.py --aus "$RUNNER_TEMP/kette.csv.gz" --meta "$RUNNER_TEMP/kette-meta.json"
+
+      - name: auswerten ueber alle laeufe
+        run: |
+          set -eu
+          L=daten/data/bch/lauscher
+          python3 scripts/bch/lauscher_auswertung.py --laeufe $(ls -d $L/2*/ | sort) \
+            --kette "$RUNNER_TEMP/kette.csv.gz" --aus $L/zusammenfassung.json --csv $L/bloecke.csv
+          {
+            echo "## BCH Tempnet Zuhoerer"
+            echo '```'
+            python3 -c 'import json,sys;d=json.load(open(sys.argv[1]));[print(k, json.dumps(d[k], ensure_ascii=False)) for k in ("abgedeckt_h","kettenbloecke","davon_angekuendigt_gesehen","first_seen_typ","timestamp_deviation_s","propagation_spread_ms","compact","peer_software")];print("stale", d["stale"]["anzahl"], d["stale"]["anteil_prozent"])' $L/zusammenfassung.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          scripts/bch/daten_committen.sh "bch tempnet: zuhoerer auswertung [bot]"
