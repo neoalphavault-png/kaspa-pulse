@@ -1,0 +1,66 @@
+# Kaspa Pulse - Abschnitt eines Berichts in den privaten Ops-Kanal (Ben, 26.10.2026)
+#
+# Laeuft nur bei einem Push auf einen Branch bericht/... mit einer Aenderung
+# unter berichte/. Gesendet wird nur der Abschnitt zwischen <!-- discord -->
+# und <!-- /discord -->, mit einer Kopfzeile "📤 VON HAND", und nur, wenn er sich
+# gegenueber dem Stand vor dem Push geaendert hat. scripts/bericht_discord.py
+# prueft vorher auf IP, Kaspa-Adresse, Hostname und Schluessel; bei einem Fund
+# geht nichts raus. Das Secret steht nur in der Umgebung des Sendeschritts und
+# wird nie ausgegeben.
+
+name: bericht discord
+
+on:
+  push:
+    branches:
+      - "bericht/**"
+    paths:
+      - "berichte/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bericht-discord-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  senden:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: selbsttest
+        run: python3 scripts/bericht_discord.py --selbsttest | tail -n 1
+
+      - name: geaenderte berichte senden
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          VORHER: ${{ github.event.before }}
+        run: |
+          set -uo pipefail
+          if git cat-file -e "$VORHER^{commit}" 2>/dev/null; then
+            dateien=$(git diff --name-only "$VORHER" HEAD -- berichte/)
+          else
+            # neuer branch: nur berichte aus dem letzten commit. ein vergleich mit
+            # main wuerde berichte aus noch nicht gemergten eltern-branches
+            # erneut senden (so am 26.10.2026 mit dem stp-rat passiert)
+            dateien=$(git diff --name-only HEAD~1 HEAD -- berichte/)
+          fi
+          rc=0
+          for f in $dateien; do
+            [ -f "$f" ] || continue
+            alt=""
+            if git cat-file -e "$VORHER:$f" 2>/dev/null; then git show "$VORHER:$f" > /tmp/vorher.md; alt="--vorher /tmp/vorher.md"; fi
+            link="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/${f}"
+            echo "== $f"
+            python3 scripts/bericht_discord.py --datei "$f" --link "$link" $alt || rc=1
+          done
+          exit $rc
