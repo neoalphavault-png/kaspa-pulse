@@ -33,6 +33,11 @@ sein (newsletter_issue). Ein stehengebliebenes {{ISSUE}} haelt den Versand an.
                      gruen. Der Veto-Knopf darf nie rot werden, nur weil nichts
                      zu stoppen war.
 
+Liste 17 (PulseHawk Leads) ist hart gesperrt. Steht sie in --list-id oder in
+vars.NEWSLETTER_LIST_ID, bricht der Lauf ab, bevor der erste Aufruf an Brevo
+geht. Nur mode cancel laeuft weiter und warnt, denn cancel liest keine Liste,
+und der Veto-Knopf darf nicht an einer falschen Variable haengen.
+
 Absender wird NIE geraten: GET /v3/senders, und daraus der aktive Absender
 (oder der, dessen Adresse in BREVO_SENDER_EMAIL steht).
 
@@ -66,6 +71,59 @@ import newsletter_issue  # noqa: E402  (Ausgabennummer, zaehlt sich selbst hoch)
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 QUEUE = os.path.join(ROOT, "data", "newsletter-queue.json")
 DEFAULT_LIST_ID = 16
+LISTEN_NAMEN = {16: "Kaspa Pulse Subscribers", 17: "PulseHawk Leads"}
+# Eine Nummer daneben, und der Newsletter liegt bei den Leads eines anderen
+# Produkts. Was hier steht, erreicht keine Kampagne (Ben, 26.10.2026).
+GESPERRTE_LISTEN = (17,)
+
+
+# ---------------------------------------------------------------- Empfaengerliste
+
+def liste_quelle(argv=None, umgebung=None):
+    """Woher die Listennummer kommt, damit die Abbruchmeldung die Stelle nennt,
+    an der man sie repariert. --list-id gewinnt vor der Umgebung, weil argparse
+    so herum arbeitet: die Umgebung ist nur die Vorgabe des Arguments."""
+    argv = sys.argv[1:] if argv is None else argv
+    for arg in argv:
+        # argparse erlaubt Abkuerzungen, "--list 17" ist dasselbe Argument
+        kopf = arg.split("=", 1)[0]
+        if len(kopf) > 2 and "--list-id".startswith(kopf):
+            return "--list-id"
+    umgebung = os.environ if umgebung is None else umgebung
+    if (umgebung.get("NEWSLETTER_LIST_ID") or "").strip():
+        return "vars.NEWSLETTER_LIST_ID"
+    return "DEFAULT_LIST_ID in diesem Skript"
+
+
+def liste_pruefung(list_id, mode, quelle="--list-id oder vars.NEWSLETTER_LIST_ID"):
+    """Harte Sperre gegen die falsche Empfaengerliste (Ben, 26.10.2026).
+
+        ("stop", grund)  der Lauf endet, ohne einen einzigen Aufruf an Brevo
+        ("warn", text)   die Nummer ist gesperrt, dieser Modus liest sie nicht
+        ("ok", None)     nichts zu beanstanden
+
+    Geprueft wird vorher und nicht hinterher: eine Kampagne, die einmal auf
+    der falschen Liste rausgegangen ist, holt niemand zurueck.
+
+    Ausgenommen ist nur mode cancel, und das nicht aus Bequemlichkeit. cancel
+    liest die Listennummer nie, es nimmt einen Versand zurueck. Eine Sperre
+    dort wuerde den Veto-Knopf totlegen, sobald vars.NEWSLETTER_LIST_ID einmal
+    falsch steht, und der Newsletter ginge dann trotzdem an Liste 16 raus,
+    weil das Storno nicht mehr durchkaeme. Die Sperre soll einen falschen
+    Versand verhindern, keinen richtigen Abbruch. Statt der Sperre gibt es
+    dort eine Warnung, damit die falsche Variable nicht unbemerkt bleibt."""
+    nummer = int(list_id)
+    if nummer not in GESPERRTE_LISTEN:
+        return ("ok", None)
+    satz = ("liste %d (%s) ist gesperrt. Der Newsletter geht an liste %d (%s) "
+            "und an keine andere. Die %d kam aus %s, dort wird sie korrigiert."
+            % (nummer, LISTEN_NAMEN.get(nummer, "unbekannte liste"),
+               DEFAULT_LIST_ID, LISTEN_NAMEN.get(DEFAULT_LIST_ID, ""),
+               nummer, quelle))
+    if mode == "cancel":
+        return ("warn", satz + " mode cancel liest keine liste und laeuft "
+                               "weiter, es storniert nur.")
+    return ("stop", "ABBRUCH: " + satz + " An Brevo ist nichts gegangen.")
 
 
 # ---------------------------------------------------------------- Zeit
@@ -728,16 +786,65 @@ def selftest():
     else:
         raise AssertionError("eine ausgabe mit VIDEO_URL haette abbrechen muessen")
 
+    # harte sperre gegen die falsche empfaengerliste (Ben, 26.10.2026)
+    for mode in ("test", "update", "fix", "schedule"):
+        befund, text = liste_pruefung(17, mode)
+        assert befund == "stop", (mode, befund)
+        assert "17" in text and "16" in text and "PulseHawk" in text, text
+        assert "gesperrt" in text, text
+    for mode in ("test", "update", "fix", "schedule", "cancel"):
+        assert liste_pruefung(16, mode) == ("ok", None), mode
+    # der veto-knopf bleibt erreichbar, sonst haengt ein scharfer versand fest
+    befund, text = liste_pruefung(17, "cancel")
+    assert befund == "warn" and "storniert" in text, (befund, text)
+    # beide quellen zaehlen gleich, und die meldung nennt die richtige
+    assert liste_quelle(["--mode", "test", "--list-id", "17"], {}) == "--list-id"
+    assert liste_quelle(["--mode", "test", "--list-id=17"], {}) == "--list-id"
+    assert liste_quelle(["--mode", "test", "--list", "17"], {}) == "--list-id"
+    assert liste_quelle(["--mode", "test", "--"], {}) == "DEFAULT_LIST_ID in diesem Skript"
+    assert liste_quelle(["--mode", "test"],
+                        {"NEWSLETTER_LIST_ID": "17"}) == "vars.NEWSLETTER_LIST_ID"
+    assert liste_quelle(["--mode", "test"], {"NEWSLETTER_LIST_ID": " "}) \
+        == "DEFAULT_LIST_ID in diesem Skript"
+    # und sie haelt den echten weg an, aus dem argument wie aus der umgebung.
+    # die leere queue ist das zweite netz: faellt die sperre je aus, kommt der
+    # lauf nicht ueber "keine kampagne" hinaus und trotzdem nichts an brevo.
+    leer = os.path.join(tempfile.mkdtemp(), "q.json")
+    for weg in (["--mode", "schedule", "--send-at", "2126-09-28T18:00",
+                 "--list-id", "17", "--queue", leer],
+                ["--mode", "test", "--html", gut, "--subject", "x",
+                 "--list-id", "17", "--queue", leer]):
+        try:
+            main(weg)
+        except SystemExit as e:
+            assert "gesperrt" in str(e), str(e)
+            assert "--list-id" in str(e), str(e)
+        else:
+            raise AssertionError("liste 17 haette mode %s anhalten muessen" % weg[1])
+    alt = os.environ.get("NEWSLETTER_LIST_ID")
+    os.environ["NEWSLETTER_LIST_ID"] = "17"
+    try:
+        main(["--mode", "schedule", "--send-at", "2126-09-28T18:00", "--queue", leer])
+    except SystemExit as e:
+        assert "vars.NEWSLETTER_LIST_ID" in str(e), str(e)
+    else:
+        raise AssertionError("liste 17 aus der umgebung haette anhalten muessen")
+    finally:
+        if alt is None:
+            os.environ.pop("NEWSLETTER_LIST_ID", None)
+        else:
+            os.environ["NEWSLETTER_LIST_ID"] = alt
+
     print("selftest ok: berliner zeiten stimmen, vergangenheit wird abgelehnt, "
           "entwurf wird nicht storniert, queue haelt, planung ist ein PUT plus "
           "ein lesender GET, ein nicht geplanter stand wird rot, und ein HTML "
           "mit krummer Differenz geht nicht an Brevo, und fix plant auf denselben "
-          "termin zurueck, und der empfaenger steht erst nach dem versand im "
-          "merkzettel")
+          "termin zurueck, und liste 17 kommt an keinem modus vorbei, und der "
+          "empfaenger steht erst nach dem versand im merkzettel")
     return 0
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--mode", choices=("test", "update", "fix", "schedule", "cancel"))
@@ -752,11 +859,20 @@ def main():
     ap.add_argument("--name", default="", help="Kampagnenname in Brevo")
     ap.add_argument("--queue", default=QUEUE)
     ap.add_argument("--selftest", action="store_true")
-    a = ap.parse_args()
+    a = ap.parse_args(argv)
     if a.selftest:
         return selftest()
     if not a.mode:
         sys.exit("--mode fehlt (test, schedule oder cancel)")
+    # zuerst die Empfaengerliste, vor jeder anderen Pruefung und vor dem
+    # Schluessel: was hier abbricht, hat Brevo nicht einmal angesprochen.
+    # liste_quelle bekommt dasselbe argv, das argparse gelesen hat, sonst
+    # nennt die Meldung die falsche Quelle (gefunden im Selbsttest).
+    befund, text = liste_pruefung(a.list_id, a.mode, liste_quelle(argv))
+    if befund == "stop":
+        sys.exit(text)
+    if befund == "warn":
+        print("WARNUNG: %s" % text)
     if a.mode == "test":
         if not a.html or not os.path.isfile(a.html):
             sys.exit("--html fehlt oder zeigt ins Leere: %r" % a.html)
