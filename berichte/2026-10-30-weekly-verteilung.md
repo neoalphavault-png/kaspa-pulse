@@ -39,7 +39,7 @@ Es werden nur vorhandene Secrets genutzt, dazu `STUDIO_READ_TOKEN` zum Lesen des
 - **Veto, zwei Wege:**
   - Variable `WEEKLY_VERTEILUNG_STOPP` (JJJJ-MM-TT oder `immer`), gilt ab dem Start eines Laufs.
   - Datei `data/weekly-verteilung-stopp` auf main mit demselben Inhalt. Sie wird vor jedem einzelnen Post frisch gelesen und stoppt damit auch einen laufenden Lauf.
-- **Probe:** Handstart in Actions mit `modus=probe` (Vorbelegung). Alles geht nur nach #moderator-only, ohne Warten und ohne Merkdatei. Bis zum Merge startet auch ein Push von `data/weekly-verteilung-probe.txt` auf diesem Branch eine Probe, nie den scharfen Lauf.
+- **Probe:** Handstart in Actions mit `modus=probe` (Vorbelegung). Alles geht nur nach #moderator-only, ohne Warten und ohne Merkdatei.
 
 ## Prüfung
 
@@ -53,11 +53,25 @@ Es werden nur vorhandene Secrets genutzt, dazu `STUDIO_READ_TOKEN` zum Lesen des
 - **Probe im Runner am 26.10.** ([Lauf 40356830393](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/40356830393)): pulse-studio gelesen, 6 Nachrichten nach #moderator-only, alle mit HTTP 204. Weekly-Kanal und Telegram wurden nicht angefasst.
 - Secret-Scan ohne Fund.
 
+## Prüfung vor dem Merge (27.10., 16:00 Berlin)
+
+- **Rebase auf main 641fcdc.** Konflikte gab es in `deploy/c2/setup.sh` und `deploy/c2/taktgeber/README.md`, weil main inzwischen den Takt `ig-story-auto` hat. Ich habe beide Takte behalten. `TAKTE` endet jetzt auf `... story-vorlage ig-story-auto weekly-verteilung`. `ausloesen.sh` und `takt.conf` liefen ohne Konflikt. `bash -n` ist sauber.
+- **Selbsttests grün:** `weekly_verteilung.py` und `yt_live_check.py`.
+- **Textregeln:** Die vier Texte aus dem Paket vom 26.10. (Discord, Telegram, Gruppe englisch, Gruppe deutsch) habe ich mit `scripts/content_wache.py --text` und mit den eigenen Regeln geprüft, alle grün. Die drei englischen Texte nennen aber "0.03605 usd", siehe offene Frage 2.
+- **Rechte und Secrets:** `contents: write` auf Ebene des Workflows, nur für die Merkdatei. Die Secrets stehen nur im Schritt `verteilen`. `STUDIO_READ_TOKEN` steht nur im Checkout von pulse-studio.
+- **Zwei Härtungen in diesem PR:**
+  - Der Checkout von pulse-studio legt das Token nicht mehr auf die Platte (`persist-credentials: false`).
+  - Der Push-Auslöser für die Probe und `data/weekly-verteilung-probe.txt` sind entfernt. Proben gehen nur noch per Handstart.
+- **Zwei Punkte, die nicht wie bei #156 sind.** Ich lasse sie, bis du entscheidest:
+  1. Senden und Schreiben laufen in einem Job. Er hat die Webhooks, das Telegram-Token und `contents: write` zugleich. Eine Trennung wie bei #156 geht hier nicht ohne Umbau, weil die Merkdatei direkt nach jedem Post geschrieben werden muss. Sonst postet ein zweiter Lauf erneut.
+  2. Die Merkdatei `data/weekly-verteilung.json` wird vom Bot direkt nach main gepusht, wie heute schon die Threads-Logs. Wenn auf main nur deine Merges landen sollen, lege ich sie auf einen Branch `ops/weekly-verteilung`, wie die Merkdatei von bericht-discord.
+
 ## Offene Fragen an Ben
 
 1. **Paket auf main:** Der Automat liest nur das gemergte Sonntagspaket. Auf main von pulse-studio liegt es bis `kw/2026-10-19`, das Paket vom 26.10. steht noch auf `review/weekly-2026-10-26`. Ist das Paket am Montag um 16:00 nicht gemergt, wird nichts gepostet und #moderator-only sagt es um 18:00. Soll er in dem Fall den Branch `review/weekly-<datum>` lesen? Ich rate ab, denn dann ginge ungeprüfter Text raus.
 2. **Preise im Text:** Die Blöcke aus 6a nennen den Wochenschluss und eine Schwelle in USD, zum Beispiel "0.03605 usd". Deine Textregel vom 23.10. sagte "keine Preise" für Entwürfe, die Regel in diesem Auftrag nennt sie nicht. Der Automat übernimmt den Text so, wie die Sonntagsaufgabe ihn baut. Soll er Preise blockieren?
 3. **Fremde Gruppen:** `data/weekly-verteilung-gruppen.json` ist leer. Dann kommt eine englische und eine deutsche Fassung ohne Gruppennamen. Mit Namen kommt je Gruppe eine eigene Nachricht. Willst du die Liste füllen (Name, Sprache en oder de, Art telegram oder discord)?
+4. **Merkdatei:** direkt auf main wie bisher, oder auf `ops/weekly-verteilung` (siehe Prüfung, Punkt 2)?
 
 ## Hinweis zu einem eigenen Fehler
 

@@ -35,11 +35,6 @@ on:
         description: "nur probe, Paket JJJJ-MM-TT (leer = neuestes)"
         required: false
         default: ""
-  # Nur zum Pruefen vor dem Merge: ein Push auf diesen Branch startet immer
-  # eine Probe (nur #moderator-only), nie den scharfen Lauf.
-  push:
-    branches: [feature/weekly-verteilung]
-    paths: [data/weekly-verteilung-probe.txt]
   schedule:
     # Rueckfall. 14:55 UTC = 15:55 Berlin im Winter, 13:55 UTC = 15:55 im Sommer.
     - cron: "55 14 * * 1"
@@ -59,7 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'push' && github.sha || 'main' }}
+          ref: main
           fetch-depth: 0
 
       - name: uploadpakete aus pulse-studio, nur lesen
@@ -68,6 +63,7 @@ jobs:
         with:
           repository: neoalphavault-png/pulse-studio
           token: ${{ secrets.STUDIO_READ_TOKEN }}
+          persist-credentials: false
           path: studio
           sparse-checkout-cone-mode: false
           sparse-checkout: |
@@ -84,7 +80,7 @@ jobs:
 
       - name: verteilen
         env:
-          MODUS: ${{ github.event_name == 'push' && 'probe' || inputs.modus || 'scharf' }}
+          MODUS: ${{ inputs.modus || 'scharf' }}
           DATUM: ${{ inputs.datum || '' }}
           WEEKLY_VERTEILUNG_STOPP: ${{ vars.WEEKLY_VERTEILUNG_STOPP }}
           DISCORD_WEBHOOK_WEEKLY: ${{ secrets.DISCORD_WEBHOOK_WEEKLY }}
