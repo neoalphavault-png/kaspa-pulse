@@ -67,9 +67,12 @@ Auftrag von Ben vom 27.10.2026. Workflow- und c2-Dateien kommen als PR: Claude p
 - **Alle Formen:** Die elf Haken bestehen alle Wachen. Mit den echten Zahlen aus dem Instagram-Log haben die Formen 1 bis 6 und 8 bis 11 gerendert und sind grün. Form 7 (Community) hatte noch keinen Eintrag.
 
 ## Abnahme, Probelauf
-Noch offen. Ein Dispatch geht nur für Workflows, die auf main liegen. Der Versuch auf dem Branch endete am 27.10.2026 mit 404.
-
-Direkt nach dem Merge starte ich `ig-story-auto.yml` mit `modus=probe`. Die Story kommt dann nur nach #moderator-only, das Ergebnis trage ich hier nach. Bis dahin zeigen der Kontaktbogen und der Lauf mit den echten Daten von heute, was die Probe schickt.
+**Bestanden am 27.10.2026, nach dem Merge von #160.**
+- `ig-story-auto.yml` mit `modus=probe` auf main, Lauf 40530044466, grün.
+- **Plan:** „probe, von hand, nur nach #moderator-only“.
+- **Gebaut:** die Köder-Story aus der Tagesgrafik von heute (Form 11), `ig/story-auto-2026-10-27.jpg`, gerendert und durch die Story-Wache.
+- **Geschickt:** nach #moderator-only, Discord antwortet mit HTTP 200.
+- **Übersprungen,** wie es bei einer Probe sein muss: JPEG-Commit, Posten bei Instagram und Merkdatei. Bei Instagram ist nichts angekommen.
 
 ## PR-Nummern
 - #160, Workflow, Skript, c2-Takt und dieser Bericht
