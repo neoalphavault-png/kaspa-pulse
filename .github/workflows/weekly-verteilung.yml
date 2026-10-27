@@ -20,7 +20,8 @@
 # Sperren: Merkdatei data/weekly-verteilung.json (je Kanal und Woche ein
 # Post), Variable WEEKLY_VERTEILUNG_STOPP (JJJJ-MM-TT oder immer), Datei
 # data/weekly-verteilung-stopp (wirkt auch im laufenden Lauf).
-# Probe (Handstart, Vorbelegung): alles nur nach #moderator-only.
+# Probe (nur Handstart per workflow_dispatch, Vorbelegung): alles nur nach
+# #moderator-only, in der Umgebung steht nur DISCORD_WEBHOOK_OPS.
 name: weekly verteilung
 
 on:
@@ -78,10 +79,29 @@ jobs:
           python3 scripts/yt_live_check.py --selftest | tail -n 1
           python3 scripts/weekly_verteilung.py --selbsttest 2>/dev/null | tail -n 1
 
-      - name: verteilen
+      - name: modus
+        id: modus
         env:
           MODUS: ${{ inputs.modus || 'scharf' }}
+        run: |
+          case "$MODUS" in probe|scharf) ;; *) echo "unbekannter modus"; exit 1 ;; esac
+          echo "modus=$MODUS" >> "$GITHUB_OUTPUT"
+          echo "modus $MODUS"
+
+      # Probe: nur der Webhook fuer #moderator-only steht in der Umgebung.
+      # Das Skript bricht ab, falls doch ein Schluessel fuer #weekly-numbers
+      # oder Telegram da ist (Ben, 27.10.2026).
+      - name: probe, nur nach moderator-only
+        if: steps.modus.outputs.modus == 'probe'
+        env:
           DATUM: ${{ inputs.datum || '' }}
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+        run: |
+          python3 scripts/weekly_verteilung.py --modus probe --paket-dir studio/kw ${DATUM:+--datum "$DATUM"}
+
+      - name: scharf, montagslauf
+        if: steps.modus.outputs.modus == 'scharf'
+        env:
           WEEKLY_VERTEILUNG_STOPP: ${{ vars.WEEKLY_VERTEILUNG_STOPP }}
           DISCORD_WEBHOOK_WEEKLY: ${{ secrets.DISCORD_WEBHOOK_WEEKLY }}
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
@@ -90,8 +110,4 @@ jobs:
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
-          if [ "$MODUS" = "probe" ]; then
-            python3 scripts/weekly_verteilung.py --modus probe --paket-dir studio/kw ${DATUM:+--datum "$DATUM"}
-          else
-            python3 scripts/weekly_verteilung.py --modus scharf --paket-dir studio/kw
-          fi
+          python3 scripts/weekly_verteilung.py --modus scharf --paket-dir studio/kw

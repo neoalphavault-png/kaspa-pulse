@@ -62,6 +62,10 @@ Es werden nur vorhandene Secrets genutzt, dazu `STUDIO_READ_TOKEN` zum Lesen des
 - **Zwei Härtungen in diesem PR:**
   - Der Checkout von pulse-studio legt das Token nicht mehr auf die Platte (`persist-credentials: false`).
   - Der Push-Auslöser für die Probe und `data/weekly-verteilung-probe.txt` sind entfernt. Proben gehen nur noch per Handstart.
+- **Secrets je Modus (Ben, 27.10.):** Der Sendeschritt ist geteilt.
+  - Die Probe läuft nur per Handstart (`workflow_dispatch`, nach dem Merge). In ihrer Umgebung steht nur `DISCORD_WEBHOOK_OPS`.
+  - `DISCORD_WEBHOOK_WEEKLY`, `TELEGRAM_BOT_TOKEN` und `TELEGRAM_CHAT_ID` stehen nur im Schritt für den scharfen Lauf.
+  - Steht im Probe-Modus doch einer dieser Schlüssel in der Umgebung, bricht das Skript vor jedem Versand ab. Es nennt dann nur den Namen, nie den Wert. Der Selbsttest prüft das.
 - **Zwei Punkte, die nicht wie bei #156 sind.** Ich lasse sie, bis du entscheidest:
   1. Senden und Schreiben laufen in einem Job. Er hat die Webhooks, das Telegram-Token und `contents: write` zugleich. Eine Trennung wie bei #156 geht hier nicht ohne Umbau, weil die Merkdatei direkt nach jedem Post geschrieben werden muss. Sonst postet ein zweiter Lauf erneut.
   2. Die Merkdatei `data/weekly-verteilung.json` wird vom Bot direkt nach main gepusht, wie heute schon die Threads-Logs. Wenn auf main nur deine Merges landen sollen, lege ich sie auf einen Branch `ops/weekly-verteilung`, wie die Merkdatei von bericht-discord.

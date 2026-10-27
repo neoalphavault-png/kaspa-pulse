@@ -555,8 +555,23 @@ def selbsttest():
        and any("deutsch" in t and "ist erschienen" in t for _n, _z, t in gesendet[3:]), [t[:60] for _n, _z, t in gesendet])
     ok("merkdatei je kanal", set(merk["2026-11-02"]) >= {"video", "discord", "telegram", "moderator"} and rc == 0, merk)
     ok("zweiter lauf postet nichts", rc2 == 0 and len(gesendet) == len(reihen), len(gesendet))
+    ok("probe: umgebung nur mit ops-webhook sauber", probe_umgebung_sauber({"DISCORD_WEBHOOK_OPS": "x"}) == [])
+    ok("probe: telegram- und weekly-schluessel erkannt", probe_umgebung_sauber(
+        {"DISCORD_WEBHOOK_WEEKLY": "x", "TELEGRAM_BOT_TOKEN": "y", "TELEGRAM_CHAT_ID": " "})
+       == ["DISCORD_WEBHOOK_WEEKLY", "TELEGRAM_BOT_TOKEN"])
     print("%d fehler" % len(fehler))
     return 1 if fehler else 0
+
+
+NUR_SCHARF = ("DISCORD_WEBHOOK_WEEKLY", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID")
+
+
+def probe_umgebung_sauber(umgebung=None):
+    """Im Probe-Modus duerfen die Schluessel fuer #weekly-numbers und den
+    Telegram-Kanal gar nicht in der Umgebung stehen (Ben, 27.10.2026). Gibt
+    die Namen zurueck, die trotzdem da sind, nie die Werte."""
+    u = os.environ if umgebung is None else umgebung
+    return [n for n in NUR_SCHARF if (u.get(n) or "").strip()]
 
 
 def main():
@@ -569,6 +584,10 @@ def main():
     if a.selbsttest:
         return selbsttest()
     if a.modus == "probe":
+        da = probe_umgebung_sauber()
+        if da:
+            print("probe abgebrochen, in der umgebung steht: %s" % ", ".join(da))
+            return 2
         return lauf_probe(a.paket_dir, a.datum)
     if a.modus == "scharf":
         if stopp_aktiv(berlin(jetzt()).date().isoformat()):
