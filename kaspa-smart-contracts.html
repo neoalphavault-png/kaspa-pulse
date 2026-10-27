@@ -29,7 +29,7 @@
  "description": "Yes. Since the Toccata hard fork of 30 June 2026 Kaspa runs covenant contracts on layer 1, with EVM layer 2s above it. What runs where, with dated numbers.",
  "url": "https://kaspapulse.com/kaspa-smart-contracts.html",
  "inLanguage": "en",
- "dateModified": "2026-10-26",
+ "dateModified": "2026-10-27",
  "isPartOf": {
   "@type": "WebSite",
   "name": "Kaspa Pulse",
@@ -79,6 +79,8 @@
   h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
   h1 b { color:var(--teal); }
   .sub { font-size:16px; color:var(--dim); line-height:24px; }
+  .kurzfakt { font-size:15px; line-height:22px; color:var(--txt); margin:0 0 14px; padding:10px 14px; border-left:3px solid var(--teal); background:var(--card); border-radius:0 10px 10px 0; }
+  .kurzfakt b { color:var(--teal); font-variant-numeric:tabular-nums; }
   h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin:60px 0 14px; }
   h2::before { content:""; display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--teal); margin-right:11px; vertical-align:5px; }
   h3 { font-size:16px; font-weight:700; margin:26px 0 7px; color:var(--txt); }
@@ -198,7 +200,8 @@
 <div class="wrap">
 
   <h1>Does Kaspa have smart contracts? <b>Yes, since the Toccata hard fork.</b></h1>
-  <div class="sub">"Kaspa has no smart contracts" was true for years, and repeating it today marks you as out of date. Contracts run in two places on Kaspa today, built two very different ways. Here's the full stack, in plain language.</div>
+  <p class="kurzfakt"><!--AUTO:kurzfakt--><b>18,006 covenant outputs</b> unspent on Kaspa layer 1 at the end of 25 October 2026, source kaspalytics<!--/AUTO:kurzfakt--></p>
+  <div class="sub">"Kaspa has no smart contracts" was true for years, and repeating it after 30 June 2026 marks you as out of date. Contracts run in two places on Kaspa, built two very different ways. Here's the full stack, in plain language.</div>
 
   <div class="answer">
     <div class="lbl">The short answer</div>
@@ -207,7 +210,7 @@
   </div>
 
   <div class="live">
-    <div class="lbl"><i></i>Capital in Kaspa smart contracts · today</div>
+    <div class="lbl"><i></i>Capital in Kaspa smart contracts · at page load</div>
     <div class="big" id="scTvl">—</div>
     <div class="cap" id="scCap">fetching from DefiLlama…</div>
     <div class="split">
@@ -231,8 +234,15 @@
   <p>Raw covenant scripting is unforgiving, one wrong byte and funds are stuck. <b>Argent</b> is the high-level language built to fix that. Developers define <b>actors</b> (a contract plus the state it owns), entries (the operations you can call), and transition rules, and the compiler generates the underlying script. Two design choices matter for non-developers too. Every app is a <b>closed system under one covenant ID</b>, so outside code cannot inject itself into an app's state machine. And the compiler is only needed at build time; creating transactions afterwards needs only a lightweight runtime, <b>so tooling in other languages can drive the same apps</b>. Core developer Michael Sutton documents the whole workflow in public coding sessions on the Kaspa Native channel. Episode one builds a working ticketing app from scratch.</p>
 
   <h3>Layer 2, full EVM and familiar tooling</h3>
-  <p>For everything built for the EVM, Solidity contracts, MetaMask and existing DeFi codebases, Kaspa has two EVM layer 2s that settle against layer 1, <b>Kasplex</b>, a zkEVM running since 2025, and <b>Igra</b>, running since 2026. This is where Kaspa's DeFi actually operates today, and where the TVL shown above sits. The trade-off is the standard one, EVM compatibility and rich tooling, in exchange for each L2's own performance and trust profile.</p>
+  <p>For everything built for the EVM, Solidity contracts, MetaMask and existing DeFi codebases, Kaspa has two EVM layer 2s that settle against layer 1, <b>Kasplex</b>, a zkEVM running since 2025, and <b>Igra</b>, running since 2026. This is where Kaspa's DeFi actually operates, and where the TVL shown above sits. The trade-off is the standard one, EVM compatibility and rich tooling, in exchange for each L2's own performance and trust profile.</p>
 </div></div>
+
+<div class="wrap2">
+  <h2>Covenants in numbers, and the KCC-20 token draft</h2>
+  <p><!--AUTO:covenant-zahl2--><b>18,006 covenant outputs</b> were unspent on Kaspa layer 1 at the end of 25 October 2026, source kaspalytics.<!--/AUTO:covenant-zahl2--> Every one of them is a coin that carries its own spending rule, and the count rises when apps create new contract outputs faster than they spend them. The full daily series, with transactions and outputs created and spent, is in <a href="/kaspa-covenants.html">our covenant log</a>.</p>
+  <p>Tokens are the next layer on top of covenants, and they are not finished. <b>KCC-20</b> (KCC-0020 in the kaspanet/kccs repository) is the draft standard for fungible tokens built as covenants. In its own words, <i>"a KCC20 token is a covenant instance that implements a minimal fungible-token interface"</i>. The draft first appeared on the kas-smiths forum on 2 July 2026. As of 14 August 2026 it was still an open pull request without an approving review, and it builds on the base specification KCC-0001, which was also unmerged. A second proposal, KCC-0008, aims at one multi-token standard, and KaspaCom ships its own implementation called KCC20V2.</p>
+  <p>The encoding already works on chain. During the review, one independent indexer reported <b>2,561 hash-verified KCC20 token reveals</b> with zero mismatches against the draft, source the KCC-0020 review, as of 14 August 2026. KCC-20 is token logic on top of covenants, not token issuance at consensus level. Where each proposal stands is on <a href="/kaspa-token-standard.html">Kaspa's token standards</a>.</p>
+</div>
 
 <div class="wrap2">
   <h2>Account-based contracts and UTXO contracts</h2>
@@ -253,7 +263,7 @@
   <h2>Three traps in reading "kaspa smart contracts"</h2>
 
   <h3>1. The old answer still circulates</h3>
-  <p>Years of "Kaspa is payments only, no smart contracts" left a deep imprint. You will still hear it from commentators and see it in older articles. It stopped being true on June 30, 2026. Anyone repeating it today is describing a chain that no longer exists, so check the activation date, not the vibes.</p>
+  <p>Years of "Kaspa is payments only, no smart contracts" left a deep imprint. You will still hear it from commentators and see it in older articles. It stopped being true on June 30, 2026. Anyone repeating it after that date is describing a chain that no longer exists, so check the activation date, not the vibes.</p>
 
   <h3>2. "EVM on Kaspa" is not "Kaspa speed for EVM"</h3>
   <p>The layer 2s are their own systems. They inherit settlement from Kaspa's layer 1, but their throughput, latency and trust assumptions are their own. When you see EVM performance claims, ask which layer they describe. The honest answer is almost never "layer 1."</p>
@@ -266,7 +276,7 @@
   <h2>What actually matters at this stage</h2>
   <div class="facts">
     <div class="fact"><div class="v teal">Covenant activity</div><div class="l">daily covenant transactions show whether apps are actually being used, and we track the weekly count every monday</div></div>
-    <div class="fact"><div class="v teal">L2 capital direction</div><div class="l">today's TVL above, read as a trend. Whether builders and liquidity keep arriving matters more than the absolute size</div></div>
+    <div class="fact"><div class="v teal">L2 capital direction</div><div class="l">the TVL above, read as a trend. Whether builders and liquidity keep arriving matters more than the absolute size</div></div>
     <div class="fact"><div class="v teal">Developer tooling</div><div class="l">languages, templates and public teaching material lower the entry cost, the input that precedes every usage number</div></div>
     <div class="fact"><div class="v red">Audit status</div><div class="l">until the first wave of apps is independently audited, position sizes should assume contract risk is real</div></div>
   </div>
@@ -278,6 +288,8 @@
   <h2>Questions people ask</h2>
   <h3>Does Kaspa have smart contracts?</h3>
   <p>Yes, in two layers. Since the Toccata hard fork on June 30, 2026, Kaspa's layer 1 runs native covenant contracts, programmable spending rules living inside UTXOs, written in the Argent language. In addition, two EVM layer 2s, Kasplex (since 2025) and Igra (since 2026), run full EVM smart contracts on top of Kaspa.</p>
+  <h3>What is KCC-20 on Kaspa?</h3>
+  <p>KCC-20 is the draft standard for fungible tokens built as covenants on Kaspa's layer 1, first published on 2 July 2026 and under review as KCC-0020 in the kaspanet/kccs repository. As of 14 August 2026 it was an open pull request without an approving review, so it is not yet a finished standard. It is token logic on top of covenants, not token issuance at consensus level.</p>
   <h3>What are Kaspa covenants?</h3>
   <p>Covenants are programmable spending rules attached to individual UTXOs on Kaspa's layer 1. Each contract is a small self-contained state machine. The coin carries code plus state committed as a hash, and any spend must reveal and satisfy those rules. There is no single global virtual machine. State is partitioned across UTXOs, preserving layer 1's speed and parallelism.</p>
   <h3>What is Argent on Kaspa?</h3>
@@ -330,7 +342,7 @@
 </section>
 <!--/AUTO:rahmen-kanaele-->
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 26 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 27 October 2026<!--/AUTO:seitenstand--></div>
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
@@ -348,6 +360,11 @@
       "@type": "Question",
       "name": "Does Kaspa have smart contracts?",
       "acceptedAnswer": { "@type": "Answer", "text": "Yes, in two layers. Since the Toccata hard fork on June 30, 2026, Kaspa's layer 1 runs native covenant contracts, programmable spending rules living inside UTXOs, written in the Argent language. In addition, two EVM layer 2s, Kasplex (since 2025) and Igra (since 2026), run full EVM smart contracts on top of Kaspa." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is KCC-20 on Kaspa?",
+      "acceptedAnswer": { "@type": "Answer", "text": "KCC-20 is the draft standard for fungible tokens built as covenants on Kaspa's layer 1, first published on 2 July 2026 and under review as KCC-0020 in the kaspanet/kccs repository. As of 14 August 2026 it was an open pull request without an approving review, so it is not yet a finished standard. It is token logic on top of covenants, not token issuance at consensus level." }
     },
     {
       "@type": "Question",
