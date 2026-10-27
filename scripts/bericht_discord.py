@@ -132,6 +132,33 @@ def merken(m, branch, datei, summe, jetzt=None):
                            "utc": jetzt or dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")})
 
 
+FELDER = {"branch", "datei", "sha256", "utc", "hinweis"}
+
+
+def merk_pruefen(m):
+    """Liste der Fehler in einer Merkdatei. Erlaubt sind nur Branch, Pfad
+    unter berichte/, sha256 und Zeit (dazu ein Hinweis), damit der
+    Schreib-Job nichts anderes auf ops/bericht-gesendet legt."""
+    fehler = []
+    if not isinstance(m, dict) or set(m) != {"eintraege"} or not isinstance(m["eintraege"], list):
+        return ["kopf: nur der schluessel eintraege erlaubt"]
+    for i, e in enumerate(m["eintraege"]):
+        if not isinstance(e, dict) or not {"branch", "datei", "sha256", "utc"} <= set(e) or set(e) - FELDER:
+            fehler.append("eintrag %d: felder" % i)
+            continue
+        if not re.fullmatch(r"[A-Za-z0-9._/-]{1,100}", str(e["branch"])):
+            fehler.append("eintrag %d: branch" % i)
+        if not re.fullmatch(r"berichte/[A-Za-z0-9._-]{1,100}\.md", str(e["datei"])):
+            fehler.append("eintrag %d: datei" % i)
+        if not re.fullmatch(r"[0-9a-f]{64}", str(e["sha256"])):
+            fehler.append("eintrag %d: sha256" % i)
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z)?", str(e["utc"])):
+            fehler.append("eintrag %d: utc" % i)
+        if len(str(e.get("hinweis", ""))) > 200 or pruefen([str(e.get("hinweis", ""))]):
+            fehler.append("eintrag %d: hinweis" % i)
+    return fehler
+
+
 def vereinen(a, b):
     """Eintraege aus b, die in a fehlen, kommen dazu."""
     schluessel = {(e["branch"], e["datei"], e["sha256"]) for e in a["eintraege"]}
@@ -310,6 +337,13 @@ def selbsttest():
                          {"eintraege": [{"branch": "a", "datei": "d", "sha256": "1"},
                                         {"branch": "b", "datei": "d", "sha256": "2"}]})
             ok("vereinen ohne doppelte", len(v["eintraege"]) == 2)
+            ok("echte merkdatei gueltig", merk_pruefen(merk_lesen(merk)) == [], merk_pruefen(merk_lesen(merk)))
+            ok("fremder schluessel ungueltig", merk_pruefen({"eintraege": [], "x": 1}) != [])
+            gut = {"branch": "bericht/x", "datei": "berichte/r.md", "sha256": "a" * 64, "utc": "2026-10-26"}
+            for feld, wert in (("datei", "scripts/x.py"), ("sha256", "nein"), ("branch", "a b"), ("utc", "gestern")):
+                ok("ungueltig: %s" % feld, merk_pruefen({"eintraege": [dict(gut, **{feld: wert})]}) != [])
+            ok("ungueltig: hinweis mit ip", merk_pruefen({"eintraege": [dict(gut, hinweis="node " + ip)]}) != [])
+            ok("ungueltig: zusatzfeld", merk_pruefen({"eintraege": [dict(gut, webhook="x")]}) != [])
         finally:
             os.chdir(alt_cwd)
     print("%d fehler" % len(fehler))
@@ -327,11 +361,20 @@ def main():
     ap.add_argument("--merkdatei", default="gesendet.json")
     ap.add_argument("--link-basis", default="")
     ap.add_argument("--vereinen", nargs=2, metavar=("A", "B"))
+    ap.add_argument("--merk-pruefen", metavar="DATEI", help="merkdatei pruefen, rc 1 bei einem fehler")
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args()
     if a.selbsttest:
         return selbsttest()
-    if a.vereinen:
+    if a.merk_pruefen or a.vereinen:
+        for pfad in ([a.merk_pruefen] if a.merk_pruefen else a.vereinen):
+            f = merk_pruefen(merk_lesen(pfad))
+            if f:
+                print("merkdatei %s ungueltig: %s" % (os.path.basename(pfad), "; ".join(f)))
+                return 1
+        if a.merk_pruefen:
+            print("merkdatei gueltig")
+            return 0
         merk_schreiben(a.vereinen[0], vereinen(merk_lesen(a.vereinen[0]), merk_lesen(a.vereinen[1])))
         return 0
     if a.ereignis:
