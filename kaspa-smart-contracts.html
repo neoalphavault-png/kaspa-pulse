@@ -238,10 +238,10 @@
 </div></div>
 
 <div class="wrap2">
-  <h2>Covenants in numbers, and the KCC-20 token draft</h2>
+  <h2>Covenants in numbers, and the KCC-20 token standard</h2>
   <p><!--AUTO:covenant-zahl2--><b>18,006 covenant outputs</b> were unspent on Kaspa layer 1 at the end of 25 October 2026, source kaspalytics.<!--/AUTO:covenant-zahl2--> Every one of them is a coin that carries its own spending rule, and the count rises when apps create new contract outputs faster than they spend them. The full daily series, with transactions and outputs created and spent, is in <a href="/kaspa-covenants.html">our covenant log</a>.</p>
-  <p>Tokens are the next layer on top of covenants, and they are not finished. <b>KCC-20</b> (KCC-0020 in the kaspanet/kccs repository) is the draft standard for fungible tokens built as covenants. In its own words, <i>"a KCC20 token is a covenant instance that implements a minimal fungible-token interface"</i>. The draft first appeared on the kas-smiths forum on 2 July 2026. As of 14 August 2026 it was still an open pull request without an approving review, and it builds on the base specification KCC-0001, which was also unmerged. A second proposal, KCC-0008, aims at one multi-token standard, and KaspaCom ships its own implementation called KCC20V2.</p>
-  <p>The encoding already works on chain. During the review, one independent indexer reported <b>2,561 hash-verified KCC20 token reveals</b> with zero mismatches against the draft, source the KCC-0020 review, as of 14 August 2026. KCC-20 is token logic on top of covenants, not token issuance at consensus level. Where each proposal stands is on <a href="/kaspa-token-standard.html">Kaspa's token standards</a>.</p>
+  <p>Tokens are the next layer on top of covenants. <b>KCC-20</b> (KCC-0020 in the kaspanet/kccs repository) is the standard for fungible tokens built as covenants. In its own words, <i>"a KCC20 token is a covenant instance that implements a minimal fungible-token interface"</i>. It first appeared as a draft on the kas-smiths forum on 2 July 2026. On <b>21 October 2026</b> KCC-20 advanced to Final in the kaspanet/kccs repository, together with the base specification KCC-1 (covenant concepts, byte layouts and ABI) and KCC-2 (authority schemes). The repository adds one caution in its own words, <i>"A finalized KCC marks an ecosystem convergence point; it does not make the convention protocol ground truth."</i> Wallets still have to build support for it one by one.</p>
+  <p>The encoding already works on chain. During the review, one independent indexer reported <b>2,561 hash-verified KCC20 token reveals</b> with zero mismatches against the draft, source the KCC-0020 review, as of 14 August 2026, more than two months before the standard was final. KCC-20 is token logic on top of covenants, not token issuance at consensus level. Where each proposal stands is on <a href="/kaspa-token-standard.html">Kaspa's token standards</a>.</p>
 </div>
 
 <div class="wrap2">
@@ -289,7 +289,7 @@
   <h3>Does Kaspa have smart contracts?</h3>
   <p>Yes, in two layers. Since the Toccata hard fork on June 30, 2026, Kaspa's layer 1 runs native covenant contracts, programmable spending rules living inside UTXOs, written in the Argent language. In addition, two EVM layer 2s, Kasplex (since 2025) and Igra (since 2026), run full EVM smart contracts on top of Kaspa.</p>
   <h3>What is KCC-20 on Kaspa?</h3>
-  <p>KCC-20 is the draft standard for fungible tokens built as covenants on Kaspa's layer 1, first published on 2 July 2026 and under review as KCC-0020 in the kaspanet/kccs repository. As of 14 August 2026 it was an open pull request without an approving review, so it is not yet a finished standard. It is token logic on top of covenants, not token issuance at consensus level.</p>
+  <p>KCC-20 is the standard for fungible tokens built as covenants on Kaspa's layer 1. It first appeared as a draft on 2 July 2026 and advanced to Final in the kaspanet/kccs repository on 21 October 2026, together with KCC-1 and KCC-2. It is token logic on top of covenants, not token issuance at consensus level.</p>
   <h3>What are Kaspa covenants?</h3>
   <p>Covenants are programmable spending rules attached to individual UTXOs on Kaspa's layer 1. Each contract is a small self-contained state machine. The coin carries code plus state committed as a hash, and any spend must reveal and satisfy those rules. There is no single global virtual machine. State is partitioned across UTXOs, preserving layer 1's speed and parallelism.</p>
   <h3>What is Argent on Kaspa?</h3>
@@ -359,37 +359,58 @@
     {
       "@type": "Question",
       "name": "Does Kaspa have smart contracts?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes, in two layers. Since the Toccata hard fork on June 30, 2026, Kaspa's layer 1 runs native covenant contracts, programmable spending rules living inside UTXOs, written in the Argent language. In addition, two EVM layer 2s, Kasplex (since 2025) and Igra (since 2026), run full EVM smart contracts on top of Kaspa." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, in two layers. Since the Toccata hard fork on June 30, 2026, Kaspa's layer 1 runs native covenant contracts, programmable spending rules living inside UTXOs, written in the Argent language. In addition, two EVM layer 2s, Kasplex (since 2025) and Igra (since 2026), run full EVM smart contracts on top of Kaspa."
+      }
     },
     {
       "@type": "Question",
       "name": "What is KCC-20 on Kaspa?",
-      "acceptedAnswer": { "@type": "Answer", "text": "KCC-20 is the draft standard for fungible tokens built as covenants on Kaspa's layer 1, first published on 2 July 2026 and under review as KCC-0020 in the kaspanet/kccs repository. As of 14 August 2026 it was an open pull request without an approving review, so it is not yet a finished standard. It is token logic on top of covenants, not token issuance at consensus level." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "KCC-20 is the standard for fungible tokens built as covenants on Kaspa's layer 1. It first appeared as a draft on 2 July 2026 and advanced to Final in the kaspanet/kccs repository on 21 October 2026, together with KCC-1 and KCC-2. It is token logic on top of covenants, not token issuance at consensus level."
+      }
     },
     {
       "@type": "Question",
       "name": "What are Kaspa covenants?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Covenants are programmable spending rules attached to individual UTXOs on Kaspa's layer 1. Each contract is a small self-contained state machine. The coin carries code plus state committed as a hash, and any spend must reveal and satisfy those rules. There is no single global virtual machine. State is partitioned across UTXOs, preserving layer 1's speed and parallelism." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Covenants are programmable spending rules attached to individual UTXOs on Kaspa's layer 1. Each contract is a small self-contained state machine. The coin carries code plus state committed as a hash, and any spend must reveal and satisfy those rules. There is no single global virtual machine. State is partitioned across UTXOs, preserving layer 1's speed and parallelism."
+      }
     },
     {
       "@type": "Question",
       "name": "What is Argent on Kaspa?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Argent is the high-level language for writing covenant applications on Kaspa's layer 1. Developers define actors (a contract plus its state) and entries (callable operations), and the compiler generates the underlying script. Each app is a closed system under one covenant ID, and transactions can be created with a lightweight runtime without the compiler." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Argent is the high-level language for writing covenant applications on Kaspa's layer 1. Developers define actors (a contract plus its state) and entries (callable operations), and the compiler generates the underlying script. Each app is a closed system under one covenant ID, and transactions can be created with a lightweight runtime without the compiler."
+      }
     },
     {
       "@type": "Question",
       "name": "Are Kaspa smart contracts EVM compatible?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Layer 1 covenants are not EVM compatible, they use a different, UTXO-native model. Full EVM compatibility sits on Kaspa's layer 2s, Kasplex, a zkEVM running since 2025, and Igra, running since 2026, which run Solidity contracts and standard EVM tooling." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Layer 1 covenants are not EVM compatible, they use a different, UTXO-native model. Full EVM compatibility sits on Kaspa's layer 2s, Kasplex, a zkEVM running since 2025, and Igra, running since 2026, which run Solidity contracts and standard EVM tooling."
+      }
     },
     {
       "@type": "Question",
       "name": "Are smart contracts on Kaspa safe to use?",
-      "acceptedAnswer": { "@type": "Answer", "text": "The mechanisms are active on mainnet, but the first wave of applications launched in 2025 and 2026 and much of it is young, some of it anonymous or unaudited. Kaspa's own core contributors advise users to understand exactly what they are buying. Treat individual apps as carrying real contract risk until independently audited." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The mechanisms are active on mainnet, but the first wave of applications launched in 2025 and 2026 and much of it is young, some of it anonymous or unaudited. Kaspa's own core contributors advise users to understand exactly what they are buying. Treat individual apps as carrying real contract risk until independently audited."
+      }
     },
     {
       "@type": "Question",
       "name": "What did the Toccata hard fork actually add?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Toccata activated on Kaspa mainnet on June 30, 2026 at DAA score 474,165,565. It added covenant rules, covenant IDs, transaction introspection opcodes and zero-knowledge proof verification to layer 1. It did not add account-based smart contracts. Kaspa's own documentation states that Toccata does not turn Kaspa into an account-chain smart contract system. Full EVM contracts run on the layer 2s, Kasplex and Igra." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Toccata activated on Kaspa mainnet on June 30, 2026 at DAA score 474,165,565. It added covenant rules, covenant IDs, transaction introspection opcodes and zero-knowledge proof verification to layer 1. It did not add account-based smart contracts. Kaspa's own documentation states that Toccata does not turn Kaspa into an account-chain smart contract system. Full EVM contracts run on the layer 2s, Kasplex and Igra."
+      }
     }
   ]
 }
