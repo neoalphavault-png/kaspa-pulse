@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """tn10_contention.py, Covenant-Contention je Minute (Ben, 21.10.2026).
 
-STP-Lauf Do 29.10.2026 18:00 UTC, Phase "covenant contention": mehrere Sender
+STP-Lauf Do 29.10.2026 19:00 bis 20:00 UTC (Ben, 27.10.: um plus 1 h verschoben), Phase "covenant contention": mehrere Sender
 geben denselben Covenant-Output mit steigender Rate aus. Diese Datei setzt
 unsere Nachzaehlung (tn10_nachzaehlung.py mit --covenant-datei, zwei Knoten)
 und STPs Sender-Logs zu einer Zeile je Minute zusammen. Sie fragt keinen
@@ -37,10 +37,12 @@ FREEZE-FORMAT (STP, tn10-storm-2026-10-29, Plan vom 26.10., Freeze Di 27.10.)
     sec.csv               falls geliefert, je Sekunde senders_target, senders_on
     ntp.csv               falls geliefert, utc, machine, offset_ms, source
     post-end-mempool.csv  minute_utc, node, mempool_size
-    Schritte laut Plan: 1 (18:00 bis 18:14, 1 Familie), Pause, 2 (18:20 bis
-    18:34, 2 Familien), Pause, 3a und 3b (18:40 bis 18:59, 4 Familien).
-    Gezaehlt ab Minute 3 eines Schritts: 18:03 bis 18:14, 18:23 bis 18:34,
-    18:43 bis 18:59. Familie n bei STP heisst bei uns f<n>. Familie 0 ist
+    Schritte laut Plan, Minuten ab T0: 1 (0 bis 14, 1 Familie), Pause, 2 (20
+    bis 34, 2 Familien), Pause, 3a und 3b (40 bis 59, 4 Familien). Gezaehlt
+    ab Minute 3 eines Schritts. Mit T0 19:00 UTC also 19:03 bis 19:14, 19:23
+    bis 19:34, 19:43 bis 19:59. T0, END und die gezaehlten Minuten stehen in
+    messung/tn10/lauf-2026-10-29.txt (--lauf); dort gilt STPs Liste, falls sie
+    vom Plan abweicht. Familie n bei STP heisst bei uns f<n>. Familie 0 ist
     KNS und wird nie gezaehlt (STP, 26.10.). Jede MINER-Zeile markiert ihre
     Minute. ntp.csv kommt von desk, mini und box zu 16:00, 17:55 und 19:01 UTC.
     Etiketten von Sendern und Knoten gehen nur als kurze Namen (desk, mini,
@@ -55,7 +57,7 @@ Blockzeit ist die Zeit im Blockkopf (Uhr des Miners), Submit-Zeit die Uhr
 des Senders; der Uhrversatz aus STPs ntp.csv steht in der Zusammenfassung.
 
     python3 scripts/tn10_contention.py --zaehlung DIR --stp DIR [--submit CSV] \\
-        --fenster 2026-10-29T18:00:00Z 2026-10-29T19:00:00Z --out DIR
+        --lauf messung/tn10/lauf-2026-10-29.txt --out DIR
     python3 scripts/tn10_contention.py --selbsttest
     Mit --plan storm (Vorgabe) gilt die Schritt-Tabelle oben ab --fenster VON,
     mit --plan keiner zaehlt jede Minute im Fenster.
@@ -206,7 +208,31 @@ def hash_zeilen(text):
     return aus
 
 
-def plan_schritte(von_ms, plan):
+def lauf_lesen(pfad):
+    """Laufdatei: t0, ende, gezaehlt (HH:MM-HH:MM, kommagetrennt, UTC am Tag
+    von t0). Ergibt (t0_ms, ende_ms, menge der gezaehlten minuten)."""
+    werte = {}
+    for z in open(pfad, encoding="utf-8"):
+        z = z.strip()
+        if z and not z.startswith("#") and "=" in z:
+            k, v = z.split("=", 1)
+            werte[k.strip()] = v.strip()
+    t0, ende = ms(werte["t0"]), ms(werte["ende"])
+    tag = werte["t0"][:10]
+    gez = set()
+    for teil in werte.get("gezaehlt", "").split(","):
+        if not teil.strip():
+            continue
+        a, b = [ms("%sT%s:00Z" % (tag, x.strip())) // 60000 for x in teil.split("-")]
+        if b < a:
+            raise ValueError("gezaehlt: ende vor anfang in %r" % teil)
+        gez |= set(range(a, b + 1))
+    if gez and not all(t0 // 60000 <= m < -(-ende // 60000) for m in gez):
+        raise ValueError("gezaehlte minute ausserhalb t0 bis ende")
+    return t0, ende, gez
+
+
+def plan_schritte(von_ms, plan, gezaehlt=None):
     """je Minute (schritt, zaehlminute, familien laut plan)."""
     if plan != "storm":
         return {}
@@ -215,6 +241,9 @@ def plan_schritte(von_ms, plan):
     for name, a, b, fam, ab in STORM:
         for i in range(a, b):
             aus[m0 + i] = (name, int(ab is not None and i >= ab), fam)
+    if gezaehlt:
+        # STPs Liste gilt (Ben, 27.10.2026), die Schrittnamen bleiben
+        aus = {m: (n, int(m in gezaehlt), f) for m, (n, _, f) in aus.items()}
     return aus
 
 
@@ -601,7 +630,8 @@ def mempool_lesen(ordner):
     return aus
 
 
-def zusammensetzen(zaehlung, stp, submit, von_ms, bis_ms, mempool="", plan="keiner", miner_aussage=""):
+def zusammensetzen(zaehlung, stp, submit, von_ms, bis_ms, mempool="", plan="keiner", miner_aussage="",
+                   gezaehlt=None):
     etikett = Etiketten()
     kom, tx = zaehlung_lesen(zaehlung)
     fam = familien_aus(kom)
@@ -609,7 +639,8 @@ def zusammensetzen(zaehlung, stp, submit, von_ms, bis_ms, mempool="", plan="kein
     rej, rej_quelle = konflikte(stp) if stp else ({}, [])
     m0, m1 = von_ms // 60000, -(-bis_ms // 60000)
     a, e = m0 - GRUNDLAST_MIN, m1 + GRUNDLAST_MIN
-    plan_m = plan_schritte(von_ms, plan)
+    plan_m = plan_schritte(von_ms, plan, gezaehlt)
+    plan_gez = {m for m, (_, z, _) in plan_schritte(von_ms, plan).items() if z}
     sec_da = bool(stp and stp_dateien(stp, "sec.csv"))
     lue_sec = luecken(stp, m0, m1) if sec_da else {}
     ereignisse, unlesbar = phase_lesen(stp) if stp else ([], 0)
@@ -715,6 +746,8 @@ def zusammensetzen(zaehlung, stp, submit, von_ms, bis_ms, mempool="", plan="kein
                             for k in ("sent", "ok", "rej_already_spent", "winners", "hops")})
             aus[-1]["stp_%s_summe_stimmt" % f] = summe_stimmt(wf) if wf else ""
     zus = {"fenster": [minute(m0), minute(m1)], "grundlast_min": GRUNDLAST_MIN, "plan": plan,
+           "zaehlminuten_quelle": ("lauf-datei" if gezaehlt else "plan"),
+           "zaehlminuten_weichen_vom_plan_ab": bool(gezaehlt) and set(gezaehlt) != plan_gez,
            "konflikt_quelle": rej_quelle, "miner_quelle": mw_quelle, "miner_aussage_plan": miner_aussage,
            "sender_beleg": beleg, "phase_log": dict(ph_zus, unlesbare_zeilen=unlesbar),
            "stp_minute_quelle": stp_q, "stp_familien": stp_fnamen,
@@ -876,6 +909,7 @@ def selbsttest():
        and zus["mempool_nach_end"]["k2"]["familien"]["f1"]["orphans"] == 1)
     selbsttest_freeze(ok, schreib)
     selbsttest_eingefroren(ok, schreib)
+    selbsttest_lauf(ok, schreib)
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 
@@ -1129,12 +1163,45 @@ def selbsttest_eingefroren(ok, schreib):
         ok("eingefroren %s: kein zeitserver-name in der ausgabe" % t, "beispiel" not in roh)
 
 
+def selbsttest_lauf(ok, schreib):
+    """Laufdatei fuer Do 29.10. (19:00 bis 20:00 UTC) und eine abweichende
+    Liste von STP, die dann gilt."""
+    pfad = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "messung", "tn10", "lauf-2026-10-29.txt")
+    t0, ende, gez = lauf_lesen(pfad)
+    plan = {m for m, (_, z, _) in plan_schritte(t0, "storm").items() if z}
+    ok("lauf 29.10.: t0 19:00, ende 20:00 utc", t0 == ms("2026-10-29T19:00:00Z") and ende == ms("2026-10-29T20:00:00Z"))
+    ok("lauf 29.10.: gezaehlt 19:03-19:14, 19:23-19:34, 19:43-19:59, gleich dem plan",
+       sorted(minute(m)[11:16] for m in gez) == ["19:%02d" % k for k in
+                                                  list(range(3, 15)) + list(range(23, 35)) + list(range(43, 60))]
+       and gez == plan, sorted(minute(m)[11:16] for m in gez))
+    with tempfile.TemporaryDirectory() as d:
+        lf = os.path.join(d, "lauf.txt")
+        with open(lf, "w", encoding="utf-8") as fh:
+            fh.write("t0=2026-10-29T19:00:00Z\nende=2026-10-29T20:00:00Z\ngezaehlt=19:04-19:14,19:24-19:34,19:44-19:59\n")
+        t0b, endeb, gezb = lauf_lesen(lf)
+        za = os.path.join(d, "z")
+        os.makedirs(za)
+        aus, zus = zusammensetzen(za, "", "", t0b, endeb, "", "storm", "", gezb)
+        r = {x["minute_utc"][11:16]: x for x in aus}
+        ok("abweichende liste von stp gilt", r["19:03"]["zaehlminute"] == 0 and r["19:04"]["zaehlminute"] == 1
+           and sum(x["zaehlminute"] for x in aus) == 38 and zus["zaehlminuten_weichen_vom_plan_ab"] is True
+           and zus["zaehlminuten_quelle"] == "lauf-datei")
+        with open(lf, "w", encoding="utf-8") as fh:
+            fh.write("t0=2026-10-29T19:00:00Z\nende=2026-10-29T20:00:00Z\ngezaehlt=20:03-20:14\n")
+        try:
+            lauf_lesen(lf)
+            ok("minute ausserhalb des fensters bricht ab", False)
+        except ValueError:
+            ok("minute ausserhalb des fensters bricht ab", True)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--zaehlung", help="ordner mit nach.csv, k1-covenant.csv, k2-covenant.csv")
     ap.add_argument("--stp", default="", help="ordner mit STPs logs (bot/, build/)")
     ap.add_argument("--submit", default="", help="csv tx_id,submit_ms aus STPs logs, falls vorhanden")
     ap.add_argument("--fenster", nargs=2, metavar=("VON", "BIS"))
+    ap.add_argument("--lauf", default="", help="laufdatei mit t0, ende, gezaehlt (statt --fenster)")
     ap.add_argument("--mempool", default="", help="ordner mit mempool-k1.json und mempool-k2.json")
     ap.add_argument("--plan", choices=["storm", "keiner"], default="storm",
                     help="storm: schritte und zaehlminuten laut STPs plan ab VON")
@@ -1154,8 +1221,12 @@ def main(argv=None):
             print("abbruch: %s" % exc, file=sys.stderr)
             return 2
         return 0
-    aus, zus = zusammensetzen(a.zaehlung, a.stp, a.submit, ms(a.fenster[0]), ms(a.fenster[1]), a.mempool,
-                              a.plan, a.miner_aussage)
+    gez = None
+    if a.lauf:
+        von, bis, gez = lauf_lesen(a.lauf)
+    else:
+        von, bis = ms(a.fenster[0]), ms(a.fenster[1])
+    aus, zus = zusammensetzen(a.zaehlung, a.stp, a.submit, von, bis, a.mempool, a.plan, a.miner_aussage, gez)
     schreiben(a.out, aus, zus)
     print("minuten %d, im fenster %d, gueltig %d, submit-zeiten %d" % (
         len(aus), zus["minuten_im_fenster"], zus["gueltige_minuten"], zus["submit_zeiten"]))
