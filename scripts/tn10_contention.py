@@ -40,7 +40,9 @@ FREEZE-FORMAT (STP, tn10-storm-2026-10-29, Plan vom 26.10., Freeze Di 27.10.)
     Schritte laut Plan: 1 (18:00 bis 18:14, 1 Familie), Pause, 2 (18:20 bis
     18:34, 2 Familien), Pause, 3a und 3b (18:40 bis 18:59, 4 Familien).
     Gezaehlt ab Minute 3 eines Schritts: 18:03 bis 18:14, 18:23 bis 18:34,
-    18:43 bis 18:59. Familie n bei STP heisst bei uns f<n>.
+    18:43 bis 18:59. Familie n bei STP heisst bei uns f<n>. Familie 0 ist
+    KNS und wird nie gezaehlt (STP, 26.10.). Jede MINER-Zeile markiert ihre
+    Minute. ntp.csv kommt von desk, mini und box zu 16:00, 17:55 und 19:01 UTC.
     Etiketten von Sendern und Knoten gehen nur als kurze Namen (desk, mini,
     muon) in die Ausgabe, alles andere wird zu knoten1, knoten2 und so weiter.
     Zeilen aus STPs Logs werden nie woertlich uebernommen.
@@ -83,10 +85,17 @@ WEITER = ("START", "STEP")
 STP_ZAHLEN = ("sent", "ok", "winners", "hops")
 STP_LAGE = ("include_p50_ms", "include_p95_ms", "seen_p50_ms", "seen_p95_ms")
 SUMME = ("", "all", "total", "sum", "*")
+# Familie 0 ist KNS (STP, 26.10.2026) und wird nie gezaehlt, weder bei uns
+# noch in STPs Spalten. Fuer die Soll-Pruefung der Sender bleibt sie in sent_alle.
+AUSGESCHLOSSEN = ("f0",)
+NTP_MASCHINEN = ("desk", "mini", "box")
+NTP_PUNKTE = ("16:00", "17:55", "19:01")       # UTC am Lauftag, je Maschine
+NTP_SPIEL_MIN = 5
 SPALTEN = ["minute_utc", "phase", "schritt", "zaehlminute", "familien", "voll", "knoten_gleich", "cov_angenommen", "cov_in_bloecken",
            "cov_nie_angenommen", "abgelehnt_konflikt", "bis_block_ms_median", "bis_block_ms_p90", "bis_block_n",
            "bis_annahme_ms_median", "sender_luecke", "sender_beleg", "sender_aktiv", "miner_wechsel",
            "stp_sent", "stp_ok", "stp_rej_already_spent", "stp_rej_orphan", "stp_rej_andere", "stp_summe_stimmt",
+           "stp_f0_trennbar",
            "stp_winners", "stp_hops", "stp_include_p50_ms", "stp_seen_p50_ms", "abgleich_winners",
            "gueltig", "grund"]
 
@@ -182,6 +191,8 @@ def hash_zeilen(text):
         teile = z.split()
         if len(teile) != 2 or not re.fullmatch(r"f\d{1,2}", teile[0]):
             raise ValueError("zeile %d: erwartet \"f<n> <covenant-id>\"" % i)
+        if teile[0] in AUSGESCHLOSSEN:
+            raise ValueError("zeile %d: familie 0 ist KNS und wird nicht gezaehlt" % i)
         cid = teile[1].lower()
         cid = cid[2:] if cid.startswith("0x") else cid
         if not re.fullmatch(r"[0-9a-f]{64}", cid):
@@ -204,11 +215,21 @@ def plan_schritte(von_ms, plan):
     return aus
 
 
+def summe_stimmt(w):
+    """sent = ok + Summe aller rej_*; leer, wenn sent fehlt."""
+    if w.get("sent") is None:
+        return ""
+    return int(w["sent"] == (w.get("ok") or 0) + sum(v for k, v in w.items() if k.startswith("rej_") and v is not None))
+
+
 def stp_minuten(ordner):
     """minute.csv aus dem Freeze-Format: je Minute die Summe und, mit Spalte
-    family, je Familie. Gibt es fuer eine Minute nur Familienzeilen, ist die
-    Summe deren Summe; gibt es eine Summenzeile, gilt sie."""
-    summe, fam, quelle = {}, {}, []
+    family, je Familie. Familie 0 (KNS) wird ausgeschlossen. Gibt es fuer eine
+    Minute Familienzeilen, ist die Summe deren Summe ohne Familie 0; nur ohne
+    Familienzeilen gilt eine Summenzeile, und dann ist Familie 0 nicht
+    trennbar (vermerkt). sent_alle ist sent mit Familie 0, fuer die
+    Soll-Pruefung der Sender."""
+    zeile_summe, fam, aus_f0, quelle = {}, {}, {}, []
     for p in stp_dateien(ordner, "minute.csv"):
         zeilen = csv_lesen(p)
         if not zeilen or "sent" not in zeilen[0]:
@@ -219,22 +240,36 @@ def stp_minuten(ordner):
             f = familie_norm(z.get("family"))
             werte = {k: zahl(v) for k, v in z.items() if k in STP_ZAHLEN or k.startswith("rej_") or k == "families"}
             werte.update({k: zahl(z.get(k)) for k in STP_LAGE if (z.get(k) or "").strip()})
-            if f:
+            if f in AUSGESCHLOSSEN:
+                aus_f0.setdefault(m, {})[f] = werte
+            elif f:
                 fam.setdefault(m, {})[f] = werte
             else:
-                summe[m] = werte
-    for m, je in fam.items():
-        if m in summe:
+                zeile_summe[m] = werte
+    summe = {}
+    for m in set(zeile_summe) | set(fam) | set(aus_f0):
+        je = fam.get(m, {})
+        if not je and m in zeile_summe:
+            s = dict(zeile_summe[m])
+            s["f0_trennbar"] = 0 if not aus_f0.get(m) else 1
+            s["sent_alle"] = s.get("sent")
+            summe[m] = s
             continue
         s = {}
         for w in je.values():
             for k, v in w.items():
                 if k in STP_LAGE or v is None:
                     continue
-                s[k] = max(s.get(k, 0), v) if k == "families" else s.get(k, 0) + v
+                if k == "families":
+                    continue
+                s[k] = s.get(k, 0) + v
         if len(je) == 1:
             s.update({k: v for k, v in list(je.values())[0].items() if k in STP_LAGE})
-        s.setdefault("families", len(je))
+        s["families"] = len(je)
+        alle = (zeile_summe.get(m) or {}).get("sent")
+        if alle is None:
+            alle = (s.get("sent") or 0) + sum((w.get("sent") or 0) for w in aus_f0.get(m, {}).values())
+        s["sent_alle"], s["f0_trennbar"] = alle, 1
         summe[m] = s
     return summe, fam, quelle
 
@@ -284,15 +319,18 @@ def phase_auswerten(ereignisse, von_m, bis_m, etikett):
             zus["tokens"][tok] = zus["tokens"].get(tok, 0) + 1
             uhr = dt.datetime.fromtimestamp(sek, dt.timezone.utc).strftime("%H:%M:%S")
             if tok == "GENESIS":
-                zus["genesis"].append({"utc": uhr, "familie": familie_norm(kv.get("family"))})
+                f = familie_norm(kv.get("family"))
+                zus["genesis"].append({"utc": uhr, "familie": f, "gezaehlt": int(f not in AUSGESCHLOSSEN)})
             elif tok == "FAMILY_DROP":
                 zus["family_drop"].append({"utc": uhr, "familie": familie_norm(kv.get("family")),
                                            "grund": grund_norm(kv.get("reason"))})
             elif tok == "MINER":
                 zus["miner_zeilen"] += 1
-                jetzt = (kv.get("state", ""), kv.get("workers", ""))
-                if miner_vorher is not None and jetzt != miner_vorher:
-                    miner.setdefault(m, []).append("miner %s um %s" % ("/".join(jetzt), uhr))
+                # jede MINER-Zeile markiert ihre Minute (STP, 26.10.2026: kleiner
+                # CPU-Miner, Neustarts per Watchdog), nicht nur ein Wechsel
+                jetzt = "/".join(x for x in (kv.get("state", ""), kv.get("workers", ""),
+                                             grund_norm(kv.get("reason"))) if x)
+                miner.setdefault(m, []).append("miner %s um %s" % (jetzt or "zeile", uhr))
                 miner_vorher = jetzt
             elif tok in WEITER:
                 if kv.get("senders"):
@@ -342,6 +380,33 @@ def ntp_lesen(ordner, etikett):
                         "quelle": q if re.fullmatch(r"[a-z][a-z0-9_]{0,15}", q) else ("server" if q else ""),
                         "datei": os.path.basename(p)})
     return aus
+
+
+def ntp_pruefen(ntp, von_ms):
+    """je Maschine (desk, mini, box) und Messpunkt (16:00, 17:55, 19:01 UTC
+    am Lauftag) die naechste Messung im Abstand bis NTP_SPIEL_MIN; fehlt eine,
+    steht sie unter fehlt."""
+    tag = dt.datetime.fromtimestamp(von_ms / 1000, dt.timezone.utc).strftime("%Y-%m-%d")
+    aus, fehlt = {}, []
+    for mas in NTP_MASCHINEN:
+        for pkt in NTP_PUNKTE:
+            soll = ms("%sT%s:00Z" % (tag, pkt))
+            kandidaten = []
+            for x in ntp:
+                if x["maschine"] != mas or x["offset_ms"] is None:
+                    continue
+                try:
+                    abstand = abs(ms(x["utc"]) - soll)
+                except ValueError:
+                    continue
+                if abstand <= NTP_SPIEL_MIN * 60000:
+                    kandidaten.append((abstand, x["offset_ms"]))
+            if kandidaten:
+                aus.setdefault(mas, {})[pkt] = min(kandidaten)[1]
+            else:
+                fehlt.append("%s %s" % (mas, pkt))
+    fremd = sorted({x["maschine"] for x in ntp} - set(NTP_MASCHINEN))
+    return {"offset_ms": aus, "fehlt": fehlt, "andere_maschinen": fremd, "vollstaendig": not fehlt}
 
 
 def post_end_lesen(ordner, etikett):
@@ -588,8 +653,8 @@ def zusammensetzen(zaehlung, stp, submit, von_ms, bis_ms, mempool="", plan="kein
             soll = (aktiv_je.get(m) or 0) * (rate_je.get(m) or 0) * 60
             if zm and stp_q and not w:
                 g.append("minute fehlt in minute.csv")
-            elif zm and soll and w.get("sent") is not None and w["sent"] < SOLL_ANTEIL * soll:
-                g.append("sent %d unter soll %d" % (w["sent"], soll))
+            elif zm and soll and w.get("sent_alle") is not None and w["sent_alle"] < SOLL_ANTEIL * soll:
+                g.append("sent %d unter soll %d" % (w["sent_alle"], soll))
             sl = ("ja", "; ".join(g)) if g else ("nein", "")
         mwg = mw.get(m)
         miner = ("ja", mwg) if mwg else (("nein", "") if mw_quelle else ("unbekannt", "keine miner-angabe von STP"))
@@ -624,8 +689,8 @@ def zusammensetzen(zaehlung, stp, submit, von_ms, bis_ms, mempool="", plan="kein
             "stp_rej_already_spent": w.get("rej_already_spent", ""), "stp_rej_orphan": w.get("rej_orphan", ""),
             "stp_rej_andere": sum(v for k, v in rej_alle.items() if k not in ("rej_already_spent", "rej_orphan"))
             if w else "",
-            "stp_summe_stimmt": int(w["sent"] == (w.get("ok") or 0) + sum(rej_alle.values()))
-            if w.get("sent") is not None else "",
+            "stp_summe_stimmt": summe_stimmt(w),
+            "stp_f0_trennbar": w.get("f0_trennbar", ""),
             "stp_winners": w.get("winners", ""), "stp_hops": w.get("hops", ""),
             "stp_include_p50_ms": w.get("include_p50_ms", ""), "stp_seen_p50_ms": w.get("seen_p50_ms", ""),
             "abgleich_winners": int(cov) - w["winners"] if str(cov).isdigit() and w.get("winners") is not None else "",
@@ -641,7 +706,8 @@ def zusammensetzen(zaehlung, stp, submit, von_ms, bis_ms, mempool="", plan="kein
         for f in stp_fnamen:
             wf = stp_fam.get(m, {}).get(f, {})
             aus[-1].update({"stp_%s_%s" % (f, k): ("" if wf.get(k) is None else wf[k])
-                            for k in ("sent", "rej_already_spent", "winners", "hops")})
+                            for k in ("sent", "ok", "rej_already_spent", "winners", "hops")})
+            aus[-1]["stp_%s_summe_stimmt" % f] = summe_stimmt(wf) if wf else ""
     zus = {"fenster": [minute(m0), minute(m1)], "grundlast_min": GRUNDLAST_MIN, "plan": plan,
            "konflikt_quelle": rej_quelle, "miner_quelle": mw_quelle, "miner_aussage_plan": miner_aussage,
            "sender_beleg": beleg, "phase_log": dict(ph_zus, unlesbare_zeilen=unlesbar),
@@ -651,8 +717,14 @@ def zusammensetzen(zaehlung, stp, submit, von_ms, bis_ms, mempool="", plan="kein
            "gueltige_minuten": sum(r["gueltig"] for r in aus),
            "minuten_im_fenster": m1 - m0, "familien": fam, "mempool_nach_end": mempool_lesen(mempool),
            "je_schritt": je_schritt(aus, fam, stp_fnamen)}
+    zus["familie_ausgeschlossen"] = list(AUSGESCHLOSSEN)
+    zus["summe_falsch"] = [
+        "%s %s" % (r["minute_utc"][11:16], k[4:-len("_summe_stimmt")] if k != "stp_summe_stimmt" else "summe")
+        for r in aus if r["zaehlminute"] for k in r if k.startswith("stp_") and k.endswith("summe_stimmt") and r[k] == 0]
+    zus["f0_nicht_trennbar"] = [r["minute_utc"][11:16] for r in aus if r["zaehlminute"] and r["stp_f0_trennbar"] == 0]
     ntp = ntp_lesen(stp, etikett)
     zus["uhrversatz_stp"] = ntp
+    zus["ntp_pruefung"] = ntp_pruefen(ntp, von_ms)
     werte = [abs(x["offset_ms"]) for x in ntp if x["offset_ms"] is not None]
     zus["uhrversatz_max_ms"] = max(werte) if werte else ""
     zus["mempool_nach_end_stp"] = post_end_lesen(stp, etikett)
@@ -823,16 +895,28 @@ def selbsttest_freeze(ok, schreib):
             zeilen.append([minute(m), 1, 1, 1, je * fams, je * fams, 0] + sum([[je if k < fams else 0, 0]
                                                                                 for k in range(4)], []))
             if name and name != "pause":
+                zeit = minute(m)[:16] + ":00Z"
+                if m == m0 + 44:
+                    # nur eine summenzeile, familie 0 darin nicht trennbar
+                    mzeilen.append([zeit, name, "all", fams, 3900, 210, 3450, 170, 0, 0, 0, 0, 0, 70, 168, 168,
+                                    1000, 2000, 900, 1800])
+                    continue
                 for k in range(fams):
                     sent = 900 if m != m0 + 25 else 400
-                    mzeilen.append([minute(m)[:16] + ":00Z", name, k + 1, fams, sent, 50, 800, 40, 0, 0, 0, 0, 0,
-                                    sent - 890, 42, 42, 1000, 2000, 900, 1800])
+                    falsch = 5 if (m == m0 + 33 and k == 1) else 0
+                    mzeilen.append([zeit, name, k + 1, fams, sent, 50, 800, 40, 0, 0, 0, 0, 0,
+                                    sent - 890 - falsch, 42, 42, 1000, 2000, 900, 1800])
+                if m != m0 + 25:
+                    # familie 0 ist KNS: grosse zahlen, die nirgends mitzaehlen duerfen
+                    mzeilen.append([zeit, name, 0, fams, 300, 10, 250, 30, 0, 0, 0, 0, 0, 10, 9, 9,
+                                    500, 900, 400, 800])
         schreib(os.path.join(za, "nach.csv"), kopf, zeilen)
         schreib(os.path.join(st, "minute.csv"),
                 ["minute_utc", "step", "family", "families", "sent", "ok", "rej_already_spent", "rej_orphan",
                  "rej_fee", "rej_mass", "rej_mempool_full", "rej_route", "rej_rpc", "rej_other", "winners", "hops",
                  "include_p50_ms", "include_p95_ms", "seen_p50_ms", "seen_p95_ms"], mzeilen)
         log = ["2026-10-29T17:40:00Z MINER state=off workers=0",
+               "2026-10-29T17:48:00Z GENESIS family=0 included",
                "2026-10-29T17:49:12Z GENESIS family=1 included",
                "2026-10-29T17:55:00Z FAMILY_DROP family=5 reason=no_genesis",
                "2026-10-29T18:00:01Z START senders=desk,mini,%s families=1 rate=5" % host,
@@ -843,14 +927,20 @@ def selbsttest_freeze(ok, schreib):
                "2026-10-29T18:35:00Z GAP reason=sender_off",
                "2026-10-29T18:40:00Z STEP step=3a families=4 rate=5",
                "2026-10-29T18:47:30Z NODE_SKIP node=%s reason=mempool_90k" % host,
-               "2026-10-29T18:52:00Z MINER state=on workers=4",
+               "2026-10-29T18:52:00Z MINER state=restart reason=watchdog",
+               "2026-10-29T18:57:30Z MINER state=restart reason=watchdog",
                "2026-10-29T18:55:00Z STEP step=3b families=4 rate=5",
                "kaputte zeile ohne zeit",
                "2026-10-29T19:00:00Z STOP reason=END"]
         with open(os.path.join(st, "phase.log"), "w", encoding="utf-8") as fh:
             fh.write("\n".join(log) + "\n")
-        schreib(os.path.join(st, "ntp.csv"), ["utc", "machine", "offset_ms", "source"],
-                [["2026-10-29T16:00:00Z", "desk", -12, "zeit." + "beispiel" + ".net"], ["2026-10-29T17:55:00Z", "mini", 31, "w32tm"]])
+        ntp_z = [["2026-10-29T16:00:00Z", "desk", -12, "zeit." + "beispiel" + ".net"]]
+        for i, mas in enumerate(("desk", "mini", "box")):
+            for pkt in ("16:00:20", "17:55:00", "19:01:00"):
+                if mas == "desk" and pkt.startswith("16"):
+                    continue
+                ntp_z.append(["2026-10-29T%sZ" % pkt, mas, 31 if mas == "mini" else -4 - i, "w32tm"])
+        schreib(os.path.join(st, "ntp.csv"), ["utc", "machine", "offset_ms", "source"], ntp_z)
         schreib(os.path.join(st, "post-end-mempool.csv"), ["minute_utc", "node", "mempool_size"],
                 [["2026-10-29T19:00Z", "mini", 120], ["2026-10-29T19:00Z", host, 4000]])
         aus, zus = zusammensetzen(za, os.path.join(d, "stp"), "", t0, t0 + 3600000, "", "storm")
@@ -874,8 +964,30 @@ def selbsttest_freeze(ok, schreib):
     ok("freeze: sent unter soll erkannt", "unter soll" in r["18:25"]["grund"], r["18:25"]["grund"])
     ok("freeze: node_skip nur in seiner minute, danach 2 sender", r["18:47"]["gueltig"] == 0
        and r["18:48"]["gueltig"] == 1 and r["18:48"]["sender_aktiv"] == 2, [r["18:47"]["grund"], r["18:48"]])
-    ok("freeze: miner an um 18:52 macht die minute ungueltig", r["18:52"]["miner_wechsel"] == "ja"
-       and r["18:51"]["miner_wechsel"] == "nein" and r["18:53"]["gueltig"] == 1)
+    ok("freeze: jede MINER-zeile markiert ihre minute, auch gleicher zustand", r["18:52"]["miner_wechsel"] == "ja"
+       and r["18:57"]["miner_wechsel"] == "ja" and r["18:51"]["miner_wechsel"] == "nein" and r["18:53"]["gueltig"] == 1
+       and "watchdog" in r["18:57"]["grund"], [r["18:57"]["grund"]])
+    gez = [x["minute_utc"][11:16] for x in aus if x["zaehlminute"]]
+    soll_min = ["18:%02d" % k for k in list(range(3, 15)) + list(range(23, 35)) + list(range(43, 60))]
+    ok("freeze: gezaehlte minuten genau 18:03-18:14, 18:23-18:34, 18:43-18:59", gez == soll_min, gez)
+    ok("freeze: familie 0 nie gezaehlt", "stp_f0_sent" not in r["18:05"] and r["18:05"]["stp_sent"] == 900
+       and r["18:05"]["stp_winners"] == 42 and r["18:05"]["familien"] == 1 and r["18:05"]["stp_rej_orphan"] == 40
+       and "f0" not in zus["stp_familien"], r["18:05"])
+    ok("freeze: genesis familie 0 als nicht gezaehlt vermerkt", zus["phase_log"]["genesis"][0] == {
+        "utc": "17:48:00", "familie": "f0", "gezaehlt": 0})
+    ok("freeze: soll-pruefung mit familie 0, 18:05 kein fehlalarm", "unter soll" not in r["18:05"]["grund"])
+    ok("freeze: summe je familie geprueft", r["18:33"]["stp_f2_summe_stimmt"] == 0
+       and r["18:33"]["stp_f1_summe_stimmt"] == 1 and r["18:33"]["stp_summe_stimmt"] == 0
+       and r["18:05"]["stp_f1_summe_stimmt"] == 1 and zus["summe_falsch"] == ["18:33 summe", "18:33 f2"],
+       zus["summe_falsch"])
+    ok("freeze: nur summenzeile, familie 0 nicht trennbar", r["18:44"]["stp_f0_trennbar"] == 0
+       and r["18:44"]["stp_f1_sent"] == "" and zus["f0_nicht_trennbar"] == ["18:44"], r["18:44"])
+    np_ = zus["ntp_pruefung"]
+    ok("freeze: ntp drei maschinen, drei punkte, vollstaendig", np_["vollstaendig"] and np_["fehlt"] == []
+       and np_["offset_ms"]["mini"]["17:55"] == 31 and np_["offset_ms"]["desk"]["16:00"] == -12
+       and np_["offset_ms"]["box"]["19:01"] == -6, np_)
+    ok("freeze: ntp ohne box 19:01 meldet die luecke", ntp_pruefen([x for x in zus["uhrversatz_stp"]
+       if not (x["maschine"] == "box" and x["utc"].endswith("19:01:00Z"))], t0)["fehlt"] == ["box 19:01"])
     ok("freeze: step 3b um 18:55:00 ist eine wechsel-minute", r["18:55"]["gueltig"] == 0 and r["18:56"]["gueltig"] == 1)
     ok("freeze: pause ohne sender-luecke", r["18:17"]["sender_luecke"] == "pause" and r["18:17"]["gueltig"] == 0)
     js = zus["je_schritt"]
@@ -883,7 +995,7 @@ def selbsttest_freeze(ok, schreib):
        and js["3"]["hops_je_s_counted"] == 2.8 and js["3"]["minuten_gezaehlt"] == 17
        and js["3"]["winners_je_s_source_stp"] == 2.8 and js["2"]["je_familie_counted"]["f2"] == 0.7, js)
     ok("freeze: phase.log in der zusammenfassung", zus["phase_log"]["unlesbare_zeilen"] == 1
-       and zus["phase_log"]["family_drop"][0]["familie"] == "f5" and zus["phase_log"]["genesis"][0]["familie"] == "f1"
+       and zus["phase_log"]["family_drop"][0]["familie"] == "f5" and zus["phase_log"]["genesis"][1]["familie"] == "f1"
        and zus["phase_log"]["stop"][-1]["grund"] == "end", zus["phase_log"])
     ok("freeze: uhrversatz max 31 ms, quelle ohne hostname", zus["uhrversatz_max_ms"] == 31
        and zus["uhrversatz_stp"][0]["quelle"] == "server")
@@ -896,6 +1008,11 @@ def selbsttest_freeze(ok, schreib):
         ok("hash: falsche id bricht ab ohne die id zu zeigen", False)
     except ValueError as exc:
         ok("hash: falsche id bricht ab ohne die id zu zeigen", "zz" not in str(exc))
+    try:
+        hash_zeilen("f0 " + "ab" * 32)
+        ok("hash: familie 0 abgelehnt", False)
+    except ValueError as exc:
+        ok("hash: familie 0 abgelehnt", "KNS" in str(exc))
     try:
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         import tn10_nachzaehlung
