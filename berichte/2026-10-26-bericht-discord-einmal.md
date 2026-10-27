@@ -33,7 +33,7 @@ Geprüft:
   - Eine Merkdatei mit einem Pfad unter `scripts/` lehnt er ab.
 - Secret-Scan des Diffs ohne Fund.
 
-Bis zum Merge bricht der neue Workflow auf jedem `bericht/`-Branch ab, weil main noch den alten Stand trägt. Nach dem Merge sind beide gleich.
+Ein Push läuft immer mit der Workflow-Datei aus seinem eigenen Commit. Bis zum Merge würde der neue Workflow deshalb nur auf einem `bericht/`-Branch abbrechen, der schon auf diesem Stand aufbaut, weil main noch den alten Code trägt. Branches auf main laufen bis dahin mit dem alten Workflow. Nach dem Merge sind beide gleich.
 
 ## Eigener Fehler beim Rebase
 
