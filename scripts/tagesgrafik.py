@@ -259,6 +259,9 @@ def m_blockrate(sekunden=60):
     # weil das echte Fenster ein paar Zehntel ueber BLOCKRATE_SEK liegt.
     _ROH.clear()
     _ROH.update({"daa_start": da, "daa_zuwachs": db - da, "fenster_sek": round(tb - ta, 3)})
+    # auch ins job-log, ein handlauf ohne senden schreibt kein log
+    print("blockrate roh, daa %d bis %d, gezaehlt %d in %.3f s, %s utc" % (
+        da, db, db - da, tb - ta, dt.datetime.fromtimestamp(ta, dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")))
     return bps, db
 
 
