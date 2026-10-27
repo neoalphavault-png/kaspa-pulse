@@ -80,8 +80,9 @@ LUECKE_EREIGNIS = ("gap", "pause", "paused", "stall", "freeze", "node-dead", "se
 STORM = [("1", 0, 15, 1, 3), ("pause", 15, 20, 0, None), ("2", 20, 35, 2, 23), ("pause", 35, 40, 0, None),
          ("3a", 40, 55, 4, 43), ("3b", 55, 60, 4, 43)]
 SOLL_ANTEIL = 0.95
-UNTERBRECHEN = ("GAP", "STOP", "STALL")
-WEITER = ("START", "STEP")
+UNTERBRECHEN = ("GAP", "GAP_START", "STOP", "STALL")
+WEITER = ("START", "STEP", "GAP_END")
+RAUS = ("NODE_SKIP", "NODE_DROP")               # Sender fuer den Rest der Phase draussen
 STP_ZAHLEN = ("sent", "ok", "winners", "hops")
 STP_LAGE = ("include_p50_ms", "include_p95_ms", "seen_p50_ms", "seen_p95_ms")
 SUMME = ("", "all", "total", "sum", "*")
@@ -89,7 +90,9 @@ SUMME = ("", "all", "total", "sum", "*")
 # noch in STPs Spalten. Fuer die Soll-Pruefung der Sender bleibt sie in sent_alle.
 AUSGESCHLOSSEN = ("f0",)
 NTP_MASCHINEN = ("desk", "mini", "box")
-NTP_PUNKTE = ("16:00", "17:55", "19:01")       # UTC am Lauftag, je Maschine
+# Messpunkte relativ zu T0 (STP, Freeze 27.10.): T0-2h, T0-5min, END+1min.
+# So bleibt die Pruefung richtig, falls T0 um eine Stunde wandert.
+NTP_PUNKTE_MIN = (-120, -5, 61)
 NTP_SPIEL_MIN = 5
 SPALTEN = ["minute_utc", "phase", "schritt", "zaehlminute", "familien", "voll", "knoten_gleich", "cov_angenommen", "cov_in_bloecken",
            "cov_nie_angenommen", "abgelehnt_konflikt", "bis_block_ms_median", "bis_block_ms_p90", "bis_block_n",
@@ -305,7 +308,7 @@ def phase_auswerten(ereignisse, von_m, bis_m, etikett):
     Minute, in der ein geplanter Sender aus ist oder nicht gesendet wird, auch
     nicht. NODE_SKIP nimmt den Sender fuer den Rest der Phase heraus."""
     luecke, miner, aktiv_je, rate_je = {}, {}, {}, {}
-    zus = {"genesis": [], "family_drop": [], "start": "", "stop": [], "node_skip": [], "sender_off": [],
+    zus = {"genesis": [], "family_drop": [], "start": "", "stop": [], "node_skip": [], "sender_off": [], "main": "",
            "miner_zeilen": 0, "tokens": {}}
     aktiv, geplant, rate, laeuft, miner_vorher = set(), set(), None, False, None
     i = 0
@@ -329,6 +332,7 @@ def phase_auswerten(ereignisse, von_m, bis_m, etikett):
                 # jede MINER-Zeile markiert ihre Minute (STP, 26.10.2026: kleiner
                 # CPU-Miner, Neustarts per Watchdog), nicht nur ein Wechsel
                 jetzt = "/".join(x for x in (kv.get("state", ""), kv.get("workers", ""),
+                                             etikett(kv.get("miner")) if kv.get("miner") else "",
                                              grund_norm(kv.get("reason"))) if x)
                 miner.setdefault(m, []).append("miner %s um %s" % (jetzt or "zeile", uhr))
                 miner_vorher = jetzt
@@ -347,15 +351,17 @@ def phase_auswerten(ereignisse, von_m, bis_m, etikett):
                 if tok != "GAP":
                     zus["stop"].append({"utc": uhr, "token": tok, "grund": grund})
                 aus_in_minute.append("%s %s um %s" % (tok, grund, uhr))
-            elif tok in ("SENDER_OFF", "SENDER_ON", "NODE_SKIP"):
+            elif tok == "MAIN":
+                zus["main"] = etikett(kv.get("node"))
+            elif tok in ("SENDER_OFF", "SENDER_ON") + RAUS:
                 wer = etikett(kv.get("sender") or kv.get("node"))
                 if tok == "SENDER_ON":
                     aktiv.add(wer)
                 else:
                     aktiv.discard(wer)
-                    if tok == "NODE_SKIP":
+                    if tok in RAUS:
                         geplant.discard(wer)
-                    zus["node_skip" if tok == "NODE_SKIP" else "sender_off"].append(
+                    zus["node_skip" if tok in RAUS else "sender_off"].append(
                         {"utc": uhr, "wer": wer, "grund": grund_norm(kv.get("reason"))})
                 aus_in_minute.append("%s %s um %s" % (tok, wer, uhr))
         if m < von_m or m >= bis_m:
@@ -383,14 +389,14 @@ def ntp_lesen(ordner, etikett):
 
 
 def ntp_pruefen(ntp, von_ms):
-    """je Maschine (desk, mini, box) und Messpunkt (16:00, 17:55, 19:01 UTC
-    am Lauftag) die naechste Messung im Abstand bis NTP_SPIEL_MIN; fehlt eine,
+    """je Maschine (desk, mini, box) und Messpunkt (T0-2h, T0-5min,
+    END+1min, bei T0 18:00 also 16:00, 17:55, 19:01 UTC) die naechste Messung im Abstand bis NTP_SPIEL_MIN; fehlt eine,
     steht sie unter fehlt."""
-    tag = dt.datetime.fromtimestamp(von_ms / 1000, dt.timezone.utc).strftime("%Y-%m-%d")
     aus, fehlt = {}, []
     for mas in NTP_MASCHINEN:
-        for pkt in NTP_PUNKTE:
-            soll = ms("%sT%s:00Z" % (tag, pkt))
+        for rel in NTP_PUNKTE_MIN:
+            soll = von_ms + rel * 60000
+            pkt = dt.datetime.fromtimestamp(soll / 1000, dt.timezone.utc).strftime("%H:%M")
             kandidaten = []
             for x in ntp:
                 if x["maschine"] != mas or x["offset_ms"] is None:
@@ -869,6 +875,7 @@ def selbsttest():
     ok("mempool nach end in der zusammenfassung", zus["mempool_nach_end"]["k1"]["orphans"] == 2
        and zus["mempool_nach_end"]["k2"]["familien"]["f1"]["orphans"] == 1)
     selbsttest_freeze(ok, schreib)
+    selbsttest_eingefroren(ok, schreib)
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 
@@ -1021,6 +1028,105 @@ def selbsttest_freeze(ok, schreib):
         ok("hash: nachzaehlung liest die datei", list(n.values()) == ["f1", "f2"])
     except ImportError:
         ok("hash: tn10_nachzaehlung nicht gefunden", False)
+
+
+def selbsttest_eingefroren(ok, schreib):
+    """Format aus STPs eingefrorenem LOGGING.md (Freeze Di 27.10.2026, 18:00
+    UTC): das Beispiel-phase.log mit GAP_START/GAP_END, MINER miner=, NTP und
+    MAIN, minute.csv je Familie mit Pausenzeilen sent=0, sec.csv je Sekunde
+    17:55 bis 18:59:59. Dazu derselbe Lauf mit T0 eine Stunde spaeter."""
+    server = "zeit." + "beispiel" + ".org"
+    for t0_txt in ("2026-10-29T18:00:00Z", "2026-10-29T19:00:00Z"):
+        t0 = ms(t0_txt)
+        m0 = t0 // 60000
+        hm = lambda rel_s: dt.datetime.fromtimestamp(t0 / 1000 + rel_s, dt.timezone.utc).strftime(  # noqa: E731
+            "%Y-%m-%dT%H:%M:%SZ")
+        plan = {m0 + i: (n, f) for n, a, b, f, _ in STORM for i in range(a, b)}
+        with tempfile.TemporaryDirectory() as d:
+            za, st = os.path.join(d, "z"), os.path.join(d, "stp", "logs")
+            kopf = ["minute_utc", "k1_voll", "k2_voll", "knoten_gleich", "k1_cov_angenommen", "k1_cov_in_bloecken",
+                    "k1_cov_nie_angenommen"] + sum([["k1_cov_f%d_angenommen" % k, "k1_cov_f%d_nie_angenommen" % k]
+                                                    for k in (1, 2, 3)], [])
+            zeilen, mz, sec = [], [], []
+            for i in range(-30, 90):
+                m = m0 + i
+                name, fams = plan.get(m, ("", 0))
+                fams = min(fams, 3)                      # familie 4 im beispiel gedroppt
+                an = 60 if name not in ("", "pause") else 0
+                zeilen.append([minute(m), 1, 1, 1, an * fams, an * fams, 0] + sum(
+                    [[an if k < fams else 0, 0] for k in range(3)], []))
+                if name:
+                    vorher = 1 if m < m0 + 20 else 2 if m < m0 + 40 else 3
+                    for k in range(fams if name != "pause" else vorher):
+                        sent = 0 if name == "pause" else 900
+                        mz.append([minute(m), name if name != "pause" else "gap", k + 1, fams, sent,
+                                   0 if not sent else 50, 0 if not sent else 800, 0 if not sent else 40,
+                                   0, 0, 0, 0, 0, 0 if not sent else 10, an, an, "", "", "", ""])
+            for sek in range(-300, 3600):
+                name = plan.get((t0 // 1000 + sek) // 60, ("pre", 0))[0] if sek >= 0 else "pre"
+                ziel = 0 if name in ("pre", "pause") else (3 if sek < 1531 else 2)
+                an = ziel - (1 if 1550 <= sek < 1555 else 0)          # 18:25:50-54 ein sender aus
+                sec.append([hm(sek), "gap" if name == "pause" else name, 0, ziel, an, an * 5, an])
+            schreib(os.path.join(za, "nach.csv"), kopf, zeilen)
+            schreib(os.path.join(st, "minute.csv"),
+                    ["minute_utc", "step", "family", "families", "sent", "ok", "rej_already_spent", "rej_orphan",
+                     "rej_fee", "rej_mass", "rej_mempool_full", "rej_route", "rej_rpc", "rej_other", "winners", "hops",
+                     "include_p50_ms", "include_p95_ms", "seen_p50_ms", "seen_p95_ms"], mz)
+            schreib(os.path.join(st, "sec.csv"),
+                    ["utc_second", "step", "families", "senders_target", "senders_on", "sent", "ok"], sec)
+            ntp = [[hm(rel * 60), mas, 12, server] for mas in ("desk", "mini", "box") for rel in (-120, -5, 61)]
+            schreib(os.path.join(st, "ntp.csv"), ["utc", "machine", "offset_ms", "source"], ntp)
+            log = [hm(-7196) + " NTP machine=mini offset_ms=125 source=" + server,
+                   hm(-7000) + " MAIN node=mini reason=synced",
+                   hm(-648) + " GENESIS family=1 included",
+                   hm(-300) + " FAMILY_DROP family=4 reason=no_genesis",
+                   hm(0) + " MINER state=on workers=3 miner=box",
+                   hm(0) + " START senders=desk,mini,muon families=1 rate=5",
+                   hm(0) + " STEP step=1 families=1 rate=5",
+                   hm(451) + " NODE_DROP node=boson reason=redeem_shape",
+                   hm(900) + " GAP_START", hm(1200) + " GAP_END",
+                   hm(1200) + " STEP step=2 families=2 rate=5",
+                   hm(1531) + " NODE_SKIP node=muon reason=mempool_90k",
+                   hm(2100) + " GAP_START", hm(2400) + " GAP_END",
+                   hm(2400) + " STEP step=3a families=3 rate=5",
+                   hm(3300) + " STEP step=3b families=3 rate=5",
+                   hm(3600) + " STOP reason=END"]
+            with open(os.path.join(st, "phase.log"), "w", encoding="utf-8") as fh:
+                fh.write("\n".join(log) + "\n")
+            aus, zus = zusammensetzen(za, os.path.join(d, "stp"), "", t0, t0 + 3600000, "", "storm")
+            buf = io.StringIO()
+            csv.DictWriter(buf, fieldnames=spalten(aus)).writerows(aus)
+            roh = buf.getvalue() + json.dumps(zus)
+        r = {x["minute_utc"]: x for x in aus}
+        mm = lambda k: minute(m0 + k)  # noqa: E731
+        t = t0_txt[11:16]
+        ok("eingefroren %s: 41 gezaehlte minuten" % t, sum(x["zaehlminute"] for x in aus) == 41)
+        ok("eingefroren %s: minute 3 bis 14 sauber ausser der node_drop-minute 7" % t,
+           [k for k in range(3, 15) if not r[mm(k)]["gueltig"]] == [7]
+           and "NODE_DROP boson" in r[mm(7)]["grund"], [r[mm(k)]["grund"] for k in range(3, 15)])
+        ok("eingefroren %s: pause mit sent=0-zeilen ohne fehlalarm" % t, r[mm(17)]["sender_luecke"] == "pause"
+           and r[mm(17)]["stp_sent"] == 0 and r[mm(17)]["gueltig"] == 0)
+        ok("eingefroren %s: node_skip-minute ungueltig, danach 2 sender sauber" % t,
+           r[mm(25)]["gueltig"] == 0 and r[mm(26)]["gueltig"] == 1 and r[mm(26)]["sender_aktiv"] == 2,
+           [r[mm(25)]["grund"], r[mm(26)]["grund"]])
+        ok("eingefroren %s: sec.csv-luecke 5 sekunden erkannt" % t, "1 sekunden ohne sender" in r[mm(25)]["grund"]
+           or "5 sekunden ohne sender" in r[mm(25)]["grund"], r[mm(25)]["grund"])
+        ok("eingefroren %s: 3a und 3b mit 3 familien, step 3b-minute ungueltig" % t, r[mm(43)]["familien"] == 3
+           and r[mm(55)]["gueltig"] == 0 and r[mm(56)]["gueltig"] == 1 and r[mm(59)]["gueltig"] == 1)
+        ok("eingefroren %s: miner an ab t0, nur minute 0 markiert" % t, r[mm(0)]["miner_wechsel"] == "ja"
+           and r[mm(3)]["miner_wechsel"] == "nein")
+        ok("eingefroren %s: node_drop eines nicht geplanten knotens laesst 3 sender" % t,
+           r[mm(8)]["sender_aktiv"] == 3 and r[mm(8)]["gueltig"] == 1
+           and zus["phase_log"]["node_skip"][0]["grund"] == "redeem_shape")
+        ok("eingefroren %s: ntp vollstaendig, punkte relativ zu t0" % t, zus["ntp_pruefung"]["vollstaendig"]
+           and sorted(zus["ntp_pruefung"]["offset_ms"]["box"]) == sorted(
+               dt.datetime.fromtimestamp(t0 / 1000 + rel * 60, dt.timezone.utc).strftime("%H:%M")
+               for rel in (-120, -5, 61)), zus["ntp_pruefung"])
+        ok("eingefroren %s: main und kopfzahl" % t, zus["phase_log"]["main"] == "mini"
+           and zus["je_schritt"]["3"]["hops_je_s_counted"] == 3.0 and zus["je_schritt"]["1"]["minuten_gueltig"] == 11
+           and zus["je_schritt"]["2"]["minuten_gueltig"] == 11 and zus["je_schritt"]["3"]["minuten_gueltig"] == 16,
+           zus["je_schritt"])
+        ok("eingefroren %s: kein zeitserver-name in der ausgabe" % t, "beispiel" not in roh)
 
 
 def main(argv=None):
