@@ -25,6 +25,15 @@ wortgleich in den sichtbaren FAQ-Block.
 
 Alle diese Zahlen kommen von fremden Quellen, also "source", nie "counted".
 
+SEO-Runde v2, Ben 27.10.2026 abends:
+
+  kurzfakt + faq   kaspa-halving.html          naechste Emissionsstufe mit Datum und
+                                               KAS je Block vorher und nachher, aus dem
+                                               Emissionsplan (weekly_facts), "computed".
+                                               Das Datum steht fest im Text, kein Countdown.
+                                               Nach der Stufe springt der Satz von selbst
+                                               auf die naechste.
+
 Faellt eine Quelle aus oder fehlt ein Wert, bleibt der alte Satz stehen.
 Lieber ein Satz mit altem Datum als einer ohne Datum.
 
@@ -74,6 +83,15 @@ def supply_satz(w):
         return None
     return ("There are <b>%s KAS</b> in circulation as of %s, which is <b>%.2f%%</b> of the maximum supply of "
             "about <b>28.7 billion KAS</b>, according to api.kaspa.org." % (ganz(circ), datum(stand), pct))
+
+
+def supply_faq(w):
+    if not w or not (w.get("circ_supply") and w.get("circ_supply_as_of")):
+        return None
+    return {"How many Kaspa coins are there?":
+            "There were %s KAS in circulation on %s, source the Kaspa REST API. The maximum supply is about "
+            "28.7 billion KAS, computed from the emission schedule, and every coin enters circulation as a "
+            "mining reward." % (ganz(w["circ_supply"]), datum(w["circ_supply_as_of"]))}
 
 
 def covenant_satz(log):
@@ -160,6 +178,38 @@ def halter_faq(log):
     }
 
 
+def halving_daten(jetzt=None):
+    import weekly_facts as wf
+    jetzt = jetzt or dt.datetime.now(dt.timezone.utc)
+    n = wf.schritte_bis(jetzt.timestamp())
+    stufe = dt.datetime.fromtimestamp(wf.ANCHOR_TS + wf.STEP * (n + 1), dt.timezone.utc)
+    return {"stufe": stufe, "vorher": wf.reward_nach_schritten(n), "nachher": wf.reward_nach_schritten(n + 1),
+            "pct": (1 - wf.RATIO) * 100}
+
+
+def halving_wann(h):
+    return "%s around %s UTC" % (datum(h["stufe"].isoformat()), h["stufe"].strftime("%H:%M"))
+
+
+def halving_fakt(h):
+    return ("Next reward step on <b>%s</b>, block reward from <b>%.4f</b> to <b>%.4f KAS</b> per block, "
+            "computed from the emission schedule" % (halving_wann(h), h["vorher"], h["nachher"]))
+
+
+def halving_faq(h):
+    return {
+        "When is the next Kaspa halving?":
+            "Kaspa has no single halving day. The next monthly reward step is on %s, when the block reward "
+            "falls from %.4f to %.4f KAS per block, computed from the emission schedule." % (
+                halving_wann(h), h["vorher"], h["nachher"]),
+        "Does Kaspa have a halving?":
+            "Yes, as a smooth schedule instead of one event. The block reward falls by about %.1f%% every "
+            "30.44 days and halves every 12 months, computed from the emission schedule. The next step is on "
+            "%s, from %.4f to %.4f KAS per block." % (h["pct"], datum(h["stufe"].isoformat()), h["vorher"],
+                                                     h["nachher"]),
+    }
+
+
 REST = "https://api.kaspa.org"
 UA = "kaspa-pulse-bot (+https://kaspapulse.com)"
 
@@ -212,7 +262,23 @@ def hashrate_html(d, wochen=8):
     tabelle = ("<table><thead><tr><th>Week, Monday to Sunday</th><th>Average hashrate</th></tr></thead><tbody>%s"
                "</tbody></table><p class=\"note\">Weekly averages of the daily means in api.kaspa.org's hashrate "
                "history, read on %s.</p>" % ("".join(zeilen), datum(jetzt.isoformat())))
-    return {"hashrate-satz": satz, "hashrate-wochen": tabelle, "kurzfakt": fakt, "faq": faq}
+    # 30 volle tage mit tagesmittel und gleitendem 7-tage-mittel (SEO-Runde v2, Ben 27.10.2026)
+    tage_z = []
+    for k in range(30, 0, -1):
+        t = heute - dt.timedelta(days=k)
+        if t not in fertig:
+            continue
+        sieben = [fertig[t - dt.timedelta(days=i)] for i in range(7) if t - dt.timedelta(days=i) in fertig]
+        mittel7 = "%.1f PH/s" % (sum(sieben) / 7) if len(sieben) == 7 else "not enough days"
+        tage_z.append("<tr><td>%s</td><td>%.1f PH/s</td><td>%s</td></tr>" % (datum(t.isoformat()), fertig[t], mittel7))
+    tage_tab = None
+    if len(tage_z) >= 20:
+        tage_tab = ("<table><thead><tr><th>Day, UTC</th><th>Daily mean</th><th>7-day mean</th></tr></thead><tbody>%s"
+                    "</tbody></table><p class=\"note\">Daily means of the hashrate history from the Kaspa REST API, "
+                    "the 7-day mean covers the day and the 6 days before it, read on %s.</p>"
+                    % ("".join(reversed(tage_z)), datum(jetzt.isoformat())))
+    return {"hashrate-satz": satz, "hashrate-wochen": tabelle, "hashrate-tage": tage_tab, "kurzfakt": fakt,
+            "faq": faq}
 
 
 AUFGABEN = [
@@ -222,11 +288,14 @@ AUFGABEN = [
     ("kaspa-smart-contracts.html", "covenant-zahl2", lambda: covenant_satz2(lies_json("data/covenants-log.json"))),
     ("kaspa-supply.html", "kurzfakt", lambda: halter_fakt(lies_json("data/address-thresholds-log.json"))),
     ("kaspa-supply.html", "halter-tabelle", lambda: halter_tabelle(lies_json("data/address-thresholds-log.json"))),
+    ("kaspa-halving.html", "kurzfakt", lambda: halving_fakt(halving_daten())),
 ]
 
 # FAQ-Antworten mit Zahl, je Seite ein dict frage -> antwort
 FAQ_AUFGABEN = [
     ("kaspa-supply.html", lambda: halter_faq(lies_json("data/address-thresholds-log.json"))),
+    ("kaspa-halving.html", lambda: halving_faq(halving_daten())),
+    ("kaspa-supply.html", lambda: supply_faq(lies_json("data/weekly.json"))),
 ]
 
 
@@ -284,7 +353,7 @@ def main(argv=None):
         except Exception as exc:                    # noqa: BLE001
             print("kaspa-hashrate.html, api.kaspa.org nicht erreichbar (%s), alte saetze bleiben" % type(exc).__name__)
             hr = None
-        for name in ("hashrate-satz", "hashrate-wochen", "kurzfakt"):
+        for name in ("hashrate-satz", "hashrate-wochen", "hashrate-tage", "kurzfakt"):
             aufgaben.append(("kaspa-hashrate.html", name, (lambda n=name: hr[n] if hr else None)))
     faq_aufgaben = list(FAQ_AUFGABEN)
     if "--ohne-netz" not in argv:
@@ -328,6 +397,9 @@ def selbsttest():
          "context_fallback": {"mined_pct": 96.64}}
     ok("supply-satz", supply_satz(w) == "There are <b>27,738,976,506 KAS</b> in circulation as of 5 October 2026, "
        "which is <b>96.64%</b> of the maximum supply of about <b>28.7 billion KAS</b>, according to api.kaspa.org.")
+    ok("supply faq mit umlauf, quelle, datum und computed", supply_faq(w)["How many Kaspa coins are there?"]
+       .startswith("There were 27,738,976,506 KAS in circulation on 5 October 2026, source the Kaspa REST API.")
+       and "computed" in supply_faq(w)["How many Kaspa coins are there?"])
     ok("supply ohne prozent bleibt leer", supply_satz({"circ_supply": 1, "circ_supply_as_of": "2026-10-05"}) is None)
     log = {"tage": [{"datum": "2026-10-03", "utxo_count": 13707}, {"datum": "2026-10-04", "utxo_count": 13760},
                     {"datum": "2026-10-05", "utxo_count": None}]}
@@ -360,6 +432,17 @@ def selbsttest():
     ok("halter tabelle mit datum, drei zeilen ohne 1+ und 100+", ht.count("<tr><td>") == 3
        and "Kaspa addresses on 25 October 2026" in ht and "808,128" in ht)
     ok("covenant satz2", covenant_satz2(log).startswith("<b>13,760 covenant outputs</b> were unspent"))
+    hv = halving_daten(dt.datetime(2026, 10, 27, 20, tzinfo=dt.timezone.utc))
+    ok("halving vor der stufe am 4 november", halving_fakt(hv) == (
+        "Next reward step on <b>4 November 2026 around 13:45 UTC</b>, block reward from <b>2.0602</b> to "
+        "<b>1.9445 KAS</b> per block, computed from the emission schedule"))
+    hn = halving_daten(dt.datetime(2026, 11, 4, 14, tzinfo=dt.timezone.utc))
+    ok("halving springt nach der stufe auf die naechste", "5 December 2026" in halving_fakt(hn)
+       and "from <b>1.9445</b>" in halving_fakt(hn))
+    hf2 = halving_faq(hv)
+    ok("halving faq, beide fragen mit datum und computed",
+       all("4 November 2026" in v and "computed" in v for v in hf2.values()) and "5.6%" in
+       hf2["Does Kaspa have a halving?"])
     ok("halter ohne daten bleibt leer", halter_fakt({"tage": []}) is None and halter_faq(None) is None)
     ok("covenant kurzfakt", covenant_fakt(log) == (
         "<b>13,760 covenant outputs</b> unspent on Kaspa layer 1 at the end of 4 October 2026, source kaspalytics"))
@@ -373,7 +456,12 @@ def selbsttest():
     ok("textregeln in festen saetzen", not any(re.search(r"\b(live|now|today|currently|right now)\b|[\u2013\u2014:]|->",
                                                           re.sub(r"<[^>]+>|\d\d:\d\d", "", x))
                                                for x in [h["kurzfakt"], halter_fakt(hl), covenant_fakt(log)]
-                                               + list(hf.values()) + list(h["faq"].values())))
+                                               + list(hf.values()) + list(h["faq"].values())
+                                               + [halving_fakt(hv)] + list(hf2.values())))
+    ok("30 tage, ein fehlender tag faellt weg, neuester oben, mit 7-tage-mittel",
+       h["hashrate-tage"].count("<tr><td>") == 29
+       and h["hashrate-tage"].index("4 October 2026") < h["hashrate-tage"].index("6 September 2026")
+       and "<td>4 October 2026</td><td>306.0 PH/s</td><td>303.0 PH/s</td>" in h["hashrate-tage"])
     ok("acht volle wochen, die laufende nicht", h["hashrate-wochen"].count("<tr><td>week of") == 8
        and "week of 28 September 2026" in h["hashrate-wochen"] and "5 October" not in h["hashrate-wochen"])
     ok("ersetzen zwischen marken", ersetze("a<!--AUTO:x-->alt<!--/AUTO:x-->b", "x", "neu")
