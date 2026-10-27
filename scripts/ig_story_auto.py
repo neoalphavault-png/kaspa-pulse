@@ -8,18 +8,21 @@ Bild-Story schon. Mo, Mi und Fr macht Ben die interaktiven Stories von Hand,
 Di und Do geht automatisch eine Story ohne Sticker raus. So bleibt der Account
 jeden Tag aktiv, ohne Bens Zeit.
 
-INHALT
-1. Die Tagesgrafik des Tages: das JPEG, das um 09:30 auf den Feed ging
-   (ig/tagesgrafik-JJJJ-MM-TT-formNN.jpg), mit Zahl, Datum und Herkunft aus
-   data/instagram-log.json.
-2. Gibt es heute keine, die Zahl des Tages (graphics/number-of-day.png), wenn
-   data/number-of-day.json vom selben Tag ist.
-Beide Bilder sind in ihrer eigenen Kette schon durch die Wachen gegangen. Hier
-wird zusaetzlich geprueft, dass Zahl, Datum und counted, source oder computed
-dastehen und die Texte die Textregeln bestehen. Das Bild kommt auf 1080 x 1920,
-die Grafik in der Mitte, oben und unten je 285 px in ihrer eigenen Randfarbe,
-also ausserhalb der Flaechen, die Instagram mit Namen und Antwortfeld belegt.
-Kein Sticker, keine Caption, kein Link.
+INHALT, ALS KOEDER (Ben, 27.10.2026, Nachtrag)
+Keine flache Grafik, sondern ein Haken: oben in Sekunde null eine Frage, in
+der Mitte die grosse Kernzahl als Antwort, darunter ihr Satz, Datum und
+counted, source oder computed, unten "full breakdown on our profile". Ein
+klickbarer Sticker geht ueber die API nicht, also soll die Story neugierig
+machen und aufs Profil fuehren.
+1. Quelle ist die Tagesgrafik des Tages (Zahl, Satz, Datum und Herkunft aus
+   data/instagram-log.json, nur wenn sie um 07:30 ausgeliefert wurde). Die
+   Frage kommt aus HAKEN, eine je Form, die Zahl beantwortet sie.
+2. Gibt es heute keine, die Zahl des Tages (data/number-of-day.json vom selben
+   Tag), mit "did you expect this number?" als Haken und "link in bio" unten.
+Alles laeuft durch die Textregeln, die Kurs- und Koederwache der Story-Vorlage
+und die content_wache im Profil "story" (sichere Flaeche, Mindestgroessen,
+Kontrast). Marke dunkel: #080B0F, #F2F5F4, #49EACB, Wortmarke ohne Falken.
+Kein Sticker, keine Caption.
 
 MODI
 probe     von Hand, jeder Tag: nur nach #moderator-only, nie zu Instagram
@@ -64,7 +67,24 @@ TAGE = (1, 3)                              # dienstag, donnerstag
 POSTZEIT = "17:30"
 FENSTER = ((17, 15), (19, 30))            # berlin, nur fuer scharf
 W, H = 1080, 1920
-RAND_OBEN = 285                            # 1920 - 1350 = 570, halb oben, halb unten
+LOOK = "dunkel"                            # die marke: #080B0F, #F2F5F4, #49EACB
+CTA_PROFIL = "full breakdown on our profile"
+CTA_BIO = "more numbers like this, link in bio"
+HAKEN_NOD = "did you expect this number?"
+# eine frage je form der tagesgrafik, die grosse zahl ist die antwort
+HAKEN = {
+    1: "how did kaspa move this week?",
+    2: "how much KAS sits in the single largest wallet?",
+    3: "when do kaspa miners get paid less again?",
+    4: "how many blocks does kaspa add while you sleep?",
+    5: "what actually pays kaspa miners?",
+    6: "how far has the kaspa chain come since nov 2021?",
+    7: "you asked us to count this. guess first?",
+    8: "how much computing power guards kaspa?",
+    9: "how many wallets hold a real stake?",
+    10: "how much of all KAS is already mined?",
+    11: "how much KAS has not moved in a year?",
+}
 MONATE = ("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec")
 WOCHENTAG = ("mo", "di", "mi", "do", "fr", "sa", "so")
 DATUM = re.compile(r"\b\d{1,2} (?:%s)\b" % "|".join(MONATE))
@@ -92,7 +112,10 @@ def ausgang(**kw):
 def ohne_host(t):
     """api.kaspa.org und coingecko.com stehen in der Quelle der Zahl des Tages.
     Im Log und im Ops-Kanal stehen nur die Namen."""
-    return re.sub(r"\b(?:api\.)?([a-z0-9-]+)\.(?:com|org|io|net)\b", r"\1", t)
+    for host, name in (("api.kaspa.org", "kaspa rest api"), ("coingecko.com", "coingecko"),
+                       ("kaspalytics.com", "kaspalytics"), ("api.llama.fi", "defillama")):
+        t = t.replace(host, name)
+    return re.sub(r"\b(?:api\.)?([a-z0-9-]+)\.(?:com|org|io|net|fi)\b", r"\1", t)
 
 
 def heute_berlin(now):
@@ -143,12 +166,19 @@ def quelle(tag, log_ig, log_grafik, nod, repo=REPO):
             continue
         datei = repo / "ig" / Path(p["bild"]).name
         if datei.exists() and p.get("zahl") and p.get("tag") and p.get("herkunft"):
-            return {"art": "tagesgrafik", "form": p.get("form"), "bild": str(datei),
-                    "zahl": p.get("zahl_text") or p["zahl"], "datum": p["tag"], "herkunft": p["herkunft"]}
-    if nod and nod_datum(nod.get("issue")) == tag and (repo / "graphics" / "number-of-day.png").exists():
+            form = int(p.get("form") or 0)
+            if form not in HAKEN:
+                break
+            return {"art": "tagesgrafik", "form": form, "haken": HAKEN[form], "kern": p["zahl"],
+                    "zahl": p.get("zahl_text") or p["zahl"], "datum": p["tag"], "herkunft": p["herkunft"],
+                    "cta": CTA_PROFIL}
+    if nod and nod_datum(nod.get("issue")) == tag:
         d = nod_datum(nod["issue"])
-        return {"art": "zahl des tages", "form": None, "bild": str(repo / "graphics" / "number-of-day.png"),
-                "zahl": "%s %s" % (nod.get("value", ""), nod.get("value_label", "")),
+        satz = " ".join(nod.get("headline", "").replace("*", "").split())
+        hervor = re.search(r"\*([^*]+)\*", nod.get("headline", ""))
+        return {"art": "zahl des tages", "form": None, "haken": HAKEN_NOD,
+                "kern": hervor.group(1) if hervor else nod.get("value", ""),
+                "zahl": satz or "%s %s" % (nod.get("value", ""), nod.get("value_label", "")), "cta": CTA_BIO,
                 "datum": "%d %s %d" % (d.day, MONATE[d.month - 1], d.year),
                 "herkunft": "source " + ohne_host(nod.get("sources", ""))}
     raise Stopp("heute (%s) weder tagesgrafik noch zahl des tages, keine story" % t)
@@ -164,39 +194,148 @@ def pruefen(q):
         fehler.append("kein datum")
     if not HERKUNFT.search(q["herkunft"]):
         fehler.append("weder counted noch source noch computed")
-    for feld in ("zahl", "herkunft"):
-        for v in content_wache.text_verstoesse(q[feld]):
+    if not re.search(r"\d", q.get("kern", "")):
+        fehler.append("keine grosse zahl")
+    if not q.get("haken", "").endswith("?"):
+        fehler.append("haken ist keine frage")
+    import story_vorlage as sv
+    for feld in ("haken", "kern", "zahl", "herkunft", "cta"):
+        for v in content_wache.text_verstoesse(q.get(feld, "")):
             fehler.append("%s, %s" % (feld, v))
-    if re.search(r"\b(buy|sell|kaufen|verkaufen|moon|pump|target)\b", q["zahl"] + " " + q["herkunft"], re.I):
+        if sv.KURS.search(q.get(feld, "")):
+            fehler.append("%s, kurs oder kaufsprache" % feld)
+        if sv.KOEDER.search(q.get(feld, "")):
+            fehler.append("%s, billiger koeder" % feld)
+    if re.search(r"\b(target|kaufen|verkaufen)\b", " ".join(q.get(k, "") for k in ("haken", "zahl", "cta")), re.I):
         fehler.append("kaufsprache oder kursziel")
     return fehler
 
 
 # ---------------------------------------------------------------- bild
 
-def randfarbe(bild, zeile):
-    px = [bild.getpixel((x, zeile)) for x in range(0, bild.width, 8)]
-    px = sorted(px, key=lambda p: sum(p[:3]))
-    return px[len(px) // 2][:3]
+def kern_teilen(kern):
+    """"51.20%" -> ("51.20", "%"), "14 days" -> ("14", "days"), "574M" -> ("574", "M").
+    Die Einheit steht klein neben der Zahl, so passt die Zahl in 220 px."""
+    m = re.match(r"^\s*([+\-\u2212]?[\d.,]*\d)\s*(.*)$", kern)
+    return (m.group(1), m.group(2).strip()) if m else (kern, "")
 
 
-def story_bild(quelle_pfad, ziel):
-    """1080 x 1920 JPEG, die 4:5-Grafik in der Mitte, oben und unten ihre Randfarbe."""
+def kurz(kern):
+    """Zahlen ab 5 Stellen passen nicht in 220 px: 287,000 -> 287K, 294,512 -> 294.5K.
+    Die genaue Zahl steht dann im Satz darunter."""
+    zahl, einheit = kern_teilen(kern)
+    roh = zahl.replace(",", "")
+    if not re.fullmatch(r"\d{5,}", roh):
+        return kern
+    n = int(roh)
+    for teiler, z in ((1e9, "B"), (1e6, "M"), (1e3, "K")):
+        if n >= teiler:
+            w = ("%.1f" % (n / teiler)).rstrip("0").rstrip(".")
+            return (w + z + ((" " + einheit) if einheit else "")).strip()
+    return kern
+
+
+def satz_ohne_kern(q):
+    """Der Satz unter der Zahl, ohne die Zahl am Anfang zu wiederholen."""
+    z, k = q["zahl"], q["kern"]
+    return z[len(k):].strip(" ,") if z.startswith(k) and len(z) > len(k) else z
+
+
+def datumszeile(q):
+    h = q["herkunft"].rstrip(" .")
+    return h if DATUM.search(h) else "%s \u00b7 %s" % (q["datum"], h)
+
+
+CSS = """
+body{margin:0;width:1080px;height:1920px;background:%(grund)s;color:%(text)s;overflow:hidden}
+.feld{position:absolute;left:60px;top:276px;width:840px;height:1220px;display:flex;flex-direction:column}
+.haken{font:900 80px/1.06 Archivo,sans-serif;letter-spacing:-.01em;text-wrap:balance}
+.zahl{font:900 220px/1 Archivo,sans-serif;color:%(akzent)s;letter-spacing:-.02em;white-space:nowrap}
+.einheit{font:900 110px/1 Archivo,sans-serif;color:%(akzent)s;margin-left:10px;letter-spacing:-.01em}
+.satz{font:600 48px/1.22 "IBM Plex Sans",sans-serif;margin-top:26px;text-wrap:balance}
+.datum{font:400 40px/1.35 "IBM Plex Mono",monospace;color:%(text2)s;margin-top:30px}
+.luft{flex:1;min-height:60px}
+.luft.unten{flex:1.3}
+.cta{font:600 44px/1.2 "IBM Plex Sans",sans-serif;color:%(akzent)s;border-top:3px solid %(akzent)s;padding-top:26px}
+.marke{margin-top:30px}
+"""
+
+
+def esc(t):
+    return str(t).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def seite_html(q):
+    import look_takt
+    import wortmarke
+    lk = look_takt.look(LOOK)
+    css = (look_takt.schriften_css()
+           + CSS % {"grund": lk["grund"], "text": lk["text"], "text2": lk["text2"], "akzent": lk["akzent"]}
+           + wortmarke.css(groesse=44, sperrung=5, look=LOOK))
+    gross = kurz(q["kern"])
+    zahl, einheit = kern_teilen(gross)
+    satz = satz_ohne_kern(q) if gross == q["kern"] else q["zahl"]
+    teile = ["<div class='haken' data-rolle='titel'>%s</div>" % esc(q["haken"]),
+             "<div class='luft'></div>",
+             "<div class='zahl' data-rolle='zahl'>%s%s</div>" % (
+                 esc(zahl), "<span class='einheit' data-rolle='einheit'>%s</span>" % esc(einheit) if einheit else ""),
+             "<div class='satz'>%s</div>" % esc(satz),
+             "<div class='datum'>%s</div>" % esc(datumszeile(q)),
+             "<div class='luft unten'></div>",
+             "<div class='cta'>%s</div>" % esc(q["cta"]),
+             "<div class='marke' data-rolle='fuss'>%s</div>" % wortmarke.html()]
+    return ("<!DOCTYPE html><html><head><meta charset='utf-8'><style>%s</style></head>"
+            "<body data-look='%s'><div class='feld'>%s</div></body></html>" % (css, LOOK, "".join(teile)))
+
+
+PASSEN_JS = """() => {
+  const z = document.querySelector('.zahl'), feld = document.querySelector('.feld'), aus = [];
+  if (z.scrollWidth > 840) aus.push('zahl ist ' + z.scrollWidth + ' px breit, hoechstens 840');
+  if (feld.scrollHeight > feld.clientHeight + 1) aus.push('inhalt ' + (feld.scrollHeight - feld.clientHeight) + ' px zu hoch');
+  if (document.querySelector('.luft.unten').getBoundingClientRect().height < 40) aus.push('keine luft vor der zeile unten');
+  return aus;
+}"""
+
+
+def rendern(q, png, browser=None):
+    """PNG mit Playwright, Layout und content_wache im Profil story, dann JPEG daneben."""
+    if browser is None:
+        from playwright.sync_api import sync_playwright
+        import tagesgrafik as tg
+        with sync_playwright() as pw:
+            b = tg.chromium_start(pw)
+            try:
+                return rendern(q, png, b)
+            finally:
+                b.close()
+    import content_wache
+    png = Path(png)
+    png.parent.mkdir(parents=True, exist_ok=True)
+    html = png.with_suffix(".html")
+    html.write_text(seite_html(q), encoding="utf-8")
+    pg = browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
+    try:
+        pg.goto(html.resolve().as_uri())
+        pg.evaluate("document.fonts.ready")
+        pg.wait_for_timeout(150)
+        fehler = pg.evaluate(PASSEN_JS)
+        if fehler:
+            raise Stopp("layout, %s" % "; ".join(fehler))
+        pg.screenshot(path=str(png))
+        verstoesse = content_wache.pruefe_seite(pg, "story", png)
+        if verstoesse:
+            raise Stopp("wache, %s" % "; ".join(verstoesse))
+    finally:
+        pg.close()
+        html.unlink()
+    return png
+
+
+def als_jpeg(png, jpeg):
     from PIL import Image
-    g = Image.open(quelle_pfad).convert("RGB")
-    if g.size != (1080, 1350):
-        g = g.resize((1080, round(1080 * g.height / g.width)))
-    hoehe = g.height
-    if hoehe > H - 2 * 250:
-        raise Stopp("grafik %dx%d ragt in die flaechen von instagram" % g.size)
-    oben = (H - hoehe) // 2
-    leinwand = Image.new("RGB", (W, H), randfarbe(g, 2))
-    unten_farbe = randfarbe(g, hoehe - 3)
-    leinwand.paste(Image.new("RGB", (W, H - oben - hoehe), unten_farbe), (0, oben + hoehe))
-    leinwand.paste(g, (0, oben))
-    Path(ziel).parent.mkdir(parents=True, exist_ok=True)
-    leinwand.save(ziel, "JPEG", quality=92, optimize=True)
-    return ziel
+    Path(jpeg).parent.mkdir(parents=True, exist_ok=True)
+    Image.open(png).convert("RGB").save(jpeg, "JPEG", quality=92, optimize=True)
+    return Path(jpeg)
 
 
 def bauen(tag, ziel, repo=REPO):
@@ -205,7 +344,8 @@ def bauen(tag, ziel, repo=REPO):
     if f:
         raise Stopp("story nicht gruen, %s" % "; ".join(f))
     jpeg = Path(repo) / "ig" / ("story-auto-%s.jpg" % tag.isoformat())
-    story_bild(q["bild"], jpeg)
+    png = rendern(q, Path(ziel) / ("story-auto-%s.png" % tag.isoformat()))
+    als_jpeg(png, jpeg)
     info = dict(q, datum_tag=tag.isoformat(), jpeg=str(jpeg.relative_to(repo)))
     Path(ziel).mkdir(parents=True, exist_ok=True)
     ig.json_schreiben(Path(ziel) / "info.json", info)
@@ -222,8 +362,9 @@ def ops_text(modus, info):
             "scharf": "IG-STORY ist draussen"}[modus]
     zeilen = ["%s, %s %s" % (kopf, WOCHENTAG[tag.weekday()], tag.strftime("%d.%m.%Y")),
               "quelle %s%s" % (info["art"], (", form %s" % info["form"]) if info.get("form") else ""),
+              "haken %s" % info["haken"],
               "zahl %s, %s, %s" % (info["zahl"], info["datum"], info["herkunft"]),
-              "kein sticker, keine caption, kein link"]
+              "unten %s, kein sticker, keine caption" % info["cta"]]
     if modus != "scharf":
         zeilen.append("geht di und do um %s berlin raus, aber nur mit IG_STORY_AUTO_LIVE=true. "
                       "veto mit IG_STORY_AUTO_STOPP auf %s oder immer" % (POSTZEIT, info["datum_tag"]))
@@ -313,7 +454,8 @@ def selbsttest():
        planen("takt", di, "true", merk={"stories": [{"datum": "2026-10-27", "media": ""}]})[0] == "scharf")
     ok("winterzeit 16:30 utc ist 17:30 berlin", ig.berlin(di).strftime("%H:%M") == "17:30")
     ok("nod-datum", nod_datum("OCT 27 2026") == dt.date(2026, 10, 27) and nod_datum("x") is None)
-    ok("ohne host", ohne_host("source api.kaspa.org and coingecko.com") == "source kaspa and coingecko")
+    ok("ohne host, mit namen", ohne_host("source api.kaspa.org and coingecko.com") == "source kaspa rest api and coingecko"
+       and ohne_host("source example.com") == "source example")
 
     with tempfile.TemporaryDirectory() as d:
         from PIL import Image
@@ -327,13 +469,16 @@ def selbsttest():
                              "tag": "12 oct 2026", "herkunft": "source kaspalytics fees, kaspa emission schedule"}]}
         log_g = {"laeufe": [{"datum": "2026-10-27", "messzeit_utc": "2026-10-27T06:30:44+00:00"}]}
         nod = {"issue": "OCT 27 2026", "value": "$61.6K", "value_label": "of new kaspa supply each day",
-               "sources": "api.kaspa.org and coingecko.com"}
+               "headline": "bitcoin prints *583x*\nmore supply each day.", "sources": "api.kaspa.org and coingecko.com"}
         tag = dt.date(2026, 10, 27)
         q = quelle(tag, log_ig, log_g, nod, r)
-        ok("tagesgrafik zuerst", q["art"] == "tagesgrafik" and q["form"] == 11)
+        ok("tagesgrafik zuerst, mit haken der form", q["art"] == "tagesgrafik" and q["form"] == 11
+           and q["haken"] == HAKEN[11] and q["cta"] == CTA_PROFIL)
         ok("tagesgrafik gruen", pruefen(q) == [], pruefen(q))
         q2 = quelle(tag, {"posts": []}, log_g, nod, r)
-        ok("sonst zahl des tages", q2["art"] == "zahl des tages" and q2["datum"] == "27 oct 2026")
+        ok("sonst zahl des tages, kern aus der ueberschrift, nicht der dollarwert",
+           q2["art"] == "zahl des tages" and q2["datum"] == "27 oct 2026" and q2["kern"] == "583x"
+           and q2["zahl"] == "bitcoin prints 583x more supply each day." and q2["cta"] == CTA_BIO, q2)
         ok("zahl des tages gruen, ohne host", pruefen(q2) == [] and "." not in q2["herkunft"], (pruefen(q2), q2))
         ok("grafik ohne auslieferung zaehlt nicht", quelle(tag, log_ig, {"laeufe": []}, nod, r)["art"] == "zahl des tages")
         try:
@@ -345,15 +490,38 @@ def selbsttest():
         ok("ohne herkunft faellt auf", pruefen(dict(q, herkunft="kaspalytics")) != [])
         ok("ohne datum faellt auf", pruefen(dict(q, datum="gestern")) != [])
         ok("kaufsprache faellt auf", pruefen(dict(q, zahl="943x, buy now")) != [])
-        jp = story_bild(r / "ig" / "tagesgrafik-2026-10-27-form11.jpg", r / "ig" / "story-auto-2026-10-27.jpg")
-        b = Image.open(jp)
-        ok("story 1080 x 1920", b.size == (1080, 1920))
-        ok("rand in der randfarbe der grafik", sum(abs(a - c) for a, c in zip(b.getpixel((10, 10)), (242, 245, 244))) < 12)
-        ok("grafik in der mitte, ausserhalb der 250-px-flaechen", RAND_OBEN >= 250 and H - RAND_OBEN - 1350 >= 250)
+        ok("dollar faellt auf", pruefen(dict(q, kern="$61.6K")) != [])
+        ok("billiger koeder faellt auf", pruefen(dict(q, haken="the secret number nobody tells you?")) != [])
+        ok("haken ohne frage faellt auf", pruefen(dict(q, haken="kaspa numbers")) != [])
+        ok("jede form hat eine gruene frage", all(pruefen(dict(q, haken=h)) == [] for h in HAKEN.values()),
+           [h for h in HAKEN.values() if pruefen(dict(q, haken=h))])
+        ok("kern teilen", kern_teilen("51.20%") == ("51.20", "%") and kern_teilen("14 days") == ("14", "days")
+           and kern_teilen("+0.7%") == ("+0.7", "%") and kern_teilen("574M") == ("574", "M"))
+        ok("grosse zahlen kurz", kurz("287,000") == "287K" and kurz("294,512") == "294.5K"
+           and kurz("51.20%") == "51.20%" and kurz("14 days") == "14 days" and kurz("1,234") == "1,234")
+        h4 = seite_html(dict(q, kern="287,000", zahl="287,000 blocks while you slept"))
+        ok("gekuerzt, genaue zahl im satz", ">287<" in h4 and "287,000 blocks while you slept" in h4)
+        ok("satz ohne doppelte zahl", satz_ohne_kern(q) == "more KAS for miners from new coins than from fees")
+        ok("datumszeile mit datum vorn, wenn die herkunft keins hat",
+           datumszeile(q) == "12 oct 2026 \u00b7 source kaspalytics fees, kaspa emission schedule")
+        h = seite_html(q)
+        ok("seite hat haken, zahl, cta und wortmarke, keinen falken",
+           HAKEN[11] in h and ">943<" in h and CTA_PROFIL in h and "data-rolle='fuss'" in h
+           and "falke" not in h.lower() and "hawk" not in h.lower())
+        try:
+            from playwright.sync_api import sync_playwright  # noqa: F401
+            png = rendern(q, r / "out" / "story.png")
+            b = Image.open(als_jpeg(png, r / "ig" / "story-auto-2026-10-27.jpg"))
+            ok("gerendert 1080 x 1920, wache im profil story gruen", b.size == (1080, 1920))
+            ok("grund dunkel wie die marke", sum(b.getpixel((5, 5))) < 60, b.getpixel((5, 5)))
+        except ImportError:
+            print("--   playwright fehlt, rendern hier nicht geprueft (im workflow installiert)")
 
-    t = ops_text("entwurf", {"datum_tag": "2026-10-27", "art": "zahl des tages", "form": None, "zahl": "$61.6K x",
-                             "datum": "27 oct 2026", "herkunft": "source kaspa and coingecko"})
-    ok("ops nennt tag, quelle, veto und live", "di 27.10.2026" in t and "IG_STORY_AUTO_STOPP" in t
+    t = ops_text("entwurf", {"datum_tag": "2026-10-27", "art": "zahl des tages", "form": None,
+                             "zahl": "bitcoin prints 583x more supply each day.", "haken": HAKEN_NOD, "cta": CTA_BIO,
+                             "datum": "27 oct 2026", "herkunft": "source kaspa rest api and coingecko"})
+    ok("ops nennt tag, haken, quelle, veto und live", "di 27.10.2026" in t and "IG_STORY_AUTO_STOPP" in t
+       and HAKEN_NOD in t
        and "IG_STORY_AUTO_LIVE=true" in t and "17:30" in t)
     ok("ops ohne hostnamen", not re.search(r"\b[a-z0-9-]+\.(com|org|io|net)\b", t))
 

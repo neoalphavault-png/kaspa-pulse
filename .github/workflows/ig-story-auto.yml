@@ -2,8 +2,10 @@ name: ig story auto
 
 # Eine einfache Instagram-Story am Dienstag und Donnerstag um 17:30 Berlin
 # (Ben, 27.10.2026). Ohne Sticker: Poll und Quiz kann die API nicht, die
-# interaktiven Stories Mo, Mi und Fr macht Ben von Hand. Inhalt ist die
-# Tagesgrafik des Tages, sonst die Zahl des Tages (scripts/ig_story_auto.py).
+# interaktiven Stories Mo, Mi und Fr macht Ben von Hand. Gestaltet als Koeder:
+# oben eine Frage, in der Mitte die Kernzahl mit Datum und Herkunft, unten
+# "full breakdown on our profile". Zahl aus der Tagesgrafik des Tages, sonst
+# aus der Zahl des Tages (scripts/ig_story_auto.py).
 #
 # WER IHN STARTET. Der Takt auf c2 (takt-ig-story-auto.timer, Di und Do 17:30
 # Berlin) mit modus=takt. Der cron unten ist nur Rueckfall: geplante Laeufe
@@ -44,7 +46,7 @@ concurrency:
 jobs:
   story:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     env:
       START: ${{ github.event_name == 'workflow_dispatch' && inputs.modus || 'geplant' }}
       DATUM_IN: ${{ github.event_name == 'workflow_dispatch' && inputs.modus == 'probe' && inputs.datum || '' }}
@@ -53,8 +55,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: pillow
-        run: "pip install --only-binary=:all: pillow==11.3.0"
+      - name: pillow und playwright
+        run: |
+          python -m pip install --upgrade pip
+          pip install --only-binary=:all: pillow==11.3.0
+          pip install playwright
+          python -m playwright install --with-deps chromium
       - name: selbsttest
         run: python3 scripts/ig_story_auto.py --selbsttest
       - name: planen
