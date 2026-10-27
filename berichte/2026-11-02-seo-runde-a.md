@@ -40,7 +40,25 @@ Auftrag von Ben vom 27.10.2026 abends, auf Grundlage der Search Console. Er erse
 
 ## PR-Nummern
 - #164, Nachmittag, live
-- dieser PR, folgt
+- #170, Priorität A, selbst gemergt
+- #172, KCC-20 final, selbst gemergt
+- #171, Workflow `seiten-zahlen.yml`, wartet auf Ben
+
+## Selbst-Merge und Abnahme
+- **#170 als 43a8221, 27.10.2026:**
+  - Live sind Halving mit Kurz-Fakt und FAQ, Hashrate mit 30-Tage-Tabelle, Supply mit „How many Kaspa coins are there?“ und die neuen Titles von kron, kaspa-data-sources, kaspa-tvl und kaspa-staking.
+  - Die 30-Tage-Tabelle hat der Handlauf von `seiten-zahlen` am 27.10.2026 gefüllt, mit Tageswerten bis zum 26.10.
+  - Abnahme auf der echten URL: Alle Titles und Kurz-Fakt-Zeilen werden ausgeliefert.
+- **#172 als 9e8c7c1, 27.10.2026:** KCC-20 ist seit dem 21.10.2026 final. Smart Contracts, Token-Standard und Toccata nennen das jetzt, live geprüft.
+- **Lighthouse mobil live nach allen Merges, 27.10.2026:**
+
+  | Seite | Punkte | LCP | CLS |
+  | --- | --- | --- | --- |
+  | Startseite | 97 | 2.2 s | 0.021 |
+  | kaspa-halving | 100 | 1.3 s | 0.001 |
+  | merged-mining | 99 | 2.0 s | 0 |
+  | entity-x | 98 | 1.7 s | 0.085 |
+  | kaspa-data-sources | 98 | 2.2 s | 0 |
 
 ## Offene Fragen an Ben
 1. **Neu-Indexierung:** Die Search Console kann ich von hier aus nicht bedienen, es gibt keinen Zugang dafür. Ich liefere nach jedem Merge die Liste der geänderten URLs zum Einreichen.
@@ -48,3 +66,48 @@ Auftrag von Ben vom 27.10.2026 abends, auf Grundlage der Search Console. Er erse
 
 ## Was Ben tun muss
 Den Workflow-PR für `seiten-zahlen.yml` mergen, damit die Halving-Seite nach dem 4.11. von selbst nachzieht. Die geänderten URLs in der Search Console zur Indexierung einreichen.
+
+<!-- discord -->
+**SEO-Runde v2, Lieferung 27.10.2026**
+- **Priorität A (#170) und B (#173):** beide fertig, selbst gemergt und live, lange vor den Fristen 2.11. und 8.11.
+- **A, Halving:** Kurz-Fakt mit der Stufe am 4 nov 2026 um 13:45 UTC, 2.0602 auf 1.9445 KAS je Block, computed. Dazu die zwei FAQ.
+- **A, Hashrate:** 30-Tage-Tabelle mit 7-Tage-Mittel.
+- **A, Supply:** FAQ „How many Kaspa coins are there?“.
+- **A, Klickrate:** neue Titles für kron, data-sources, tvl und staking.
+- **B, Wallets:** Vergleichstabelle mit KCC-20-Spalte. Bei keiner Wallet steht KCC-20 in den Release-Notes, Stand 27 oct 2026.
+- **B, Schema:** Article und Breadcrumb auf allen Unterseiten, Dataset auf 4 Zahlenseiten.
+- **B, Aufräumen:** /balance leitet auf die Wallet-Seite, kaspa-mining trägt feste Zahlen.
+- **B, Tempo:** Lighthouse mobil live, alle 5 Seiten mit LCP unter 2.5 s und CLS unter 0.1, Halving vorher 0.17, nachher 0.001.
+- **Nebenbefund #172:** KCC-1, KCC-2 und KCC-20 sind seit dem 21 oct 2026 final, drei Seiten sind korrigiert.
+- **/whales:** live, die Weiterleitung behält die UTM-Parameter.
+- **Berichte:** berichte/2026-11-02-seo-runde-a.md und berichte/2026-11-08-seo-runde-b.md
+<!-- teil -->
+📤 VON HAND, 1 von 2: **mergen**
+1. PR #171 (Workflow seiten-zahlen, Halving und Mining ziehen täglich nach). Ohne ihn ziehe ich die Halving-Zahlen nach dem 4.11. von Hand nach.
+2. PR #144, falls noch offen, danach auf c2:
+```
+sudo bash deploy/c2/setup.sh nachziehen
+```
+<!-- teil -->
+📤 VON HAND, 2 von 2: **Search Console**, Neu-Indexierung beantragen, je URL einzeln in die URL-Prüfung:
+```
+https://kaspapulse.com/kaspa-halving.html
+https://kaspapulse.com/kaspa-hashrate.html
+https://kaspapulse.com/kaspa-supply.html
+https://kaspapulse.com/kaspa-smart-contracts.html
+https://kaspapulse.com/kron.html
+https://kaspapulse.com/kaspa-data-sources.html
+https://kaspapulse.com/kaspa-tvl.html
+https://kaspapulse.com/kaspa-staking.html
+https://kaspapulse.com/kaspa-wallets.html
+https://kaspapulse.com/kaspa-mining.html
+https://kaspapulse.com/kaspa-token-standard.html
+https://kaspapulse.com/kaspa-toccata.html
+https://kaspapulse.com/
+```
+Rich Results Test, je einen Seitentyp:
+```
+https://kaspapulse.com/kaspa-supply.html
+https://kaspapulse.com/kaspa-wallets.html
+```
+<!-- /discord -->
