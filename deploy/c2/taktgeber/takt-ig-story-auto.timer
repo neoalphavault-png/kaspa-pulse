@@ -1,0 +1,11 @@
+[Unit]
+Description=Kaspa Pulse Takt, einfache Instagram-Story, Di und Do 17:30 Berlin
+
+[Timer]
+Unit=takt@ig-story-auto.service
+OnCalendar=Tue,Thu *-*-* 17:30:00 Europe/Berlin
+Persistent=true
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

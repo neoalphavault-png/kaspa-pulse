@@ -37,6 +37,7 @@ Log steht es am 01.10. wörtlich: *„kein cron im fenster"*.
 | `takt-cheat-sheet` | am 1. im Monat 09:00 | `cheat-sheet.yml` in kaspa-pulse |
 | `takt-number-of-day` | täglich 10:12 und 11:42 | `number-of-day.yml` in kaspa-pulse |
 | `takt-story-vorlage` | Mo–Sa 07:45 | `story-vorlage.yml` in kaspa-pulse, `senden=true`, nur nach #moderator-only |
+| `takt-ig-story-auto` | Di und Do 17:30 | `ig-story-auto.yml` in kaspa-pulse, `modus=takt`, scharf nur mit `IG_STORY_AUTO_LIVE=true` |
 
 Die Uhrzeiten stehen in Ortszeit, als Anhang an der Kalenderzeile:
 

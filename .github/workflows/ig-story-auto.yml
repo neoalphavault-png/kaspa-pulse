@@ -1,0 +1,134 @@
+name: ig story auto
+
+# Eine einfache Instagram-Story am Dienstag und Donnerstag um 17:30 Berlin
+# (Ben, 27.10.2026). Ohne Sticker: Poll und Quiz kann die API nicht, die
+# interaktiven Stories Mo, Mi und Fr macht Ben von Hand. Inhalt ist die
+# Tagesgrafik des Tages, sonst die Zahl des Tages (scripts/ig_story_auto.py).
+#
+# WER IHN STARTET. Der Takt auf c2 (takt-ig-story-auto.timer, Di und Do 17:30
+# Berlin) mit modus=takt. Der cron unten ist nur Rueckfall: geplante Laeufe
+# kommen in diesem Konto fuenf bis acht Stunden zu spaet (number-of-day,
+# 21. bis 26.10.2026). Scharf geht es nur zwischen 17:15 und 19:30 Berlin,
+# ein verspaeteter Lauf postet nie. Die Merkdatei sperrt eine zweite Story.
+#
+# SCHARF NUR MIT DER VARIABLE. IG_STORY_AUTO_LIVE=true, sonst geht der
+# Entwurf nur nach #moderator-only. Veto: IG_STORY_AUTO_STOPP auf
+# JJJJ-MM-TT oder "immer". modus=probe von Hand geht nie zu Instagram.
+#
+# DER TOKEN KOMMT AUS DER UMGEBUNG UND WIRD NIE GEDRUCKT. Jede Ausgabe laeuft
+# durch instagram.sauber().
+
+on:
+  workflow_dispatch:
+    inputs:
+      modus:
+        description: "probe = nur #moderator-only (von hand), takt = vom c2-takt"
+        type: choice
+        options: [probe, takt]
+        default: probe
+      datum:
+        description: "nur fuer probe, JJJJ-MM-TT (leer = heute)"
+        required: false
+        default: ""
+  schedule:
+    # 16:30 UTC = 17:30 Berlin im Winter, Di und Do. Nur Rueckfall, siehe oben.
+    - cron: "30 16 * * 2,4"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ig-story-auto
+  cancel-in-progress: false
+
+jobs:
+  story:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      START: ${{ github.event_name == 'workflow_dispatch' && inputs.modus || 'geplant' }}
+      DATUM_IN: ${{ github.event_name == 'workflow_dispatch' && inputs.modus == 'probe' && inputs.datum || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: pillow
+        run: "pip install --only-binary=:all: pillow==11.3.0"
+      - name: selbsttest
+        run: python3 scripts/ig_story_auto.py --selbsttest
+      - name: planen
+        id: p
+        env:
+          IG_STORY_AUTO_LIVE: ${{ vars.IG_STORY_AUTO_LIVE }}
+          IG_STORY_AUTO_STOPP: ${{ vars.IG_STORY_AUTO_STOPP }}
+        run: python3 scripts/ig_story_auto.py planen --start "$START" ${DATUM_IN:+--datum "$DATUM_IN"}
+      - name: bauen
+        id: b
+        if: steps.p.outputs.modus != 'aus'
+        env:
+          DATUM: ${{ steps.p.outputs.datum }}
+        run: python3 scripts/ig_story_auto.py bauen --datum "$DATUM" --ziel out/story
+      - name: entwurf nach moderator-only
+        if: steps.p.outputs.modus == 'probe' || steps.p.outputs.modus == 'entwurf'
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          MODUS: ${{ steps.p.outputs.modus }}
+        run: python3 scripts/ig_story_auto.py ops --modus "$MODUS" --info out/story/info.json
+      - name: jpeg auf kaspapulse.com
+        if: steps.p.outputs.modus == 'scharf'
+        env:
+          JPEG: ${{ steps.b.outputs.jpeg }}
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          git add "$JPEG"
+          if git diff --staged --quiet; then
+            echo "jpeg schon im repo"
+          else
+            git commit -m "ig story bild [bot]"
+            for N in 1 2 3; do
+              git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && break
+              echo "push $N fehlgeschlagen"; sleep "$N"
+            done
+          fi
+      - name: story posten
+        if: steps.p.outputs.modus == 'scharf'
+        env:
+          INSTAGRAM_PAGE_TOKEN: ${{ secrets.INSTAGRAM_PAGE_TOKEN }}
+          IG_USER_ID: ${{ vars.IG_USER_ID }}
+          IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+        run: python3 scripts/ig_story_auto.py posten --info out/story/info.json
+      - name: merkdatei sichern
+        if: always() && steps.p.outputs.modus == 'scharf'
+        run: |
+          git add data/ig-story-auto-log.json 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "merkdatei unveraendert"
+            exit 0
+          fi
+          git commit -m "ig story log [bot]"
+          for N in 1 2 3; do
+            git pull --rebase --autostash -q origin "$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && exit 0
+            echo "push $N fehlgeschlagen"; sleep "$N"
+          done
+          echo "::warning::merkdatei nicht gepusht"
+          exit 1
+      - name: ops bei rot
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
+          text = "ig-story ist rot, heute keine story\n" + os.environ.get("LAUF", "")
+          print(text)
+          if hook:
+              req = urllib.request.Request(hook, data=json.dumps({"content": text,
+                    "allowed_mentions": {"parse": []}}).encode(), headers={
+                    "Content-Type": "application/json", "User-Agent": "kaspa-pulse-bot"})
+              urllib.request.urlopen(req, timeout=30)
+          PY

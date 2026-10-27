@@ -47,6 +47,11 @@ case "$1" in
     # bei der Tagesgrafik ausdruecklich, die Vorbelegung ist false.
     "$HIER/takt.sh" "$REPO_PULSE" story-vorlage.yml datum= senden=true
     ;;
+  ig-story-auto)
+    # ig-story-auto.yml (Ben, 27.10.2026), Di und Do 17:30. Scharf entscheidet
+    # der Workflow selbst (IG_STORY_AUTO_LIVE, Zeitfenster, Merkdatei).
+    "$HIER/takt.sh" "$REPO_PULSE" ig-story-auto.yml modus=takt
+    ;;
   karussell-meme)
     # "Meme, but true", entwurf am posttag, misst die blockrate am posttag
     "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=meme fuer= senden=true
