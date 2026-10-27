@@ -310,7 +310,7 @@ def video(png, musik, mp4, sekunden=SEKUNDEN):
            "[1:a]atrim=0:%d,afade=t=in:d=1,afade=t=out:st=%d:d=1.5,loudnorm=I=-16:TP=-1.5:LRA=11[a]"
            % (sekunden, sekunden - 1.5),
            "-map", "0:v", "-map", "[a]", "-c:v", "libx264", "-tune", "stillimage", "-pix_fmt", "yuv420p",
-           "-r", "30", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", "-shortest", str(mp4)]
+           "-r", "30", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", "-shortest", str(mp4)]
     subprocess.run(cmd, check=True)
     return mp4
 
