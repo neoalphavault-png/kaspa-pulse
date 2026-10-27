@@ -743,7 +743,7 @@ def inhalt_html(D, url=SEITE, archiv=None):
         if nxt and HIN.get(nxt):
             z.append('    <p class="bridge">%s <a href="#%s">next</a></p>' % (esc(HIN[nxt]), nxt))
         if not nxt:
-            z.append('    <div class="deeper"><a href="/kaspa-hashrate.html">network</a>'
+            z.append('    <div class="deeper"><a href="/kaspa-hashrate.html">hashrate</a>'
                      '<a href="/kaspa-supply.html">supply</a><a href="/kaspa-token-standard.html">tokens</a>'
                      '<a href="/entity-x.html">largest wallet</a><a href="/kaspa-covenants.html">covenants</a></div>')
         z.append("  </section>")

@@ -29,7 +29,7 @@
  "description": "Kaspa has no four-year halving. Block rewards fall about 5.6% every month. A countdown to the next reduction, the current reward and what it means.",
  "url": "https://kaspapulse.com/kaspa-halving.html",
  "inLanguage": "en",
- "dateModified": "2026-10-26",
+ "dateModified": "2026-10-27",
  "isPartOf": {
   "@type": "WebSite",
   "name": "Kaspa Pulse",
@@ -61,6 +61,8 @@
   h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
   h1 b { color:var(--teal); }
   .sub { font-size:16px; color:var(--dim); line-height:24px; }
+  .kurzfakt { font-size:15px; line-height:22px; color:var(--txt); margin:0 0 14px; padding:10px 14px; border-left:3px solid var(--teal); background:var(--card); border-radius:0 10px 10px 0; }
+  .kurzfakt b { color:var(--teal); font-variant-numeric:tabular-nums; }
   h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin:56px 0 14px; }
   h2::before { content:""; display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--teal); margin-right:11px; vertical-align:5px; }
   h3 { font-size:16px; font-weight:700; margin:26px 0 7px; color:var(--txt); }
@@ -217,6 +219,7 @@
 <div class="wrap">
 
   <h1>Kaspa halving countdown. <b>The next reduction is ticking below, because it happens every month, not every four years.</b></h1>
+  <p class="kurzfakt"><!--AUTO:kurzfakt-->Next reward step on <b>4 November 2026 around 13:45 UTC</b>, block reward from <b>2.0602</b> to <b>1.9445 KAS</b> per block, computed from the emission schedule<!--/AUTO:kurzfakt--></p>
   <div class="sub">If you're waiting for Kaspa's big halving day, you can stop. There isn't one. Kaspa cut its emission into twelve small steps a year instead of one cliff every four. Here's the countdown to the next reduction date, the current numbers, and what the monthly cut actually does.</div>
 
   <div class="answer">
@@ -315,9 +318,9 @@
   <div class="faq">
   <h2>Questions people ask</h2>
   <h3>Does Kaspa have a halving?</h3>
-  <p>Yes, but not as a single event. Kaspa's block reward decreases by a factor of (1/2)^(1/12) every month, about 5.6% per step, which compounds to a full halving every 12 months. This smooth schedule, called the chromatic phase, began in May 2022 at 440 KAS per block and is fixed in code.</p>
-  <h3>When is the next Kaspa halving? Is there a countdown?</h3>
-  <p>A reduction happens roughly every 30.4 days, triggered by the chain's own score rather than a calendar date. This page shows a countdown in days, hours, minutes and seconds to the next reduction, computed from the fixed emission schedule and anchored to the public Kaspa API, along with the exact expected date and the reward after the step.</p>
+  <p>Yes, as a smooth schedule instead of one event. The block reward falls by about 5.6% every 30.44 days and halves every 12 months, computed from the emission schedule. The next step is on 4 November 2026, from 2.0602 to 1.9445 KAS per block.</p>
+  <h3>When is the next Kaspa halving?</h3>
+  <p>Kaspa has no single halving day. The next monthly reward step is on 4 November 2026 around 13:45 UTC, when the block reward falls from 2.0602 to 1.9445 KAS per block, computed from the emission schedule.</p>
   <h3>How much does the Kaspa block reward decrease?</h3>
   <p>About 5.6% per month. Twelve consecutive monthly steps multiply to exactly one half, so emission falls 50% over any 12-month window. That is the same yearly rate as Bitcoin's four-year halving, delivered smoothly instead of as a cliff.</p>
   <h3>Is the Kaspa halving bullish for the price?</h3>
@@ -365,7 +368,7 @@
 </section>
 <!--/AUTO:rahmen-kanaele-->
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 26 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 27 October 2026<!--/AUTO:seitenstand--></div>
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
@@ -382,27 +385,42 @@
     {
       "@type": "Question",
       "name": "Does Kaspa have a halving?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes, but not as a single event. Kaspa's block reward decreases by a factor of (1/2)^(1/12) every month, about 5.6% per step, which compounds to a full halving every 12 months. This smooth schedule, called the chromatic phase, began in May 2022 at 440 KAS per block and is fixed in code." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, as a smooth schedule instead of one event. The block reward falls by about 5.6% every 30.44 days and halves every 12 months, computed from the emission schedule. The next step is on 4 November 2026, from 2.0602 to 1.9445 KAS per block."
+      }
     },
     {
       "@type": "Question",
-      "name": "When is the next Kaspa halving? Is there a countdown?",
-      "acceptedAnswer": { "@type": "Answer", "text": "A reduction happens roughly every 30.4 days, triggered by the chain's own score rather than a calendar date. This page shows a countdown in days, hours, minutes and seconds to the next reduction, computed from the fixed emission schedule and anchored to the public Kaspa API, along with the exact expected date and the reward after the step." }
+      "name": "When is the next Kaspa halving?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Kaspa has no single halving day. The next monthly reward step is on 4 November 2026 around 13:45 UTC, when the block reward falls from 2.0602 to 1.9445 KAS per block, computed from the emission schedule."
+      }
     },
     {
       "@type": "Question",
       "name": "How much does the Kaspa block reward decrease?",
-      "acceptedAnswer": { "@type": "Answer", "text": "About 5.6% per month. Twelve consecutive monthly steps multiply to exactly one half, so emission falls 50% over any 12-month window. That is the same yearly rate as Bitcoin's four-year halving, delivered smoothly instead of as a cliff." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "About 5.6% per month. Twelve consecutive monthly steps multiply to exactly one half, so emission falls 50% over any 12-month window. That is the same yearly rate as Bitcoin's four-year halving, delivered smoothly instead of as a cliff."
+      }
     },
     {
       "@type": "Question",
       "name": "Is the Kaspa halving bullish for the price?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Not by itself. A monthly reduction that anyone can compute years in advance surprises nobody and creates no supply shock. Reduced emission only amplifies whatever demand already exists. The measurable effect of each step is on miner margins, which is why hashrate around each reduction is the more informative chart." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not by itself. A monthly reduction that anyone can compute years in advance surprises nobody and creates no supply shock. Reduced emission only amplifies whatever demand already exists. The measurable effect of each step is on miner margins, which is why hashrate around each reduction is the more informative chart."
+      }
     },
     {
       "@type": "Question",
       "name": "What is Kaspa's maximum supply and how much is mined?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Kaspa's supply approaches a maximum of about 28.7 billion KAS. The share already in circulation is shown on this page, fetched from the public Kaspa API. Because the emission curve decays geometrically, the large majority of all KAS was mined within the first years after the 2021 launch." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Kaspa's supply approaches a maximum of about 28.7 billion KAS. The share already in circulation is shown on this page, fetched from the public Kaspa API. Because the emission curve decays geometrically, the large majority of all KAS was mined within the first years after the 2021 launch."
+      }
     }
   ]
 }
