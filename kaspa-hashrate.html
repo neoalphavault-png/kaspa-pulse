@@ -3,30 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kaspa Hashrate Today in PH/s and Weekly History</title>
-<meta name="description" content="Kaspa's hashrate today in PH/s, the weekly averages of the last two months and the highest daily average on record, each with its date and source.">
+<title>Kaspa Hashrate in PH per second</title>
+<meta name="description" content="Kaspa's hashrate in PH per second with its date and source, the weekly averages of the last two months and the highest daily average in the source history, refreshed every day.">
 <!--AUTO:seo-kopf-->
 <link rel="canonical" href="https://kaspapulse.com/kaspa-hashrate.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Kaspa Pulse">
-<meta property="og:title" content="Kaspa Hashrate Today in PH/s and Weekly History">
-<meta property="og:description" content="Kaspa&#x27;s hashrate today in PH/s, the weekly averages of the last two months and the highest daily average on record, each with its date and source.">
+<meta property="og:title" content="Kaspa Hashrate in PH per second">
+<meta property="og:description" content="Kaspa&#x27;s hashrate in PH per second with its date and source, the weekly averages of the last two months and the highest daily average in the source history, refreshed every day.">
 <meta property="og:url" content="https://kaspapulse.com/kaspa-hashrate.html">
 <meta property="og:image" content="https://kaspapulse.com/og-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Kaspa Pulse, on-chain numbers for Kaspa">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Kaspa Hashrate Today in PH/s and Weekly History">
-<meta name="twitter:description" content="Kaspa&#x27;s hashrate today in PH/s, the weekly averages of the last two months and the highest daily average on record, each with its date and source.">
+<meta name="twitter:title" content="Kaspa Hashrate in PH per second">
+<meta name="twitter:description" content="Kaspa&#x27;s hashrate in PH per second with its date and source, the weekly averages of the last two months and the highest daily average in the source history, refreshed every day.">
 <meta name="twitter:image" content="https://kaspapulse.com/og-card.png">
 <meta name="twitter:image:alt" content="Kaspa Pulse, on-chain numbers for Kaspa">
 <script type="application/ld+json">
 {
  "@context": "https://schema.org",
  "@type": "WebPage",
- "name": "Kaspa Hashrate Today in PH/s and Weekly History",
- "description": "Kaspa's hashrate today in PH/s, the weekly averages of the last two months and the highest daily average on record, each with its date and source.",
+ "name": "Kaspa Hashrate in PH per second",
+ "description": "Kaspa's hashrate in PH per second with its date and source, the weekly averages of the last two months and the highest daily average in the source history, refreshed every day.",
  "url": "https://kaspapulse.com/kaspa-hashrate.html",
  "inLanguage": "en",
  "dateModified": "2026-10-27",
@@ -61,6 +61,8 @@
   h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
   h1 b { color:var(--teal); }
   .sub { font-size:16px; color:var(--dim); line-height:24px; }
+  .kurzfakt { font-size:15px; line-height:22px; color:var(--txt); margin:0 0 14px; padding:10px 14px; border-left:3px solid var(--teal); background:var(--card); border-radius:0 10px 10px 0; }
+  .kurzfakt b { color:var(--teal); font-variant-numeric:tabular-nums; }
   h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin:56px 0 14px; }
   h2::before { content:""; display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--teal); margin-right:11px; vertical-align:5px; }
   h3 { font-size:16px; font-weight:700; margin:26px 0 7px; color:var(--txt); }
@@ -197,16 +199,17 @@
 <!--/AUTO:rahmen-kopf-->
 <div class="wrap">
 
-  <h1>Kaspa hashrate today. <b>What the number secures, and what actually moves it.</b></h1>
+  <h1>Kaspa Hashrate</h1>
+  <p class="kurzfakt"><!--AUTO:kurzfakt--><b>344.6 PH/s</b> Kaspa hashrate on 27 October 2026 at 12:13 UTC, source the Kaspa REST API<!--/AUTO:kurzfakt--></p>
   <div class="sub"><!--AUTO:hashrate-satz-->Kaspa's hashrate was <b>344.6 PH/s</b> on 27 October 2026 at 12:13 UTC, according to api.kaspa.org. The highest daily average on record is <b>1484.2 PH/s</b>, on 30 December 2024.<!--/AUTO:hashrate-satz--> Hashrate is the most quoted and most misread number in proof-of-work. Here's what Kaspa's actually measures, how to place it next to Bitcoin's without fooling yourself, and which moves in the chart mean something.</div>
 
   <div class="answer">
     <div class="lbl">The short answer</div>
-    <p>Kaspa's hashrate is the total computing power miners aim at the network every second. It is produced almost entirely by <b>purpose-built ASIC machines</b> running Kaspa's own algorithm, <b>kHeavyHash</b>. Today's figure is below. The number matters because it works like a price tag. It tells you roughly what it would cost to attack the chain, and rebuilding this much specialised hardware is not something an attacker does quietly.</p>
+    <p>Kaspa's hashrate is the total computing power miners aim at the network every second. It is produced almost entirely by <b>purpose-built ASIC machines</b> running Kaspa's own algorithm, <b>kHeavyHash</b>. The dated figure is below. The number matters because it works like a price tag. It tells you roughly what it would cost to attack the chain, and rebuilding this much specialised hardware is not something an attacker does quietly.</p>
   </div>
 
   <div class="live">
-    <div class="lbl"><i></i>Kaspa network hashrate · today</div>
+    <div class="lbl"><i></i>Kaspa network hashrate · at page load</div>
     <div class="big" id="hrBig">—</div>
     <div class="cap" id="hrCap">fetching from the kaspa network…</div>
     <div class="split">
@@ -238,7 +241,7 @@
     <li><b>The algorithm is kHeavyHash</b>, Kaspa's own proof-of-work, mined by dedicated ASIC hardware. GPU mining stopped being competitive when the first ASICs arrived in 2023.</li>
     <li><b>Blocks come fast.</b> The Crescendo upgrade in 2025 took Kaspa to 10 blocks per second. The blockDAG structure lets parallel blocks coexist instead of being thrown away.</li>
     <li><b>Difficulty adjusts continuously.</b> Where Bitcoin retunes every two weeks, Kaspa's difficulty tracks the hashrate block by block, so swings in mining power don't cause long disruptions in block times.</li>
-    <li><b>Rewards decline every month.</b> Kaspa's emission follows a smooth curve. Block rewards drop by about 5.6% each month, Bitcoin's four-yearly halving spread into small monthly steps. Each step slightly squeezes the oldest, least efficient machines. The full schedule, with today's reward, is in <a href="/kaspa-halving.html">the Kaspa halving, explained</a>.</li>
+    <li><b>Rewards decline every month.</b> Kaspa's emission follows a smooth curve. Block rewards drop by about 5.6% each month, Bitcoin's four-yearly halving spread into small monthly steps. Each step slightly squeezes the oldest, least efficient machines. The full schedule, with the block reward by date, is in <a href="/kaspa-halving.html">the Kaspa halving, explained</a>.</li>
   </ul>
   <p>One thing does <b>not</b> affect the hashrate, and that is merged mining. Networks like ZKas reuse the exact same kHeavyHash work Kaspa miners already produce, so no mining power leaves Kaspa. Participating requires mining Kaspa. We explain the mechanism in full in <a href="/merged-mining.html">Kaspa merged mining, explained</a>.</p>
 
@@ -292,7 +295,7 @@
   <div class="faq">
   <h2>Questions people ask</h2>
   <h3>What is Kaspa's hashrate?</h3>
-  <p>Kaspa's hashrate is the total computing power miners direct at the network, produced by purpose-built ASIC machines running the kHeavyHash algorithm. Today's figure is published on this page, fetched directly from the public Kaspa API.</p>
+  <p>Kaspa's hashrate was 344.6 PH/s on 27 October 2026 at 12:13 UTC, source the Kaspa REST API.</p>
   <h3>What algorithm does Kaspa use for mining?</h3>
   <p>Kaspa uses kHeavyHash, its own proof-of-work algorithm, mined by dedicated ASIC hardware. GPU mining stopped being competitive after the first Kaspa ASICs arrived in 2023.</p>
   <h3>Can you compare Kaspa's hashrate to Bitcoin's?</h3>
@@ -359,27 +362,42 @@
     {
       "@type": "Question",
       "name": "What is Kaspa's hashrate?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Kaspa's hashrate is the total computing power miners direct at the network, produced by purpose-built ASIC machines running the kHeavyHash algorithm. Today's figure is published on this page, fetched directly from the public Kaspa API." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Kaspa's hashrate was 344.6 PH/s on 27 October 2026 at 12:13 UTC, source the Kaspa REST API."
+      }
     },
     {
       "@type": "Question",
       "name": "What algorithm does Kaspa use for mining?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Kaspa uses kHeavyHash, its own proof-of-work algorithm, mined by dedicated ASIC hardware. GPU mining stopped being competitive after the first Kaspa ASICs arrived in 2023." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Kaspa uses kHeavyHash, its own proof-of-work algorithm, mined by dedicated ASIC hardware. GPU mining stopped being competitive after the first Kaspa ASICs arrived in 2023."
+      }
     },
     {
       "@type": "Question",
       "name": "Can you compare Kaspa's hashrate to Bitcoin's?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Not directly. Kaspa's kHeavyHash and Bitcoin's SHA-256 are different computations on different hardware, so raw hash counts don't convert between the two. What can be compared is the economics behind each network, the real hardware and electricity committed to it. Any raw factor between the two numbers is a statement of scale, not a security ratio." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not directly. Kaspa's kHeavyHash and Bitcoin's SHA-256 are different computations on different hardware, so raw hash counts don't convert between the two. What can be compared is the economics behind each network, the real hardware and electricity committed to it. Any raw factor between the two numbers is a statement of scale, not a security ratio."
+      }
     },
     {
       "@type": "Question",
       "name": "Does merged mining reduce Kaspa's hashrate?",
-      "acceptedAnswer": { "@type": "Answer", "text": "No. Merged-mined networks such as ZKas reuse the same kHeavyHash work Kaspa miners already produce, so no mining power leaves Kaspa. Participating in merged mining requires mining Kaspa. Hashrate moves are driven by miner economics, coin price, electricity costs, and Kaspa's monthly block reward reductions." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Merged-mined networks such as ZKas reuse the same kHeavyHash work Kaspa miners already produce, so no mining power leaves Kaspa. Participating in merged mining requires mining Kaspa. Hashrate moves are driven by miner economics, coin price, electricity costs, and Kaspa's monthly block reward reductions."
+      }
     },
     {
       "@type": "Question",
       "name": "Why does Kaspa's hashrate go down?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Hashrate follows miner profitability with a lag. When the KAS price falls or a monthly reward reduction lands, the least efficient machines eventually become unprofitable and shut off. A falling hashrate usually reflects past miner economics rather than a change in the health of the network itself." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Hashrate follows miner profitability with a lag. When the KAS price falls or a monthly reward reduction lands, the least efficient machines eventually become unprofitable and shut off. A falling hashrate usually reflects past miner economics rather than a change in the health of the network itself."
+      }
     }
   ]
 }
