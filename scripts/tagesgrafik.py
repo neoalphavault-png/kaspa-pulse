@@ -240,6 +240,9 @@ def m_balance(adr):
     return int(d["balance"]) / 1e8
 
 
+_ROH = {}
+
+
 def m_blockrate(sekunden=60):
     """Bloecke je Sekunde, gemessen als Zuwachs des virtuellen DAA-Scores."""
     a = hole(REST + "/info/blockdag")
@@ -251,6 +254,11 @@ def m_blockrate(sekunden=60):
     bps = (db - da) / (tb - ta)
     if not 5 < bps < 15:
         raise Stop("blockrate unplausibel %.2f" % bps)
+    # Rohzahl fuers Log (Ben, 27.10.2026): die gezaehlte Zahl selbst, nicht nur
+    # die Rate. Aus bps und blockrate_sek liess sie sich nicht zurueckrechnen,
+    # weil das echte Fenster ein paar Zehntel ueber BLOCKRATE_SEK liegt.
+    _ROH.clear()
+    _ROH.update({"daa_start": da, "daa_zuwachs": db - da, "fenster_sek": round(tb - ta, 3)})
     return bps, db
 
 
@@ -1958,6 +1966,8 @@ def messwerte_fuer_log(form, w, geb=None):
         aus["blockrate_sek"] = BLOCKRATE_SEK
     if daa is not None:
         aus["daa"] = daa
+    if bps is not None and w.get("bps") is None and _ROH:
+        aus.update(_ROH)
     if geb:
         aus["gebuehren"] = geb
     return aus
@@ -2416,6 +2426,16 @@ def selbsttest():
         messwerte_fuer_log(10, {"circ": 1, "max": 2}) == {"bps": 10.16, "daa": 553000000,
                                                           "blockrate_sek": BLOCKRATE_SEK})[1])
     _BLOCKRATE.clear()
+    _BLOCKRATE.update({"bps": 9.962, "daa": 571410020})
+    _ROH.update({"daa_start": 571404042, "daa_zuwachs": 5978, "fenster_sek": 600.074})
+    ok("frischer lauf legt die rohzahl samt echtem fenster ab",
+       messwerte_fuer_log(10, {"circ": 1, "max": 2}) == {
+           "bps": 9.962, "daa": 571410020, "blockrate_sek": BLOCKRATE_SEK,
+           "daa_start": 571404042, "daa_zuwachs": 5978, "fenster_sek": 600.074})
+    ok("gespeicherte messung (--aus) bekommt keine fremde rohzahl",
+       "daa_zuwachs" not in messwerte_fuer_log(4, FAKE[4]))
+    _BLOCKRATE.clear()
+    _ROH.clear()
     ok("nichts gemessen, nichts im log", messwerte_fuer_log(10, {"circ": 1, "max": 2}) == {})
     ok("ein eintrag mit messwerten bleibt einer je tag", (lambda lg: (
         log_eintragen(lg, {"datum": "2026-10-10", "form": 5, "messwerte": {"fees": 1.0}}),
