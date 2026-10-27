@@ -11,7 +11,8 @@ Auftrag von Ben vom 26.10.2026, neue Frist Do 29.10.2026 18:00 Berlin (SEO-Auftr
 ## Was gemacht wurde
 - **#168, selbst gemergt als 103e040:**
   - Die Tagesgrafik schreibt ab ihrem nächsten Lauf die gezählte Rohzahl ins Log, als `daa_zuwachs`, dazu `daa_start` und das echte Fenster `fenster_sek`.
-  - Damit gibt es ab Mi 28.10.2026 jeden Tag eine echte gezählte Zahl für dieses Format.
+  - Gemessen wird die Blockrate aber nur, wenn Form 4 läuft, das war zweimal in 30 Tagen. Deshalb druckt `m_blockrate` die Rohzahl zusätzlich ins Job-Log, das kam mit diesem PR.
+  - Ein Handlauf der Tagesgrafik mit Form 4 und `senden=false` misst damit 600 s lang, verschickt nichts und schreibt die gezählte Zahl ins Job-Log.
 - **`scripts/suchbild_reel.py`, Generator mit Selbsttest:**
   - **Zahl:**
     - `--lauf JJJJ-MM-TT` liest die Rohzahl aus dem Log. Fehlt sie, bricht er ab, ohne zu rechnen.
@@ -39,7 +40,7 @@ Auftrag von Ben vom 26.10.2026, neue Frist Do 29.10.2026 18:00 Berlin (SEO-Auftr
 - Generator und dieser Bericht, PR folgt
 
 ## Offene Fragen an Ben
-1. **Welche Zahl?** Vorschlag: die gezählte Rohzahl aus dem Tagesgrafik-Lauf vom Mi 28.10.2026. Text und Dateiname tragen dann dieses Datum statt 6 oct 2026. Wenn du zustimmst, baue ich Reel und Karussell sofort nach dem Lauf und liefere bis Do 29.10. 18:00. Der Posttermin wäre dann frühestens Do 29.10.
+1. **Welche Zahl?** Vorschlag: eine neue gezählte Rohzahl aus einem Handlauf der Tagesgrafik mit Form 4 und `senden=false`. Der Lauf misst 600 s und verschickt nichts. Text und Dateiname tragen dann dessen Datum statt 6 oct 2026. Wenn du zustimmst, starte ich den Lauf, baue Reel und Karussell und liefere bis Do 29.10. 18:00. Der Posttermin wäre frühestens Do 29.10.
 2. Oder hast du die Rohzahl vom 06.10. noch irgendwo, zum Beispiel aus dem Artefakt oder einem Screenshot des Laufs? Dann reicht `--rohzahl N --fenster 600.3 --datum 2026-10-06`.
 
 ## Was Ben tun muss
