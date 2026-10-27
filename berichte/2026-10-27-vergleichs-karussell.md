@@ -45,7 +45,7 @@ Auftrag von Ben vom 27.10.2026.
 - Secret-Scan sauber.
 
 ## PR-Nummern
-PRNR
+- #162, Generator, Muster-Karussell, Halloween-Post und dieser Bericht
 
 ## Offene Fragen an Ben
 1. **Fotos:** Sollen die Objekte später doch freigestellte Fotos aus offenen Archiven werden? Das ginge von einem Rechner mit Netz, Register und Ablauf stehen in `docs/vergleichs-karussell/README.md`.
