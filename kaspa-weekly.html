@@ -24,27 +24,107 @@
 <script type="application/ld+json">
 {
  "@context": "https://schema.org",
- "@type": "WebPage",
- "name": "Kaspa Weekly, the Numbers From Every Weekly Close",
- "description": "The numbers behind every Kaspa weekly close, no targets. The close against the 21 and 50 week averages, KAS in satoshis and the price bands, every Monday.",
- "url": "https://kaspapulse.com/kaspa-weekly.html",
- "inLanguage": "en",
- "dateModified": "2026-10-26",
- "isPartOf": {
-  "@type": "WebSite",
-  "name": "Kaspa Pulse",
-  "url": "https://kaspapulse.com/"
- },
- "publisher": {
-  "@type": "Organization",
-  "name": "Kaspa Pulse",
-  "url": "https://kaspapulse.com/"
- }
+ "@graph": [
+  {
+   "@type": "WebPage",
+   "@id": "https://kaspapulse.com/kaspa-weekly.html",
+   "name": "Kaspa Weekly, the Numbers From Every Weekly Close",
+   "description": "The numbers behind every Kaspa weekly close, no targets. The close against the 21 and 50 week averages, KAS in satoshis and the price bands, every Monday.",
+   "url": "https://kaspapulse.com/kaspa-weekly.html",
+   "inLanguage": "en",
+   "dateModified": "2026-10-26",
+   "isPartOf": {
+    "@type": "WebSite",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   },
+   "publisher": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   }
+  },
+  {
+   "@type": "Article",
+   "headline": "Kaspa Weekly, the Numbers From Every Weekly Close",
+   "description": "The numbers behind every Kaspa weekly close, no targets. The close against the 21 and 50 week averages, KAS in satoshis and the price bands, every Monday.",
+   "mainEntityOfPage": "https://kaspapulse.com/kaspa-weekly.html",
+   "url": "https://kaspapulse.com/kaspa-weekly.html",
+   "inLanguage": "en",
+   "dateModified": "2026-10-26",
+   "image": "https://kaspapulse.com/og-card.png",
+   "author": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   },
+   "publisher": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   }
+  },
+  {
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {
+     "@type": "ListItem",
+     "position": 1,
+     "name": "Kaspa Pulse",
+     "item": "https://kaspapulse.com/"
+    },
+    {
+     "@type": "ListItem",
+     "position": 2,
+     "name": "Kaspa Weekly, the Numbers From Every Weekly Close",
+     "item": "https://kaspapulse.com/kaspa-weekly.html"
+    }
+   ]
+  },
+  {
+   "@type": "Dataset",
+   "name": "Kaspa Pulse weekly numbers",
+   "description": "The weekly Kaspa numbers of the Kaspa Pulse newsletter, hashrate, block reward, emission, share mined, layer 2 TVL, fees, holders and exchange balances, one row per week since August 2026.",
+   "url": "https://kaspapulse.com/kaspa-weekly.html",
+   "dateModified": "2026-10-26",
+   "creator": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   },
+   "publisher": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   },
+   "measurementTechnique": "one reading per week from the sources named in each issue, counted, source or computed as stated there",
+   "variableMeasured": [
+    "hashrate",
+    "block reward",
+    "emission",
+    "share mined",
+    "TVL",
+    "chain fees",
+    "holders",
+    "exchange balances"
+   ],
+   "temporalCoverage": "2026-08-03/..",
+   "distribution": [
+    {
+     "@type": "DataDownload",
+     "encodingFormat": "application/json",
+     "contentUrl": "https://kaspapulse.com/data/weekly-history.json"
+    }
+   ]
+  }
+ ]
 }
 </script>
 <!--/AUTO:seo-kopf-->
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="preload" href="/graphics/fonts/archivo-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/graphics/fonts/archivo-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/graphics/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/rahmen.css">
 <style>
   :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --amber:#E8B04B; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }

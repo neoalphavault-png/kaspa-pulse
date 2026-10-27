@@ -24,27 +24,71 @@
 <script type="application/ld+json">
 {
  "@context": "https://schema.org",
- "@type": "WebPage",
- "name": "Kaspa Mining Explained, What It Takes and What It Pays",
- "description": "Kaspa is mined by kHeavyHash ASICs. Today's hashrate, the current block reward, an expected earnings calculator and three traps in every calculator.",
- "url": "https://kaspapulse.com/kaspa-mining.html",
- "inLanguage": "en",
- "dateModified": "2026-10-24",
- "isPartOf": {
-  "@type": "WebSite",
-  "name": "Kaspa Pulse",
-  "url": "https://kaspapulse.com/"
- },
- "publisher": {
-  "@type": "Organization",
-  "name": "Kaspa Pulse",
-  "url": "https://kaspapulse.com/"
- }
+ "@graph": [
+  {
+   "@type": "WebPage",
+   "@id": "https://kaspapulse.com/kaspa-mining.html",
+   "name": "Kaspa Mining Explained, What It Takes and What It Pays",
+   "description": "Kaspa is mined by kHeavyHash ASICs. Today's hashrate, the current block reward, an expected earnings calculator and three traps in every calculator.",
+   "url": "https://kaspapulse.com/kaspa-mining.html",
+   "inLanguage": "en",
+   "dateModified": "2026-10-27",
+   "isPartOf": {
+    "@type": "WebSite",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   },
+   "publisher": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   }
+  },
+  {
+   "@type": "Article",
+   "headline": "Kaspa Mining Explained, What It Takes and What It Pays",
+   "description": "Kaspa is mined by kHeavyHash ASICs. Today's hashrate, the current block reward, an expected earnings calculator and three traps in every calculator.",
+   "mainEntityOfPage": "https://kaspapulse.com/kaspa-mining.html",
+   "url": "https://kaspapulse.com/kaspa-mining.html",
+   "inLanguage": "en",
+   "dateModified": "2026-10-27",
+   "image": "https://kaspapulse.com/og-card.png",
+   "author": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   },
+   "publisher": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   }
+  },
+  {
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {
+     "@type": "ListItem",
+     "position": 1,
+     "name": "Kaspa Pulse",
+     "item": "https://kaspapulse.com/"
+    },
+    {
+     "@type": "ListItem",
+     "position": 2,
+     "name": "Kaspa Mining Explained, What It Takes and What It Pays",
+     "item": "https://kaspapulse.com/kaspa-mining.html"
+    }
+   ]
+  }
+ ]
 }
 </script>
 <!--/AUTO:seo-kopf-->
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="preload" href="/graphics/fonts/archivo-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/graphics/fonts/archivo-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/graphics/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/rahmen.css">
 <style>
   :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
@@ -79,6 +123,11 @@
   h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
   h1 b { color:var(--teal); }
   .sub { font-size:16px; color:var(--dim); line-height:24px; }
+  .kurzfakt { font-size:15px; line-height:22px; color:var(--txt); margin:0 0 14px; padding:10px 14px; border-left:3px solid var(--teal); background:var(--card); border-radius:0 10px 10px 0; }
+  .kurzfakt b { color:var(--teal); font-variant-numeric:tabular-nums; }
+  .mzahlen table { width:100%; }
+  .mzahlen td small { display:block; color:var(--dimmer); font-size:12.5px; line-height:17px; margin-top:3px; font-weight:400; }
+  .mzahlen td b { font-variant-numeric:tabular-nums; }
   h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin:60px 0 14px; }
   h2::before { content:""; display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--teal); margin-right:11px; vertical-align:5px; }
   h3 { font-size:16px; font-weight:700; margin:26px 0 7px; color:var(--txt); }
@@ -204,16 +253,20 @@
 <!--/AUTO:rahmen-kopf-->
 <div class="wrap">
 
-  <h1>Mining Kaspa, explained. <b>What it takes, what it pays, with today's numbers.</b></h1>
-  <div class="sub">Most mining guides sell you hardware or hide the math. This page does neither. It shows how Kaspa mining actually works, what a given hashrate earns today, and the three traps in every profitability calculator.</div>
+  <h1>Mining Kaspa, explained. <b>What it takes, what it pays, with dated numbers.</b></h1>
+  <p class="kurzfakt"><!--AUTO:kurzfakt--><b>4.78 KAS</b> a day for 1 TH/s of kHeavyHash on 27 October 2026 at 19:42 UTC, computed from the block reward of 2.0602 KAS and a network hashrate of 372.5 PH/s, source the Kaspa REST API<!--/AUTO:kurzfakt--></p>
+  <div class="sub">Most mining guides sell you hardware or hide the math. This page does neither. It shows how Kaspa mining actually works, what a given hashrate earns, and the three traps in every profitability calculator.</div>
 
   <div class="answer">
     <div class="lbl">The short answer</div>
-    <p>Kaspa is mined with <b>purpose-built ASICs</b> running kHeavyHash. GPU and CPU mining stopped being competitive when the first ASICs arrived in <b>2023</b>. Rewards are paid per block at <b>10 blocks per second</b>, the block reward falls about <b>5.6% every month</b> by fixed schedule, and every miner's expected income is simple arithmetic, your share of the network's hashrate times the coins minted per day. That arithmetic runs below with today's figures.</p>
+    <p>Kaspa is mined with <b>purpose-built ASICs</b> running kHeavyHash. GPU and CPU mining stopped being competitive when the first ASICs arrived in <b>2023</b>. Rewards are paid per block at <b>10 blocks per second</b>, the block reward falls about <b>5.6% every month</b> by fixed schedule, and every miner's expected income is simple arithmetic, your share of the network's hashrate times the coins minted per day. That arithmetic runs below with dated figures.</p>
   </div>
 
+  <h2>Kaspa mining in numbers</h2>
+  <div class="mzahlen"><!--AUTO:mining-zahlen--><table><thead><tr><th>Kaspa mining in numbers</th><th>Value and basis</th></tr></thead><tbody><tr><td>block reward</td><td><b>2.0602 KAS</b><small>computed from the emission schedule, until 4 November 2026 around 13:45 UTC</small></td></tr><tr><td>new KAS per day, network wide</td><td><b>1,779,989 KAS</b><small>computed, 10 blocks a second</small></td></tr><tr><td>next reward step</td><td><b>1.9445 KAS per block</b><small>computed, on 4 November 2026 around 13:45 UTC</small></td></tr><tr><td>network hashrate</td><td><b>372.5 PH/s</b><small>source the Kaspa REST API, 27 October 2026 at 19:42 UTC</small></td></tr><tr><td>KAS per day for 1 TH/s</td><td><b>4.78 KAS</b><small>computed from the two rows above, before pool fees and electricity</small></td></tr></tbody></table><!--/AUTO:mining-zahlen--></div>
+
   <div class="live">
-    <div class="lbl"><i></i>The mining economy · today</div>
+    <div class="lbl"><i></i>The mining economy · at page load</div>
     <div class="big" id="mBig">—</div>
     <div class="cap" id="mCap">fetching from the kaspa network…</div>
     <div class="split">
@@ -231,10 +284,10 @@
     </div>
     <div class="out">
       <div><div class="v" id="oShare">—</div><div class="k">your share of the current network</div></div>
-      <div><div class="v" id="oKas">—</div><div class="k">expected KAS per day at today's reward</div></div>
+      <div><div class="v" id="oKas">—</div><div class="k">expected KAS per day at the current reward</div></div>
       <div><div class="v" id="oBlocks">—</div><div class="k">expected blocks found per day</div></div>
     </div>
-    <div class="fine">pure protocol arithmetic against today's network hashrate and the current reward. before pool fees, before electricity, and the reward drops about 5.6% every month. this is the starting point every honest calculation shares, not a profit promise.</div>
+    <div class="fine">pure protocol arithmetic against the network hashrate at page load and the current reward. before pool fees, before electricity, and the reward drops about 5.6% every month. this is the starting point every honest calculation shares, not a profit promise.</div>
   </div>
   <div class="note">Everything above is computed on every page load, from the public Kaspa API and the fixed emission schedule. Nothing is hardcoded.</div>
 </div>
@@ -245,7 +298,7 @@
     <li><b>The algorithm is kHeavyHash</b>, Kaspa's own proof-of-work. It is mined by dedicated ASIC machines, the KS series from several manufacturers. CPUs mined the earliest blocks after the 2021 launch, GPUs followed, and ASICs ended both eras in 2023.</li>
     <li><b>Blocks come every tenth of a second.</b> Since the Crescendo upgrade in 2025, Kaspa produces 10 blocks per second, hundreds of thousands of reward events per day, spread across all miners.</li>
     <li><b>Difficulty adjusts continuously</b>, block by block, so the network absorbs hashrate swings without long disruptions.</li>
-    <li><b>The reward falls monthly.</b> About 5.6% per step, halving every 12 months. The full schedule, with today's value, is on <a href="/kaspa-halving.html">the Kaspa halving, explained</a>. Any payback calculation that ignores this is fiction.</li>
+    <li><b>The reward falls monthly.</b> About 5.6% per step, halving every 12 months. The full schedule, with the value by date, is on <a href="/kaspa-halving.html">the Kaspa halving, explained</a>. Any payback calculation that ignores this is fiction.</li>
     <li><b>Merged mining pays a bonus.</b> Networks like ZKas reuse the same kHeavyHash work, so a Kaspa miner can earn a second coin for the same electricity, without taking anything from Kaspa. The mechanism is explained in <a href="/merged-mining.html">merged mining, explained</a>.</li>
   </ul>
 
@@ -269,10 +322,10 @@
   <p>The protocol side of mining income, the part this page computes, is exact. The profit side depends on your power cost, and that single number swings the result from great to hopeless. A machine that prints money at 4 cents per kWh loses money at 20. No online calculator knows your tariff; treat every "daily profit" figure as someone else's electricity bill.</p>
 
   <h3>2. Today's reward is not next quarter's reward</h3>
-  <p>Kaspa's emission falls on a fixed monthly schedule. Over a one-year payback horizon the block reward halves, so a calculator using today's reward for month twelve overstates late income by up to half. Serious payback math applies the schedule, which is public and exact.</p>
+  <p>Kaspa's emission falls on a fixed monthly schedule. Over a one-year payback horizon the block reward halves, so a calculator using the current reward for month twelve overstates late income by up to half. Serious payback math applies the schedule, which is public and exact.</p>
 
   <h3>3. Network hashrate is not standing still</h3>
-  <p>Your share of the network is the figure above, as of today. Every new machine that comes online dilutes it, and hashrate tends to follow price with a lag, as explained in <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a>. Assume the denominator grows; be pleasantly surprised if it does not.</p>
+  <p>Your share of the network is the figure above, for the hashrate you entered. Every new machine that comes online dilutes it, and hashrate tends to follow price with a lag, as explained in <a href="/kaspa-hashrate.html">kaspa hashrate, explained</a>. Assume the denominator grows; be pleasantly surprised if it does not.</p>
 </div>
 
 <div class="band"><div class="wrap2">
@@ -280,7 +333,7 @@
   <div class="facts">
     <div class="fact"><div class="v teal">Your power price</div><div class="l">the dominant variable in every outcome, so know your all-in cost per kWh before comparing machines</div></div>
     <div class="fact"><div class="v teal">Efficiency, not hashrate</div><div class="l">joules per terahash decides who survives each monthly reward step, and newer generations squeeze out older ones</div></div>
-    <div class="fact"><div class="v teal">The emission schedule</div><div class="l">public, exact and falling, so run payback math against the declining curve, never against today's reward alone</div></div>
+    <div class="fact"><div class="v teal">The emission schedule</div><div class="l">public, exact and falling, so run payback math against the declining curve, never against the current reward alone</div></div>
     <div class="fact"><div class="v red">Resale reality</div><div class="l">a kHeavyHash ASIC mines kaspa and nothing else. If mining stops paying, the hardware has no second life</div></div>
   </div>
 
@@ -294,7 +347,7 @@
   <h3>Can you still GPU mine Kaspa?</h3>
   <p>Technically yes, economically no. Since kHeavyHash ASICs arrived in 2023, GPU mining earns a negligible share of rewards relative to its electricity cost. Competitive Kaspa mining requires ASIC hardware.</p>
   <h3>How much does a Kaspa miner earn per day?</h3>
-  <p>Expected income is your hashrate divided by the total network hashrate, times the coins minted per day. This page computes it from the public Kaspa API and the fixed emission schedule. Note that the block reward falls about 5.6% every month, and profit further depends on your electricity price and pool fees.</p>
+  <p>On 27 October 2026 at 19:42 UTC, 1 TH/s of kHeavyHash earned about 4.78 KAS a day before pool fees and electricity, computed from the block reward of 2.0602 KAS and a network hashrate of 372.5 PH/s, source the Kaspa REST API. The reward falls about 5.6% every month, the next step is on 4 November 2026.</p>
   <h3>Is solo mining Kaspa viable?</h3>
   <p>More viable than on most chains. Kaspa produces about 864,000 blocks per day, so even a modest share of network hashrate expects multiple block finds daily, and variance is mild compared to Bitcoin's 144 blocks per day. Pools remain the common choice for convenience and smoothing, but on Kaspa they are not a mathematical necessity at moderate scale.</p>
   <h3>What is the merged mining bonus for Kaspa miners?</h3>
@@ -342,7 +395,7 @@
 </section>
 <!--/AUTO:rahmen-kanaele-->
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 24 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 27 October 2026<!--/AUTO:seitenstand--></div>
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
@@ -359,32 +412,50 @@
     {
       "@type": "Question",
       "name": "How do you mine Kaspa?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Kaspa is mined with dedicated ASIC machines running the kHeavyHash algorithm, typically pointed at a mining pool. Rewards are paid per block at 10 blocks per second. GPU and CPU mining stopped being competitive after ASICs arrived in 2023." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Kaspa is mined with dedicated ASIC machines running the kHeavyHash algorithm, typically pointed at a mining pool. Rewards are paid per block at 10 blocks per second. GPU and CPU mining stopped being competitive after ASICs arrived in 2023."
+      }
     },
     {
       "@type": "Question",
       "name": "Can you still GPU mine Kaspa?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Technically yes, economically no. Since kHeavyHash ASICs arrived in 2023, GPU mining earns a negligible share of rewards relative to its electricity cost. Competitive Kaspa mining requires ASIC hardware." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Technically yes, economically no. Since kHeavyHash ASICs arrived in 2023, GPU mining earns a negligible share of rewards relative to its electricity cost. Competitive Kaspa mining requires ASIC hardware."
+      }
     },
     {
       "@type": "Question",
       "name": "How much does a Kaspa miner earn per day?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Expected income is your hashrate divided by the total network hashrate, times the coins minted per day. This page computes it from the public Kaspa API and the fixed emission schedule. Note that the block reward falls about 5.6% every month, and profit further depends on your electricity price and pool fees." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "On 27 October 2026 at 19:42 UTC, 1 TH/s of kHeavyHash earned about 4.78 KAS a day before pool fees and electricity, computed from the block reward of 2.0602 KAS and a network hashrate of 372.5 PH/s, source the Kaspa REST API. The reward falls about 5.6% every month, the next step is on 4 November 2026."
+      }
     },
     {
       "@type": "Question",
       "name": "Is solo mining Kaspa viable?",
-      "acceptedAnswer": { "@type": "Answer", "text": "More viable than on most chains. Kaspa produces about 864,000 blocks per day, so even a modest share of network hashrate expects multiple block finds daily, and variance is mild compared to Bitcoin's 144 blocks per day. Pools remain the common choice for convenience and smoothing, but on Kaspa they are not a mathematical necessity at moderate scale." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "More viable than on most chains. Kaspa produces about 864,000 blocks per day, so even a modest share of network hashrate expects multiple block finds daily, and variance is mild compared to Bitcoin's 144 blocks per day. Pools remain the common choice for convenience and smoothing, but on Kaspa they are not a mathematical necessity at moderate scale."
+      }
     },
     {
       "@type": "Question",
       "name": "What is the merged mining bonus for Kaspa miners?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Merged-mined networks such as ZKas accept the same kHeavyHash work Kaspa miners already produce, so a miner can earn a second network's coin for the same electricity, provided their pool submits the work to both chains. No hashrate leaves Kaspa in the process." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Merged-mined networks such as ZKas accept the same kHeavyHash work Kaspa miners already produce, so a miner can earn a second network's coin for the same electricity, provided their pool submits the work to both chains. No hashrate leaves Kaspa in the process."
+      }
     },
     {
       "@type": "Question",
       "name": "Is Kaspa mining profitable in 2026?",
-      "acceptedAnswer": { "@type": "Answer", "text": "It depends almost entirely on your electricity price and hardware efficiency. The calculator on this page shows expected earnings at the current network hashrate, block reward and price. Two structural facts belong in any answer. The block reward falls about 5.6% every month on a fixed schedule, and only current-generation kHeavyHash ASICs with cheap power stay ahead of that curve. A payback calculation that ignores the monthly reward cuts overstates the result." }
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It depends almost entirely on your electricity price and hardware efficiency. The calculator on this page shows expected earnings at the current network hashrate, block reward and price. Two structural facts belong in any answer. The block reward falls about 5.6% every month on a fixed schedule, and only current-generation kHeavyHash ASICs with cheap power stay ahead of that curve. A payback calculation that ignores the monthly reward cuts overstates the result."
+      }
     }
   ]
 }

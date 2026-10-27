@@ -24,27 +24,104 @@
 <script type="application/ld+json">
 {
  "@context": "https://schema.org",
- "@type": "WebPage",
- "name": "Kaspa Covenant Count, Is the Toccata Hard Fork Being Used?",
- "description": "Toccata gave Kaspa covenants on 30 June 2026. This page counts covenant transactions per day and the covenant UTXO stock, logged daily from Kaspalytics.",
- "url": "https://kaspapulse.com/kaspa-covenants.html",
- "inLanguage": "en",
- "dateModified": "2026-10-26",
- "isPartOf": {
-  "@type": "WebSite",
-  "name": "Kaspa Pulse",
-  "url": "https://kaspapulse.com/"
- },
- "publisher": {
-  "@type": "Organization",
-  "name": "Kaspa Pulse",
-  "url": "https://kaspapulse.com/"
- }
+ "@graph": [
+  {
+   "@type": "WebPage",
+   "@id": "https://kaspapulse.com/kaspa-covenants.html",
+   "name": "Kaspa Covenant Count, Is the Toccata Hard Fork Being Used?",
+   "description": "Toccata gave Kaspa covenants on 30 June 2026. This page counts covenant transactions per day and the covenant UTXO stock, logged daily from Kaspalytics.",
+   "url": "https://kaspapulse.com/kaspa-covenants.html",
+   "inLanguage": "en",
+   "dateModified": "2026-10-26",
+   "isPartOf": {
+    "@type": "WebSite",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   },
+   "publisher": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   }
+  },
+  {
+   "@type": "Article",
+   "headline": "Kaspa Covenant Count, Is the Toccata Hard Fork Being Used?",
+   "description": "Toccata gave Kaspa covenants on 30 June 2026. This page counts covenant transactions per day and the covenant UTXO stock, logged daily from Kaspalytics.",
+   "mainEntityOfPage": "https://kaspapulse.com/kaspa-covenants.html",
+   "url": "https://kaspapulse.com/kaspa-covenants.html",
+   "inLanguage": "en",
+   "dateModified": "2026-10-26",
+   "image": "https://kaspapulse.com/og-card.png",
+   "author": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   },
+   "publisher": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   }
+  },
+  {
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {
+     "@type": "ListItem",
+     "position": 1,
+     "name": "Kaspa Pulse",
+     "item": "https://kaspapulse.com/"
+    },
+    {
+     "@type": "ListItem",
+     "position": 2,
+     "name": "Kaspa Covenant Count, Is the Toccata Hard Fork Being Used?",
+     "item": "https://kaspapulse.com/kaspa-covenants.html"
+    }
+   ]
+  },
+  {
+   "@type": "Dataset",
+   "name": "Kaspa layer 1 covenant activity, daily",
+   "description": "Covenant transactions, covenant outputs created and spent, and unspent covenant outputs on Kaspa layer 1 per day since the Toccata hard fork, source kaspalytics, logged by Kaspa Pulse.",
+   "url": "https://kaspapulse.com/kaspa-covenants.html",
+   "dateModified": "2026-10-26",
+   "creator": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   },
+   "publisher": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   },
+   "measurementTechnique": "daily readings of the kaspalytics covenant endpoints, one row per UTC day",
+   "variableMeasured": [
+    "covenant transactions",
+    "covenant outputs created",
+    "covenant outputs spent",
+    "unspent covenant outputs"
+   ],
+   "temporalCoverage": "2026-06-26/..",
+   "isBasedOn": "https://www.kaspalytics.com/",
+   "distribution": [
+    {
+     "@type": "DataDownload",
+     "encodingFormat": "application/json",
+     "contentUrl": "https://kaspapulse.com/data/covenants-log.json"
+    }
+   ]
+  }
+ ]
 }
 </script>
 <!--/AUTO:seo-kopf-->
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="preload" href="/graphics/fonts/archivo-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/graphics/fonts/archivo-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/graphics/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/rahmen.css">
 <style>
   :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --amber:#E8B04B; --red:#E36A6A; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }

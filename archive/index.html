@@ -25,22 +25,64 @@
 <script type="application/ld+json">
 {
  "@context": "https://schema.org",
- "@type": "WebPage",
- "name": "Kaspa Pulse Archive, Every Monday Reading",
- "description": "Every Kaspa Pulse monday reading since 13 jul 2026, newest first. The number of the week and each step, every number with its date and source.",
- "url": "https://kaspapulse.com/archive/",
- "inLanguage": "en",
- "dateModified": "2026-10-26",
- "isPartOf": {
-  "@type": "WebSite",
-  "name": "Kaspa Pulse",
-  "url": "https://kaspapulse.com/"
- },
- "publisher": {
-  "@type": "Organization",
-  "name": "Kaspa Pulse",
-  "url": "https://kaspapulse.com/"
- }
+ "@graph": [
+  {
+   "@type": "WebPage",
+   "@id": "https://kaspapulse.com/archive/",
+   "name": "Kaspa Pulse Archive, Every Monday Reading",
+   "description": "Every Kaspa Pulse monday reading since 13 jul 2026, newest first. The number of the week and each step, every number with its date and source.",
+   "url": "https://kaspapulse.com/archive/",
+   "inLanguage": "en",
+   "dateModified": "2026-10-26",
+   "isPartOf": {
+    "@type": "WebSite",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   },
+   "publisher": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   }
+  },
+  {
+   "@type": "Article",
+   "headline": "Kaspa Pulse Archive, Every Monday Reading",
+   "description": "Every Kaspa Pulse monday reading since 13 jul 2026, newest first. The number of the week and each step, every number with its date and source.",
+   "mainEntityOfPage": "https://kaspapulse.com/archive/",
+   "url": "https://kaspapulse.com/archive/",
+   "inLanguage": "en",
+   "dateModified": "2026-10-26",
+   "image": "https://kaspapulse.com/og-card.png",
+   "author": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   },
+   "publisher": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   }
+  },
+  {
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {
+     "@type": "ListItem",
+     "position": 1,
+     "name": "Kaspa Pulse",
+     "item": "https://kaspapulse.com/"
+    },
+    {
+     "@type": "ListItem",
+     "position": 2,
+     "name": "Kaspa Pulse Archive, Every Monday Reading",
+     "item": "https://kaspapulse.com/archive/"
+    }
+   ]
+  }
+ ]
 }
 </script>
 <!--/AUTO:seo-kopf-->
