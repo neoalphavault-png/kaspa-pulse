@@ -5,4 +5,5 @@ t0=2026-10-29T19:00:00Z
 ende=2026-10-29T20:00:00Z
 gezaehlt=19:03-19:14,19:23-19:34,19:43-19:59
 # Familie 0 (KNS) wird nie gezaehlt. ntp.csv von desk, mini, box zu T0-2h,
-# T0-5min und END+1min. Jede MINER-Zeile markiert ihre Minute.
+# T0-5min und END+1min (17:00, 18:55, 20:01). Bleibt STP bei anderen Zeiten,
+# hier eintragen, etwa ntp=16:00,17:55,19:01. Jede MINER-Zeile markiert ihre Minute.

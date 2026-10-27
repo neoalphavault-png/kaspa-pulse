@@ -219,6 +219,7 @@ def lauf_lesen(pfad):
             werte[k.strip()] = v.strip()
     t0, ende = ms(werte["t0"]), ms(werte["ende"])
     tag = werte["t0"][:10]
+    lauf_lesen.ntp = [ms("%sT%s:00Z" % (tag, x.strip())) for x in werte.get("ntp", "").split(",") if x.strip()]
     gez = set()
     for teil in werte.get("gezaehlt", "").split(","):
         if not teil.strip():
@@ -417,14 +418,13 @@ def ntp_lesen(ordner, etikett):
     return aus
 
 
-def ntp_pruefen(ntp, von_ms):
+def ntp_pruefen(ntp, von_ms, punkte_ms=None):
     """je Maschine (desk, mini, box) und Messpunkt (T0-2h, T0-5min,
     END+1min, bei T0 18:00 also 16:00, 17:55, 19:01 UTC) die naechste Messung im Abstand bis NTP_SPIEL_MIN; fehlt eine,
     steht sie unter fehlt."""
     aus, fehlt = {}, []
     for mas in NTP_MASCHINEN:
-        for rel in NTP_PUNKTE_MIN:
-            soll = von_ms + rel * 60000
+        for soll in (punkte_ms or [von_ms + rel * 60000 for rel in NTP_PUNKTE_MIN]):
             pkt = dt.datetime.fromtimestamp(soll / 1000, dt.timezone.utc).strftime("%H:%M")
             kandidaten = []
             for x in ntp:
@@ -631,7 +631,7 @@ def mempool_lesen(ordner):
 
 
 def zusammensetzen(zaehlung, stp, submit, von_ms, bis_ms, mempool="", plan="keiner", miner_aussage="",
-                   gezaehlt=None):
+                   gezaehlt=None, ntp_punkte=None):
     etikett = Etiketten()
     kom, tx = zaehlung_lesen(zaehlung)
     fam = familien_aus(kom)
@@ -763,7 +763,7 @@ def zusammensetzen(zaehlung, stp, submit, von_ms, bis_ms, mempool="", plan="kein
     zus["f0_nicht_trennbar"] = [r["minute_utc"][11:16] for r in aus if r["zaehlminute"] and r["stp_f0_trennbar"] == 0]
     ntp = ntp_lesen(stp, etikett)
     zus["uhrversatz_stp"] = ntp
-    zus["ntp_pruefung"] = ntp_pruefen(ntp, von_ms)
+    zus["ntp_pruefung"] = ntp_pruefen(ntp, von_ms, ntp_punkte)
     werte = [abs(x["offset_ms"]) for x in ntp if x["offset_ms"] is not None]
     zus["uhrversatz_max_ms"] = max(werte) if werte else ""
     zus["mempool_nach_end_stp"] = post_end_lesen(stp, etikett)
@@ -1188,6 +1188,15 @@ def selbsttest_lauf(ok, schreib):
            and zus["zaehlminuten_quelle"] == "lauf-datei")
         with open(lf, "w", encoding="utf-8") as fh:
             fh.write("t0=2026-10-29T19:00:00Z\nende=2026-10-29T20:00:00Z\ngezaehlt=20:03-20:14\n")
+        with open(lf, "w", encoding="utf-8") as fh:
+            fh.write("t0=2026-10-29T19:00:00Z\nende=2026-10-29T20:00:00Z\nntp=16:00,17:55,19:01\n")
+        lauf_lesen(lf)
+        alt = [{"utc": "2026-10-29T%s:00Z" % p, "maschine": m, "offset_ms": 5} for m in NTP_MASCHINEN
+               for p in ("16:00", "17:55", "19:01")]
+        ok("ntp-zeiten aus der laufdatei", ntp_pruefen(alt, t0b, lauf_lesen.ntp)["vollstaendig"]
+           and not ntp_pruefen(alt, t0b)["vollstaendig"])
+        with open(lf, "w", encoding="utf-8") as fh:
+            fh.write("t0=2026-10-29T19:00:00Z\nende=2026-10-29T20:00:00Z\ngezaehlt=20:03-20:14\n")
         try:
             lauf_lesen(lf)
             ok("minute ausserhalb des fensters bricht ab", False)
@@ -1221,12 +1230,13 @@ def main(argv=None):
             print("abbruch: %s" % exc, file=sys.stderr)
             return 2
         return 0
-    gez = None
+    gez, ntp_punkte = None, None
     if a.lauf:
         von, bis, gez = lauf_lesen(a.lauf)
+        ntp_punkte = lauf_lesen.ntp or None
     else:
         von, bis = ms(a.fenster[0]), ms(a.fenster[1])
-    aus, zus = zusammensetzen(a.zaehlung, a.stp, a.submit, von, bis, a.mempool, a.plan, a.miner_aussage, gez)
+    aus, zus = zusammensetzen(a.zaehlung, a.stp, a.submit, von, bis, a.mempool, a.plan, a.miner_aussage, gez, ntp_punkte)
     schreiben(a.out, aus, zus)
     print("minuten %d, im fenster %d, gueltig %d, submit-zeiten %d" % (
         len(aus), zus["minuten_im_fenster"], zus["gueltige_minuten"], zus["submit_zeiten"]))
