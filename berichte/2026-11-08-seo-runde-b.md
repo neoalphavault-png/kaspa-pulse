@@ -75,7 +75,15 @@ KCC-1, KCC-2 und KCC-20 stehen seit dem 21.10.2026 im Repository kaspanet/kccs a
 ## PR-Nummern
 - #172, KCC-20 final, selbst gemergt
 - #171, Workflow `seiten-zahlen.yml` mit Halving und Mining, wartet auf Ben
-- dieser PR, folgt
+- #173, Priorität B, selbst gemergt
+
+## Selbst-Merge und Abnahme
+- **#173 als a64b399, 27.10.2026.** Abnahme auf der echten URL:
+  - Die Wallet-Tabelle mit KCC-20-Spalte ist live.
+  - BreadcrumbList steht auf allen geprüften Unterseiten, Dataset auf Hashrate und Supply.
+  - Der Preload von Archivo 800 ist überall drin.
+  - /balance leitet auf kaspa-wallets.html.
+  - Lighthouse mobil live: Halving 100 Punkte, CLS 0.001, entity-x CLS 0.085, alle fünf Seiten im Ziel.
 
 ## Offene Fragen an Ben
 1. **/balance:** Ich leite auf die Wallet-Seite, weil die Suche nach einem Kontostand am ehesten dorthin passt. Wenn /balance früher etwas anderes war, sag mir das Ziel.
