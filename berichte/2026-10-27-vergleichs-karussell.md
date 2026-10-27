@@ -47,9 +47,69 @@ Auftrag von Ben vom 27.10.2026.
 ## PR-Nummern
 - #162, Generator, Muster-Karussell, Halloween-Post und dieser Bericht
 
+## Selbst-Merge
+- **#162:** Merge-Commit 28b9d31.
+  - **Live:** die 9 Bilder unter kaspapulse.com/ig/vergleich/.
+  - **Abnahme auf der echten URL:** alle 9 mit 200, image/jpeg, gleiche Dateigröße wie im Repo.
+
 ## Offene Fragen an Ben
 1. **Fotos:** Sollen die Objekte später doch freigestellte Fotos aus offenen Archiven werden? Das ginge von einem Rechner mit Netz, Register und Ablauf stehen in `docs/vergleichs-karussell/README.md`.
 2. **Nächste Ausgabe:** Welche gezählte Zahl kommt als nächste in dieses Format? Ideen sind Gebühren je Tag, Adressen ab 100 KAS oder Covenants.
 
 ## Was Ben tun muss
-Steht im Discord-Paket, das nach dem Merge geht.
+Steht im Discord-Abschnitt unten, er geht beim Push dieses Branches nach #moderator-only.
+
+<!-- discord -->
+**Neues Format „Kaspa in Zahlen, zum Anfassen“ und Halloween, Lieferung 27.10.2026**
+- **Karussell „how fast is kaspa, really?“:** 8 Folien aus unserer Zählung vom 21 oct 2026 (9.962 Blöcke je Sekunde über 600 s).
+- **Halloween für 31.10.:** 99,903 KAS weniger neues Angebot je Tag ab 4 nov 2026.
+- **Geprüft:** Zahlen gegen die Daten, Textwache und Bildwache grün, bei 390 px lesbar.
+- **Zwei Korrekturen:**
+  - Die große 10 auf Folie 2 ist die Protokollrate, gezählt sind 9.962.
+  - Bitcoin-Maßstab: 1 gegen 5,977.
+- PR #162, selbst gemergt. Bericht: berichte/2026-10-27-vergleichs-karussell.md
+<!-- teil -->
+📤 VON HAND, 1 von 2: **Karussell posten** (Termin nach deiner Wahl)
+Die 8 Bilder in dieser Reihenfolge laden, je Link lange drücken und sichern:
+1. https://kaspapulse.com/ig/vergleich/vergleich-2026-10-21-01.jpg
+2. https://kaspapulse.com/ig/vergleich/vergleich-2026-10-21-02.jpg
+3. https://kaspapulse.com/ig/vergleich/vergleich-2026-10-21-03.jpg
+4. https://kaspapulse.com/ig/vergleich/vergleich-2026-10-21-04.jpg
+5. https://kaspapulse.com/ig/vergleich/vergleich-2026-10-21-05.jpg
+6. https://kaspapulse.com/ig/vergleich/vergleich-2026-10-21-06.jpg
+7. https://kaspapulse.com/ig/vergleich/vergleich-2026-10-21-07.jpg
+8. https://kaspapulse.com/ig/vergleich/vergleich-2026-10-21-08.jpg
+<!-- teil -->
+📤 VON HAND, Caption zum Karussell, zum Kopieren:
+```
+how fast is kaspa, really? we counted 9.962 blocks per second on 21 oct 2026 over 600 seconds.
+
+which everyday moment should we count next?
+
+counted by kaspa pulse, every other number computed from that count. protocol rate 10 per second since the crescendo upgrade on 5 may 2025.
+
+Weekly Kaspa numbers in our newsletter, link in bio.
+
+#kaspa #kas #blockdag #proofofwork #crypto
+
+what would you compare it with?
+```
+<!-- teil -->
+📤 VON HAND, 2 von 2: **Halloween-Post am Sa 31.10.2026**
+Bild:
+https://kaspapulse.com/ig/vergleich/halloween-2026-10-31-01.jpg
+Caption zum Kopieren:
+```
+the scariest kaspa number this month, 99,903 KAS less new supply every day from 4 nov 2026.
+
+did you know the cut was this close?
+
+daily emission steps down from 1,779,989 to 1,680,086 KAS on 4 nov 2026. computed from the emission schedule.
+
+Weekly Kaspa numbers in our newsletter, link in bio.
+
+#kaspa #kas #halloween #proofofwork #blockdag
+
+what is your scariest kaspa number?
+```
+<!-- /discord -->
