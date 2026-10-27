@@ -1,7 +1,7 @@
 {
   "netz": "zcash mainnet",
   "quelle": "eigene header ueber p2p",
-  "abruf_utc": "2026-10-26T11:18:42Z",
+  "abruf_utc": "2026-10-27T10:42:57Z",
   "peer_software": [
     "/Zebra:7.0.0/",
     "/Zakura:1.7.0/"
@@ -28,22 +28,22 @@
   "nu7_hoehe": 3543405,
   "bereich": {
     "von_hoehe": 3489717,
-    "bis_hoehe": 3531205,
+    "bis_hoehe": 3532330,
     "von_utc": "2026-09-20 06:59:07",
-    "bis_utc": "2026-10-26 11:17:22",
-    "bloecke": 41489
+    "bis_utc": "2026-10-27 10:39:37",
+    "bloecke": 42614
   },
   "vor_nu7": {
-    "abstaende": 41488,
+    "abstaende": 42613,
     "gezaehlt": {
-      "mittel_s": 75.34,
-      "median_s": 53.0,
+      "mittel_s": 75.33,
+      "median_s": 53,
       "p90_s": 172.0,
-      "p99_s": 349.0,
+      "p99_s": 348.9,
       "laengste_luecke_s": 930,
       "laengste_luecke_vor_block": 3524451,
       "laengste_luecke_utc": "2026-10-20 14:01:05",
-      "anteil_ueber_3T_prozent": 5.1,
+      "anteil_ueber_3T_prozent": 5.06,
       "anteil_ueber_T_ln1000_prozent": 0.113,
       "negativ": 0
     },
@@ -53,13 +53,13 @@
       "median_s": 52.0,
       "p90_s": 172.7,
       "p99_s": 345.4,
-      "laengste_luecke_s": 841,
+      "laengste_luecke_s": 843,
       "anteil_ueber_3T_prozent": 4.98,
       "anteil_ueber_T_ln1000_prozent": 0.1
     },
     "bereich": {
       "von_hoehe": 3489718,
-      "bis_hoehe": 3531205
+      "bis_hoehe": 3532330
     },
     "je_woche": [
       {
@@ -100,27 +100,27 @@
       },
       {
         "woche": "2026-W44",
-        "abstaende": 540,
-        "mittel_s": 75.28,
-        "median_s": 50.0
+        "abstaende": 1665,
+        "mittel_s": 74.95,
+        "median_s": 53
       }
     ]
   },
   "vorhersage": {
     "zielhoehe": 3543405,
-    "fehlend": 12200,
-    "spitze_hoehe": 3531205,
-    "spitze_utc": "2026-10-26 11:17:22",
+    "fehlend": 11075,
+    "spitze_hoehe": 3532330,
+    "spitze_utc": "2026-10-27 10:39:37",
     "tempo_fenster_tage": 14,
-    "tempo_mittel_s": 75.32,
-    "tagesmittel_min_s": 74.9,
+    "tempo_mittel_s": 75.31,
+    "tagesmittel_min_s": 74.8,
     "tagesmittel_max_s": 76.0,
-    "gezaehltes_tempo_utc": "2026-11-06 02:31:40",
-    "median_utc": "2026-11-06 02:34:42",
-    "band_5_utc": "2026-11-05 22:46:16",
-    "band_95_utc": "2026-11-06 06:19:32",
-    "band_breite_h": 7.6,
-    "berechnet_75s_utc": "2026-11-06 01:27:22",
+    "gezaehltes_tempo_utc": "2026-11-06 02:20:34",
+    "median_utc": "2026-11-06 02:22:42",
+    "band_5_utc": "2026-11-05 22:45:15",
+    "band_95_utc": "2026-11-06 05:59:06",
+    "band_breite_h": 7.2,
+    "berechnet_75s_utc": "2026-11-06 01:23:22",
     "zakura_schaetzung_utc": "2026-11-06 00:50:00",
     "methode": "tempo 14 volle utc-tage, bootstrap ueber tagesmittel, gamma(n, tempo), 20000 ziehungen, seed 2027"
   }
