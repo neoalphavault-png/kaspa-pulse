@@ -14,6 +14,27 @@ Der Rat an STP kam am 26.10. zweimal in #moderator-only. Der Branch `bericht/wee
 4. **Kopfzeile:** Die Zahl in "Bitte die folgenden N Nachrichten" wird aus der fertigen Liste der folgenden Nachrichten gezählt, bei einer Nachricht heißt es "die folgende Nachricht". Die 7 vom 26.10. war schon gezählt und stimmte, beide Berichte hatten 7 Teile nach der Kopfzeile. Neu ist, dass ein Selbsttest die Zahl gegen die wirklich folgenden Nachrichten prüft.
 5. **Merkdatei vorbelegt:** `ops/bericht-gesendet` trägt schon die drei Abschnitte, die am 26.10. rausgingen: STP-Rat (zweimal, von beiden Branches) und Weekly-Verteilung. Die Uhrzeit steht dort nicht, ich habe sie nicht gemerkt. In der Datei stehen nur Branch, Pfad, Prüfsumme und Datum.
 
+## Nachtrag 27.10., vor dem Merge
+
+Bens Vorgaben vom 27.10. sind umgesetzt. Neuer Kopf des Codes: Commit eb9e453 auf `fix/bericht-discord-einmal`. Danach folgt nur noch dieser Bericht.
+
+- **Rebase:** Der Branch liegt auf main 641fcdc und enthält den Fix von gestern aus #157: `kaspapulse.com` ist erlaubt, Unterdomains bleiben gesperrt. Der Rebase lief ohne Konflikt.
+- **Job `senden`:** `contents: read`, der Webhook steht nur im Sendeschritt. Hat der Lauf etwas gesendet, geht die Merkdatei als Artefakt `bericht-gesendet-<lauf>` weiter, 3 Tage aufbewahrt.
+- **Job `merken`:** `contents: write`, ohne Secret. Er läuft nur, wenn der Sendejob neue Einträge gemeldet hat. Er prüft die Merkdatei mit `--merk-pruefen`: erlaubt sind nur Branch, Pfad unter `berichte/`, sha256, Zeit und ein kurzer Hinweis. Danach pusht er nur auf `ops/bericht-gesendet`.
+- **Abgleich mit main:** Vor dem Versand holt der Sendejob `origin/main`. Weichen `.github/workflows/bericht-discord.yml` oder `scripts/bericht_discord.py` davon ab, bricht er ab und sendet nichts. Ein Branch mit geändertem Sendecode kann also nie senden.
+
+Geprüft:
+- Selbsttest grün, darunter neue Fälle für ungültige Merkdateien: fremde Felder, Pfad außerhalb `berichte/`, falsche Prüfsumme, IP im Hinweis.
+- `--merk-pruefen` auf die echte Merkdatei von `ops/bericht-gesendet`: gültig.
+- Lokal gegen ein Test-Repo ausprobiert:
+  - Bei gleichem Stand wie main läuft der Versand weiter.
+  - Bei abweichendem Skript bricht der Sendejob ab.
+  - Der Job `merken` legt die Merkdatei zweimal hintereinander richtig ab.
+  - Eine Merkdatei mit einem Pfad unter `scripts/` lehnt er ab.
+- Secret-Scan des Diffs ohne Fund.
+
+Bis zum Merge bricht der neue Workflow auf jedem `bericht/`-Branch ab, weil main noch den alten Stand trägt. Nach dem Merge sind beide gleich.
+
 ## Eigener Fehler beim Rebase
 
 Der Force-Push hat den Weekly-Bericht noch einmal nach #moderator-only geschickt, am 26.10. um 19:36 UTC, 8 Nachrichten ([Lauf 40388259035](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/40388259035)). Vorher hatte ich den Workflow von main durchgespielt, aber in meiner lokalen Kopie. Dort gab es den alten Stand des Branches noch. Im Runner war er nach dem Force-Push nicht mehr erreichbar. Deshalb nahm der alte Workflow den Weg für einen neuen Branch, verglich mit dem letzten Commit und sendete ohne Vergleich mit dem alten Stand. Mit diesem PR wäre das nicht passiert: Der Abschnitt steht mit seiner Prüfsumme in der Merkdatei, ein Rebase sendet ihn nicht erneut. Bis zum Merge pushe ich nichts mehr auf `bericht/`-Branches.
