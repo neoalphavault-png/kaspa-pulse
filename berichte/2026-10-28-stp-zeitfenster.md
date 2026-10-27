@@ -24,10 +24,10 @@ Für den Parser ändert keiner der beiden Punkte etwas. Er zählt die Covenant-F
 
 ## Was gemacht wurde
 
-Auf `messung/tn10-zaehler`, Commit 2f5043c. Dieser Branch wird nie gemergt.
+Auf `messung/tn10-zaehler`, Commits 2f5043c und a089a32. Dieser Branch wird nie gemergt.
 
 - **Laufdatei `messung/tn10/lauf-2026-10-29.txt`:** Dort stehen `t0=2026-10-29T19:00:00Z`, `ende=2026-10-29T20:00:00Z` und `gezaehlt=19:03-19:14,19:23-19:34,19:43-19:59`. Der Parser liest sie mit `--lauf`. Schickt STP andere Minuten, gilt seine Liste. Dann ändere ich nur diese eine Zeile und melde mich. Die Zusammenfassung des Parsers vermerkt, ob die Liste vom Plan abweicht.
-- **Parser:** Schritte, Pausen und NTP-Punkte rechnet er ab T0. Der Selbsttest prüft die Laufdatei: T0 19:00, END 20:00 und genau die 41 Minuten oben. Er prüft auch, dass eine abweichende Liste von STP gilt und dass eine Minute außerhalb des Fensters abbricht. 69 Prüfungen grün.
+- **Parser:** Schritte, Pausen und NTP-Punkte rechnet er ab T0. Der Selbsttest prüft die Laufdatei: T0 19:00, END 20:00 und genau die 41 Minuten oben. Er prüft auch, dass eine abweichende Liste von STP gilt und dass eine Minute außerhalb des Fensters abbricht. Die NTP-Zeiten können dort mit `ntp=` stehen, falls STP sie nicht verschiebt. 70 Prüfungen grün.
 
 ## Startzeiten der Zählläufe (UTC)
 
