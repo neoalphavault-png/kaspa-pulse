@@ -378,6 +378,28 @@
      "verhaeltnis": 693.01
     }
    }
+  },
+  {
+   "datum": "2026-10-27",
+   "form": 11,
+   "grund": "rotation, 2 laeufe in 30 tagen, zahl des tages emission_vs_btc (vorab gerechnet), uebersprungen [5, 7]",
+   "messzeit_utc": "2026-10-27T06:30:44+00:00",
+   "looks": {
+    "instagram": "hell",
+    "threads": "teal",
+    "x": "teal",
+    "discord": "teal"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-09-27",
+     "bis": "2026-10-26",
+     "fees": 79250.92450634,
+     "emission": 54260800.367516406,
+     "verhaeltnis": 684.67
+    }
+   }
   }
  ]
 }
