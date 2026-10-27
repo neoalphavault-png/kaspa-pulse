@@ -51,6 +51,57 @@ BILD_ALT = "Kaspa Pulse, on-chain numbers for Kaspa"
 BILDER = {
     "for-builders.html": ("og-builders.png", "Find out what breaks on Kaspa before your users do. Kaspa Pulse"),
 }
+# Strukturierte Daten (SEO-Runde v2, Ben 27.10.2026). Jede Unterseite traegt
+# neben WebPage ein Article mit dateModified und eine BreadcrumbList. Seiten
+# mit einer Datenreihe, die wir fuehren, tragen zusaetzlich ein Dataset mit
+# Methode und, wo es die Datei gibt, dem Link auf die Rohdaten im Repo.
+# FAQPage steht weiter direkt in der Seite (seo_faq.py).
+DATASETS = {
+    "kaspa-hashrate.html": {
+        "name": "Kaspa network hashrate, daily means",
+        "description": "Daily means and 7-day means of the Kaspa network hashrate in PH/s, read once a day from the "
+                       "hashrate history of the public Kaspa REST API and written into the page with the reading date.",
+        "measurementTechnique": "daily mean of the hashrate history of the Kaspa REST API, 7-day mean over the day "
+                                "and the 6 days before it",
+        "variableMeasured": "network hashrate in PH/s",
+        "isBasedOn": "https://api.kaspa.org/info/hashrate/history",
+    },
+    "kaspa-supply.html": {
+        "name": "Kaspa addresses by balance threshold",
+        "description": "Kaspa addresses with any balance, with a meaningful balance and above 0.01, 1 and 100 KAS, "
+                       "one snapshot per day since 27 August 2023, source kaspalytics, logged by Kaspa Pulse.",
+        "measurementTechnique": "daily snapshots of the kaspalytics address count and threshold charts, merged into "
+                                "one series, break in the any-balance series between 24 and 28 September 2023",
+        "variableMeasured": ["addresses with any balance", "addresses with a meaningful balance",
+                             "addresses with 0.01 KAS or more", "addresses with 1 KAS or more",
+                             "addresses with 100 KAS or more"],
+        "temporalCoverage": "2023-08-27/..",
+        "isBasedOn": "https://www.kaspalytics.com/",
+        "daten": "data/address-thresholds-log.json",
+    },
+    "kaspa-covenants.html": {
+        "name": "Kaspa layer 1 covenant activity, daily",
+        "description": "Covenant transactions, covenant outputs created and spent, and unspent covenant outputs on "
+                       "Kaspa layer 1 per day since the Toccata hard fork, source kaspalytics, logged by Kaspa Pulse.",
+        "measurementTechnique": "daily readings of the kaspalytics covenant endpoints, one row per UTC day",
+        "variableMeasured": ["covenant transactions", "covenant outputs created", "covenant outputs spent",
+                             "unspent covenant outputs"],
+        "temporalCoverage": "2026-06-26/..",
+        "isBasedOn": "https://www.kaspalytics.com/",
+        "daten": "data/covenants-log.json",
+    },
+    "kaspa-weekly.html": {
+        "name": "Kaspa Pulse weekly numbers",
+        "description": "The weekly Kaspa numbers of the Kaspa Pulse newsletter, hashrate, block reward, emission, "
+                       "share mined, layer 2 TVL, fees, holders and exchange balances, one row per week since August 2026.",
+        "measurementTechnique": "one reading per week from the sources named in each issue, counted, source or "
+                                "computed as stated there",
+        "variableMeasured": ["hashrate", "block reward", "emission", "share mined", "TVL", "chain fees", "holders",
+                             "exchange balances"],
+        "temporalCoverage": "2026-08-03/..",
+        "daten": "data/weekly-history.json",
+    },
+}
 STAND = "data/seiten-stand.json"
 AUSGENOMMEN = {"utm-test.html"}
 MONATE = ["January", "February", "March", "April", "May", "June", "July", "August", "September",
@@ -141,6 +192,36 @@ def attr(x):
     return htmlmod.escape(x, quote=True)
 
 
+def schema(t, d, u, iso, datei, bild):
+    """WebPage, dazu fuer Unterseiten Article und BreadcrumbList, fuer Seiten
+    mit eigener Datenreihe ein Dataset. Die Startseite bleibt WebPage."""
+    org = {"@type": "Organization", "name": "Kaspa Pulse", "url": BASIS}
+    seite = {"@type": "WebPage", "@id": u, "name": t, "description": d, "url": u, "inLanguage": "en",
+             "dateModified": iso, "isPartOf": {"@type": "WebSite", "name": "Kaspa Pulse", "url": BASIS},
+             "publisher": org}
+    if datei == "index.html":
+        return dict({"@context": "https://schema.org"}, **{k: v for k, v in seite.items() if k != "@id"})
+    teile = [seite,
+             {"@type": "Article", "headline": t[:110], "description": d, "mainEntityOfPage": u, "url": u,
+              "inLanguage": "en", "dateModified": iso, "image": bild, "author": org, "publisher": org},
+             {"@type": "BreadcrumbList", "itemListElement": [
+                 {"@type": "ListItem", "position": 1, "name": "Kaspa Pulse", "item": BASIS},
+                 {"@type": "ListItem", "position": 2, "name": t, "item": u}]}]
+    ds = DATASETS.get(datei)
+    if ds:
+        x = {"@type": "Dataset", "name": ds["name"], "description": ds["description"], "url": u,
+             "dateModified": iso, "creator": org, "publisher": org,
+             "measurementTechnique": ds["measurementTechnique"], "variableMeasured": ds["variableMeasured"]}
+        for k in ("temporalCoverage", "isBasedOn"):
+            if ds.get(k):
+                x[k] = ds[k]
+        if ds.get("daten"):
+            x["distribution"] = [{"@type": "DataDownload", "encodingFormat": "application/json",
+                                  "contentUrl": BASIS + ds["daten"]}]
+        teile.append(x)
+    return {"@context": "https://schema.org", "@graph": teile}
+
+
 def kopf_block(s, datei, iso):
     t, d, u = titel(s), beschreibung(s), url(datei)
     bild, alt = BILDER.get(datei, (None, BILD_ALT))
@@ -162,10 +243,7 @@ def kopf_block(s, datei, iso):
               '<meta name="twitter:image" content="%s">' % bild,
               '<meta name="twitter:image:alt" content="%s">' % attr(alt)]
         if iso:
-            ld = {"@context": "https://schema.org", "@type": "WebPage", "name": t, "description": d, "url": u,
-                  "inLanguage": "en", "dateModified": iso,
-                  "isPartOf": {"@type": "WebSite", "name": "Kaspa Pulse", "url": BASIS},
-                  "publisher": {"@type": "Organization", "name": "Kaspa Pulse", "url": BASIS}}
+            ld = schema(t, d, u, iso, datei, bild)
             js = json.dumps(ld, ensure_ascii=False, indent=1).replace("</", "<\\/")
             z.append('<script type="application/ld+json">\n%s\n</script>' % js)
     return "<!--AUTO:seo-kopf-->\n%s\n<!--/AUTO:seo-kopf-->" % "\n".join(z)
@@ -437,6 +515,20 @@ def selbsttest():
     ok("sitemap lastmod", "<lastmod>2026-10-05</lastmod>" in nx and "<lastmod>2026-10-06</lastmod>" in nx)
     ok("sitemap luecken", sitemap_luecken(xml, ["index.html", "b.html"]) ==
        (["https://kaspapulse.com/b.html"], ["https://kaspapulse.com/a.html"]))
+    kd = json.loads(re.search(r"(?s)ld\+json\">\n(.*?)\n</script>", kopf(n, "kaspa-supply.html", "2026-10-27")).group(1))
+    typen = [x["@type"] for x in kd["@graph"]]
+    ok("unterseite mit webpage, article, breadcrumb und dataset", typen == ["WebPage", "Article", "BreadcrumbList",
+                                                                          "Dataset"])
+    dsx = kd["@graph"][3]
+    ok("dataset mit methode, zeitraum und json-link", dsx["distribution"][0]["contentUrl"]
+       == BASIS + "data/address-thresholds-log.json" and dsx["temporalCoverage"] == "2023-08-27/.."
+       and len(dsx["description"]) >= 50)
+    ok("article mit dateModified und bild", kd["@graph"][1]["dateModified"] == "2026-10-27"
+       and kd["@graph"][1]["image"].endswith("og-card.png"))
+    ki = json.loads(re.search(r"(?s)ld\+json\">\n(.*?)\n</script>", kopf(n, "index.html", "2026-10-27")).group(1))
+    ok("startseite bleibt webpage", ki["@type"] == "WebPage" and "@graph" not in ki)
+    ok("datasets zeigen auf dateien, die es gibt", all((REPO / v["daten"]).is_file()
+                                                       for v in DATASETS.values() if v.get("daten")))
     ok("schema ohne </ im json", "<\\/" in kopf_block(n.replace("A &amp; B.", "x</script>y"), "x.html", "2026-10-06"))
     print("%d fehler" % len(f))
     return 1 if f else 0

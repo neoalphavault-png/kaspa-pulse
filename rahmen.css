@@ -14,6 +14,13 @@
 
 @font-face{font-family:Archivo;font-weight:800;font-display:swap;src:url(/graphics/fonts/archivo-latin-800-normal.woff2) format("woff2")}
 @font-face{font-family:Archivo;font-weight:900;font-display:swap;src:url(/graphics/fonts/archivo-latin-900-normal.woff2) format("woff2")}
+/* Ersatz fuer Archivo, bis die Webschrift da ist (SEO-Runde v2, 27.10.2026).
+   Archivo 900 laeuft rund 10 % breiter als Arial fett, Archivo 800 rund 3 %.
+   Die H1 der Unterseiten steht auf 700 und nimmt damit die 800. Ohne Ausgleich brach
+   die H1 anders um und schob die Seite beim Schrifttausch (CLS 0.17 auf
+   kaspa-halving, Lighthouse mobil). */
+@font-face{font-family:"Archivo Ersatz";font-weight:800;size-adjust:103.4%;src:local("Arial Bold"),local("Arial-BoldMT"),local("Liberation Sans Bold"),local("LiberationSans-Bold"),local("Roboto Bold"),local("Roboto-Bold")}
+@font-face{font-family:"Archivo Ersatz";font-weight:900;size-adjust:110%;src:local("Arial Bold"),local("Arial-BoldMT"),local("Liberation Sans Bold"),local("LiberationSans-Bold"),local("Roboto Bold"),local("Roboto-Bold")}
 @font-face{font-family:"IBM Plex Mono";font-weight:400;font-display:swap;src:url(/graphics/fonts/ibm-plex-mono-latin-400-normal.woff2) format("woff2")}
 @font-face{font-family:"IBM Plex Mono";font-weight:500;font-display:swap;src:url(/graphics/fonts/ibm-plex-mono-latin-500-normal.woff2) format("woff2")}
 @font-face{font-family:"IBM Plex Sans";font-weight:400;font-display:swap;src:url(/graphics/fonts/ibm-plex-sans-latin-400-normal.woff2) format("woff2")}
@@ -45,7 +52,7 @@ html:root[data-theme="dark"]{
 }
 
 html body{font-family:"IBM Plex Sans",system-ui,sans-serif;background-color:var(--bg);color:var(--txt);overflow-x:hidden}
-html body h1,html body h2,html body h3{font-family:Archivo,"IBM Plex Sans",sans-serif}
+html body h1,html body h2,html body h3{font-family:Archivo,"Archivo Ersatz","IBM Plex Sans",sans-serif}
 html{scroll-padding-top:72px}
 
 /* Diagramme, die Skripte oder Generatoren mit festen Farben zeichnen

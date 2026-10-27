@@ -48,6 +48,14 @@ MARKE = ("<!--AUTO:rahmen-marke-->", "<!--/AUTO:rahmen-marke-->")
 CSS_LINK = '<link rel="stylesheet" href="/rahmen.css">'
 FONT_PRELOAD = ('<link rel="preload" href="/graphics/fonts/archivo-latin-900-normal.woff2" as="font" '
                 'type="font/woff2" crossorigin>')
+# Die Fliesstextschrift auch vorab laden (SEO-Runde v2, Ben 27.10.2026):
+# Lighthouse mobil mass auf kaspa-halving CLS 0.17, fast alles aus dem
+# Tausch der Ersatzschrift gegen IBM Plex Sans im Einleitungsabsatz. Die H1
+# der Unterseiten steht auf 700 und nimmt Archivo 800, also auch die vorab.
+PLEX_PRELOAD = ('<link rel="preload" href="/graphics/fonts/archivo-latin-800-normal.woff2" as="font" '
+                'type="font/woff2" crossorigin>\n'
+                '<link rel="preload" href="/graphics/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" '
+                'type="font/woff2" crossorigin>')
 JS = '<script src="/rahmen.js" defer></script>'
 
 # feste werte der alten, nur dunklen seiten und ihre variable in rahmen.css
@@ -201,6 +209,8 @@ def anwenden(s, datei, js=None):
     if CSS_LINK not in s:
         i = s.index("<style")
         s = s[:i] + FONT_PRELOAD + "\n" + CSS_LINK + "\n" + s[i:]
+    if PLEX_PRELOAD not in s and FONT_PRELOAD in s:
+        s = s.replace(FONT_PRELOAD, FONT_PRELOAD + "\n" + PLEX_PRELOAD, 1)
     if JS not in s:
         if '<script src="/capture.js"' in s:
             s = s.replace('<script src="/capture.js"', JS + '\n<script src="/capture.js"', 1)

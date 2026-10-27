@@ -210,6 +210,34 @@ def halving_faq(h):
     }
 
 
+def mining_daten(ph, wann_dt, h):
+    """Die Mining-Zahlen fest im HTML: Reward je Block und Emission je Tag aus
+    dem Emissionsplan (computed), Netz-Hashrate aus der REST-API (source), und
+    was 1 TH/s davon am Tag bekommt (computed aus beidem)."""
+    import weekly_facts as wf
+    je_tag = wf.emission_je_tag(h["vorher"])
+    pro_th = je_tag / (ph * 1000)
+    wann = "%s at %s UTC" % (datum(wann_dt.isoformat()), wann_dt.strftime("%H:%M"))
+    zeile = "<tr><td>%s</td><td><b>%s</b><small>%s</small></td></tr>"
+    tab = ("<table><thead><tr><th>Kaspa mining in numbers</th><th>Value and basis</th></tr></thead><tbody>%s"
+           "</tbody></table>" % "".join(zeile % z for z in (
+               ("block reward", "%.4f KAS" % h["vorher"], "computed from the emission schedule, until %s"
+                % halving_wann(h)),
+               ("new KAS per day, network wide", "%s KAS" % ganz(je_tag), "computed, 10 blocks a second"),
+               ("next reward step", "%.4f KAS per block" % h["nachher"], "computed, on %s" % halving_wann(h)),
+               ("network hashrate", "%.1f PH/s" % ph, "source the Kaspa REST API, %s" % wann),
+               ("KAS per day for 1 TH/s", "%.2f KAS" % pro_th,
+                "computed from the two rows above, before pool fees and electricity"))))
+    fakt = ("<b>%.2f KAS</b> a day for 1 TH/s of kHeavyHash on %s, computed from the block reward of %.4f KAS and "
+            "a network hashrate of %.1f PH/s, source the Kaspa REST API" % (pro_th, wann, h["vorher"], ph))
+    faq = {"How much does a Kaspa miner earn per day?":
+           "On %s, 1 TH/s of kHeavyHash earned about %.2f KAS a day before pool fees and electricity, computed "
+           "from the block reward of %.4f KAS and a network hashrate of %.1f PH/s, source the Kaspa REST API. "
+           "The reward falls about 5.6%% every month, the next step is on %s." % (
+               wann, pro_th, h["vorher"], ph, datum(h["stufe"].isoformat()))}
+    return {"mining-zahlen": tab, "kurzfakt": fakt, "faq": faq}
+
+
 REST = "https://api.kaspa.org"
 UA = "kaspa-pulse-bot (+https://kaspapulse.com)"
 
@@ -278,7 +306,7 @@ def hashrate_html(d, wochen=8):
                     "the 7-day mean covers the day and the 6 days before it, read on %s.</p>"
                     % ("".join(reversed(tage_z)), datum(jetzt.isoformat())))
     return {"hashrate-satz": satz, "hashrate-wochen": tabelle, "hashrate-tage": tage_tab, "kurzfakt": fakt,
-            "faq": faq}
+            "faq": faq, "ph": d["ph"], "jetzt": jetzt}
 
 
 AUFGABEN = [
@@ -355,9 +383,13 @@ def main(argv=None):
             hr = None
         for name in ("hashrate-satz", "hashrate-wochen", "hashrate-tage", "kurzfakt"):
             aufgaben.append(("kaspa-hashrate.html", name, (lambda n=name: hr[n] if hr else None)))
+        mz = mining_daten(hr["ph"], hr["jetzt"], halving_daten(hr["jetzt"])) if hr else None
+        for name in ("mining-zahlen", "kurzfakt"):
+            aufgaben.append(("kaspa-mining.html", name, (lambda n=name: mz[n] if mz else None)))
     faq_aufgaben = list(FAQ_AUFGABEN)
     if "--ohne-netz" not in argv:
         faq_aufgaben.append(("kaspa-hashrate.html", lambda: hr["faq"] if hr else None))
+        faq_aufgaben.append(("kaspa-mining.html", lambda: mz["faq"] if mz else None))
     for datei, name, quelle in aufgaben:
         p = REPO / datei
         s = p.read_text(encoding="utf-8")
@@ -443,6 +475,11 @@ def selbsttest():
     ok("halving faq, beide fragen mit datum und computed",
        all("4 November 2026" in v and "computed" in v for v in hf2.values()) and "5.6%" in
        hf2["Does Kaspa have a halving?"])
+    mz = mining_daten(372.5, dt.datetime(2026, 10, 27, 19, 42, tzinfo=dt.timezone.utc), hv)
+    ok("mining, 1 TH/s am tag aus emission und hashrate", "<b>4.78 KAS</b> a day for 1 TH/s" in mz["kurzfakt"]
+       and "<b>1,779,989 KAS</b>" in mz["mining-zahlen"] and "1.9445 KAS per block" in mz["mining-zahlen"])
+    ok("mining faq mit datum, computed und source", all(x in mz["faq"]["How much does a Kaspa miner earn per day?"]
+                                                        for x in ("27 October 2026", "computed", "source")))
     ok("halter ohne daten bleibt leer", halter_fakt({"tage": []}) is None and halter_faq(None) is None)
     ok("covenant kurzfakt", covenant_fakt(log) == (
         "<b>13,760 covenant outputs</b> unspent on Kaspa layer 1 at the end of 4 October 2026, source kaspalytics"))
@@ -457,7 +494,8 @@ def selbsttest():
                                                           re.sub(r"<[^>]+>|\d\d:\d\d", "", x))
                                                for x in [h["kurzfakt"], halter_fakt(hl), covenant_fakt(log)]
                                                + list(hf.values()) + list(h["faq"].values())
-                                               + [halving_fakt(hv)] + list(hf2.values())))
+                                               + [halving_fakt(hv)] + list(hf2.values())
+                                               + [mz["kurzfakt"]] + list(mz["faq"].values())))
     ok("30 tage, ein fehlender tag faellt weg, neuester oben, mit 7-tage-mittel",
        h["hashrate-tage"].count("<tr><td>") == 29
        and h["hashrate-tage"].index("4 October 2026") < h["hashrate-tage"].index("6 September 2026")

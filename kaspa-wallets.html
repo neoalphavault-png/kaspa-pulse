@@ -24,27 +24,71 @@
 <script type="application/ld+json">
 {
  "@context": "https://schema.org",
- "@type": "WebPage",
- "name": "Kaspa Wallets for Web, iOS, Android, Desktop and Hardware",
- "description": "Each maintained Kaspa wallet by platform, checked against GitHub releases, the App Store and the community wiki. Trezor does not support Kaspa today.",
- "url": "https://kaspapulse.com/kaspa-wallets.html",
- "inLanguage": "en",
- "dateModified": "2026-10-26",
- "isPartOf": {
-  "@type": "WebSite",
-  "name": "Kaspa Pulse",
-  "url": "https://kaspapulse.com/"
- },
- "publisher": {
-  "@type": "Organization",
-  "name": "Kaspa Pulse",
-  "url": "https://kaspapulse.com/"
- }
+ "@graph": [
+  {
+   "@type": "WebPage",
+   "@id": "https://kaspapulse.com/kaspa-wallets.html",
+   "name": "Kaspa Wallets for Web, iOS, Android, Desktop and Hardware",
+   "description": "Each maintained Kaspa wallet by platform, checked against GitHub releases, the App Store and the community wiki. Trezor does not support Kaspa today.",
+   "url": "https://kaspapulse.com/kaspa-wallets.html",
+   "inLanguage": "en",
+   "dateModified": "2026-10-27",
+   "isPartOf": {
+    "@type": "WebSite",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   },
+   "publisher": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   }
+  },
+  {
+   "@type": "Article",
+   "headline": "Kaspa Wallets for Web, iOS, Android, Desktop and Hardware",
+   "description": "Each maintained Kaspa wallet by platform, checked against GitHub releases, the App Store and the community wiki. Trezor does not support Kaspa today.",
+   "mainEntityOfPage": "https://kaspapulse.com/kaspa-wallets.html",
+   "url": "https://kaspapulse.com/kaspa-wallets.html",
+   "inLanguage": "en",
+   "dateModified": "2026-10-27",
+   "image": "https://kaspapulse.com/og-card.png",
+   "author": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   },
+   "publisher": {
+    "@type": "Organization",
+    "name": "Kaspa Pulse",
+    "url": "https://kaspapulse.com/"
+   }
+  },
+  {
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {
+     "@type": "ListItem",
+     "position": 1,
+     "name": "Kaspa Pulse",
+     "item": "https://kaspapulse.com/"
+    },
+    {
+     "@type": "ListItem",
+     "position": 2,
+     "name": "Kaspa Wallets for Web, iOS, Android, Desktop and Hardware",
+     "item": "https://kaspapulse.com/kaspa-wallets.html"
+    }
+   ]
+  }
+ ]
 }
 </script>
 <!--/AUTO:seo-kopf-->
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="preload" href="/graphics/fonts/archivo-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/graphics/fonts/archivo-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/graphics/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/rahmen.css">
 <style>
   :root { --bg:#050608; --card:#0B0E12; --line:#1A1D21; --teal:#49EACB; --red:#E36A6A; --amber:#E3B85F; --txt:#FFFFFF; --dim:#9BA3AB; --dimmer:#7A828C; }
@@ -202,22 +246,22 @@
   <div class="sub">Some hardware links are affiliate links. They never change the order or what we write. <a href="/how-we-fund-this.html">How we fund this</a>. This page lists the Kaspa wallets that publish their code or come from a hardware vendor the community wiki names, with the facts we could check for each one and a dash where we could not.</div>
 </div>
 <div class="band"><div class="wrap2">
-  <h2>All wallets at a glance</h2>
-  <p>One row per wallet, in alphabetical order. A dash means we found no source we could check, not that the feature is missing.</p>
+  <h2 id="at-a-glance">All Kaspa wallets at a glance</h2>
+  <p>Which wallet supports Kaspa, on which platform, who holds the keys, and whether it handles KCC-20 tokens. One row per wallet, in alphabetical order. A dash means we found no source we could check, not that the feature is missing.</p>
   <div class="tblwrap"><table class="wl">
-    <thead><tr><th>Wallet</th><th>Platforms</th><th>Open source</th><th>Latest version</th><th>Seed under your control</th><th>Hardware</th><th>KRC-20 shown</th><th>Checked</th></tr></thead>
+    <thead><tr><th>Wallet</th><th>Platform</th><th>Self-custody</th><th>KCC-20 tokens</th><th>Official download</th><th>Latest version</th><th>Checked</th></tr></thead>
     <tbody>
-    <tr><td data-label="Wallet" class="n"><span class="c">Kaspa NG</span></td><td data-label="Platforms"><span class="c">web, Windows, macOS, Linux</span></td><td data-label="Open source" class="y"><span class="c"><a href="https://github.com/aspectron/kaspa-ng" target="_blank" rel="noopener">yes</a></span></td><td data-label="Latest version"><span class="c">v2.0.1, 29 Jun 2026<small>GitHub release</small></span></td><td data-label="Seed under your control" class="y"><span class="c">yes</span></td><td data-label="Hardware"><span class="c">–</span></td><td data-label="KRC-20 shown"><span class="c">–</span></td><td data-label="Checked"><span class="c">6 Oct 2026</span></td></tr>
-    <tr><td data-label="Wallet" class="n"><span class="c">Kaspium</span></td><td data-label="Platforms"><span class="c">iOS, Android</span></td><td data-label="Open source" class="y"><span class="c"><a href="https://github.com/azbuky/kaspium_wallet" target="_blank" rel="noopener">yes</a></span></td><td data-label="Latest version"><span class="c">v1.3.0, 21 Aug 2026<small>GitHub release and App Store</small></span></td><td data-label="Seed under your control" class="y"><span class="c">yes</span></td><td data-label="Hardware"><span class="c">–</span></td><td data-label="KRC-20 shown"><span class="c">–</span></td><td data-label="Checked"><span class="c">6 Oct 2026</span></td></tr>
-    <tr><td data-label="Wallet" class="n"><span class="c">KasVault</span></td><td data-label="Platforms"><span class="c">web, Chrome and Edge</span></td><td data-label="Open source" class="y"><span class="c"><a href="https://github.com/coderofstuff/kasvault" target="_blank" rel="noopener">yes</a></span></td><td data-label="Latest version"><span class="c">–<small>no releases published</small></span></td><td data-label="Seed under your control" class="y"><span class="c">yes, keys stay on the Ledger</span></td><td data-label="Hardware" class="y"><span class="c">Ledger</span></td><td data-label="KRC-20 shown"><span class="c">–</span></td><td data-label="Checked"><span class="c">6 Oct 2026</span></td></tr>
-    <tr><td data-label="Wallet" class="n"><span class="c">Kasware</span></td><td data-label="Platforms"><span class="c">browser extension</span></td><td data-label="Open source" class="y"><span class="c"><a href="https://github.com/kasware-wallet/extension" target="_blank" rel="noopener">yes</a></span></td><td data-label="Latest version"><span class="c">v0.10.0, 16 Sep 2026<small><a href="https://chromewebstore.google.com/detail/kasware-wallet/hklhheigdmpoolooomdihmhlpjjdbklf" target="_blank" rel="noopener">Chrome Web Store</a>, offered by kasware.xyz</small></span></td><td data-label="Seed under your control" class="y"><span class="c">yes</span></td><td data-label="Hardware"><span class="c">–</span></td><td data-label="KRC-20 shown" class="y"><span class="c">yes</span></td><td data-label="Checked"><span class="c">7 Oct 2026</span></td></tr>
-    <tr><td data-label="Wallet" class="n"><span class="c">Ledger, Kaspa device app</span></td><td data-label="Platforms"><span class="c">hardware, used through KasVault</span></td><td data-label="Open source" class="y"><span class="c"><a href="https://github.com/coderofstuff/app-kaspa" target="_blank" rel="noopener">yes, device app</a></span></td><td data-label="Latest version"><span class="c">installed and updated by Ledger</span></td><td data-label="Seed under your control" class="y"><span class="c">yes, on the device</span></td><td data-label="Hardware" class="y"><span class="c">yes, it is the device</span></td><td data-label="KRC-20 shown"><span class="c">–</span></td><td data-label="Checked"><span class="c">6 Oct 2026</span></td></tr>
-    <tr><td data-label="Wallet" class="n"><span class="c">OneKey</span></td><td data-label="Platforms"><span class="c">hardware plus OneKey app</span></td><td data-label="Open source" class="y"><span class="c"><a href="https://github.com/OneKeyHQ/app-monorepo" target="_blank" rel="noopener">yes, app</a></span></td><td data-label="Latest version"><span class="c">app v6.6.0, 22 Sep 2026<small>GitHub release</small></span></td><td data-label="Seed under your control" class="y"><span class="c">yes, on the device</span></td><td data-label="Hardware" class="y"><span class="c">yes, it is the device</span></td><td data-label="KRC-20 shown"><span class="c">–</span></td><td data-label="Checked"><span class="c">6 Oct 2026</span></td></tr>
-    <tr><td data-label="Wallet" class="n"><span class="c">Tangem</span></td><td data-label="Platforms"><span class="c">hardware card, app for iOS and Android</span></td><td data-label="Open source" class="y"><span class="c"><a href="https://github.com/tangem/tangem-app-ios" target="_blank" rel="noopener">app code public</a></span></td><td data-label="Latest version"><span class="c">iOS 6.3.3, 25 Sep 2026<small>App Store, Android v6.3.4, 25 Sep 2026, GitHub release</small></span></td><td data-label="Seed under your control" class="y"><span class="c">yes, on the card</span></td><td data-label="Hardware" class="y"><span class="c">yes, it is the device</span></td><td data-label="KRC-20 shown"><span class="c">–</span></td><td data-label="Checked"><span class="c">6 Oct 2026</span></td></tr>
-    <tr><td data-label="Wallet" class="n"><span class="c">Trezor</span></td><td data-label="Platforms" class="no"><span class="c">not supported</span></td><td data-label="Open source"><span class="c">–</span></td><td data-label="Latest version"><span class="c">–</span></td><td data-label="Seed under your control"><span class="c">–</span></td><td data-label="Hardware"><span class="c">–</span></td><td data-label="KRC-20 shown"><span class="c">–</span></td><td data-label="Checked"><span class="c">6 Oct 2026</span></td></tr>
+    <tr><td data-label="Wallet" class="n"><span class="c">Kaspa NG</span></td><td data-label="Platform"><span class="c">web, Windows, macOS, Linux</span></td><td data-label="Self-custody" class="y"><span class="c">yes</span></td><td data-label="KCC-20 tokens"><span class="c">no<small>not in the release notes up to v2.0.1, checked 27 Oct 2026</small></span></td><td data-label="Official download"><span class="c"><a href="https://kaspa-ng.org" target="_blank" rel="noopener">kaspa-ng.org</a><small>desktop builds on <a href="https://github.com/aspectron/kaspa-ng/releases" target="_blank" rel="noopener">GitHub</a></small></span></td><td data-label="Latest version"><span class="c">v2.0.1, 29 Jun 2026</span></td><td data-label="Checked"><span class="c">27 Oct 2026</span></td></tr>
+    <tr><td data-label="Wallet" class="n"><span class="c">Kaspium</span></td><td data-label="Platform"><span class="c">iOS, Android</span></td><td data-label="Self-custody" class="y"><span class="c">yes</span></td><td data-label="KCC-20 tokens"><span class="c">no<small>not in the release notes up to v1.3.0, checked 27 Oct 2026</small></span></td><td data-label="Official download"><span class="c"><a href="https://github.com/azbuky/kaspium_wallet/releases" target="_blank" rel="noopener">GitHub releases</a><small>and Apple's App Store</small></span></td><td data-label="Latest version"><span class="c">v1.3.0, 21 Aug 2026</span></td><td data-label="Checked"><span class="c">27 Oct 2026</span></td></tr>
+    <tr><td data-label="Wallet" class="n"><span class="c">KasVault</span></td><td data-label="Platform"><span class="c">web, Chrome and Edge, with a Ledger</span></td><td data-label="Self-custody" class="y"><span class="c">yes, keys stay on the Ledger</span></td><td data-label="KCC-20 tokens"><span class="c">no<small>no release notes published, README checked 27 Oct 2026</small></span></td><td data-label="Official download"><span class="c"><a href="https://kasvault.io" target="_blank" rel="noopener">kasvault.io</a><small>linked from its <a href="https://github.com/coderofstuff/kasvault" target="_blank" rel="noopener">GitHub repository</a></small></span></td><td data-label="Latest version"><span class="c">no releases published</span></td><td data-label="Checked"><span class="c">27 Oct 2026</span></td></tr>
+    <tr><td data-label="Wallet" class="n"><span class="c">Kasware</span></td><td data-label="Platform"><span class="c">browser extension</span></td><td data-label="Self-custody" class="y"><span class="c">yes</span></td><td data-label="KCC-20 tokens"><span class="c">no<small>shows KRC-20 tokens, KCC-20 not in its GitHub release notes, checked 27 Oct 2026</small></span></td><td data-label="Official download"><span class="c"><a href="https://chromewebstore.google.com/detail/kasware-wallet/hklhheigdmpoolooomdihmhlpjjdbklf" target="_blank" rel="noopener">Chrome Web Store</a><small>offered by kasware.xyz</small></span></td><td data-label="Latest version"><span class="c">v0.10.0, 16 Sep 2026<small>Chrome Web Store, read 7 Oct 2026</small></span></td><td data-label="Checked"><span class="c">27 Oct 2026</span></td></tr>
+    <tr><td data-label="Wallet" class="n"><span class="c">Ledger, Kaspa device app</span></td><td data-label="Platform"><span class="c">hardware, used through KasVault</span></td><td data-label="Self-custody" class="y"><span class="c">yes, on the device</span></td><td data-label="KCC-20 tokens"><span class="c">no<small>not in the KasVault README, checked 27 Oct 2026</small></span></td><td data-label="Official download"><span class="c"><a href="https://www.ledger.com/coin/wallet/kaspa" target="_blank" rel="noopener">ledger.com</a><small>device app <a href="https://github.com/coderofstuff/app-kaspa" target="_blank" rel="noopener">on GitHub</a></small></span></td><td data-label="Latest version"><span class="c">installed and updated by Ledger</span></td><td data-label="Checked"><span class="c">27 Oct 2026</span></td></tr>
+    <tr><td data-label="Wallet" class="n"><span class="c">OneKey</span></td><td data-label="Platform"><span class="c">hardware plus OneKey app</span></td><td data-label="Self-custody" class="y"><span class="c">yes, on the device</span></td><td data-label="KCC-20 tokens"><span class="c">no<small>not in the release notes up to app 6.6.3, 23 Oct 2026, checked 27 Oct 2026</small></span></td><td data-label="Official download"><span class="c"><a href="https://github.com/OneKeyHQ/app-monorepo/releases" target="_blank" rel="noopener">GitHub releases</a></span></td><td data-label="Latest version"><span class="c">app 6.6.3, 23 Oct 2026</span></td><td data-label="Checked"><span class="c">27 Oct 2026</span></td></tr>
+    <tr><td data-label="Wallet" class="n"><span class="c">Tangem</span></td><td data-label="Platform"><span class="c">hardware card, app for iOS and Android</span></td><td data-label="Self-custody" class="y"><span class="c">yes, on the card</span></td><td data-label="KCC-20 tokens"><span class="c">no<small>not in the release notes up to Android 6.5, 26 Oct 2026, checked 27 Oct 2026</small></span></td><td data-label="Official download"><span class="c"><a href="https://github.com/tangem/tangem-app-android/releases" target="_blank" rel="noopener">GitHub releases</a><small>and Apple's App Store</small></span></td><td data-label="Latest version"><span class="c">Android 6.5, 26 Oct 2026</span></td><td data-label="Checked"><span class="c">27 Oct 2026</span></td></tr>
+    <tr><td data-label="Wallet" class="n"><span class="c">Trezor</span></td><td data-label="Platform" class="no"><span class="c">not supported</span></td><td data-label="Self-custody"><span class="c">–</span></td><td data-label="KCC-20 tokens"><span class="c">–</span></td><td data-label="Official download"><span class="c"><a href="https://trezor.io/coins/detail/kaspa" target="_blank" rel="noopener">trezor.io</a><small>says it does not support Kaspa</small></span></td><td data-label="Latest version"><span class="c">–</span></td><td data-label="Checked"><span class="c">6 Oct 2026</span></td></tr>
     </tbody>
   </table></div>
-  <div class="note">Sources, all read on 6 October 2026, are the GitHub release pages linked in the table, Apple's App Store listing for Kaspium and Tangem, the community wiki's <a href="https://wiki.kaspa.org/en/wallet" target="_blank" rel="noopener">wallet list</a> for KRC-20 support and seed handling, and <a href="https://trezor.io/coins/detail/kaspa" target="_blank" rel="noopener">trezor.io</a> for Trezor. Order is alphabetical, never by commission.</div>
+  <div class="note">KCC-20 is the fungible token standard on Kaspa layer 1, final since 21 October 2026 in the kaspanet/kccs repository. A wallet counts as yes only when its own release notes or documentation say so. For every wallet in the table we read the official release notes and repositories linked above on 27 October 2026, and none mentions KCC-20 yet. Seed handling and the hardware rows come from the same sources and from the community wiki's <a href="https://wiki.kaspa.org/en/wallet" target="_blank" rel="noopener">wallet list</a>, read on 6 October 2026. Order is alphabetical, never by commission.</div>
 </div></div>
 <div class="wrap2">
   <h2>Kaspa web wallet</h2>
@@ -283,6 +327,12 @@
   </ol>
   <div class="faq">
   <h2>Questions people ask</h2>
+  <h3>Which wallets support Kaspa?</h3>
+  <p>Kaspa NG for web, Windows, macOS and Linux, Kaspium for iOS and Android, the Kasware browser extension, and the hardware wallets Ledger (through KasVault), OneKey and Tangem, as checked on 27 October 2026. Trezor does not support Kaspa. The <a href="#at-a-glance">table above</a> lists each with its platform, who holds the keys and the official download source.</p>
+  <h3>Which Kaspa wallets support KCC-20 tokens?</h3>
+  <p>None of the wallets in our table mentions KCC-20 in its official release notes as of 27 October 2026. KCC-20 became final in the kaspanet/kccs repository on 21 October 2026, so wallet support is still to come. Kasware shows the older KRC-20 tokens. What KCC-20 is, is explained on <a href="/kaspa-smart-contracts.html">does Kaspa have smart contracts?</a></p>
+  <h3>What is the best Kaspa wallet?</h3>
+  <p>It depends on the device and the amount. For a phone, Kaspium is open source and self-custodial. For a computer, Kaspa NG runs as desktop app and in the browser. For larger amounts, a hardware wallet keeps the keys off the computer, Ledger through KasVault, OneKey or Tangem. We list them alphabetically and never by commission.</p>
   <h3>Is a Kaspa web wallet safe?</h3>
   <p>It can be, for small amounts. In web mode Kaspa NG keeps the keys in your browser's local storage, so anything that can read that browser can reach them. For larger amounts a hardware wallet keeps the keys off the computer. The details are on <a href="/kaspa-web-wallet-safe.html">is a Kaspa web wallet safe?</a></p>
   <h3>Which hardware wallets support Kaspa?</h3>
@@ -336,7 +386,7 @@
 </section>
 <!--/AUTO:rahmen-kanaele-->
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 26 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 27 October 2026<!--/AUTO:seitenstand--></div>
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
@@ -349,14 +399,62 @@
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    {"@type": "Question", "name": "Is a Kaspa web wallet safe?",
-     "acceptedAnswer": {"@type": "Answer", "text": "It can be, for small amounts. In web mode Kaspa NG keeps the keys in your browser's local storage, so anything that can read that browser can reach them. For larger amounts a hardware wallet keeps the keys off the computer."}},
-    {"@type": "Question", "name": "Which hardware wallets support Kaspa?",
-     "acceptedAnswer": {"@type": "Answer", "text": "Ledger through KasVault, OneKey and Tangem, checked on 6 October 2026. The community wiki also lists Cool Wallet and the SafePal X1."}},
-    {"@type": "Question", "name": "Does Trezor support Kaspa?",
-     "acceptedAnswer": {"@type": "Answer", "text": "No. Trezor's own page says Trezor does not support Kaspa, read on 6 October 2026."}},
-    {"@type": "Question", "name": "Why does my Kaspa address keep changing?",
-     "acceptedAnswer": {"@type": "Answer", "text": "Your wallet shows a fresh receive address after each use, for privacy, and the old addresses keep working. Your balance is the sum across all of them."}}
+    {
+      "@type": "Question",
+      "name": "Which wallets support Kaspa?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Kaspa NG for web, Windows, macOS and Linux, Kaspium for iOS and Android, the Kasware browser extension, and the hardware wallets Ledger (through KasVault), OneKey and Tangem, as checked on 27 October 2026. Trezor does not support Kaspa. The table on this page lists each with its platform, who holds the keys and the official download source."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which Kaspa wallets support KCC-20 tokens?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "None of the wallets in our table mentions KCC-20 in its official release notes as of 27 October 2026. KCC-20 became final in the kaspanet/kccs repository on 21 October 2026, so wallet support is still to come. Kasware shows the older KRC-20 tokens."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the best Kaspa wallet?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It depends on the device and the amount. For a phone, Kaspium is open source and self-custodial. For a computer, Kaspa NG runs as desktop app and in the browser. For larger amounts, a hardware wallet keeps the keys off the computer, Ledger through KasVault, OneKey or Tangem. We list them alphabetically and never by commission."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is a Kaspa web wallet safe?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It can be, for small amounts. In web mode Kaspa NG keeps the keys in your browser's local storage, so anything that can read that browser can reach them. For larger amounts a hardware wallet keeps the keys off the computer."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which hardware wallets support Kaspa?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ledger through KasVault, OneKey and Tangem, checked on 6 October 2026. The community wiki also lists Cool Wallet and the SafePal X1."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Trezor support Kaspa?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Trezor's own page says Trezor does not support Kaspa, read on 6 October 2026."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my Kaspa address keep changing?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Your wallet shows a fresh receive address after each use, for privacy, and the old addresses keep working. Your balance is the sum across all of them."
+      }
+    }
   ]
 }
 </script>
