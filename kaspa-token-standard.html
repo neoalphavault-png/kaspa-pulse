@@ -29,7 +29,7 @@
  "description": "Two proposals are called KCC1. One is shared covenant vocabulary, the token spec is KCC-0020. Where each stands and why tokens on a UTXO chain are harder.",
  "url": "https://kaspapulse.com/kaspa-token-standard.html",
  "inLanguage": "en",
- "dateModified": "2026-10-24",
+ "dateModified": "2026-10-27",
  "isPartOf": {
   "@type": "WebSite",
   "name": "Kaspa Pulse",
@@ -79,6 +79,8 @@
   h1 { font-size:38px; font-weight:700; letter-spacing:-0.5px; margin:52px 0 14px; line-height:1.15; }
   h1 b { color:var(--teal); }
   .sub { font-size:16px; color:var(--dim); line-height:24px; }
+  .kurzfakt { font-size:15px; line-height:22px; color:var(--txt); margin:0 0 14px; padding:10px 14px; border-left:3px solid var(--teal); background:var(--card); border-radius:0 10px 10px 0; }
+  .kurzfakt b { color:var(--teal); }
   h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px; margin:60px 0 14px; }
   h2::before { content:""; display:inline-block; width:18px; height:4px; border-radius:2px; background:var(--teal); margin-right:11px; vertical-align:5px; }
   h3 { font-size:16px; font-weight:700; margin:26px 0 7px; color:var(--txt); }
@@ -202,21 +204,22 @@
 <!--/AUTO:rahmen-kopf-->
 <div class="wrap">
 
-  <h1>What is KCC1? <b>It is not Kaspa's token standard, and the token standard is not finished.</b></h1>
-  <div class="sub">Coins are already being minted against something called KCC1, so far on testnet only. The trouble is that two different proposals are using that name for two different things, and neither of them is merged. Here is what each one actually defines, where each stands, and why a token standard on a UTXO chain is genuinely harder than on an account-based chain.</div>
+  <h1>What is KCC1? <b>It is not Kaspa's token standard, it is the vocabulary under it, and both are final since 21 October 2026.</b></h1>
+  <div class="kurzfakt"><b>Update 21 October 2026.</b> KCC-1, KCC-2 and the fungible token standard KCC-20 advanced to Final in the kaspanet/kccs repository on 21 October 2026, source the repository's commit history. The analysis below describes the state on 14 August 2026 and stays dated, so you can see how the standard got there.</div>
+  <div class="sub">Coins are already being minted against something called KCC1, so far on testnet only. The trouble is that two different efforts used that name for two different things. Here is what each one actually defines, where each stands, and why a token standard on a UTXO chain is genuinely harder than on an account-based chain.</div>
 
   <div class="answer">
     <div class="lbl">The short answer</div>
-    <p><b>In the specification repository, KCC1 is the vocabulary, not the token.</b> KCC-0001 defines shared terminology, byte layouts and calling conventions for covenants on Kaspa, and contains no token logic at all. The fungible token standard is a <b>separate proposal, KCC-0020</b>. Both sit as open pull requests in the <code>kaspanet/kccs</code> repository, both still need at least one approving review, and neither has been merged. <b>Separately, at least one project uses the name KCC1 for its own proposed token standard</b>, which is a different thing again. That collision is covered below.</p>
+    <p><b>In the specification repository, KCC1 is the vocabulary, not the token.</b> KCC-0001 defines shared terminology, byte layouts and calling conventions for covenants on Kaspa, and contains no token logic at all. The fungible token standard is a <b>separate specification, KCC-0020</b>. Both advanced to Final in the <code>kaspanet/kccs</code> repository on 21 October 2026, together with KCC-2 for authority schemes. <b>Separately, at least one project uses the name KCC1 for its own proposed token standard</b>, which is a different thing again. That collision is covered below.</p>
   </div>
 
   <div class="live">
-    <div class="lbl"><i></i>Status of the token standard · checked 14 august 2026</div>
-    <div class="big">not ratified</div>
-    <div class="cap">both the base specification and the fungible token specification are open pull requests awaiting review</div>
+    <div class="lbl"><i></i>Status of the token standard · checked 27 october 2026</div>
+    <div class="big">final</div>
+    <div class="cap">KCC-1, KCC-2 and KCC-20 advanced to Final in the kaspanet/kccs repository on 21 october 2026</div>
     <div class="split">
-      <div><div class="v">KCC-0001</div><div class="k">the covenant vocabulary · open, no approving review</div></div>
-      <div><div class="v">KCC-0020</div><div class="k">fungible tokens · open, review requested from two maintainers</div></div>
+      <div><div class="v">KCC-0001</div><div class="k">the covenant vocabulary · final since 21 october 2026</div></div>
+      <div><div class="v">KCC-0020</div><div class="k">fungible tokens · final since 21 october 2026</div></div>
       <div><div class="v">at least 3</div><div class="k">competing or overlapping token proposals in play</div></div>
     </div>
   </div>
@@ -337,7 +340,7 @@
   <h3>Is KCC1 the Kaspa token standard?</h3>
   <p>In the kaspanet/kccs specification repository, no. KCC-0001 is the shared vocabulary and byte layout specification that token standards build on, and the fungible token standard there is a separate proposal called KCC-0020. Confusingly, at least one project uses the name KCC1 for its own proposed token standard, which is a different document. The same abbreviation points at two different things.</p>
   <h3>Is the Kaspa token standard finished?</h3>
-  <p>Not as of 14 August 2026. Both KCC-0001 and the fungible token specification KCC-0020 exist as open pull requests in the kaspanet/kccs repository. Both still require at least one approving review from a maintainer with write access before they can be merged, and the drafts have changed during review, including a switch of the default hash function from blake2b to blake3.</p>
+  <p>Yes, since 21 October 2026. KCC-1, KCC-2 and the fungible token standard KCC-20 advanced to Final in the kaspanet/kccs repository on that day. A finalized KCC marks a point the ecosystem converges on, it does not change consensus rules, and each wallet still has to add support.</p>
   <h3>Why is a token standard harder on a UTXO chain like Kaspa?</h3>
   <p>On an account-based chain a contract is a global object with persistent state and a stable callable interface, so a wallet building a transaction needs to know little about its internals. Kaspa's layer 1 is UTXO based and verification focused, so the full state transition and verification logic must be supplied inside every transaction. That means the transaction builder needs to know the specific details of each token implementation, which is why the specification also needs an exact writer recipe and not only a state layout.</p>
   <h3>How many Kaspa token proposals are there?</h3>
@@ -388,7 +391,7 @@
 </section>
 <!--/AUTO:rahmen-kanaele-->
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 24 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 27 October 2026<!--/AUTO:seitenstand--></div>
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
@@ -423,7 +426,7 @@
       "name": "Is the Kaspa token standard finished?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Not as of 14 August 2026. Both KCC-0001 and the fungible token specification KCC-0020 exist as open pull requests in the kaspanet/kccs repository. Both still require at least one approving review from a maintainer with write access before they can be merged, and the drafts have changed during review, including a switch of the default hash function from blake2b to blake3."
+        "text": "Yes, since 21 October 2026. KCC-1, KCC-2 and the fungible token standard KCC-20 advanced to Final in the kaspanet/kccs repository on that day. A finalized KCC marks a point the ecosystem converges on, it does not change consensus rules, and each wallet still has to add support."
       }
     },
     {
