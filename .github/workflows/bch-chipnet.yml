@@ -62,6 +62,19 @@ jobs:
           python3 scripts/bch/chipnet_wbch.py --koepfe data/bch-chipnet/koepfe.csv.gz --ab 2026-10-01 \
             --aus "data/bch-chipnet/wbch-$TAG.json"
 
+      # Format F (Ben, 28.10.2026): Text und zwei Grafiken nur, wenn die
+      # Commit-Nachricht "[format f]" enthaelt. Gebaut und committet wird ohne
+      # Secret; gesendet wird erst nach dem Commit in einem eigenen Schritt.
+      - name: format f bauen
+        if: contains(github.event.head_commit.message, '[format f]')
+        run: |
+          set -eu
+          pip install --quiet matplotlib pillow
+          TAG=$(date -u +%Y-%m-%d)
+          python3 scripts/bch/chipnet_format_f.py --koepfe data/bch-chipnet/koepfe.csv.gz \
+            --stand "data/bch-chipnet/stand-$TAG.json" --aus "data/bch-chipnet/format-f-$TAG"
+          { echo "## Format F, Stand $TAG"; echo '```'; cat "data/bch-chipnet/format-f-$TAG/text.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
       - name: secret-scan
         run: python3 scripts/secret_scan.py --baum
 
@@ -75,3 +88,13 @@ jobs:
           git commit -m "bch chipnet: koepfe und zaehlung [bot]"
           for v in 1 2 3; do git pull -q --rebase -X theirs origin messung/bch-chipnet-xo && git push -q origin HEAD:messung/bch-chipnet-xo && exit 0; sleep 10; done
           exit 1
+
+      - name: format f senden
+        if: contains(github.event.head_commit.message, '[format f]')
+        env:
+          DISCORD_WEBHOOK_PH_DRAFTS: ${{ secrets.DISCORD_WEBHOOK_PH_DRAFTS }}
+        run: |
+          set -eu
+          TAG=$(date -u +%Y-%m-%d)
+          python3 scripts/bch/chipnet_format_f.py --koepfe data/bch-chipnet/koepfe.csv.gz \
+            --stand "data/bch-chipnet/stand-$TAG.json" --aus "$RUNNER_TEMP/format-f" --senden
