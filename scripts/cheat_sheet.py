@@ -212,13 +212,43 @@ def z_entityx(heute):
             "abfluss_tag": letzt["day"], "abfluss_kas": letzt["net_out_kas"]}
 
 
+def umlauf_je_tag(tage, jetzt=None, umlauf_jetzt=None, emission=None):
+    """Umlauf am Ende jedes Tages, zurueckgerechnet vom heutigen Umlauf aus
+    api.kaspa.org/info/coinsupply, wie in tagesgrafik und weekly_numbers,
+    minus der Emission seitdem aus dem Emissionsplan (computed).
+
+    Eine Kaspalytics-Reihe "supply/circulating" gibt es nicht, der erste
+    Probelauf mit echten Daten am 28.10.2026 bekam HTTP 404. Der Fehler
+    durch Netzzeit und Rundung liegt unter 1 zu 100.000, weit unter der
+    ersten Nachkommastelle des Anteils."""
+    if not tage:
+        return {}
+    if umlauf_jetzt is None:
+        tg = _tg()
+        jetzt = dt.datetime.now(dt.timezone.utc)
+        umlauf_jetzt = tg.m_supply()[0]
+        emission = tg.emission_am_tag
+    heute = jetzt.date()
+    teil = (jetzt - dt.datetime.combine(heute, dt.time(), dt.timezone.utc)).total_seconds() / 86400.0
+    # was nach dem ende von tag d dazukam: die vollen tage danach plus der angebrochene heute
+    nach = {}
+    summe = emission(heute.isoformat()) * teil
+    d = heute - dt.timedelta(days=1)
+    erster = dt.date.fromisoformat(tage[0])
+    while d >= erster:
+        nach[d.isoformat()] = summe
+        summe += emission(d.isoformat())
+        d -= dt.timedelta(days=1)
+    return {t: umlauf_jetzt - nach[t] for t in tage if t in nach}
+
+
 def z_boersen(heute):
     """KAS in Boersen-Wallets, Anteil am Umlauf. Wochenreihe aus derselben
     Quelle, ein Punkt je Montag, Stichtag der letzte volle Tag davor."""
     tg = _tg()
     bestand = tg.m_kl_reihe("supply/exchange-holdings", "Balance", "moment")
-    umlauf = tg.m_kl_reihe("supply/circulating", None, "bestand")
     heute_iso = heute.isoformat()
+    umlauf = umlauf_je_tag(sorted(d for d in bestand if d < heute_iso))
     tage = sorted(d for d in set(bestand) & set(umlauf) if d < heute_iso)
     if not tage:
         raise Abbruch("boersen, kein gemeinsamer stichtag mit dem umlauf")
@@ -1444,8 +1474,14 @@ def selbsttest():
     ok("INK3 traegt 7:1 auf grund und flaeche", kontrast_hex(INK3, BG) >= 7 and kontrast_hex(INK3, SURF) >= 7,
        kontrast_hex(INK3, BG), kontrast_hex(INK3, SURF))
 
-    # wohin die meldungen gehen
+    # wohin die meldungen gehen. gesendet wird nichts, _post ist eine
+    # attrappe; ihre ausgabe "an #moderator-only, http 204" bleibt stumm,
+    # damit sie im lauf-log niemand fuer echt haelt
+    import contextlib
+    import io
     import ops_melden
+    stumm = contextlib.redirect_stdout(io.StringIO())
+    stumm.__enter__()
     gesendet = []
     echt_post = ops_melden._post
     alt_env = {k: os.environ.get(k) for k in list(ops_melden.ARTEN.values()) + ["GITHUB_REF_NAME"]}
@@ -1484,6 +1520,7 @@ def selbsttest():
             ok("kontrast unter 7:1, kein paket, liste nach log",
                [g[0] for g in gesendet] == ["hand", "log"] and b"NICHT" in gesendet[-1][1], [g[0] for g in gesendet])
     finally:
+        stumm.__exit__(None, None, None)
         ops_melden._post = echt_post
         for k_, v_ in alt_env.items():
             if v_ is None:
@@ -1516,6 +1553,16 @@ def selbsttest():
                 os.environ.pop(k_, None)
             else:
                 os.environ[k_] = v_
+
+    # umlauf je tag, zurueckgerechnet (28.10.2026)
+    jetzt = dt.datetime(2026, 10, 28, 6, tzinfo=dt.timezone.utc)
+    u = umlauf_je_tag(["2026-10-25", "2026-10-26", "2026-10-27"], jetzt, 26_000_000_000.0,
+                      lambda d: 100.0)
+    ok("umlauf am ende des vortags ohne die emission von heute frueh",
+       abs(u["2026-10-27"] - (26e9 - 25.0)) < 1e-6, u)
+    ok("je tag weiter zurueck eine tagesemission weniger",
+       abs(u["2026-10-25"] - (26e9 - 225.0)) < 1e-6 and abs(u["2026-10-26"] - (26e9 - 125.0)) < 1e-6, u)
+    ok("ohne tage nichts", umlauf_je_tag([], jetzt, 1.0, lambda d: 0.0) == {})
 
     # die ausgabe-nummer
     lg = {"editionen": [{"n": 1, "monat": "2026-10"}]}
