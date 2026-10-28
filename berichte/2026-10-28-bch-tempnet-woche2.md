@@ -134,6 +134,10 @@ Stand-Commit `787f5613593493ba0933360303a5b3d18465211a` (Snapshot 345.617, 28.10
 - **Fehlende TX:** Unsere Schätzung ohne Mempool trifft in der Verteilung seine nachgeforderten TX.
 - **Stale gegen Reorg:** Kein Widerspruch. Ein Knoten meldet nur dann einen Reorg, wenn er seine Spitze schon auf den später verdrängten Block gesetzt hatte. Kommt der Konkurrenzblock zuerst an, bleibt der Knoten auf seiner Spitze und loggt keinen Reorg. Wir zählen jeden angekündigten Block, der nicht in die Kette kam.
 
+## Selbst-Merge
+
+- [kaspa-pulse#194](https://github.com/neoalphavault-png/kaspa-pulse/pull/194) gemergt als `a614ab0` am 28.10.2026. Live auf main sind dieser Bericht und der Forum-Entwurf. Keine Seite betroffen, deshalb keine Abnahme auf einer URL. Der Branch `messung/bch-tempnet-woche2` ist gelöscht.
+
 ## Offene Fragen an Ben
 
 1. Lauf 15 deckt 07:36 bis 10:00 UTC ab. Seine Daten kommen gegen 12:58 UTC. Soll ich die Wochen-CSV dann einmal nachziehen, oder bleibt der Stand 07:36 UTC und die Stunden gehen in Woche 3?
@@ -143,7 +147,7 @@ Stand-Commit `787f5613593493ba0933360303a5b3d18465211a` (Snapshot 345.617, 28.10
 ## Was Ben tun muss
 
 - **Forum-Entwurf prüfen und selbst posten:** `berichte/2026-10-28-bch-tempnet-woche2-forum.md`. Ich poste nichts.
-- **Für den neuen PR nichts:** Er enthält nur diese beiden Berichtsdateien, keine Workflows und keine Rohdaten. Ich merge ihn selbst, sobald die Checks grün sind und der Forum-Text die Regelprüfung besteht. Danach folgt die Zeile zum Merge unten.
+- **Für den neuen PR nichts:** Er enthält nur diese beiden Berichtsdateien, keine Workflows und keine Rohdaten. Ich habe ihn selbst gemergt, siehe unten.
 - **Sonst nichts.** Die Zuhörer-Kette läuft auf main selbst weiter bis 15.11. 12:00 UTC.
 
 Der Secret-Scan ist sauber, in den Branches `messung/bch-tempnet` und `messung/bch-tempnet-woche2` stehen weder Schlüssel noch Tokens. Peer-Adressen und Hostnamen stehen in keiner Datei und keinem Log.
