@@ -44,6 +44,9 @@ Der Hauptpost vom 28.10. hatte zwei weitere Stellen, die unsere Textregeln ander
 - #196, Skript, selbst gemergt
 - #197, Workflow `number-of-day.yml`, wartet auf Ben
 
+## Selbst-Merge
+- #196 als 19fab39, 28.10.2026. Nur `scripts/number_of_day_data.py` und dieser Bericht, Checks grün, keine Konflikte. Der Selbsttest ist grün. Die Zahl des Tages vom Do 29.10. läuft damit ohne Domain im Hauptpost.
+
 ## Was Ben tun muss
 Siehe „📤 VON HAND“ im Discord-Abschnitt.
 
