@@ -468,7 +468,7 @@ def veroeffentlichen(cid):
 COMMUNITY_AB = dt.timedelta(minutes=15)
 SPERRE = re.compile(r"\b(?:krc-?20|kcc-?20|tokens?|memes?|memecoins?|nfts?)\b", re.I)
 SATZ_ANFANG = {"hashrate": "more work secured kaspa than a week before",
-               "holders": "more addresses hold real kas than a week ago",
+               "holders": "more addresses hold at least 100 kas than a week ago",
                "dormant": "half of all kas has not moved in a year"}
 
 

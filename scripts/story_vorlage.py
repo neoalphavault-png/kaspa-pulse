@@ -202,19 +202,23 @@ def quiz_aus_weekly(datum, history=None):
             "zahl": "%+.1f%%" % d, "loesung": "hashrate %.0f PH/s in the week to %s, %+.1f%% against %s"
                                    % (jetzt["hashrate"], tag_kurz(s), d, tag_kurz(s0)),
             "datum": "week to %s · source kaspa rest api" % tag(s)})
-    if jetzt.get("holders") and vorher.get("holders"):
-        n = jetzt["holders"] - vorher["holders"]
-        schritt = max(2000, round(abs(n) * 0.9, -3))
+    # adressen ab 100 KAS aus dem schwellen-log, die schwelle ist belegt
+    # (Ben, 28.10.2026), nicht mehr die reihe "holders" ohne schwelle
+    import karussell
+    h1, h0 = karussell.ab_100_kas(s), karussell.ab_100_kas(s0)
+    if h1 and h0:
+        n = h1 - h0
+        schritt = max(200, round(abs(n) * 0.9, -2))
         fragen.append({
             "id": "holders", "titel": "GUESS THE WEEK",
-            "text": "how many addresses with a meaningful balance did kaspa add in the week to %s?"
+            "text": "how many addresses with at least 100 KAS did kaspa add in the week to %s?"
                     % tag_kurz(s),
-            "frage": "how many kaspa addresses joined this week?",
+            "frage": "how many more kaspa addresses hold 100 KAS or more?",
             "richtig": "%+d" % round(n), "fmt": lambda v: "%s%s" % ("+" if v >= 0 else "", ganz(v)),
             "wert": n, "andere": [n + schritt * 2, n - schritt * 1.5, n + schritt * 4],
             "zahl": "%s%s" % ("+" if n >= 0 else "", ganz(n)),
-            "loesung": "%s addresses hold a meaningful balance, %s%s in a week"
-                       % (ganz(jetzt["holders"]), "+" if n >= 0 else "", ganz(n)),
+            "loesung": "%s addresses with at least 100 KAS, %s%s in a week"
+                       % (ganz(h1), "+" if n >= 0 else "", ganz(n)),
             "datum": "week to %s · source kaspalytics address counts" % tag(s)})
     if jetzt.get("dormant_pct"):
         p = jetzt["dormant_pct"]

@@ -30,7 +30,7 @@ DAS KARUSSELL "the week in numbers" (ab Sa 31.10.2026)
     Titel     am 31.10.2026 Halloween in B, sonst die erste Wochenzahl
     innen     die Wochenzahlen, A und D im Wechsel
     Schluss   die Newsletter-Folie mit dem Kurzlink kaspapulse.com/nl
-              (utm_source instagram, utm_medium post, utm_campaign newsletter)
+              (utm_source instagram, utm_medium post, utm_campaign karussell)
 
 Jede Seite laeuft durch content_wache im Profil feed (Groessen, Textregeln,
 Kontrast 7:1). Beim Foto entfaellt nur die Pruefung des 60-px-Rands.
@@ -542,8 +542,8 @@ def selbsttest():
     ok("wunsch weicht, wenn zuletzt derselbe look",
        look_takt.richtung_faellig(sp2, "karussell", HALLOWEEN, "woche", wunsch="B") != "B")
     # plan und texte
-    ss = [{"art": "haken", "id": "holders", "kopf": "ADDRESSES", "zahl": "808,128", "haken": "more addresses hold real KAS than a week ago",
-           "satz": "addresses hold a meaningful balance, +4,386 in a week", "quelle": "source kaspalytics address counts",
+    ss = [{"art": "haken", "id": "holders", "kopf": "ADDRESSES", "zahl": "295,726", "haken": "more addresses hold at least 100 KAS than a week ago",
+           "satz": "addresses with at least 100 KAS, +1,122 in a week", "quelle": "source kaspalytics address counts",
            "werte": (803742, 808128), "fmt": ganz, "woche": "2026-10-24", "woche_vorher": "2026-10-17"},
           {"art": "zahl", "id": "dormant", "kopf": "SLEEPING COINS", "zahl": "51.2%",
            "satz": "of all KAS has not moved in a year", "quelle": "source kaspalytics",
@@ -557,7 +557,7 @@ def selbsttest():
     ok("tagesgrafik form 11 am selben tag, schlafende coins fallen raus",
        tagesgrafik_zahlen(HALLOWEEN, {"laeufe": [{"datum": HALLOWEEN, "form": 11}]}) == {"dormant"}
        and [x[1].get("zahl") for x in plan_woche(HALLOWEEN, ss, HALLOWEEN, {}, merken=False, schon={"dormant"})]
-       == ["99,903", "808,128", None])
+       == ["99,903", "295,726", None])
     ok("anderer tag zaehlt nicht", tagesgrafik_zahlen(HALLOWEEN, {"laeufe": [{"datum": "2026-10-30", "form": 9}]})
        == set())
     ok("keine zwei gleichen looks hintereinander im karussell",

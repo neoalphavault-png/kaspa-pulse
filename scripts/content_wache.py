@@ -110,6 +110,44 @@ def profil(kanal, w, h):
 
 # ------------------------------------------------------------ text
 
+# Ungenaue Mengenwoerter (Ben, 28.10.2026): "real KAS" und "meaningful"
+# behaupten eine Schwelle, ohne sie zu nennen. Eine Adressenzahl traegt ihre
+# Schwelle, etwa "addresses with at least 100 KAS".
+UNGENAU = re.compile(r"\breal\s+kas\b|\bmeaningful\b", re.I)
+
+
+def ungenau(text):
+    m = UNGENAU.search(text or "")
+    return ["ungenau %r, die schwelle nennen" % m.group(0)] if m else []
+
+
+def ungenau_im_quelltext(ordner=None):
+    """Jeder Text in einem Generator (Zeichenketten in scripts/*.py), der
+    "real KAS" oder "meaningful" traegt. Kaspalytics-Pfade wie
+    address/count/meaningful-balance sind Namen der Quelle, kein Text im Bild.
+    Docstrings sind Doku, kein Ausgabetext, und zaehlen nicht."""
+    import io
+    import tokenize
+    ordner = Path(ordner or Path(__file__).resolve().parent)
+    funde = []
+    for datei in sorted(ordner.glob("*.py")):
+        try:
+            toks = list(tokenize.generate_tokens(io.StringIO(datei.read_text(encoding="utf-8")).readline))
+        except (tokenize.TokenError, SyntaxError, UnicodeDecodeError):
+            continue
+        for t in toks:
+            if t.type != tokenize.STRING:
+                continue
+            if t.string.lstrip("rbuRBU")[:3] in ('"' * 3, "'" * 3):
+                continue
+            if datei.name == "content_wache.py" and "UNGENAU" in t.line:
+                continue
+            roh = re.sub(r"[\w/.?=-]*meaningful-balance[\w/.?=-]*", "", t.string)
+            if UNGENAU.search(roh):
+                funde.append("%s:%d" % (datei.name, t.start[0]))
+    return funde
+
+
 def text_verstoesse(text):
     """Die Textregeln fuer einen sichtbaren Text. Leere Liste heisst gruen."""
     import number_of_day
@@ -125,6 +163,7 @@ def text_verstoesse(text):
     for p in PFEILE:
         if p in probe:
             aus.append("pfeil %r" % p)
+    aus += ungenau(probe)
     m = KURSZIEL.search(text)
     if m:
         aus.append("kursziel %r" % m.group(0))
@@ -312,6 +351,15 @@ def selbsttest():
         ok("instagram in 1600x900 stoppt", False)
     except WacheStopp:
         ok("instagram in 1600x900 stoppt", True)
+    # ungenaue mengenwoerter (Ben, 28.10.2026)
+    real = "real" + " KAS"
+    ok("'%s' stoppt" % real, text_verstoesse("more addresses hold %s than a week ago" % real) != [])
+    ok("ungenaues mengenwort stoppt", text_verstoesse("addresses hold a " + "meaning" + "ful balance") != [])
+    ok("adressen mit schwelle gehen durch", text_verstoesse("addresses with at least 100 KAS, +1,122 in a week") == [])
+    funde = ungenau_im_quelltext()
+    ok("kein generator gibt ein ungenaues mengenwort aus (%d funde)" % len(funde), not funde)
+    if funde:
+        print("     " + "; ".join(funde[:10]))
     # gerendert
     try:
         from playwright.sync_api import sync_playwright

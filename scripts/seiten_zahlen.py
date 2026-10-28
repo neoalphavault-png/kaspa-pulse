@@ -132,7 +132,7 @@ def covenant_satz2(log):
 
 def halter_letzter(log):
     tage = [e for e in (log or {}).get("tage") or []
-            if e.get("holders_mean") and e.get("holders_all") and e.get("holders_001kas")]
+            if e.get("holders_100kas") and e.get("holders_all") and e.get("holders_001kas")]
     return tage[-1] if tage else None
 
 
@@ -140,8 +140,9 @@ def halter_fakt(log):
     e = halter_letzter(log)
     if not e:
         return None
-    return ("<b>%s wallet holders</b> with a meaningful balance and <b>%s addresses</b> with any balance on %s, "
-            "source kaspalytics" % (ganz(e["holders_mean"]), ganz(e["holders_all"]), datum(e["datum"])))
+    # die reihe ohne belegte schwelle steht nicht mehr da (Ben, 28.10.2026)
+    return ("<b>%s addresses</b> with at least 100 KAS and <b>%s addresses</b> with any balance on %s, "
+            "source kaspalytics" % (ganz(e["holders_100kas"]), ganz(e["holders_all"]), datum(e["datum"])))
 
 
 def halter_tabelle(log):
@@ -149,7 +150,6 @@ def halter_tabelle(log):
     if not e:
         return None
     zeilen = [("addresses with any balance", e["holders_all"]),
-              ("addresses with a meaningful balance, the holder count", e["holders_mean"]),
               ("addresses with 0.01 KAS or more", e["holders_001kas"])]
     for feld, text in (("holders_1kas", "addresses with 1 KAS or more"),
                        ("holders_100kas", "addresses with 100 KAS or more")):
@@ -168,9 +168,8 @@ def halter_faq(log):
     tag = datum(e["datum"])
     return {
         "How many Kaspa wallet holders are there?":
-            "There were %s Kaspa addresses with a meaningful balance on %s, source kaspalytics, the closest "
-            "public measure of wallet holders. One person can hold many addresses, so this counts addresses, "
-            "not people." % (ganz(e["holders_mean"]), tag),
+            "There were %s Kaspa addresses with at least 100 KAS on %s, source kaspalytics. One person can "
+            "hold many addresses, so this counts addresses, not people." % (ganz(e["holders_100kas"]), tag),
         "How many Kaspa addresses are there?":
             "There were %s Kaspa addresses with a balance on %s, source kaspalytics. Most of them hold dust, "
             "only %s held 0.01 KAS or more on the same day." % (ganz(e["holders_all"]), tag,
@@ -449,20 +448,23 @@ def selbsttest():
        and h["faq"]["What is Kaspa's hashrate?"] == (
         "Kaspa's hashrate was 345.7 PH/s on 6 October 2026 at 11:05 UTC, source the Kaspa REST API."))
     hl = {"tage": [{"datum": "2026-10-25", "holders_all": 54887787, "holders_mean": 808128,
-                    "holders_001kas": 768253},
+                    "holders_001kas": 768253, "holders_100kas": 295772},
                    {"datum": "2026-10-26", "holders_all": 1, "holders_mean": None}]}
-    ok("halter kurzfakt nimmt den letzten vollen tag", halter_fakt(hl) == (
-        "<b>808,128 wallet holders</b> with a meaningful balance and <b>54,887,787 addresses</b> with any "
+    ok("halter kurzfakt nimmt den letzten vollen tag, ab 100 KAS", halter_fakt(hl) == (
+        "<b>295,772 addresses</b> with at least 100 KAS and <b>54,887,787 addresses</b> with any "
         "balance on 25 October 2026, source kaspalytics"))
     hf = halter_faq(hl)
     ok("halter faq, beide fragen, source statt counted",
-       "808,128" in hf["How many Kaspa wallet holders are there?"]
+       "295,772" in hf["How many Kaspa wallet holders are there?"]
        and "54,887,787" in hf["How many Kaspa addresses are there?"]
        and "768,253" in hf["How many Kaspa addresses are there?"]
        and not any("counted" in v for v in hf.values()))
     ht = halter_tabelle(hl)
-    ok("halter tabelle mit datum, drei zeilen ohne 1+ und 100+", ht.count("<tr><td>") == 3
-       and "Kaspa addresses on 25 October 2026" in ht and "808,128" in ht)
+    ok("halter tabelle mit datum, ohne die reihe ohne schwelle", ht.count("<tr><td>") == 3
+       and "Kaspa addresses on 25 October 2026" in ht and "808,128" not in ht and "295,772" in ht)
+    import content_wache
+    ok("keine ungenauen mengenwoerter auf den halter-seiten",
+       not any(content_wache.ungenau(t) for t in [halter_fakt(hl), ht] + list(hf.values())))
     ok("covenant satz2", covenant_satz2(log).startswith("<b>13,760 covenant outputs</b> were unspent"))
     hv = halving_daten(dt.datetime(2026, 10, 27, 20, tzinfo=dt.timezone.utc))
     ok("halving vor der stufe am 4 november", halving_fakt(hv) == (

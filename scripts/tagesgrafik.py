@@ -26,7 +26,7 @@ Fusszeile mittig. Zwei Diagramme nie nebeneinander (GERUEST).
 
 ELF FORMEN, jede mit eigener Vorlage (FORMEN unten) und eigener Messung:
 
-   1  Wochenzahl        montags fest. Adressen mit nennenswertem Guthaben
+   1  Wochenzahl        montags fest. Adressen mit mindestens 100 KAS
                         oder Hashrate gegen die Vorwoche, im Lauf gemessen
                         (week-input.json steht um 07:30 noch auf der Vorwoche)
    2  Entity X          Anteil am Umlauf plus letzte Bewegung, von der Kette
@@ -513,7 +513,7 @@ def o_flaeche_linie(x, y, w, h, werte):
 
 def messen_1(now):
     """Wochenzahl. Zwei Kandidaten, beide im Lauf gemessen: Adressen mit
-    nennenswertem Guthaben (Kaspalytics) und Hashrate (api.kaspa.org,
+    mindestens 100 KAS (Kaspalytics) und Hashrate (api.kaspa.org,
     Tagesmittel). Je 8 Tage, gestern gegen 7 Tage davor.
 
     Nicht aus data/week-input.json: die Montagsroutine schreibt die Datei
@@ -521,7 +521,8 @@ def messen_1(now):
     kand = []
     tage = [(now.date() - dt.timedelta(days=i)).isoformat() for i in range(8, 0, -1)]
     try:
-        h = m_kl_reihe("address/count/meaningful-balance", "Addresses", "bestand")
+        # ab 100 KAS, die schwelle steht im pfad der quelle (Ben, 28.10.2026)
+        h = m_kl_reihe("distribution/kas-threshold/100+", "Addresses", "bestand")
         if all(d in h for d in tage):
             kand.append({"was": "holders", "reihe": [h[d] for d in tage], "tage": tage})
     except Exception as exc:                        # noqa: BLE001
@@ -545,7 +546,7 @@ def vorlage_1(w, now):
     k = max(w["kandidaten"], key=lambda x: x["pct"])
     r, t = k["reihe"], k["tage"]
     if k["was"] == "holders":
-        bed = "addresses with a meaningful balance, %s against %s" % (tag_kurz(t[-1]), tag_kurz(t[0]))
+        bed = "addresses with at least 100 KAS, %s against %s" % (tag_kurz(t[-1]), tag_kurz(t[0]))
         her = "source kaspalytics address counts"
         zus = "one column per day, from zero"
     else:
@@ -571,11 +572,11 @@ def vorlage_1(w, now):
     wie = "rose" if k["pct"] > 0 else "fell"
     if k["was"] == "holders":
         n = r[-1] - r[0]
-        x1 = "kaspa %s %s addresses with a meaningful balance in one week." % (
+        x1 = "kaspa %s %s addresses with at least 100 KAS in one week." % (
             "gained" if n >= 0 else "lost", ganz(abs(n)))
         x2 = "%s against %s, source kaspalytics address counts" % (tag_kurz(t[-1]), tag(t[0]))
         x3 = "how many is that a day?"
-        aufl = ("%s in 7 days is about %s a day. kaspalytics counted %s on %s and %s on %s." % (
+        aufl = ("%s in 7 days is about %s a day. source kaspalytics, %s on %s and %s on %s." % (
             ganz(abs(n)), ganz(abs(n) / 7), ganz(r[-1]), tag_kurz(t[-1]), ganz(r[0]), tag_kurz(t[0])))
     else:
         x1 = ("kaspa hashrate %s %d%% in one week." % (wie, ganzzahl) if ganzzahl
