@@ -5,6 +5,10 @@ name: seiten zahlen
 #   kaspa-hashrate.html        aktueller wert, wochenmittel, allzeithoch (api.kaspa.org)
 #   kaspa-supply.html          umlauf und anteil gemined (data/weekly.json)
 #   kaspa-smart-contracts.html covenant-bestand (data/covenants-log.json)
+#   kaspa-halving.html         naechste emissionsstufe, KAS je block vorher und
+#                              nachher (emissionsplan, Ben 27.10.2026)
+#   kaspa-mining.html          reward, emission je tag, KAS je TH/s und tag
+#                              (emissionsplan und api.kaspa.org)
 # Faellt eine Quelle aus, bleibt der alte Satz mit seinem Datum stehen.
 
 on:
@@ -43,7 +47,7 @@ jobs:
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
-          git add kaspa-hashrate.html kaspa-supply.html kaspa-smart-contracts.html sitemap.xml data/seiten-stand.json
+          git add kaspa-hashrate.html kaspa-supply.html kaspa-smart-contracts.html kaspa-halving.html kaspa-mining.html sitemap.xml data/seiten-stand.json
           if git diff --staged --quiet; then
             echo "nichts geaendert"
           else
