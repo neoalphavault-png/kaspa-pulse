@@ -217,6 +217,60 @@ def geaenderte_berichte(ereignis):
     return dateien
 
 
+def lage(ereignis):
+    """Eine Zeile fuer das Job-Log: was das Ereignis an Commits mitbringt.
+    Nur Zahlen, kein Inhalt."""
+    commits = ereignis.get("commits") or []
+    mit_liste = sum(1 for c in commits if any(k in c for k in ("added", "modified")))
+    neu = set(str(ereignis.get("before") or "0")) == {"0"}
+    return "ereignis: %d commits, %d mit dateiliste, %s" % (
+        len(commits), mit_liste, "neuer branch" if neu else "branch gab es schon")
+
+
+def _ist_bericht(f):
+    return f.startswith("berichte/") and f.endswith(".md")
+
+
+def berichte_aus_vergleich(ereignis, holer=None, git=None):
+    """Rueckfall, wenn die Commits im Ereignis keinen Bericht nennen (leere
+    Liste oder ohne Dateilisten, gesehen am 28.10.2026). Zuerst der Vergleich
+    before...after ueber die oeffentliche GitHub-API, bei einem neuen Branch
+    gegen den Standard-Branch. Geht das nicht, die Dateien des HEAD-Commits.
+    Doppelten Versand verhindert weiter die Merkdatei."""
+    import subprocess
+    import urllib.request
+    repo = (ereignis.get("repository") or {}).get("full_name", "")
+    after = str(ereignis.get("after") or "")
+    before = str(ereignis.get("before") or "")
+    basis = (ereignis.get("repository") or {}).get("default_branch") or "main"
+    if before and set(before) != {"0"}:
+        basis = before
+    if repo and re.fullmatch(r"[0-9a-f]{40}", after) and re.fullmatch(r"[A-Za-z0-9._/-]{1,100}", basis):
+        url = "https://api.github.com/repos/%s/compare/%s...%s" % (repo, basis, after)
+
+        def holen(u):
+            req = urllib.request.Request(u, headers={"Accept": "application/vnd.github+json",
+                                                     "User-Agent": "kaspa-pulse-bericht"})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                return json.load(r)
+        try:
+            d = (holer or holen)(url)
+            dateien = [f["filename"] for f in d.get("files") or []
+                       if f.get("status") in ("added", "modified", "renamed", "changed")
+                       and _ist_bericht(f.get("filename", ""))]
+            print("vergleich %s...%s, %d bericht(e)" % (basis[:12], after[:12], len(dateien)))
+            return dateien
+        except Exception as exc:  # noqa: BLE001
+            print("vergleich ging nicht (%s), nehme den head-commit" % type(exc).__name__)
+
+    def git_show():
+        return subprocess.run(["git", "show", "--name-only", "--diff-filter=AMR", "--pretty=format:", "HEAD"],
+                              capture_output=True, text=True).stdout
+    dateien = [z.strip() for z in (git or git_show)().splitlines() if _ist_bericht(z.strip())]
+    print("head-commit, %d bericht(e)" % len(dateien))
+    return dateien
+
+
 def lauf(datei, link, trocken, vorher=None):
     text = open(datei, encoding="utf-8").read()
     t = teile(text)
@@ -246,7 +300,10 @@ def lauf_ereignis(ereignis_pfad, branch, merkdatei, link_basis, trocken, senden_
         ereignis = json.load(fh)
     m = merk_lesen(merkdatei)
     rc = 0
+    print(lage(ereignis))
     dateien = geaenderte_berichte(ereignis)
+    if not dateien:
+        dateien = berichte_aus_vergleich(ereignis)
     if not dateien:
         print("keine berichte in den neuen commits dieses pushes")
     for f in dateien:
@@ -353,6 +410,29 @@ def selbsttest():
         {"distinct": True, "added": [], "modified": ["berichte/neu.md"], "removed": ["berichte/alt.md"]}]}
     ok("nur berichte aus neuen commits", geaenderte_berichte(ev) == ["berichte/neu.md"], geaenderte_berichte(ev))
     ok("ohne commits nichts", geaenderte_berichte({"commits": []}) == [] and geaenderte_berichte({}) == [])
+    # rueckfall ueber den vergleich, wenn die commits nichts nennen (28.10.2026)
+    sha_a, sha_b = "a" * 40, "b" * 40
+    urls = []
+
+    def holer(u):
+        urls.append(u)
+        return {"files": [{"filename": "berichte/x.md", "status": "added"},
+                          {"filename": "berichte/weg.md", "status": "removed"},
+                          {"filename": "scripts/y.py", "status": "modified"}]}
+    ev2 = {"before": "0" * 40, "after": sha_b, "commits": [],
+           "repository": {"full_name": "o/r", "default_branch": "main"}}
+    ok("lage nennt neuen branch ohne dateiliste", lage(ev2) == "ereignis: 0 commits, 0 mit dateiliste, neuer branch")
+    ok("neuer branch vergleicht gegen main", berichte_aus_vergleich(ev2, holer) == ["berichte/x.md"]
+       and urls[-1].endswith("/repos/o/r/compare/main..." + sha_b), urls)
+    berichte_aus_vergleich(dict(ev2, before=sha_a), holer)
+    ok("bestehender branch vergleicht before...after", urls[-1].endswith("/compare/%s...%s" % (sha_a, sha_b)))
+
+    def kaputt_holer(u):
+        raise OSError("kein netz")
+    ok("ohne netz der head-commit", berichte_aus_vergleich(ev2, kaputt_holer,
+       lambda: "\nberichte/h.md\nscripts/z.py\n") == ["berichte/h.md"])
+    ok("komische werte gehen nicht in die adresse", berichte_aus_vergleich(dict(ev2, after="x y"), holer,
+       lambda: "") == [] and len(urls) == 2)
     import tempfile
     with tempfile.TemporaryDirectory() as d:
         a, b = os.path.join(d, "a.md"), os.path.join(d, "b.md")
