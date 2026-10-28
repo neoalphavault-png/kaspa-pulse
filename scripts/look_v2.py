@@ -11,6 +11,10 @@ Skript baut dieselben zwei Inhalte in drei Richtungen, Ben waehlt.
     A  Editorial    die Typografie traegt alles, feine Linien, Papier oder Teal
     B  Foto-Objekt  ein Foto als Vollbild, Text nur auf ruhiger Flaeche
     C  Daten-Kunst  das Motiv besteht aus echten Daten, ein Punkt je Einheit
+    D  Neutral und Gruen (Fassung 2, Bens Idee): neutraler Grund, eine Zahl
+       oder eine Zeile in #49EACB, kleine Wortmarke. Der Grund ist warmer
+       dunkler Stein: Teal als Schrift erreicht auf warmem Weiss nur 1.3:1,
+       auf Stein ueber 7:1.
 
     Inhalt 1  Halloween Sa 31.10.2026, die Emissionsstufe am 4 nov 2026
     Inhalt 2  Kaspa in real life, Bloecke waehrend eines Espressos
@@ -41,6 +45,7 @@ sys.path.insert(0, str(HERE))
 
 W, H = 1080, 1350
 PAPIER, TINTE, TEAL, NACHT, TEAL_DUNKEL = "#F4F1EA", "#0B1A17", "#49EACB", "#080B0F", "#062B24"
+STEIN = {"D1": "#1F1D1A", "D2": "#3A3733"}
 STAND = dt.date(2026, 10, 28)
 ZAEHLUNG = {"bloecke": 5953, "sek": 600.243, "datum": dt.date(2026, 10, 27)}
 MONATE = ("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec")
@@ -204,11 +209,11 @@ def seite(code, inh):
             teile.append("<div class='linie' style='left:72px;width:160px;top:133px;height:4px;"
                          "background:%s'></div>" % TEAL)
     elif richtung == "B":
-        foto = REPO / "graphics" / "fotos" / ("kuerbis-grok.jpg" if code == "B1" else "espresso-grok.jpg")
+        foto = REPO / "graphics" / "fotos" / ("kuerbis-grok.jpg" if code == "B1" else "espresso-grok-2.jpg")
         url = "data:image/jpeg;base64," + base64.b64encode(foto.read_bytes()).decode()
         grund, tinte, leise = PAPIER, TINTE, TINTE
         wm = wortmarke.css(groesse=36, sperrung=6, kaspa=TINTE, pulse=TINTE)
-        pos = "center 62%" if code == "B1" else "center 0%"
+        pos = "center 62%" if code == "B1" else "center 40%"
         teile.append("<div class='foto' style=\"background-image:url('%s');background-position:%s\"></div>"
                      % (url, pos))
         # Schleier aus Papierfarbe hinter den Textflaechen, oben und unten. Das
@@ -241,6 +246,24 @@ def seite(code, inh):
                 % (tinte, esc(inh["label"])),
                 "<div class='t quelle' style='left:72px;right:72px;top:1150px;color:%s'>%s</div>"
                 % (leise, esc(inh["quelle"])),
+            ]
+    elif richtung == "D":
+        grund = STEIN[code]
+        leise = "#D6D0C6"
+        wm = wortmarke.css(groesse=34, sperrung=5, kaspa="#D6D0C6", pulse=TEAL)
+        if code == "D1":
+            teile += [
+                "<div class='t zahl' data-rolle='zahl' data-fit='936' style='left:66px;top:520px;"
+                "font-size:300px;color:%s'>%s</div>" % (TEAL, esc(inh["zahl"])),
+                "<div class='t quelle' style='left:72px;right:72px;top:820px;color:%s'>%s</div>"
+                % (leise, esc("KAS less new supply a day from 4 nov 2026, computed, emission schedule")),
+            ]
+        else:
+            teile += [
+                "<div class='t titel' data-rolle='titel' style='left:72px;right:72px;top:560px;font-size:76px;"
+                "color:%s'>%s</div>" % (TEAL, esc("%s kaspa blocks in one espresso" % inh["zahl"])),
+                "<div class='t quelle' style='left:72px;right:72px;top:820px;color:%s'>%s</div>"
+                % (leise, esc("300 s, computed from our count of 27 oct 2026")),
             ]
     else:
         dunkel = code == "C1"
@@ -294,7 +317,7 @@ FIT_JS = """() => {
 }"""
 
 PLAN = [("A1", "halloween"), ("A2", "espresso"), ("B1", "halloween"), ("B2", "espresso"),
-        ("C1", "halloween"), ("C2", "espresso")]
+        ("C1", "halloween"), ("C2", "espresso"), ("D1", "halloween"), ("D2", "espresso")]
 
 
 def rendern(ziel):
@@ -339,14 +362,14 @@ def musterblatt(pngs, ziel):
     s = 0.4
     w, h = int(W * s), int(H * s)
     rand, kopf = 24, 56
-    blatt = Image.new("RGB", (3 * w + 4 * rand, 2 * (h + kopf) + 3 * rand), (24, 28, 30))
+    blatt = Image.new("RGB", (4 * w + 5 * rand, 2 * (h + kopf) + 3 * rand), (24, 28, 30))
     try:
         schrift = ImageFont.truetype(str(REPO / "graphics" / "fonts" / "ibm-plex-mono-latin-500-normal.woff2"), 28)
     except Exception:                                     # noqa: BLE001
         schrift = ImageFont.load_default()
     zeichnen = ImageDraw.Draw(blatt)
     for i, p in enumerate(pngs):
-        spalte, reihe = "ABC".index(p.name[0]), int(p.name[1]) - 1
+        spalte, reihe = "ABCD".index(p.name[0]), int(p.name[1]) - 1
         x = rand + spalte * (w + rand)
         y = rand + reihe * (h + kopf + rand)
         zeichnen.text((x, y + 8), p.name[:2], fill=(242, 245, 244), font=schrift)

@@ -26,6 +26,13 @@ DAS INSTAGRAM-RASTER (Ben, 18.10.2026). Instagram hat einen gemeinsamen
 Takt fuer alle Posts im Raster, Tagesgrafik und Karussell (RASTER, RANG).
 Das Karussell nimmt den Schritt nach der Tagesgrafik desselben Tages.
 
+DIE RICHTUNG (Look v2, Ben 28.10.2026). Neben dem Look (Farbe) gibt es die
+Richtung der Grafik: A Editorial, B Foto-Objekt, C Daten-Kunst, D Neutral und
+Gruen (scripts/look_v2.py, docs/grafik-regeln.md). Alle Generatoren rotieren
+zwischen den Richtungen, die Ben waehlt (GEWAEHLT). Je Plattform nie zweimal
+dieselbe Richtung hintereinander, auch nicht zwei Posts am selben Tag.
+Gespeichert in data/look-takt.json unter "richtung/<plattform>".
+
 TROCKENLAUF. ZIEL=moderator in der Umgebung heisst: bauen wie scharf, posten
 nur nach #moderator-only. trockenlauf() ist die eine Stelle, die das liest.
 
@@ -262,6 +269,52 @@ def looks_fuer(speicher, serie, datum, kanaele=KANAELE):
     return {k: faellig(speicher, serie, k, datum)[1] for k in kanaele}
 
 
+# ---------------------------------------------------- die richtung je plattform
+
+RICHTUNGEN = ("A", "B", "C", "D")
+# Bis Ben waehlt, stehen alle vier zur Wahl. Danach traegt diese Zeile seine
+# Wahl, z. B. ("A", "B") fuer "A fuer Zahlen und B fuer Alltagsvergleiche".
+GEWAEHLT = RICHTUNGEN
+PLATTFORMEN = ("instagram", "threads", "x", "discord", "story")
+
+
+def _richtung_reihe(speicher, plattform):
+    if plattform not in PLATTFORMEN:
+        raise Fehler("unbekannte plattform %r" % plattform)
+    return speicher.setdefault("kanaele", {}).setdefault("richtung/%s" % plattform, [])
+
+
+def richtung_faellig(speicher, plattform, datum, serie, erlaubt=None):
+    """Die Richtung fuer diesen Post. Derselbe Post (datum und serie) bekommt
+    beim zweiten Lauf dieselbe Richtung. Sonst die naechste erlaubte nach der
+    letzten auf dieser Plattform, nie dieselbe wie zuletzt."""
+    erlaubt = tuple(erlaubt or GEWAEHLT)
+    if not erlaubt or any(x not in RICHTUNGEN for x in erlaubt):
+        raise Fehler("unbekannte richtung in %r" % (erlaubt,))
+    reihe = _richtung_reihe(speicher, plattform)
+    for e in reihe:
+        if e["datum"] == str(datum) and e["serie"] == serie:
+            return e["richtung"]
+    vorher = [e for e in reihe if (e["datum"], e["serie"]) != (str(datum), serie)]
+    if not vorher:
+        return erlaubt[0]
+    letzte = vorher[-1]["richtung"]
+    if len(erlaubt) == 1:
+        return erlaubt[0]
+    i = erlaubt.index(letzte) if letzte in erlaubt else -1
+    return erlaubt[(i + 1) % len(erlaubt)]
+
+
+def richtung_merken(speicher, plattform, datum, serie, erlaubt=None):
+    """Traegt den Post ein und gibt seine Richtung zurueck."""
+    rt = richtung_faellig(speicher, plattform, datum, serie, erlaubt)
+    reihe = [e for e in _richtung_reihe(speicher, plattform)
+             if (e["datum"], e["serie"]) != (str(datum), serie)]
+    reihe.append({"datum": str(datum), "serie": serie, "richtung": rt})
+    speicher["kanaele"]["richtung/%s" % plattform] = reihe[-BEHALTEN:]
+    return rt
+
+
 def trockenlauf():
     """ZIEL=moderator: bauen wie scharf, posten nur nach #moderator-only."""
     return os.environ.get("ZIEL", "").strip().lower() == "moderator"
@@ -397,6 +450,28 @@ def selbsttest():
     ok("sieben schnitte eingebettet, nichts von aussen",
        css.count("@font-face") == 7 and "http" not in css)
     alt_ziel, alt_ops = os.environ.get("ZIEL"), os.environ.pop("DISCORD_WEBHOOK_OPS", None)
+    # richtung je plattform (Look v2, 28.10.2026)
+    sr = {"kanaele": {}}
+    folge_r = []
+    for i in range(6):
+        d = tag0 + dt.timedelta(days=i)
+        folge_r.append(richtung_merken(sr, "instagram", d, "tagesgrafik"))
+        if i in (1, 3):
+            folge_r.append(richtung_merken(sr, "instagram", d, "karussell"))
+    ok("richtung nie zweimal hintereinander auf einer plattform (%s)" % " ".join(folge_r),
+       all(a != b for a, b in zip(folge_r, folge_r[1:])))
+    ok("alle gewaehlten richtungen kommen dran", set(folge_r) == set(GEWAEHLT))
+    ok("zweiter lauf desselben posts behaelt die richtung",
+       richtung_merken(sr, "instagram", tag0 + dt.timedelta(days=5), "tagesgrafik") == folge_r[-1]
+       and len(sr["kanaele"]["richtung/instagram"]) == len(folge_r))
+    zwei = [richtung_merken(sr, "story", tag0 + dt.timedelta(days=i), "story", ("A", "B")) for i in range(4)]
+    ok("mit zwei gewaehlten richtungen im wechsel (%s)" % " ".join(zwei), zwei == ["A", "B", "A", "B"])
+    ok("plattformen getrennt", sr["kanaele"]["richtung/story"][0]["richtung"] == "A")
+    try:
+        richtung_merken(sr, "x", tag0, "tagesgrafik", ("A", "Z"))
+        ok("unbekannte richtung stoppt", False)
+    except Fehler:
+        ok("unbekannte richtung stoppt", True)
     os.environ["ZIEL"] = "moderator"
     t1 = trockenlauf()
     # die schalter in den skripten, die heute automatisch nach aussen posten
