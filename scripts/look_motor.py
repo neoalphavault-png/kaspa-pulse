@@ -396,13 +396,34 @@ def seite_rendern(b, look, inh, png, speicher, kanal, foto_bytes=None, ohne_rand
 
 # ------------------------------------------------------------ karussell
 
-def plan_woche(fuer, ss, stand, speicher, merken=True):
+# Dieselbe Zahl hoechstens einmal pro Tag auf Instagram (Ben, 28.10.2026).
+# Welche Wochenzahl eine Form der Tagesgrafik traegt.
+FORM_ZAHLEN = {1: ("holders", "hashrate"), 8: ("hashrate",), 9: ("holders",), 11: ("dormant",)}
+
+
+def tagesgrafik_zahlen(fuer, log=None):
+    """Die Wochenzahlen, die die Tagesgrafik am selben Tag schon zeigt."""
+    if log is None:
+        try:
+            log = json.loads((REPO / "data" / "tagesgrafik-log.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return set()
+    aus = set()
+    for e in log.get("laeufe", []):
+        if e.get("datum") == str(fuer):
+            aus.update(FORM_ZAHLEN.get(e.get("form"), ()))
+    return aus
+
+
+def plan_woche(fuer, ss, stand, speicher, merken=True, schon=None):
     """Die Seiten des Wochen-Karussells: [(look, inhalt, art)]. Der Look der
     Titelseite laeuft durch die Rotation des Kanals karussell."""
     import look_takt
     zahlen = [x for x in ss if x["art"] in ("haken", "zahl")]
+    schon = tagesgrafik_zahlen(fuer) if schon is None else set(schon)
+    zahlen = [x for x in zahlen if x.get("id") not in schon] or zahlen[:0]
     if not zahlen:
-        raise Stopp("keine wochenzahlen")
+        raise Stopp("alle wochenzahlen stehen heute schon in der tagesgrafik (%s)" % ", ".join(sorted(schon)))
     plan = []
     if str(fuer) == HALLOWEEN:
         titel = look_takt.richtung_faellig(speicher, "karussell", fuer, "woche", wunsch="B")
@@ -529,10 +550,16 @@ def selbsttest():
            "werte": (51.1, 51.2), "fmt": lambda v: "%.2f%%" % v, "woche": "2026-10-24", "woche_vorher": "2026-10-17"},
           {"art": "abbinder"}]
     sp = {}
-    plan = plan_woche(HALLOWEEN, ss, "2026-10-31", sp, merken=False)
+    plan = plan_woche(HALLOWEEN, ss, "2026-10-31", sp, merken=False, schon=())
     ok("halloween-titel in B, innen A und D im wechsel, schluss newsletter",
        [x[0] for x in plan] == ["B-foto", "A-papier", "D-dunkel", "A-papier"] and plan[-1][2] == "newsletter",
        [x[0] for x in plan])
+    ok("tagesgrafik form 11 am selben tag, schlafende coins fallen raus",
+       tagesgrafik_zahlen(HALLOWEEN, {"laeufe": [{"datum": HALLOWEEN, "form": 11}]}) == {"dormant"}
+       and [x[1].get("zahl") for x in plan_woche(HALLOWEEN, ss, HALLOWEEN, {}, merken=False, schon={"dormant"})]
+       == ["99,903", "808,128", None])
+    ok("anderer tag zaehlt nicht", tagesgrafik_zahlen(HALLOWEEN, {"laeufe": [{"datum": "2026-10-30", "form": 9}]})
+       == set())
     ok("keine zwei gleichen looks hintereinander im karussell",
        all(a[0] != b[0] for a, b in zip(plan, plan[1:])))
     v = [x for t in texte(plan) for x in content_wache.text_verstoesse(t)]
