@@ -72,6 +72,13 @@ FENSTER = (dt.timedelta(minutes=-15), dt.timedelta(minutes=90))
 MAX_SEITEN = 10
 ARTEN = ("woche", "story", "meme")
 UA = "kaspa-pulse-karussell"
+# Zweite Ablage (Ben, 28.10.2026): ohne MEDIA_REPO_TOKEN legt der Lauf die
+# JPEGs mit GITHUB_TOKEN unter ig/karussell/ in dieses Repo, wie die Story und
+# die Tagesgrafik unter ig/. kaspapulse.com liefert sie dann aus. Sie bleiben
+# liegen, wie alle Bilder unter ig/. Geht nur vom Branch main, nur den baut
+# GitHub Pages.
+SEITE = "https://kaspapulse.com"
+SEITEN_ORDNER = "ig/karussell"
 
 
 class Stopp(Exception):
@@ -345,6 +352,38 @@ def hochladen(jpeg, rid):
     return a["id"], a["browser_download_url"]
 
 
+def seiten_ablage(jpegs, frist=600, takt=15):
+    """Committet die JPEGs ueber die GitHub-API nach ig/karussell/ auf main und
+    wartet, bis kaspapulse.com jedes mit genau seiner Laenge ausliefert."""
+    import base64
+    repo = os.environ.get("GITHUB_REPOSITORY", "")
+    gt = os.environ.get("GITHUB_TOKEN", "")
+    zweig = os.environ.get("GITHUB_REF_NAME", "main")
+    if not repo or not gt:
+        raise Stopp("weder MEDIA_REPO_TOKEN noch GITHUB_TOKEN, die bilder haben keinen oeffentlichen ort")
+    if zweig != "main":
+        raise Stopp("ablage unter ig/ nur vom branch main, nicht von %s" % zweig)
+    kopf = {"Authorization": "Bearer " + gt, "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28", "User-Agent": UA, "Content-Type": "application/json"}
+    urls = []
+    for j in jpegs:
+        name = "%s-%s.jpg" % (Path(j).stem, uuid.uuid4().hex[:8])
+        pfad = "%s/%s" % (SEITEN_ORDNER, name)
+        body = json.dumps({"message": "karussell ablage %s [bot]" % name, "branch": "main",
+                           "content": base64.b64encode(Path(j).read_bytes()).decode()}).encode()
+        status, _, _ = _roh("PUT", "https://api.github.com/repos/%s/contents/%s" % (repo, pfad), body, kopf)
+        if status not in (200, 201):
+            raise Stopp(sauber("ablage %s, github http %s" % (pfad, status)))
+        sag("abgelegt", pfad)
+        urls.append((SEITE + "/" + pfad, Path(j).stat().st_size))
+    for url, laenge in urls:
+        try:
+            ig().url_warten(url, laenge, frist=frist, takt=takt)
+        except Exception as exc:                      # noqa: BLE001
+            raise Stopp(sauber(str(exc)))
+    return [u for u, _ in urls]
+
+
 def abholbar(url, soll):
     """GET mit einem Byte, wie bei den Reels. Instagram holt die Datei selbst."""
     req = urllib.request.Request(url, headers={"Range": "bytes=0-0", "User-Agent": UA})
@@ -436,12 +475,16 @@ def posten(art, fuer, quelle=None, start="hand", probe=False, log_pfad=None, now
                "seiten": len(bilder), "look": m["look"], "motiv": m.get("motiv", ""),
                "caption_sha": hashlib.sha256(m["caption"].encode()).hexdigest()[:12]}
     try:
-        rid = ablage_id()
-        for j in jpegs:
-            i, url = hochladen(j, rid)
-            ids.append(i)
-            abholbar(url, Path(j).stat().st_size)
-            urls.append(url)
+        if os.environ.get("MEDIA_REPO_TOKEN"):
+            rid = ablage_id()
+            for j in jpegs:
+                i, url = hochladen(j, rid)
+                ids.append(i)
+                abholbar(url, Path(j).stat().st_size)
+                urls.append(url)
+        else:
+            urls = seiten_ablage(jpegs)
+            eintrag["ablage"] = "ig"
         cid = container(urls, m["caption"], takt)
         eintrag.update(container=cid, status="FINISHED")
         if scharf:
@@ -637,6 +680,48 @@ def selbsttest():
     finally:
         globals()["gh_media"], globals()["abholbar"], instagram.graph = alt
         os.environ.pop("MEDIA_REPO_TOKEN", None)
+
+    # ohne MEDIA_REPO_TOKEN: ablage unter ig/karussell/ auf main
+    gesetzt, gewartet = [], []
+
+    def roh_falsch(methode, url, body, kopf):
+        gesetzt.append((methode, url, json.loads(body.decode())))
+        return 201, b"{}", {}
+
+    alt2 = (globals()["_roh"], instagram.url_warten, instagram.graph)
+    globals()["_roh"] = roh_falsch
+    instagram.url_warten = lambda url, laenge, frist=600, takt=15: gewartet.append((url, laenge)) or True
+    instagram.graph = graph_falsch
+    for k, v in (("GITHUB_REPOSITORY", "neoalphavault-png/kaspa-pulse"), ("GITHUB_TOKEN", "x"),
+                 ("GITHUB_REF_NAME", "main")):
+        os.environ[k] = v
+    try:
+        Image.new("RGB", (1080, 1350), (238, 243, 241)).save(bilder[1])
+        (quelle / "manifest.json").write_text(json.dumps({
+            "art": "woche", "fuer": "2026-10-31", "look": "hell", "caption": cap, "motiv": "",
+            "bilder": [{"datei": b.name, "sha256": sha(b)} for b in bilder]}), encoding="utf-8")
+        aufrufe.clear()
+        e = posten("woche", "2026-10-31", quelle=quelle, start="hand", probe=True, log_pfad=tmp / "log5.json",
+                   takt=0)
+        bilder_urls = [a[3].get("image_url") for a in aufrufe if a[0] == "graph" and a[3].get("image_url")]
+        ok("ohne media-token drei bilder unter ig/karussell auf main", len(gesetzt) == 3
+           and all(g[0] == "PUT" and "/contents/ig/karussell/" in g[1] and g[2]["branch"] == "main"
+                   for g in gesetzt))
+        ok("instagram holt die bilder von kaspapulse.com, erst nach dem warten",
+           len(gewartet) == 3 and bilder_urls == [u for u, _ in gewartet]
+           and all(u.startswith("https://kaspapulse.com/ig/karussell/") for u in bilder_urls))
+        ok("probe mit ablage unter ig bleibt trocken", e["modus"] == "trocken" and e.get("ablage") == "ig")
+        os.environ["GITHUB_REF_NAME"] = "fix/x"
+        try:
+            posten("woche", "2026-10-31", quelle=quelle, start="hand", probe=True, log_pfad=tmp / "log6.json",
+                   takt=0)
+            ok("ablage unter ig nur von main", False)
+        except Stopp as exc:
+            ok("ablage unter ig nur von main", "branch main" in str(exc))
+    finally:
+        globals()["_roh"], instagram.url_warten, instagram.graph = alt2
+        for k in ("GITHUB_REPOSITORY", "GITHUB_TOKEN", "GITHUB_REF_NAME"):
+            os.environ.pop(k, None)
 
     # meme ohne neues motiv: kein entwurf, nur nicht faellig
     logm = tmp / "logm.json"
