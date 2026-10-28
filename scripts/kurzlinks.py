@@ -62,7 +62,8 @@ KURZLINKS = {
     "threads": ("threads", "bio"),
     "discord": ("discord", "channel"),
     "story": ("instagram", "story"),
-    # Schlussfolie jedes Karussells (Ben, 28.10.2026), Kampagne newsletter
+    # Schlussfolie jedes Karussells (Ben, 28.10.2026), eigene Kampagne
+    # karussell, damit Anmeldungen aus dem Karussell getrennt zu sehen sind
     "nl": ("instagram", "post"),
 }
 
@@ -73,7 +74,7 @@ KURZLINKS = {
 # eine zweite Zeile neben "instagram" eroeffnen.
 EIGEN = {
     "story": ("story", ""),
-    "nl": ("newsletter", ANKER),
+    "nl": ("karussell", ANKER),
 }
 
 ORDNER = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
@@ -178,8 +179,8 @@ def selbsttest():
 
     ok("fuenf profile, die story und die karussell-schlussfolie",
        sorted(KURZLINKS) == ["discord", "ig", "nl", "story", "threads", "x", "yt"], sorted(KURZLINKS))
-    ok("nl fuehrt mit kampagne newsletter auf den anmeldebereich",
-       ziel("nl") == "/?utm_source=instagram&utm_medium=post&utm_campaign=newsletter#subscribe", ziel("nl"))
+    ok("nl fuehrt mit kampagne karussell auf den anmeldebereich",
+       ziel("nl") == "/?utm_source=instagram&utm_medium=post&utm_campaign=karussell#subscribe", ziel("nl"))
     ok("jedes profil-ziel geht auf den anmeldebereich der startseite",
        all(ziel(k).startswith("/?utm_source=") and ziel(k).endswith(ANKER) for k in KURZLINKS
            if k not in EIGEN))

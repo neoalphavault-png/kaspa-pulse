@@ -55,5 +55,5 @@ Gewählt sind **A Editorial, B Foto-Objekt und D Neutral und Grün**. Rotiert wi
 - **Ein gewünschter Look** (zum Beispiel B für ein Foto-Motiv) gilt nur, wenn er nicht derselbe wie zuletzt auf dem Kanal ist.
 
 ## Karussell (Ben, 28.10.2026)
-- **Schlussfolie:** Die letzte Folie jedes Karussells ist die Newsletter-Folie mit dem Kurzlink `kaspapulse.com/nl` (utm_source instagram, utm_medium post, utm_campaign newsletter), ohne Engagement-Köder.
+- **Schlussfolie:** Die letzte Folie jedes Karussells ist die Newsletter-Folie mit dem Kurzlink `kaspapulse.com/nl` (utm_source instagram, utm_medium post, utm_campaign karussell), ohne Engagement-Köder.
 - **Zahlen:** Sie werden beim Bau frisch geholt. Dieselbe Zahl höchstens einmal pro Tag auf Instagram.

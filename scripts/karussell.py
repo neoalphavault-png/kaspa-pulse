@@ -63,6 +63,14 @@ REPO = HERE.parent
 sys.path.insert(0, str(HERE))
 
 HISTORY = REPO / "data" / "weekly-history.json"
+# Adressen ab 100 KAS (Ben, 28.10.2026). Die Reihe "holders" in weekly-history
+# ist Kaspalytics address/count/meaningful-balance, ihre Schwelle ist nirgends
+# belegt (808,128 liegt sogar ueber der Zaehlung ab 0.01 KAS). Belegt ist die
+# Schwelle der Reihe distribution/kas-threshold/100+, die steht im Pfad. Unser
+# Schwellen-Log fuehrt sie taeglich als holders_100kas, dieselbe Zahl wie auf
+# kaspapulse.com.
+SCHWELLEN_LOG = REPO / "data" / "address-thresholds-log.json"
+SCHWELLE_KAS = 100
 STORY = REPO / "data" / "karussell-story.json"
 ABBINDER = ("One number like this every day.", "Follow @kaspapulse")
 MONATE = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
@@ -120,7 +128,18 @@ def ausgaben_fuer(history, fuer):
                 % (montag, history[-1].get("week") if history else "-"))
 
 
-def kandidaten(jetzt, vorher):
+def ab_100_kas(tag, log=None):
+    """Adressen mit mindestens 100 KAS am Stichtag, aus dem Schwellen-Log."""
+    if log is None:
+        try:
+            log = json.loads(Path(SCHWELLEN_LOG).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return None
+    e = next((x for x in log.get("tage", []) if x.get("datum") == tag), None)
+    return e.get("holders_100kas") if e else None
+
+
+def kandidaten(jetzt, vorher, schwellen=None):
     """Die Wochenzahlen als Seiten. Keine davon ist unsere eigene Zaehlung,
     also traegt jede "source ...". werte ist (vorher, jetzt) fuer die Balken."""
     s, s0 = stichtag(jetzt["week"]), stichtag(vorher["week"])
@@ -131,14 +150,15 @@ def kandidaten(jetzt, vorher):
                   "satz": "network hashrate, %+.1f%% against the week to %s" % (d, tag_kurz(s0)),
                   "quelle": "source kaspa rest api", "gewicht": abs(d), "stolz": d > 0,
                   "werte": (vorher["hashrate"], jetzt["hashrate"]), "fmt": lambda v: "%.0f PH/s" % v})
-    if jetzt.get("holders") and vorher.get("holders"):
-        n = jetzt["holders"] - vorher["holders"]
-        k.append({"id": "holders", "kopf": "ADDRESSES", "zahl": ganz(jetzt["holders"]),
-                  "satz": "addresses hold a meaningful balance, %s%s in a week"
-                          % ("+" if n >= 0 else "", ganz(n)),
+    h1, h0 = ab_100_kas(s, schwellen), ab_100_kas(s0, schwellen)
+    if h1 and h0:
+        n = h1 - h0
+        k.append({"id": "holders", "kopf": "ADDRESSES", "zahl": ganz(h1),
+                  "satz": "addresses with at least %d KAS, %s%s in a week"
+                          % (SCHWELLE_KAS, "+" if n >= 0 else "", ganz(n)),
                   "quelle": "source kaspalytics address counts",
-                  "gewicht": abs(100 * n / vorher["holders"]), "stolz": n > 0,
-                  "werte": (vorher["holders"], jetzt["holders"]), "fmt": ganz})
+                  "gewicht": abs(100 * n / h0), "stolz": n > 0,
+                  "werte": (h0, h1), "fmt": ganz})
     if jetzt.get("dormant_pct") and vorher.get("dormant_pct"):
         k.append({"id": "dormant", "kopf": "SLEEPING COINS", "zahl": "%.1f%%" % jetzt["dormant_pct"],
                   "satz": "of all KAS has not moved in a year",
@@ -167,13 +187,13 @@ def haken(erste):
     Zahl hinaus: "than ever" waere ein Rekord, belegt ist nur die Vorwoche;
     gezaehlt werden Adressen, nicht Menschen."""
     return {"hashrate": "more work secured kaspa than a week before",
-            "holders": "more addresses hold real KAS than a week ago",
+            "holders": "more addresses hold at least %d KAS than a week ago" % SCHWELLE_KAS,
             "dormant": "half of all KAS has not moved in a year",
             "tvl": "more money sits on kaspa layer 2 than a week ago"}[erste["id"]]
 
 
-def seiten_woche(jetzt, vorher):
-    k = waehle(kandidaten(jetzt, vorher))
+def seiten_woche(jetzt, vorher, schwellen=None):
+    k = waehle(kandidaten(jetzt, vorher, schwellen))
     if len(k) < 3:
         raise Stopp("weniger als drei wochenzahlen in der ausgabe %s" % jetzt["week"])
     s = [dict(k[0], art="haken", haken=haken(k[0]))]
@@ -582,8 +602,18 @@ def selbsttest():
          "tvl_total": 1386405.34}
     b = {"week": "2026-10-12", "hashrate": 362.36, "holders": 802817.0, "dormant_pct": 51.3,
          "tvl_total": 1244205.59}
-    ss = seiten_woche(b, a)
+    sl = {"tage": [{"datum": "2026-10-03", "holders_100kas": 292500, "holders_mean": 800919},
+                   {"datum": "2026-10-10", "holders_100kas": 293978, "holders_mean": 802817}]}
+    ss = seiten_woche(b, a, sl)
     ok("vier seiten, die letzte ist der abbinder", len(ss) == 4 and ss[-1]["art"] == "abbinder")
+    adr = next(x for x in ss if x["id"] == "holders")
+    ok("adressen-folie nur mit schwelle, ab 100 KAS aus dem schwellen-log",
+       adr["zahl"] == "293,978" and "at least 100 KAS" in adr["satz"] and "at least 100 KAS" in haken(adr))
+    ok("ohne schwellen-log keine adressen-folie",
+       all(x.get("id") != "holders" for x in kandidaten(b, a, {"tage": []})))
+    import content_wache
+    ok("keine ungenauen mengenwoerter in den texten",
+       not any(content_wache.ungenau(t) for t in seiten_texte(ss) + [haken(adr)]))
     ok("seite 1 ist eine zahl, die stolz macht (%s)" % ss[0]["id"], ss[0]["stolz"] and ss[0]["id"] != "tvl")
     ok("jede seite traegt week to 10 oct 2026", all("week to 10 oct 2026" in x["datum"] for x in ss))
     ok("seite 2 und 3 mit balken, vorwoche gegen woche",

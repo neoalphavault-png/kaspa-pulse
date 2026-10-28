@@ -68,11 +68,11 @@ DATASETS = {
     },
     "kaspa-supply.html": {
         "name": "Kaspa addresses by balance threshold",
-        "description": "Kaspa addresses with any balance, with a meaningful balance and above 0.01, 1 and 100 KAS, "
+        "description": "Kaspa addresses with any balance and with at least 0.01, 1 and 100 KAS, "
                        "one snapshot per day since 27 August 2023, source kaspalytics, logged by Kaspa Pulse.",
         "measurementTechnique": "daily snapshots of the kaspalytics address count and threshold charts, merged into "
                                 "one series, break in the any-balance series between 24 and 28 September 2023",
-        "variableMeasured": ["addresses with any balance", "addresses with a meaningful balance",
+        "variableMeasured": ["addresses with any balance",
                              "addresses with 0.01 KAS or more", "addresses with 1 KAS or more",
                              "addresses with 100 KAS or more"],
         "temporalCoverage": "2023-08-27/..",
