@@ -59,7 +59,7 @@ def abzweig_probe(kette, hoehe, n_peers=3, budget_s=420):
             erste_abw = next((h for h, x in paare if x != nach_h[h]), None)
             proben.append({"software": p.agent, "von": ab, "bis": ab + len(roh) - 1, "verglichen": len(paare),
                            "gleich": gleich, "erste_abweichung": erste_abw, "gemeldete_hoehe": p.hoehe})
-            Z.log(f"probe {p.agent}: {proben[-1]['gleich']}/{verglichen} gleich")
+            Z.log(f"probe {p.agent}: {gleich}/{len(paare)} gleich")
         except (OSError, ConnectionError, TimeoutError, struct.error, IndexError) as e:
             Z.log(f"probe {p.agent} ohne antwort ({type(e).__name__})")
         p.zu()
