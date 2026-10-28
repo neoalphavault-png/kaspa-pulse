@@ -1,0 +1,95 @@
+# zcash-testnet-stall.yml - Pruefauftrag Ben 28.10.2026: lief die Zcash-Testnet-Kette
+# ueber 4.548.314 hinaus? Einmalig, nur auf dem Branch zcash/testnet-stall.
+#
+# messen: eigene Koepfe ab dem Checkpoint unter 4.547.814 (zcash_koepfe.py
+# --netz testnet, Gegenprobe 2 Peers), dann scripts/zcash/testnet_stall.py
+# (Folge der Bloecke, Fenster +-500, Abzweig-Probe mit 3 weiteren Peers).
+# melden: schickt data/zcash-testnet-stall/moderator.txt nach #moderator-only
+# (DISCORD_WEBHOOK_OPS) und ops-log.txt nach #ops-log (DISCORD_WEBHOOK_OPS_LOG,
+# falls das Secret existiert), nur wenn der Push die Datei geaendert hat.
+# Keine Adressen oder Hostnamen in Daten und Log; Webhooks nie ausgeben.
+name: zcash testnet stall
+
+on:
+  push:
+    branches: ["zcash/testnet-stall"]
+    paths:
+      - "scripts/zcash/testnet_stall.py"
+      - "data/zcash-testnet-stall/*.txt"
+      - ".github/workflows/zcash-testnet-stall.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: zcash-testnet-stall
+  cancel-in-progress: false
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: was hat sich geaendert
+        id: neu
+        run: |
+          set -eu
+          G=$(git diff --name-only HEAD~1 HEAD || true)
+          echo "$G"
+          case "$G" in *testnet_stall.py*|*zcash-testnet-stall.yml*) echo "messen=ja" >> "$GITHUB_OUTPUT";; esac
+          case "$G" in *moderator.txt*) echo "mod=ja" >> "$GITHUB_OUTPUT";; esac
+          case "$G" in *ops-log.txt*) echo "log=ja" >> "$GITHUB_OUTPUT";; esac
+
+      - name: messen
+        if: steps.neu.outputs.messen == 'ja'
+        run: |
+          set -eu
+          D=data/zcash-testnet-stall
+          mkdir -p $D
+          python3 scripts/zcash/zcash_koepfe.py --netz testnet --ab 4547814 --vorlauf 0 --gegenproben 2 \
+            --aus "$RUNNER_TEMP/k.csv.gz" --meta $D/koepfe-meta.json
+          python3 scripts/zcash/testnet_stall.py --koepfe "$RUNNER_TEMP/k.csv.gz" --meta $D/koepfe-meta.json \
+            --hoehe 4548314 --json $D/stall.json --md $D/stall.md
+          cat $D/stall.md >> "$GITHUB_STEP_SUMMARY"
+          python3 scripts/secret_scan.py --baum
+          git config user.name "zcash testnet bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add $D
+          git diff --cached --quiet || git commit -m "zcash testnet: pruefung 4548314 [bot]"
+          git pull -q --rebase origin zcash/testnet-stall && git push -q origin HEAD:zcash/testnet-stall
+
+      - name: melden
+        if: steps.neu.outputs.mod == 'ja' || steps.neu.outputs.log == 'ja'
+        env:
+          HOOK_MOD: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          HOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_OPS_LOG }}
+          MOD: ${{ steps.neu.outputs.mod }}
+          LOG: ${{ steps.neu.outputs.log }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error
+          def senden(var, pfad, name):
+              hook = os.environ.get(var, "").strip()
+              if not hook.startswith(("https://discord.com/api/webhooks/", "https://discordapp.com/api/webhooks/")):
+                  print(f"{name}: kein webhook im secret, nicht gesendet"); return
+              text = open(pfad).read().strip()[:1990]
+              req = urllib.request.Request(hook, data=json.dumps({"content": text, "allowed_mentions": {"parse": []}}).encode(),
+                                           headers={"Content-Type": "application/json", "User-Agent": "kaspa-pulse/1.0"})
+              try:
+                  with urllib.request.urlopen(req, timeout=60) as r:
+                      print(f"{name}: http {r.status}")
+              except urllib.error.HTTPError as e:
+                  print(f"{name}: abgelehnt http {e.code}")
+          if os.environ.get("MOD") == "ja":
+              senden("HOOK_MOD", "data/zcash-testnet-stall/moderator.txt", "moderator-only")
+          if os.environ.get("LOG") == "ja":
+              senden("HOOK_LOG", "data/zcash-testnet-stall/ops-log.txt", "ops-log")
+          PY

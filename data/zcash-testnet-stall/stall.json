@@ -1,0 +1,206 @@
+{
+  "hoehe": 4548314,
+  "spitze": 4550380,
+  "spitze_utc": "2026-10-28 08:51:44",
+  "abruf_utc": "2026-10-28T08:52:43Z",
+  "lief_weiter": true,
+  "bloecke_danach": 2066,
+  "folge": [
+    {
+      "hoehe": 4548314,
+      "hash": "00001a5f4d7310fb7a38f30076be85d07201b771aa42d4ee7b56931e87fe4dbd",
+      "zeit_utc": "2026-10-27 18:29:29",
+      "abstand_s": 17
+    },
+    {
+      "hoehe": 4548315,
+      "hash": "000013f21766a12db79a3a5ac42f549d160fe1db781d2bdb712e428d457761c9",
+      "zeit_utc": "2026-10-27 18:30:23",
+      "abstand_s": 54
+    },
+    {
+      "hoehe": 4548316,
+      "hash": "00000a172c53d857b307c30116bc9279e0549a604543e76e3993342d7e485dbb",
+      "zeit_utc": "2026-10-27 18:30:55",
+      "abstand_s": 32
+    },
+    {
+      "hoehe": 4548317,
+      "hash": "00000d10d4ca77dfc0fedcaf3f6086545e0532f81f4198e8e4fab248951d9de7",
+      "zeit_utc": "2026-10-27 18:31:20",
+      "abstand_s": 25
+    },
+    {
+      "hoehe": 4548318,
+      "hash": "000000a7a7162304b3bae709f7cec2a6f7d2ec206d2909876faf5a7546a7c404",
+      "zeit_utc": "2026-10-27 18:32:04",
+      "abstand_s": 44
+    },
+    {
+      "hoehe": 4548319,
+      "hash": "000020faffb1db1eaaa2f31d48d8c6dca5bc8ad262448aeb485bbf3e76871fb8",
+      "zeit_utc": "2026-10-27 18:32:17",
+      "abstand_s": 13
+    },
+    {
+      "hoehe": 4548320,
+      "hash": "0000184e912a81aaab104df3ced029a68cce22cb9c1fa59b213800492d36fca5",
+      "zeit_utc": "2026-10-27 18:32:45",
+      "abstand_s": 28
+    },
+    {
+      "hoehe": 4548321,
+      "hash": "000014a7264064b78c9c4d7d8ff781f6aab9a201f1eaaced4c6c8f0abbdf38ec",
+      "zeit_utc": "2026-10-27 18:33:23",
+      "abstand_s": 38
+    },
+    {
+      "hoehe": 4548322,
+      "hash": "00000b85a2f22b4076fc2f9253c799446f547bd28a4dd79dbe487f6df8ee2271",
+      "zeit_utc": "2026-10-27 18:33:52",
+      "abstand_s": 29
+    },
+    {
+      "hoehe": 4548323,
+      "hash": "00000591c998c64c3fd7319ee230fab6962eb3b9f5a215a58ba0f2c4630e0099",
+      "zeit_utc": "2026-10-27 18:34:09",
+      "abstand_s": 17
+    },
+    {
+      "hoehe": 4548324,
+      "hash": "0000249ce532708b05a973252f6e86fdce81417305059a084696f30f50a27548",
+      "zeit_utc": "2026-10-27 18:34:21",
+      "abstand_s": 12
+    },
+    {
+      "hoehe": 4548325,
+      "hash": "0000055dcee655b44f2bae4d734d1b2f992fc5e578358d7f041f839edd4ebcd7",
+      "zeit_utc": "2026-10-27 18:34:43",
+      "abstand_s": 22
+    },
+    {
+      "hoehe": 4548326,
+      "hash": "00000becdedb28ffb404b64a9c0643c9f14aefe0e00f3b8afb0f6a4c653cbdbb",
+      "zeit_utc": "2026-10-27 18:35:08",
+      "abstand_s": 25
+    },
+    {
+      "hoehe": 4548327,
+      "hash": "00001cc344f4d35a55cddd0450f7db620e9c6a3db7e7c5c53bf978f4ad838674",
+      "zeit_utc": "2026-10-27 18:35:25",
+      "abstand_s": 17
+    },
+    {
+      "hoehe": 4548328,
+      "hash": "0000023ac552bceb026fdf8d1f0970540d6efaf032e0560b67fa3761ac351632",
+      "zeit_utc": "2026-10-27 18:35:33",
+      "abstand_s": 8
+    },
+    {
+      "hoehe": 4548329,
+      "hash": "00000bc89b1d5cf748262e32b400593206b200225c73ba7965a0d1bfa094ce00",
+      "zeit_utc": "2026-10-27 18:35:45",
+      "abstand_s": 12
+    },
+    {
+      "hoehe": 4548330,
+      "hash": "00001b20d49858d866a85790e63f8c3cd5f52f8b612ff3a0154f9ccc8d6c5ac6",
+      "zeit_utc": "2026-10-27 18:36:25",
+      "abstand_s": 40
+    },
+    {
+      "hoehe": 4548331,
+      "hash": "0000116f22c168126f49bc1746a37e14519762cd8cef3f19a33b3d1bb761f39f",
+      "zeit_utc": "2026-10-27 18:36:40",
+      "abstand_s": 15
+    },
+    {
+      "hoehe": 4548332,
+      "hash": "0000013e386c418be062920abbd4ad7d43414b77074c2817a485641c559a105f",
+      "zeit_utc": "2026-10-27 18:37:01",
+      "abstand_s": 21
+    },
+    {
+      "hoehe": 4548333,
+      "hash": "000026e7c488b46638020c36cd28d66741ffd31227fc40125f622b4618915525",
+      "zeit_utc": "2026-10-27 18:37:05",
+      "abstand_s": 4
+    },
+    {
+      "hoehe": 4548334,
+      "hash": "000016a81e426a596a4c6fa8b168fb081536f19605f7a0c7d582d179b28a531c",
+      "zeit_utc": "2026-10-27 18:37:27",
+      "abstand_s": 22
+    },
+    {
+      "hoehe": 4548335,
+      "hash": "000027fbe4886b9403f5e3610deec5384301503dd78ef961a93586c0483d290b",
+      "zeit_utc": "2026-10-27 18:38:00",
+      "abstand_s": 33
+    }
+  ],
+  "fenster": {
+    "von": 4547814,
+    "bis": 4548814,
+    "abstaende": 1001,
+    "median_s": 20,
+    "mittel_s": 25.07,
+    "laengste_luecke_s": 181,
+    "laengste_luecke_vor_block": 4548253,
+    "laengste_luecke_utc": "2026-10-27 18:08:02"
+  },
+  "abruf": {
+    "peer_software": [
+      "/Zebra:7.0.0/",
+      "/Zakura:1.7.0-rc1/",
+      "/Zakura:1.7.0-modified/"
+    ],
+    "peer_fehler": 0,
+    "abzweige_verworfen": [],
+    "gegenproben": [
+      {
+        "agent": "/Zebra:7.0.0/",
+        "verglichen": 500,
+        "gleich": 500,
+        "spitze_peer": 4550380
+      },
+      {
+        "agent": "/Zebra:7.0.0/",
+        "verglichen": 500,
+        "gleich": 500,
+        "spitze_peer": 4550381
+      }
+    ],
+    "checkpoints_geprueft": 0,
+    "zielhoehe_gemeldet": 4550379
+  },
+  "abzweig_probe": [
+    {
+      "software": "/Zebra:7.0.0/",
+      "von": 4548265,
+      "bis": 4548904,
+      "verglichen": 640,
+      "gleich": 640,
+      "erste_abweichung": null,
+      "gemeldete_hoehe": 4550395
+    },
+    {
+      "software": "/Zebra:7.0.0/",
+      "von": 4548265,
+      "bis": 4548904,
+      "verglichen": 640,
+      "gleich": 640,
+      "erste_abweichung": null,
+      "gemeldete_hoehe": 4550395
+    },
+    {
+      "software": "/Zakura:1.7.0/",
+      "von": 4548265,
+      "bis": 4548904,
+      "verglichen": 640,
+      "gleich": 640,
+      "erste_abweichung": null,
+      "gemeldete_hoehe": 4550396
+    }
+  ]
+}

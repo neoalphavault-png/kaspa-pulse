@@ -1,0 +1,5 @@
+Zcash Testnet 4,548,314 (Prüfauftrag 28.10.): Kette lief weiter, Spitze 4,550,380 um 08:51 UTC, kein Abzweig (3 Peers je 640/640 gleich). Bitte Antwort an @soligxbt prüfen und posten:
+
+we counted the zcash testnet chain past 4,548,314 with our own header client. block 4,548,314 carries 27 oct 2026 18:29:29 utc and 4,548,315 followed 54 s later, and by 28 oct 08:51 utc the chain stood at 4,550,380, which is 2,066 blocks further. three other peers returned the same 640 headers around that height, so we counted no fork or reorg there.
+
+Bericht: berichte/2026-10-28-zcash-testnet-stall.md auf Branch zcash/testnet-stall
