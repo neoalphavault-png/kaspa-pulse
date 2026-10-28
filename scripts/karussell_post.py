@@ -190,7 +190,7 @@ def fuer_aufloesen(art, fuer, now=None):
 
 # ------------------------------------------------------------ entwurf
 
-def bauen(art, fuer, out, look, motiv=None):
+def bauen(art, fuer, out, look, motiv=None, speicher=None, merken=False):
     """(seiten-texte, caption, bilder, motiv) im Look aus dem Raster."""
     import karussell
     if art == "meme":
@@ -200,7 +200,7 @@ def bauen(art, fuer, out, look, motiv=None):
         motiv = meme_wahr.MOTIV
     else:
         ss, cap = karussell.vorbereiten(art, fuer)
-        bilder = karussell.rendern(art, fuer, ss, (look,), out, motiv)
+        bilder = karussell.rendern(art, fuer, ss, (look,), out, motiv, speicher=speicher, merken=merken)
         fehler = karussell.deckblatt_pruefen(ss)
         motiv = ""
     if fehler:
@@ -231,7 +231,12 @@ def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, send
     motiv = look_takt.raster_motiv(sp, serie, fuer) if hintergrund.aktiv(fuer) else None
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
-    ss, cap, bilder, motiv_meme = bauen(art, fuer, out, look, motiv)
+    if karussell.v2(art, fuer):
+        motiv = None                      # look v2 traegt keine generativen hintergruende
+    ss, cap, bilder, motiv_meme = bauen(art, fuer, out, look, motiv, speicher=sp, merken=not probe)
+    if karussell.v2(art, fuer):
+        info = getattr(karussell.rendern, "info", {}) or {}
+        look = "v2 " + "/".join(x["look"] for x in info.get("seiten", []))
     m = {"art": art, "fuer": fuer, "postzeit": postzeit(art, fuer).isoformat(), "look": look,
          "caption": cap, "motiv": motiv_meme, "hintergrund": motiv, "probe": probe,
          "bilder": [{"datei": Path(b).name, "sha256": sha(b)} for b in bilder],

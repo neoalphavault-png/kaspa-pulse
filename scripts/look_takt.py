@@ -272,10 +272,18 @@ def looks_fuer(speicher, serie, datum, kanaele=KANAELE):
 # ---------------------------------------------------- die richtung je plattform
 
 RICHTUNGEN = ("A", "B", "C", "D")
-# Bis Ben waehlt, stehen alle vier zur Wahl. Danach traegt diese Zeile seine
-# Wahl, z. B. ("A", "B") fuer "A fuer Zahlen und B fuer Alltagsvergleiche".
-GEWAEHLT = RICHTUNGEN
-PLATTFORMEN = ("instagram", "threads", "x", "discord", "story")
+# Bens Wahl vom 28.10.2026 nach dem Musterblatt: A Editorial, B Foto-Objekt,
+# D Neutral und Gruen. C (Daten-Kunst aus Punkten) faellt raus, keine
+# gezeichneten oder aus Punkten gebauten Gegenstaende mehr. C bleibt nur in
+# RICHTUNGEN, damit alte Eintraege im Speicher lesbar bleiben.
+GEWAEHLT = ("A", "B", "D")
+# Feed, Story, Karussell und Tagesgrafik werden getrennt gefuehrt (Ben,
+# 28.10.2026), die alten Plattform-Namen bleiben gueltig.
+PLATTFORMEN = ("instagram", "threads", "x", "discord", "story", "feed", "karussell", "tagesgrafik")
+# Die Wortmarke wechselt nach dem Grund (Ben, 28.10.2026): schwarz, weiss
+# oder normal (KASPA weiss, PULSE #49EACB). Welche passt, misst
+# look_motor.logo_wahl im fertigen Bild, mindestens 4.5:1.
+LOGO_VARIANTEN = ("schwarz", "weiss", "normal")
 
 
 def _richtung_reihe(speicher, plattform):
@@ -284,7 +292,7 @@ def _richtung_reihe(speicher, plattform):
     return speicher.setdefault("kanaele", {}).setdefault("richtung/%s" % plattform, [])
 
 
-def richtung_faellig(speicher, plattform, datum, serie, erlaubt=None):
+def richtung_faellig(speicher, plattform, datum, serie, erlaubt=None, wunsch=None):
     """Die Richtung fuer diesen Post. Derselbe Post (datum und serie) bekommt
     beim zweiten Lauf dieselbe Richtung. Sonst die naechste erlaubte nach der
     letzten auf dieser Plattform, nie dieselbe wie zuletzt."""
@@ -296,23 +304,44 @@ def richtung_faellig(speicher, plattform, datum, serie, erlaubt=None):
         if e["datum"] == str(datum) and e["serie"] == serie:
             return e["richtung"]
     vorher = [e for e in reihe if (e["datum"], e["serie"]) != (str(datum), serie)]
+    letzte = vorher[-1]["richtung"] if vorher else None
+    # ein gewuenschter look (z. B. B fuer ein Foto-Motiv) gilt, solange er
+    # nicht derselbe wie zuletzt auf diesem kanal ist
+    if wunsch and wunsch in erlaubt and wunsch != letzte:
+        return wunsch
     if not vorher:
         return erlaubt[0]
-    letzte = vorher[-1]["richtung"]
     if len(erlaubt) == 1:
         return erlaubt[0]
     i = erlaubt.index(letzte) if letzte in erlaubt else -1
     return erlaubt[(i + 1) % len(erlaubt)]
 
 
-def richtung_merken(speicher, plattform, datum, serie, erlaubt=None):
+def richtung_merken(speicher, plattform, datum, serie, erlaubt=None, wunsch=None):
     """Traegt den Post ein und gibt seine Richtung zurueck."""
-    rt = richtung_faellig(speicher, plattform, datum, serie, erlaubt)
+    rt = richtung_faellig(speicher, plattform, datum, serie, erlaubt, wunsch)
     reihe = [e for e in _richtung_reihe(speicher, plattform)
              if (e["datum"], e["serie"]) != (str(datum), serie)]
     reihe.append({"datum": str(datum), "serie": serie, "richtung": rt})
     speicher["kanaele"]["richtung/%s" % plattform] = reihe[-BEHALTEN:]
     return rt
+
+
+def logo_letzte(speicher, kanal):
+    return speicher.get("kanaele", {}).get("logo/%s" % kanal)
+
+
+def logo_waehlen(speicher, kanal, gueltig, merken=True):
+    """Aus den Varianten, die im Bild 4.5:1 schaffen, die erste, die nicht
+    dieselbe wie zuletzt auf diesem Kanal ist. Passt nur eine, bleibt es die."""
+    gueltig = [v for v in LOGO_VARIANTEN if v in gueltig]
+    if not gueltig:
+        raise Fehler("keine wortmarke erreicht 4.5:1 auf diesem grund")
+    letzte = logo_letzte(speicher, kanal)
+    wahl = next((v for v in gueltig if v != letzte), gueltig[0])
+    if merken:
+        speicher.setdefault("kanaele", {})["logo/%s" % kanal] = wahl
+    return wahl
 
 
 def trockenlauf():

@@ -460,6 +460,12 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.selbsttest:
         return selbsttest()
+    if a.schritt:
+        # Ben, 28.10.2026: das Halloween-Bild und "how fast is kaspa, really?"
+        # werden nirgends mehr verwendet, beide tragen gezeichnete Gegenstaende.
+        # Halloween baut jetzt look_motor im Look B (docs/grafik-regeln.md).
+        print("STOPP eingestellt seit 28.10.2026, siehe docs/grafik-regeln.md, nichts gebaut")
+        return 1
     try:
         if a.schritt == "bauen":
             bps, sek, d = lauf(a.lauf)

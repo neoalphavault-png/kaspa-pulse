@@ -454,9 +454,27 @@ def vorbereiten(art, fuer, history=None, story=None):
     return ss, cap
 
 
-def rendern(art, fuer, ss, looks, out, motiv=None):
+# Look v2 (Ben, 28.10.2026): ab Sa 31.10.2026 baut look_motor das
+# Wochen-Karussell, mit A, B und D, der Logo-Regel und der Newsletter-Folie.
+LOOK_V2_AB = "2026-10-31"
+
+
+def v2(art, fuer):
+    return art == "woche" and str(fuer) >= LOOK_V2_AB
+
+
+def rendern(art, fuer, ss, looks, out, motiv=None, speicher=None, merken=False):
     """motiv: das Hintergrundmotiv aus dem Raster (look_takt.raster_motiv),
-    alle Seiten eines Karussells tragen dasselbe."""
+    alle Seiten eines Karussells tragen dasselbe. Ab LOOK_V2_AB geht die
+    Woche an look_motor, looks und motiv gelten dort nicht."""
+    if v2(art, fuer):
+        import look_motor
+        try:
+            bilder, info = look_motor.karussell_woche(fuer, ss, out, speicher, merken=merken)
+        except look_motor.Stopp as exc:
+            raise Stopp("look v2, %s" % exc)
+        rendern.info = info
+        return bilder
     import hintergrund
     import tagesgrafik as tg
     from playwright.sync_api import sync_playwright
