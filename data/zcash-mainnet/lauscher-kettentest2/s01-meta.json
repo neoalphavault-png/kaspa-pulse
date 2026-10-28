@@ -1,0 +1,55 @@
+{
+  "art": "ein Zuhoerer (kein eigener Knoten), Verbindungen zu Mainnet-Knoten aus den DNS-Seeds",
+  "netz": "mainnet",
+  "protokoll": 170190,
+  "start_utc": "2026-10-28T15:46:50Z",
+  "ende_utc": "2026-10-28T16:06:50Z",
+  "geplantes_ende_utc": "2026-10-28T16:06:50Z",
+  "dauer_min": 20.0,
+  "ziel_verbindungen_je_software": 8,
+  "peers": [
+    {
+      "peer": "zebra-1",
+      "software": "/Zebra:5.1.0/",
+      "version": 170150,
+      "gemeldete_hoehe": 3428142,
+      "verbunden_utc": "2026-10-28T15:47:02Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "zebra-2",
+      "software": "/Zebra:7.0.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3533713,
+      "verbunden_utc": "2026-10-28T15:47:15Z",
+      "ankuendigungen": 22
+    },
+    {
+      "peer": "zakura-1",
+      "software": "/Zakura:1.7.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3533713,
+      "verbunden_utc": "2026-10-28T15:47:16Z",
+      "ankuendigungen": 15
+    },
+    {
+      "peer": "zebra-3",
+      "software": "/Zebra:7.0.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3533713,
+      "verbunden_utc": "2026-10-28T15:47:18Z",
+      "ankuendigungen": 6
+    },
+    {
+      "peer": "zebra-4",
+      "software": "/Zebra:7.0.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3533713,
+      "verbunden_utc": "2026-10-28T15:47:18Z",
+      "ankuendigungen": 19
+    }
+  ],
+  "block_hashes_gesehen": 21,
+  "koepfe_geholt": 21,
+  "zeitquelle": "Uhr des Runners (NTP), Millisekunden"
+}
