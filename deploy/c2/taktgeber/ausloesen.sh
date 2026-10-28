@@ -11,7 +11,7 @@ case "$1" in
     # hochgeladen, aber nichts nach #moderator-only geschickt und nichts ins
     # Log geschrieben. Darum stehen alle drei Eingaben ausdruecklich da,
     # genau wie bei Bens Handstart:
-    #   senden=true     Grafik, Texte und Selbstpruefung nach #moderator-only
+    #   senden=true     Kontrolle nach #ops-log, X-Post als VON HAND nach #moderator-only
     #   form=           leer heisst Rotation, keine Form von Hand
     #   instagram=aus   der Instagram-Job laeuft zu seiner eigenen Zeit
     #
@@ -35,7 +35,7 @@ case "$1" in
     "$HIER/takt.sh" "$REPO_PULSE" threads.yml "modus=${THREADS_LIVE:-trocken}"
     ;;
   # Karussell und Meme (Ben, 25.10.2026): je Termin zwei Takte. Der Entwurf
-  # 2 Stunden vorher nach #moderator-only, zum Termin der Posten-Lauf.
+  # 2 Stunden vorher nach #ops-log, zum Termin der Posten-Lauf.
   # start=takt erlaubt scharf, aber nur mit der Variable KARUSSELL_LIVE=true
   # auf GitHub, im Fenster um die Postzeit und ohne KARUSSELL_STOPP. fuer
   # bleibt leer: der Lauf nimmt den Termin dieser Art von heute.

@@ -4,8 +4,9 @@ name: cheat sheet
 # gebaut aus unseren eigenen Reihen (Ben, 11.10.2026). Edition 1 ist von Hand
 # entstanden, ab Edition 2 baut scripts/cheat_sheet.py.
 #
-# Der Workflow veroeffentlicht NICHTS. PDF und Deckblatt gehen ueber
-# DISCORD_WEBHOOK_OPS nach #moderator-only, dazu je Zahl ihr Stichtag und
+# Der Workflow veroeffentlicht NICHTS. PDF und Deckblatt gehen als
+# "📤 VON HAND" ueber DISCORD_WEBHOOK_OPS nach #moderator-only (ist
+# CHEAT_SHEET_LIVE scharf, nur zur Info nach #ops-log), dazu je Zahl ihr Stichtag und
 # wie alt er ist. Ben sieht nach und stellt die Variable CHEAT_SHEET_LIVE auf
 # "scharf", wenn die Datei unter kaspapulse.com/kaspa-pulse-cheat-sheet.pdf
 # ersetzt werden soll. Erst dann wird committet und erst dann verbraucht der
@@ -81,6 +82,7 @@ jobs:
         if: steps.t.outputs.dran == '1'
         env:
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
           EDITION: ${{ inputs.edition }}
           AUS_PROBE: ${{ inputs.aus_probe }}
         run: |
@@ -116,21 +118,16 @@ jobs:
             git pull --rebase --autostash origin "$GITHUB_REF_NAME"
             git push
           fi
-      - name: ops bei rot
+      - name: rot nach ops-log
         if: failure()
         env:
-          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
           LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          python3 - <<'PY'
-          import json, os, urllib.request
-          hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
-          text = ("cheat sheet ist rot, kein neues pdf. meist ist eine zahl zu alt, "
-                  "der grund steht im lauf\n" + os.environ.get("LAUF", ""))
-          print(text)
-          if hook:
-              req = urllib.request.Request(hook, data=json.dumps({"content": text,
-                    "allowed_mentions": {"parse": []}}).encode(), headers={
-                    "Content-Type": "application/json", "User-Agent": "kaspa-pulse-bot"})
-              urllib.request.urlopen(req, timeout=30)
+          python3 - <<'PY' || true
+          import os, sys
+          sys.path.insert(0, "scripts")
+          import ops_melden
+          text = ("cheat sheet ist rot, kein neues pdf. meist ist eine zahl zu alt, " "der grund steht im lauf\n" + os.environ.get("LAUF", ""))
+          ops_melden.log(text, was="rot")
           PY

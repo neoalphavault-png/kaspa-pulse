@@ -3,7 +3,8 @@
 # Einmal am Tag die Insights je Post der letzten 7 Tage (Reichweite, Likes,
 # Kommentare, Saves, Shares) nach data/instagram-insights.json. Alle drei
 # Stunden neue Kommentare unter unseren Posts, je einer mit Antwort-ENTWURF
-# an DISCORD_WEBHOOK_OPS. Es wird nichts beantwortet; die Freigabe laeuft
+# als "📤 VON HAND" an DISCORD_WEBHOOK_OPS (der Rest der Pflege nach
+# #ops-log, DISCORD_WEBHOOK_LOG). Es wird nichts beantwortet; die Freigabe laeuft
 # ueber instagram-antwort.yml. Im Repo stehen nur Zahlen und Kommentar-IDs,
 # kein Kommentartext, kein Name, nie ein Token.
 
@@ -61,6 +62,7 @@ jobs:
           IG_USER_ID: ${{ vars.IG_USER_ID }}
           IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
         run: python3 scripts/instagram.py kommentare
       - name: daten sichern
         if: always()

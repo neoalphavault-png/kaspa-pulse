@@ -93,6 +93,8 @@ jobs:
         env:
           DISCORD_WEBHOOK_NUMBER: ${{ secrets.DISCORD_WEBHOOK_NUMBER }}
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          # nur im trockenlauf (ZIEL=moderator): bild und text nach #ops-log
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |

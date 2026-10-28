@@ -14,7 +14,7 @@ name: ig story auto
 # ein verspaeteter Lauf postet nie. Die Merkdatei sperrt eine zweite Story.
 #
 # SCHARF NUR MIT DER VARIABLE. IG_STORY_AUTO_LIVE=true, sonst geht der
-# Entwurf nur nach #moderator-only. Veto: IG_STORY_AUTO_STOPP auf
+# Entwurf nur nach #ops-log. Veto: IG_STORY_AUTO_STOPP auf
 # JJJJ-MM-TT oder "immer". modus=probe von Hand geht nie zu Instagram.
 #
 # DER TOKEN KOMMT AUS DER UMGEBUNG UND WIRD NIE GEDRUCKT. Jede Ausgabe laeuft
@@ -24,7 +24,7 @@ on:
   workflow_dispatch:
     inputs:
       modus:
-        description: "probe = nur #moderator-only (von hand), takt = vom c2-takt"
+        description: "probe = nur #ops-log (von hand), takt = vom c2-takt"
         type: choice
         options: [probe, takt]
         default: probe
@@ -75,10 +75,10 @@ jobs:
         env:
           DATUM: ${{ steps.p.outputs.datum }}
         run: python3 scripts/ig_story_auto.py bauen --datum "$DATUM" --ziel out/story
-      - name: entwurf nach moderator-only
+      - name: entwurf nach ops-log
         if: steps.p.outputs.modus == 'probe' || steps.p.outputs.modus == 'entwurf'
         env:
-          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
           MODUS: ${{ steps.p.outputs.modus }}
         run: python3 scripts/ig_story_auto.py ops --modus "$MODUS" --info out/story/info.json
       - name: jpeg auf kaspapulse.com
@@ -104,7 +104,7 @@ jobs:
           INSTAGRAM_PAGE_TOKEN: ${{ secrets.INSTAGRAM_PAGE_TOKEN }}
           IG_USER_ID: ${{ vars.IG_USER_ID }}
           IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
-          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
         run: python3 scripts/ig_story_auto.py posten --info out/story/info.json
       - name: merkdatei sichern
         if: always() && steps.p.outputs.modus == 'scharf'
@@ -121,20 +121,16 @@ jobs:
           done
           echo "::warning::merkdatei nicht gepusht"
           exit 1
-      - name: ops bei rot
+      - name: rot nach ops-log
         if: failure()
         env:
-          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
           LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          python3 - <<'PY'
-          import json, os, urllib.request
-          hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
+          python3 - <<'PY' || true
+          import os, sys
+          sys.path.insert(0, "scripts")
+          import ops_melden
           text = "ig-story ist rot, heute keine story\n" + os.environ.get("LAUF", "")
-          print(text)
-          if hook:
-              req = urllib.request.Request(hook, data=json.dumps({"content": text,
-                    "allowed_mentions": {"parse": []}}).encode(), headers={
-                    "Content-Type": "application/json", "User-Agent": "kaspa-pulse-bot"})
-              urllib.request.urlopen(req, timeout=30)
+          ops_melden.log(text, was="rot")
           PY

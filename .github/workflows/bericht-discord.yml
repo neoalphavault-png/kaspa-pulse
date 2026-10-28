@@ -2,7 +2,8 @@
 #
 # Laeuft nur bei einem Push auf einen Branch bericht/... mit einer Aenderung
 # unter berichte/. Gesendet wird nur der Abschnitt zwischen <!-- discord -->
-# und <!-- /discord -->, mit einer Kopfzeile "📤 VON HAND". scripts/bericht_discord.py
+# und <!-- /discord -->: Kopf und Info nach #ops-log, Teile mit "📤 VON HAND" nach
+# #moderator-only (Ben, 28.10.2026). scripts/bericht_discord.py
 # prueft vorher auf IP, Kaspa-Adresse, Hostname und Schluessel; bei einem Fund
 # geht nichts raus.
 #
@@ -15,8 +16,8 @@
 #
 # Zwei Jobs (Ben, 27.10.2026):
 #   senden  contents: read. Bricht ab, wenn dieser Workflow oder
-#           scripts/bericht_discord.py vom Stand auf main abweichen. Der Webhook
-#           steht nur im Sendeschritt. Die Merkdatei geht als Artefakt weiter.
+#           scripts/bericht_discord.py oder scripts/ops_melden.py vom Stand auf main abweichen. Die Webhooks
+#           stehen nur im Sendeschritt. Die Merkdatei geht als Artefakt weiter.
 #   merken  contents: write, ohne Secret. Schreibt nur auf ops/bericht-gesendet.
 # Die Merkdatei traegt nur Branch, Pfad, Pruefsumme und Zeit. Alle Laeufe
 # stehen in einer Warteschlange, damit zwei Laeufe nicht gleichzeitig schreiben.
@@ -55,9 +56,9 @@ jobs:
         run: |
           set -euo pipefail
           git fetch -q --depth=1 origin main
-          if ! git diff --quiet FETCH_HEAD HEAD -- .github/workflows/bericht-discord.yml scripts/bericht_discord.py; then
-            echo "bericht-discord.yml oder scripts/bericht_discord.py weichen von main ab, nichts gesendet"
-            git diff --stat FETCH_HEAD HEAD -- .github/workflows/bericht-discord.yml scripts/bericht_discord.py
+          if ! git diff --quiet FETCH_HEAD HEAD -- .github/workflows/bericht-discord.yml scripts/bericht_discord.py scripts/ops_melden.py; then
+            echo "bericht-discord.yml, scripts/bericht_discord.py oder scripts/ops_melden.py weichen von main ab, nichts gesendet"
+            git diff --stat FETCH_HEAD HEAD -- .github/workflows/bericht-discord.yml scripts/bericht_discord.py scripts/ops_melden.py
             exit 1
           fi
           echo "workflow und skript gleich wie main"
@@ -85,6 +86,7 @@ jobs:
       - name: berichte dieses pushes senden
         env:
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
         run: |
           python3 scripts/bericht_discord.py --ereignis "$GITHUB_EVENT_PATH" --branch "$GITHUB_REF_NAME" \
             --merkdatei "$RUNNER_TEMP/merk/gesendet.json" \

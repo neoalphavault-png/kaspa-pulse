@@ -3,7 +3,7 @@ name: karussell
 # Instagram-Karussell und "Meme, but true", automatisch (Ben, 25.10.2026).
 # Jeder Termin laeuft in zwei Schritten, beide vom Takt auf c2:
 #
-#   entwurf  2 Stunden vor dem Post. Bilder und Caption nach #moderator-only
+#   entwurf  2 Stunden vor dem Post. Bilder und Caption nach #ops-log
 #            mit "geht um HH:MM raus, Veto: karussell-stopp", alles als
 #            Artefakt karussell-entwurf-<art>-<datum>, Look im Raster gemerkt.
 #   posten   zum Termin. Holt genau die Bilder aus dem Entwurf, legt sie kurz
@@ -93,7 +93,7 @@ jobs:
         id: w
         if: inputs.schritt != 'posten'
         env:
-          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
           KARUSSELL_STOPP: ${{ vars.KARUSSELL_STOPP }}
           PROBE: ${{ inputs.schritt == 'probe' && '--probe' || '' }}
           F: ${{ steps.e.outputs.fuer }}
@@ -127,7 +127,7 @@ jobs:
           IG_USER_ID: ${{ vars.IG_USER_ID }}
           IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
           MEDIA_REPO_TOKEN: ${{ secrets.MEDIA_REPO_TOKEN }}
-          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
           GITHUB_TOKEN: ${{ github.token }}
           KARUSSELL_LIVE: ${{ vars.KARUSSELL_LIVE }}
           KARUSSELL_STOPP: ${{ vars.KARUSSELL_STOPP }}
@@ -156,21 +156,16 @@ jobs:
           done
           echo "::error::karussell-log nicht gepusht, der naechste lauf koennte denselben termin noch einmal posten"
           exit 1
-      - name: ops bei rot
+      - name: rot nach ops-log
         if: failure()
         env:
-          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
           LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          python3 - <<'PY'
-          import json, os, urllib.request
-          hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
-          text = "karussell %s %s ist rot, nichts gepostet\n%s" % (
-              os.environ.get("ART", ""), os.environ.get("SCHRITT", ""), os.environ.get("LAUF", ""))
-          print(text)
-          if hook:
-              req = urllib.request.Request(hook, data=json.dumps({"content": text,
-                    "allowed_mentions": {"parse": []}}).encode(), headers={
-                    "Content-Type": "application/json", "User-Agent": "kaspa-pulse-bot"})
-              urllib.request.urlopen(req, timeout=30)
+          python3 - <<'PY' || true
+          import os, sys
+          sys.path.insert(0, "scripts")
+          import ops_melden
+          text = "karussell %s %s ist rot, nichts gepostet\n%s" % (os.environ.get("ART", ""), os.environ.get("SCHRITT", ""), os.environ.get("LAUF", ""))
+          ops_melden.log(text, was="rot")
           PY
