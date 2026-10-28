@@ -62,6 +62,12 @@ Es werden nur vorhandene Secrets genutzt, dazu `STUDIO_READ_TOKEN` zum Lesen des
 - **Zwei Härtungen in diesem PR:**
   - Der Checkout von pulse-studio legt das Token nicht mehr auf die Platte (`persist-credentials: false`).
   - Der Push-Auslöser für die Probe und `data/weekly-verteilung-probe.txt` sind entfernt. Proben gehen nur noch per Handstart.
+- **Rebase nach dem Merge von #144 (28.10.):**
+  - Der Branch liegt auf main bb80e53, also mit #144 und #156.
+  - Konflikte in `deploy/c2/setup.sh` und im README des Taktgebers. Alle 15 Takte von main bleiben, die sechs Karussell-Takte eingeschlossen, `weekly-verteilung` kommt als 16. dazu.
+  - Jeder Takt hat Timer-Datei und Eintrag in `ausloesen.sh`. `bash -n` ist sauber. `takt.conf` trägt weiter `WV_MODUS=scharf`.
+  - Selbsttests grün, Secret-Scan des Diffs ohne Fund.
+  - **Neuer Kopf des Codes: 8d979fc.** Danach folgt nur noch dieser Bericht.
 - **Secrets je Modus (Ben, 27.10.):** Der Sendeschritt ist geteilt.
   - Die Probe läuft nur per Handstart (`workflow_dispatch`, nach dem Merge). In ihrer Umgebung steht nur `DISCORD_WEBHOOK_OPS`.
   - `DISCORD_WEBHOOK_WEEKLY`, `TELEGRAM_BOT_TOKEN` und `TELEGRAM_CHAT_ID` stehen nur im Schritt für den scharfen Lauf.
