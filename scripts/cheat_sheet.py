@@ -1084,29 +1084,19 @@ def ops_text(p, edition, pdf, scharf):
     return "\n".join(zeilen)
 
 
-def ops_schicken(hook, text, dateien):
-    """Text, Deckblatt und PDF nach #moderator-only, in einem Aufruf."""
-    import urllib.request
-    import uuid
-    grenze = "----cs" + uuid.uuid4().hex
-    teile = []
-
-    def feld(name, wert, dateiname=None, typ=None):
-        kopf = 'Content-Disposition: form-data; name="%s"' % name
-        if dateiname:
-            kopf += '; filename="%s"' % dateiname
-        teile.append(("--%s\r\n%s\r\n%s\r\n" % (grenze, kopf,
-                      "Content-Type: %s\r\n" % typ if typ else "")).encode() + wert + b"\r\n")
-    feld("payload_json", json.dumps({"content": text[:1990],
-         "allowed_mentions": {"parse": []}}).encode(), typ="application/json")
-    for i, (pfad, typ) in enumerate(dateien):
-        feld("files[%d]" % i, Path(pfad).read_bytes(), Path(pfad).name, typ)
-    body = b"".join(teile) + ("--%s--\r\n" % grenze).encode()
-    req = urllib.request.Request(hook, data=body, headers={
-        "Content-Type": "multipart/form-data; boundary=%s" % grenze,
-        "User-Agent": "kaspa-pulse-bot"})
-    with urllib.request.urlopen(req, timeout=120) as r:
-        print("an ops geschickt, http %s" % r.status)
+def ops_schicken(text, dateien, scharf):
+    """Text, Deckblatt und PDF in einem Aufruf ueber scripts/ops_melden.py.
+    Ersetzt der Lauf die Datei der Webseite, ist es eine Info nach #ops-log.
+    Sonst entscheidet Ben, ob er CHEAT_SHEET_LIVE scharf stellt, das ist eine
+    Handlung und geht als "📤 VON HAND" nach #moderator-only."""
+    import ops_melden
+    if scharf:
+        return ops_melden.log(text, dateien, "cheat-sheet")
+    kopf = ops_melden.hand_text(
+        "wenn du die edition freigibst", "GitHub",
+        "variable CHEAT_SHEET_LIVE auf scharf stellen, deckblatt und pdf haengen dran",
+        "https://github.com/neoalphavault-png/kaspa-pulse/settings/variables/actions")
+    return ops_melden.hand(kopf + "\n\n" + text, dateien, "cheat-sheet")
 
 
 # --------------------------------------------------------------------- main
@@ -1122,7 +1112,7 @@ def main(argv=None):
     ap.add_argument("--stand", help="als dieser tag rechnen (JJJJ-MM-TT)")
     ap.add_argument("--ziel")
     ap.add_argument("--melden", action="store_true",
-                    help="pdf und deckblatt an DISCORD_WEBHOOK_OPS schicken")
+                    help="pdf und deckblatt melden, scharf nach #ops-log, sonst VON HAND nach #moderator-only")
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args(argv)
     if a.selbsttest:
@@ -1151,12 +1141,9 @@ def main(argv=None):
         ziel = festschreiben(p, edition, pdf, log)
         print("festgeschrieben, %s und %s" % (LOG, ziel))
     if a.melden:
-        hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
         text = ops_text(p, edition, pdf, a.veroeffentlichen)
         print(text)
-        if not hook:
-            raise Abbruch("kein DISCORD_WEBHOOK_OPS, nichts geschickt")
-        ops_schicken(hook, text, [(deck, "image/png"), (pdf, "application/pdf")])
+        ops_schicken(text, [(deck, "image/png"), (pdf, "application/pdf")], a.veroeffentlichen)
     return 0
 
 

@@ -34,7 +34,6 @@ caption_pruefen), Groessen und Rand misst content_wache am Bild.
 """
 import argparse
 import datetime as dt
-import os
 import sys
 from pathlib import Path
 
@@ -297,10 +296,7 @@ def main(argv=None):
                             look_takt.raster_motiv(sp, "meme", a.fuer) if hintergrund.aktiv(a.fuer) else None)
     if a.senden:
         import karussell
-        hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
-        if not hook:
-            raise SystemExit("ABBRUCH kein DISCORD_WEBHOOK_OPS, nichts geschickt")
-        karussell.ops_senden(hook, "meme", a.fuer, lk, [b for b in bilder if b.stem.endswith("-" + lk)], cap)
+        karussell.ops_senden("meme", a.fuer, lk, [b for b in bilder if b.stem.endswith("-" + lk)], cap)
         look_takt.raster_merken(sp, "meme", a.fuer)
         look_takt.schreiben(sp)
     print("meme, but true fuer %s, look %s\n%s\n\nCAPTION\n%s" % (a.fuer, lk, "\n".join(map(str, bilder)), cap))

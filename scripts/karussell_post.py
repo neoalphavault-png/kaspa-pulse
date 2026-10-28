@@ -38,7 +38,7 @@ gepostet, kommt kein Entwurf, nur eine Zeile nach #moderator-only, dass ein
 neues Motiv fehlt. Kein Meme ist besser als dasselbe Meme jede Woche.
 
 GEHEIMNISSE nur aus der Umgebung: INSTAGRAM_PAGE_TOKEN, MEDIA_REPO_TOKEN,
-DISCORD_WEBHOOK_OPS, GITHUB_TOKEN. Jede Ausgabe laeuft durch sauber().
+DISCORD_WEBHOOK_LOG, GITHUB_TOKEN. Jede Ausgabe laeuft durch sauber().
 
     python3 scripts/karussell_post.py entwurf --art woche [--fuer 2026-10-31] --out out/k [--probe]
     python3 scripts/karussell_post.py posten --art woche [--fuer 2026-10-31] [--quelle out/k] --start takt
@@ -238,13 +238,10 @@ def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, send
     (out / "manifest.json").write_text(json.dumps(m, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     sag("entwurf %s fuer %s, look %s, %d seiten" % (art, fuer, look, len(bilder)))
     if senden:
-        hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
-        if not hook:
-            raise Stopp("kein DISCORD_WEBHOOK_OPS, entwurf nicht geschickt")
         vor = "PROBE, geht nicht raus. " if probe else ""
         if stopp_gesetzt(fuer):
             vor += "STOPP GESETZT (KARUSSELL_STOPP), geht nicht raus. "
-        karussell.ops_senden(hook, art, fuer, look, bilder, cap, vor=vor)
+        karussell.ops_senden(art, fuer, look, bilder, cap, vor=vor)
     if not probe:
         look_takt.raster_merken(sp, serie, fuer)
         look_takt.schreiben(sp, speicher_pfad)

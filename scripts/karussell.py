@@ -54,11 +54,8 @@ REGELN, vor dem Rendern und am gerenderten Bild erzwungen
 import argparse
 import datetime as dt
 import json
-import os
 import re
 import sys
-import urllib.request
-import uuid
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -499,31 +496,22 @@ def deckblatt_pruefen(ss):
     return fehler
 
 
-def ops_senden(hook, art, fuer, look, bilder, cap, vor=""):
-    """Der Entwurf nach #moderator-only, Text und alle Seiten in einer Nachricht."""
+def ops_senden(art, fuer, look, bilder, cap, vor=""):
+    """Der Entwurf zur Info nach #ops-log (Art "log" in scripts/ops_melden.py),
+    Text und alle Seiten in einer Nachricht. Gepostet wird automatisch, Ben
+    muss nichts tun, er kann mit dem Veto-Satz stoppen."""
     import look_takt
+    import ops_melden
     inhalt = (vor + "%sENTWURF karussell %s fuer %s, look %s, %d seiten in der reihenfolge der bilder, ohne musik.\n"
               "%s\n\nCAPTION\n```\n%s\n```"
               % ("TROCKENLAUF (ZIEL=moderator). " if look_takt.trockenlauf() else "",
-                 art, fuer, look, len(bilder), veto_satz(art, fuer), cap))[:1990]
-    grenze = "----ka" + uuid.uuid4().hex
-    teile = [("--%s\r\nContent-Disposition: form-data; name=\"payload_json\"\r\nContent-Type: application/json"
-              "\r\n\r\n" % grenze).encode()
-             + json.dumps({"content": inhalt, "allowed_mentions": {"parse": []}}).encode() + b"\r\n"]
-    for i, p in enumerate(bilder[:10]):
-        teile.append(("--%s\r\nContent-Disposition: form-data; name=\"files[%d]\"; filename=\"%s\"\r\n"
-                      "Content-Type: image/png\r\n\r\n" % (grenze, i, Path(p).name)).encode()
-                     + Path(p).read_bytes() + b"\r\n")
-    body = b"".join(teile) + ("--%s--\r\n" % grenze).encode()
-    req = urllib.request.Request(hook, data=body, headers={
-        "Content-Type": "multipart/form-data; boundary=%s" % grenze, "User-Agent": UA})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        print("entwurf an ops geschickt, http %s" % r.status)
+                 art, fuer, look, len(bilder), veto_satz(art, fuer), cap))
+    return ops_melden.log(inhalt, [(b, "image/png") for b in bilder[:10]], "karussell-entwurf")
 
 
 def entwurf(art, fuer, out, senden=False, alle_looks=False, look="", speicher_pfad=None):
     """Baut den Entwurf im Look aus dem Raster-Takt. Mit senden geht er nach
-    #moderator-only und der Takt wird gemerkt (die Bilder tragen diesen Look,
+    #ops-log und der Takt wird gemerkt (die Bilder tragen diesen Look,
     Ben postet genau sie)."""
     import look_takt
     ss, cap = vorbereiten(art, fuer)
@@ -535,10 +523,7 @@ def entwurf(art, fuer, out, senden=False, alle_looks=False, look="", speicher_pf
                      look_takt.raster_motiv(sp, "karussell", fuer) if hintergrund.aktiv(fuer) else None)
     Path(out, "karussell-%s-%s-caption.txt" % (art, fuer)).write_text(cap + "\n", encoding="utf-8")
     if senden:
-        hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
-        if not hook:
-            raise Stopp("kein DISCORD_WEBHOOK_OPS, nichts geschickt")
-        ops_senden(hook, art, fuer, lk, [b for b in bilder if b.stem.endswith("-" + lk)], cap)
+        ops_senden(art, fuer, lk, [b for b in bilder if b.stem.endswith("-" + lk)], cap)
         look_takt.raster_merken(sp, "karussell", fuer)
         look_takt.schreiben(sp, speicher_pfad)
     return ss, cap, bilder, lk

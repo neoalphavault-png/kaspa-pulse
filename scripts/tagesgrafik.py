@@ -91,8 +91,7 @@ im selben Massstab, den Rest einer Flaeche oder vorher gegen nachher.
 
 AUSGABE: PNG 1080x1350 je Kanal (das Instagram-Bild ohne Kanal im Namen,
 dazu -threads, -x, -discord), Vorschau 390 px, Discord-Text, X-Text, die
-Antwort unter dem X-Post und eine Zeile Selbstpruefung. Mit --senden geht alles an DISCORD_WEBHOOK_OPS
-(#moderator-only, die Kontrolle).
+Antwort unter dem X-Post und eine Zeile Selbstpruefung. Mit --senden geht die Kontrolle nach #ops-log und der X-Post als VON HAND nach #moderator-only (ops_melden)
 
 ZWEITER VERSAND, OEFFENTLICH (Ben, 21.10.2026): mit --senden geht zusaetzlich
 der Discord-Text mit dem Discord-Bild nach #daily-graphic, ueber das Secret
@@ -1875,43 +1874,49 @@ def oeffentlich_senden(s, bild, hook=None):
     return "oeffentlich nach #daily-graphic geschickt, http %s" % status
 
 
-def ops_senden(png, vorschau, s, form, grund, hook, kanalbilder=None, looks=None):
+def ops_senden(png, vorschau, s, form, grund, kanalbilder=None, looks=None):
     """kanalbilder: {kanal: png} fuer threads, x und discord, je im eigenen
-    Look. png ist das Instagram-Bild."""
+    Look. png ist das Instagram-Bild.
+
+    Zwei Nachrichten (Ben, 28.10.2026, scripts/ops_melden.py):
+    log   die Kontrolle mit allen Bildern nach #ops-log
+    hand  der X-Post um 17:00, den Ben von Hand setzt, nach #moderator-only,
+          mit Text, Antwort und dem X-Bild. Im Trockenlauf nicht."""
     import look_takt
+    import ops_melden
     kanalbilder = kanalbilder or {}
     looks = looks or {}
+    trocken = look_takt.trockenlauf()
     weitere = ["bild %d %s (%s)" % (i + 3, k, looks.get(k, "?")) for i, k in enumerate(kanalbilder)]
     inhalt = ("%stagesgrafik %s, form %d %s (%s)\nkontrolle. der discord-text und das "
-              "discord-bild gehen automatisch nach #daily-graphic, x %s von hand.\n"
-              "bild 1 instagram (%s), 1080x1350. bild 2, 390 px breit, nur zur kontrolle, so klein "
-              "erscheint sie im handy-feed, nicht posten. %s. jeder kanal hat seinen eigenen look-takt, "
-              "bitte je kanal das passende bild posten.\n\n"
-              "DISCORD\n```\n%s\n```\nX, %d zeichen\n```\n%s\n```\nANTWORT unter dem X-Post\n```\n%s\n```\n"
-              "selbstpruefung, wuerde ein halter das reposten, um anzugeben? %s" % (
-                  "TROCKENLAUF (ZIEL=moderator), heute nichts posten.\n" if look_takt.trockenlauf() else "",
+              "discord-bild gehen automatisch nach #daily-graphic, x um %s von hand (eigene nachricht in "
+              "#moderator-only).\nbild 1 instagram (%s), 1080x1350. bild 2, 390 px breit, nur zur kontrolle. "
+              "%s.\n\nDISCORD\n```\n%s\n```\nselbstpruefung, wuerde ein halter das reposten, um anzugeben? %s" % (
+                  "TROCKENLAUF (ZIEL=moderator), heute nichts posten.\n" if trocken else "",
                   s["datum"], form, FORMEN[form][0], grund, X_ZEIT, looks.get("instagram", "?"),
-                  ", ".join(weitere) or "keine weiteren bilder",
-                  s["discord"], len(s["x"]), s["x"], s["antwort"], s["pruefung"]))
-    if len(inhalt) > 1990:
-        inhalt = inhalt[:1990]
+                  ", ".join(weitere) or "keine weiteren bilder", s["discord"], s["pruefung"]))
     # dieselbe reihenfolge wie bisher: bild 1 instagram, bild 2 vorschau,
     # dann je kanal eines
     bilder = [png, vorschau] + [kanalbilder[k] for k in kanalbilder]
-    print("an ops geschickt, http %s" % _mehrteilig(hook, inhalt, bilder))
+    ops_melden.log(inhalt, bilder, "tagesgrafik-kontrolle")
+    if not trocken:
+        rest = ("X-Text, %d zeichen\n```\n%s\n```\nANTWORT unter dem X-Post\n```\n%s\n```\n"
+                "bild im anhang (x-look %s)" % (len(s["x"]), s["x"], s["antwort"], looks.get("x", "?")))
+        ops_melden.hand(ops_melden.hand_text("heute %s Berlin" % X_ZEIT, "X",
+                                             "tagesgrafik %s posten" % s["datum"],
+                                             "https://x.com/compose/post", rest),
+                        [kanalbilder["x"]] if kanalbilder.get("x") else [png], "x-tagesgrafik")
     if s.get("instagram"):
-        ops_text(hook, "INSTAGRAM, caption fuer den post um 09:30, nach discord (nur wenn IG_MODUS "
+        ops_text("INSTAGRAM, caption fuer den post um 09:30, nach discord (nur wenn IG_MODUS "
                  "scharf, stoppen mit der variable IG_STOPP=%s)\n```\n%s\n```" % (
                      heute_iso(s), s["instagram"]), "instagram-caption")
 
 
-def ops_text(hook, text, was="meldung"):
-    """Eine reine Textzeile nach #moderator-only."""
-    req = urllib.request.Request(hook, data=json.dumps({"content": text[:1990],
-                                 "allowed_mentions": {"parse": []}}).encode(), headers={
-                                 "Content-Type": "application/json", "User-Agent": UA})
-    with _oeffnen(req) as r:
-        print("%s an ops geschickt, http %s" % (was, r.status))
+def ops_text(text, was="meldung", art="log"):
+    """Eine reine Textzeile, zur Info nach #ops-log, mit art="hand" nach
+    #moderator-only."""
+    import ops_melden
+    ops_melden.senden(art, text, None, was)
 
 
 def heute_iso(s):
@@ -2134,7 +2139,7 @@ def main(argv=None):
     ap.add_argument("--messen", action="store_true", help="nur messen, json auf stdout")
     ap.add_argument("--aus", help="aus einer gespeicherten messung rendern")
     ap.add_argument("--senden", action="store_true",
-                    help="an DISCORD_WEBHOOK_OPS (kontrolle) und, wenn das secret "
+                    help="kontrolle nach #ops-log, x-post nach #moderator-only und, wenn das secret "
                          "DISCORD_WEBHOOK_DAILY_GRAPHIC steht, oeffentlich nach #daily-graphic")
     ap.add_argument("--zeitplan", action="store_true",
                     help="geplanter lauf, nur ab 07:00 Berlin und einmal am tag")
@@ -2239,10 +2244,7 @@ def main(argv=None):
         print("gebuehrenreihe gebrochen, %s" % geb["ausfall"])
     bruch = gebuehren_bruch(log, heute, geb)
     if a.senden:
-        hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
-        if not hook:
-            raise SystemExit("ABBRUCH kein DISCORD_WEBHOOK_OPS, nichts geschickt")
-        ops_senden(png, vpng, s, form, grund, hook, kanalbilder, looks)
+        ops_senden(png, vpng, s, form, grund, kanalbilder, looks)
         # zweiter versand, oeffentlich nach #daily-graphic (Ben, 21.10.2026).
         # Er haengt an denselben sperren wie die kontrolle: --zeitplan laesst
         # nur zwischen 07:00 und 12:00 Berlin und nur einmal am tag durch.
@@ -2250,9 +2252,9 @@ def main(argv=None):
         # schon, und die zeile sagt warum.
         meldung = oeffentlich_senden(s, kanalbilder.get("discord"))
         print(meldung)
-        ops_text(hook, meldung, "daily-graphic")
+        ops_text(meldung, "daily-graphic")
         if bruch:
-            ops_text(hook, bruch, "gebuehren-bruch")
+            ops_text(bruch, "gebuehren-bruch")
     elif bruch:
         print("meldung nach ops (nicht geschickt, kein --senden): %s" % bruch)
     if a.log_schreiben:
@@ -2879,14 +2881,34 @@ def selbsttest():
             zeile = oeffentlich_senden(sd, bild)
             ok("ein fehler bricht nicht ab und nennt keine adresse",
                "fehlgeschlagen" in zeile and "discord.test" not in zeile and "geheim" not in zeile)
-            # 1. die kontrolle bleibt, in alter reihenfolge
-            globals()["OEFFNER"] = _faenger
-            gesendet.clear()
-            kb = {"threads": bild, "x": bild, "discord": bild}
-            ops_senden(bild, bild, dict(sd, instagram=""), 9, "probe",
-                       "https://discord.test/hook/ops", kb, {})
-            _, namen = _teile(gesendet[0])
-            ok("die kontrolle schickt weiter fuenf bilder", len(namen) == 5)
+            # 1. die kontrolle geht nach #ops-log, der x-post als von hand
+            import ops_melden
+            gesendet_ops = []
+            alt_post = ops_melden._post
+            ops_melden._post = lambda url, body, typ, timeout=60: gesendet_ops.append((url, body)) or 204
+            alt_hooks = {k: os.environ.get(k) for k in ("DISCORD_WEBHOOK_OPS", "DISCORD_WEBHOOK_LOG")}
+            os.environ["DISCORD_WEBHOOK_OPS"] = "https://discord.test/hook/hand"
+            os.environ["DISCORD_WEBHOOK_LOG"] = "https://discord.test/hook/log"
+            try:
+                kb = {"threads": bild, "x": bild, "discord": bild}
+                ops_senden(bild, bild, dict(sd, instagram=""), 9, "probe", kb, {})
+                ziele = [u.rsplit("/", 1)[1] for u, _ in gesendet_ops]
+                ok("kontrolle nach ops-log, x-post nach moderator-only", ziele == ["log", "hand"])
+                ok("die kontrolle schickt weiter fuenf bilder", gesendet_ops[0][1].count(b'filename="') == 5)
+                ok("der x-post beginnt mit von hand, nennt 17:00, x und den text",
+                   all(w.encode() in gesendet_ops[1][1] for w in ("VON HAND", X_ZEIT, "X.",
+                                                                  "x.com/compose")))
+                gesendet_ops.clear()
+                os.environ["ZIEL"] = "moderator"
+                ops_senden(bild, bild, dict(sd, instagram=""), 9, "probe", kb, {})
+                ok("im trockenlauf kein von hand", [u.rsplit("/", 1)[1] for u, _ in gesendet_ops] == ["log"])
+                os.environ.pop("ZIEL", None)
+            finally:
+                ops_melden._post = alt_post
+                for k, v in alt_hooks.items():
+                    os.environ.pop(k, None)
+                    if v is not None:
+                        os.environ[k] = v
     finally:
         globals()["OEFFNER"] = alt_oeffner
         for k, v in ((ENV_OEFFENTLICH, alt_secret), ("ZIEL", alt_ziel)):

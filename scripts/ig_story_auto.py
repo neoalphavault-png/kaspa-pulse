@@ -32,7 +32,7 @@ scharf    Takt oder Zeitplan, IG_STORY_AUTO_LIVE=true, Di oder Do, zwischen 17:1
           heute noch keine Story in data/ig-story-auto-log.json (die Merkdatei)
 aus       sonst, mit Grund im Log
 
-GEHEIMNISSE nur aus der Umgebung (INSTAGRAM_PAGE_TOKEN, DISCORD_WEBHOOK_OPS),
+GEHEIMNISSE nur aus der Umgebung (INSTAGRAM_PAGE_TOKEN, DISCORD_WEBHOOK_LOG),
 jede Ausgabe laeuft durch instagram.sauber(). Keine Hostnamen im Log.
 
     python3 scripts/ig_story_auto.py planen --start probe|takt|geplant [--datum JJJJ-MM-TT]
@@ -48,8 +48,6 @@ import os
 import re
 import sys
 import time
-import urllib.request
-import uuid
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -372,25 +370,10 @@ def ops_text(modus, info):
 
 
 def ops_senden(text, bild):
-    hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
-    if not hook:
-        ausgabe("kein DISCORD_WEBHOOK_OPS, nur im log")
-        ausgabe(text)
-        return 0
-    grenze = "----st" + uuid.uuid4().hex
-    teile = [("--%s\r\nContent-Disposition: form-data; name=\"payload_json\"\r\nContent-Type: application/json"
-              "\r\n\r\n" % grenze).encode()
-             + json.dumps({"content": ig.sauber(text)[:1990], "allowed_mentions": {"parse": []}}).encode() + b"\r\n"]
-    if bild:
-        teile.append(("--%s\r\nContent-Disposition: form-data; name=\"files[0]\"; filename=\"%s\"\r\n"
-                      "Content-Type: image/jpeg\r\n\r\n" % (grenze, Path(bild).name)).encode()
-                     + Path(bild).read_bytes() + b"\r\n")
-    body = b"".join(teile) + ("--%s--\r\n" % grenze).encode()
-    req = urllib.request.Request(hook, data=body, headers={
-        "Content-Type": "multipart/form-data; boundary=%s" % grenze, "User-Agent": ig.UA})
-    with ig._oeffnen(req, timeout=60) as r:
-        ausgabe("an #moderator-only, http %s" % r.status)
-        return r.status
+    """Probe, Entwurf und Bestaetigung zur Info nach #ops-log (Art "log" in
+    scripts/ops_melden.py). Die Story geht automatisch raus, Ben muss nichts tun."""
+    import ops_melden
+    return ops_melden.log(ig.sauber(text), [(bild, "image/jpeg")] if bild else None, "ig-story")
 
 
 # ---------------------------------------------------------------- posten

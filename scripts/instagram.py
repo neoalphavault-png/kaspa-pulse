@@ -29,7 +29,7 @@ PFLEGE (instagram-pflege.yml)
     insights    je Post der letzten 7 Tage Reichweite, Likes, Kommentare, Saves,
                 Shares nach data/instagram-insights.json. Nur Zahlen.
     kommentare  neue Kommentare unter unseren Posts, je einer mit Antwort-
-                ENTWURF an DISCORD_WEBHOOK_OPS. Es wird nichts beantwortet. Im
+                ENTWURF als VON HAND an #moderator-only (ops_melden). Es wird nichts beantwortet. Im
                 Repo stehen nur die IDs gesehener Kommentare, kein Text, kein Name.
     antworten   die Freigabe: Ben startet instagram-antwort.yml mit Kommentar-ID
                 und Text. Der Text laeuft durch dieselbe Wortwache wie Discord und
@@ -166,6 +166,9 @@ def graph(methode, pfad, params=None, versuche=3):
     raise Fehler("graph %s %s, keine antwort" % (methode, pfad))
 
 
+ANTWORT_URL = "https://github.com/neoalphavault-png/kaspa-pulse/actions/workflows/instagram-antwort.yml"
+
+
 def ig_user():
     u = os.environ.get("IG_USER_ID", "")
     if not re.fullmatch(r"\d{5,30}", u):
@@ -173,25 +176,14 @@ def ig_user():
     return u
 
 
-def ops(text):
-    hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
-    if not hook:
-        ausgabe("kein DISCORD_WEBHOOK_OPS, nachricht nur im log")
-        ausgabe(text)
-        return
-    status, _, _ = _ops_post(hook, text)
-    ausgabe("an ops, http %s" % status)
-
-
-def _ops_post(hook, text):
-    body = json.dumps({"content": sauber(text)[:1990], "allowed_mentions": {"parse": []}}).encode()
-    req = urllib.request.Request(hook, data=body, headers={"Content-Type": "application/json",
-                                                           "User-Agent": UA}, method="POST")
+def ops(text, art="log"):
+    """Meldung ueber scripts/ops_melden.py. log nach #ops-log, nur was Ben tun
+    muss (art="hand") nach #moderator-only (Ben, 28.10.2026)."""
+    import ops_melden
     try:
-        with _oeffnen(req, timeout=30) as r:
-            return r.status, b"", {}
-    except urllib.error.HTTPError as exc:
-        return exc.code, b"", {}
+        ops_melden.senden(art, sauber(text), None, "instagram")
+    except ops_melden.Fehler as exc:
+        ausgabe(sauber(exc))
 
 
 def json_laden(pfad, leer):
@@ -673,11 +665,12 @@ def kommentare(now):
                     einordnen(text, wer)[1], wer, m.get("permalink", mid)))
                 ignoriert += 1
                 continue
-            ops("INSTAGRAM KOMMENTAR (%s) unter %s\nvon @%s, %s\n> %s\n\nENTWURF\n```\n%s\n```\n"
-                "freigeben, workflow instagram antwort, kommentar_id %s, text anpassen und starten. "
-                "es geht nichts automatisch raus." % (
-                    klasse, m.get("permalink", mid), wer, k.get("timestamp", ""),
-                    text.replace("\n", " ")[:600], e or "kein entwurf, der die regeln einhaelt, bitte von hand", kid))
+            ops("%s, sobald du kannst, Instagram. kommentar beantworten (%s)\n%s\nvon @%s, %s\n> %s\n\n"
+                "ENTWURF\n```\n%s\n```\nfreigeben im workflow instagram-antwort (run workflow), "
+                "kommentar_id zum kopieren\n```\n%s\n```\n%s\nes geht nichts automatisch raus." % (
+                    "📤 VON HAND", klasse, m.get("permalink", mid), wer, k.get("timestamp", ""),
+                    text.replace("\n", " ")[:600], e or "kein entwurf, der die regeln einhaelt, bitte von hand", kid,
+                    ANTWORT_URL), art="hand")
             neu += 1
     if alt:
         ops("instagram, %d alte Kommentare als gesehen markiert" % alt)
