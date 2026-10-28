@@ -148,12 +148,9 @@ def kandidaten(jetzt, vorher):
                   "quelle": "source kaspalytics",
                   "gewicht": abs(jetzt["dormant_pct"] - vorher["dormant_pct"]), "stolz": True,
                   "werte": (vorher["dormant_pct"], jetzt["dormant_pct"]), "fmt": lambda v: "%.2f%%" % v})
-    if jetzt.get("tvl_total") and vorher.get("tvl_total"):
-        d = 100 * (jetzt["tvl_total"] / vorher["tvl_total"] - 1)
-        k.append({"id": "tvl", "kopf": "LOCKED ON LAYER 2", "zahl": "$%.2fM" % (jetzt["tvl_total"] / 1e6),
-                  "satz": "locked across kasplex and igra, %+.1f%% in a week" % d,
-                  "quelle": "source defillama", "gewicht": abs(d), "stolz": d > 0,
-                  "werte": (vorher["tvl_total"], jetzt["tvl_total"]), "fmt": lambda v: "$%.2fM" % (v / 1e6)})
+    # Keine TVL-Seite (28.10.2026): TVL ist ein Dollarbetrag, und die Textwache
+    # sperrt "$" und "usd" auf jeder Seite, zu Recht (keine Preise). Die erste
+    # Probe nach dem Merge von #144 stoppte genau daran ("$0.98M").
     for x in k:
         x["woche"], x["woche_vorher"] = s, s0
         x["datum"] = "week to %s · %s" % (tag(s), x["quelle"])
