@@ -1,4 +1,4 @@
-# BCH chipnet und XO, Machbarkeit und erste Zählung (Stand 26.10.2026)
+# BCH chipnet und XO, Machbarkeit und Zählung (Stand 28.10.2026)
 
 Auftrag Ben, Mo 26.10.2026. Frist Mi 28.10. 17:00 UTC. Branch `messung/bch-chipnet-xo`.
 
@@ -8,9 +8,9 @@ Der Tempnet-Mitschnitt für den Forumsbeitrag am 28.10. läuft unverändert weit
 
 - **Was XO ist:** XO kommt von General Protocols. Es ist eine Wallet- und Engine-Schicht, die Transaktionen aus Wallet-Templates baut, kein eigenes Vertragsprotokoll.
 - **Kein XO-Fingerabdruck:** XO-Transaktionen lassen sich auf chipnet **nicht eindeutig erkennen**. XO setzt keinen eigenen Marker, also kein OP_RETURN-Präfix und keine eigene Token-Kategorie. Die veröffentlichten Templates bauen gewöhnliche P2PKH-, Multisig- und Faucet-Transaktionen.
-- **Ein fester Fingerabdruck:** Nur das Template „Wrapped BCH (chipnet)“ hat einen. Es nutzt die wBCH-Token-Kategorie und den wrapped.cash-Covenant. Gezählt: 17 solche Transaktionen seit 01.10., davon 13 am 25.10. Das sind wBCH-Transaktionen, nicht zwingend XO-Transaktionen.
-- **Blockabstände:** Chipnet-Header über unseren eigenen Client, 3.750 Abstände seit 01.10. Die Gegenprobe mit 2 Peers anderer Software ergab je 500 von 500 gleich.
-- **Der Schwanz ist abgeschnitten:** Jede Lücke über 20 min endete mit einem Block mit Mindestschwierigkeit, insgesamt 790. Die längste Lücke war 2.223 s, berechnet für eine ideale 600-s-Kette sind es 5.284 s. Für XO heißt das: Eine Einlösung wartete in 99 von 100 Fällen höchstens 1.312 s, berechnet sind es 2.763 s.
+- **Ein fester Fingerabdruck:** Nur das Template „Wrapped BCH (chipnet)“ hat einen. Es nutzt die wBCH-Token-Kategorie und den wrapped.cash-Covenant. Gezählt: 17 solche Transaktionen seit 01.10., davon 13 am 25.10. Seit dem 25.10. 15:02 UTC kam bis zum Abruf am 28.10. 14:07 UTC keine weitere dazu. Das sind wBCH-Transaktionen, nicht zwingend XO-Transaktionen.
+- **Blockabstände:** Chipnet-Header über unseren eigenen Client, 4.076 Abstände seit 01.10. Die Gegenprobe mit 3 Peers ergab je 500 von 500 gleich.
+- **Der Schwanz ist abgeschnitten:** Jede Lücke über 20 min endete mit einem Block mit Mindestschwierigkeit, insgesamt 855. Die längste Lücke war 2.223 s, berechnet für eine ideale 600-s-Kette sind es 5.334 s. Für XO heißt das: Eine Einlösung wartete in 99 von 100 Fällen höchstens 1.299 s, berechnet sind es 2.763 s.
 
 ## 1. Quellen
 
@@ -40,25 +40,27 @@ Nur Primärquellen. Was ich nicht selbst einsehen konnte, steht unter „offen�
 - Geprüft werden die Verkettung, der Arbeitsnachweis aus nBits und die BCHN-Checkpoints. Start ist der Checkpoint 313.653.
 
 **Prüfung:**
-- Abruf 26.10.2026 08:05 UTC, Spitze 329.540. Die Zielhöhe stammt von 4 chipnet-Peers; ein Peer wurde abgelehnt.
+- Abruf 28.10.2026 14:07 UTC (Lauf [40702796242](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/40702796242), Bot-Commit `5ab8ccc`), Spitze 329.866. Die Zielhöhe stammt von 4 chipnet-Peers; diesmal lieferte keine Probe den Tempnet-Block.
 - Kein Peer-Fehler, kein verworfener Zweig.
-- Gegenprobe mit Bitcoin Cash Node 29.2.0 und Rapids: je 500 von 500 Hashes gleich.
+- Gegenprobe mit Bitcoin Cash Node 28.0.2(EB2.0), Bitcoin Cash Node 29.0.0(EB2.0) und Rapids: je 500 von 500 Hashes gleich.
+- Keine Adressen und keine Hostnamen in Daten und Log, der Secret-Scan im Lauf war sauber.
+- Stand 26.10. zum Vergleich: Spitze 329.540, 3.750 Abstände, p99 1.503 s, 790 Blöcke mit Mindestschwierigkeit, Wartezeit p99 1.312 s.
 
-Blöcke 325.791 bis 329.540, 01.10.2026 00:01 bis 26.10.2026 08:02 UTC, 3.750 Abstände. Computed gilt für eine ideale Kette mit 600 s und exponentiellen Abständen, ohne die Mindestschwierigkeits-Regel.
+Blöcke 325.791 bis 329.866, 01.10.2026 00:01 bis 28.10.2026 14:06 UTC, 4.076 Abstände. Computed gilt für eine ideale Kette mit 600 s und exponentiellen Abständen, ohne die Mindestschwierigkeits-Regel.
 
 | Kennzahl | counted | computed (600 s) |
 |---|---:|---:|
-| Mittel | 583,8 s | 600 s |
-| Median | 471,0 s | 415,9 s |
+| Mittel | 584,8 s | 600 s |
+| Median | 472,0 s | 415,9 s |
 | p90 | 1.216 s | 1.381,6 s |
-| p99 | 1.503 s | 2.763,1 s |
-| Anteil über 5 min | 62,48 % | 60,65 % |
-| Anteil über 20 min | 21,07 % | 13,53 % |
-| Längste Lücke | 2.223 s (vor Block 326.691, 07.10. 06:38 UTC) | 5.284 s |
-| Blöcke mit Mindestschwierigkeit (nBits 0x1d00ffff) | 790 (21,07 %) | im Modell 0 |
-| MTP-Abstand Median / p90 / p99 | 3.497,5 / 5.124,3 / 8.069,2 s | 3.404,1 / 5.552,8 / 7.821,2 s |
-| Wartezeit ab Zufallszeitpunkt Median / p90 / p99 | 399 / 1.009 / 1.312 s | 415,9 / 1.381,6 / 2.763,1 s |
-| Negative Abstände | 57 | 0 |
+| p99 | 1.493 s | 2.763,1 s |
+| Anteil über 5 min | 62,78 % | 60,65 % |
+| Anteil über 20 min | 20,98 % | 13,53 % |
+| Längste Lücke | 2.223 s (vor Block 326.691, 07.10. 06:38 UTC) | 5.334 s |
+| Blöcke mit Mindestschwierigkeit (nBits 0x1d00ffff) | 855 (20,98 %) | im Modell 0 |
+| MTP-Abstand Median / p90 / p99 | 3.500,5 / 5.096,0 / 8.042,5 s | 3.404,1 / 5.552,8 / 7.821,2 s |
+| Wartezeit ab Zufallszeitpunkt Median / p90 / p99 | 397 / 1.005 / 1.299 s | 415,9 / 1.381,6 / 2.763,1 s |
+| Negative Abstände | 58 | 0 |
 
 | ISO-Woche | Abstände | Mittel | Median | Mindestschwierigkeit |
 |---|---:|---:|---:|---:|
@@ -66,14 +68,14 @@ Blöcke 325.791 bis 329.540, 01.10.2026 00:01 bis 26.10.2026 08:02 UTC, 3.750 Ab
 | 2026-W41 | 1.112 | 544,2 s | 397,0 s | 205 |
 | 2026-W42 | 998 | 605,0 s | 519,5 s | 227 |
 | 2026-W43 | 1.018 | 594,3 s | 465,0 s | 256 |
-| 2026-W44 (bis 26.10. 08:02) | 46 | 649,1 s | 615,0 s | 13 |
+| 2026-W44 (bis 28.10. 14:06) | 372 | 603,4 s | 510,5 s | 78 |
 
 Beobachtungen aus den Köpfen:
-- **Die 20-Minuten-Regel hält den Schwanz kurz:** Alle 790 Blöcke mit Mindestschwierigkeit kamen nach mehr als 1.200 s (kürzester Abstand 1.201 s, Median 1.215,5 s). Kein anderer Block kam nach mehr als 1.198 s.
-- **Mehr lange Abstände, aber kürzere Wartezeiten:** Der Anteil über 20 min liegt über der Rechnung (21,07 % gegen 13,53 %), die Wartezeiten im p99 und die längste Lücke liegen deutlich darunter.
-- **Wartezeit für XO:** Ein zufälliger Zeitpunkt, etwa eine eingereichte Einlösung, wartete im Median 399 s und in 99 von 100 Fällen höchstens 1.312 s auf den nächsten Block. Raster 10 s über das ganze Fenster.
+- **Die 20-Minuten-Regel hält den Schwanz kurz:** Alle 855 Blöcke mit Mindestschwierigkeit kamen nach mehr als 1.200 s (kürzester Abstand 1.201 s, Median 1.215 s). Kein anderer Block kam nach mehr als 1.199 s.
+- **Mehr lange Abstände, aber kürzere Wartezeiten:** Der Anteil über 20 min liegt über der Rechnung (20,98 % gegen 13,53 %), die Wartezeiten im p99 und die längste Lücke liegen deutlich darunter.
+- **Wartezeit für XO:** Ein zufälliger Zeitpunkt, etwa eine eingereichte Einlösung, wartete im Median 397 s und in 99 von 100 Fällen höchstens 1.299 s auf den nächsten Block. Raster 10 s über das ganze Fenster.
 - **Was nach dem 15.11. folgt, ist offen:** Kommt der Zielabstand von 60 s, liegt die Schwelle der Regel nach `pow.cpp` bei 2 × 60 s. Das ist eine Rechnung, keine Zählung.
-- **Negative Abstände:** 57. Das sind Zeitstempel, die vor denen des Vorgängers liegen, im Rahmen der Regeln. Nur einer folgt auf einen Block mit Mindestschwierigkeit.
+- **Negative Abstände:** 58. Das sind Zeitstempel, die vor denen des Vorgängers liegen, im Rahmen der Regeln. Nur einer folgt auf einen Block mit Mindestschwierigkeit.
 
 ## 3. XO auf der Kette
 
@@ -84,9 +86,10 @@ Beobachtungen aus den Köpfen:
 - ein Covenant-Skript ohne Parameter (`wrapBCHLockingBytecode`, als Bytecode `c0cdc0c788c0d1c0ce88c0d0c0c693c0d3c0cc939c`)
 
 **Gezählt** (`scripts/bch/chipnet_wbch.py`):
-- 3.750 volle Blöcke von einem chipnet-Peer, 356.562 Transaktionen gelesen.
+- 4.076 volle Blöcke von einem chipnet-Peer (Bitcoin Cash Node 28.0.2(EB2.0)), 409.381 Transaktionen gelesen, keine Abbrüche.
 - **17 Transaktionen** mit dieser Kategorie und einer Covenant-Ausgabe, alle mit der Kategorie in interner Byte-Reihenfolge.
-- Verteilung: 07.10. 1, 17.10. 1, 23.10. 2, 25.10. 13.
+- Verteilung: 07.10. 1, 17.10. 1, 23.10. 2, 25.10. 13. Die letzte stand in Block 329.444 (25.10. 15:02 UTC), danach keine mehr bis 329.866.
+- Liste mit Transaktions-IDs, Höhe und Zeit: `data/bch-chipnet/wbch-2026-10-28.json` (keine Adressen).
 
 Das ist der wrapped.cash-Covenant, den jede Wallet benutzen kann. Ob eine dieser Transaktionen über XO entstand, lässt sich aus der Kette nicht sagen.
 
@@ -102,39 +105,41 @@ Das ist der wrapped.cash-Covenant, den jede Wallet benutzen kann. Ob eine dieser
 
 ## 5. Vorschlag PH-Post
 
-Beide Entwürfe haben die Regelprüfung von `scripts/ph/ph_entwurf.py` bestanden. Ohne Preise. Welche Buchstaben-Formate A und F genau meinen, habe ich hier nicht vorliegen. Ich habe A als den Zahlen-Post zum Schwanz und F als den Post mit XO-Bezug gelesen. Bitte korrigieren, falls das falsch ist.
+Beide Entwürfe folgen deinen Format-Definitionen vom 26.10.:
+- **A, Messung:** ein Netz, ein gezählter Wert mit Vergleich, eine Zeile Deutung, Grafik „Data from PulseHawk“.
+- **F, wie wir zählen:** eine Methodenentscheidung mit einer Grafik.
 
-**Format A (Schwanz der Abstände)**
+Am 28.10. habe ich beide erneut gegen `regel_pruefen` aus `scripts/ph/ph_entwurf.py` (Stand main) geprüft, ohne Fund. Kein Satz beginnt mit einer Ziffer, das habe ich selbst geprüft. Beide enthalten keine Preise und keinen XO-Bezug. Der frühere F-Entwurf mit „xo ships“ ist ersetzt, weil F eine Methodenentscheidung zeigen soll.
+
+**Format A (Schwanz der Abstände)**, 381 Zeichen
 ```
 bch chipnet with ten minute blocks, ahead of the 15 nov upgrade.
-we counted 3,750 block intervals since 1 oct with a p99 of 1,503 s, against 2,763 s computed for an ideal 600 s chain.
-every gap longer than 20 min ended with a minimum difficulty block, 790 of them, and the longest gap stayed at 2,223 s.
-window 1 oct 2026, 00:01 to 26 oct 2026, 08:02 utc, blocks 325,791 to 329,540.
+we counted 4,076 block intervals since 1 oct with a p99 of 1,493 s, against 2,763 s computed for an ideal 600 s chain.
+every gap longer than 20 min ended with a minimum difficulty block, which keeps the tail short.
+window 1 oct 2026, 00:01 to 28 oct 2026, 14:06 utc, blocks 325,791 to 329,866.
 method on pulsehawk.io
 ```
 
-**Format F (XO-Bezug)**
+**Format F (Vergleich ohne die 20-Minuten-Regel)**, 393 Zeichen. Als Grafik würden sich die gezählte und die berechnete Verteilung der Abstände übereinander eignen, mit der Linie bei 1.200 s.
 ```
-bch chipnet ahead of the 15 nov upgrade.
-we counted 17 transactions since 1 oct that use the wrapped bch covenant xo ships as its chipnet template, 15 of them in the last seven days.
-a transaction sent at a random moment waited 1,312 s for a block in 99 of 100 cases, against 2,763 s computed for an ideal 600 s chain.
-window 1 oct 2026, 00:01 to 26 oct 2026, 08:02 utc, blocks 325,791 to 329,540.
+bch chipnet ahead of the 15 nov upgrade, and how we compare it.
+we counted 855 of 4,076 blocks since 1 oct at minimum difficulty, each one after a gap of more than 20 min.
+our computed values assume an ideal 600 s chain without that rule, so the distance to them shows what the rule changes.
+window 1 oct 2026, 00:01 to 28 oct 2026, 14:06 utc, blocks 325,791 to 329,866.
 method on pulsehawk.io
 ```
-
-Bei F ist eine Formulierung heikel. „xo ships“ stimmt für das Template, die Transaktionen selbst ordnet der Post XO nicht zu. Wenn das zu nah an einer Zuordnung ist, nimm A.
 
 ## 6. Dateien
 
 - Skripte: `scripts/bch/chipnet_koepfe.py`, `scripts/bch/chipnet_auswertung.py`, `scripts/bch/chipnet_wbch.py`
 - Workflow: `.github/workflows/bch-chipnet.yml`. Er läuft nur auf diesem Branch und startet bei einem Push auf die Skripte oder auf `data/bch-chipnet/anstoss.txt`.
-- Daten auf diesem Branch: `data/bch-chipnet/koepfe.csv.gz`, `koepfe-meta.json`, `stand-2026-10-26.json` und `.md`, `wbch-2026-10-26.json` (mit Transaktions-IDs, keine Adressen)
+- Daten auf diesem Branch: `data/bch-chipnet/koepfe.csv.gz`, `koepfe-meta.json`, `stand-2026-10-26.json` und `.md`, `wbch-2026-10-26.json`, dazu der Stand vom 28.10. `stand-2026-10-28.json` und `.md`, `wbch-2026-10-28.json` (mit Transaktions-IDs, keine Adressen)
 
 ## Was Ben tun muss
 
-- **Postentwurf:** A oder F wählen und das Format bestätigen.
+- **Postentwurf:** A oder F wählen. Beide sind auf dem Stand vom 28.10. 14:06 UTC.
 - **Zuhörer auf chipnet:** Entscheiden, ob einer für Transaktions-Ankündigungen laufen soll. Damit ließe sich für wBCH-Transaktionen der Abstand zwischen erstem Sehen und Bestätigung messen.
 - **Fragen an das XO-Team:** über unsere Kanäle weitergeben, wenn gewünscht. Ich poste und schreibe nichts.
 - **Kein Merge nötig:** Der Branch ist ein Messbranch, der Workflow läuft dort.
 
-Am Mi 28.10. lasse ich die Zählung vor der Frist noch einmal laufen und ziehe die Zahlen in diesem Bericht nach.
+Die Zählung lief am 28.10. um 14:07 UTC vor der Frist noch einmal, und die Zahlen in den Abschnitten Kurz, 2, 3 und 5 sind nachgezogen. Der Secret-Scan über den ganzen Branch ist sauber.
