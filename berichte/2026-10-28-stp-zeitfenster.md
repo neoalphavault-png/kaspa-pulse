@@ -35,7 +35,7 @@ Im Selbsttest stand in einem Commit ein echter TN10-Knotenname, aus Teilstrings 
 
 - Die beiden Commits 890cd87 und ece9c41 sind zu 3a0e1de zusammengelegt. Darauf liegen neu: d0808f5 (vorher b416861), bb7494f (5430e5b), bdd5ee5 (2f5043c) und 89c312b (a089a32).
 - Danach kommt 11ec36b mit den NTP-Zeiten in der Laufdatei. **Neuer Kopf: 11ec36b.**
-- Der Code ist bis auf die Laufdatei derselbe wie vorher, der alte Kopf und der neue Zwischenstand 89c312b haben denselben Inhalt.
+- Der alte Kopf a089a32 und der neue Zwischenstand 89c312b haben genau denselben Inhalt. 11ec36b ändert danach nur die Laufdatei und fügt eine Prüfung im Selbsttest dazu.
 - `git log -p` über den ganzen Branch habe ich mit einem Prüfer durchsucht, auch nach zusammengesetzten Teilstrings und in den Commit-Nachrichten: kein Fund. Werte wurden dabei nicht ausgegeben.
 - Selbsttests grün: Parser mit 71 Prüfungen, Nachzählung, Zähler.
 - Secret-Scan des Pushes grün. Der Force-Push hat keinen Zähllauf ausgelöst.
