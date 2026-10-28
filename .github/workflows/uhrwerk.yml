@@ -120,16 +120,17 @@ jobs:
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
         run: |
           python3 scripts/insights_sammler.py --sammeln --modus "$MODUS"
 
-      # Montags. Die Zahlen aus Brevo gehen NUR nach #moderator-only, sie
+      # Montags. Die Zahlen aus Brevo gehen NUR nach #ops-log, sie
       # werden in kein Repo geschrieben - kaspa-pulse ist oeffentlich.
       - name: anmeldungen je kanal
         if: env.TRICHTER == 'true'
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
-          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
         run: |
           python3 scripts/insights_sammler.py --trichter --modus "$MODUS"
 
@@ -138,7 +139,7 @@ jobs:
       - name: rohtabelle
         if: env.TRICHTER == 'true'
         env:
-          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
         run: |
           python3 scripts/insights_sammler.py --rohtabelle --modus "$MODUS"
 
@@ -283,7 +284,7 @@ jobs:
       - name: ergebnis nach ops
         if: always()
         env:
-          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
           LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           python3 scripts/uhrwerk_proben.py --melden --ordner proben --modus "$MODUS"

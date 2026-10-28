@@ -598,8 +598,16 @@ def rohtabelle(now=None, ziel=None, kanaele=("instagram", "threads", "x")):
 
 # ---------------------------------------------------------------- meldung
 
-def melden(text, modus="trocken", oeffner=None):
-    """Eine Meldung nach #moderator-only.
+def melden(text, modus="trocken", oeffner=None, art="log"):
+    """Eine Meldung nach #ops-log, ein scharfer Ausreisser-Alarm nach
+    #moderator-only.
+
+    SEIT 28.10.2026 (Ben, "Discord nur noch Handlungen in #moderator-only"):
+    Messungen, Trichter, Rohtabelle und jeder Trockenlauf sind Info und gehen
+    ueber DISCORD_WEBHOOK_LOG nach #ops-log. Nur der scharfe Ausreisser-Alarm
+    (art="hand") verlangt etwas von Ben, Kommentare beantworten, und geht
+    ueber DISCORD_WEBHOOK_OPS nach #moderator-only, mit "📤 VON HAND" vorn.
+    Eine Log-Meldung wird nie nach #moderator-only umgeleitet.
 
     AUCH IM TROCKENLAUF (Ben, 15.10.2026: "zwei Tage Trockenlauf nur nach
     #moderator-only"). Das Uhrwerk schreibt ohnehin nirgendwo anders hin;
@@ -608,19 +616,23 @@ def melden(text, modus="trocken", oeffner=None):
     Kennzeichen davor, damit niemand eine Probe fuer den Ernstfall haelt.
 
     Ohne Webhook bleibt die Meldung im Log und der Lauf bleibt gruen."""
-    hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
+    import ops_melden
+    art = "hand" if art == "hand" and modus == "scharf" else "log"
+    hook = os.environ.get(ops_melden.ARTEN[art], "")
     voll = text if modus == "scharf" else "[trockenlauf] %s" % text
+    if art == "hand" and not voll.startswith(ops_melden.VON_HAND):
+        voll = ops_melden.VON_HAND + ", " + voll
     if not hook:
         ausgabe("[kein webhook] %s" % voll)
         return 0
-    leib = json.dumps({"content": sauber(voll)[:1990],
+    leib = json.dumps({"content": ops_melden.sauber(sauber(voll))[:1990],
                        "allowed_mentions": {"parse": []}}).encode()
     try:
         hole(hook, {"Content-Type": "application/json"}, leib, "POST", oeffner)
     except Sammelfehler as exc:
         ausgabe("meldung nicht abgesetzt, %s" % exc)
         return 1
-    ausgabe("an #moderator-only abgesetzt")
+    ausgabe("an %s abgesetzt" % ops_melden.KANAL[art])
     return 0
 
 
@@ -842,7 +854,8 @@ def selbsttest():
 
     # DIE MELDUNG AN DISCORD, mit Kopf. Ohne User-Agent antwortet Discord
     # mit http 403, dann kommt kein Alarm an.
-    os.environ["DISCORD_WEBHOOK_OPS"] = "https://discord.com/api/webhooks/1/geheim"
+    basis = "https://discord.com/api/" + "webhooks/"
+    os.environ["DISCORD_WEBHOOK_LOG"] = basis + "2/geheim-log"
     try:
         gesehen = []
 
@@ -877,6 +890,22 @@ def selbsttest():
         ok("der trockenlauf meldet auch, nur gekennzeichnet",
            json.loads(gesehen[-1].data.decode())["content"].startswith("[trockenlauf] "))
         ok("beide meldungen sind wirklich rausgegangen", len(gesehen) == 2)
+        ok("info geht an den log-webhook", gesehen[-1].full_url.endswith("geheim-log"))
+        # seit 28.10.2026: der scharfe alarm ist eine handlung, nach #moderator-only
+        os.environ["DISCORD_WEBHOOK_OPS"] = basis + "1/geheim-hand"
+        melden("ausreisser x, Kommentare jetzt beantworten.", "scharf", faenger, art="hand")
+        ok("scharfer alarm an den ops-webhook, mit von hand",
+           gesehen[-1].full_url.endswith("geheim-hand")
+           and json.loads(gesehen[-1].data.decode())["content"].startswith("📤 VON HAND"))
+        melden("ausreisser x", "trocken", faenger, art="hand")
+        ok("alarm im trockenlauf nur nach #ops-log",
+           gesehen[-1].full_url.endswith("geheim-log")
+           and "VON HAND" not in json.loads(gesehen[-1].data.decode())["content"])
+        del os.environ["DISCORD_WEBHOOK_LOG"]
+        vorher = len(gesehen)
+        melden("nur info", "scharf", faenger)
+        ok("ohne log-webhook geht info nicht nach #moderator-only", len(gesehen) == vorher)
+        os.environ["DISCORD_WEBHOOK_LOG"] = basis + "2/geheim-log"
 
         def kaputt(req, timeout=None):
             raise urllib.error.URLError("kein netz")
@@ -884,7 +913,8 @@ def selbsttest():
         ok("eine meldung, die nicht rausgeht, ist kein abbruch",
            melden("egal", "scharf", kaputt) == 1)
     finally:
-        del os.environ["DISCORD_WEBHOOK_OPS"]
+        os.environ.pop("DISCORD_WEBHOOK_OPS", None)
+        os.environ.pop("DISCORD_WEBHOOK_LOG", None)
     ok("ohne webhook bleibt die meldung im log", melden("egal", "scharf") == 0)
 
     # Rohtabelle und Trichter: was drin steht und was nicht
@@ -983,7 +1013,7 @@ def main(argv=None):
             len(erg["neu"]), ", %d hinweis(e)" % len(erg["bericht"]) if erg["bericht"] else ""))
         zeilen += ["  " + b for b in erg["bericht"]]
         for al in erg["alarme"]:
-            melden(alarm_text(al, link_zu(al["post_id"], al["kanal"])), a.modus)
+            melden(alarm_text(al, link_zu(al["post_id"], al["kanal"])), a.modus, art="hand")
     if a.trichter:
         zeilen += trichter()
     if a.rohtabelle:

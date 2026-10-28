@@ -102,7 +102,7 @@ case "$1" in
     # Reichweiten-Uhrwerk, alle 6 Stunden. Der Takt kommt von hier, die
     # Zahlen holt der Lauf auf GitHub, weil dort die Tokens liegen und
     # nirgends sonst. modus steuert UHRWERK_LIVE in takt.conf: trocken
-    # schreibt die Schnappschuesse und meldet nur nach #moderator-only.
+    # schreibt die Schnappschuesse und meldet nur nach #ops-log.
     "$HIER/takt.sh" "$REPO_PULSE" uhrwerk.yml "modus=${UHRWERK_LIVE:-trocken}"
     ;;
   uhrwerk-trichter)

@@ -179,7 +179,7 @@ abgeschaltetes Skript).
 
 Gemessen wird deshalb erst die Anmeldung, nicht der Klick: `UTM_SOURCE`
 steht als Kontaktattribut in Brevo, der Sammler zaehlt die Anmeldungen der
-letzten sieben Tage je Kanal und meldet sie nach #moderator-only. **In kein
+letzten sieben Tage je Kanal und meldet sie nach #ops-log. **In kein
 Repo** (Ben, 16.10.2026, siehe unten). Das ist die Zahl, die zaehlt, aber
 es ist nicht die Klickzahl.
 
@@ -200,7 +200,7 @@ Unterschied zu zeigen.
 ## Der Ausreisser-Alarm
 
 Reichweite ab dem Dreifachen des Kanal-Medians der letzten 30 Posts
-(Fenster 24 h) - eine Zeile nach #moderator-only, mit Link und "Kommentare
+(Fenster 24 h) - scharf eine Zeile mit "📤 VON HAND" nach #moderator-only, im Trockenlauf nach #ops-log, mit Link und "Kommentare
 jetzt beantworten".
 
 Median, nicht Mittel: ein einzelner Treffer zieht ein Mittel mit und hebt
@@ -392,7 +392,7 @@ jobs:
         run: |
           python3 scripts/insights_sammler.py --sammeln --modus "$MODUS"
 
-      # Montags. Die Zahlen aus Brevo gehen NUR nach #moderator-only, sie
+      # Montags. Die Zahlen aus Brevo gehen NUR nach #ops-log, sie
       # werden in kein Repo geschrieben - kaspa-pulse ist oeffentlich.
       - name: anmeldungen je kanal
         if: env.TRICHTER == 'true'
@@ -714,9 +714,9 @@ Lauf-Token traegt dann auch keines.
 **Aus Brevo kommt nichts ins Repo.** kaspa-pulse ist oeffentlich. Der
 Trichter zaehlt nur Anmeldungen je Kanal, nie eine Adresse - aber auch
 eine Zahl aus einer Kontaktdatenbank gehoert nicht in ein oeffentliches
-Repo. Sie geht nach #moderator-only und sonst nirgendwohin;
+Repo. Sie geht nach #ops-log und sonst nirgendwohin;
 `data/insights/trichter.jsonl` wird nicht mehr geschrieben. In der
-Rohtabelle steht an ihrer Stelle eine Zeile, die auf #moderator-only
+Rohtabelle steht an ihrer Stelle eine Zeile, die auf #ops-log
 verweist.
 
 **Die Rohtabelle entsteht jetzt wirklich.** Bis zum 16.10. stand sie nur
@@ -738,7 +738,7 @@ am Folgetag um 06:40 genau 21:10 h alt, also ueber 20 und unter 24.
 ## Trockenlauf, zwei Tage
 
 `UHRWERK_LIVE=trocken` schreibt die Schnappschuesse und schickt die Meldung
-nach #moderator-only, mit `[trockenlauf]` davor. Mehr passiert nicht: das
+nach #ops-log, mit `[trockenlauf]` davor. Mehr passiert nicht: das
 Uhrwerk schreibt ohnehin in keinen anderen Kanal.
 
 **Auch der Ausreisser-Alarm geht im Trockenlauf raus**, gekennzeichnet.
