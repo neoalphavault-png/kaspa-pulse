@@ -1,0 +1,66 @@
+{
+  "quelle_vergleich": "source rufitnes/tempnet-data",
+  "stand_rufitnes": "787f5613593493ba0933360303a5b3d18465211a",
+  "bloecke_in_beiden": 4207,
+  "nur_counted": 0,
+  "timestamp_deviation_s": {
+    "counted": {
+      "n": 4207,
+      "mittel": 2.06,
+      "median": 0.776,
+      "p90": 3.398,
+      "p99": 31.077,
+      "min": 0.079,
+      "max": 196.021
+    },
+    "source rufitnes/tempnet-data": {
+      "n": 4207,
+      "mittel": 2.0,
+      "median": 1.0,
+      "p90": 4.0,
+      "p99": 33.0,
+      "min": 0.0,
+      "max": 196.0
+    }
+  },
+  "first_seen_counted_minus_rufitnes_s": {
+    "n": 4207,
+    "mittel": -0.085,
+    "median": -0.01,
+    "p90": 0.025,
+    "p99": 0.105,
+    "min": -123.704,
+    "max": 111.484
+  },
+  "hinweis_zeit": "rufitnes in ganzen Sekunden (Lesezeit der Logzeile), counted in Millisekunden; beide Uhren nicht gegeneinander abgeglichen",
+  "compact": {
+    "counted_cmpctblock_bekommen": 4204,
+    "source rufitnes/tempnet-data via compact": 4189,
+    "von": 4207
+  },
+  "fehlende_tx": {
+    "bloecke": 4187,
+    "counted_geschaetzt": {
+      "n": 4187,
+      "mittel": 0.0,
+      "median": 0,
+      "p90": 0,
+      "p99": 1,
+      "min": 0,
+      "max": 10
+    },
+    "source rufitnes/tempnet-data requested": {
+      "n": 4187,
+      "mittel": 0.0,
+      "median": 0,
+      "p90": 0,
+      "p99": 1,
+      "min": 0,
+      "max": 10
+    }
+  },
+  "reorg_ereignisse": {
+    "source rufitnes/tempnet-data": 0,
+    "counted_stale": 16
+  }
+}
