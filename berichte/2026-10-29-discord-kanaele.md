@@ -41,7 +41,7 @@ Stand 28.10.2026, auch in `docs/discord-kanaele.md`.
 - **Nur falls der Alarm auf c2 noch nach #moderator-only schreibt,** also seit dem 48-h-Parallelbetrieb nicht auf `normal` umgestellt wurde, steht unten ein Schritt.
 
 ## Probe
-Folgt unten, sobald der Lauf durch ist.
+Lauf auf dem Branch bericht/2026-10-29-discord-kanaele, Ergebnis folgt unten.
 
 ## PR-Nummern
 - #183, Skripte und `ops_melden`, selbst gemergt (a918e7f)
