@@ -262,11 +262,27 @@ def herkunft_kurz(quelle):
     return "*read* from %s, both days." % quelle
 
 
+# Die Quelle im Hauptpost auf X nie als Domain (Ben, 28.10.2026): X liest
+# "defillama.com" als Link, und x_post.py stoppt den Hauptpost mit Link,
+# solange X_LINKANTWORT aus ist. So fielen der 20.10., 25.10. und 28.10.
+# aus. Seit 00f47c3 (17.10.2026) stand hier die Domain aus KENNZAHLEN.
+QUELLE_IM_POST = {"api.kaspa.org": "the kaspa rest api", "defillama.com": "defillama"}
+
+
+def quelle_ohne_domain(quelle):
+    q = (quelle or "").strip()
+    if q in QUELLE_IM_POST:
+        return QUELLE_IM_POST[q]
+    # unbekannte domain: nur der name vor der endung, ohne www und api
+    m = re.fullmatch(r"(?:www\.|api\.)?([a-z0-9-]+)\.[a-z.]+", q, re.I)
+    return m.group(1) if m else q
+
+
 def herkunft_post(quelle, tage):
     """der halbsatz im posttext fuer zwei werte aus derselben reihe."""
     if eigene_zaehlung(quelle):
         return "both counted by us %d days apart." % tage
-    return "both read from %s %d days apart." % (quelle, tage)
+    return "both read from %s %d days apart." % (quelle_ohne_domain(quelle), tage)
 
 
 def issue_line(day):
@@ -317,6 +333,19 @@ def age_phrase(days):
 MAX_POST_WORDS = 60
 HALVING_URL = "kaspapulse.com/kaspa-halving.html"
 SITE_URL = "kaspapulse.com"
+# Der Hauptpost traegt nie einen Link, keine Domain und kein "link in bio"
+# (Ben, 28.10.2026). Dasselbe Muster wie x_post.LINK_RE, dazu weitere
+# Endungen. Der Link darf nur in die Selbstantwort.
+HAUPTPOST_VERBOTEN = re.compile(
+    r"(https?://\S+|\bwww\.\S+|\b[a-z0-9][a-z0-9-]*\.(?:com|io|org|net|de|xyz|html|app|dev|info|co|ai|fi)\b"
+    r"|\blink in (?:the )?bio\b)", re.I)
+
+
+def hauptpost_verstoesse(text):
+    """Was im Hauptpost nicht stehen darf, als Liste. Leer heisst gruen."""
+    return ["%r im hauptpost" % m.group(0) for m in HAUPTPOST_VERBOTEN.finditer(text or "")]
+
+
 def post_block(text, reply):
     """Baut den X Text und prueft die eigene Laengenregel sofort."""
     text = " ".join(str(text).split())
@@ -1231,6 +1260,19 @@ def main():
         print("")
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
+    fehler = hauptpost_verstoesse((payload.get("post") or {}).get("x", ""))
+    if fehler:
+        # vor dem posten abbrechen, nichts schreiben, nach #ops-log melden
+        text = ("zahl des tages %s, ABBRUCH vor dem posten, kandidat %s: %s. der link gehoert "
+                "nur in die selbstantwort, nichts gepostet" % (today, name, "; ".join(fehler)))
+        print(text)
+        set_output("picked", "0")
+        try:
+            import ops_melden
+            ops_melden.log(text, was="zahl des tages hauptpost")
+        except Exception as exc:                       # noqa: BLE001
+            print("meldung nach #ops-log ging nicht: %s" % type(exc).__name__)
+        return 1
     write_out(args.out, payload, name, log, ctx)
     set_output("picked", "1")
     print("")
@@ -1421,7 +1463,7 @@ def run_selftest():
            % stichtag(far["today"]) and "right now" not in json.dumps(p), p["value_label"])
         ok("fremde quelle sagt read from und nennt sie",
            "*read* from api.kaspa.org, both days." in p["panes"][1]["lines"]
-           and "counted" not in json.dumps(p["panes"]) and "both read from api.kaspa.org" in p["post"]["x"],
+           and "counted" not in json.dumps(p["panes"]) and "both read from the kaspa rest api" in p["post"]["x"],
            p["panes"][1]["lines"])
     tvl = cand_tvl_move(far)
     ok("tvl sagt read from defillama.com, nie counted",
@@ -1645,12 +1687,25 @@ def run_selftest():
                 bad.append("%s nennt $KAS mehrfach" % n)
             if "kaspapulse.com" in x:
                 bad.append("%s hat den link im ersten post" % n)
+            if hauptpost_verstoesse(x):
+                bad.append("%s hat url, domain oder link in bio im hauptpost, %s" % (n, hauptpost_verstoesse(x)))
             if x[:1].isupper():
                 bad.append("%s faengt gross an" % n)
             if "kaspapulse.com" not in p["reply"]:
                 bad.append("%s hat keinen link in der antwort" % n)
     ok("jeder kandidat liefert einen posttext", seen_posts >= len(CANDIDATES))
     ok("posttexte halten den hausstil", not bad, bad)
+    # 28.10.2026: kein link, keine domain, kein "link in bio" im hauptpost
+    for t in ("both read from defillama.com 23 days apart.", "see kaspapulse.com", "https://x.co/a",
+              "www.kaspa.org", "the full chart, link in bio.", "both read from api.kaspa.org 27 days apart."):
+        ok("hauptpost-wache stoppt %r" % t, hauptpost_verstoesse(t) != [])
+    for t in ("both read from defillama 23 days apart.", "both read from the kaspa rest api 27 days apart.",
+              "380 PH today, 357 PH then.", "96.75% of every KAS is already mined."):
+        ok("hauptpost-wache laesst %r durch" % t, hauptpost_verstoesse(t) == [])
+    ok("quelle im post ohne domain",
+       (herkunft_post("defillama.com", 23), herkunft_post("api.kaspa.org", 27), herkunft_post("foo.io", 3))
+       == ("both read from defillama 23 days apart.", "both read from the kaspa rest api 27 days apart.",
+           "both read from foo 3 days apart."))
     print("")
     if fails:
         print("%d fehlgeschlagen %s" % (len(fails), fails))
