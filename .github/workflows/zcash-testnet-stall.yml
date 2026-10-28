@@ -53,6 +53,7 @@ jobs:
         run: |
           set -eu
           D=data/zcash-testnet-stall
+          mkdir -p $D
           python3 scripts/zcash/zcash_koepfe.py --netz testnet --ab 4547814 --vorlauf 0 --gegenproben 2 \
             --aus "$RUNNER_TEMP/k.csv.gz" --meta $D/koepfe-meta.json
           python3 scripts/zcash/testnet_stall.py --koepfe "$RUNNER_TEMP/k.csv.gz" --meta $D/koepfe-meta.json \
