@@ -1,15 +1,17 @@
 name: tagesgrafik
 
 # Eine Grafik pro Tag fuer X und Discord (Ben, 29.09.2026). PNG, Vorschau
-# 390 px, Discord-Text, X-Text und die Selbstpruefung gehen ueber
-# DISCORD_WEBHOOK_OPS nach #moderator-only, der Kontrolle.
+# 390 px, Discord-Text, X-Text und die Selbstpruefung gehen zur Kontrolle
+# ueber DISCORD_WEBHOOK_LOG nach #ops-log. Nur der X-Post um 17:00, den Ben
+# von Hand absetzt, geht als "📤 VON HAND" ueber DISCORD_WEBHOOK_OPS nach
+# #moderator-only (Ben, 28.10.2026, scripts/ops_melden.py).
 #
 # OEFFENTLICH NACH #daily-graphic (Ben, 21.10.2026): derselbe Lauf schickt
 # zusaetzlich den Discord-Text mit dem Discord-Bild oeffentlich, ueber das
 # Secret DISCORD_WEBHOOK_DAILY_GRAPHIC. Die Adresse steht nur im Secret, nie
 # in einer Datei. Fehlt das Secret, wird nur protokolliert, der Lauf bleibt
-# gruen. #moderator-only bleibt vorerst als Kontrolle daneben: Ben prueft
-# dort und plant X fuer 17:00.
+# gruen. Die Kontrolle steht in #ops-log, in #moderator-only kommt nur der
+# X-Post fuer 17:00 mit Text und Bild zum Kopieren.
 #
 # 07:30 Berlin, sommer- und winterzeitfest wie die Montagskette: zwei
 # Termine. 05:30 UTC ist im Sommer 07:30 Berlin, 06:30 UTC im Winter.
@@ -55,7 +57,7 @@ on:
         required: false
         default: ""
       senden:
-        description: "an #moderator-only schicken"
+        description: "kontrolle nach #ops-log, X-post als VON HAND nach #moderator-only"
         type: boolean
         default: false
       instagram:
@@ -101,6 +103,7 @@ jobs:
         if: github.event_name == 'schedule'
         env:
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
           # oeffentlich nach #daily-graphic. Fehlt das Secret, wird nur
           # protokolliert, der Lauf bleibt gruen (Ben, 21.10.2026).
           DISCORD_WEBHOOK_DAILY_GRAPHIC: ${{ secrets.DISCORD_WEBHOOK_DAILY_GRAPHIC }}
@@ -109,6 +112,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         env:
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
           # nur mit senden=true geht etwas raus, dann auch oeffentlich
           DISCORD_WEBHOOK_DAILY_GRAPHIC: ${{ secrets.DISCORD_WEBHOOK_DAILY_GRAPHIC }}
           FORM: ${{ inputs.form }}
@@ -148,22 +152,18 @@ jobs:
             git pull --rebase --autostash origin "$GITHUB_REF_NAME"
             git push
           fi
-      - name: ops bei rot
+      - name: rot nach ops-log
         if: failure()
         env:
-          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
           LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          python3 - <<'PY'
-          import json, os, urllib.request
-          hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
+          python3 - <<'PY' || true
+          import os, sys
+          sys.path.insert(0, "scripts")
+          import ops_melden
           text = "tagesgrafik ist rot, keine grafik heute\n" + os.environ.get("LAUF", "")
-          print(text)
-          if hook:
-              req = urllib.request.Request(hook, data=json.dumps({"content": text,
-                    "allowed_mentions": {"parse": []}}).encode(), headers={
-                    "Content-Type": "application/json", "User-Agent": "kaspa-pulse-bot"})
-              urllib.request.urlopen(req, timeout=30)
+          ops_melden.log(text, was="rot")
           PY
 
   instagram:
@@ -245,7 +245,7 @@ jobs:
           INSTAGRAM_PAGE_TOKEN: ${{ secrets.INSTAGRAM_PAGE_TOKEN }}
           IG_USER_ID: ${{ vars.IG_USER_ID }}
           IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
-          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
           JPEG: ${{ steps.j.outputs.jpeg }}
           CAPTION: ${{ steps.a.outputs.caption }}
         run: python3 scripts/instagram.py posten $IG_HAND --bild "$JPEG" --caption "$CAPTION" --modus "$IG_MODUS"
@@ -317,20 +317,16 @@ jobs:
             echo "::warning::log und manifest nicht gepusht, sie liegen als artefakt bereit"
             mkdir -p artefakt && cp -r /tmp/ig-eigen artefakt/instagram || true
           fi
-      - name: ops bei rot
+      - name: rot nach ops-log
         if: failure()
         env:
-          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
           LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          python3 - <<'PY'
-          import json, os, urllib.request
-          hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
+          python3 - <<'PY' || true
+          import os, sys
+          sys.path.insert(0, "scripts")
+          import ops_melden
           text = "instagram ist rot, heute kein post\n" + os.environ.get("LAUF", "")
-          print(text)
-          if hook:
-              req = urllib.request.Request(hook, data=json.dumps({"content": text,
-                    "allowed_mentions": {"parse": []}}).encode(), headers={
-                    "Content-Type": "application/json", "User-Agent": "kaspa-pulse-bot"})
-              urllib.request.urlopen(req, timeout=30)
+          ops_melden.log(text, was="rot")
           PY

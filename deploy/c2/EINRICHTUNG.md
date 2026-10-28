@@ -227,11 +227,13 @@ Die Datei liegt nach dem Merge unter
 
 | Eingabe | für die 48 h |
 | --- | --- |
-| `ziel` | **`moderator`** |
+| `ziel` | **`ops-log`** |
 | `was` | `alle` |
 
-`ziel=moderator` nimmt `DISCORD_WEBHOOK_OPS` — der schreibt nach
-**#moderator-only**, genau dorthin sollen die 48 h. `ziel=normal` nimmt
+`ziel=ops-log` nimmt `DISCORD_WEBHOOK_LOG` und schreibt nach **#ops-log**,
+genau dorthin sollen die 48 h (seit 28.10.2026; vorher hieß die Wahl
+`moderator` und schrieb nach #moderator-only, dort stehen jetzt nur noch
+Handlungen für Ben). `ziel=normal` nimmt
 `DISCORD_WEBHOOK` und setzt dazu eine gelbe Warnung, weil der Alarm von c2
 dann öffentlich postet. Das ist der Schalter nach den 48 h, kein anderer.
 
@@ -339,7 +341,7 @@ und die Abdeckung.
 ## Schritt 7 — 48 h Parallelbetrieb
 
 **Was läuft:** GitHub und c2 prüfen beide. Doppelte Meldungen sind in
-dieser Zeit erwartet — die von c2 landen in **#moderator-only**, nur die
+dieser Zeit erwartet — die von c2 landen in **#ops-log**, nur die
 von GitHub im öffentlichen Kanal.
 
 **Was auf der sicheren Seite bleibt:**
