@@ -1480,8 +1480,9 @@ def selbsttest():
     import contextlib
     import io
     import ops_melden
-    stumm = contextlib.redirect_stdout(io.StringIO())
-    stumm.__enter__()
+    def leise(*a):
+        with contextlib.redirect_stdout(io.StringIO()):
+            return ops_schicken(*a)
     gesendet = []
     echt_post = ops_melden._post
     alt_env = {k: os.environ.get(k) for k in list(ops_melden.ARTEN.values()) + ["GITHUB_REF_NAME"]}
@@ -1496,7 +1497,7 @@ def selbsttest():
             bild.write_bytes(b"\x89PNG\r\n")
             pngs = [bild] * 10
             os.environ["GITHUB_REF_NAME"] = "main"
-            ops_schicken("t", [(bild, "image/png")], False, (pngs, ig_caption(p2, 2), []))
+            leise("t", [(bild, "image/png")], False, (pngs, ig_caption(p2, 2), []))
             ok("sonntag, freigabe und instagram-paket als von hand",
                [g[0] for g in gesendet] == ["hand", "hand"]
                and all(b"VON HAND" in g[1] for g in gesendet), [g[0] for g in gesendet])
@@ -1505,22 +1506,21 @@ def selbsttest():
             ok("freigabe nennt variable und veroeffentlichen=true",
                b"CHEAT_SHEET_LIVE" in gesendet[0][1] and b"veroeffentlichen=true" in gesendet[0][1])
             gesendet.clear()
-            ops_schicken("t", [], True, (pngs, ig_caption(p2, 2), []))
+            leise("t", [], True, (pngs, ig_caption(p2, 2), []))
             ok("scharf, info nach log, paket trotzdem von hand",
                [g[0] for g in gesendet] == ["log", "hand"], [g[0] for g in gesendet])
             gesendet.clear()
             os.environ["GITHUB_REF_NAME"] = "cheat/edition2"
             ok("anderer branch ist eine probe", probe_lauf())
-            ops_schicken("t", [], False, (pngs, ig_caption(p2, 2), []))
+            leise("t", [], False, (pngs, ig_caption(p2, 2), []))
             ok("probe, alles nach log, nichts nach moderator-only",
                [g[0] for g in gesendet] == ["log", "log"] and b"PROBE" in gesendet[0][1], [g[0] for g in gesendet])
             gesendet.clear()
             os.environ["GITHUB_REF_NAME"] = "main"
-            ops_schicken("t", [], False, (pngs, ig_caption(p2, 2), ["seite 5, kontrast 5.8:1"]))
+            leise("t", [], False, (pngs, ig_caption(p2, 2), ["seite 5, kontrast 5.8:1"]))
             ok("kontrast unter 7:1, kein paket, liste nach log",
                [g[0] for g in gesendet] == ["hand", "log"] and b"NICHT" in gesendet[-1][1], [g[0] for g in gesendet])
     finally:
-        stumm.__exit__(None, None, None)
         ops_melden._post = echt_post
         for k_, v_ in alt_env.items():
             if v_ is None:
