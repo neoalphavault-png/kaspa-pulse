@@ -176,8 +176,17 @@ def achse(werte, polster=POLSTER):
 def achse_kumuliert(werte):
     w = [v for v in werte if v is not None]
     spanne = max(w) - min(w)
-    s = nett_schritt(spanne / 3)
-    return 0.0, math.ceil(max(w) / s) * s
+    if spanne <= 0:
+        raise Abbruch("achse ohne spanne")
+    # drei glatte schritte von 0 bis oben, der kleinste, der den hoechsten
+    # wert traegt. sonst stuenden dort 133k und 267k (316,522 covenants am
+    # 25.10.2026 ergaben 0 bis 400k), aufgerundet auf 600k haenge die linie
+    # in der unteren haelfte. 292,292 aus Edition 1 bleibt 0 bis 300k.
+    oben = max(w)
+    k = math.floor(math.log10(oben / 3))
+    schritte = sorted(n * 10 ** e for e in (k, k + 1) for n in (1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0))
+    s = next(x for x in schritte if 3 * x >= oben)
+    return 0.0, round(3 * s, 10)
 
 
 # -------------------------------------------------------------- datenschicht
@@ -648,7 +657,9 @@ def g_stufen(z):
         col = INK2 if i == 0 else (ACC if i == 1 else ACCF)
         out.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="4" fill="%s"/>'
                    % (i * bw + 3, hy(v), bw - 6, hoch * v / obergrenze, col))
-    out.append(txt(2, hy(z["jetzt"]) - 14, "%.2f now" % z["jetzt"], 28, INK2, weight=600))
+    # Ben, 28.10.2026: "until <tag der senkung>" statt "now"
+    out.append(txt(2, hy(z["jetzt"]) - 14, "%.2f until %s" % (z["jetzt"], tag_kurz(z["zeit_utc"])),
+                   28, INK2, weight=600))
     out.append(txt(2 * bw + 11, hy(z["naechste"]) + 34,
                    "%.2f on %s" % (z["naechste"], tag_kurz(z["zeit_utc"])), 30, INK, weight=600))
     # die stufe in einem jahr und die letzte im fenster, als anker
@@ -783,9 +794,10 @@ def karten(p):
              date="%s KAS · %s" % (fmt(bo["kas"]), tag_lang(bo["stichtag"])),
              chart=g_boersen(bo),
              plain="coins on exchanges can be sold fast. that share has %s from %.1f%% in %s to "
-                   "%.1f%% now." % (richtung(bo["pct"] - bo_erst[2], "slipped", "risen",
-                                             "barely moved", 0.05),
-                                    bo_erst[2], MONATE_LANG[int(bo_erst[0][5:7]) - 1], bo["pct"]),
+                   "%.1f%% on %s." % (richtung(bo["pct"] - bo_erst[2], "slipped", "risen",
+                                               "barely moved", 0.05),
+                                      bo_erst[2], MONATE_LANG[int(bo_erst[0][5:7]) - 1], bo["pct"],
+                                      tag_kurz(bo["stichtag"])),
              nerd="share of all KAS in wallets labelled as exchanges. one snapshot at midnight "
                   "utc, logged by us every week since %s. a falling share means coins left "
                   "exchange wallets." % MONATE_LANG[int(bo_erst[0][5:7]) - 1],
@@ -838,7 +850,7 @@ def karten(p):
              big="%sx" % fmt(ge_x), unit="more KAS from new coins than from fees",
              date="%d days, %s to %s" % (ge["tage"], tag_kurz(ge["von"]), tag_lang(ge["bis"])),
              chart=g_raster(ge_x),
-             plain="for every 1 KAS miners earned in fees, they got %s KAS in new coins. today "
+             plain="for every 1 KAS miners earned in fees, they got %s KAS in new coins. "
                    "the network is paid by issuance." % fmt(ge_x),
              nerd="%s KAS new coins against %s KAS fees, the same %d full utc days for both. a "
                   "day without a fee value drops out of both sides." % (
@@ -864,7 +876,7 @@ def karten(p):
              unit="covenant outputs created since %s" % tag_monat(co["seit"]),
              date="%s · %s still unspent" % (tag_lang(co["stichtag"]), fmt(co["unverbraucht"])),
              chart=g_covenants(co),
-             plain="since the toccata upgrade went live on %s, covenants have been created %s "
+             plain="since the toccata upgrade launched on %s, covenants have been created %s "
                    "times. they come in waves." % (tag_monat(co["seit"]), fmt(co["erzeugt"])),
              nerd="covenant outputs created per day, summed. most are spent again soon, tests and "
                   "bots count too.",
@@ -1384,6 +1396,8 @@ def selbsttest():
     ok("hashrate-achse wie in Edition 1", achse(hs) == (290.0, 380.0), achse(hs))
     ok("covenants-achse wie in Edition 1", achse_kumuliert(co) == (0.0, 300000.0),
        achse_kumuliert(co))
+    ok("covenants-achse in drei glatten schritten, 0 bis 450k statt 400k",
+       achse_kumuliert([46, 316522]) == (0.0, 450000.0), achse_kumuliert([46, 316522]))
 
     # die kleinen wortschalter
     ok("zeitspanne im selben monat nennt ihn einmal",
@@ -1423,7 +1437,7 @@ def selbsttest():
         "supply as of 5 oct 2026",
         # 2 boersen
         "<b>13.6%</b>", "of all KAS, about one in seven", "3,781,925,849 KAS · 4 oct 2026",
-        "that share has slipped from 14.2% in july to 13.6% now",
+        "that share has slipped from 14.2% in july to 13.6% on 4 oct",
         "logged by us every week since july",
         # 3 unbewegt
         "<b>50.7%</b>", "6 oct 2026 · 26.1% untouched for 2 years",
@@ -1436,7 +1450,7 @@ def selbsttest():
         # 5 senkung
         "<b>4 nov</b>", "next block reward cut, 13:45 utc",
         "2.06 to 1.94 KAS per block · 24 days from 11 oct",
-        "the next one is on 4 november", "2.06 now", "1.94 on 4 nov",
+        "the next one is on 4 november", "2.06 until 4 nov", "1.94 on 4 nov",
         "1.03 · oct 2027", "0.52 · oct 2028",
         # 6 gebuehren
         "<b>765x</b>", "30 days, 3 sep to 2 oct 2026", "they got 765 KAS in new coins",
@@ -1449,7 +1463,7 @@ def selbsttest():
         # 8 covenants
         "<b>292,292</b>", "covenant outputs created since 30 june",
         "9 oct 2026 · 13,936 still unspent",
-        "went live on 30 june, covenants have been created 292,292 times",
+        "launched on 30 june, covenants have been created 292,292 times",
         # deckblatt und rueckseite
         "KAS on exchanges", "hashrate, 7 day mean", "4 to 10 oct",
         "covenant outputs since 30 june", "utm_campaign=edition1",
@@ -1458,6 +1472,10 @@ def selbsttest():
     ]
     fehlt = [m for m in muss if m not in s]
     ok("jeder satz und jede zahl aus Fassung 2.1 steht in der seite", not fehlt, fehlt)
+    # Ben, 28.10.2026: vier saetze ohne echtzeit-wort
+    for alt in ("13.6% now", "2.06 now", "today the network", "went live"):
+        ok("kein %r mehr" % alt, alt not in s)
+    ok("gebuehren-satz ohne today", "they got 765 KAS in new coins. the network is paid by issuance." in s)
     # streng gegen den 90. tag, wie in Fassung 2.1. Fassung 2 stand auf
     # -637, gezaehlt gegen den 07.07. und damit gegen 89 tage; die
     # veroeffentlichte datei ist am 12.10.2026 nachgezogen worden

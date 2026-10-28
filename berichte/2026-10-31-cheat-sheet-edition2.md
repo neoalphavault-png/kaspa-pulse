@@ -74,6 +74,20 @@ Die Wache findet in vier freigegebenen Sätzen Echtzeit-Wörter. Ich habe sie **
 
 Sagst du bis Sa 31.10. 18:00 Bescheid, ändere ich genau diese Stellen. Sonst gehen sie wie in Edition 1 raus.
 
+**Entscheidung von Ben, 28.10.2026: alle vier ändern.** Umgesetzt:
+
+| Seite | neu |
+| --- | --- |
+| 2 Börsen | „… to 13.4% on 25 oct.“ Das Datum ist der Stichtag der Zahl. |
+| 5 Senkung, Diagramm | „2.06 until 4 nov“. Das Datum ist der Tag der nächsten Senkung. |
+| 6 Gebühren | „the network is paid by issuance.“ |
+| 8 Covenants | „since the toccata upgrade launched on 30 june …“ |
+
+- **Prüfung mit den echten Daten vom 28.10.:** Auf keiner Seite steht mehr ein Echtzeit-Wort. Übrig bleibt nur der bekannte Fehlalarm auf der Rückseite, die Wache sieht dort „zahl ohne datum“ wegen der Listennummern.
+- **Kontrast:** Alle 10 Seiten liegen ab 7:1.
+- **Selbsttest:** Er prüft, dass keiner der vier alten Ausdrücke mehr vorkommt.
+- **Dazu die Covenants-Achse:** Sie hat jetzt drei glatte Schritte, 0, 150k, 300k, 450k statt 133k und 267k. Die Daten von Edition 1 bleiben bei 0 bis 300k.
+
 ## PR-Nummern
 - #189, Cheat Sheet Edition 2 absichern, selbst gemergt (1c88a7d)
 
