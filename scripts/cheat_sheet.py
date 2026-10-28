@@ -163,8 +163,14 @@ def achse(werte, polster=POLSTER):
     if spanne <= 0:
         raise Abbruch("achse ohne spanne, alle werte gleich")
     s = nett_schritt(spanne / 3)
-    return (math.floor((lo - polster * spanne) / s) * s,
-            math.ceil((hi + polster * spanne) / s) * s)
+    unten = math.floor((lo - polster * spanne) / s) * s
+    oben = math.ceil((hi + polster * spanne) / s) * s
+    # vier gitterlinien teilen die achse in drei teile. ist die zahl der
+    # schritte kein vielfaches von drei, stehen dort krumme werte wie 333
+    # und 367 (probelauf 28.10.2026). dann oben auf das naechste vielfache.
+    n = round((oben - unten) / s)
+    n3 = -(-n // 3) * 3
+    return unten, round(unten + n3 * s, 10)
 
 
 def achse_kumuliert(werte):
@@ -267,6 +273,11 @@ def z_boersen(heute):
 # Die Woerter "half" und "a quarter" auf Seite 3 stehen nur, solange die
 # Anteile dazu passen. Dieselben Fenster wie in tagesgrafik.vorlage_11.
 HALB = (45.0, 55.0)
+# Seite 3 sagt "logged by us every week since <monat>". Gemeint sind unsere
+# Wochenstaende seit Edition 1 (erster Sonntag 26.07.2026). Kaspalytics
+# liefert die Reihe ab 2023, ohne diese Grenze stuende dort "since august"
+# mit einer Spanne von 14.1% bis 51.3% (Probelauf 28.10.2026).
+UNBEWEGT_SEIT = "2026-07-26"
 VIERTEL = (20.0, 30.0)
 
 
@@ -297,7 +308,8 @@ def z_unbewegt(heute):
     if not 0 < p2 <= p1 < 100:
         raise Abbruch("unbewegt, anteile unplausibel, 1 jahr %s, 2 jahre %s" % (p1, p2))
     woerter_pruefen(p1, p2)
-    sonntage = [[x, eins[x]] for x in tage if dt.date.fromisoformat(x).weekday() == 6]
+    sonntage = [[x, eins[x]] for x in tage
+                if dt.date.fromisoformat(x).weekday() == 6 and x >= UNBEWEGT_SEIT]
     if len(sonntage) < 4:
         raise Abbruch("unbewegt, nur %d wochenstaende" % len(sonntage))
     return {"stichtag": d, "p1": p1, "p2": p2, "wochen_von": sonntage[0][0],
@@ -499,6 +511,8 @@ def line_chart(pts, h, ymin, ymax, labfmt, start_lab, end_lab, xlabels,
     for gv in [ymin + (ymax - ymin) * k / 3 for k in range(4)]:
         out.append('<line x1="%s" x2="%s" y1="%.1f" y2="%.1f" stroke="%s" stroke-width="2"/>'
                    % (pl, W - pr + 20, Y(gv), Y(gv), LINE))
+        if mean and abs(Y(gv) - Y(mean[0])) < 30:
+            continue                  # die beschriftung "mean" steht dort
         out.append(txt(W - pr + 32, Y(gv) + 10, labfmt(gv), 26, INK3, weight=400, fam="PlexMono"))
     segs, cur = [], []
     for i, v in pts:
@@ -543,10 +557,21 @@ def line_chart(pts, h, ymin, ymax, labfmt, start_lab, end_lab, xlabels,
     # anfangs- und endmarke stehen an der linie. mit echten daten laeuft die
     # teal-linie sonst unter der schrift durch, 1.4:1 statt 7:1 (probelauf
     # 28.10.2026). eine flaeche in der grundfarbe darunter haelt den kontrast.
-    out.append(grund(fx + 4, fy + (44 if start_below else -22), start_lab, 28))
-    out.append(txt(fx + 4, fy + (44 if start_below else -22), start_lab, 28, INK2))
-    out.append(grund(lx - 6, ly - 24, end_lab, 30, "end"))
-    out.append(txt(lx - 6, ly - 24, end_lab, 30, INK, "end", 600))
+    # die marke weicht der linie aus: ueber (oder unter) jedem punkt, der
+    # unter ihrer breite liegt, damit weder die schrift auf der linie steht
+    # noch die flaeche einen wert verdeckt
+    def frei(x0, x1, y, oben, size):
+        unter = [py for px, py in allp if x0 - 8 <= px <= x1 + 8]
+        if oben:
+            return max(pt + size, min([y] + [py - 18 for py in unter]))
+        return min(h - pb - 6, max([y] + [py + size + 12 for py in unter]))
+    sw, ew = 0.6 * 28 * len(start_lab), 0.6 * 30 * len(end_lab)
+    sy = frei(fx + 4, fx + 4 + sw, fy + (44 if start_below else -22), not start_below, 28)
+    ey = frei(lx - 6 - ew, lx - 6, ly - 24, True, 30)
+    out.append(grund(fx + 4, sy, start_lab, 28))
+    out.append(txt(fx + 4, sy, start_lab, 28, INK2))
+    out.append(grund(lx - 6, ey, end_lab, 30, "end"))
+    out.append(txt(lx - 6, ey, end_lab, 30, INK, "end", 600))
     for i, s in xlabels:
         out.append(txt(X(i), h - 12, s, 26, INK3,
                        "middle" if 0 < i < n - 1 else ("start" if i == 0 else "end"),
@@ -1351,7 +1376,11 @@ def selbsttest():
     bo = [x[2] for x in p["zahlen"]["boersen"]["reihe"]]
     hs = [x[1] for x in p["zahlen"]["hashrate"]["reihe"]]
     co = [x[1] for x in p["zahlen"]["covenants"]["reihe"]]
-    ok("boersen-achse wie in Edition 1", achse(bo) == (13.4, 14.4), achse(bo))
+    # Edition 1 hatte 13.4 bis 14.4, also teilstriche bei 13.7 und 14.1.
+    # seit 28.10.2026 drei glatte schritte: 13.4, 13.8, 14.2, 14.6
+    ok("boersen-achse in drei glatten schritten", achse(bo) == (13.4, 14.6), achse(bo))
+    ok("hashrate-achse 300 bis 420 statt krummer 333 und 367",
+       achse([314.96, 381.46]) == (300, 420), achse([314.96, 381.46]))
     ok("hashrate-achse wie in Edition 1", achse(hs) == (290.0, 380.0), achse(hs))
     ok("covenants-achse wie in Edition 1", achse_kumuliert(co) == (0.0, 300000.0),
        achse_kumuliert(co))
@@ -1569,6 +1598,24 @@ def selbsttest():
                 os.environ.pop(k_, None)
             else:
                 os.environ[k_] = v_
+
+    # unbewegt: die wochenspanne zaehlt erst ab unserem ersten sonntag
+    global _tg
+    echt_tg = _tg
+
+    class FalschTG:
+        @staticmethod
+        def m_kl_reihe(pfad, name, art):
+            tage = [dt.date(2023, 8, 27) + dt.timedelta(days=7 * k) for k in range(170)]
+            return {t.isoformat(): (14.0 if t.isoformat() < UNBEWEGT_SEIT else
+                                    (51.0 if "1year" in pfad else 26.0)) for t in tage}
+    _tg = lambda: FalschTG  # noqa: E731
+    try:
+        ub = z_unbewegt(dt.date(2026, 11, 1))
+        ok("unbewegt-spanne erst ab 26.07.2026, nicht ab 2023",
+           ub["wochen_von"] == UNBEWEGT_SEIT and ub["wochen_min"] == 51.0, ub)
+    finally:
+        _tg = echt_tg
 
     # umlauf je tag, zurueckgerechnet (28.10.2026)
     jetzt = dt.datetime(2026, 10, 28, 6, tzinfo=dt.timezone.utc)
