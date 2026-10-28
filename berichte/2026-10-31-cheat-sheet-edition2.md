@@ -75,7 +75,10 @@ Die Wache findet in vier freigegebenen Sätzen Echtzeit-Wörter. Ich habe sie **
 Sagst du bis Sa 31.10. 18:00 Bescheid, ändere ich genau diese Stellen. Sonst gehen sie wie in Edition 1 raus.
 
 ## PR-Nummern
-- PR „Cheat Sheet Edition 2 absichern“ von `cheat/edition2`. Nummer und Merge stehen unten, sobald er durch ist.
+- #189, Cheat Sheet Edition 2 absichern, selbst gemergt (1c88a7d)
+
+## Selbst-Merge
+- **#189 als 1c88a7d, 28.10.2026.** Nur `scripts/cheat_sheet.py` und der Bericht, Checks grün, keine Konflikte. Der einzige geänderte öffentliche Satz („the dashboard“) und die neue Caption bestehen die Textprüfung. Die vier markierten Sätze sind unverändert aus Edition 1. Ohne den Merge wäre der Sonntagslauf an der fehlenden Umlaufreihe abgebrochen.
 
 ## Was Ben tun muss
 Siehe „📤 VON HAND“ im Discord-Abschnitt.
