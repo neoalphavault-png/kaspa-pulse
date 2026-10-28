@@ -234,7 +234,8 @@ def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, send
     ss, cap, bilder, motiv_meme = bauen(art, fuer, out, look, motiv)
     m = {"art": art, "fuer": fuer, "postzeit": postzeit(art, fuer).isoformat(), "look": look,
          "caption": cap, "motiv": motiv_meme, "hintergrund": motiv, "probe": probe,
-         "bilder": [{"datei": Path(b).name, "sha256": sha(b)} for b in bilder]}
+         "bilder": [{"datei": Path(b).name, "sha256": sha(b)} for b in bilder],
+         "zahlen": zahlen_aus(ss)}
     (out / "manifest.json").write_text(json.dumps(m, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     sag("entwurf %s fuer %s, look %s, %d seiten" % (art, fuer, look, len(bilder)))
     if senden:
@@ -450,6 +451,105 @@ def veroeffentlichen(cid):
     return media, link
 
 
+# ------------------------------------------------------------ kaspa community
+#
+# Der Instagram-Broadcast-Kanal "Kaspa Community" geht nicht per API (Ben,
+# 28.10.2026). Nach dem Samstags-Karussell "the week in numbers" kommt eine
+# Aufforderung "📤 VON HAND" nach #moderator-only, mit Permalink und einem
+# Satz zum Kopieren. Nur Kaspa-Kern: Memes und Token-Themen sperren. Ohne
+# gepostetes Karussell nur eine Zeile nach #ops-log. Hoechstens eine
+# Aufforderung je Woche, gemerkt in data/karussell-log.json unter "community".
+
+COMMUNITY_AB = dt.timedelta(minutes=15)
+SPERRE = re.compile(r"\b(?:krc-?20|kcc-?20|tokens?|memes?|memecoins?|nfts?)\b", re.I)
+SATZ_ANFANG = {"hashrate": "more work secured kaspa than a week before",
+               "holders": "more addresses hold real kas than a week ago",
+               "dormant": "half of all kas has not moved in a year"}
+
+
+def zahlen_aus(ss):
+    """Die Wochenzahlen der Seiten fuer das Manifest, ohne Funktionen."""
+    return [{k: x[k] for k in ("id", "kopf", "zahl", "satz", "quelle", "woche") if k in x}
+            for x in ss if x.get("art") in ("haken", "zahl")]
+
+
+def community_sperre(m):
+    """Grund, warum dieser Beitrag nicht in Kaspa Community gehoert, sonst ""."""
+    if m.get("art") != "woche":
+        return "das ist kein wochen-karussell, sondern %s" % m.get("art")
+    if m.get("motiv"):
+        return "das karussell traegt ein meme-motiv (%s)" % m["motiv"]
+    texte = [m.get("caption", "")] + [" ".join(str(v) for v in z.values()) for z in m.get("zahlen") or []]
+    for t in texte:
+        treffer = SPERRE.search(t)
+        if treffer:
+            return "token- oder meme-thema im text (%r)" % treffer.group(0)
+    return ""
+
+
+def community_satz(m):
+    """Ein Satz Englisch zum Kopieren: klein, die staerkste Wochenzahl mit
+    Datum und source (keine davon ist unsere eigene Zaehlung), keine Links,
+    keine Hashtags. Leer, wenn er die Textregeln nicht besteht."""
+    import karussell
+    import content_wache
+    z = (m.get("zahlen") or [None])[0]
+    if not z or z.get("id") not in SATZ_ANFANG or not z.get("woche"):
+        return ""
+    satz = "%s, %s in the week to %s, %s." % (SATZ_ANFANG[z["id"]], z["zahl"], karussell.tag(z["woche"]),
+                                              z["quelle"])
+    satz = satz.lower()
+    if (content_wache.text_verstoesse(satz) or re.search(r"https?://|www\.|\.com|#", satz)
+            or "counted" in satz):
+        return ""
+    return satz
+
+
+def community_eintrag(log, fuer, art):
+    return next((c for c in log.get("community", []) if c.get("woche") == fuer and c.get("art") == art), None)
+
+
+def community_melden(fuer, eintrag=None, manifest=None, grund_kein="", probe=False, log_pfad=None, log=None):
+    """Nach dem Posten der Woche. eintrag ist der Log-Eintrag aus posten(),
+    manifest das Manifest des Entwurfs. Gibt die Art zurueck, die gemeldet
+    wurde ("hand", "log"), oder None, wenn schon gemeldet."""
+    import ops_melden
+    log = log if log is not None else log_lesen(log_pfad)
+    if community_eintrag(log, fuer, "hand"):
+        sag("kaspa community fuer %s schon gemeldet" % fuer)
+        return None
+    gepostet = bool(eintrag and eintrag.get("modus") == "scharf" and eintrag.get("permalink"))
+    ab = ig().berlin(postzeit("woche", fuer) + COMMUNITY_AB)
+    kopf = "%s Sa ab %s, Instagram-App, Kanal Kaspa Community." % (ops_melden.VON_HAND, ab.strftime("%H:%M"))
+    if not gepostet:
+        if community_eintrag(log, fuer, "log"):
+            return None
+        text = "kein Beitrag fuer Kaspa Community diese Woche (%s), %s" % (
+            fuer, grund_kein or "das karussell wurde nicht veroeffentlicht")
+        art = "log"
+    else:
+        grund = community_sperre(manifest or {})
+        satz = community_satz(manifest or {}) if not grund else ""
+        if grund:
+            text = "%s Diese Woche nicht in Kaspa Community teilen, Grund %s.\n%s" % (
+                kopf, grund, eintrag["permalink"])
+        elif not satz:
+            text = ("%s Diesen Beitrag teilen, ohne Satz, er bestand die Textregeln nicht.\n%s"
+                    % (kopf, eintrag["permalink"]))
+        else:
+            text = "%s Diesen Beitrag teilen\n%s\nText zum Kopieren\n```\n%s\n```" % (
+                kopf, eintrag["permalink"], satz)
+        art = "hand"
+    if probe:
+        ops_melden.log("PROBE, kaspa community, nicht ausfuehren.\n" + text, was="kaspa community")
+        return "log"
+    ops_melden.senden(art, text, was="kaspa community")
+    log.setdefault("community", []).append({"woche": fuer, "art": art,
+                                            "zeit_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")})
+    ig().json_schreiben(log_pfad or LOG, log)
+    return art
+
+
 # ------------------------------------------------------------ posten
 
 def posten(art, fuer, quelle=None, start="hand", probe=False, log_pfad=None, now=None, takt=5):
@@ -496,6 +596,7 @@ def posten(art, fuer, quelle=None, start="hand", probe=False, log_pfad=None, now
     if not probe:
         log.setdefault("posts", []).append(eintrag)
         ig().json_schreiben(log_pfad or LOG, log)
+    posten.manifest = m
     return eintrag
 
 
@@ -728,6 +829,72 @@ def selbsttest():
         ok("dasselbe meme-motiv kommt kein zweites mal", False)
     except NichtFaellig as exc:
         ok("dasselbe meme-motiv kommt kein zweites mal", "neues fehlt" in str(exc))
+
+    # kaspa community (Ben, 28.10.2026), ohne netz, _post ist eine attrappe
+    import io
+    import contextlib
+    import ops_melden
+    gesendet = []
+    echt_post = ops_melden._post
+    alt_env = {k: os.environ.get(k) for k in ops_melden.ARTEN.values()}
+    ops_melden._post = lambda url, body, typ, timeout=60: gesendet.append(
+        (url.rsplit("/", 1)[1], json.loads(body)["content"])) or 204
+    basis = "https://discord.com/api/" + "webhooks/"
+    os.environ["DISCORD_WEBHOOK_OPS"] = basis + "1/hand"
+    os.environ["DISCORD_WEBHOOK_LOG"] = basis + "2/log"
+    mk = {"art": "woche", "motiv": "", "caption": "the week in numbers, week to 24 oct 2026",
+          "zahlen": [{"id": "hashrate", "kopf": "HASHRATE", "zahl": "369 PH/s",
+                      "satz": "network hashrate, +3.2% against the week to 17 oct", "quelle": "source kaspa rest api",
+                      "woche": "2026-10-24"}]}
+    ep = {"modus": "scharf", "permalink": "https://www.instagram.com/p/abc/"}
+
+    def lauf(**kw):
+        with contextlib.redirect_stdout(io.StringIO()):
+            return community_melden("2026-10-31", log_pfad=tmp / "logc.json", **kw)
+    try:
+        satz = community_satz(mk)
+        ok("satz klein, mit zahl, datum und source", satz ==
+           "more work secured kaspa than a week before, 369 ph/s in the week to 24 oct 2026, source kaspa rest api.",
+           ) if satz else ok("satz klein, mit zahl, datum und source", False)
+        import content_wache
+        ok("satz besteht die textregeln, ohne link und hashtag",
+           content_wache.text_verstoesse(satz) == [] and "http" not in satz and "#" not in satz)
+        ok("probe nur nach log", lauf(eintrag=ep, manifest=mk, probe=True) == "log"
+           and [g[0] for g in gesendet] == ["log"] and "PROBE" in gesendet[-1][1])
+        ok("probe merkt nichts", not (tmp / "logc.json").exists())
+        gesendet.clear()
+        ok("gepostet, von hand nach moderator-only", lauf(eintrag=ep, manifest=mk) == "hand"
+           and [g[0] for g in gesendet] == ["hand"])
+        t = gesendet[-1][1]
+        ok("nennt zeit, plattform, permalink und satz",
+           t.startswith("📤 VON HAND Sa ab 11:15, Instagram-App, Kanal Kaspa Community.")
+           and "https://www.instagram.com/p/abc/" in t and satz in t)
+        ok("hoechstens eine aufforderung je woche", lauf(eintrag=ep, manifest=mk) is None and len(gesendet) == 1)
+        (tmp / "logc.json").unlink()
+        gesendet.clear()
+        ok("nicht gepostet, nur nach ops-log", lauf(eintrag={"modus": "trocken"}, manifest=mk,
+                                                     grund_kein="KARUSSELL_LIVE ist nicht gesetzt") == "log"
+           and [g[0] for g in gesendet] == ["log"] and "kein Beitrag fuer Kaspa Community" in gesendet[-1][1])
+        ok("kein-beitrag auch nur einmal", lauf(grund_kein="x") is None and len(gesendet) == 1)
+        ok("spaeter gepostet geht trotzdem von hand", lauf(eintrag=ep, manifest=mk) == "hand")
+        (tmp / "logc.json").unlink()
+        gesendet.clear()
+        for name, mm in (("token", dict(mk, caption="kcc-20 tokens this week")),
+                         ("meme", dict(mk, motiv="block-espresso")),
+                         ("krc", dict(mk, zahlen=[dict(mk["zahlen"][0], satz="krc-20 mints")]))):
+            if (tmp / "logc.json").exists():
+                (tmp / "logc.json").unlink()
+            lauf(eintrag=ep, manifest=mm)
+            ok("sperre %s, nicht teilen mit grund" % name, "Diese Woche nicht in Kaspa Community teilen, Grund"
+               in gesendet[-1][1] and "Text zum Kopieren" not in gesendet[-1][1])
+        ok("kaspa-kern ohne sperre", community_sperre(mk) == "")
+    finally:
+        ops_melden._post = echt_post
+        for k, v in alt_env.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 
@@ -773,9 +940,22 @@ def main(argv=None):
                 " (probe)" if a.probe else ""))
             sag(text)
             ig().ops(text)
+            if a.art == "woche" and (a.start == "takt" or a.probe):
+                community_melden(fuer, e, getattr(posten, "manifest", None),
+                                 grund_kein="KARUSSELL_LIVE ist nicht gesetzt, nur trocken" if e["modus"] != "scharf"
+                                 else "", probe=a.probe)
     except Stopp as exc:
         sag("STOPP %s" % exc)
+        if a.schritt == "posten" and a.art == "woche" and a.start == "takt" and not a.probe:
+            community_melden(fuer, grund_kein="der posten-lauf stoppte, %s" % sauber(exc))
         return 1
+    except Exception as exc:                               # noqa: BLE001
+        if a.schritt == "posten" and a.art == "woche" and a.start == "takt" and not a.probe:
+            try:
+                community_melden(fuer, grund_kein="der posten-lauf brach ab, %s" % type(exc).__name__)
+            except Exception:                              # noqa: BLE001
+                pass
+        raise
     except NichtFaellig as exc:
         sag("nicht dran, %s" % exc)
         ig().ops("karussell %s fuer %s nicht dran, %s" % (a.art, fuer, exc))
