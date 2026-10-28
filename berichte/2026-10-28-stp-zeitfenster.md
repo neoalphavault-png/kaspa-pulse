@@ -13,7 +13,7 @@ Bestätigung für Ben zum Auftrag vom 27.10.2026. Frist Mi 28.10. 18:00 Berlin. 
 
 Unverändert:
 - Familie 0 (KNS) zählt nie.
-- `ntp.csv` kommt von desk, mini und box. Der Parser prüft die drei Messpunkte relativ zu T0: 17:00, 18:55 und 20:01 UTC.
+- `ntp.csv` kommt von desk, mini und box. Die Messpunkte sind wie das Zählfenster um eine Stunde verschoben (Ben, 28.10.): 17:00, 18:55 und 20:01 UTC. Sie stehen ausdrücklich in der Laufdatei (`ntp=17:00,18:55,20:01`).
 - Jede MINER-Zeile in `phase.log` markiert ihre Minute.
 
 Neu laut STP, über Ben:
@@ -29,6 +29,23 @@ Auf `messung/tn10-zaehler`, Commits 2f5043c und a089a32. Dieser Branch wird nie 
 - **Laufdatei `messung/tn10/lauf-2026-10-29.txt`:** Dort stehen `t0=2026-10-29T19:00:00Z`, `ende=2026-10-29T20:00:00Z` und `gezaehlt=19:03-19:14,19:23-19:34,19:43-19:59`. Der Parser liest sie mit `--lauf`. Schickt STP andere Minuten, gilt seine Liste. Dann ändere ich nur diese eine Zeile und melde mich. Die Zusammenfassung des Parsers vermerkt, ob die Liste vom Plan abweicht.
 - **Parser:** Schritte, Pausen und NTP-Punkte rechnet er ab T0. Der Selbsttest prüft die Laufdatei: T0 19:00, END 20:00 und genau die 41 Minuten oben. Er prüft auch, dass eine abweichende Liste von STP gilt und dass eine Minute außerhalb des Fensters abbricht. Die NTP-Zeiten können dort mit `ntp=` stehen, falls STP sie nicht verschiebt. 70 Prüfungen grün.
 
+## Historie bereinigt (28.10.)
+
+Im Selbsttest stand in einem Commit ein echter TN10-Knotenname, aus Teilstrings zusammengesetzt. Ben hat dafür am 28.10. einen Force-Push auf `messung/tn10-zaehler` freigegeben.
+
+- Die beiden Commits 890cd87 und ece9c41 sind zu 3a0e1de zusammengelegt. Darauf liegen neu: d0808f5 (vorher b416861), bb7494f (5430e5b), bdd5ee5 (2f5043c) und 89c312b (a089a32).
+- Danach kommt 11ec36b mit den NTP-Zeiten in der Laufdatei. **Neuer Kopf: 11ec36b.**
+- Der Code ist bis auf die Laufdatei derselbe wie vorher, der alte Kopf und der neue Zwischenstand 89c312b haben denselben Inhalt.
+- `git log -p` über den ganzen Branch habe ich mit einem Prüfer durchsucht, auch nach zusammengesetzten Teilstrings und in den Commit-Nachrichten: kein Fund. Werte wurden dabei nicht ausgegeben.
+- Selbsttests grün: Parser mit 71 Prüfungen, Nachzählung, Zähler.
+- Secret-Scan des Pushes grün. Der Force-Push hat keinen Zähllauf ausgelöst.
+- Die geplanten Pushes gehen auf den Branch, nicht auf einen Commit. Sie setzen also auf 11ec36b auf.
+
+Was bleibt:
+- Der alte Commit ist auf keinem Branch mehr. GitHub kann ihn aber über seine Kennung noch eine Weile zeigen, bis er aufgeräumt wird. Ganz sofort entfernen kann ihn nur der GitHub-Support.
+- Derselbe Prüfer findet den Namen auch auf `bericht/stp-rat-2026-10-27`, in c099d95 und in dessen Bereinigung efc8d0e. Das ist der bekannte Prüfwert aus PR #151, siehe dort. PR #151 ist als Squash gemergt, auf main steht der Name nicht. Der Branch existiert aber noch, und PR #151 hält die Commits fest.
+- Ein Treffer in einem SVG unter `graphics/hintergruende/` auf main ist falsch-positiv: Dort steht das Wort "vector" als SVG-Attribut, kein Knotenname.
+
 ## Startzeiten der Zählläufe (UTC)
 
 Einen Cron gibt es für TN10 nicht, weder auf main noch auf dem Messbranch noch in den Takten auf c2. Die Zählläufe starten mit dem Push einer Zeitdatei auf `messung/tn10-zaehler` und schlafen dann ohne Abfrage bis kurz vor ihrer Zeit. Die Pushes habe ich als geplante Aufgaben angelegt:
@@ -43,13 +60,15 @@ Keine dieser Dateien enthält einen Schlüssel, ein Token, eine IP oder einen Ho
 
 ## Offene Fragen an Ben
 
-1. **NTP-Messpunkte:** Bleibt STP bei 16:00, 17:55 und 19:01 UTC, oder rücken sie mit T0 auf 17:00, 18:55 und 20:01? Der Parser erwartet sie relativ zu T0. Eine Messung mehr als 5 Minuten daneben meldet er als fehlend. Bleibt STP bei den alten Zeiten, stelle ich das in der Laufdatei um.
-2. **STPs Logs nach END** (`minute.csv`, `sec.csv`, `phase.log`, `ntp.csv`, `post-end-mempool.csv`): Ich öffne STPs Repo nicht mehr. Gibst du mir die Dateien, sobald STP sie hat?
+1. **NTP-Messpunkte:** beantwortet am 28.10., 17:00, 18:55 und 20:01 UTC.
+2. **STPs Logs nach END:** beantwortet am 28.10., sie kommen über Ben. STPs Repo lese ich nicht, bis Ben es freigibt.
+3. **`bericht/stp-rat-2026-10-27`:** Soll ich den gemergten Branch löschen, damit c099d95 nicht mehr in der Branch-Liste steht? Über PR #151 bleibt der Commit trotzdem erreichbar. Ganz weg bekommt ihn nur der GitHub-Support, wenn du das willst.
 
 ## Was Ben tun muss
 
 - STPs Covenant-IDs bis Do 18:55 UTC an mich, je Familie eine Zeile `f<n> <id>`.
 - Schickt STP andere Zählminuten, gib sie mir. Dann gilt seine Liste.
-- Nach END STPs Logs an mich, siehe Frage 2.
+- Nach END STPs Logs an mich.
+- Entscheiden, was mit `bericht/stp-rat-2026-10-27` passiert (Frage 3).
 
 Workflow-Änderungen prüft Claude, Ben merged. Dieser Auftrag ändert keinen Workflow.
