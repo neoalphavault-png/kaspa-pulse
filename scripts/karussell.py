@@ -347,8 +347,9 @@ def caption_woche(ss, nummer=0):
     erste = zeilen[0]
     weitere = " and ".join(x["kopf"].lower() for x in zeilen[1:])
     return caption("%s %s" % (erste["zahl"], erste["satz"]),
-                   "the week in numbers, with %s inside, week to %s, source %s"
-                   % (weitere, tag(erste["woche"]), " and ".join(quellen)),
+                   "the week in numbers%s, week to %s, source %s"
+                   % (", with %s inside" % weitere if weitere else "", tag(erste["woche"]),
+                      " and ".join(quellen)),
                    FRAGEN[nummer % len(FRAGEN)])
 
 
@@ -443,6 +444,14 @@ def vorbereiten(art, fuer, history=None, story=None):
         h = json.loads(Path(history or HISTORY).read_text(encoding="utf-8"))
         jetzt, vorher = ausgaben_fuer(h, fuer)
         ss = seiten_woche(jetzt, vorher)
+        if v2(art, fuer):
+            # dieselbe zahl hoechstens einmal pro tag auf instagram: was die
+            # tagesgrafik heute zeigt, faellt aus karussell und caption raus
+            import look_motor
+            schon = look_motor.tagesgrafik_zahlen(fuer)
+            rest = [x for x in ss if x["art"] not in ("haken", "zahl") or x.get("id") not in schon]
+            if any(x["art"] in ("haken", "zahl") for x in rest):
+                ss = rest
         cap = caption_woche(ss)
     else:
         st = json.loads(Path(story or STORY).read_text(encoding="utf-8"))
