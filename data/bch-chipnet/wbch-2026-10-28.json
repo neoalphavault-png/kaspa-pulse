@@ -1,0 +1,158 @@
+{
+  "was": "chipnet-transaktionen mit der wBCH-kategorie oder dem wBCH-covenant aus @xo-cash/templates (wrapped_cash_chipnet.ts); wrapped.cash-covenant, nicht XO-spezifisch",
+  "kategorie": "bb61cd7a6c8a3a3742d965dc7ac73c1117382a5c8930b68338deb881f75c0214",
+  "covenant_redeem_hex": "c0cdc0c788c0d1c0ce88c0d0c0c693c0d3c0cc939c",
+  "bloecke_im_fenster": 4076,
+  "bloecke_gelesen": 4076,
+  "transaktionen_gelesen": 409381,
+  "von_hoehe": 325791,
+  "bis_hoehe": 329866,
+  "treffer_transaktionen": 17,
+  "je_woche": {
+    "2026-W41": 1,
+    "2026-W42": 1,
+    "2026-W43": 15
+  },
+  "treffer": [
+    {
+      "txid": "ffb91a0777aa7c9e701850bdf2c39b122c4175e6f86757146dd65cd27ee1c989",
+      "hoehe": 326699,
+      "zeit_utc": "2026-10-07T07:49:51Z",
+      "ausgaben_kategorie": 2,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 1
+    },
+    {
+      "txid": "0a2617f41dcd03fea3d8349de81436d34869120170530090c6f3b6b0eb9e3b18",
+      "hoehe": 328247,
+      "zeit_utc": "2026-10-17T08:21:07Z",
+      "ausgaben_kategorie": 1,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 1
+    },
+    {
+      "txid": "4403c18bfc4b1355f7d6bea31b4157ac61305e52bee78520363fe9276c05d11d",
+      "hoehe": 329147,
+      "zeit_utc": "2026-10-23T15:27:23Z",
+      "ausgaben_kategorie": 2,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 1
+    },
+    {
+      "txid": "2e0c55de1d9e3393c21c7d0b64914ddbd32bbf8d089968a3c1d8e7799155c994",
+      "hoehe": 329165,
+      "zeit_utc": "2026-10-23T17:24:41Z",
+      "ausgaben_kategorie": 1,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 1
+    },
+    {
+      "txid": "1f75cab0314888cea0e9d46f8272251d698cdc59ccc5d45cbf5835666558540b",
+      "hoehe": 329391,
+      "zeit_utc": "2026-10-25T06:49:58Z",
+      "ausgaben_kategorie": 2,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 1
+    },
+    {
+      "txid": "17ad70579b8ae263d531ec1b302d552188fe191e1a8d90a57aebc5a8be3eb4b6",
+      "hoehe": 329392,
+      "zeit_utc": "2026-10-25T07:08:17Z",
+      "ausgaben_kategorie": 2,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 0
+    },
+    {
+      "txid": "74c3704654994ddf13b5c6c3549c307acd79549f64adf8a04ad91e0303bcc06c",
+      "hoehe": 329394,
+      "zeit_utc": "2026-10-25T07:34:05Z",
+      "ausgaben_kategorie": 1,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 1
+    },
+    {
+      "txid": "d1225d2c20dd2d9ce10bf774aa60c4fa1882233c08f2be72af90cdf1e9c9dea1",
+      "hoehe": 329418,
+      "zeit_utc": "2026-10-25T10:52:08Z",
+      "ausgaben_kategorie": 2,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 1
+    },
+    {
+      "txid": "5cf381cd1a49f0f19e90520c289c6d5f0b36181ce704bd3737f561491e76eceb",
+      "hoehe": 329419,
+      "zeit_utc": "2026-10-25T11:12:20Z",
+      "ausgaben_kategorie": 2,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 1
+    },
+    {
+      "txid": "74cabdb93b575403e70c85707a66e601491bc543b8232b0c30e0f31c6ea384ea",
+      "hoehe": 329437,
+      "zeit_utc": "2026-10-25T14:04:00Z",
+      "ausgaben_kategorie": 2,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 1
+    },
+    {
+      "txid": "06d91c4b958f88d60e12b9c4b649c5c1b372df974868c2e4f054ac9f02cf7903",
+      "hoehe": 329439,
+      "zeit_utc": "2026-10-25T14:33:59Z",
+      "ausgaben_kategorie": 2,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 1
+    },
+    {
+      "txid": "eddc01d5d83da7451a768b98915b8eb84259b6de3612c0422ea61d45ef9b1767",
+      "hoehe": 329439,
+      "zeit_utc": "2026-10-25T14:33:59Z",
+      "ausgaben_kategorie": 2,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 1
+    },
+    {
+      "txid": "0d2b10770df0f02b1c9f9c672592ce696d37d22f73653d84cbd41b0b1327fa84",
+      "hoehe": 329441,
+      "zeit_utc": "2026-10-25T14:45:01Z",
+      "ausgaben_kategorie": 1,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 1
+    },
+    {
+      "txid": "350ca4e4dbfc84accd985da201400efa91db2c7b62f3ccb25e0fff86cedaa7ba",
+      "hoehe": 329441,
+      "zeit_utc": "2026-10-25T14:45:01Z",
+      "ausgaben_kategorie": 2,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 1
+    },
+    {
+      "txid": "748f853c6e8c10deef22f82c5b0d5eebb9154e2fb52d3d8f3fd0aa334cadf592",
+      "hoehe": 329441,
+      "zeit_utc": "2026-10-25T14:45:01Z",
+      "ausgaben_kategorie": 1,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 0
+    },
+    {
+      "txid": "8101535829e7aa0c594de9f706362dafa0708bfb57dbe52e6ddd0541b78736f2",
+      "hoehe": 329441,
+      "zeit_utc": "2026-10-25T14:45:01Z",
+      "ausgaben_kategorie": 2,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 1
+    },
+    {
+      "txid": "ab0569d2b338389fc1806f26ccba8eccf2325f49c59fa148bbe98cb3a629a706",
+      "hoehe": 329444,
+      "zeit_utc": "2026-10-25T15:02:03Z",
+      "ausgaben_kategorie": 1,
+      "kategorie_byte_reihenfolge": "intern",
+      "covenant_ausgaben": 1
+    }
+  ],
+  "peer_software": [
+    "/Bitcoin Cash Node:28.0.2(EB2.0)/"
+  ],
+  "abbrueche": []
+}
