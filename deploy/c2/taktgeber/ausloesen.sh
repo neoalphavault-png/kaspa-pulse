@@ -74,6 +74,11 @@ case "$1" in
     # live steuert die Variable REELS_LIVE, nicht der Takt.
     "$HIER/takt.sh" "$REPO_STUDIO" instagram-reel.yml "live=${REEL_LIVE:-false}"
     ;;
+  weekly-verteilung)
+    # weekly-verteilung.yml (Ben, 26.10.2026). Vorbelegung auf GitHub ist
+    # probe (nur #moderator-only). Scharf ueber WV_MODUS in takt.conf.
+    "$HIER/takt.sh" "$REPO_PULSE" weekly-verteilung.yml "modus=${WV_MODUS:-probe}" datum=
+    ;;
   weeklynumbers)
     # ACHTUNG: dry_run steht auf GitHub auf true. Ein Takt ohne dieses
     # Feld rechnet nur und postet nicht. Scharf wird er ueber WN_DRY_RUN

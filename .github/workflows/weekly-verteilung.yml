@@ -1,0 +1,113 @@
+# weekly-verteilung.yml - Hinweis auf das neue Weekly in unsere Kanaele (Ben, 26.10.2026).
+#
+# Montags ab 16:00 Berlin prueft scripts/weekly_verteilung.py alle 5 Minuten
+# bis 18:00 den oeffentlichen RSS-Feed des Kanals (ohne Schluessel). Ist das
+# Weekly oeffentlich: 5 Minuten spaeter Discord #weekly-numbers
+# (DISCORD_WEBHOOK_WEEKLY), 10 Minuten spaeter unser Telegram-Kanal
+# (TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID). Um 18:00 Berlin geht nach
+# #moderator-only (DISCORD_WEBHOOK_OPS) eine Nachricht mit "📤 VON HAND" und
+# dem fertigen Text je fremder Gruppe. Fremde Gruppen bekommen nie etwas
+# automatisch.
+#
+# Text: Telegram- und Discord-Block aus dem Uploadpaket der Sonntagsroutine
+# (pulse-studio kw/<montag>/uploadpaket.md, Abschnitt 6a), gelesen mit
+# STUDIO_READ_TOKEN (nur Lesen, nur pulse-studio).
+#
+# Ausloeser: der Takt takt-weekly-verteilung.timer auf c2 (Mo 16:00
+# Europe/Berlin, folgt der Zeitumstellung von selbst). Die zwei cron-Zeilen
+# sind nur Rueckfall; GitHubs Zeitplan kommt in diesem Konto oft Stunden zu
+# spaet, und ein Lauf nach 18:30 Berlin endet ohne etwas zu tun.
+# Sperren: Merkdatei data/weekly-verteilung.json (je Kanal und Woche ein
+# Post), Variable WEEKLY_VERTEILUNG_STOPP (JJJJ-MM-TT oder immer), Datei
+# data/weekly-verteilung-stopp (wirkt auch im laufenden Lauf).
+# Probe (nur Handstart per workflow_dispatch, Vorbelegung): alles nur nach
+# #moderator-only, in der Umgebung steht nur DISCORD_WEBHOOK_OPS.
+name: weekly verteilung
+
+on:
+  workflow_dispatch:
+    inputs:
+      modus:
+        description: "probe schickt nur nach #moderator-only, scharf ist der Montagslauf"
+        type: choice
+        options: [probe, scharf]
+        default: probe
+      datum:
+        description: "nur probe, Paket JJJJ-MM-TT (leer = neuestes)"
+        required: false
+        default: ""
+  schedule:
+    # Rueckfall. 14:55 UTC = 15:55 Berlin im Winter, 13:55 UTC = 15:55 im Sommer.
+    - cron: "55 14 * * 1"
+    - cron: "55 13 * * 1"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-verteilung
+  cancel-in-progress: false
+
+jobs:
+  verteilen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 200
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: uploadpakete aus pulse-studio, nur lesen
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          repository: neoalphavault-png/pulse-studio
+          token: ${{ secrets.STUDIO_READ_TOKEN }}
+          persist-credentials: false
+          path: studio
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            kw/*/uploadpaket.md
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: selbsttests
+        run: |
+          python3 scripts/yt_live_check.py --selftest | tail -n 1
+          python3 scripts/weekly_verteilung.py --selbsttest 2>/dev/null | tail -n 1
+
+      - name: modus
+        id: modus
+        env:
+          MODUS: ${{ inputs.modus || 'scharf' }}
+        run: |
+          case "$MODUS" in probe|scharf) ;; *) echo "unbekannter modus"; exit 1 ;; esac
+          echo "modus=$MODUS" >> "$GITHUB_OUTPUT"
+          echo "modus $MODUS"
+
+      # Probe: nur der Webhook fuer #moderator-only steht in der Umgebung.
+      # Das Skript bricht ab, falls doch ein Schluessel fuer #weekly-numbers
+      # oder Telegram da ist (Ben, 27.10.2026).
+      - name: probe, nur nach moderator-only
+        if: steps.modus.outputs.modus == 'probe'
+        env:
+          DATUM: ${{ inputs.datum || '' }}
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+        run: |
+          python3 scripts/weekly_verteilung.py --modus probe --paket-dir studio/kw ${DATUM:+--datum "$DATUM"}
+
+      - name: scharf, montagslauf
+        if: steps.modus.outputs.modus == 'scharf'
+        env:
+          WEEKLY_VERTEILUNG_STOPP: ${{ vars.WEEKLY_VERTEILUNG_STOPP }}
+          DISCORD_WEBHOOK_WEEKLY: ${{ secrets.DISCORD_WEBHOOK_WEEKLY }}
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          git config user.name "kaspa-pulse-bot"
+          git config user.email "bot@kaspapulse.com"
+          python3 scripts/weekly_verteilung.py --modus scharf --paket-dir studio/kw

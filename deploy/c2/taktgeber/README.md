@@ -44,6 +44,7 @@ Log steht es am 01.10. wörtlich: *„kein cron im fenster"*.
 | `takt-karussell-story` | Mi 18:00 | `karussell.yml`, `art=story schritt=posten start=takt` |
 | `takt-karussell-meme-entwurf` | Sa 13:00 | `karussell.yml`, `art=meme schritt=entwurf start=takt` |
 | `takt-karussell-meme` | Sa 15:00 | `karussell.yml`, `art=meme schritt=posten start=takt` |
+| `takt-weekly-verteilung` | Mo 16:00 | `weekly-verteilung.yml` in kaspa-pulse, `modus=` aus `WV_MODUS` in `takt.conf`; bis 18:00 Discord #weekly-numbers und Telegram-Kanal, 18:00 VON HAND nach #moderator-only |
 
 Die Uhrzeiten stehen in Ortszeit, als Anhang an der Kalenderzeile:
 
@@ -78,6 +79,7 @@ Was jeder Takt deshalb ausdrücklich mitschickt:
 | `instagram-bild` | `instagram=` aus `IG_LIVE` in `takt.conf` |
 | `reel` | `live=` aus `REEL_LIVE` in `takt.conf` |
 | `weeklynumbers` | `dry_run=` aus `WN_DRY_RUN` in `takt.conf` |
+| `weekly-verteilung` | `modus=` aus `WV_MODUS` in `takt.conf` (probe oder scharf) |
 | `number-of-day` | keine, der Workflow hat keine, die zählt |
 | `shorts-nachtrag` | keine. Der Workflow nimmt die laufende Woche und den Schlüssel `mi` selbst |
 

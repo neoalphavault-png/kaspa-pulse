@@ -1,0 +1,14 @@
+[Unit]
+Description=Kaspa Pulse Takt, Weekly-Verteilung Mo 16:00 Berlin
+
+[Timer]
+Unit=takt@weekly-verteilung.service
+# Der Lauf prueft bis 18:00 Berlin alle 5 Minuten, ob das Weekly oeffentlich
+# ist, und schickt um 18:00 die VON-HAND-Nachricht. Europe/Berlin folgt der
+# Zeitumstellung von selbst.
+OnCalendar=Mon *-*-* 16:00:00 Europe/Berlin
+Persistent=true
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target
