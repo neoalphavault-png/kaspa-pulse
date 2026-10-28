@@ -56,7 +56,9 @@ SEITE_PX = (1080, 1350)
 TITEL = "The 8 Kaspa numbers whales watch"
 
 BG, SURF, LINE = "#080B0F", "#0E1418", "#1B252B"
-INK, INK2, INK3 = "#F2F5F4", "#A9B7B4", "#6F7E7B"
+# INK3 von #6F7E7B (4.6:1) auf #96A5A2: 7.7:1 auf BG, 7.2:1 auf SURF, die
+# Grafik-Regel 7:1 (Ben, 25.10.2026). Nur die Farbe, kein Satz geaendert.
+INK, INK2, INK3 = "#F2F5F4", "#A9B7B4", "#96A5A2"
 ACC, ACCD, ACCF = "#49EACB", "#1F6B5D", "#123D36"
 
 MONATE = ["jan", "feb", "mar", "apr", "may", "jun",
@@ -130,6 +132,16 @@ POLSTER = 0.2
 NETT = (1.0, 2.0, 2.5, 5.0)
 
 
+def kontrast_hex(a, b):
+    """WCAG-Kontrast zweier Farben in #RRGGBB."""
+    def lum(h):
+        c = [int(h[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+        c = [x / 12.92 if x <= 0.03928 else ((x + 0.055) / 1.055) ** 2.4 for x in c]
+        return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+    la, lb = sorted((lum(a), lum(b)), reverse=True)
+    return (la + 0.05) / (lb + 0.05)
+
+
 def nett_schritt(hoechstens):
     """Groesste runde Zahl <= hoechstens."""
     if hoechstens <= 0:
@@ -151,8 +163,14 @@ def achse(werte, polster=POLSTER):
     if spanne <= 0:
         raise Abbruch("achse ohne spanne, alle werte gleich")
     s = nett_schritt(spanne / 3)
-    return (math.floor((lo - polster * spanne) / s) * s,
-            math.ceil((hi + polster * spanne) / s) * s)
+    unten = math.floor((lo - polster * spanne) / s) * s
+    oben = math.ceil((hi + polster * spanne) / s) * s
+    # vier gitterlinien teilen die achse in drei teile. ist die zahl der
+    # schritte kein vielfaches von drei, stehen dort krumme werte wie 333
+    # und 367 (probelauf 28.10.2026). dann oben auf das naechste vielfache.
+    n = round((oben - unten) / s)
+    n3 = -(-n // 3) * 3
+    return unten, round(unten + n3 * s, 10)
 
 
 def achse_kumuliert(werte):
@@ -200,13 +218,43 @@ def z_entityx(heute):
             "abfluss_tag": letzt["day"], "abfluss_kas": letzt["net_out_kas"]}
 
 
+def umlauf_je_tag(tage, jetzt=None, umlauf_jetzt=None, emission=None):
+    """Umlauf am Ende jedes Tages, zurueckgerechnet vom heutigen Umlauf aus
+    api.kaspa.org/info/coinsupply, wie in tagesgrafik und weekly_numbers,
+    minus der Emission seitdem aus dem Emissionsplan (computed).
+
+    Eine Kaspalytics-Reihe "supply/circulating" gibt es nicht, der erste
+    Probelauf mit echten Daten am 28.10.2026 bekam HTTP 404. Der Fehler
+    durch Netzzeit und Rundung liegt unter 1 zu 100.000, weit unter der
+    ersten Nachkommastelle des Anteils."""
+    if not tage:
+        return {}
+    if umlauf_jetzt is None:
+        tg = _tg()
+        jetzt = dt.datetime.now(dt.timezone.utc)
+        umlauf_jetzt = tg.m_supply()[0]
+        emission = tg.emission_am_tag
+    heute = jetzt.date()
+    teil = (jetzt - dt.datetime.combine(heute, dt.time(), dt.timezone.utc)).total_seconds() / 86400.0
+    # was nach dem ende von tag d dazukam: die vollen tage danach plus der angebrochene heute
+    nach = {}
+    summe = emission(heute.isoformat()) * teil
+    d = heute - dt.timedelta(days=1)
+    erster = dt.date.fromisoformat(tage[0])
+    while d >= erster:
+        nach[d.isoformat()] = summe
+        summe += emission(d.isoformat())
+        d -= dt.timedelta(days=1)
+    return {t: umlauf_jetzt - nach[t] for t in tage if t in nach}
+
+
 def z_boersen(heute):
     """KAS in Boersen-Wallets, Anteil am Umlauf. Wochenreihe aus derselben
     Quelle, ein Punkt je Montag, Stichtag der letzte volle Tag davor."""
     tg = _tg()
     bestand = tg.m_kl_reihe("supply/exchange-holdings", "Balance", "moment")
-    umlauf = tg.m_kl_reihe("supply/circulating", None, "bestand")
     heute_iso = heute.isoformat()
+    umlauf = umlauf_je_tag(sorted(d for d in bestand if d < heute_iso))
     tage = sorted(d for d in set(bestand) & set(umlauf) if d < heute_iso)
     if not tage:
         raise Abbruch("boersen, kein gemeinsamer stichtag mit dem umlauf")
@@ -225,6 +273,11 @@ def z_boersen(heute):
 # Die Woerter "half" und "a quarter" auf Seite 3 stehen nur, solange die
 # Anteile dazu passen. Dieselben Fenster wie in tagesgrafik.vorlage_11.
 HALB = (45.0, 55.0)
+# Seite 3 sagt "logged by us every week since <monat>". Gemeint sind unsere
+# Wochenstaende seit Edition 1 (erster Sonntag 26.07.2026). Kaspalytics
+# liefert die Reihe ab 2023, ohne diese Grenze stuende dort "since august"
+# mit einer Spanne von 14.1% bis 51.3% (Probelauf 28.10.2026).
+UNBEWEGT_SEIT = "2026-07-26"
 VIERTEL = (20.0, 30.0)
 
 
@@ -255,7 +308,8 @@ def z_unbewegt(heute):
     if not 0 < p2 <= p1 < 100:
         raise Abbruch("unbewegt, anteile unplausibel, 1 jahr %s, 2 jahre %s" % (p1, p2))
     woerter_pruefen(p1, p2)
-    sonntage = [[x, eins[x]] for x in tage if dt.date.fromisoformat(x).weekday() == 6]
+    sonntage = [[x, eins[x]] for x in tage
+                if dt.date.fromisoformat(x).weekday() == 6 and x >= UNBEWEGT_SEIT]
     if len(sonntage) < 4:
         raise Abbruch("unbewegt, nur %d wochenstaende" % len(sonntage))
     return {"stichtag": d, "p1": p1, "p2": p2, "wochen_von": sonntage[0][0],
@@ -416,6 +470,15 @@ def txt(x, y, s, size=30, fill=INK2, anchor="start", weight=500, fam="Plex"):
             'fill="%s" text-anchor="%s">%s</text>' % (x, y, fam, size, weight, fill, anchor, s))
 
 
+def grund(x, y, s, size, anchor="start", rand=8):
+    """Eine Flaeche in der Grundfarbe unter einer Beschriftung, grob so breit
+    wie der Text (Plex, etwa 0.6 em je Zeichen)."""
+    w = 0.6 * size * len(s) + 2 * rand
+    x0 = x - rand if anchor == "start" else (x - w + rand if anchor == "end" else x - w / 2)
+    return ('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="6" fill="%s"/>'
+            % (x0, y - size * 0.95, w, size * 1.3, BG))
+
+
 def g_coins(eins_von):
     """Ein Kreis je Anteil, der erste leuchtet. eins_von kommt aus 100/pct."""
     n, cols, r, gap = eins_von, 9, 38, 22
@@ -448,6 +511,8 @@ def line_chart(pts, h, ymin, ymax, labfmt, start_lab, end_lab, xlabels,
     for gv in [ymin + (ymax - ymin) * k / 3 for k in range(4)]:
         out.append('<line x1="%s" x2="%s" y1="%.1f" y2="%.1f" stroke="%s" stroke-width="2"/>'
                    % (pl, W - pr + 20, Y(gv), Y(gv), LINE))
+        if mean and abs(Y(gv) - Y(mean[0])) < 30:
+            continue                  # die beschriftung "mean" steht dort
         out.append(txt(W - pr + 32, Y(gv) + 10, labfmt(gv), 26, INK3, weight=400, fam="PlexMono"))
     segs, cur = [], []
     for i, v in pts:
@@ -489,8 +554,24 @@ def line_chart(pts, h, ymin, ymax, labfmt, start_lab, end_lab, xlabels,
                % (fx, fy, BG, INK2))
     out.append('<circle cx="%.1f" cy="%.1f" r="11" fill="%s" stroke="%s" stroke-width="4"/>'
                % (lx, ly, ACC, BG))
-    out.append(txt(fx + 4, fy + (44 if start_below else -22), start_lab, 28, INK2))
-    out.append(txt(lx - 6, ly - 24, end_lab, 30, INK, "end", 600))
+    # anfangs- und endmarke stehen an der linie. mit echten daten laeuft die
+    # teal-linie sonst unter der schrift durch, 1.4:1 statt 7:1 (probelauf
+    # 28.10.2026). eine flaeche in der grundfarbe darunter haelt den kontrast.
+    # die marke weicht der linie aus: ueber (oder unter) jedem punkt, der
+    # unter ihrer breite liegt, damit weder die schrift auf der linie steht
+    # noch die flaeche einen wert verdeckt
+    def frei(x0, x1, y, oben, size):
+        unter = [py for px, py in allp if x0 - 8 <= px <= x1 + 8]
+        if oben:
+            return max(pt + size, min([y] + [py - 18 for py in unter]))
+        return min(h - pb - 6, max([y] + [py + size + 12 for py in unter]))
+    sw, ew = 0.6 * 28 * len(start_lab), 0.6 * 30 * len(end_lab)
+    sy = frei(fx + 4, fx + 4 + sw, fy + (44 if start_below else -22), not start_below, 28)
+    ey = frei(lx - 6 - ew, lx - 6, ly - 24, True, 30)
+    out.append(grund(fx + 4, sy, start_lab, 28))
+    out.append(txt(fx + 4, sy, start_lab, 28, INK2))
+    out.append(grund(lx - 6, ey, end_lab, 30, "end"))
+    out.append(txt(lx - 6, ey, end_lab, 30, INK, "end", 600))
     for i, s in xlabels:
         out.append(txt(X(i), h - 12, s, 26, INK3,
                        "middle" if 0 < i < n - 1 else ("start" if i == 0 else "end"),
@@ -545,7 +626,8 @@ def g_trichter(z):
         w = (W - 260) * v / mx
         letzt = i == len(data) - 1
         out.append('<rect x="0" y="%s" width="%.1f" height="64" rx="6" fill="%s"/>'
-                   % (y, w, ACC if letzt else ACCD))
+                   % (y, w, ACC if letzt else ACCF))
+        # INK auf ACCF 11:1, auf ACCD waeren es nur 5.8:1 (Grafik-Regel 7:1)
         out.append(txt(20, y + 43, lab, 30, BG if letzt else INK, weight=600))
         out.append(txt(w + 20, y + 44, fmt(v), 34, INK if letzt else INK2, weight=600, fam="PlexMono"))
     return svg(300, "".join(out))
@@ -574,7 +656,7 @@ def g_stufen(z):
         s = z["stufen"][k]
         x = (k + 1) * bw + bw / 2 if anchor == "middle" else W - 2
         out.append(txt(x, hy(s[1]) - 14, "%.2f · %s %s" % (
-            s[1], MONATE[int(s[0][5:7]) - 1], s[0][:4]), 26, INK3, anchor))
+            s[1], MONATE[int(s[0][5:7]) - 1], s[0][:4]), 26, INK, anchor))   # steht auf ACCF, 11:1
     out.append(txt(2, H - 12, "KAS per block · one bar per monthly step", 26, INK3,
                    weight=400, fam="PlexMono"))
     return svg(H, "".join(out))
@@ -974,7 +1056,7 @@ def rueckseite(marke, utm):
 <div class="sub-b"><span>subscribe free at kaspapulse.com</span><i>one short email a week · unsubscribe anytime</i></div>
 </a>
 <div class="links">
-<a href="https://kaspapulse.com/?utm_source=cheatsheet&amp;utm_medium=pdf&amp;utm_campaign=%s"><b>live numbers</b><span>kaspapulse.com</span></a>
+<a href="https://kaspapulse.com/?utm_source=cheatsheet&amp;utm_medium=pdf&amp;utm_campaign=%s"><b>the dashboard</b><span>kaspapulse.com</span></a>
 <a href="https://discord.gg/h33JBhrPP7"><b>entity x alerts</b><span>discord, free</span></a>
 <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q"><b>explained weekly</b><span>youtube</span></a>
 <div><b>one number a day</b><span><a href="https://x.com/gokugalax">x @gokugalax</a> · <a href="https://instagram.com/kaspapulse">ig @kaspapulse</a></span></div>
@@ -1039,8 +1121,35 @@ def rendern(seiten_html, ziel):
                print_background=True,
                margin={"top": "0", "bottom": "0", "left": "0", "right": "0"})
         pg.locator("section.pg").first.screenshot(path=str(deck))
+        pngs, kontrast = seiten_png(pg, ig_ordner(ziel))
         b.close()
+    rendern.letzte = {"pngs": pngs, "kontrast": kontrast}
     return ziel, deck, tmp
+
+
+def ig_ordner(pdf):
+    return Path(pdf).with_name(Path(pdf).stem + "-instagram")
+
+
+def seiten_png(pg, ordner):
+    """Jede Seite einzeln als PNG 1080x1350 fuer das Instagram-Karussell
+    (Ben, 28.10.2026), in der Reihenfolge des PDF. Dazu der Kontrast 7:1 je
+    Seite, gemessen im fertigen Bild wie bei allen anderen Grafiken."""
+    import hintergrund
+    ordner.mkdir(parents=True, exist_ok=True)
+    for alt in ordner.glob("seite-*.png"):
+        alt.unlink()
+    n = pg.locator("section.pg").count()
+    pngs, kontrast = [], []
+    for i in range(n):
+        pg.evaluate("(i) => document.querySelectorAll('section.pg').forEach("
+                    "(e, k) => e.style.display = (k === i ? 'flex' : 'none'))", i)
+        pfad = ordner / ("seite-%02d.png" % (i + 1))
+        pg.screenshot(path=str(pfad))
+        pngs.append(pfad)
+        kontrast += ["seite %d, %s" % (i + 1, v) for v in hintergrund.kontrast_verstoesse(pg)]
+    pg.evaluate("() => document.querySelectorAll('section.pg').forEach(e => e.style.display = '')")
+    return pngs, kontrast
 
 
 def bauen(p, edition, ziel=None):
@@ -1084,19 +1193,107 @@ def ops_text(p, edition, pdf, scharf):
     return "\n".join(zeilen)
 
 
-def ops_schicken(text, dateien, scharf):
+IG_CAPTION = ("the 8 kaspa numbers whales watch. edition %d, %s %d. every number dated, with its "
+              "source. save it for later. the full cheat sheet arrives by email, link in bio. "
+              "#kaspa #kas #blockdag")
+WORKFLOW_URL = "https://github.com/neoalphavault-png/kaspa-pulse/actions/workflows/cheat-sheet.yml"
+VARIABLEN_URL = "https://github.com/neoalphavault-png/kaspa-pulse/settings/variables/actions"
+
+
+def ig_caption(p, edition):
+    """Bens Caption vom 28.10.2026, ohne Engagement-Koeder. Edition und Monat
+    kommen aus dem Lauf, sonst kein Wort anders."""
+    monat = dt.date.fromisoformat(p["stand"])
+    return IG_CAPTION % (edition, MONATE_LANG[monat.month - 1], monat.year)
+
+
+def probe_lauf():
+    """Ein Lauf von einem anderen Branch als main ist immer eine Probe: alles
+    nach #ops-log, nichts zum Freigeben und nichts zum Posten nach
+    #moderator-only. Lokal (ohne GITHUB_REF_NAME) gilt das nicht."""
+    ref = os.environ.get("GITHUB_REF_NAME", "")
+    return bool(ref) and ref != "main"
+
+
+def schon_gemeldet(heute, holer=None):
+    """Am 1. kommen zwei Laeufe zur selben Stunde, der c2-Takt und der Cron
+    als Ersatz (im Winter trifft 08:00 UTC genau 09:00 Berlin). Ein Cron-Lauf
+    meldet nicht, wenn heute schon ein Lauf dieses Workflows den Schritt
+    "bauen und melden" gruen beendet hat. Ein Lauf von Hand meldet immer.
+    Geht die Abfrage nicht, wird gemeldet: lieber doppelt als gar nicht."""
+    if os.environ.get("GITHUB_EVENT_NAME") != "schedule":
+        return None
+    repo = os.environ.get("GITHUB_REPOSITORY", "")
+    selbst = os.environ.get("GITHUB_RUN_ID", "")
+    if not repo:
+        return None
+    import urllib.request
+
+    def holen(url):
+        req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json",
+                                                   "User-Agent": "kaspa-pulse-cheat-sheet"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.load(r)
+    holen = holer or holen
+    basis = "https://api.github.com/repos/%s/actions" % repo
+    try:
+        laeufe = holen("%s/workflows/cheat-sheet.yml/runs?created=%s&per_page=20"
+                       % (basis, heute.isoformat()))["workflow_runs"]
+        for r in laeufe:
+            if str(r["id"]) == selbst or r.get("head_branch") != "main":
+                continue
+            for j in holen("%s/runs/%s/jobs" % (basis, r["id"]))["jobs"]:
+                for st in j.get("steps") or []:
+                    if st.get("name") == "bauen und melden" and st.get("conclusion") == "success":
+                        return r["id"]
+    except Exception as exc:  # noqa: BLE001
+        print("abfrage der laeufe ging nicht (%s), es wird gemeldet" % type(exc).__name__)
+    return None
+
+
+def ops_schicken(text, dateien, scharf, ig=None):
     """Text, Deckblatt und PDF in einem Aufruf ueber scripts/ops_melden.py.
     Ersetzt der Lauf die Datei der Webseite, ist es eine Info nach #ops-log.
-    Sonst entscheidet Ben, ob er CHEAT_SHEET_LIVE scharf stellt, das ist eine
-    Handlung und geht als "📤 VON HAND" nach #moderator-only."""
+    Sonst entscheidet Ben, ob er die Edition freigibt, das ist eine Handlung
+    und geht als "📤 VON HAND" nach #moderator-only.
+
+    ig ist das Upload-Paket fuer das Instagram-Karussell, (pngs, caption,
+    kontrast). Posten tut Ben von Hand, also immer "📤 VON HAND", in einer
+    eigenen Nachricht mit den 10 Seiten. Verletzt eine Seite den Kontrast,
+    geht kein Paket raus, nur die Liste nach #ops-log.
+
+    Ein Probelauf (probe_lauf) schickt alles nach #ops-log."""
     import ops_melden
-    if scharf:
-        return ops_melden.log(text, dateien, "cheat-sheet")
-    kopf = ops_melden.hand_text(
-        "wenn du die edition freigibst", "GitHub",
-        "variable CHEAT_SHEET_LIVE auf scharf stellen, deckblatt und pdf haengen dran",
-        "https://github.com/neoalphavault-png/kaspa-pulse/settings/variables/actions")
-    return ops_melden.hand(kopf + "\n\n" + text, dateien, "cheat-sheet")
+    probe = probe_lauf()
+    if probe:
+        text = ("PROBE vom branch %s, nicht freigeben, nicht posten.\n" % os.environ.get("GITHUB_REF_NAME", "")
+                + text)
+    if scharf or probe:
+        ops_melden.log(text, dateien, "cheat-sheet")
+    else:
+        kopf = ops_melden.hand_text(
+            "wenn du die edition freigibst", "GitHub",
+            "1. variable CHEAT_SHEET_LIVE auf scharf stellen, 2. cheat-sheet mit veroeffentlichen=true "
+            "starten. deckblatt und pdf haengen dran",
+            VARIABLEN_URL + "\n" + WORKFLOW_URL)
+        ops_melden.hand(kopf + "\n\n" + text, dateien, "cheat-sheet")
+    if not ig:
+        return
+    pngs, caption, kontrast = ig
+    if kontrast:
+        ops_melden.log("cheat sheet, instagram-paket NICHT geschickt, kontrast unter 7:1\n"
+                       + "\n".join(kontrast[:20]), was="cheat-sheet instagram")
+        return
+    paket = ("%d seiten in dieser reihenfolge als karussell hochladen, 1080x1350, ohne musik, "
+             "caption kopieren\n```\n%s\n```" % (len(pngs), caption))
+    if probe:
+        ops_melden.log("PROBE, instagram-paket, nicht posten.\n" + paket,
+                       [(x, "image/png") for x in pngs], "cheat-sheet instagram")
+        return
+    ops_melden.hand(ops_melden.hand_text("nach deiner freigabe", "Instagram Karussell",
+                                         "cheat sheet als karussell posten",
+                                         "https://www.instagram.com/kaspapulse/", paket),
+                    [(x, "image/png") for x in pngs], "cheat-sheet instagram")
 
 
 # --------------------------------------------------------------------- main
@@ -1140,10 +1337,22 @@ def main(argv=None):
     if a.veroeffentlichen:
         ziel = festschreiben(p, edition, pdf, log)
         print("festgeschrieben, %s und %s" % (LOG, ziel))
+    roh_json = pdf.with_name(pdf.stem + "-probe.json")
+    roh_json.write_text(json.dumps(p, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    # auch ins job-log, eine zeile: das artefakt ist nicht ueberall abrufbar
+    print("PROBE-JSON " + json.dumps(p, ensure_ascii=False, separators=(",", ":")))
+    info = getattr(rendern, "letzte", {"pngs": [], "kontrast": []})
+    print("instagram, %d seiten unter %s, kontrast %s" % (
+        len(info["pngs"]), ig_ordner(pdf), "; ".join(info["kontrast"]) or "alle ab 7:1"))
     if a.melden:
         text = ops_text(p, edition, pdf, a.veroeffentlichen)
         print(text)
-        ops_schicken(text, [(deck, "image/png"), (pdf, "application/pdf")], a.veroeffentlichen)
+        frueher = schon_gemeldet(heute)
+        if frueher:
+            print("heute schon gemeldet, lauf %s. nichts doppelt" % frueher)
+            return 0
+        ops_schicken(text, [(deck, "image/png"), (pdf, "application/pdf")], a.veroeffentlichen,
+                     (info["pngs"], ig_caption(p, edition), info["kontrast"]) if info["pngs"] else None)
     return 0
 
 
@@ -1167,7 +1376,11 @@ def selbsttest():
     bo = [x[2] for x in p["zahlen"]["boersen"]["reihe"]]
     hs = [x[1] for x in p["zahlen"]["hashrate"]["reihe"]]
     co = [x[1] for x in p["zahlen"]["covenants"]["reihe"]]
-    ok("boersen-achse wie in Edition 1", achse(bo) == (13.4, 14.4), achse(bo))
+    # Edition 1 hatte 13.4 bis 14.4, also teilstriche bei 13.7 und 14.1.
+    # seit 28.10.2026 drei glatte schritte: 13.4, 13.8, 14.2, 14.6
+    ok("boersen-achse in drei glatten schritten", achse(bo) == (13.4, 14.6), achse(bo))
+    ok("hashrate-achse 300 bis 420 statt krummer 333 und 367",
+       achse([314.96, 381.46]) == (300, 420), achse([314.96, 381.46]))
     ok("hashrate-achse wie in Edition 1", achse(hs) == (290.0, 380.0), achse(hs))
     ok("covenants-achse wie in Edition 1", achse_kumuliert(co) == (0.0, 300000.0),
        achse_kumuliert(co))
@@ -1288,6 +1501,131 @@ def selbsttest():
        all("source kaspalytics" in zl[i][1] for i in (1, 2, 3, 5, 7)), [z[1] for z in zl])
     ok("kein 'counted on chain' und kein 'counted, not guessed'",
        "counted on chain" not in seiten and "counted, not guessed" not in seiten)
+
+    # Edition 2 (Ben, 28.10.2026): linktext, utm, caption
+    p2 = dict(p, stand="2026-11-01")
+    s2 = html(p2, 2, fonts="")
+    ok("rueckseite sagt the dashboard, nicht live numbers",
+       "<b>the dashboard</b>" in s2 and "live numbers" not in s2)
+    ok("pdf-links tragen utm_campaign=edition2", s2.count("utm_campaign=edition2") == 2
+       and "edition1" not in s2, s2.count("utm_campaign=edition2"))
+    ok("caption wortgleich mit Bens text", ig_caption(p2, 2) ==
+       "the 8 kaspa numbers whales watch. edition 2, november 2026. every number dated, with its source. "
+       "save it for later. the full cheat sheet arrives by email, link in bio. #kaspa #kas #blockdag",
+       ig_caption(p2, 2))
+    import content_wache
+    ok("caption besteht die textregeln", content_wache.text_verstoesse(ig_caption(p2, 2)) == [],
+       content_wache.text_verstoesse(ig_caption(p2, 2)))
+    ok("INK3 traegt 7:1 auf grund und flaeche", kontrast_hex(INK3, BG) >= 7 and kontrast_hex(INK3, SURF) >= 7,
+       kontrast_hex(INK3, BG), kontrast_hex(INK3, SURF))
+
+    # wohin die meldungen gehen. gesendet wird nichts, _post ist eine
+    # attrappe; ihre ausgabe "an #moderator-only, http 204" bleibt stumm,
+    # damit sie im lauf-log niemand fuer echt haelt
+    import contextlib
+    import io
+    import ops_melden
+    def leise(*a):
+        with contextlib.redirect_stdout(io.StringIO()):
+            return ops_schicken(*a)
+    gesendet = []
+    echt_post = ops_melden._post
+    alt_env = {k: os.environ.get(k) for k in list(ops_melden.ARTEN.values()) + ["GITHUB_REF_NAME"]}
+    ops_melden._post = lambda url, body, typ, timeout=60: gesendet.append((url.rsplit("/", 1)[1], body)) or 204
+    basis = "https://discord.com/api/" + "webhooks/"
+    try:
+        os.environ["DISCORD_WEBHOOK_OPS"] = basis + "1/hand"
+        os.environ["DISCORD_WEBHOOK_LOG"] = basis + "2/log"
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            bild = Path(td) / "seite-01.png"
+            bild.write_bytes(b"\x89PNG\r\n")
+            pngs = [bild] * 10
+            os.environ["GITHUB_REF_NAME"] = "main"
+            leise("t", [(bild, "image/png")], False, (pngs, ig_caption(p2, 2), []))
+            ok("sonntag, freigabe und instagram-paket als von hand",
+               [g[0] for g in gesendet] == ["hand", "hand"]
+               and all(b"VON HAND" in g[1] for g in gesendet), [g[0] for g in gesendet])
+            ok("paket traegt 10 seiten und die caption",
+               gesendet[-1][1].count(b'name="files[') == 10 and b"edition 2, november 2026" in gesendet[-1][1])
+            ok("freigabe nennt variable und veroeffentlichen=true",
+               b"CHEAT_SHEET_LIVE" in gesendet[0][1] and b"veroeffentlichen=true" in gesendet[0][1])
+            gesendet.clear()
+            leise("t", [], True, (pngs, ig_caption(p2, 2), []))
+            ok("scharf, info nach log, paket trotzdem von hand",
+               [g[0] for g in gesendet] == ["log", "hand"], [g[0] for g in gesendet])
+            gesendet.clear()
+            os.environ["GITHUB_REF_NAME"] = "cheat/edition2"
+            ok("anderer branch ist eine probe", probe_lauf())
+            leise("t", [], False, (pngs, ig_caption(p2, 2), []))
+            ok("probe, alles nach log, nichts nach moderator-only",
+               [g[0] for g in gesendet] == ["log", "log"] and b"PROBE" in gesendet[0][1], [g[0] for g in gesendet])
+            gesendet.clear()
+            os.environ["GITHUB_REF_NAME"] = "main"
+            leise("t", [], False, (pngs, ig_caption(p2, 2), ["seite 5, kontrast 5.8:1"]))
+            ok("kontrast unter 7:1, kein paket, liste nach log",
+               [g[0] for g in gesendet] == ["hand", "log"] and b"NICHT" in gesendet[-1][1], [g[0] for g in gesendet])
+    finally:
+        ops_melden._post = echt_post
+        for k_, v_ in alt_env.items():
+            if v_ is None:
+                os.environ.pop(k_, None)
+            else:
+                os.environ[k_] = v_
+
+    # zwei laeufe am 1., der cron meldet nicht doppelt
+    alt_env = {k_: os.environ.get(k_) for k_ in ("GITHUB_EVENT_NAME", "GITHUB_REPOSITORY", "GITHUB_RUN_ID")}
+    try:
+        os.environ.update(GITHUB_EVENT_NAME="schedule", GITHUB_REPOSITORY="o/r", GITHUB_RUN_ID="9")
+
+        def holer(url, schritt="success"):
+            if "/jobs" in url:
+                return {"jobs": [{"steps": [{"name": "bauen und melden", "conclusion": schritt}]}]}
+            return {"workflow_runs": [{"id": 9, "head_branch": "main"}, {"id": 7, "head_branch": "main"}]}
+        tag = dt.date(2026, 11, 1)
+        ok("cron nach gruenem takt-lauf meldet nicht", schon_gemeldet(tag, holer) == 7)
+        ok("cron nach uebersprungenem lauf meldet",
+           schon_gemeldet(tag, lambda u: holer(u, "skipped")) is None)
+
+        def kaputt(url):
+            raise OSError("kein netz")
+        ok("ohne abfrage wird gemeldet", schon_gemeldet(tag, kaputt) is None)
+        os.environ["GITHUB_EVENT_NAME"] = "workflow_dispatch"
+        ok("ein lauf von hand meldet immer", schon_gemeldet(tag, holer) is None)
+    finally:
+        for k_, v_ in alt_env.items():
+            if v_ is None:
+                os.environ.pop(k_, None)
+            else:
+                os.environ[k_] = v_
+
+    # unbewegt: die wochenspanne zaehlt erst ab unserem ersten sonntag
+    global _tg
+    echt_tg = _tg
+
+    class FalschTG:
+        @staticmethod
+        def m_kl_reihe(pfad, name, art):
+            tage = [dt.date(2023, 8, 27) + dt.timedelta(days=7 * k) for k in range(170)]
+            return {t.isoformat(): (14.0 if t.isoformat() < UNBEWEGT_SEIT else
+                                    (51.0 if "1year" in pfad else 26.0)) for t in tage}
+    _tg = lambda: FalschTG  # noqa: E731
+    try:
+        ub = z_unbewegt(dt.date(2026, 11, 1))
+        ok("unbewegt-spanne erst ab 26.07.2026, nicht ab 2023",
+           ub["wochen_von"] == UNBEWEGT_SEIT and ub["wochen_min"] == 51.0, ub)
+    finally:
+        _tg = echt_tg
+
+    # umlauf je tag, zurueckgerechnet (28.10.2026)
+    jetzt = dt.datetime(2026, 10, 28, 6, tzinfo=dt.timezone.utc)
+    u = umlauf_je_tag(["2026-10-25", "2026-10-26", "2026-10-27"], jetzt, 26_000_000_000.0,
+                      lambda d: 100.0)
+    ok("umlauf am ende des vortags ohne die emission von heute frueh",
+       abs(u["2026-10-27"] - (26e9 - 25.0)) < 1e-6, u)
+    ok("je tag weiter zurueck eine tagesemission weniger",
+       abs(u["2026-10-25"] - (26e9 - 225.0)) < 1e-6 and abs(u["2026-10-26"] - (26e9 - 125.0)) < 1e-6, u)
+    ok("ohne tage nichts", umlauf_je_tag([], jetzt, 1.0, lambda d: 0.0) == {})
 
     # die ausgabe-nummer
     lg = {"editionen": [{"n": 1, "monat": "2026-10"}]}
