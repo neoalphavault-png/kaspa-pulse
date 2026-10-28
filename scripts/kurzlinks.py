@@ -62,6 +62,8 @@ KURZLINKS = {
     "threads": ("threads", "bio"),
     "discord": ("discord", "channel"),
     "story": ("instagram", "story"),
+    # Schlussfolie jedes Karussells (Ben, 28.10.2026), Kampagne newsletter
+    "nl": ("instagram", "post"),
 }
 
 # Abweichende campaign und Anker je Ordner (Ben, 24.10.2026): /story kommt
@@ -71,6 +73,7 @@ KURZLINKS = {
 # eine zweite Zeile neben "instagram" eroeffnen.
 EIGEN = {
     "story": ("story", ""),
+    "nl": ("newsletter", ANKER),
 }
 
 ORDNER = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
@@ -173,8 +176,10 @@ def selbsttest():
         if not bedingung:
             schlecht += 1
 
-    ok("fuenf profile und die story aus dem auftrag",
-       sorted(KURZLINKS) == ["discord", "ig", "story", "threads", "x", "yt"], sorted(KURZLINKS))
+    ok("fuenf profile, die story und die karussell-schlussfolie",
+       sorted(KURZLINKS) == ["discord", "ig", "nl", "story", "threads", "x", "yt"], sorted(KURZLINKS))
+    ok("nl fuehrt mit kampagne newsletter auf den anmeldebereich",
+       ziel("nl") == "/?utm_source=instagram&utm_medium=post&utm_campaign=newsletter#subscribe", ziel("nl"))
     ok("jedes profil-ziel geht auf den anmeldebereich der startseite",
        all(ziel(k).startswith("/?utm_source=") and ziel(k).endswith(ANKER) for k in KURZLINKS
            if k not in EIGEN))
