@@ -458,6 +458,15 @@ def txt(x, y, s, size=30, fill=INK2, anchor="start", weight=500, fam="Plex"):
             'fill="%s" text-anchor="%s">%s</text>' % (x, y, fam, size, weight, fill, anchor, s))
 
 
+def grund(x, y, s, size, anchor="start", rand=8):
+    """Eine Flaeche in der Grundfarbe unter einer Beschriftung, grob so breit
+    wie der Text (Plex, etwa 0.6 em je Zeichen)."""
+    w = 0.6 * size * len(s) + 2 * rand
+    x0 = x - rand if anchor == "start" else (x - w + rand if anchor == "end" else x - w / 2)
+    return ('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="6" fill="%s"/>'
+            % (x0, y - size * 0.95, w, size * 1.3, BG))
+
+
 def g_coins(eins_von):
     """Ein Kreis je Anteil, der erste leuchtet. eins_von kommt aus 100/pct."""
     n, cols, r, gap = eins_von, 9, 38, 22
@@ -531,7 +540,12 @@ def line_chart(pts, h, ymin, ymax, labfmt, start_lab, end_lab, xlabels,
                % (fx, fy, BG, INK2))
     out.append('<circle cx="%.1f" cy="%.1f" r="11" fill="%s" stroke="%s" stroke-width="4"/>'
                % (lx, ly, ACC, BG))
+    # anfangs- und endmarke stehen an der linie. mit echten daten laeuft die
+    # teal-linie sonst unter der schrift durch, 1.4:1 statt 7:1 (probelauf
+    # 28.10.2026). eine flaeche in der grundfarbe darunter haelt den kontrast.
+    out.append(grund(fx + 4, fy + (44 if start_below else -22), start_lab, 28))
     out.append(txt(fx + 4, fy + (44 if start_below else -22), start_lab, 28, INK2))
+    out.append(grund(lx - 6, ly - 24, end_lab, 30, "end"))
     out.append(txt(lx - 6, ly - 24, end_lab, 30, INK, "end", 600))
     for i, s in xlabels:
         out.append(txt(X(i), h - 12, s, 26, INK3,
@@ -1300,6 +1314,8 @@ def main(argv=None):
         print("festgeschrieben, %s und %s" % (LOG, ziel))
     roh_json = pdf.with_name(pdf.stem + "-probe.json")
     roh_json.write_text(json.dumps(p, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    # auch ins job-log, eine zeile: das artefakt ist nicht ueberall abrufbar
+    print("PROBE-JSON " + json.dumps(p, ensure_ascii=False, separators=(",", ":")))
     info = getattr(rendern, "letzte", {"pngs": [], "kontrast": []})
     print("instagram, %d seiten unter %s, kontrast %s" % (
         len(info["pngs"]), ig_ordner(pdf), "; ".join(info["kontrast"]) or "alle ab 7:1"))
