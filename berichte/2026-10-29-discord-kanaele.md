@@ -45,6 +45,7 @@ Lauf auf dem Branch bericht/2026-10-29-discord-kanaele, Ergebnis folgt unten.
 
 ## PR-Nummern
 - #183, Skripte und `ops_melden`, selbst gemergt (a918e7f)
+- #186, Bericht-Versand fand keine Berichte im Push-Ereignis, Rückfall über den Vergleich, selbst gemergt (18f873d)
 - #184, Workflows und c2, wartet auf Ben
 - #185, Uhrwerk mit den geschützten Dateien `uhrwerk.yml` und `insights_sammler.py`, wartet auf deine Freigabe
 
