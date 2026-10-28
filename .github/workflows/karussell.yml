@@ -128,6 +128,8 @@ jobs:
           IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
           MEDIA_REPO_TOKEN: ${{ secrets.MEDIA_REPO_TOKEN }}
           DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
+          # Kaspa Community nach dem Wochen-Karussell, VON HAND (Ben, 28.10.2026)
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
           GITHUB_TOKEN: ${{ github.token }}
           KARUSSELL_LIVE: ${{ vars.KARUSSELL_LIVE }}
           KARUSSELL_STOPP: ${{ vars.KARUSSELL_STOPP }}

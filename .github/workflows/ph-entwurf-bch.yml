@@ -100,6 +100,7 @@ jobs:
           { echo "senden=ja"; echo "datei=$DATEI"; echo "layout=${LAYOUT:-auto}"; } >> "$GITHUB_OUTPUT"
 
       - name: entwurf bauen und senden
+        id: entwurf
         if: steps.stand.outputs.senden == 'ja'
         env:
           DISCORD_WEBHOOK_PH_DRAFTS: ${{ secrets.DISCORD_WEBHOOK_PH_DRAFTS }}
@@ -117,3 +118,16 @@ jobs:
           name: ph-entwurf-bch
           path: entwurf/
           retention-days: 30
+
+      # Ben, 28.10.2026: nach dem Entwurf eine Aufforderung VON HAND nach
+      # #moderator-only, mit Posttext und Hinweis auf die Grafik. Rot oder
+      # Regelverstoss: nur eine Zeile nach #ops-log. Von einem anderen Branch
+      # als main ist es eine Probe, dann nur #ops-log.
+      - name: aufforderung von hand
+        if: always() && steps.stand.outputs.senden == 'ja'
+        env:
+          DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
+          ERGEBNIS: ${{ steps.entwurf.outcome }}
+          PROBE: ${{ github.ref_name != 'main' && '--probe' || '' }}
+        run: python3 scripts/ph/ph_hand.py --aus entwurf --entwurf "$ERGEBNIS" $PROBE
