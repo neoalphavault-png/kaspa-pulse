@@ -1,0 +1,23 @@
+{
+ "tage": [
+  {
+   "datum": "2026-10-28",
+   "tag": "mi",
+   "art": "poll",
+   "frage": "which grew more this week?",
+   "richtig": 1,
+   "aufloesung": {
+    "frage": "which grew more this week?",
+    "zahl": "+0.5%",
+    "einheit": "",
+    "satz": "addresses grew more, +0.5% against -0.5% for hashrate",
+    "datum": "week to 24 oct 2026 · source kaspa rest api, kaspalytics"
+   },
+   "quelle_vorlage": "weekly 2026-10-26",
+   "optionen": [
+    "hashrate",
+    "addresses"
+   ]
+  }
+ ]
+}
