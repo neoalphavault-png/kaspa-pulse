@@ -41,13 +41,39 @@ Stand 28.10.2026, auch in `docs/discord-kanaele.md`.
 - **Nur falls der Alarm auf c2 noch nach #moderator-only schreibt,** also seit dem 48-h-Parallelbetrieb nicht auf `normal` umgestellt wurde, steht unten ein Schritt.
 
 ## Probe
-Lauf auf dem Branch bericht/2026-10-29-discord-kanaele, Ergebnis folgt unten.
+**Lauf 40658082500 vom 28.10.2026, 08:37 UTC, bericht-discord auf diesem Branch, grün.** Er lief mit dem Code von main (#183 und #186) und nur mit `DISCORD_WEBHOOK_OPS`, weil `DISCORD_WEBHOOK_LOG` noch fehlt. Auszug aus dem Job-Log, gekürzt:
+
+```
+ereignis: 3 commits, 0 mit dateiliste, branch gab es schon
+vergleich 2023accc1808...1fe283f891a5, 1 bericht(e)
+== berichte/2026-10-29-discord-kanaele.md
+[log] kein DISCORD_WEBHOOK_LOG, nur im job-log (bericht teil 0):
+**Bericht 2026-10-29-discord-kanaele.md**
+1 teil hier, 4 handlungen in #moderator-only.
+[log] kein DISCORD_WEBHOOK_LOG, nur im job-log (bericht teil 1):
+**Discord-Kanäle, 28.10.2026**
+bericht teil 2 an #moderator-only, http 204
+bericht teil 3 an #moderator-only, http 204
+bericht teil 4 an #moderator-only, http 204
+bericht teil 5 an #moderator-only, http 204
+gemerkt, pruefsumme 6ecbbc4d7ef9
+```
+
+- **hand:** 4 Nachrichten mit „📤 VON HAND“ vorn sind in #moderator-only angekommen, je HTTP 204.
+- **log ohne Secret:** Kopf und Überblick stehen nur im Job-Log und wurden nicht nach #moderator-only umgeleitet. Das ist genau die verlangte Regel.
+- **log mit Secret:** Diese Probe fehlt noch. Sie braucht `DISCORD_WEBHOOK_LOG`. Sobald du das Secret angelegt und #184 gemergt hast, schicke ich je eine Probe hand und log über `python3 scripts/ops_melden.py` und trage das Ergebnis hier nach.
+
+**Nebenbefund, behoben mit #186:** Seit eb9e453 vom 27.10.2026 ist kein Bericht mehr rausgegangen. Das Push-Ereignis trägt keine Dateilisten, im Lauf oben „0 mit dateiliste“, und der Versand fand deshalb nie einen Bericht. In der Merkdatei standen nur die drei Einträge, die am 26.10. von Hand nachgetragen wurden. Jetzt holt das Skript die Dateien über den Vergleich before...after. Die ersten beiden Läufe auf diesem Branch (40657560574 und 40657656616) zeigen noch den alten Fehler. Berichte, die seit dem 27.10. still geblieben sind, kommen nicht von selbst nach. Wenn einer fehlt, sag Bescheid, dann stoße ich ihn neu an.
 
 ## PR-Nummern
 - #183, Skripte und `ops_melden`, selbst gemergt (a918e7f)
 - #186, Bericht-Versand fand keine Berichte im Push-Ereignis, Rückfall über den Vergleich, selbst gemergt (18f873d)
 - #184, Workflows und c2, wartet auf Ben
 - #185, Uhrwerk mit den geschützten Dateien `uhrwerk.yml` und `insights_sammler.py`, wartet auf deine Freigabe
+
+## Selbst-Merges
+- #183 als a918e7f, 28.10.2026. Nur Skripte, Checks grün.
+- #186 als 18f873d, 28.10.2026. Nur `bericht_discord.py`, Checks grün, Probe danach grün.
 
 ## Offene Fragen an Ben
 1. #185: Darf ich das Uhrwerk anfassen? Ohne Freigabe meldet es weiter alles nach #moderator-only.
