@@ -485,8 +485,18 @@ def selbsttest():
     ok("instagram im trockenlauf nicht faellig (%s)" % grund, e is None and "trockenlauf" in grund)
     ok("instagram von hand bleibt moeglich (trocken)",
        instagram.faellig(jetzt, lg, {"posts": []}, hand=True)[0] is not None)
-    ok("zahl des tages ohne ops-webhook bricht ab, faellt nicht auf oeffentlich",
-       post_number_of_day.trockenlauf_senden("probe", []) == 1)
+    # seit 28.10.2026 laeuft der trockenlauf ueber ops_melden nach #ops-log.
+    # ohne DISCORD_WEBHOOK_LOG steht er nur im job-log, nichts geht raus.
+    import ops_melden
+    alt_log, gepostet, echt_post = os.environ.pop("DISCORD_WEBHOOK_LOG", None), [], ops_melden._post
+    ops_melden._post = lambda *a, **k: gepostet.append(a) or 204
+    try:
+        ok("zahl des tages ohne log-webhook nur im job-log, faellt nicht auf oeffentlich",
+           post_number_of_day.trockenlauf_senden("probe", []) == 0 and not gepostet)
+    finally:
+        ops_melden._post = echt_post
+        if alt_log is not None:
+            os.environ["DISCORD_WEBHOOK_LOG"] = alt_log
     with tempfile.TemporaryDirectory() as td:
         nod = Path(td) / "nod.json"
         nod.write_text(json.dumps({"date": "2026-10-17", "post": {"x": "probe"}}))

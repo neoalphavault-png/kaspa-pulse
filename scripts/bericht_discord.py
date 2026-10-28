@@ -2,12 +2,19 @@
 """Kaspa Pulse, Teil eines Berichts in den privaten Ops-Kanal (Ben, 26.10.2026).
 
 Ein Bericht unter berichte/ kann einen Abschnitt zwischen <!-- discord --> und
-<!-- /discord --> tragen, unterteilt mit <!-- teil -->. Dieses Skript schickt
-zuerst eine Kopfzeile "📤 VON HAND" mit der Anweisung zum Kopieren, dann je
-Teil eine Nachricht. Die Zahl in der Kopfzeile ist die Zahl der Nachrichten,
-die wirklich folgen. Vor dem Senden wird der ganze Text geprueft: keine IP,
-keine Kaspa-Adresse, kein Hostname ausser github.com, kein Schluessel. Bei einem
-Fund geht nichts raus.
+<!-- /discord --> tragen, unterteilt mit <!-- teil -->. Seit 28.10.2026 gehen
+die Teile ueber scripts/ops_melden.py in zwei Kanaele:
+
+    log   eine Kopfzeile mit Bericht, Link und den gezaehlten Teilen, dann
+          alle Teile, die nicht mit "📤 VON HAND" beginnen, nach #ops-log
+          (DISCORD_WEBHOOK_LOG)
+    hand  jeder Teil, der mit "📤 VON HAND" beginnt, einzeln nach
+          #moderator-only (DISCORD_WEBHOOK_OPS), mit dem Link zum Bericht
+
+Die Zahlen in der Kopfzeile werden aus der fertigen Liste gezaehlt. Vor dem
+Senden wird der ganze Text geprueft: keine IP, keine Kaspa-Adresse, kein
+Hostname ausser github.com und kaspapulse.com, kein Schluessel. Bei einem Fund
+geht nichts raus.
 
 Absicherung gegen doppelten Versand (Ben, 26.10.2026, nachdem der STP-Rat
 zweimal kam):
@@ -20,8 +27,7 @@ zweimal kam):
      Berichts geht nie ein zweites Mal raus, auf keinem Branch. Ein Rebase
      oder Force-Push mit gleichem Inhalt sendet also nichts.
 
-Der Webhook kommt nur aus der Umgebung (DISCORD_WEBHOOK_OPS) und wird nie
-ausgegeben.
+Die Webhooks kommen nur aus der Umgebung und werden nie ausgegeben.
 
     python3 scripts/bericht_discord.py --datei berichte/2026-10-27-stp-rat.md --link URL [--trocken]
     python3 scripts/bericht_discord.py --ereignis "$GITHUB_EVENT_PATH" --branch NAME \\
@@ -37,8 +43,9 @@ import os
 import re
 import sys
 import time
-import urllib.error
-import urllib.request
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import ops_melden  # noqa: E402
 
 AUF, ZU, TEIL = "<!-- discord -->", "<!-- /discord -->", "<!-- teil -->"
 GRENZE = 1900
@@ -76,31 +83,54 @@ def pruefen(texte):
     return funde
 
 
-def kopf(datei, n, link):
-    menge = "die folgende Nachricht" if n == 1 else "die folgenden %d Nachrichten" % n
-    return ("📤 VON HAND\n**%s**\nBitte %s in dieser Reihenfolge kopieren und an den "
-            "Empfänger schicken. Jede Nachricht lange drücken, Text kopieren, einfügen.\nBericht: %s"
-            % (os.path.basename(datei), menge, link or datei))
+def kopf(datei, n_log, n_hand, link):
+    """Die Kopfzeile in #ops-log. Sie traegt kein "📤 VON HAND", die
+    Handlungen stehen einzeln in #moderator-only."""
+    return ("**Bericht %s**\n%d %s hier, %d %s in #moderator-only.\nBericht: %s"
+            % (os.path.basename(datei), n_log, "teil" if n_log == 1 else "teile",
+               n_hand, "handlung" if n_hand == 1 else "handlungen", link or datei))
+
+
+def aufteilen(t):
+    """Die Teile mit "📤 VON HAND" vorn sind Handlungen, alle anderen Info."""
+    hand = [x for x in t if x.startswith(ops_melden.VON_HAND)]
+    return [x for x in t if x not in hand], hand
+
+
+def mit_link(t, link):
+    zusatz = "\nBericht: %s" % link if link else ""
+    return t + zusatz if len(t) + len(zusatz) <= GRENZE else t
 
 
 def nachrichten(datei, t, link):
-    """Kopfzeile plus Teile. Die Zahl im Kopf wird aus der fertigen Liste
-    gezaehlt, nicht vorgegeben."""
-    folgen = list(t)
-    return [kopf(datei, len(folgen), link)] + folgen
+    """Liste aus (art, text): Kopfzeile und Info nach log, Handlungen nach
+    hand. Die Zahlen im Kopf werden aus der fertigen Liste gezaehlt, nicht
+    vorgegeben."""
+    info, hand = aufteilen(t)
+    folgen = [("log", x) for x in info] + [("hand", mit_link(x, link)) for x in hand]
+    n_log = sum(1 for art, _ in folgen if art == "log")
+    return [("log", kopf(datei, n_log, len(folgen) - n_log, link))] + folgen
 
 
-def senden(texte, webhook, pause=1.0):
-    for i, t in enumerate(texte):
-        req = urllib.request.Request(webhook, data=json.dumps({"content": t, "allowed_mentions": {"parse": []}}).encode(),
-                                     headers={"Content-Type": "application/json", "User-Agent": "kaspa-pulse-bericht"})
+def texte(alle):
+    return [x for _, x in alle]
+
+
+def senden(alle, pause=1.0):
+    """alle ist eine Liste aus (art, text). Rot ist eine Absage von Discord
+    oder eine Handlung ohne DISCORD_WEBHOOK_OPS. Ein fehlendes
+    DISCORD_WEBHOOK_LOG laesst die Info nur im Job-Log stehen."""
+    for i, (art, t) in enumerate(alle):
         try:
-            with urllib.request.urlopen(req, timeout=30) as r:
-                print("nachricht %d gesendet (http %d)" % (i, r.status))
-        except urllib.error.HTTPError as exc:
-            print("nachricht %d nicht gesendet (http %d)" % (i, exc.code))
+            status = ops_melden.senden(art, t, was="bericht teil %d" % i)
+        except ops_melden.Fehler as exc:
+            print("nachricht %d nicht gesendet, %s" % (i, ops_melden.sauber(exc)))
             return 1
-        time.sleep(pause)
+        if status is None and art == "hand":
+            print("nachricht %d ist eine handlung und kein webhook fuer #moderator-only da" % i)
+            return 3
+        if status is not None:
+            time.sleep(pause)
     return 0
 
 
@@ -197,18 +227,16 @@ def lauf(datei, link, trocken, vorher=None):
         print("discord-abschnitt unveraendert, nichts gesendet")
         return 0
     alle = nachrichten(datei, t, link)
-    funde = pruefen(alle)
+    funde = pruefen(texte(alle))
     if funde:
         print("nicht gesendet: " + "; ".join(funde))
         return 2
     if trocken:
-        print("trocken, %d nachrichten, laengste %d zeichen" % (len(alle), max(len(x) for x in alle)))
+        n_hand = sum(1 for art, _ in alle if art == "hand")
+        print("trocken, %d nachrichten nach #ops-log, %d nach #moderator-only, laengste %d zeichen"
+              % (len(alle) - n_hand, n_hand, max(len(x) for x in texte(alle))))
         return 0
-    webhook = os.environ.get("DISCORD_WEBHOOK_OPS", "").strip()
-    if not webhook:
-        print("kein webhook in der umgebung")
-        return 3
-    return senden(alle, webhook)
+    return senden(alle)
 
 
 def lauf_ereignis(ereignis_pfad, branch, merkdatei, link_basis, trocken, senden_fn=None):
@@ -236,7 +264,7 @@ def lauf_ereignis(ereignis_pfad, branch, merkdatei, link_basis, trocken, senden_
             print("abschnitt schon gesendet (%s, branch %s), nichts gesendet" % (alt["utc"], alt["branch"]))
             continue
         alle = nachrichten(f, t, link_basis.rstrip("/") + "/" + f if link_basis else "")
-        funde = pruefen(alle)
+        funde = pruefen(texte(alle))
         if funde:
             print("nicht gesendet: " + "; ".join(funde))
             rc = 2
@@ -245,11 +273,7 @@ def lauf_ereignis(ereignis_pfad, branch, merkdatei, link_basis, trocken, senden_
             print("trocken, %d nachrichten (kopf plus %d), pruefsumme %s" % (len(alle), len(alle) - 1, summe[:12]))
             continue
         if senden_fn is None:
-            webhook = os.environ.get("DISCORD_WEBHOOK_OPS", "").strip()
-            if not webhook:
-                print("kein webhook in der umgebung")
-                return 3
-            ergebnis = senden(alle, webhook)
+            ergebnis = senden(alle)
         else:
             ergebnis = senden_fn(alle)
         if ergebnis == 0:
@@ -283,12 +307,45 @@ def selbsttest():
                      ("ghp" + "_abc", "schluessel")):
         ok("fund %s" % art, any(art in f for f in pruefen([bad])), pruefen([bad]))
     ok("zu lang", any("zeichen" in f for f in pruefen(["x" * 2000])))
-    # kopfzeile zaehlt die nachrichten, die wirklich folgen
-    for n in (1, 3, 7):
-        alle = nachrichten("berichte/a.md", ["t%d" % i for i in range(n)], "")
-        zahl = 1 if "die folgende Nachricht" in alle[0] else int(re.search(r"folgenden (\d+) Nachrichten", alle[0]).group(1))
-        ok("kopf nennt %d und es folgen %d" % (n, len(alle) - 1), zahl == len(alle) - 1 == n, alle[0])
-    ok("kopf traegt von hand", kopf("berichte/a.md", 3, "").startswith("📤 VON HAND"))
+    # kopfzeile zaehlt die nachrichten, die wirklich folgen, je kanal
+    vh = ops_melden.VON_HAND + ": **x**"
+    for n_info, n_hand in ((1, 0), (3, 1), (2, 5)):
+        t = ["t%d" % i for i in range(n_info)] + [vh + str(i) for i in range(n_hand)]
+        alle = nachrichten("berichte/a.md", t, "")
+        z = re.search(r"(\d+) teile? hier, (\d+) handlung", alle[0][1])
+        arten = [art for art, _ in alle[1:]]
+        ok("kopf nennt %d und %d, es folgen %d und %d" % (n_info, n_hand, arten.count("log"), arten.count("hand")),
+           (int(z.group(1)), int(z.group(2))) == (arten.count("log"), arten.count("hand")) == (n_info, n_hand), alle[0])
+    ok("kopf geht nach log und traegt kein von hand",
+       alle[0][0] == "log" and not alle[0][1].startswith(ops_melden.VON_HAND))
+    info, hand = aufteilen(["ueberblick", vh, "noch info"])
+    ok("von-hand-teile getrennt", info == ["ueberblick", "noch info"] and hand == [vh], (info, hand))
+    ok("handlung traegt den link zum bericht", nachrichten("berichte/a.md", [vh], "https://github.com/x")[-1]
+       == ("hand", vh + "\nBericht: https://github.com/x"))
+    # versand ueber ops_melden, beide kanaele, ohne netz
+    gesendet = []
+    echt_post = ops_melden._post
+    alt_env = {k: os.environ.get(k) for k in ops_melden.ARTEN.values()}
+    ops_melden._post = lambda url, body, typ, timeout=60: gesendet.append(url.rsplit("/", 1)[1]) or 204
+    basis = "https://discord.com/api/" + "webhooks/"
+    try:
+        os.environ["DISCORD_WEBHOOK_OPS"] = basis + "1/hand"
+        os.environ["DISCORD_WEBHOOK_LOG"] = basis + "2/log"
+        ok("senden in beide kanaele", senden(nachrichten("berichte/a.md", ["a", vh], ""), 0) == 0
+           and gesendet == ["log", "log", "hand"], gesendet)
+        del os.environ["DISCORD_WEBHOOK_LOG"]
+        gesendet.clear()
+        ok("ohne log-webhook info nur im job-log, handlung geht",
+           senden(nachrichten("berichte/a.md", ["a", vh], ""), 0) == 0 and gesendet == ["hand"], gesendet)
+        del os.environ["DISCORD_WEBHOOK_OPS"]
+        ok("handlung ohne ops-webhook ist rot", senden(nachrichten("berichte/a.md", [vh], ""), 0) == 3)
+    finally:
+        ops_melden._post = echt_post
+        for k, v in alt_env.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
     # nur distinct commits, nur berichte/*.md, entfernte nicht
     ev = {"commits": [
         {"distinct": False, "added": ["berichte/eltern.md"], "modified": [], "removed": []},

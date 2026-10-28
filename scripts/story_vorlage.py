@@ -3,7 +3,8 @@
 
 VORLAGE, NICHT SCHARF. Dieses Skript baut jeden Werktag eine Story im
 Format 1080x1920 und schickt sie mit einer genauen Anleitung nach
-#moderator-only (DISCORD_WEBHOOK_OPS). Es postet nirgendwo. Ben postet die
+#moderator-only (DISCORD_WEBHOOK_OPS, Art "hand" in scripts/ops_melden.py,
+beginnt mit "📤 VON HAND"). Es postet nirgendwo. Ben postet die
 Story von Hand um 17:30 und legt das Instagram-Element (Quiz, Slider,
 Umfrage, Fragebox, Link) auf die gestrichelte Flaeche im Bild.
 
@@ -56,8 +57,6 @@ import os
 import re
 import sys
 import tempfile
-import urllib.request
-import uuid
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -806,7 +805,11 @@ def anleitung(s):
 
 
 def nachricht(stories, feed_hinweis=""):
-    teile = ["STORY-VORLAGE %s, nicht automatisch gepostet, Ben postet von hand." % tag_de(stories[0]["datum_tag"])]
+    import ops_melden
+    neu = any(s["art"] != "aufloesung" for s in stories)
+    teile = [ops_melden.hand_text("heute %s Berlin" % ("17:30" if neu else "frueh"), "Instagram Story",
+                                  "story-vorlage %s posten, element auf die gestrichelte flaeche"
+                                  % tag_de(stories[0]["datum_tag"]), "https://www.instagram.com/kaspapulse/")]
     for s in stories:
         teile.append("```\n%s\n```" % anleitung(s).replace("`", "'"))
     teile.append("posten 17:30" if any(s["art"] != "aufloesung" for s in stories) else "heute keine neue vorlage")
@@ -815,20 +818,10 @@ def nachricht(stories, feed_hinweis=""):
     return "\n".join(teile)[:1990]
 
 
-def ops_senden(hook, inhalt, bilder):
-    grenze = "----st" + uuid.uuid4().hex
-    teile = [("--%s\r\nContent-Disposition: form-data; name=\"payload_json\"\r\nContent-Type: application/json"
-              "\r\n\r\n" % grenze).encode()
-             + json.dumps({"content": inhalt, "allowed_mentions": {"parse": []}}).encode() + b"\r\n"]
-    for i, p in enumerate(bilder[:10]):
-        teile.append(("--%s\r\nContent-Disposition: form-data; name=\"files[%d]\"; filename=\"%s\"\r\n"
-                      "Content-Type: image/png\r\n\r\n" % (grenze, i, Path(p).name)).encode()
-                     + Path(p).read_bytes() + b"\r\n")
-    body = b"".join(teile) + ("--%s--\r\n" % grenze).encode()
-    req = urllib.request.Request(hook, data=body, headers={
-        "Content-Type": "multipart/form-data; boundary=%s" % grenze, "User-Agent": UA})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        print("story-vorlage an ops geschickt, http %s" % r.status)
+def ops_senden(inhalt, bilder):
+    """Die Vorlage als VON HAND nach #moderator-only (scripts/ops_melden.py)."""
+    import ops_melden
+    return ops_melden.hand(inhalt, [(p, "image/png") for p in bilder[:10]], "story-vorlage")
 
 
 def log_merken(log, s):
@@ -902,10 +895,9 @@ def tageslauf(datum, out, senden=False):
     Path(out, "story-%s-anleitung.txt" % datum).write_text(inhalt + "\n", encoding="utf-8")
     print(inhalt)
     if senden:
-        hook = os.environ.get("DISCORD_WEBHOOK_OPS", "")
-        if not hook:
+        if not os.environ.get("DISCORD_WEBHOOK_OPS"):
             raise Stopp("kein DISCORD_WEBHOOK_OPS, nichts geschickt")
-        ops_senden(hook, inhalt, pngs)
+        ops_senden(inhalt, pngs)
         for s in stories:
             if s["art"] != "aufloesung":
                 log_merken(log, s)

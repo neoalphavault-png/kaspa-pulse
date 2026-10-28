@@ -1018,57 +1018,42 @@ def ops_zeile(log):
     return zeilen[-1] if zeilen else "kein log, der lauf ist vor dem ersten schritt gestorben"
 
 
+def _log_senden(text, was, hook=None):
+    """Nach #ops-log ueber scripts/ops_melden.py (Art "log", seit 28.10.2026).
+    hook="" heisst im Selbsttest: nichts senden. Ein Fehler wird gedruckt,
+    nicht geworfen."""
+    if hook is not None and not hook:
+        print("kein webhook, %s nur im job-log" % was)
+        return False
+    import ops_melden as om
+    try:
+        return om.log(text, was=was) is not None
+    except Exception as exc:  # noqa: BLE001
+        print("WARN %s ging nicht raus: %s" % (was, om.sauber(exc)))
+        return False
+
+
 def ops_vorschau(msg, hook=None):
     """Nur im Trockenlauf mit WN_OPS_VORSCHAU=1: der Discord-Text des
-    Wochenposts geht an den privaten Ops-Kanal, damit man sieht, wie Discord
-    ihn darstellt (maskierte Links, Fett, Emojis). Nie an den oeffentlichen
+    Wochenposts geht nach #ops-log, damit man sieht, wie Discord ihn
+    darstellt (maskierte Links, Fett, Emojis). Nie an den oeffentlichen
     Kanal."""
-    hook = hook if hook is not None else os.environ.get("DISCORD_WEBHOOK_OPS", "")
-    if not hook:
-        print("kein DISCORD_WEBHOOK_OPS, vorschau uebersprungen")
-        return False
-    text = "vorschau, trockenlauf, nicht oeffentlich\n\n" + msg
-    body = json.dumps({"content": text[:2000],
-                       "allowed_mentions": {"parse": []}}).encode("utf-8")
-    req = urllib.request.Request(hook, data=body, headers={
-        "Content-Type": "application/json", "User-Agent": UA})
-    try:
-        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-            print("vorschau an ops geschickt, http %s" % r.status)
-            return True
-    except Exception as exc:  # noqa: BLE001
-        print("WARN vorschau ging nicht raus: %s" % exc)
-        return False
+    return _log_senden("vorschau, trockenlauf, nicht oeffentlich\n\n" + msg, "weekly vorschau", hook)
 
 
 def ops_melden(log_pfad, hook=None, lauf="", anlass=""):
-    """Schickt die ops_zeile an DISCORD_WEBHOOK_OPS. Ohne Secret wird still
-    uebersprungen, damit der Schritt nicht selbst rot wird, solange das
-    Secret nicht angelegt ist. Ein Fehler beim Senden wird gedruckt, nicht
-    geworfen: der Lauf ist ohnehin schon rot."""
-    hook = hook if hook is not None else os.environ.get("DISCORD_WEBHOOK_OPS", "")
+    """Schickt die ops_zeile eines roten Laufs nach #ops-log. Ohne
+    DISCORD_WEBHOOK_LOG steht sie nur im Job-Log, der Schritt wird davon
+    nicht selbst rot."""
     try:
         with open(log_pfad, encoding="utf-8", errors="replace") as fh:
             log = fh.read()
     except OSError:
         log = ""
     zeile = ops_zeile(log)
-    text = ("weekly numbers ist rot (%s)\n%s\n%s" % (anlass or "?", zeile, lauf)).strip()
-    if len(text) > 1900:
-        text = text[:1900]
+    text = ("weekly numbers ist rot (%s)\n%s\n%s" % (anlass or "?", zeile, lauf)).strip()[:1900]
     print(text)
-    if not hook:
-        print("kein DISCORD_WEBHOOK_OPS gesetzt, meldung uebersprungen")
-        return 0
-    body = json.dumps({"content": text,
-                       "allowed_mentions": {"parse": []}}).encode("utf-8")
-    req = urllib.request.Request(hook, data=body, headers={
-        "Content-Type": "application/json", "User-Agent": UA})
-    try:
-        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-            print("an ops gemeldet, http %s" % r.status)
-    except Exception as exc:  # noqa: BLE001
-        print("WARN ops-meldung ging nicht raus: %s" % exc)
+    _log_senden(text, "weekly rot", hook)
     return 0
 
 

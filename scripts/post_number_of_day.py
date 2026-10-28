@@ -159,31 +159,18 @@ def main():
 
 
 def trockenlauf_senden(msg, bilder):
-    """ZIEL=moderator (Ben, 16.10.2026): text und bilder nur nach
-    #moderator-only, kein oeffentlicher discord, kein telegram. fehlt der
-    ops-webhook, bricht der lauf ab, statt auf einen oeffentlichen zu fallen."""
-    url = os.environ.get("DISCORD_WEBHOOK_OPS", "").strip()
-    if not url:
-        print("ERROR: trockenlauf ohne DISCORD_WEBHOOK_OPS, nichts gesendet", file=sys.stderr)
-        return 1
-    import uuid
-    grenze = "----nod" + uuid.uuid4().hex
+    """ZIEL=moderator (Ben, 16.10.2026): text und bilder nur nach #ops-log
+    (Art "log" in scripts/ops_melden.py, seit 28.10.2026), kein oeffentlicher
+    discord, kein telegram. fehlt DISCORD_WEBHOOK_LOG, steht der trockenlauf
+    nur im job-log, er faellt nie auf einen oeffentlichen kanal."""
+    import ops_melden
     inhalt = ("TROCKENLAUF (ZIEL=moderator), zahl des tages, nicht oeffentlich. bild 1 discord "
-              "und telegram, bild 2 x.\n```\n%s\n```" % msg)[:1990]
-    teile = [("--%s\r\nContent-Disposition: form-data; name=\"payload_json\"\r\n"
-              "Content-Type: application/json\r\n\r\n" % grenze).encode()
-             + json.dumps({"content": inhalt, "allowed_mentions": {"parse": []}}).encode() + b"\r\n"]
-    for i, pfad in enumerate(bilder):
-        with open(pfad, "rb") as f:
-            teile.append(("--%s\r\nContent-Disposition: form-data; name=\"files[%d]\"; filename=\"%s\"\r\n"
-                          "Content-Type: image/png\r\n\r\n" % (grenze, i, os.path.basename(pfad))).encode()
-                         + f.read() + b"\r\n")
-    body = b"".join(teile) + ("--%s--\r\n" % grenze).encode()
-    req = urllib.request.Request(url, data=body, headers={
-        "Content-Type": "multipart/form-data; boundary=%s" % grenze, **UA})
-    with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-        r.read()
-    print("trockenlauf, an #moderator-only geschickt, %d bild(er)" % len(bilder))
+              "und telegram, bild 2 x.\n```\n%s\n```" % msg)
+    try:
+        ops_melden.log(inhalt, [(b, "image/png") for b in bilder], "trockenlauf zahl des tages")
+    except ops_melden.Fehler as exc:
+        print("ERROR: %s" % exc, file=sys.stderr)
+        return 1
     return 0
 
 

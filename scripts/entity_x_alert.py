@@ -200,23 +200,13 @@ def build_inflow(balance, diff):
 
 
 def ops_senden(text):
-    """Nur nach #moderator-only, nie in den oeffentlichen Kanal. Fuer den
-    Testlauf: der Text soll gelesen werden, nicht gesendet wirken."""
-    url = os.environ.get("DISCORD_WEBHOOK_OPS", "").strip()
-    if not url:
-        print("kein DISCORD_WEBHOOK_OPS, der testlauf steht nur hier")
-        return False
-    # @everyone darf im Testlauf niemanden anpingen, auch nicht in
-    # #moderator-only. Der Ping steht als Text da, als "(at)everyone".
-    probe = text.replace("@everyone", "(at)everyone")
-    req = urllib.request.Request(
-        url, data=json.dumps({"content": probe[:1990],
-                              "allowed_mentions": {"parse": []}}).encode(),
-        headers={"Content-Type": "application/json", "User-Agent": "kaspapulse-alert/1.0"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        r.read()
-    print("testlauf an #moderator-only abgesetzt")
-    return True
+    """Nur nach #ops-log (Art "log" in scripts/ops_melden.py), nie in den
+    oeffentlichen Kanal. Fuer den Testlauf: der Text soll gelesen werden,
+    nicht gesendet wirken."""
+    import ops_melden
+    # @everyone darf im Testlauf niemanden anpingen. Der Ping steht als
+    # Text da, als "(at)everyone".
+    return ops_melden.log(text.replace("@everyone", "(at)everyone"), was="entity-x testlauf") is not None
 
 
 def testlauf():
