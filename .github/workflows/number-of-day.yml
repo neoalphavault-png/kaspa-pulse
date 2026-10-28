@@ -73,6 +73,11 @@ jobs:
       - name: pick the number
         id: pick
         if: steps.guard.outputs.done != '1'
+        env:
+          # traegt der hauptpost eine url, eine domain oder "link in bio",
+          # bricht der generator vor dem posten ab und meldet nach #ops-log
+          # (Ben, 28.10.2026)
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
         run: |
           python scripts/number_of_day_data.py \
             --out data/number-of-day.json
