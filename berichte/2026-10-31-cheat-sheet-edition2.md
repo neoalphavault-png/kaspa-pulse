@@ -82,7 +82,7 @@ Siehe „📤 VON HAND“ im Discord-Abschnitt.
 
 <!-- discord -->
 **Cheat Sheet Edition 2, abgesichert, 28.10.2026**
-- **Ohne Fix wäre Sonntag nichts gekommen:** Die Umlaufreihe für den Börsenanteil gab es bei Kaspalytics nicht (HTTP 404). Jetzt kommt der Umlauf aus api.kaspa.org und dem Emissionsplan.
+- **Ohne Fix wäre Sonntag nichts gekommen:** Die Umlaufreihe für den Börsenanteil gab es bei Kaspalytics nicht (HTTP 404). Jetzt kommt der Umlauf aus der Kaspa-API und dem Emissionsplan, wie bei Tagesgrafik und Wochenzahlen.
 - **Probelauf mit echten Daten grün:** Alle 8 Stichtage halten am 1.11. die 10-Tage-Frist, am ältesten sind Börsen, Halter und Covenants mit 7 Tagen. Unbewegt 51.2% und 26.3%, beide im Fenster.
 - **Seite 10:** „the dashboard“ statt „live numbers“. utm_campaign=edition2.
 - **Instagram:** 10 PNG in 1080x1350, jede Seite ab 7:1. Dafür sind nur Farben geändert, keine Sätze.
