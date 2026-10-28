@@ -66,7 +66,7 @@ def farben(look=None):
     # text traegt KASPA, akzent traegt PULSE. Im dunklen Look sind das genau
     # die Marken-Farben; im hellen ist akzent #0F9A80, weil #49EACB dort nur
     # Markierung ist und auf hellem Grund nicht zu lesen waere.
-    return lk["text"], lk["akzent"]
+    return lk["text"], lk.get("marke", lk["akzent"])
 
 
 def css(klasse="wm", groesse=34, sperrung=4, look=None, kaspa=None, pulse=None):

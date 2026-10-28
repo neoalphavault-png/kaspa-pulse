@@ -1647,6 +1647,8 @@ def rendern(seite, out, vorschau=VORSCHAU, browser=None, kanal="instagram"):
         pg.goto(tmp.resolve().as_uri())
         pg.evaluate("document.fonts.ready")
         pg.wait_for_timeout(200)
+        import hintergrund
+        hintergrund.warten(pg)
         kollision = pg.evaluate(LAYOUT_JS)
         print("layout %s, %s" % (out.name, "; ".join(pg.evaluate("window.__mass || []"))))
         if kollision:
@@ -2063,16 +2065,26 @@ def kanaele_rendern(s, png, heute, speicher=None):
     looks = look_takt.looks_fuer(sp, "tagesgrafik", heute)
     # instagram steht im gemeinsamen raster mit dem karussell (Ben, 18.10.2026)
     looks["instagram"] = look_takt.raster_faellig(sp, "tagesgrafik", heute)[1]
+    # das motiv wechselt mit dem look (Ben, 25.10.2026): instagram aus dem
+    # raster, die anderen kanaele ruecken mit dem datum weiter
+    import hintergrund as hg
+    motive = {k: hg.motiv_datum(heute, hg.KANAL_VERSATZ[k]) for k in look_takt.KANAELE}
+    motive["instagram"] = look_takt.raster_motiv(sp, "tagesgrafik", heute)
+    if not hg.aktiv(heute):
+        motive = {k: None for k in motive}
+
+    def mit(seite, k):
+        return hg.setzen(seite, motive[k], looks[k]) if motive[k] else seite
     png = Path(png)
     kanalbilder = {}
     with sync_playwright() as p:
         b = chromium_start(p)
         try:
-            png, vpng = rendern(html(s, looks["instagram"]), png, VORSCHAU, b, "instagram")
+            png, vpng = rendern(mit(html(s, looks["instagram"]), "instagram"), png, VORSCHAU, b, "instagram")
             for k in look_takt.KANAELE:
                 if k == "instagram":
                     continue
-                kanalbilder[k], _ = rendern(html(s, looks[k]),
+                kanalbilder[k], _ = rendern(mit(html(s, looks[k]), k),
                                             png.with_name("%s-%s.png" % (png.stem, k)), 0, b, k)
         finally:
             b.close()

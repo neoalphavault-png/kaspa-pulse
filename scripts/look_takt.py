@@ -63,10 +63,15 @@ LOOKS = {
     "dunkel": {"grund": "#080B0F", "text": "#F2F5F4", "text2": "#A9B7B4",
                "akzent": "#49EACB", "akzent2": "#2FAE96", "rest": "#2B7A6C",
                "flaeche": "#1B252B", "markierung": "#49EACB"},
-    "hell":   {"grund": "#EEF3F1", "text": "#0B1A17", "text2": "#4F625D",
-               "akzent": "#0F9A80", "akzent2": "#0B6B59", "rest": "#B4CCC5",
-               "flaeche": "#DCE6E2", "markierung": "#49EACB"},
-    "teal":   {"grund": "#49EACB", "text": "#04211C", "text2": "#0F4A40",
+    # Kontrast 7:1 fuer jeden Text (Ben, 25.10.2026): im hellen Look waren
+    # text2 #4F625D (5.8:1) und akzent #0F9A80 (3.1:1) zu blass, im Teal-Look
+    # text2 #0F4A40 (6.7:1). Gleicher Farbton, dunkler, so dass sie auch auf
+    # der flaeche (Kacheln, Karten) 7:1 halten. marke haelt die Wortmarke auf
+    # #0F9A80, ein Logo zaehlt nicht zur Kontrastregel.
+    "hell":   {"grund": "#EEF3F1", "text": "#0B1A17", "text2": "#3B4A46",
+               "akzent": "#085042", "akzent2": "#0B6B59", "rest": "#B4CCC5",
+               "flaeche": "#DCE6E2", "markierung": "#49EACB", "marke": "#0F9A80"},
+    "teal":   {"grund": "#49EACB", "text": "#04211C", "text2": "#0A332C",
                "akzent": "#04211C", "akzent2": "#0F4A40", "rest": "#9AF5E3",
                "flaeche": "#3BD3B6", "markierung": "#04211C"},
 }
@@ -174,7 +179,9 @@ def merken(speicher, serie, kanal, datum, sonder=None):
 # Rang davor steht, und rechnet vom Vortag weiter. Das Karussell nimmt den
 # Schritt nach ihr.
 RASTER = "raster/instagram"
-RANG = {"tagesgrafik": 1, "meme": 2, "karussell": 3}
+# Seit dem 25.10.2026 (Ben) postet der Samstag dreimal: Tagesgrafik 09:30,
+# Karussell 11:00, Meme 15:00. Das Meme steht deshalb hinter dem Karussell.
+RANG = {"tagesgrafik": 1, "karussell": 2, "meme": 3}
 
 
 def _raster_ort(e):
@@ -212,13 +219,40 @@ def raster_faellig(speicher, serie, datum):
     return schritt, TAKT[schritt]
 
 
+def raster_motiv(speicher, serie, datum):
+    """Das Hintergrundmotiv eines Posts im Raster (Ben, 25.10.2026). Look und
+    Motiv wechseln gemeinsam: jeder Post nimmt das Motiv nach dem seines
+    Vorgaengers, mit derselben Vorgaenger-Regel wie raster_faellig. So steht
+    nie dasselbe Motiv zweimal hintereinander im Raster."""
+    import hintergrund
+    datum = str(datum)
+    reihe = speicher.get("kanaele", {}).get(RASTER, [])
+    for e in reihe:
+        if e["datum"] == datum and e.get("serie") == serie and e.get("motiv"):
+            return e["motiv"]
+    if RANG[serie] > 1:
+        am_tag = [e for e in reihe if e["datum"] == datum and 1 < RANG.get(e.get("serie"), 9) < RANG[serie]]
+        if am_tag:
+            vor = max(am_tag, key=_raster_ort)
+            return hintergrund.motiv_nach(vor.get("motiv") or raster_motiv(speicher, vor["serie"], datum))
+        return hintergrund.motiv_nach(raster_motiv(speicher, "tagesgrafik", datum))
+    davor = [e for e in reihe if _raster_ort(e) < (datum, RANG[serie])]
+    if davor:
+        vor = max(davor, key=_raster_ort)
+        # eintraege von vor dem 28.10. tragen kein motiv, dann zaehlt der schritt
+        return hintergrund.motiv_nach(vor.get("motiv") or hintergrund.MOTIVE[vor["schritt"]])
+    return hintergrund.MOTIVE[0]
+
+
 def raster_merken(speicher, serie, datum, sonder=None):
     if sonder is not None and sonder not in SONDER:
         raise Fehler("unbekannter sonderlook %r" % sonder)
     schritt, lk = raster_faellig(speicher, serie, datum)
+    motiv = raster_motiv(speicher, serie, datum)
     reihe = [e for e in speicher.setdefault("kanaele", {}).get(RASTER, [])
              if not (e["datum"] == str(datum) and e.get("serie") == serie)]
-    reihe.append({"datum": str(datum), "serie": serie, "schritt": schritt, "look": sonder or lk})
+    reihe.append({"datum": str(datum), "serie": serie, "schritt": schritt, "look": sonder or lk,
+                  "motiv": motiv})
     speicher["kanaele"][RASTER] = sorted(reihe, key=_raster_ort)[-2 * BEHALTEN:]
     return sonder or lk
 
@@ -327,9 +361,37 @@ def selbsttest():
        raster_faellig(sp4, "meme", "2026-10-25")[0] == (raster_faellig(sp4, "tagesgrafik", "2026-10-25")[0] + 1) % 4)
     ok("tagesgrafik am montag folgt dem meme",
        raster_faellig(sp4, "tagesgrafik", "2026-10-26")[0] == (raster_faellig(sp4, "meme", "2026-10-25")[0] + 1) % 4)
+    # samstag mit karussell 11:00 und meme 15:00 (Ben, 25.10.2026)
+    sp5 = {"kanaele": {}}
+    raster_merken(sp5, "tagesgrafik", "2026-10-31")
+    raster_merken(sp5, "karussell", "2026-10-31")
+    raster_merken(sp5, "meme", "2026-10-31")
+    t5, k5, m5 = (raster_faellig(sp5, x, "2026-10-31")[0] for x in ("tagesgrafik", "karussell", "meme"))
+    ok("samstag, tagesgrafik, karussell, meme in dieser folge (%d %d %d)" % (t5, k5, m5),
+       k5 == (t5 + 1) % 4 and m5 == (t5 + 2) % 4
+       and raster_faellig(sp5, "tagesgrafik", "2026-11-01")[0] == (t5 + 3) % 4)
+    # motive im raster (Ben, 25.10.2026): nie zweimal hintereinander, auch
+    # nicht, wenn der karussell-entwurf vor der tagesgrafik des tages laeuft
+    sp6 = {"kanaele": {}}
+    folge6 = []
+    for d in ("2026-10-28", "2026-10-29", "2026-10-30", "2026-10-31"):
+        if d == "2026-10-31":
+            raster_merken(sp6, "karussell", d)
+        raster_merken(sp6, "tagesgrafik", d)
+        if d == "2026-10-28":
+            raster_merken(sp6, "karussell", d)
+        if d == "2026-10-31":
+            raster_merken(sp6, "meme", d)
+    for e in sp6["kanaele"][RASTER]:
+        folge6.append(e["motiv"])
+    ok("motive im raster nie zweimal hintereinander (%s)" % " ".join(folge6),
+       len(folge6) == 7 and all(a != b for a, b in zip(folge6, folge6[1:])))
+    ok("das motiv steht beim eintrag und bleibt beim zweiten lauf",
+       raster_motiv(sp6, "meme", "2026-10-31") == folge6[-1])
     ok("ein zweiter entwurf am selben tag schiebt nicht weiter",
        raster_merken(sp4, "karussell", "2026-10-24") == k)
-    ok("hell, #49EACB nur als markierung", LOOKS["hell"]["akzent"] == "#0F9A80"
+    ok("hell, #49EACB nur als markierung, akzent fuer 7:1 dunkler, die marke bleibt",
+       LOOKS["hell"]["akzent"] == "#085042" and LOOKS["hell"]["marke"] == "#0F9A80"
        and "#49EACB" not in (LOOKS["hell"]["akzent"], LOOKS["hell"]["text"], LOOKS["hell"]["text2"]))
     css = schriften_css()
     ok("sieben schnitte eingebettet, nichts von aussen",

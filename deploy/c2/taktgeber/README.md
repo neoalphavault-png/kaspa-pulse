@@ -38,6 +38,12 @@ Log steht es am 01.10. wörtlich: *„kein cron im fenster"*.
 | `takt-number-of-day` | täglich 10:12 und 11:42 | `number-of-day.yml` in kaspa-pulse |
 | `takt-story-vorlage` | Mo–Sa 07:45 | `story-vorlage.yml` in kaspa-pulse, `senden=true`, nur nach #moderator-only |
 | `takt-ig-story-auto` | Di und Do 17:30 | `ig-story-auto.yml` in kaspa-pulse, `modus=takt`, scharf nur mit `IG_STORY_AUTO_LIVE=true` |
+| `takt-karussell-woche-entwurf` | Sa 09:00 | `karussell.yml`, `art=woche schritt=entwurf start=takt` |
+| `takt-karussell-woche` | Sa 11:00 | `karussell.yml`, `art=woche schritt=posten start=takt` |
+| `takt-karussell-story-entwurf` | Mi 16:00 | `karussell.yml`, `art=story schritt=entwurf start=takt` |
+| `takt-karussell-story` | Mi 18:00 | `karussell.yml`, `art=story schritt=posten start=takt` |
+| `takt-karussell-meme-entwurf` | Sa 13:00 | `karussell.yml`, `art=meme schritt=entwurf start=takt` |
+| `takt-karussell-meme` | Sa 15:00 | `karussell.yml`, `art=meme schritt=posten start=takt` |
 
 Die Uhrzeiten stehen in Ortszeit, als Anhang an der Kalenderzeile:
 
@@ -194,6 +200,36 @@ systemd-analyze calendar '*-*-* 07:30:00 Europe/Berlin'
 | `http 404` | Workflow-Datei heißt anders, oder sie liegt nicht auf `main`. GitHub kennt `workflow_dispatch` nur vom Default-Branch |
 | `http 422` | Eine Eingabe, die der Workflow nicht hat |
 | `Unit takt-X.timer not found` beim Nachziehen | Der Takt ist neu und war systemd nie bekannt gemacht. `setup.sh nachziehen` verlinkt neue Timer seit dem 12.10.2026 selbst, vorher brach es an dieser Stelle ab |
+
+## Karussell und Meme einspielen (Ben, 25.10.2026)
+
+Seit dem 25.10.2026 postet `karussell.yml` selbst. Je Termin gibt es zwei
+Takte: den Entwurf 2 Stunden vorher nach #moderator-only und den
+Posten-Lauf zum Termin. Scharf wird der Posten-Lauf nur mit der
+Repository-Variable `KARUSSELL_LIVE=true`. Das Veto ist die Variable
+`KARUSSELL_STOPP` (`JJJJ-MM-TT` oder `immer`).
+
+Auf c2, nach dem Merge:
+
+```
+cd /opt/kaspa-pulse/deploy/c2
+# der einmalige meme-timer vom 25.10. ist aus dem repo verschwunden
+sudo systemctl disable --now takt-karussell-meme-2026-10-25.timer 2>/dev/null || true
+sudo ./setup.sh nachziehen
+# die sechs karussell-takte sicher aktivieren, auch wenn woche und story
+# schon von hand verlinkt waren (nachziehen startet bekannte timer nur neu)
+for t in karussell-woche-entwurf karussell-woche karussell-story-entwurf \
+         karussell-story karussell-meme-entwurf karussell-meme; do
+  sudo systemctl enable --now "takt-$t.timer"
+done
+systemctl list-timers 'takt-karussell*' --no-pager
+```
+
+Erwartet: sechs Zeilen. Die nächsten Termine stehen in UTC, im Winter eine
+Stunde vor Berlin (Sa 11:00 Berlin = 10:00 UTC).
+
+Probe von Hand, ohne Takt (immer trocken, nichts wird veröffentlicht):
+Actions, `karussell`, Run workflow, `schritt=probe`.
 
 ## Einen Takt hinzufügen
 

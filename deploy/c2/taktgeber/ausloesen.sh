@@ -34,12 +34,26 @@ case "$1" in
     # nur den Container an und veroeffentlicht nie.
     "$HIER/takt.sh" "$REPO_PULSE" threads.yml "modus=${THREADS_LIVE:-trocken}"
     ;;
+  # Karussell und Meme (Ben, 25.10.2026): je Termin zwei Takte. Der Entwurf
+  # 2 Stunden vorher nach #moderator-only, zum Termin der Posten-Lauf.
+  # start=takt erlaubt scharf, aber nur mit der Variable KARUSSELL_LIVE=true
+  # auf GitHub, im Fenster um die Postzeit und ohne KARUSSELL_STOPP. fuer
+  # bleibt leer: der Lauf nimmt den Termin dieser Art von heute.
+  karussell-woche-entwurf)
+    "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=woche schritt=entwurf fuer= start=takt
+    ;;
   karussell-woche)
-    # karussell.yml (Ben, 18.10.2026), nur entwurf nach #moderator-only
-    "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=woche fuer= senden=true
+    "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=woche schritt=posten fuer= start=takt
+    ;;
+  karussell-story-entwurf)
+    "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=story schritt=entwurf fuer= start=takt
     ;;
   karussell-story)
-    "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=story fuer= senden=true
+    "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=story schritt=posten fuer= start=takt
+    ;;
+  karussell-meme-entwurf)
+    # "Meme, but true", die Blockrate wird im Entwurf am Posttag gemessen
+    "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=meme schritt=entwurf fuer= start=takt
     ;;
   story-vorlage)
     # story-vorlage.yml (Ben, 24.10.2026), Mo bis Sa 07:45. Nur Vorlage und
@@ -53,8 +67,7 @@ case "$1" in
     "$HIER/takt.sh" "$REPO_PULSE" ig-story-auto.yml modus=takt
     ;;
   karussell-meme)
-    # "Meme, but true", entwurf am posttag, misst die blockrate am posttag
-    "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=meme fuer= senden=true
+    "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=meme schritt=posten fuer= start=takt
     ;;
   reel)
     # Leere Eingaben: der Lauf nimmt den Short, der jetzt faellig ist.

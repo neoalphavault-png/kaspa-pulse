@@ -713,18 +713,23 @@ PASSEN_JS = """([x0, y0, x1, y1]) => {
 }"""
 
 
-def rendern(s, look, png, browser):
+def rendern(s, look, png, browser, motiv=None):
     """Rendert eine Story, prueft Elemente und Flaeche, dann die content_wache
     im Profil "story". Danach die kleine Vorschau in 390 px."""
     import content_wache
     png = Path(png)
     html = png.with_suffix(".html")
-    html.write_text(seite_html(s, look), encoding="utf-8")
+    import hintergrund
+    seite = seite_html(s, look)
+    if motiv:
+        seite = hintergrund.setzen(seite, motiv, look, W, H)
+    html.write_text(seite, encoding="utf-8")
     pg = browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
     try:
         pg.goto(html.resolve().as_uri())
         pg.evaluate("document.fonts.ready")
         pg.wait_for_timeout(150)
+        hintergrund.warten(pg)
         fehler = pg.evaluate(PASSEN_JS, [X0, Y0, X1, Y1])
         if fehler:
             raise Stopp("layout %s, %s" % (png.name, "; ".join(fehler)))
@@ -848,8 +853,13 @@ def bauen(datum, out, log=None, plan=None, quellen=None, look=None, feed_zahl=No
     stories = [x for x in (aufloesung(datum, log), vorlage(datum, plan, quellen)) if x]
     for s in stories:
         pruefen(s, feed_zahl)
+    import hintergrund
+    sp = look_takt.lesen()
     if look is None:
-        look = look_takt.faellig(look_takt.lesen(), "story", "instagram", datum)[1]
+        look = look_takt.faellig(sp, "story", "instagram", datum)[1]
+    # das motiv der story ruckt mit dem datum, nie das des feed-posts vom tag
+    motiv = (hintergrund.motiv_story(datum, look_takt.raster_motiv(sp, "tagesgrafik", datum))
+             if hintergrund.aktiv(datum) else None)
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     pngs = []
@@ -857,7 +867,7 @@ def bauen(datum, out, log=None, plan=None, quellen=None, look=None, feed_zahl=No
     def alle(b):
         for s in stories:
             name = "story-%s-%s-%s.png" % (datum, "aufloesung" if s["art"] == "aufloesung" else s["art"], look)
-            pngs.append(rendern(s, look, out / name, b))
+            pngs.append(rendern(s, look, out / name, b, motiv))
     if browser is None:
         import tagesgrafik as tg
         from playwright.sync_api import sync_playwright
@@ -1051,7 +1061,10 @@ def selbsttest():
                 for lk in ("dunkel", "hell", "teal"):
                     png = out / ("story-%s-%s-%s.png" % (s["datum_tag"], s["art"], lk))
                     try:
-                        rendern(s, lk, png, b)
+                        # jede story mit motiv, je look ein anderes (Ben, 25.10.2026)
+                        import hintergrund
+                        rendern(s, lk, png, b, hintergrund.motiv_datum(
+                            s["datum_tag"], 3 * ("dunkel", "hell", "teal").index(lk)))
                         gut = True
                     except Stopp as exc:
                         gut = str(exc)
