@@ -2,11 +2,24 @@
 #
 # Laeuft nur bei einem Push auf einen Branch bericht/... mit einer Aenderung
 # unter berichte/. Gesendet wird nur der Abschnitt zwischen <!-- discord -->
-# und <!-- /discord -->, mit einer Kopfzeile "📤 VON HAND", und nur, wenn er sich
-# gegenueber dem Stand vor dem Push geaendert hat. scripts/bericht_discord.py
+# und <!-- /discord -->, mit einer Kopfzeile "📤 VON HAND". scripts/bericht_discord.py
 # prueft vorher auf IP, Kaspa-Adresse, Hostname und Schluessel; bei einem Fund
-# geht nichts raus. Das Secret steht nur in der Umgebung des Sendeschritts und
-# wird nie ausgegeben.
+# geht nichts raus.
+#
+# Gegen doppelten Versand (Ben, 26.10.2026, der STP-Rat kam zweimal):
+#   - nur Berichte aus den Commits dieses Pushes, die zum ersten Mal ins Repo
+#     kamen (distinct). Berichte eines Eltern-Branches zaehlen nicht.
+#   - je Bericht die Pruefsumme des Abschnitts in gesendet.json auf dem Branch
+#     ops/bericht-gesendet. Derselbe Abschnitt geht nie zweimal raus, auch
+#     nicht nach Rebase, Force-Push oder auf einem anderen Branch.
+#
+# Zwei Jobs (Ben, 27.10.2026):
+#   senden  contents: read. Bricht ab, wenn dieser Workflow oder
+#           scripts/bericht_discord.py vom Stand auf main abweichen. Der Webhook
+#           steht nur im Sendeschritt. Die Merkdatei geht als Artefakt weiter.
+#   merken  contents: write, ohne Secret. Schreibt nur auf ops/bericht-gesendet.
+# Die Merkdatei traegt nur Branch, Pfad, Pruefsumme und Zeit. Alle Laeufe
+# stehen in einer Warteschlange, damit zwei Laeufe nicht gleichzeitig schreiben.
 
 name: bericht discord
 
@@ -21,17 +34,33 @@ permissions:
   contents: read
 
 concurrency:
-  group: bericht-discord-${{ github.ref }}
+  group: bericht-discord
   cancel-in-progress: false
+
+env:
+  MERK_BRANCH: ops/bericht-gesendet
 
 jobs:
   senden:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      neu: ${{ steps.vergleich.outputs.neu }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+
+      - name: gleicher stand wie main
+        run: |
+          set -euo pipefail
+          git fetch -q --depth=1 origin main
+          if ! git diff --quiet FETCH_HEAD HEAD -- .github/workflows/bericht-discord.yml scripts/bericht_discord.py; then
+            echo "bericht-discord.yml oder scripts/bericht_discord.py weichen von main ab, nichts gesendet"
+            git diff --stat FETCH_HEAD HEAD -- .github/workflows/bericht-discord.yml scripts/bericht_discord.py
+            exit 1
+          fi
+          echo "workflow und skript gleich wie main"
 
       - uses: actions/setup-python@v5
         with:
@@ -40,27 +69,89 @@ jobs:
       - name: selbsttest
         run: python3 scripts/bericht_discord.py --selbsttest | tail -n 1
 
-      - name: geaenderte berichte senden
+      - name: merkdatei holen
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/merk"
+          if git fetch -q origin "$MERK_BRANCH" 2>/dev/null; then
+            git show FETCH_HEAD:gesendet.json > "$RUNNER_TEMP/merk/gesendet.json"
+            echo "merkdatei: $(python3 -c 'import json,sys; print(len(json.load(open(sys.argv[1]))["eintraege"]))' "$RUNNER_TEMP/merk/gesendet.json") eintraege"
+          else
+            echo '{"eintraege": []}' > "$RUNNER_TEMP/merk/gesendet.json"
+            echo "merkdatei neu"
+          fi
+          cp "$RUNNER_TEMP/merk/gesendet.json" "$RUNNER_TEMP/gesendet-vorher.json"
+
+      - name: berichte dieses pushes senden
         env:
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
-          VORHER: ${{ github.event.before }}
         run: |
-          set -uo pipefail
-          if git cat-file -e "$VORHER^{commit}" 2>/dev/null; then
-            dateien=$(git diff --name-only "$VORHER" HEAD -- berichte/)
+          python3 scripts/bericht_discord.py --ereignis "$GITHUB_EVENT_PATH" --branch "$GITHUB_REF_NAME" \
+            --merkdatei "$RUNNER_TEMP/merk/gesendet.json" \
+            --link-basis "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}"
+
+      - name: neue eintraege?
+        id: vergleich
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/merk/gesendet.json" ] && ! cmp -s "$RUNNER_TEMP/merk/gesendet.json" "$RUNNER_TEMP/gesendet-vorher.json"; then
+            echo "neu=true" >> "$GITHUB_OUTPUT"
+            echo "neue eintraege in der merkdatei"
           else
-            # neuer branch: nur berichte aus dem letzten commit. ein vergleich mit
-            # main wuerde berichte aus noch nicht gemergten eltern-branches
-            # erneut senden (so am 26.10.2026 mit dem stp-rat passiert)
-            dateien=$(git diff --name-only HEAD~1 HEAD -- berichte/)
+            echo "neu=false" >> "$GITHUB_OUTPUT"
+            echo "nichts neu gesendet"
           fi
-          rc=0
-          for f in $dateien; do
-            [ -f "$f" ] || continue
-            alt=""
-            if git cat-file -e "$VORHER:$f" 2>/dev/null; then git show "$VORHER:$f" > /tmp/vorher.md; alt="--vorher /tmp/vorher.md"; fi
-            link="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/${f}"
-            echo "== $f"
-            python3 scripts/bericht_discord.py --datei "$f" --link "$link" $alt || rc=1
+
+      - name: merkdatei als artefakt
+        if: always() && steps.vergleich.outputs.neu == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bericht-gesendet-${{ github.run_id }}
+          path: ${{ runner.temp }}/merk/gesendet.json
+          retention-days: 3
+          if-no-files-found: error
+
+  merken:
+    needs: senden
+    if: always() && needs.senden.outputs.neu == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: bericht-gesendet-${{ github.run_id }}
+          path: ${{ runner.temp }}/merk
+
+      - name: merkdatei nach ops/bericht-gesendet
+        run: |
+          set -euo pipefail
+          M="$RUNNER_TEMP/merk/gesendet.json"
+          python3 scripts/bericht_discord.py --merk-pruefen "$M"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898309+github-actions[bot]@users.noreply.github.com"
+          for versuch in 1 2 3; do
+            eltern=""
+            if git fetch -q origin "$MERK_BRANCH" 2>/dev/null; then
+              git show FETCH_HEAD:gesendet.json > "$RUNNER_TEMP/gesendet-fern.json"
+              python3 scripts/bericht_discord.py --vereinen "$M" "$RUNNER_TEMP/gesendet-fern.json"
+              eltern="-p FETCH_HEAD"
+            fi
+            blob=$(git hash-object -w "$M")
+            baum=$(printf '100644 blob %s\tgesendet.json\n' "$blob" | git mktree)
+            commit=$(git commit-tree "$baum" $eltern -m "bericht discord: gesendet von ${GITHUB_REF_NAME}")
+            if git push -q origin "$commit:refs/heads/$MERK_BRANCH"; then
+              echo "merkdatei gesichert"
+              exit 0
+            fi
+            sleep $((versuch * 3))
           done
-          exit $rc
+          echo "merkdatei nicht gesichert"
+          exit 1

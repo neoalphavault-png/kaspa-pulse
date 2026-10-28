@@ -4,17 +4,34 @@
 Ein Bericht unter berichte/ kann einen Abschnitt zwischen <!-- discord --> und
 <!-- /discord --> tragen, unterteilt mit <!-- teil -->. Dieses Skript schickt
 zuerst eine Kopfzeile "📤 VON HAND" mit der Anweisung zum Kopieren, dann je
-Teil eine Nachricht. Vor dem Senden wird der ganze Text geprueft: keine IP,
+Teil eine Nachricht. Die Zahl in der Kopfzeile ist die Zahl der Nachrichten,
+die wirklich folgen. Vor dem Senden wird der ganze Text geprueft: keine IP,
 keine Kaspa-Adresse, kein Hostname ausser github.com, kein Schluessel. Bei einem
 Fund geht nichts raus.
+
+Absicherung gegen doppelten Versand (Ben, 26.10.2026, nachdem der STP-Rat
+zweimal kam):
+  1. Im Workflow kommen nur Berichte in Frage, die in den Commits dieses
+     Pushes geaendert wurden, und nur in Commits, die mit diesem Push zum
+     ersten Mal ins Repo kamen (distinct). Berichte aus einem Eltern-Branch
+     fallen damit heraus.
+  2. Je Bericht wird die Pruefsumme des Discord-Abschnitts in einer Merkdatei
+     festgehalten (Branch ops/bericht-gesendet). Derselbe Abschnitt desselben
+     Berichts geht nie ein zweites Mal raus, auf keinem Branch. Ein Rebase
+     oder Force-Push mit gleichem Inhalt sendet also nichts.
 
 Der Webhook kommt nur aus der Umgebung (DISCORD_WEBHOOK_OPS) und wird nie
 ausgegeben.
 
     python3 scripts/bericht_discord.py --datei berichte/2026-10-27-stp-rat.md --link URL [--trocken]
+    python3 scripts/bericht_discord.py --ereignis "$GITHUB_EVENT_PATH" --branch NAME \\
+        --merkdatei gesendet.json --link-basis URL [--trocken]
+    python3 scripts/bericht_discord.py --vereinen A B     # zwei Merkdateien zu A
     python3 scripts/bericht_discord.py --selbsttest
 """
 import argparse
+import datetime as dt
+import hashlib
 import json
 import os
 import re
@@ -43,6 +60,11 @@ def teile(text):
     return [t.strip() for t in innen.split(TEIL) if t.strip()]
 
 
+def pruefsumme(t):
+    """sha256 ueber genau die Teile, die gesendet wuerden."""
+    return hashlib.sha256(("\n" + TEIL + "\n").join(t).encode("utf-8")).hexdigest()
+
+
 def pruefen(texte):
     funde = []
     for i, t in enumerate(texte):
@@ -55,9 +77,17 @@ def pruefen(texte):
 
 
 def kopf(datei, n, link):
-    return ("📤 VON HAND\n**%s**\nBitte die folgenden %d Nachrichten in dieser Reihenfolge kopieren und an den "
+    menge = "die folgende Nachricht" if n == 1 else "die folgenden %d Nachrichten" % n
+    return ("📤 VON HAND\n**%s**\nBitte %s in dieser Reihenfolge kopieren und an den "
             "Empfänger schicken. Jede Nachricht lange drücken, Text kopieren, einfügen.\nBericht: %s"
-            % (os.path.basename(datei), n, link or datei))
+            % (os.path.basename(datei), menge, link or datei))
+
+
+def nachrichten(datei, t, link):
+    """Kopfzeile plus Teile. Die Zahl im Kopf wird aus der fertigen Liste
+    gezaehlt, nicht vorgegeben."""
+    folgen = list(t)
+    return [kopf(datei, len(folgen), link)] + folgen
 
 
 def senden(texte, webhook, pause=1.0):
@@ -74,6 +104,89 @@ def senden(texte, webhook, pause=1.0):
     return 0
 
 
+# ------------------------------------------------------------ merkdatei
+
+def merk_lesen(pfad):
+    if not pfad or not os.path.exists(pfad):
+        return {"eintraege": []}
+    with open(pfad, encoding="utf-8") as fh:
+        m = json.load(fh)
+    m.setdefault("eintraege", [])
+    return m
+
+
+def merk_schreiben(pfad, m):
+    m["eintraege"].sort(key=lambda e: (e.get("utc", ""), e["datei"], e["branch"]))
+    with open(pfad, "w", encoding="utf-8") as fh:
+        json.dump(m, fh, ensure_ascii=False, indent=1)
+        fh.write("\n")
+
+
+def schon_gesendet(m, datei, summe):
+    """derselbe Abschnitt desselben Berichts, auf irgendeinem Branch."""
+    return next((e for e in m["eintraege"] if e["datei"] == datei and e["sha256"] == summe), None)
+
+
+def merken(m, branch, datei, summe, jetzt=None):
+    m["eintraege"].append({"branch": branch, "datei": datei, "sha256": summe,
+                           "utc": jetzt or dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")})
+
+
+FELDER = {"branch", "datei", "sha256", "utc", "hinweis"}
+
+
+def merk_pruefen(m):
+    """Liste der Fehler in einer Merkdatei. Erlaubt sind nur Branch, Pfad
+    unter berichte/, sha256 und Zeit (dazu ein Hinweis), damit der
+    Schreib-Job nichts anderes auf ops/bericht-gesendet legt."""
+    fehler = []
+    if not isinstance(m, dict) or set(m) != {"eintraege"} or not isinstance(m["eintraege"], list):
+        return ["kopf: nur der schluessel eintraege erlaubt"]
+    for i, e in enumerate(m["eintraege"]):
+        if not isinstance(e, dict) or not {"branch", "datei", "sha256", "utc"} <= set(e) or set(e) - FELDER:
+            fehler.append("eintrag %d: felder" % i)
+            continue
+        if not re.fullmatch(r"[A-Za-z0-9._/-]{1,100}", str(e["branch"])):
+            fehler.append("eintrag %d: branch" % i)
+        if not re.fullmatch(r"berichte/[A-Za-z0-9._-]{1,100}\.md", str(e["datei"])):
+            fehler.append("eintrag %d: datei" % i)
+        if not re.fullmatch(r"[0-9a-f]{64}", str(e["sha256"])):
+            fehler.append("eintrag %d: sha256" % i)
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z)?", str(e["utc"])):
+            fehler.append("eintrag %d: utc" % i)
+        if len(str(e.get("hinweis", ""))) > 200 or pruefen([str(e.get("hinweis", ""))]):
+            fehler.append("eintrag %d: hinweis" % i)
+    return fehler
+
+
+def vereinen(a, b):
+    """Eintraege aus b, die in a fehlen, kommen dazu."""
+    schluessel = {(e["branch"], e["datei"], e["sha256"]) for e in a["eintraege"]}
+    for e in b["eintraege"]:
+        if (e["branch"], e["datei"], e["sha256"]) not in schluessel:
+            a["eintraege"].append(e)
+    return a
+
+
+# ------------------------------------------------------------ push-ereignis
+
+def geaenderte_berichte(ereignis):
+    """Berichte (berichte/*.md), die in den Commits dieses Pushes hinzukamen
+    oder geaendert wurden. Nur Commits mit distinct = true, also zum ersten
+    Mal ins Repo gekommen; Commits aus einem Eltern-Branch zaehlen nicht."""
+    dateien = []
+    for c in ereignis.get("commits") or []:
+        if not c.get("distinct", True):
+            continue
+        for f in (c.get("added") or []) + (c.get("modified") or []):
+            if f.startswith("berichte/") and f.endswith(".md") and f not in dateien:
+                dateien.append(f)
+    for f in [f for c in ereignis.get("commits") or [] for f in c.get("removed") or []]:
+        if f in dateien:
+            dateien.remove(f)
+    return dateien
+
+
 def lauf(datei, link, trocken, vorher=None):
     text = open(datei, encoding="utf-8").read()
     t = teile(text)
@@ -83,7 +196,7 @@ def lauf(datei, link, trocken, vorher=None):
     if vorher and os.path.exists(vorher) and teile(open(vorher, encoding="utf-8").read()) == t:
         print("discord-abschnitt unveraendert, nichts gesendet")
         return 0
-    alle = [kopf(datei, len(t), link)] + t
+    alle = nachrichten(datei, t, link)
     funde = pruefen(alle)
     if funde:
         print("nicht gesendet: " + "; ".join(funde))
@@ -96,6 +209,56 @@ def lauf(datei, link, trocken, vorher=None):
         print("kein webhook in der umgebung")
         return 3
     return senden(alle, webhook)
+
+
+def lauf_ereignis(ereignis_pfad, branch, merkdatei, link_basis, trocken, senden_fn=None):
+    """Alle Berichte dieses Pushes, je Abschnitt hoechstens einmal. Ein
+    gesendeter Abschnitt wird sofort in der Merkdatei vermerkt."""
+    with open(ereignis_pfad, encoding="utf-8") as fh:
+        ereignis = json.load(fh)
+    m = merk_lesen(merkdatei)
+    rc = 0
+    dateien = geaenderte_berichte(ereignis)
+    if not dateien:
+        print("keine berichte in den neuen commits dieses pushes")
+    for f in dateien:
+        print("== %s" % f)
+        if not os.path.exists(f):
+            print("datei fehlt im stand, uebersprungen")
+            continue
+        t = teile(open(f, encoding="utf-8").read())
+        if not t:
+            print("kein discord-abschnitt")
+            continue
+        summe = pruefsumme(t)
+        alt = schon_gesendet(m, f, summe)
+        if alt:
+            print("abschnitt schon gesendet (%s, branch %s), nichts gesendet" % (alt["utc"], alt["branch"]))
+            continue
+        alle = nachrichten(f, t, link_basis.rstrip("/") + "/" + f if link_basis else "")
+        funde = pruefen(alle)
+        if funde:
+            print("nicht gesendet: " + "; ".join(funde))
+            rc = 2
+            continue
+        if trocken:
+            print("trocken, %d nachrichten (kopf plus %d), pruefsumme %s" % (len(alle), len(alle) - 1, summe[:12]))
+            continue
+        if senden_fn is None:
+            webhook = os.environ.get("DISCORD_WEBHOOK_OPS", "").strip()
+            if not webhook:
+                print("kein webhook in der umgebung")
+                return 3
+            ergebnis = senden(alle, webhook)
+        else:
+            ergebnis = senden_fn(alle)
+        if ergebnis == 0:
+            merken(m, branch, f, summe)
+            merk_schreiben(merkdatei, m)
+            print("gemerkt, pruefsumme %s" % summe[:12])
+        else:
+            rc = 1
+    return rc
 
 
 def selbsttest():
@@ -120,13 +283,69 @@ def selbsttest():
                      ("ghp" + "_abc", "schluessel")):
         ok("fund %s" % art, any(art in f for f in pruefen([bad])), pruefen([bad]))
     ok("zu lang", any("zeichen" in f for f in pruefen(["x" * 2000])))
+    # kopfzeile zaehlt die nachrichten, die wirklich folgen
+    for n in (1, 3, 7):
+        alle = nachrichten("berichte/a.md", ["t%d" % i for i in range(n)], "")
+        zahl = 1 if "die folgende Nachricht" in alle[0] else int(re.search(r"folgenden (\d+) Nachrichten", alle[0]).group(1))
+        ok("kopf nennt %d und es folgen %d" % (n, len(alle) - 1), zahl == len(alle) - 1 == n, alle[0])
+    ok("kopf traegt von hand", kopf("berichte/a.md", 3, "").startswith("📤 VON HAND"))
+    # nur distinct commits, nur berichte/*.md, entfernte nicht
+    ev = {"commits": [
+        {"distinct": False, "added": ["berichte/eltern.md"], "modified": [], "removed": []},
+        {"distinct": True, "added": ["berichte/neu.md", "scripts/x.py"], "modified": ["berichte/alt.md"], "removed": []},
+        {"distinct": True, "added": [], "modified": ["berichte/neu.md"], "removed": ["berichte/alt.md"]}]}
+    ok("nur berichte aus neuen commits", geaenderte_berichte(ev) == ["berichte/neu.md"], geaenderte_berichte(ev))
+    ok("ohne commits nichts", geaenderte_berichte({"commits": []}) == [] and geaenderte_berichte({}) == [])
     import tempfile
     with tempfile.TemporaryDirectory() as d:
         a, b = os.path.join(d, "a.md"), os.path.join(d, "b.md")
         open(a, "w").write(md)
         open(b, "w").write(md + "\nanderer rest")
         ok("unveraenderter abschnitt sendet nichts", lauf(b, "", False, a) == 0)
-    ok("kopf traegt von hand", kopf("berichte/a.md", 3, "").startswith("📤 VON HAND"))
+        # push mit bericht, dann force-push mit gleichem abschnitt, dann anderer branch, dann neuer inhalt
+        alt_cwd = os.getcwd()
+        os.chdir(d)
+        try:
+            os.makedirs("berichte")
+            open("berichte/r.md", "w").write(md)
+            evp, merk = os.path.join(d, "ev.json"), os.path.join(d, "gesendet.json")
+            json.dump({"commits": [{"distinct": True, "added": ["berichte/r.md"], "modified": []}]}, open(evp, "w"))
+            gesendet = []
+
+            def fake(alle):
+                gesendet.append(len(alle))
+                return 0
+            r1 = lauf_ereignis(evp, "bericht/x", merk, "", False, fake)
+            r2 = lauf_ereignis(evp, "bericht/x", merk, "", False, fake)
+            r3 = lauf_ereignis(evp, "bericht/y", merk, "", False, fake)
+            ok("erster push sendet kopf plus 2", r1 == 0 and gesendet == [3], gesendet)
+            ok("gleicher inhalt nie zweimal, auch nicht auf anderem branch", r2 == 0 and r3 == 0 and gesendet == [3],
+               gesendet)
+            open("berichte/r.md", "w").write(md.replace("zwei", "zwei neu"))
+            lauf_ereignis(evp, "bericht/x", merk, "", False, fake)
+            ok("neuer inhalt geht einmal raus", gesendet == [3, 3], gesendet)
+            m = merk_lesen(merk)
+            ok("merkdatei zwei eintraege mit pruefsumme", len(m["eintraege"]) == 2
+               and all(len(e["sha256"]) == 64 for e in m["eintraege"]), m)
+
+            def kaputt(alle):
+                return 1
+            open("berichte/r.md", "w").write(md.replace("eins", "eins neu"))
+            ok("fehlgeschlagener versand wird nicht gemerkt", lauf_ereignis(evp, "bericht/x", merk, "", False, kaputt) == 1
+               and len(merk_lesen(merk)["eintraege"]) == 2)
+            v = vereinen({"eintraege": [{"branch": "a", "datei": "d", "sha256": "1"}]},
+                         {"eintraege": [{"branch": "a", "datei": "d", "sha256": "1"},
+                                        {"branch": "b", "datei": "d", "sha256": "2"}]})
+            ok("vereinen ohne doppelte", len(v["eintraege"]) == 2)
+            ok("echte merkdatei gueltig", merk_pruefen(merk_lesen(merk)) == [], merk_pruefen(merk_lesen(merk)))
+            ok("fremder schluessel ungueltig", merk_pruefen({"eintraege": [], "x": 1}) != [])
+            gut = {"branch": "bericht/x", "datei": "berichte/r.md", "sha256": "a" * 64, "utc": "2026-10-26"}
+            for feld, wert in (("datei", "scripts/x.py"), ("sha256", "nein"), ("branch", "a b"), ("utc", "gestern")):
+                ok("ungueltig: %s" % feld, merk_pruefen({"eintraege": [dict(gut, **{feld: wert})]}) != [])
+            ok("ungueltig: hinweis mit ip", merk_pruefen({"eintraege": [dict(gut, hinweis="node " + ip)]}) != [])
+            ok("ungueltig: zusatzfeld", merk_pruefen({"eintraege": [dict(gut, webhook="x")]}) != [])
+        finally:
+            os.chdir(alt_cwd)
     print("%d fehler" % len(fehler))
     return 1 if fehler else 0
 
@@ -137,10 +356,29 @@ def main():
     ap.add_argument("--link", default="")
     ap.add_argument("--trocken", action="store_true")
     ap.add_argument("--vorher", help="stand der datei vor dem push; gleicher abschnitt wird nicht erneut gesendet")
+    ap.add_argument("--ereignis", help="push-ereignis (GITHUB_EVENT_PATH)")
+    ap.add_argument("--branch", default="")
+    ap.add_argument("--merkdatei", default="gesendet.json")
+    ap.add_argument("--link-basis", default="")
+    ap.add_argument("--vereinen", nargs=2, metavar=("A", "B"))
+    ap.add_argument("--merk-pruefen", metavar="DATEI", help="merkdatei pruefen, rc 1 bei einem fehler")
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args()
     if a.selbsttest:
         return selbsttest()
+    if a.merk_pruefen or a.vereinen:
+        for pfad in ([a.merk_pruefen] if a.merk_pruefen else a.vereinen):
+            f = merk_pruefen(merk_lesen(pfad))
+            if f:
+                print("merkdatei %s ungueltig: %s" % (os.path.basename(pfad), "; ".join(f)))
+                return 1
+        if a.merk_pruefen:
+            print("merkdatei gueltig")
+            return 0
+        merk_schreiben(a.vereinen[0], vereinen(merk_lesen(a.vereinen[0]), merk_lesen(a.vereinen[1])))
+        return 0
+    if a.ereignis:
+        return lauf_ereignis(a.ereignis, a.branch, a.merkdatei, a.link_basis, a.trocken)
     return lauf(a.datei, a.link, a.trocken, a.vorher)
 
 
