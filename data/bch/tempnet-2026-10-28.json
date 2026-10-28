@@ -1,0 +1,368 @@
+{
+  "titel": "BCH Tempnet 2027, unabhaengige Zaehlung",
+  "stichtag_utc": "2026-10-28 10:00 UTC",
+  "bereich": {
+    "von_hoehe": 327989,
+    "bis_hoehe": 345613,
+    "bloecke": 17625,
+    "von_zeit_utc": "2026-10-15 12:56:56",
+    "bis_zeit_utc": "2026-10-28 09:59:28"
+  },
+  "quelle": {
+    "quelle": "BCH-Tempnet P2P (getheaders), Peers aus der oeffentlichen Tempnet-Konfiguration",
+    "abruf_utc": "2026-10-28T10:09:45Z",
+    "start_checkpoint": 327988,
+    "erste_hoehe": 327989,
+    "spitze_hoehe": 345623,
+    "spitze_hash": "000000006e4129becc68a1d56cbcd284e05c77ec20b165a4f6ea2c60e48a055b",
+    "fixpunkte": {
+      "letzter_gemeinsamer": 327988,
+      "erster_tempnet": 327989
+    },
+    "checkpoints_geprueft": 1,
+    "peer_software": [
+      "/Bitcoin Cash Node:29.2.1(my-tempnet-node)/",
+      "/Vcash:0.1/",
+      "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/"
+    ],
+    "peer_fehler": 0,
+    "zielhoehe_gemeldet": 345620,
+    "zielhoehe_aus_peers_mit_abzweig": 4,
+    "proben_ohne_abzweig": 8,
+    "abzweige_verworfen": [],
+    "gegenproben": [
+      {
+        "agent": "/Vcash:0.1/",
+        "verglichen": 500,
+        "gleich": 500,
+        "spitze_peer": 345623
+      },
+      {
+        "agent": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+        "verglichen": 500,
+        "gleich": 500,
+        "spitze_peer": 345623
+      }
+    ],
+    "gegenproben_ohne_antwort": [],
+    "pruefungen": [
+      "prev-hash-kette",
+      "hash <= ziel aus nbits",
+      "erster tempnet-block 327989"
+    ],
+    "nicht_geprueft": [
+      "block-inhalt",
+      "asert-schwierigkeitsregel",
+      "konsensregeln jenseits des kopfes"
+    ]
+  },
+  "abstaende": {
+    "anzahl": 17624,
+    "mittel": 63.13,
+    "median": 44.0,
+    "p90": 128.0,
+    "p99": 216.0,
+    "max": 20863
+  },
+  "erwartung_abstaende": {
+    "mittel": 60.0,
+    "median": 41.6,
+    "p90": 138.2,
+    "p99": 276.3,
+    "anteil_ueber_5min": 0.00674,
+    "laengste_luecke": 621.3
+  },
+  "anteil_ueber_5min": 0.00176,
+  "anzahl_ueber_5min": 31,
+  "laengste_luecke_hoehe": 328223,
+  "null": 56,
+  "negativ": 0,
+  "mtp": {
+    "verzug_block": {
+      "anzahl": 17614,
+      "mittel": 369.55,
+      "median": 348.0,
+      "p90": 520.0,
+      "p99": 694.9,
+      "max": 27799
+    },
+    "verzug_block_min": 49,
+    "abruf_minus_mtp": 255,
+    "abruf_minus_spitze": 22,
+    "spitze_beim_abruf": 345623,
+    "erwartung": {
+      "verzug_block": {
+        "anzahl": 200000,
+        "mittel": 359.85,
+        "median": 340.107398799977,
+        "p90": 556.5,
+        "p99": 786.0,
+        "max": 1341.7716854069604
+      },
+      "abruf_minus_mtp": {
+        "anzahl": 200000,
+        "mittel": 359.85,
+        "median": 340.350340138432,
+        "p90": 555.8,
+        "p99": 786.4,
+        "max": 1374.5140852918812
+      },
+      "abruf_minus_spitze": {
+        "anzahl": 200000,
+        "mittel": 60.1,
+        "median": 41.73228996285829,
+        "p90": 137.5,
+        "p99": 277.8,
+        "max": 764.6230505589011
+      },
+      "ziehungen": 200000,
+      "saat": 2027
+    }
+  },
+  "fenster_10": {
+    "gemessen": {
+      "anzahl": 17615,
+      "mittel": 623.58,
+      "median": 585.0,
+      "p90": 808.0,
+      "p99": 1050.9,
+      "max": 48270
+    },
+    "erwartung_10x60": {
+      "median": 580.1,
+      "p90": 852.4,
+      "p99": 1127.0
+    },
+    "erwartung_1x600": {
+      "median": 415.9,
+      "p90": 1381.6,
+      "p99": 2763.1
+    }
+  },
+  "nachfuehrung": {
+    "methode": "Fenster 100 Bloecke, Sprung ab Faktor 2.0 (bestaetigt), eingeholt, wenn die ASERT-Schwierigkeit innerhalb +-15 % der Hashrate der folgenden 100 Bloecke mal 60 s liegt",
+    "spruenge": 1,
+    "eingeholt": 0,
+    "abgeloest": 0,
+    "offen_am_stichtag": 0,
+    "nicht_in_2000_bloecken": 1,
+    "median_bloecke": null,
+    "median_min": null,
+    "max_bloecke": null,
+    "ereignisse": [
+      {
+        "grenze_hoehe": 328239,
+        "zeit_utc": "2026-10-16 13:48:16",
+        "faktor_hashrate": 3.16,
+        "eingeholt_nach_bloecken": null,
+        "eingeholt_nach_min": null,
+        "abgeloest": false,
+        "offen_am_stichtag": false,
+        "nicht_in_2000": true
+      }
+    ]
+  },
+  "mindest": {
+    "anzahl": 4819,
+    "von": 17625,
+    "je_tag": [
+      {
+        "tag_utc": "2026-10-15",
+        "bloecke": 10,
+        "mindest": 10
+      },
+      {
+        "tag_utc": "2026-10-16",
+        "bloecke": 855,
+        "mindest": 698
+      },
+      {
+        "tag_utc": "2026-10-17",
+        "bloecke": 1525,
+        "mindest": 1525
+      },
+      {
+        "tag_utc": "2026-10-18",
+        "bloecke": 1888,
+        "mindest": 641
+      },
+      {
+        "tag_utc": "2026-10-19",
+        "bloecke": 1282,
+        "mindest": 274
+      },
+      {
+        "tag_utc": "2026-10-20",
+        "bloecke": 1433,
+        "mindest": 220
+      },
+      {
+        "tag_utc": "2026-10-21",
+        "bloecke": 1399,
+        "mindest": 209
+      },
+      {
+        "tag_utc": "2026-10-22",
+        "bloecke": 1466,
+        "mindest": 203
+      },
+      {
+        "tag_utc": "2026-10-23",
+        "bloecke": 1402,
+        "mindest": 201
+      },
+      {
+        "tag_utc": "2026-10-24",
+        "bloecke": 1449,
+        "mindest": 190
+      },
+      {
+        "tag_utc": "2026-10-25",
+        "bloecke": 1435,
+        "mindest": 180
+      },
+      {
+        "tag_utc": "2026-10-26",
+        "bloecke": 1450,
+        "mindest": 185
+      },
+      {
+        "tag_utc": "2026-10-27",
+        "bloecke": 1438,
+        "mindest": 206
+      },
+      {
+        "tag_utc": "2026-10-28",
+        "bloecke": 593,
+        "mindest": 77
+      }
+    ],
+    "luecke_davor_ueber_120s": 2454,
+    "luecke_davor_bis_120s": 2364,
+    "max_luecke_vor_asert_block_s": 120,
+    "erster_asert_block": 328002
+  },
+  "je_tag": [
+    {
+      "tag_utc": "2026-10-15",
+      "bloecke": 10,
+      "von": 327989,
+      "bis": 327998,
+      "mittlerer_abstand_s": 3585.3,
+      "schwierigkeit_median": 1.0
+    },
+    {
+      "tag_utc": "2026-10-16",
+      "bloecke": 855,
+      "von": 327999,
+      "bis": 328853,
+      "mittlerer_abstand_s": 109.8,
+      "schwierigkeit_median": 6.39
+    },
+    {
+      "tag_utc": "2026-10-17",
+      "bloecke": 1525,
+      "von": 328854,
+      "bis": 330378,
+      "mittlerer_abstand_s": 56.7,
+      "schwierigkeit_median": 1.0
+    },
+    {
+      "tag_utc": "2026-10-18",
+      "bloecke": 1888,
+      "von": 330379,
+      "bis": 332266,
+      "mittlerer_abstand_s": 45.8,
+      "schwierigkeit_median": 12.28
+    },
+    {
+      "tag_utc": "2026-10-19",
+      "bloecke": 1282,
+      "von": 332267,
+      "bis": 333548,
+      "mittlerer_abstand_s": 67.4,
+      "schwierigkeit_median": 6.96
+    },
+    {
+      "tag_utc": "2026-10-20",
+      "bloecke": 1433,
+      "von": 333549,
+      "bis": 334981,
+      "mittlerer_abstand_s": 60.3,
+      "schwierigkeit_median": 2.98
+    },
+    {
+      "tag_utc": "2026-10-21",
+      "bloecke": 1399,
+      "von": 334982,
+      "bis": 336380,
+      "mittlerer_abstand_s": 61.8,
+      "schwierigkeit_median": 2.27
+    },
+    {
+      "tag_utc": "2026-10-22",
+      "bloecke": 1466,
+      "von": 336381,
+      "bis": 337846,
+      "mittlerer_abstand_s": 58.9,
+      "schwierigkeit_median": 2.26
+    },
+    {
+      "tag_utc": "2026-10-23",
+      "bloecke": 1402,
+      "von": 337847,
+      "bis": 339248,
+      "mittlerer_abstand_s": 61.6,
+      "schwierigkeit_median": 2.04
+    },
+    {
+      "tag_utc": "2026-10-24",
+      "bloecke": 1449,
+      "von": 339249,
+      "bis": 340697,
+      "mittlerer_abstand_s": 59.6,
+      "schwierigkeit_median": 1.68
+    },
+    {
+      "tag_utc": "2026-10-25",
+      "bloecke": 1435,
+      "von": 340698,
+      "bis": 342132,
+      "mittlerer_abstand_s": 60.2,
+      "schwierigkeit_median": 1.76
+    },
+    {
+      "tag_utc": "2026-10-26",
+      "bloecke": 1450,
+      "von": 342133,
+      "bis": 343582,
+      "mittlerer_abstand_s": 59.6,
+      "schwierigkeit_median": 1.73
+    },
+    {
+      "tag_utc": "2026-10-27",
+      "bloecke": 1438,
+      "von": 343583,
+      "bis": 345020,
+      "mittlerer_abstand_s": 60.1,
+      "schwierigkeit_median": 1.71
+    },
+    {
+      "tag_utc": "2026-10-28",
+      "bloecke": 593,
+      "von": 345021,
+      "bis": 345613,
+      "mittlerer_abstand_s": 60.7,
+      "schwierigkeit_median": 1.72
+    }
+  ],
+  "mindestschwierigkeit": 4819,
+  "gegenprobe_chaingraph": {
+    "quelle": "source chaingraph",
+    "endpunkt": "https://tempnet.chaingraph.cash/v1/graphql",
+    "proben": 38,
+    "verglichen": 0,
+    "gleich": 0,
+    "fehler": "HTTPError: HTTP Error 403: Forbidden"
+  }
+}
