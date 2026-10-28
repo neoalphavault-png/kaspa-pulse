@@ -56,7 +56,9 @@ SEITE_PX = (1080, 1350)
 TITEL = "The 8 Kaspa numbers whales watch"
 
 BG, SURF, LINE = "#080B0F", "#0E1418", "#1B252B"
-INK, INK2, INK3 = "#F2F5F4", "#A9B7B4", "#6F7E7B"
+# INK3 von #6F7E7B (4.6:1) auf #96A5A2: 7.7:1 auf BG, 7.2:1 auf SURF, die
+# Grafik-Regel 7:1 (Ben, 25.10.2026). Nur die Farbe, kein Satz geaendert.
+INK, INK2, INK3 = "#F2F5F4", "#A9B7B4", "#96A5A2"
 ACC, ACCD, ACCF = "#49EACB", "#1F6B5D", "#123D36"
 
 MONATE = ["jan", "feb", "mar", "apr", "may", "jun",
@@ -128,6 +130,16 @@ def alter(stichtag, heute):
 # letzten Punkt.
 POLSTER = 0.2
 NETT = (1.0, 2.0, 2.5, 5.0)
+
+
+def kontrast_hex(a, b):
+    """WCAG-Kontrast zweier Farben in #RRGGBB."""
+    def lum(h):
+        c = [int(h[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+        c = [x / 12.92 if x <= 0.03928 else ((x + 0.055) / 1.055) ** 2.4 for x in c]
+        return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+    la, lb = sorted((lum(a), lum(b)), reverse=True)
+    return (la + 0.05) / (lb + 0.05)
 
 
 def nett_schritt(hoechstens):
@@ -545,7 +557,8 @@ def g_trichter(z):
         w = (W - 260) * v / mx
         letzt = i == len(data) - 1
         out.append('<rect x="0" y="%s" width="%.1f" height="64" rx="6" fill="%s"/>'
-                   % (y, w, ACC if letzt else ACCD))
+                   % (y, w, ACC if letzt else ACCF))
+        # INK auf ACCF 11:1, auf ACCD waeren es nur 5.8:1 (Grafik-Regel 7:1)
         out.append(txt(20, y + 43, lab, 30, BG if letzt else INK, weight=600))
         out.append(txt(w + 20, y + 44, fmt(v), 34, INK if letzt else INK2, weight=600, fam="PlexMono"))
     return svg(300, "".join(out))
@@ -574,7 +587,7 @@ def g_stufen(z):
         s = z["stufen"][k]
         x = (k + 1) * bw + bw / 2 if anchor == "middle" else W - 2
         out.append(txt(x, hy(s[1]) - 14, "%.2f · %s %s" % (
-            s[1], MONATE[int(s[0][5:7]) - 1], s[0][:4]), 26, INK3, anchor))
+            s[1], MONATE[int(s[0][5:7]) - 1], s[0][:4]), 26, INK, anchor))   # steht auf ACCF, 11:1
     out.append(txt(2, H - 12, "KAS per block · one bar per monthly step", 26, INK3,
                    weight=400, fam="PlexMono"))
     return svg(H, "".join(out))
@@ -974,7 +987,7 @@ def rueckseite(marke, utm):
 <div class="sub-b"><span>subscribe free at kaspapulse.com</span><i>one short email a week · unsubscribe anytime</i></div>
 </a>
 <div class="links">
-<a href="https://kaspapulse.com/?utm_source=cheatsheet&amp;utm_medium=pdf&amp;utm_campaign=%s"><b>live numbers</b><span>kaspapulse.com</span></a>
+<a href="https://kaspapulse.com/?utm_source=cheatsheet&amp;utm_medium=pdf&amp;utm_campaign=%s"><b>the dashboard</b><span>kaspapulse.com</span></a>
 <a href="https://discord.gg/h33JBhrPP7"><b>entity x alerts</b><span>discord, free</span></a>
 <a href="https://www.youtube.com/channel/UCLheLoijZUZOE79vRtJtJ9Q"><b>explained weekly</b><span>youtube</span></a>
 <div><b>one number a day</b><span><a href="https://x.com/gokugalax">x @gokugalax</a> · <a href="https://instagram.com/kaspapulse">ig @kaspapulse</a></span></div>
@@ -1039,8 +1052,35 @@ def rendern(seiten_html, ziel):
                print_background=True,
                margin={"top": "0", "bottom": "0", "left": "0", "right": "0"})
         pg.locator("section.pg").first.screenshot(path=str(deck))
+        pngs, kontrast = seiten_png(pg, ig_ordner(ziel))
         b.close()
+    rendern.letzte = {"pngs": pngs, "kontrast": kontrast}
     return ziel, deck, tmp
+
+
+def ig_ordner(pdf):
+    return Path(pdf).with_name(Path(pdf).stem + "-instagram")
+
+
+def seiten_png(pg, ordner):
+    """Jede Seite einzeln als PNG 1080x1350 fuer das Instagram-Karussell
+    (Ben, 28.10.2026), in der Reihenfolge des PDF. Dazu der Kontrast 7:1 je
+    Seite, gemessen im fertigen Bild wie bei allen anderen Grafiken."""
+    import hintergrund
+    ordner.mkdir(parents=True, exist_ok=True)
+    for alt in ordner.glob("seite-*.png"):
+        alt.unlink()
+    n = pg.locator("section.pg").count()
+    pngs, kontrast = [], []
+    for i in range(n):
+        pg.evaluate("(i) => document.querySelectorAll('section.pg').forEach("
+                    "(e, k) => e.style.display = (k === i ? 'flex' : 'none'))", i)
+        pfad = ordner / ("seite-%02d.png" % (i + 1))
+        pg.screenshot(path=str(pfad))
+        pngs.append(pfad)
+        kontrast += ["seite %d, %s" % (i + 1, v) for v in hintergrund.kontrast_verstoesse(pg)]
+    pg.evaluate("() => document.querySelectorAll('section.pg').forEach(e => e.style.display = '')")
+    return pngs, kontrast
 
 
 def bauen(p, edition, ziel=None):
@@ -1084,19 +1124,107 @@ def ops_text(p, edition, pdf, scharf):
     return "\n".join(zeilen)
 
 
-def ops_schicken(text, dateien, scharf):
+IG_CAPTION = ("the 8 kaspa numbers whales watch. edition %d, %s %d. every number dated, with its "
+              "source. save it for later. the full cheat sheet arrives by email, link in bio. "
+              "#kaspa #kas #blockdag")
+WORKFLOW_URL = "https://github.com/neoalphavault-png/kaspa-pulse/actions/workflows/cheat-sheet.yml"
+VARIABLEN_URL = "https://github.com/neoalphavault-png/kaspa-pulse/settings/variables/actions"
+
+
+def ig_caption(p, edition):
+    """Bens Caption vom 28.10.2026, ohne Engagement-Koeder. Edition und Monat
+    kommen aus dem Lauf, sonst kein Wort anders."""
+    monat = dt.date.fromisoformat(p["stand"])
+    return IG_CAPTION % (edition, MONATE_LANG[monat.month - 1], monat.year)
+
+
+def probe_lauf():
+    """Ein Lauf von einem anderen Branch als main ist immer eine Probe: alles
+    nach #ops-log, nichts zum Freigeben und nichts zum Posten nach
+    #moderator-only. Lokal (ohne GITHUB_REF_NAME) gilt das nicht."""
+    ref = os.environ.get("GITHUB_REF_NAME", "")
+    return bool(ref) and ref != "main"
+
+
+def schon_gemeldet(heute, holer=None):
+    """Am 1. kommen zwei Laeufe zur selben Stunde, der c2-Takt und der Cron
+    als Ersatz (im Winter trifft 08:00 UTC genau 09:00 Berlin). Ein Cron-Lauf
+    meldet nicht, wenn heute schon ein Lauf dieses Workflows den Schritt
+    "bauen und melden" gruen beendet hat. Ein Lauf von Hand meldet immer.
+    Geht die Abfrage nicht, wird gemeldet: lieber doppelt als gar nicht."""
+    if os.environ.get("GITHUB_EVENT_NAME") != "schedule":
+        return None
+    repo = os.environ.get("GITHUB_REPOSITORY", "")
+    selbst = os.environ.get("GITHUB_RUN_ID", "")
+    if not repo:
+        return None
+    import urllib.request
+
+    def holen(url):
+        req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json",
+                                                   "User-Agent": "kaspa-pulse-cheat-sheet"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.load(r)
+    holen = holer or holen
+    basis = "https://api.github.com/repos/%s/actions" % repo
+    try:
+        laeufe = holen("%s/workflows/cheat-sheet.yml/runs?created=%s&per_page=20"
+                       % (basis, heute.isoformat()))["workflow_runs"]
+        for r in laeufe:
+            if str(r["id"]) == selbst or r.get("head_branch") != "main":
+                continue
+            for j in holen("%s/runs/%s/jobs" % (basis, r["id"]))["jobs"]:
+                for st in j.get("steps") or []:
+                    if st.get("name") == "bauen und melden" and st.get("conclusion") == "success":
+                        return r["id"]
+    except Exception as exc:  # noqa: BLE001
+        print("abfrage der laeufe ging nicht (%s), es wird gemeldet" % type(exc).__name__)
+    return None
+
+
+def ops_schicken(text, dateien, scharf, ig=None):
     """Text, Deckblatt und PDF in einem Aufruf ueber scripts/ops_melden.py.
     Ersetzt der Lauf die Datei der Webseite, ist es eine Info nach #ops-log.
-    Sonst entscheidet Ben, ob er CHEAT_SHEET_LIVE scharf stellt, das ist eine
-    Handlung und geht als "📤 VON HAND" nach #moderator-only."""
+    Sonst entscheidet Ben, ob er die Edition freigibt, das ist eine Handlung
+    und geht als "📤 VON HAND" nach #moderator-only.
+
+    ig ist das Upload-Paket fuer das Instagram-Karussell, (pngs, caption,
+    kontrast). Posten tut Ben von Hand, also immer "📤 VON HAND", in einer
+    eigenen Nachricht mit den 10 Seiten. Verletzt eine Seite den Kontrast,
+    geht kein Paket raus, nur die Liste nach #ops-log.
+
+    Ein Probelauf (probe_lauf) schickt alles nach #ops-log."""
     import ops_melden
-    if scharf:
-        return ops_melden.log(text, dateien, "cheat-sheet")
-    kopf = ops_melden.hand_text(
-        "wenn du die edition freigibst", "GitHub",
-        "variable CHEAT_SHEET_LIVE auf scharf stellen, deckblatt und pdf haengen dran",
-        "https://github.com/neoalphavault-png/kaspa-pulse/settings/variables/actions")
-    return ops_melden.hand(kopf + "\n\n" + text, dateien, "cheat-sheet")
+    probe = probe_lauf()
+    if probe:
+        text = ("PROBE vom branch %s, nicht freigeben, nicht posten.\n" % os.environ.get("GITHUB_REF_NAME", "")
+                + text)
+    if scharf or probe:
+        ops_melden.log(text, dateien, "cheat-sheet")
+    else:
+        kopf = ops_melden.hand_text(
+            "wenn du die edition freigibst", "GitHub",
+            "1. variable CHEAT_SHEET_LIVE auf scharf stellen, 2. cheat-sheet mit veroeffentlichen=true "
+            "starten. deckblatt und pdf haengen dran",
+            VARIABLEN_URL + "\n" + WORKFLOW_URL)
+        ops_melden.hand(kopf + "\n\n" + text, dateien, "cheat-sheet")
+    if not ig:
+        return
+    pngs, caption, kontrast = ig
+    if kontrast:
+        ops_melden.log("cheat sheet, instagram-paket NICHT geschickt, kontrast unter 7:1\n"
+                       + "\n".join(kontrast[:20]), was="cheat-sheet instagram")
+        return
+    paket = ("%d seiten in dieser reihenfolge als karussell hochladen, 1080x1350, ohne musik, "
+             "caption kopieren\n```\n%s\n```" % (len(pngs), caption))
+    if probe:
+        ops_melden.log("PROBE, instagram-paket, nicht posten.\n" + paket,
+                       [(x, "image/png") for x in pngs], "cheat-sheet instagram")
+        return
+    ops_melden.hand(ops_melden.hand_text("nach deiner freigabe", "Instagram Karussell",
+                                         "cheat sheet als karussell posten",
+                                         "https://www.instagram.com/kaspapulse/", paket),
+                    [(x, "image/png") for x in pngs], "cheat-sheet instagram")
 
 
 # --------------------------------------------------------------------- main
@@ -1140,10 +1268,20 @@ def main(argv=None):
     if a.veroeffentlichen:
         ziel = festschreiben(p, edition, pdf, log)
         print("festgeschrieben, %s und %s" % (LOG, ziel))
+    roh_json = pdf.with_name(pdf.stem + "-probe.json")
+    roh_json.write_text(json.dumps(p, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    info = getattr(rendern, "letzte", {"pngs": [], "kontrast": []})
+    print("instagram, %d seiten unter %s, kontrast %s" % (
+        len(info["pngs"]), ig_ordner(pdf), "; ".join(info["kontrast"]) or "alle ab 7:1"))
     if a.melden:
         text = ops_text(p, edition, pdf, a.veroeffentlichen)
         print(text)
-        ops_schicken(text, [(deck, "image/png"), (pdf, "application/pdf")], a.veroeffentlichen)
+        frueher = schon_gemeldet(heute)
+        if frueher:
+            print("heute schon gemeldet, lauf %s. nichts doppelt" % frueher)
+            return 0
+        ops_schicken(text, [(deck, "image/png"), (pdf, "application/pdf")], a.veroeffentlichen,
+                     (info["pngs"], ig_caption(p, edition), info["kontrast"]) if info["pngs"] else None)
     return 0
 
 
@@ -1288,6 +1426,96 @@ def selbsttest():
        all("source kaspalytics" in zl[i][1] for i in (1, 2, 3, 5, 7)), [z[1] for z in zl])
     ok("kein 'counted on chain' und kein 'counted, not guessed'",
        "counted on chain" not in seiten and "counted, not guessed" not in seiten)
+
+    # Edition 2 (Ben, 28.10.2026): linktext, utm, caption
+    p2 = dict(p, stand="2026-11-01")
+    s2 = html(p2, 2, fonts="")
+    ok("rueckseite sagt the dashboard, nicht live numbers",
+       "<b>the dashboard</b>" in s2 and "live numbers" not in s2)
+    ok("pdf-links tragen utm_campaign=edition2", s2.count("utm_campaign=edition2") == 2
+       and "edition1" not in s2, s2.count("utm_campaign=edition2"))
+    ok("caption wortgleich mit Bens text", ig_caption(p2, 2) ==
+       "the 8 kaspa numbers whales watch. edition 2, november 2026. every number dated, with its source. "
+       "save it for later. the full cheat sheet arrives by email, link in bio. #kaspa #kas #blockdag",
+       ig_caption(p2, 2))
+    import content_wache
+    ok("caption besteht die textregeln", content_wache.text_verstoesse(ig_caption(p2, 2)) == [],
+       content_wache.text_verstoesse(ig_caption(p2, 2)))
+    ok("INK3 traegt 7:1 auf grund und flaeche", kontrast_hex(INK3, BG) >= 7 and kontrast_hex(INK3, SURF) >= 7,
+       kontrast_hex(INK3, BG), kontrast_hex(INK3, SURF))
+
+    # wohin die meldungen gehen
+    import ops_melden
+    gesendet = []
+    echt_post = ops_melden._post
+    alt_env = {k: os.environ.get(k) for k in list(ops_melden.ARTEN.values()) + ["GITHUB_REF_NAME"]}
+    ops_melden._post = lambda url, body, typ, timeout=60: gesendet.append((url.rsplit("/", 1)[1], body)) or 204
+    basis = "https://discord.com/api/" + "webhooks/"
+    try:
+        os.environ["DISCORD_WEBHOOK_OPS"] = basis + "1/hand"
+        os.environ["DISCORD_WEBHOOK_LOG"] = basis + "2/log"
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            bild = Path(td) / "seite-01.png"
+            bild.write_bytes(b"\x89PNG\r\n")
+            pngs = [bild] * 10
+            os.environ["GITHUB_REF_NAME"] = "main"
+            ops_schicken("t", [(bild, "image/png")], False, (pngs, ig_caption(p2, 2), []))
+            ok("sonntag, freigabe und instagram-paket als von hand",
+               [g[0] for g in gesendet] == ["hand", "hand"]
+               and all(b"VON HAND" in g[1] for g in gesendet), [g[0] for g in gesendet])
+            ok("paket traegt 10 seiten und die caption",
+               gesendet[-1][1].count(b'name="files[') == 10 and b"edition 2, november 2026" in gesendet[-1][1])
+            ok("freigabe nennt variable und veroeffentlichen=true",
+               b"CHEAT_SHEET_LIVE" in gesendet[0][1] and b"veroeffentlichen=true" in gesendet[0][1])
+            gesendet.clear()
+            ops_schicken("t", [], True, (pngs, ig_caption(p2, 2), []))
+            ok("scharf, info nach log, paket trotzdem von hand",
+               [g[0] for g in gesendet] == ["log", "hand"], [g[0] for g in gesendet])
+            gesendet.clear()
+            os.environ["GITHUB_REF_NAME"] = "cheat/edition2"
+            ok("anderer branch ist eine probe", probe_lauf())
+            ops_schicken("t", [], False, (pngs, ig_caption(p2, 2), []))
+            ok("probe, alles nach log, nichts nach moderator-only",
+               [g[0] for g in gesendet] == ["log", "log"] and b"PROBE" in gesendet[0][1], [g[0] for g in gesendet])
+            gesendet.clear()
+            os.environ["GITHUB_REF_NAME"] = "main"
+            ops_schicken("t", [], False, (pngs, ig_caption(p2, 2), ["seite 5, kontrast 5.8:1"]))
+            ok("kontrast unter 7:1, kein paket, liste nach log",
+               [g[0] for g in gesendet] == ["hand", "log"] and b"NICHT" in gesendet[-1][1], [g[0] for g in gesendet])
+    finally:
+        ops_melden._post = echt_post
+        for k_, v_ in alt_env.items():
+            if v_ is None:
+                os.environ.pop(k_, None)
+            else:
+                os.environ[k_] = v_
+
+    # zwei laeufe am 1., der cron meldet nicht doppelt
+    alt_env = {k_: os.environ.get(k_) for k_ in ("GITHUB_EVENT_NAME", "GITHUB_REPOSITORY", "GITHUB_RUN_ID")}
+    try:
+        os.environ.update(GITHUB_EVENT_NAME="schedule", GITHUB_REPOSITORY="o/r", GITHUB_RUN_ID="9")
+
+        def holer(url, schritt="success"):
+            if "/jobs" in url:
+                return {"jobs": [{"steps": [{"name": "bauen und melden", "conclusion": schritt}]}]}
+            return {"workflow_runs": [{"id": 9, "head_branch": "main"}, {"id": 7, "head_branch": "main"}]}
+        tag = dt.date(2026, 11, 1)
+        ok("cron nach gruenem takt-lauf meldet nicht", schon_gemeldet(tag, holer) == 7)
+        ok("cron nach uebersprungenem lauf meldet",
+           schon_gemeldet(tag, lambda u: holer(u, "skipped")) is None)
+
+        def kaputt(url):
+            raise OSError("kein netz")
+        ok("ohne abfrage wird gemeldet", schon_gemeldet(tag, kaputt) is None)
+        os.environ["GITHUB_EVENT_NAME"] = "workflow_dispatch"
+        ok("ein lauf von hand meldet immer", schon_gemeldet(tag, holer) is None)
+    finally:
+        for k_, v_ in alt_env.items():
+            if v_ is None:
+                os.environ.pop(k_, None)
+            else:
+                os.environ[k_] = v_
 
     # die ausgabe-nummer
     lg = {"editionen": [{"n": 1, "monat": "2026-10"}]}
