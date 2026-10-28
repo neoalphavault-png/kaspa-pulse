@@ -1170,6 +1170,8 @@ def selbsttest_lauf(ok, schreib):
     t0, ende, gez = lauf_lesen(pfad)
     plan = {m for m, (_, z, _) in plan_schritte(t0, "storm").items() if z}
     ok("lauf 29.10.: t0 19:00, ende 20:00 utc", t0 == ms("2026-10-29T19:00:00Z") and ende == ms("2026-10-29T20:00:00Z"))
+    ok("lauf 29.10.: ntp 17:00, 18:55, 20:01 utc", [minute(x // 60000)[11:16] for x in lauf_lesen.ntp]
+       == ["17:00", "18:55", "20:01"], lauf_lesen.ntp)
     ok("lauf 29.10.: gezaehlt 19:03-19:14, 19:23-19:34, 19:43-19:59, gleich dem plan",
        sorted(minute(m)[11:16] for m in gez) == ["19:%02d" % k for k in
                                                   list(range(3, 15)) + list(range(23, 35)) + list(range(43, 60))]
