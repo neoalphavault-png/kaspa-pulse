@@ -81,6 +81,10 @@ Noch 9.895 Blöcke ab der Spitze 3.533.510. Das Tempo der letzten 14 vollen Tage
 - **Zakura minus Zebra:** Bei der ersten Ankündigung liegt der Median über 23 Blöcke bei 17,4 s, Zakura war nie zuerst. Im Testnet am 17.10. waren es 36 ms. Die Stichprobe ist klein. Ich nenne die Zahl, deute sie aber nicht.
 - **Datenschutz:** In Daten und Log stehen nur Labels wie `zebra-1` und die Software, keine Adressen.
 
+## Selbst-Merge
+
+- [kaspa-pulse#206](https://github.com/neoalphavault-png/kaspa-pulse/pull/206) gemergt als `15e2267` am 28.10.2026. Live auf main ist dieser Bericht. Keine Seite betroffen, deshalb keine Abnahme auf einer URL.
+
 ## Offene Fragen an Ben
 
 1. Die Testordner `lauscher-kettentest/` (unvollständig, ohne Zusammenfassung) und `lauscher-kettentest2/` liegen auf dem Datenbranch. Sollen sie bleiben oder vor dem 5.11. weg?
@@ -89,6 +93,6 @@ Noch 9.895 Blöcke ab der Spitze 3.533.510. Das Tempo der letzten 14 vollen Tage
 ## Was Ben tun muss
 
 - **[kaspa-pulse#205](https://github.com/neoalphavault-png/kaspa-pulse/pull/205) prüfen und mergen, vor dem Start des Zuhörers am Do 05.11. 17:00 UTC.** Ohne den Fix bricht der Kettenabruf ab, sobald die Spitze unter 3.540.000 liegt. Am 5.11. sollte sie knapp darüber liegen, sicher ist das nicht. Der PR ändert eine Workflow-Datei, deshalb kein Selbst-Merge.
-- **Für diesen Berichts-PR nichts:** Er enthält nur diese Datei, ich merge ihn selbst, sobald die Checks grün sind.
+- **Für diesen Berichts-PR nichts:** Ich habe ihn selbst gemergt, siehe unten.
 
 Der Secret-Scan ist sauber. Peer-Adressen und Hostnamen stehen in keiner Datei und keinem Log.
