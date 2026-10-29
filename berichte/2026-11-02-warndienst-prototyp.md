@@ -121,7 +121,20 @@ Auf GitHub ([upgrade wache test](https://github.com/neoalphavault-png/kaspa-puls
 
 ### Live, 15 Minuten auf dem Mainnet, trocken
 
-LIVE_ERGEBNIS
+Lauf [40912814954](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/40912814954) am 29.10.2026, Job „live“, grün. Die Wache lief mit offenem Fenster 15 min gegen das echte Mainnet, ohne zu senden.
+
+| | Ergebnis |
+|---|---|
+| Verbindungen | 3 Peers: 2 × /Zebra:7.0.0/, 1 × /Zakura:1.7.0/ |
+| Anker | nach 4 min 6 s, 307 Köpfe bis Höhe 3.534.900. Der Header-Client holt ab dem letzten Zebra-Checkpoint, das dauert beim Start |
+| Kette verfolgt | von 3.534.900 bis 3.534.905 in 11 min, jeder neue Block über den Zuhörer |
+| Meldungen | 0, kein Signal aktiv |
+| Peer-Probe (Signal d) | 8 von 34 Adressen aus den DNS-Seeds antworteten, 2 davon mit Protokoll 170150, also 25 % unter 170190. Die übrigen 6 melden 170190 |
+| Adressen | keine in Log und Zustand, eigene Prüfung im Lauf |
+
+Zwei Beobachtungen für den Betrieb:
+- **Kurzer Anlauf:** In den ersten 4 Minuten nach einem Start kennt die Wache noch keine Höhe und meldet nichts, außer zur eigenen Sicht. Deshalb läuft der Dienst nicht mit geplantem Neustart.
+- **Kleine Probe:** Nur 8 von 34 Adressen antworteten. Für Signal d ist die Probe damit klein; die Zahl der antwortenden Peers steht deshalb in jeder Meldung dabei.
 
 ### Beispielmeldungen in #ops-log
 

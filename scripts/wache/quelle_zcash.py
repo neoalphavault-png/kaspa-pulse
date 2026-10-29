@@ -11,6 +11,8 @@ einem kurzen Abruf mit dem eigenen Header-Client (zcash_koepfe.py, geprueft auf
 Verkettung, Arbeitsnachweis und Zebra-Checkpoints), beim Start und wieder,
 wenn Koepfe ohne bekannten Vorgaenger auflaufen (Luecke), hoechstens alle
 10 Minuten.
+Probelauf 29.10.2026: der erste Anker brauchte gut 4 Minuten (Abruf ab dem
+letzten Zebra-Checkpoint). Bis dahin kennt die Wache keine Hoehe.
 
 probe(): Handschlag mit den Adressen aus den DNS-Seeds, nur die gemeldete
 Protokollversion, dann trennen. Keine Adresse wird gespeichert oder gedruckt.
