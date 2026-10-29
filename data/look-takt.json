@@ -60,6 +60,13 @@
     "look": "dunkel",
     "schritt": 0,
     "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-10-29",
+    "look": "hell",
+    "motiv": "knotennetz",
+    "schritt": 1,
+    "serie": "tagesgrafik"
    }
   ],
   "story/instagram": [
@@ -70,11 +77,6 @@
    }
   ],
   "tagesgrafik/discord": [
-   {
-    "datum": "2026-10-17",
-    "look": "dunkel",
-    "schritt": 0
-   },
    {
     "datum": "2026-10-18",
     "look": "hell",
@@ -129,6 +131,11 @@
     "datum": "2026-10-28",
     "look": "hell",
     "schritt": 3
+   },
+   {
+    "datum": "2026-10-29",
+    "look": "dunkel",
+    "schritt": 0
    }
   ],
   "tagesgrafik/instagram": [
@@ -150,11 +157,6 @@
   ],
   "tagesgrafik/threads": [
    {
-    "datum": "2026-10-17",
-    "look": "dunkel",
-    "schritt": 0
-   },
-   {
     "datum": "2026-10-18",
     "look": "hell",
     "schritt": 1
@@ -208,15 +210,15 @@
     "datum": "2026-10-28",
     "look": "hell",
     "schritt": 3
+   },
+   {
+    "datum": "2026-10-29",
+    "look": "dunkel",
+    "schritt": 0
    }
   ],
   "tagesgrafik/x": [
    {
-    "datum": "2026-10-17",
-    "look": "dunkel",
-    "schritt": 0
-   },
-   {
     "datum": "2026-10-18",
     "look": "hell",
     "schritt": 1
@@ -270,6 +272,11 @@
     "datum": "2026-10-28",
     "look": "hell",
     "schritt": 3
+   },
+   {
+    "datum": "2026-10-29",
+    "look": "dunkel",
+    "schritt": 0
    }
   ]
  }
