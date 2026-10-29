@@ -15,6 +15,8 @@
 #   sudo ./setup.sh units             Units verlinken und starten
 #   sudo ./setup.sh nachziehen        Update holen, neu einlesen, neu starten
 #   sudo ./setup.sh pruefen           Gegenprobe, zeigt keine Werte
+#   sudo ./setup.sh wache [KETTE]     Upgrade-Wache einrichten und starten (Standard zcash-mainnet)
+#   sudo ./setup.sh wache-aus [KETTE] Upgrade-Wache nach dem Fenster anhalten
 #
 # Reihenfolge: grundlage, Deploy Key auf GitHub eintragen, klonen,
 # runner, hostkey, haerten, dann die Secrets (server-secrets.yml und
@@ -399,6 +401,61 @@ pruefen() {
     python3 "$ZIEL/scripts/entity_x_alert.py" --abdeckung 2>/dev/null || echo "   noch keine"
 }
 
+# Upgrade-Wache (Ben, 29.10.2026, deploy/c2/upgrade-wache/README.md).
+# Eigener Schritt, damit Alarm und Takte davon unberuehrt bleiben. Erneuert
+# die Credstore-Skripte (neuer erlaubter Name discord_webhook_log), prueft das
+# Credential, verlinkt die Units und startet die Instanz. Wiederholbar.
+wache() {
+  root_sein
+  KETTE="${1:-zcash-mainnet}"
+  W="$ZIEL/deploy/c2/upgrade-wache"
+  case "$KETTE" in *[!a-z0-9-]*|'') echo "kette unklar" >&2; exit 1 ;; esac
+  [ -f "$ZIEL/scripts/wache/ketten/$KETTE.json" ] || { echo "keine konfiguration fuer $KETTE" >&2; exit 1; }
+
+  meldung "Stand holen"
+  sudo -u "$DIENSTNUTZER" git -C "$ZIEL" pull --ff-only
+  hinweis "$(sudo -u "$DIENSTNUTZER" git -C "$ZIEL" log --oneline -1)"
+
+  meldung "Schreibhilfen fuer die Credentials erneuern"
+  install -o root -g root -m 0755 "$(hier)/credstore/kp-credstore-put" /usr/local/sbin/kp-credstore-put
+  install -o root -g root -m 0755 "$(hier)/credstore/kp-credstore-ssh" /usr/local/sbin/kp-credstore-ssh
+  hinweis "discord_webhook_log ist jetzt ein erlaubter Name"
+
+  if [ ! -s "$CRED/discord_webhook_log" ]; then
+    echo >&2
+    echo "HALT: discord_webhook_log fehlt noch." >&2
+    echo "Auf GitHub server-secrets mit was=nur-wache starten," >&2
+    echo "danach diesen Schritt noch einmal: sudo ./setup.sh wache $KETTE" >&2
+    exit 1
+  fi
+  hinweis "discord_webhook_log vorhanden ($(wc -c < "$CRED/discord_webhook_log") byte verschluesselt)"
+
+  meldung "Units verlinken"
+  for u in upgrade-wache@.service upgrade-wache-sync@.service upgrade-wache-sync@.timer; do
+    if bekannt "$u"; then hinweis "$u schon bekannt"; else systemctl link "$W/$u"; fi
+  done
+  systemctl daemon-reload
+
+  meldung "Starten"
+  systemctl enable --now "upgrade-wache-sync@$KETTE.timer"
+  systemctl enable "upgrade-wache@$KETTE.service"
+  systemctl restart "upgrade-wache@$KETTE.service"
+  sleep 5
+  systemctl is-active "upgrade-wache@$KETTE.service" "upgrade-wache-sync@$KETTE.timer" || true
+  hinweis "journalctl -u upgrade-wache@$KETTE -n 20  zeigt Fenster und Zustand"
+  hinweis "vor dem Fenster steht dort stuendlich eine Zeile 'ruht'"
+}
+
+wache_aus() {
+  root_sein
+  KETTE="${1:-zcash-mainnet}"
+  case "$KETTE" in *[!a-z0-9-]*|'') echo "kette unklar" >&2; exit 1 ;; esac
+  meldung "Upgrade-Wache $KETTE anhalten"
+  systemctl disable --now "upgrade-wache@$KETTE.service" "upgrade-wache-sync@$KETTE.timer" || true
+  hinweis "letztes Log ins Repo:"
+  systemctl start "upgrade-wache-sync@$KETTE.service" || true
+}
+
 BEFEHL="${1:-}"
 # shift ist ein special builtin: ohne Argumente beendet es die Shell
 # sofort, auch mit "|| true". Darum die Abfrage.
@@ -412,5 +469,7 @@ case "$BEFEHL" in
   units)     units ;;
   nachziehen) nachziehen ;;
   pruefen)   pruefen ;;
-  *) sed -n '2,20p' "$0"; exit 1 ;;
+  wache)     wache "${1:-}" ;;
+  wache-aus) wache_aus "${1:-}" ;;
+  *) sed -n '2,24p' "$0"; exit 1 ;;
 esac

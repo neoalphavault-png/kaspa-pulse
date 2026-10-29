@@ -1,0 +1,10 @@
+# Stuendlich zur Minute 23 (UTC und Berlin gleich, nur die Minute zaehlt).
+[Unit]
+Description=Kaspa Pulse Upgrade-Wache %i, Log stuendlich ins Repo
+
+[Timer]
+OnCalendar=*-*-* *:23:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
