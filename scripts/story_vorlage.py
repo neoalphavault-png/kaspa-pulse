@@ -659,11 +659,9 @@ def seite_html(s, look):
            + CSS % {"grund": lk["grund"], "text": lk["text"], "text2": lk["text2"], "akzent": lk["akzent"]}
            + wortmarke.css(groesse=44, sperrung=5, look=look))
     d = dt.date.fromisoformat(s["datum_tag"])
+    # keine pulslinie mehr neben der marke: ein ornament, das wie daten aussieht (Ben, 29.10.2026)
     kopf = ("<div class='kopf'>%s<span class='tag'>%s %d %s</span></div>"
-            "<svg class='puls' viewBox='0 0 230 48'><path d='%s' fill='none' stroke='%s' stroke-width='4' "
-            "stroke-linejoin='round' stroke-linecap='round'/></svg>"
-            % (wortmarke.html(), WOCHENTAG_EN[d.weekday()], d.day, MONATE[d.month - 1].upper(),
-               tg.PULS, lk["markierung"]))
+            % (wortmarke.html(), WOCHENTAG_EN[d.weekday()], d.day, MONATE[d.month - 1].upper()))
     teile = [kopf, "<div class='titel' data-rolle='titel'>%s</div>" % esc(s["titel"])]
     if s.get("zahl"):
         teile.append("<div class='zahl' data-rolle='zahl'>%s%s</div>" % (

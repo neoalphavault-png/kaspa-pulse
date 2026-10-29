@@ -258,6 +258,55 @@ def groessen_verstoesse(messung, p):
     return aus
 
 
+# Der Hintergrund darf die Aussage nie stoeren (Ben, 29.10.2026). Deko ist
+# alles, was keine Aussage traegt: die alte Motiv-Ebene von hintergrund.py
+# und jedes Element mit data-deko. Die Wache blendet die Deko aus und
+# vergleicht: im Daten-Bereich (Zahlen, Texte, Balken, Achsen, plus freier
+# Rand) darf sich kein Pixel aendern. Sonst wird nicht gesendet.
+DEKO_SEL = ".hg-ebene, [data-deko]"
+DEKO_RAND = 24
+DATEN_JS = """(rand) => {
+  const sel = '[data-rolle], .zahl, .t, svg.obj rect, svg.obj text, svg.obj path, svg.obj line, '
+            + 'svg.obj circle, svg.obj polyline, svg.obj polygon, table';
+  const aus = [];
+  for (const e of document.querySelectorAll(sel)) {
+    if (e.closest('.hg-ebene, [data-deko]')) continue;
+    const r = e.getBoundingClientRect();
+    if (r.width <= 0 || r.height <= 0) continue;
+    aus.push([Math.max(0, r.left - rand), Math.max(0, r.top - rand), r.right + rand, r.bottom + rand]);
+  }
+  return aus;
+}"""
+
+
+def deko_verstoesse(page, rand=DEKO_RAND, schwelle=12):
+    """Deko-Ebene aus, Aussage gleich: kein geaenderter Pixel im Daten-Bereich."""
+    import io
+    n = page.evaluate("(s) => document.querySelectorAll(s).length", DEKO_SEL)
+    if not n:
+        return []
+    from PIL import Image, ImageChops
+    flaechen = page.evaluate(DATEN_JS, rand)
+    text_mit = page.evaluate("() => document.body.innerText")
+    mit = Image.open(io.BytesIO(page.screenshot())).convert("RGB")
+    page.add_style_tag(content="%s{visibility:hidden !important}" % DEKO_SEL)
+    ohne = Image.open(io.BytesIO(page.screenshot())).convert("RGB")
+    text_ohne = page.evaluate("() => document.body.innerText")
+    page.add_style_tag(content="%s{visibility:visible !important}" % DEKO_SEL)
+    aus = []
+    if text_mit != text_ohne:
+        aus.append("ohne deko aendert sich der text")
+    diff = ImageChops.difference(mit, ohne).convert("L").point(lambda v: 255 if v > schwelle else 0)
+    treffer = 0
+    for l, t, r, b in flaechen:
+        box = (int(l), int(t), min(int(r) + 1, mit.width), min(int(b) + 1, mit.height))
+        if box[2] > box[0] and box[3] > box[1] and diff.crop(box).getbbox():
+            treffer += 1
+    if treffer:
+        aus.append("deko im daten-bereich, %d flaeche(n) mit pixeln der deko-ebene (rand %d px)" % (treffer, rand))
+    return aus
+
+
 def pruefe_seite(page, kanal, png=None):
     """Misst die gerenderte Seite und gibt die Verstoesse zurueck. Mit png
     (der Screenshot) prueft sie auch den Rand im Bild selbst."""
@@ -270,6 +319,8 @@ def pruefe_seite(page, kanal, png=None):
     # fertigen bild gemessen, mit motiv und schleier
     import hintergrund
     aus += hintergrund.kontrast_verstoesse(page)
+    # deko-ebene aus, aussage gleich (Ben, 29.10.2026)
+    aus += deko_verstoesse(page)
     if png is not None and p["rahmen"]:
         daten = "data:image/png;base64," + base64.b64encode(Path(png).read_bytes()).decode()
         treffer = page.evaluate(RAHMEN_JS, [daten, p["rahmen"], m["grund"]])
@@ -385,6 +436,11 @@ def selbsttest():
                                   "background:#49EACB'></div>", "instagram", 1),
         "percent im bild stoppt": (GUT.replace("at least 1 KAS", "50 percent"), "instagram", 1),
         "platzhalter im kopf stoppt": (GUT.replace("SLEEPING COINS", "@PLATZHALTER ASKED"), "instagram", 1),
+        "deko ueber der zahl stoppt": (GUT + "<svg data-deko='1' style='position:absolute;left:0;top:0' "
+                                       "width='1080' height='1350'><line x1='60' y1='300' x2='1020' y2='420' "
+                                       "stroke='#49EACB' stroke-width='4'/></svg>", "instagram", 1),
+        "deko abseits der daten bleibt gruen": (GUT + "<div data-deko='1' style='position:absolute;left:700px;top:900px;"
+                                                 "width:40px;height:40px;background:#2B7A6C'></div>", "instagram", 0),
     }
     with sync_playwright() as pw, tempfile.TemporaryDirectory() as td:
         import tagesgrafik as tg
