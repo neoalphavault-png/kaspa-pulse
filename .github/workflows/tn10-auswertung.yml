@@ -1,0 +1,75 @@
+# Kaspa Pulse - zahlen einer nachzaehlung ins log (Ben, 29.10.2026)
+#
+# Liegt bewusst NUR auf dem Branch messung/tn10-zaehler. Nicht gemergt.
+# Die Artefakte von tn10-miner tragen Tx-IDs (k1-covenant.csv) und lassen
+# sich von Claudes Umgebung aus nicht laden. Dieser Lauf holt die Artefakte
+# des Laufs aus messung/tn10/nach/auswertung.txt und gibt nur die
+# Minutendateien aus, und davon nur Spalten, deren Werte reine Zahlen sind.
+# Dazu je Stueck und Knoten Status, Pruning-Punkt und die Covenant-Zaehler.
+# Keine Tx-ID, keine Adresse, kein Hostname, keine Secrets.
+
+name: tn10 auswertung
+
+on:
+  push:
+    branches:
+      - messung/tn10-zaehler
+    paths:
+      - messung/tn10/nach/auswertung.txt
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: tn10-auswertung
+  cancel-in-progress: false
+
+jobs:
+  zahlen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - id: lauf
+        run: |
+          set -euo pipefail
+          L=$(grep -v '^#' messung/tn10/nach/auswertung.txt | grep -oE '^[0-9]{6,15}$' | head -n 1)
+          test -n "$L"
+          echo "lauf=$L" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: tn10-miner-s*
+          path: out/stuecke
+          run-id: ${{ steps.lauf.outputs.lauf }}
+          github-token: ${{ github.token }}
+      - name: nur zahlen
+        run: |
+          python3 - <<'PY'
+          import csv, glob, json, os, re
+          zahl = re.compile(r"^-?[0-9]+(\.[0-9]+)?$")
+          rows, spalten = {}, []
+          for p in sorted(glob.glob("out/stuecke/*/s*-gesamt.csv")):
+              for r in csv.DictReader(open(p)):
+                  rows[r["minute_utc"]] = r
+                  for c in r:
+                      if c not in spalten:
+                          spalten.append(c)
+          gut = [c for c in spalten if c != "minute_utc"
+                 and all(zahl.match(r.get(c) or "0") for r in rows.values())]
+          print("=== minuten")
+          print(",".join(["minute_utc"] + gut))
+          for m in sorted(rows):
+              if not re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\dZ", m):
+                  continue
+              print(",".join([m] + [rows[m].get(c) or "" for c in gut]))
+          print("=== weggelassen", ",".join(c for c in spalten if c not in gut and c != "minute_utc"))
+          print("=== knoten")
+          for p in sorted(glob.glob("out/stuecke/*/einzeln/*.json")):
+              m = json.load(open(p))
+              cv = m.get("covenant") or {}
+              werte = [os.path.basename(p)[:-5], m.get("status", "")[:40], m.get("pruning_punkt_utc", ""),
+                       m.get("start_utc", ""), m.get("bloecke_bis_utc", ""), m.get("kette_bis_utc", ""),
+                       cv.get("ziel_gesetzt", ""), cv.get("tx", ""), cv.get("ohne_txid", ""), cv.get("nur_ueber_eingang", "")]
+              print(" ".join(str(w) if re.fullmatch(r"[A-Za-z0-9:.,_ -]*", str(w)) else "?" for w in werte))
+          PY
