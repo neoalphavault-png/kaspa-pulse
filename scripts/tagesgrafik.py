@@ -392,8 +392,10 @@ def look_setzen(name):
 
 def schrift(farbe):
     """Textfarbe zu einer Datenfarbe. Der Resteton ist im hellen und im
-    Teal-Look zu blass fuer Schrift, dort steht TEXT2."""
-    return TEXT2 if farbe == RESTTON else farbe
+    Teal-Look zu blass fuer Schrift, dort steht TEXT2. Ebenso der dunkle
+    Akzent der Form 11: im hellen Look 5.7:1, im Teal-Look 6.7:1, die Wache
+    stoppte das Bild (29.10.2026). Die Farbe zeigt das Kaestchen davor."""
+    return TEXT2 if farbe in (RESTTON, AK_DUNKEL) else farbe
 
 # Eine Blockrate je Lauf, fuer jede Form, die eine braucht, ueber 10 Minuten
 # gemessen (Ben, 30.09.2026). 60 Sekunden schwankten zwischen 9.75 und 9.93.
@@ -1572,10 +1574,8 @@ def html(s, look=None):
                 % (zg, esc(ziffern), "<span class='einheit' data-rolle='einheit'>%s</span>" % esc(einheit)
                    if einheit else ""))
     obj = s["objekt"](x, y, w, h)
-    sig = ("<div class='sig' data-rolle='fuss'>%s"
-           "<svg viewBox='0 0 230 48'><path d='%s' fill='none' "
-           "stroke='%s' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'/></svg></div>"
-           % (wortmarke.html(), PULS, MARK))
+    # keine pulslinie mehr neben der marke: ein ornament, das wie daten aussieht (Ben, 29.10.2026)
+    sig = "<div class='sig' data-rolle='fuss'>%s</div>" % wortmarke.html()
     css = (look_takt.schriften_css() + CSS % {
         "grund": BG, "text": WEISS, "text2": TEXT2, "akzent": AK}
         + wortmarke.css(look=LOOK))

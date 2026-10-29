@@ -27,6 +27,16 @@ steht nie dasselbe Motiv zweimal hintereinander im Raster. Die anderen Kanaele
 (threads, x, discord) und die Story ruecken das Motiv mit dem Datum weiter,
 die Story nie im Motiv des Feed-Posts vom selben Tag.
 
+SEIT 30.10.2026 ABGESCHALTET (Ben, 29.10.2026). Der Hintergrund darf die
+Aussage nie stoeren. Anlass war die Tagesgrafik vom 29.10.2026 "while you
+slept 296,000": das Knotennetz lief durch beide Balken, seine Knoten sahen
+aus wie Messpunkte. Erlaubt ist nur noch ein ruhiger Grund (einfarbig, sanfter
+Verlauf, stark weichgezeichnetes Foto), keine Punkte, Partikel, Linien oder
+Kurven. Alle acht Motive bestehen aus genau solchen Formen, deshalb gilt:
+aktiv() ist immer falsch, setzen() laesst die Seite unveraendert. Die
+Zeichner bleiben nur fuer das Register und den Selbsttest der Kontrast-Wache.
+Die Wache gegen Deko im Daten-Bereich steht in content_wache.deko_verstoesse.
+
 LESBARKEIT GEHT VOR. setzen() legt das Motiv als Ebene ganz nach hinten und
 nach dem Layout hinter jeden Text einen Schleier im Grundton, ohne das Layout
 zu veraendern. Die Kontrast-Wache (content_wache.pruefe_seite, KONTRAST_JS
@@ -298,12 +308,18 @@ SCHLEIER_JS = """
 """
 
 
-def setzen(seite, motiv, look, w=1080, h=1350, rand=None):
+MOTIVE_AKTIV = False
+RUHIG_AB = "2026-10-30"
+
+
+def setzen(seite, motiv, look, w=1080, h=1350, rand=None, erzwingen=False):
     """Setzt das Motiv hinter eine fertige Seite: eine Ebene ganz hinten,
     nach dem Layout ein Schleier hinter jedem Text. Das Layout der Seite
     bleibt unberuehrt. rand: im Feed bleiben die aeusseren 60 px Grund (die
     Rand-Wache der content_wache), das Motiv blendet bis 140 px ein. Die
     Story laeuft randlos."""
+    if not (MOTIVE_AKTIV or erzwingen):
+        return seite                      # ruhiger grund, kein motiv (Ben, 29.10.2026)
     if rand is None:
         rand = 0 if h == 1920 else 60
     import base64
@@ -453,7 +469,8 @@ def kontrast_verstoesse(page, minimum=KONTRAST_MIN, quantil=0.05):
 # ------------------------------------------------------------ takt
 
 def aktiv(datum):
-    return str(datum)[:10] >= AB
+    """Seit 30.10.2026 nie: der Grund bleibt ruhig (Ben, 29.10.2026)."""
+    return MOTIVE_AKTIV and str(datum)[:10] >= AB
 
 
 def motiv_nach(vorher, schritte=1):
@@ -549,7 +566,10 @@ def selbsttest():
         print("%-4s %s" % ("ok" if bed else "FEHL", name))
         fehler += 0 if bed else 1
 
-    ok("motive erst ab mi 28.10.", not aktiv("2026-10-27") and aktiv("2026-10-28") and aktiv("2026-11-02"))
+    ok("motive abgeschaltet, an keinem tag aktiv (Ben, 29.10.2026)",
+       not any(aktiv(d) for d in ("2026-10-27", "2026-10-28", "2026-10-30", "2026-11-02")))
+    probe = "<html><head></head><body><p>x</p></body></html>"
+    ok("setzen laesst die seite unveraendert, keine deko-ebene", setzen(probe, "knotennetz", "hell") == probe)
     ok("acht motive aus dem auftrag", MOTIVE == ("blockstrom", "knotennetz", "punktraster", "hoehenlinien",
                                                   "partikel-puls", "zahnraeder", "sternenfeld", "glitch-raster"))
     ok("jedes motiv hat einen zeichner", set(ZEICHNER) == set(MOTIVE))
@@ -585,7 +605,7 @@ def selbsttest():
     seite = ("<!DOCTYPE html><html><head><style>body{width:1080px;height:1350px;background:#080B0F;margin:0;"
              "position:relative}</style></head><body data-look='dunkel'><div style='position:absolute;left:60px;"
              "top:300px;font-size:80px;color:#F2F5F4'>383 PH/s</div></body></html>")
-    neu = setzen(seite, "sternenfeld", "dunkel")
+    neu = setzen(seite, "sternenfeld", "dunkel", erzwingen=True)
     ok("setzen legt ebene, schleier-skript und motiv-attribut", "hg-ebene" in neu and "hg-schleier" in neu
        and "data-hg-motiv='sternenfeld'" in neu and "data-look='dunkel'" in neu)
     anders, fremd = bauen(schreiben=False)
@@ -601,7 +621,7 @@ def selbsttest():
                     for lk in ("dunkel", "hell", "teal"):
                         L = look_takt.look(lk)
                         s = seite.replace("#080B0F", L["grund"]).replace("#F2F5F4", L["text2"])
-                        pg.set_content(setzen(s, m, lk))
+                        pg.set_content(setzen(s, m, lk, erzwingen=True))
                         warten(pg)
                         v = kontrast_verstoesse(pg)
                         ok("%s %s, text2 auf dem motiv mindestens 7:1 %s" % (m, lk, "; ".join(v)), not v)

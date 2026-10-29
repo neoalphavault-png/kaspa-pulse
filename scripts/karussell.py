@@ -300,10 +300,8 @@ def seite_html(s, look):
            + CSS % {"grund": lk["grund"], "text": lk["text"], "text2": lk["text2"],
                     "akzent": lk["akzent"]}
            + wortmarke.css(look=look))
-    sig = ("<div class='sig' data-rolle='fuss'>%s"
-           "<svg viewBox='0 0 230 48'><path d='%s' fill='none' stroke='%s' stroke-width='3' "
-           "stroke-linejoin='round' stroke-linecap='round'/></svg></div>"
-           % (wortmarke.html(), tg.PULS, lk["markierung"]))
+    # keine pulslinie mehr neben der marke: ein ornament, das wie daten aussieht (Ben, 29.10.2026)
+    sig = "<div class='sig' data-rolle='fuss'>%s</div>" % wortmarke.html()
     nr = "<div class='nr'>%d/%d</div>" % (s["seite"], s["von"])
     datum = "<div class='datum'>%s</div>" % esc(s["datum"]) if s.get("datum") else ""
 

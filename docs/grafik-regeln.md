@@ -31,10 +31,23 @@ Gewählt sind **A Editorial, B Foto-Objekt und D Neutral und Grün**. Rotiert wi
 - **Keine gezeichneten Gegenstände:** keine selbst gezeichneten Piktogramme oder Gegenstände aus SVG-Formen, zum Beispiel Tasse, Sanduhr, Kürbis oder Stoppuhr.
 - **Keine Gegenstände aus Punkten:** Die frühere Richtung C (ein Kürbis aus 999 Punkten, eine Tasse aus 2,975 Punkten) fällt raus.
 - **Ausnahme:** Das Suchbild „Find the 1“ ist ein eigenes Format und bleibt.
-- **Weiter erlaubt:**
-  - Diagramme aus echten Daten (Linie, Balken, Raster je Einheit)
-  - die generativen Hintergründe aus `scripts/hintergrund.py` in den alten Looks, weil sie Muster sind und keine Gegenstände
+- **Weiter erlaubt:** Diagramme aus echten Daten (Linie, Balken, Raster je Einheit).
+- **Seit 29.10.2026 verboten:** die generativen Hintergründe aus `scripts/hintergrund.py` und die Pulslinie neben der Wortmarke, siehe „Hintergrund“.
 - **Nicht mehr verwenden:** das alte Halloween-Bild `ig/vergleich/halloween-2026-10-31-01.jpg` und das Karussell „how fast is kaspa, really?“ (`ig/vergleich/`). Beide sind aus dem Repo entfernt, `scripts/vergleichs_karussell.py` baut sie nicht mehr.
+
+## Hintergrund (Ben, 29.10.2026, feste Regel)
+Gilt für jeden Generator: Tagesgrafik, Zahl des Tages, Karussell, Story, Cheat Sheet und die PulseHawk-Grafiken.
+
+1. **Nur ruhig:** einfarbig, ein sanfter Verlauf oder ein stark weichgezeichnetes Foto (Look B). Keine Punkte, Partikel, Linien, Herzschlag- oder Kurvenornamente.
+2. **Deko sieht nie wie Daten aus:** Nichts Dekoratives kreuzt, überlagert oder berührt Balken, Zahlen oder Achsen. Der Datenbereich hat einen freien Rand von 24 px.
+3. **Selbsttest:** Blendet man die Deko-Ebene aus, bleibt die Aussage gleich, und die Deko-Ebene hat kein Pixel im Datenbereich. Fällt der Test durch, wird nichts gesendet und #ops-log bekommt die Meldung.
+
+Umsetzung:
+- `scripts/hintergrund.py`: Die acht Motive (Knotennetz und andere) sind abgeschaltet, `MOTIVE_AKTIV = False`. `setzen()` lässt jede Seite unverändert, `aktiv()` ist an keinem Tag wahr.
+- **Pulslinie:** Die Herzschlag-Linie neben der Wortmarke ist aus Tagesgrafik, Karussell, Meme, Story und KCC-20 entfernt.
+- `scripts/content_wache.py`, `deko_verstoesse()`: Jede Deko trägt die Klasse `hg-ebene` oder das Attribut `data-deko`. Die Wache rendert die Seite mit und ohne Deko. Ändert sich der Text oder ein Pixel im Datenbereich (Elemente mit `data-rolle`, `.zahl`, Diagramm-Formen, Tabellen, je plus 24 px), stoppt sie. `pruefe_seite()` ruft sie für jedes Bild auf. Ein Stopp der Wache sendet nichts, der rote Lauf meldet sich in #ops-log.
+- **Look B:** Das Foto ist ein Motiv und kein Muster. Als reiner Hintergrund wird es stark weichgezeichnet, Zahl und Text kommen immer vom Generator, nie aus dem Bild.
+- **Erlaubt bleiben:** der sanfte Verlauf im Cheat Sheet und das Gitter in Diagrammen. Das Gitter gehört zu den Daten und ist keine Deko.
 
 ## Wortmarke (Ben, 28.10.2026)
 - **Varianten:** Die Wortmarke KASPA PULSE wechselt nach dem Grund.

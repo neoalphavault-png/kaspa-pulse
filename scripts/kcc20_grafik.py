@@ -144,9 +144,8 @@ def html(d, t):
            + CSS % {"w": W, "h": H, "r": RAND, "grund": LK["grund"], "text": LK["text"],
                     "text2": LK["text2"], "akzent": LK["akzent"]}
            + wortmarke.css(look="dunkel"))
-    sig = ("<div class='sig'>%s<svg viewBox='0 0 230 48'><path d='%s' fill='none' stroke='%s' "
-           "stroke-width='3' stroke-linejoin='round' stroke-linecap='round'/></svg></div>"
-           % (wortmarke.html(), PULS, LK["markierung"]))
+    # keine pulslinie mehr neben der marke: ein ornament, das wie daten aussieht (Ben, 29.10.2026)
+    sig = "<div class='sig'>%s</div>" % wortmarke.html()
     return ("<!DOCTYPE html><html><head><meta charset='utf-8'><style>%s</style></head><body>"
             "<div class='kopf'>%s</div><div class='zahl'>%s</div><div class='einheit'>%s</div>"
             "<svg class='obj' width='%d' height='%d' viewBox='0 0 %d %d'>%s</svg>"
