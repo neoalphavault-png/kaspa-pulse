@@ -138,7 +138,21 @@ Zwei Beobachtungen für den Betrieb:
 
 ### Beispielmeldungen in #ops-log
 
-BEISPIELE
+Lauf [40916433478](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/40916433478), Job „simulation“, Schritt „beispielmeldungen nach ops-log“, 29.10.2026 16:56 UTC. Je Signal genau eine Meldung, dazu eine Entwarnung. Alle sieben hat Discord mit HTTP 204 angenommen:
+
+```
+TEST upgrade-wache zcash-mainnet-simulation | INFO peers vor dem upgrade | hoehe 4,512,127 | 2026-10-17 15:14:57 UTC | wert 57.1 % (8 von 14 erreichbaren peers) | schwelle protokoll unter 170190, aktivierung
+TEST upgrade-wache zcash-mainnet-simulation | ALARM blockpause | hoehe 4,512,403 | 2026-10-17 17:34:57 UTC | wert 1222 s | schwelle ab 1200 s
+TEST upgrade-wache zcash-mainnet-simulation | ENTWARNUNG blockpause | hoehe 4,512,404 | 2026-10-17 17:40:57 UTC | wert 3 s | schwelle ab 600 s | dauer 16 min
+TEST upgrade-wache zcash-mainnet-simulation | ALARM kettenspaltung | hoehe 4,512,161 | 2026-10-17 15:26:57 UTC | wert 4 bloecke | schwelle ueber 2 bloecke
+TEST upgrade-wache zcash-mainnet-simulation | ALARM reorg | hoehe 4,512,251 | 2026-10-17 16:10:57 UTC | wert 2 bloecke | schwelle ab 2 bloecke
+TEST upgrade-wache zcash-mainnet-simulation | ALARM median der letzten abstaende | hoehe 4,512,329 | 2026-10-17 16:43:57 UTC | wert 52.5 s | schwelle ab 50 s
+TEST upgrade-wache zcash-mainnet-simulation | HINWEIS eigene sicht (zu wenige verbindungen) | hoehe 4,512,550 | 2026-10-17 18:19:57 UTC | wert 1 verbindungen | schwelle unter 2 verbindungen
+```
+
+Die Zeiten in den Meldungen sind die Zeiten der Aufzeichnung vom 17.10., nicht die Sendezeit. Die „dauer 16 min“ der Entwarnung zählt ab dem Hinweis, die Pause selbst war 26 min lang.
+
+**Scharf geschaltet:** Die Konfiguration steht auf `"scharf": true`. Scharf ist die Wache, sobald der Dienst auf c2 läuft (Schritte unten), und sie meldet nur im Fenster.
 
 ## 7. Konfig-Beispiel für BCH (nicht scharf)
 
