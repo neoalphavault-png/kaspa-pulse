@@ -1,5 +1,5 @@
 # nachzaehlung stp-lauf do 29.10. (19:00 bis 20:00 utc) mit je 30 min grundlast, sechs stuecke zu 20 min, mit kette.
-# ohne covenant.sha256 (ids fehlten bis 20:36 utc), aufteilung je familie folgt in einem zweiten lauf.
+# zweiter lauf mit covenant.sha256 (ids kamen am 29.10. spaet ueber ben), aufteilung je familie f1 bis f4.
 2026-10-29T18:30:00Z 2026-10-29T18:50:00Z kette
 2026-10-29T18:50:00Z 2026-10-29T19:10:00Z kette
 2026-10-29T19:10:00Z 2026-10-29T19:30:00Z kette
