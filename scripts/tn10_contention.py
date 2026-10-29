@@ -134,9 +134,19 @@ def perzentil(werte, p):
     return round(w[a] + (w[b] - w[a]) * (k - a))
 
 
+JE_MASCHINE = ("phase.log", "ntp.csv", "post-end-mempool.csv")
+
+
 def stp_dateien(ordner, name):
-    """alle Dateien dieses Namens unter STPs Log-Ordner (bot, build, ...)."""
-    return sorted(glob.glob(os.path.join(ordner, "**", name), recursive=True))
+    """alle Dateien dieses Namens unter STPs Log-Ordner (bot, build, ...).
+    phase.log, ntp.csv und post-end-mempool.csv kamen am 29.10. je Maschine
+    als phase-mini.log, ntp-box.csv und so weiter; die zaehlen mit."""
+    aus = glob.glob(os.path.join(ordner, "**", name), recursive=True)
+    if name in JE_MASCHINE:
+        stamm, endung = os.path.splitext(name)
+        aus += [p for p in glob.glob(os.path.join(ordner, "**", "%s-*%s" % (stamm, endung)), recursive=True)
+                if re.fullmatch(r"[a-z][a-z0-9_]{0,15}", os.path.basename(p)[len(stamm) + 1:-len(endung)])]
+    return sorted(set(aus))
 
 
 def zeit_spalte(z):
