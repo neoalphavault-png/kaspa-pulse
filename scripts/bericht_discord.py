@@ -27,6 +27,11 @@ zweimal kam):
      Berichts geht nie ein zweites Mal raus, auf keinem Branch. Ein Rebase
      oder Force-Push mit gleichem Inhalt sendet also nichts.
 
+Bilder (Ben, 29.10.2026): eine Zeile <!-- bild pfad/datei.png --> in einem
+Teil haengt die Datei an genau diese Nachricht. Erlaubt sind Pfade im Repo
+zu PNG oder JPG, ohne "..", hoechstens 8 MB und 10 Bilder je Nachricht.
+Ein falscher Pfad haelt den ganzen Bericht an, es geht nichts raus.
+
 Die Webhooks kommen nur aus der Umgebung und werden nie ausgegeben.
 
     python3 scripts/bericht_discord.py --datei berichte/2026-10-27-stp-rat.md --link URL [--trocken]
@@ -60,6 +65,27 @@ VERBOTEN = (
 )
 
 
+BILD = re.compile(r"<!--\s*bild\s+(\S+?)\s*-->")
+BILD_PFAD = re.compile(r"[A-Za-z0-9_][A-Za-z0-9._/-]{0,200}\.(?:png|jpe?g)")
+BILD_MAX = 8 * 1024 * 1024
+
+
+def bilder_aus(t):
+    """Text ohne die Bild-Zeilen und die Liste der Bildpfade."""
+    pfade = BILD.findall(t)
+    return BILD.sub("", t).strip(), pfade
+
+
+def bild_fehler(pfad):
+    if not BILD_PFAD.fullmatch(pfad) or ".." in pfad.split("/"):
+        return "bildpfad nicht erlaubt"
+    if not os.path.isfile(pfad):
+        return "bild fehlt"
+    if os.path.getsize(pfad) > BILD_MAX:
+        return "bild groesser als 8 MB"
+    return ""
+
+
 def teile(text):
     if AUF not in text or ZU not in text:
         return []
@@ -75,6 +101,15 @@ def pruefsumme(t):
 def pruefen(texte):
     funde = []
     for i, t in enumerate(texte):
+        t, pfade = bilder_aus(t)
+        if len(pfade) > ops_melden.MAX_DATEIEN:
+            funde.append("teil %d: %d bilder, hoechstens %d" % (i, len(pfade), ops_melden.MAX_DATEIEN))
+        for p in pfade:
+            f = bild_fehler(p)
+            if f:
+                funde.append("teil %d: %s" % (i, f))
+        if pfade and not t:
+            funde.append("teil %d: bild ohne text" % i)
         for rx, art in VERBOTEN:
             if rx.search(t):
                 funde.append("teil %d: %s" % (i, art))
@@ -121,8 +156,9 @@ def senden(alle, pause=1.0):
     oder eine Handlung ohne DISCORD_WEBHOOK_OPS. Ein fehlendes
     DISCORD_WEBHOOK_LOG laesst die Info nur im Job-Log stehen."""
     for i, (art, t) in enumerate(alle):
+        t, pfade = bilder_aus(t)
         try:
-            status = ops_melden.senden(art, t, was="bericht teil %d" % i)
+            status = ops_melden.senden(art, t, pfade, was="bericht teil %d" % i)
         except ops_melden.Fehler as exc:
             print("nachricht %d nicht gesendet, %s" % (i, ops_melden.sauber(exc)))
             return 1
@@ -403,6 +439,37 @@ def selbsttest():
                 os.environ.pop(k, None)
             else:
                 os.environ[k] = v
+    # bilder an einzelnen teilen (29.10.2026)
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        alt_cwd = os.getcwd()
+        os.chdir(d)
+        try:
+            os.makedirs("bilder")
+            open("bilder/a.png", "wb").write(b"\x89PNG\r\n\x1a\n" + b"0" * 64)
+            mit = "zur info\n<!-- bild bilder/a.png -->"
+            ok("bild aus dem text", bilder_aus(mit) == ("zur info", ["bilder/a.png"]), bilder_aus(mit))
+            ok("gueltiges bild ohne fund", pruefen([mit]) == [], pruefen([mit]))
+            for bad, was in (("x\n<!-- bild ../geheim.png -->", "nicht erlaubt"),
+                             ("x\n<!-- bild /etc/x.png -->", "nicht erlaubt"),
+                             ("x\n<!-- bild bilder/a.txt -->", "nicht erlaubt"),
+                             ("x\n<!-- bild bilder/fehlt.png -->", "fehlt"),
+                             ("<!-- bild bilder/a.png -->", "ohne text")):
+                ok("bild abgelehnt, %s" % was, any(was in f for f in pruefen([bad])), pruefen([bad]))
+            gesendet.clear()
+            koerper = []
+            ops_melden._post = lambda url, body, typ, timeout=60: koerper.append((url.rsplit("/", 1)[1], typ, body)) or 204
+            os.environ["DISCORD_WEBHOOK_LOG"] = basis + "2/log"
+            ok("bild geht als anhang an genau diesen teil", senden([("log", "kopf"), ("log", mit)], 0) == 0
+               and koerper[0][1] == "application/json" and koerper[1][1].startswith("multipart/form-data")
+               and b'filename="a.png"' in koerper[1][2] and b"<!--" not in koerper[1][2], [k[:2] for k in koerper])
+        finally:
+            ops_melden._post = echt_post
+            os.environ.pop("DISCORD_WEBHOOK_LOG", None)
+            for k, v in alt_env.items():
+                if v is not None:
+                    os.environ[k] = v
+            os.chdir(alt_cwd)
     # nur distinct commits, nur berichte/*.md, entfernte nicht
     ev = {"commits": [
         {"distinct": False, "added": ["berichte/eltern.md"], "modified": [], "removed": []},
