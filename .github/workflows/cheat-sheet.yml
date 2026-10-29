@@ -17,6 +17,10 @@ name: cheat sheet
 # Berliner Stunde und endet gruen ohne Bau, wenn er der falsche Termin ist.
 # Den Takt gibt sonst c2 (deploy/c2/taktgeber), dieser Cron ist der Ersatz.
 #
+# Ab Edition 2 baut der scharfe Lauf auch kaspapulse.com/whales neu (2 Zahlen
+# offen, 6 gesperrt) und committet sie mit dem PDF. whales_probe baut nur die
+# Seite, frisch gemessen, und schickt die Vorschau nach #ops-log.
+#
 # Ein Lauf bricht ab, wenn eine der acht Zahlen fehlt oder ihr Stichtag
 # aelter als zehn Tage ist. Das ist gewollt: lieber kein PDF als eines mit
 # neuem Monat und alter Zahl.
@@ -37,6 +41,10 @@ on:
         default: ""
       aus_probe:
         description: "aus der festen probe bauen, ohne netz (nur zum pruefen)"
+        type: boolean
+        default: false
+      whales_probe:
+        description: "nur die seite /whales frisch bauen, vorschau 390 px nach #ops-log, nichts schreiben"
         type: boolean
         default: false
 
@@ -78,8 +86,20 @@ jobs:
           else
             echo "dran=1" >> "$GITHUB_OUTPUT"
           fi
+      # /whales ab edition 2 (Ben, 29.10.2026): probe ohne pdf, ohne commit,
+      # nur nach #ops-log. EDITION leer = 2.
+      - name: whales probe
+        if: steps.t.outputs.dran == '1' && inputs.whales_probe
+        env:
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
+          EDITION: ${{ inputs.edition }}
+        run: |
+          E="${EDITION:-2}"
+          case "$E" in *[!0-9]*) echo "edition muss eine zahl sein"; exit 1;; esac
+          python3 scripts/whales_seite.py --selbsttest
+          python3 scripts/whales_seite.py --probe --edition "$E" --out graphics/whales-probe
       - name: bauen und melden
-        if: steps.t.outputs.dran == '1'
+        if: steps.t.outputs.dran == '1' && !inputs.whales_probe
         env:
           DISCORD_WEBHOOK_OPS: ${{ secrets.DISCORD_WEBHOOK_OPS }}
           DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
@@ -102,15 +122,20 @@ jobs:
         if: always() && steps.t.outputs.dran == '1'
         with:
           name: cheat-sheet
-          path: graphics/cheat-sheet/
+          path: |
+            graphics/cheat-sheet/
+            graphics/whales-probe/
           if-no-files-found: ignore
           retention-days: 90
       - name: webseite und log sichern
-        if: steps.t.outputs.dran == '1' && env.SCHARF == 'ja'
+        if: steps.t.outputs.dran == '1' && env.SCHARF == 'ja' && !inputs.whales_probe
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
+          # die seite /whales geht mit dem pdf live (cheat_sheet.festschreiben baut sie)
           git add kaspa-pulse-cheat-sheet.pdf data/cheat-sheet-log.json
+          git add whales/index.html
+          if [ -f data/whales-stand.json ]; then git add data/whales-stand.json; fi
           if git diff --staged --quiet; then
             echo "unveraendert, kein commit"
           else
