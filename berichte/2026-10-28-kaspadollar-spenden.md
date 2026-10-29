@@ -83,6 +83,28 @@ Ergebnis der Kontrolle, Lauf 40707682036, Stichzeit 12:42:28 UTC:
 - **Fehler in unserem Werkzeug:** Die Liste der Einzahlungen endet in der Kontrolle wie im Hauptlauf um 11:59:59 UTC. Sie enthält die neue Einzahlung also nicht, deshalb meldet die Kontrolle "Einzahlungen minus Abgänge gleich Bestand: nein". Der Bestand selbst kommt unabhängig davon aus dem UTXO-Bestand und stimmt. Ursache ist vermutlich das Zusammenlegen der Läufe in `scripts/kaspadollar_zaehlung.py`, wenn ein früherer Lauf genau bis zur Stichzeit eines späteren reicht. Den Hauptlauf betrifft das nicht, dort stimmt die Prüfung. Ich behebe das, bevor wir wieder zählen.
 - Die Seite stand bei der Kontrolle (gelesen 14:37:48 UTC) schon bei 184.560 KAS. Diese Zahl gehört zu keiner unserer Stichzeiten und ist hier nur vermerkt.
 
+## Grafik (29.10.)
+
+Ben hat am 29.10. entschieden: Veröffentlicht wird der Stand 28.10. 12:42:28 UTC, 182.012,19 KAS counted gegen 182.012 KAS source kaspadollar.com, 0 Abgänge, 3,6 % von 5.000.000. Die Tageskurve kommt erst nach der Fehlerbehebung.
+
+| Datei | Inhalt |
+|---|---|
+| `kaspadollar/ergebnis/kaspadollar-spenden-2026-10-28-en.png` | englisch, 1080 x 1350 |
+| `kaspadollar/ergebnis/kaspadollar-spenden-2026-10-28-de.png` | deutsch, für die Telegram-Gruppe Kaspa German |
+
+- **Gestaltung:** Look v2, Richtung A auf Papier #F4F1EA, Wortmarke schwarz, kein Falke. Gebaut mit `scripts/kaspadollar_grafik.py`.
+- **Inhalt:**
+  - oben der Titel
+  - die große Zahl 182,012 mit KAS darunter
+  - die zwei Zeilen counted und site zur selben Minute
+  - "0 KAS left the address, counted"
+  - der Fortschrittsbalken ab der Nulllinie, 3.6 % von 5,000,000 KAS, Ziel und Anteil als source kaspadollar.com
+- **Nicht im Bild:** keine Adresse, keine Transaktionskennung, kein Kurs, kein Link.
+- **Prüfung:** Beide Bilder liefen durch `content_wache` im Feed-Profil (Mindestgrößen, Textregeln, Kontrast 7:1, Rand 60 px), dazu der Selbsttest des Skripts.
+- **Deutsche Fassung:**
+  - Zahlen deutsch geschrieben (182.012,19), Wörter "gezählt" und "quelle" statt counted und source.
+  - Die Datumsregel der Wache kennt nur englische Monatsnamen. Das deutsche Datum "28. okt 2026" prüft das Skript deshalb mit einem eigenen Muster.
+
 ## Offene Fragen an Ben
 
 1. Der Unterschied ist geklärt: Zur selben Minute stimmen Seite und Knoten auf 0,19 KAS überein. Soll ich X-Post und Grafikvorgabe jetzt vorbereiten? Zur Wahl stehen 12:00 UTC mit 169.667,19 KAS oder 12:42:28 UTC mit 182.012,19 KAS. Für 12:42:28 stimmt der Bestand, die Tageskurve kann ich dann aber erst nach der Fehlerbehebung neu rechnen. Nach deinem Ja brauche ich etwa 15 Minuten.
