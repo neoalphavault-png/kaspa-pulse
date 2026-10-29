@@ -24,6 +24,23 @@ Seite ist fuer die Anzeige da, nicht fuer die Suche.
 Formular, UTM-Felder und utm.js wie auf der Startseite (startseite.anmeldung,
 Brevo-Liste #16). Plausible-Block und Signup-Ereignis aus plausible.py.
 
+AB EDITION 2 (Ben, 29.10.2026)
+54 Besucher aus der Anzeige, 0 Anmeldungen: die ganze Edition stand offen da.
+Ab Edition 2 zeigt die Seite oben die Ueberschrift und genau 2 der 8 Zahlen
+(OFFEN) mit Datum und Quelle. Die anderen 6 sind gesperrte Karten: nur die
+Frage, statt der Zahl ein unscharfer Block ohne Ziffern, darunter "in the
+cheat sheet, free by email". Im HTML der gesperrten Karten steht keine echte
+Zahl, der Selbsttest prueft das. Darunter das eine Formular. Kein Countdown,
+keine Echtzeitwoerter, keine Kurs- oder Gewinnversprechen.
+
+Die Zahlen kommen frisch aus cheat_sheet.py: festschreiben() dort ruft
+festschreiben() hier, das schreibt whales/index.html und data/whales-stand.json
+(Probe und Edition). Ohne diese Datei baut die Seite Edition 1 aus
+scripts/cheat-sheet-probe.json wie bisher.
+
+    python3 scripts/whales_seite.py --probe [--edition 2]   frisch messen, Vorschau
+                                                            390 px nach #ops-log, nichts schreiben
+
     python3 scripts/whales_seite.py              whales/index.html schreiben
     python3 scripts/whales_seite.py --pruefen    Exit 1, wenn die Datei abweicht
     python3 scripts/whales_seite.py --selbsttest
@@ -45,6 +62,14 @@ import startseite  # noqa: E402
 
 ZIEL = REPO / "whales" / "index.html"
 PROBE = REPO / "scripts" / "cheat-sheet-probe.json"
+STAND = REPO / "data" / "whales-stand.json"
+# die 2 offenen zahlen ab edition 2: die groesste wallet (die frage der anzeige)
+# und der reward cut, eine regel des protokolls, die jeder pruefen kann
+OFFEN = (1, 5)
+GESPERRT_TEXT = "in the cheat sheet, free by email"
+FORM_TITEL = "get all 8 numbers of the %s edition, plus the weekly numbers every monday"
+FORM_TEXT = ("free, one mail every monday, unsubscribe anytime. after you confirm, "
+             "the cheat sheet pdf comes with the welcome mail.")
 URL = "https://kaspapulse.com/whales/"
 ANZEIGE = "https://kaspapulse.com/whales?utm_source=ig&utm_medium=paid&utm_campaign=ad1-whales-v3"
 
@@ -97,11 +122,11 @@ def karten(p):
             for k in cheat_sheet.karten(p)]
 
 
-def formular():
+def formular(titel="get the next edition every monday",
+             text="the weekly kaspa numbers in one mail every monday, free, unsubscribe anytime."):
     """Das Formular der Startseite, mit h2 statt h3 und ohne die Zeile zum
     Cheat Sheet: hier gibt es ein einziges Versprechen."""
-    f = startseite.anmeldung(1, "subscribe", "get the next edition every monday",
-                             "the weekly kaspa numbers in one mail every monday, free, unsubscribe anytime.")
+    f = startseite.anmeldung(1, "subscribe", titel, text)
     f = f.replace("<h3>", "<h2>").replace("</h3>", "</h2>")
     # web interface guidelines: autocomplete, keine rechtschreibpruefung, platzhalter mit muster
     # (wie in #146 fuer die startseite; ist #146 gemergt, aendert die zeile nichts mehr)
@@ -155,6 +180,17 @@ h1{font:900 clamp(28px,7.4vw,56px)/1.04 Archivo,sans-serif;letter-spacing:-.015e
 .unit{margin:0 0 12px;font-weight:600}
 .date,.src{font:400 14px/1.5 "IBM Plex Mono",monospace;color:var(--muted);margin:0}
 .src{margin-top:auto;padding-top:6px}
+/* ab edition 2: gesperrte karten, der block steht fuer die zahl und hat keine ziffer */
+.zu li{background:var(--card);border-radius:14px;padding:16px 20px}
+.zu .q{color:var(--ink);margin-bottom:10px}
+.schleier{display:flex;gap:5px;align-items:flex-end;height:32px;margin:0 0 8px;filter:blur(5px)}
+.schleier span{display:block;height:28px;border-radius:6px;background:var(--brand);opacity:.6}
+.schleier span:nth-child(1){width:22px}.schleier span:nth-child(2){width:22px;height:24px}.schleier span:nth-child(3){width:9px;height:9px}.schleier span:nth-child(4){width:22px}
+.zu .hinweis{margin:0;font-weight:600;color:var(--brand)}
+.kopf.v2{padding-bottom:24px}
+.kopf.v2 .lead{max-width:52ch}
+.unten{padding:0 0 40px}
+.unten .subscribe{max-width:620px}
 footer{padding:8px 0 40px;font:400 13px/1.7 "IBM Plex Mono",monospace;color:var(--muted)}
 footer a{color:var(--muted);display:inline-block;padding:6px 0}
 footer a:hover{color:var(--ink)}
@@ -189,7 +225,97 @@ SKRIPT = """<script>
 </script>""" % plausible.SIGNUP.replace("FORM", "form")
 
 
-def seite(p):
+def monat_name(p):
+    """Der Monat der Edition. Gebaut wird am 1. um 09:00, ein Probelauf am
+    letzten Tag davor zeigt schon den neuen Monat: also der Monat des Tages
+    nach dem Stand."""
+    d = dt.date.fromisoformat(p["stand"]) + dt.timedelta(days=1)
+    return cheat_sheet.MONATE_LANG[d.month - 1]
+
+
+def seite(p, edition=1):
+    """Edition 1 alle 8 Zahlen offen, ab Edition 2 die Teaser-Seite."""
+    return seite_voll(p) if edition < 2 else seite_teaser(p)
+
+
+def karte_offen(k):
+    return ('  <li>\n'
+            '    <h2 class="q">%s</h2>\n'
+            '    <p class="big">%s</p>\n'
+            '    <p class="unit">%s</p>\n'
+            '    <p class="date">%s</p>\n'
+            '    <p class="src">%s</p>\n'
+            '  </li>' % (esc(k["q"]), esc(k["big"]), esc(k["unit"]), esc(k["date"]), esc(k["src"])))
+
+
+def karte_zu(k):
+    """Nur die Frage. Zahl, Einheit, Datum und Quelle stehen nicht im HTML."""
+    return ('  <li class="gesperrt">\n'
+            '    <h2 class="q">%s</h2>\n'
+            '    <div class="schleier" aria-hidden="true"><span></span><span></span><span></span>'
+            '<span></span></div>\n'
+            '    <p class="hinweis">%s</p>\n'
+            '  </li>' % (esc(k["q"]), esc(GESPERRT_TEXT)))
+
+
+def seite_teaser(p):
+    stand = dt.date.fromisoformat(p["stand"])
+    ks = karten(p)
+    offen = "\n".join(karte_offen(k) for k in ks if k["n"] in OFFEN)
+    zu = "\n".join(karte_zu(k) for k in ks if k["n"] not in OFFEN)
+    monat = monat_name(p)
+    form = formular(FORM_TITEL % monat, FORM_TEXT)
+    return SEITE_KOPF % dict(titel=esc(TITEL), beschr=esc(BESCHREIBUNG), url=URL, stil=STIL,
+                             plausible=plausible.BLOCK) + """<section class="kopf v2">
+  <h1>%(versprechen)s</h1>
+  <p class="lead">the %(monat)s edition, numbers as of %(stand)s. 2 of the 8 are open here, each with its date and where it comes from.</p>
+</section>
+<ul class="zahlen offen" aria-label="2 of the 8 numbers">
+%(offen)s
+</ul>
+<ul class="zahlen zu" aria-label="6 more numbers in the cheat sheet">
+%(zu)s
+</ul>
+<section class="unten">
+%(form)s
+</section>
+""" % dict(versprechen=VERSPRECHEN, monat=monat, stand=startseite.d_kurz(stand), offen=offen, zu=zu,
+           form=form) + SEITE_FUSS % dict(skript=SKRIPT)
+
+
+SEITE_KOPF = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080B0F">
+<meta name="robots" content="noindex, follow">
+<title>%(titel)s</title>
+<meta name="description" content="%(beschr)s">
+<link rel="canonical" href="%(url)s">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preload" href="/graphics/fonts/archivo-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>%(stil)s</style>
+%(plausible)s
+</head>
+<body>
+<!-- gebaut von scripts/whales_seite.py, nicht von hand aendern -->
+<div class="wrap">
+<header class="top"><a class="logo" href="/" translate="no">KASPA <span>PULSE</span></a></header>
+<main>
+"""
+
+SEITE_FUSS = """</main>
+<footer><a href="/impressum.html">legal notice</a> · <a href="/datenschutz.html">privacy</a> · not financial advice</footer>
+</div>
+%(skript)s
+<script src="/utm.js" defer></script>
+</body>
+</html>
+"""
+
+
+def seite_voll(p):
     stand = dt.date.fromisoformat(p["stand"])
     ks = karten(p)
     lis = "\n".join(
@@ -256,9 +382,18 @@ def texte(s):
 VERSPRECHEN = "the 8 kaspa numbers whales watch"
 
 
-def pruefen_inhalt(s, ks):
+def pruefen_inhalt(s, ks, edition=1):
     import karussell
-    fehler = karussell.text_pruefen([t for t in texte(s) if t != VERSPRECHEN])
+    teaser = edition >= 2
+    fehler = karussell.text_pruefen([t for t in texte(s) if t != VERSPRECHEN
+                                     and not (teaser and t.startswith("get all 8 numbers of the "))])
+    if teaser:
+        fehler += gesperrt_pruefen(s, ks)
+        ks = [k for k in ks if k["n"] in OFFEN]
+        if s.count('<p class="big">') != len(OFFEN):
+            fehler.append("nicht genau %d offene zahlen" % len(OFFEN))
+        if re.search(r"(?i)\b(countdown|only today|hurry|last chance|ends? in|left)\b", " ".join(texte(s))):
+            fehler.append("druck statt grund")
     for k in ks:
         if not startseite.DATUM_RE.search(k["date"] + " " + k["src"]):
             fehler.append("zahl %d ohne datum" % k["n"])
@@ -271,13 +406,102 @@ def pruefen_inhalt(s, ks):
     return fehler
 
 
-def bauen():
-    p = json.loads(PROBE.read_text(encoding="utf-8"))
-    s = seite(p)
-    f = pruefen_inhalt(s, karten(p))
+def gesperrt_pruefen(s, ks):
+    """Im HTML der gesperrten Karten keine Ziffer und kein Wert der Karte."""
+    fehler = []
+    zu = re.findall(r'(?s)<li class="gesperrt">.*?</li>', s)
+    if len(zu) != 8 - len(OFFEN):
+        fehler.append("%d gesperrte karten statt %d" % (len(zu), 8 - len(OFFEN)))
+    for li in zu:
+        if re.search(r"\d", re.sub(r"<[^>]+>", " ", li)):
+            fehler.append("ziffer in einer gesperrten karte, %r" % re.sub(r"\s+", " ", li)[:80])
+    gesamt = " ".join(zu)
+    for k in ks:
+        if k["n"] in OFFEN:
+            continue
+        for feld in ("big", "unit", "date", "src"):
+            if k[feld] and esc(k[feld]) in gesamt:
+                fehler.append("zahl %d, %s steht in der gesperrten karte" % (k["n"], feld))
+    return fehler
+
+
+def stand_lesen():
+    """(probe, edition): der festgeschriebene Stand aus cheat_sheet.py, sonst Edition 1."""
+    if STAND.exists():
+        d = json.loads(STAND.read_text(encoding="utf-8"))
+        return d["probe"], int(d["edition"])
+    return json.loads(PROBE.read_text(encoding="utf-8")), 1
+
+
+def bauen(p=None, edition=None):
+    if p is None:
+        p, edition = stand_lesen()
+    edition = edition or 1
+    s = seite(p, edition)
+    f = pruefen_inhalt(s, karten(p), edition)
     if f:
         raise SystemExit("ABBRUCH wache, %s" % "; ".join(f))
     return s
+
+
+def festschreiben(p, edition):
+    """Von cheat_sheet.festschreiben gerufen, nur im scharfen Lauf. Schreibt
+    die Seite und den Stand, beides committet der Workflow mit dem PDF."""
+    s = bauen(p, edition)
+    STAND.write_text(json.dumps({"edition": edition, "probe": p}, ensure_ascii=False, indent=1) + "\n",
+                     encoding="utf-8")
+    ZIEL.parent.mkdir(exist_ok=True)
+    ZIEL.write_text(s, encoding="utf-8")
+    return ZIEL
+
+
+def vorschau(s, ziel, breite=390):
+    """Die Seite in voller Hoehe bei 390 px, mit den Schriften der Website.
+    Die Seite verweist mit /graphics/... auf das Repo, deshalb liegt die
+    Datei fuer die Aufnahme im Repo-Wurzelverzeichnis und wird danach
+    entfernt."""
+    from playwright.sync_api import sync_playwright
+    tmp = REPO / ".whales-vorschau.html"
+    tmp.write_text(s.replace('href="/', 'href="./').replace('src="/', 'src="./')
+                   .replace("url(/", "url(./"), encoding="utf-8")
+    ziel = Path(ziel)
+    ziel.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with sync_playwright() as pw:
+            import tagesgrafik
+            b = tagesgrafik.chromium_start(pw)
+            seite_ = b.new_page(viewport={"width": breite, "height": 844}, device_scale_factor=2)
+            seite_.route("**/*", lambda r: r.abort() if not r.request.url.startswith("file:") else r.continue_())
+            seite_.goto(tmp.as_uri())
+            seite_.wait_for_timeout(300)
+            seite_.screenshot(path=str(ziel), full_page=True)
+            b.close()
+    finally:
+        tmp.unlink(missing_ok=True)
+    return ziel
+
+
+def probe_senden(edition, ziel_ordner):
+    """Frisch messen wie das Cheat Sheet, die Seite bauen, nichts schreiben.
+    Die Vorschau in 390 px geht nach #ops-log, nie nach #moderator-only."""
+    import ops_melden
+    heute = dt.datetime.now(dt.timezone.utc).date()
+    p = cheat_sheet.probe(heute)
+    cheat_sheet.frische_pruefen(p, dt.date.fromisoformat(p["stand"]))
+    s = bauen(p, edition)
+    ordner = Path(ziel_ordner)
+    ordner.mkdir(parents=True, exist_ok=True)
+    (ordner / "index.html").write_text(s, encoding="utf-8")
+    png = vorschau(s, ordner / "whales-390.png")
+    ks = {k["n"]: k for k in karten(p)}
+    offen = "; ".join("%s %s (%s)" % (ks[n]["big"], ks[n]["unit"], ks[n]["date"]) for n in OFFEN)
+    text = ("PROBE /whales edition %d, nicht veroeffentlicht. stand %s, %s edition.\n"
+            "offen: %s\ngesperrt: %d karten, im html ohne zahl.\n"
+            "live geht die seite mit dem scharfen cheat-sheet-lauf (CHEAT_SHEET_LIVE)."
+            % (edition, p["stand"], monat_name(p), offen, 8 - len(OFFEN)))
+    print(text)
+    ops_melden.log(text, [(png, "image/png")], "whales probe")
+    return png
 
 
 def selbsttest():
@@ -317,6 +541,42 @@ def selbsttest():
     ok("link nach aussen faellt auf",
        pruefen_inhalt(s.replace("</footer>", '<a href="https://example.com">x</a></footer>'), ks) != [])
     ok("anzeige-url mit paid", "utm_medium=paid" in ANZEIGE)
+
+    # ab edition 2 (Ben, 29.10.2026)
+    t = seite(p, 2)
+    ok("edition 2, wachen gruen", pruefen_inhalt(t, ks, 2) == [], pruefen_inhalt(t, ks, 2))
+    ok("edition 2, genau 2 zahlen offen", t.count('<p class="big">') == 2
+       and all(esc(ks[n - 1]["big"]) in t for n in OFFEN))
+    ok("edition 2, 6 gesperrte karten mit frage", t.count('<li class="gesperrt">') == 6
+       and all(esc(k["q"]) in t for k in ks))
+    ok("edition 2, keine echte zahl im html der gesperrten",
+       all(esc(k[f]) not in t for k in ks if k["n"] not in OFFEN for f in ("big", "unit", "date")),
+       [k["big"] for k in ks if k["n"] not in OFFEN and esc(k["big"]) in t])
+    ok("edition 2, satz unter den karten", "in the cheat sheet, free by email" in t)
+    ok("edition 2, formular nach den karten mit dem satz",
+       t.count("<form") == 1 and t.index('class="zahlen zu"') < t.index('id="subscribe"')
+       and "get all 8 numbers of the october edition, plus the weekly numbers every monday" in t)
+    ok("edition 2, monat aus dem tag nach dem stand",
+       monat_name({"stand": "2026-10-31"}) == "november" and monat_name({"stand": "2026-11-01"}) == "november")
+    ok("edition 2, ziffer in gesperrter karte faellt auf",
+       gesperrt_pruefen(t.replace(GESPERRT_TEXT, "13.6% " + GESPERRT_TEXT, 1), ks) != [])
+    ok("edition 2, wert in gesperrter karte faellt auf", gesperrt_pruefen(
+        t.replace("free by email</p>", "free by email</p><p>%s</p>" % esc(ks[1]["src"]), 1), ks) != [])
+    ok("edition 2, countdown faellt auf",
+       pruefen_inhalt(t.replace("free by email</p>", "free by email, only today</p>", 1), ks, 2) != [])
+    ok("edition 2, echtzeitwort faellt auf",
+       pruefen_inhalt(t.replace("numbers as of", "live numbers as of"), ks, 2) != [])
+    ok("edition 2, ohne kurs und gewinn", not re.search(r"(?i)\b(price|profit|gain|moon|usd|\$)", " ".join(texte(t))))
+    import tempfile
+    alt_stand = globals()["STAND"]
+    with tempfile.TemporaryDirectory() as td:
+        globals()["STAND"] = Path(td) / "whales-stand.json"
+        try:
+            ok("ohne stand-datei edition 1", stand_lesen()[1] == 1 and bauen() == s)
+            globals()["STAND"].write_text(json.dumps({"edition": 2, "probe": p}), encoding="utf-8")
+            ok("mit stand-datei die teaser-seite", stand_lesen()[1] == 2 and bauen() == t)
+        finally:
+            globals()["STAND"] = alt_stand
     print("")
     print("%d fehler" % len(f) if f else "alle testfaelle bestanden")
     return 1 if f else 0
@@ -326,9 +586,24 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--pruefen", action="store_true")
     ap.add_argument("--selbsttest", action="store_true")
+    ap.add_argument("--probe", action="store_true", help="frisch messen, vorschau nach #ops-log, nichts schreiben")
+    ap.add_argument("--edition", type=int, default=2)
+    ap.add_argument("--vorschau", help="png der gebauten seite in 390 px")
+    ap.add_argument("--aus", help="aus einer gespeicherten probe bauen, nur mit --vorschau")
+    ap.add_argument("--out", default="graphics/whales-probe")
     a = ap.parse_args(argv)
     if a.selbsttest:
         return selbsttest()
+    if a.probe:
+        probe_senden(a.edition, a.out)
+        return 0
+    if a.vorschau:
+        if a.aus:
+            s = bauen(json.loads(Path(a.aus).read_text(encoding="utf-8")), a.edition)
+        else:
+            s = bauen()
+        print(vorschau(s, a.vorschau))
+        return 0
     s = bauen()
     alt = ZIEL.read_text(encoding="utf-8") if ZIEL.exists() else ""
     if a.pruefen:

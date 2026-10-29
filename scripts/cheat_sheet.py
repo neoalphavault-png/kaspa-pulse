@@ -1183,7 +1183,29 @@ def festschreiben(p, edition, pdf, log=None, pfad=LOG):
     log["editionen"] = sorted(eds, key=lambda e: e["monat"])
     Path(pfad).write_text(json.dumps(log, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     WEBSEITE.write_bytes(Path(pdf).read_bytes())
+    whales_festschreiben(p, edition)
     return WEBSEITE
+
+
+def whales_festschreiben(p, edition):
+    """Die Landingpage /whales zeigt ab Edition 2 die 2 offenen
+    Zahlen dieser Ausgabe (Ben, 29.10.2026). Sie geht mit dem PDF live, im
+    selben Commit. Scheitert ihre Wache, bleibt die alte Seite stehen und das
+    PDF geht trotzdem raus: die Meldung steht im Lauf und in #ops-log."""
+    try:
+        import whales_seite
+        ziel = whales_seite.festschreiben(p, edition)
+        print("whales-seite edition %d geschrieben, %s" % (edition, ziel))
+        return ziel
+    except (Exception, SystemExit) as exc:  # noqa: BLE001
+        text = "whales-seite NICHT neu gebaut, die alte bleibt stehen. grund %s" % exc
+        print(text)
+        try:
+            import ops_melden
+            ops_melden.log(text, was="whales")
+        except Exception:  # noqa: BLE001
+            pass
+        return None
 
 
 # ---------------------------------------------------------------------- ops
