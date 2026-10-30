@@ -147,80 +147,87 @@
       "ende_utc": "2026-10-29T21:12:10Z",
       "peers_ohne_abzweig_abgelehnt": 107,
       "peers": 40
+    },
+    {
+      "lauf": "20261029T2104",
+      "start_utc": "2026-10-29T21:04:23Z",
+      "ende_utc": "2026-10-30T02:34:23Z",
+      "peers_ohne_abzweig_abgelehnt": 97,
+      "peers": 46
     }
   ],
-  "abgedeckt_h": 110.2,
+  "abgedeckt_h": 115.7,
   "peer_software": [
     "/Bitcoin Cash Node:29.2.1(9500-tempnet)/",
     "/Bitcoin Cash Node:29.2.1(my-tempnet-node)/",
     "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
     "/Vcash:0.1/"
   ],
-  "kette_spitze": 347738,
-  "kettenbloecke": 6475,
-  "davon_angekuendigt_gesehen": 6475,
+  "kette_spitze": 348982,
+  "kettenbloecke": 7718,
+  "davon_angekuendigt_gesehen": 7718,
   "first_seen_typ": {
-    "inv": 6473,
-    "headers": 2,
+    "inv": 7710,
+    "headers": 8,
     "cmpctblock": 0
   },
   "timestamp_deviation_s": {
-    "n": 6475,
-    "mittel": 2.095,
-    "median": 0.782,
-    "p90": 3.386,
-    "p99": 34.314,
+    "n": 7718,
+    "mittel": 2.384,
+    "median": 0.893,
+    "p90": 4.029,
+    "p99": 31.077,
     "min": 0.058,
     "max": 216.175
   },
   "propagation_spread_ms": {
-    "n": 6468,
-    "mittel": 18199.0,
-    "median": 7710,
-    "p90": 10870,
-    "p99": 83880,
-    "min": 28,
+    "n": 7710,
+    "mittel": 16479.0,
+    "median": 7530,
+    "p90": 10910,
+    "p99": 50709,
+    "min": 22,
     "max": 2644850
   },
   "peers_je_block": {
-    "n": 6475,
-    "mittel": 22.0,
-    "median": 22,
-    "p90": 38,
+    "n": 7718,
+    "mittel": 20.2,
+    "median": 19,
+    "p90": 37,
     "p99": 47,
     "min": 1,
     "max": 51
   },
   "compact": {
-    "bloecke_mit_cmpctblock": 6472,
+    "bloecke_mit_cmpctblock": 7491,
     "davon_von_selbst": 0,
     "kurz_ids": {
-      "n": 6472,
-      "mittel": 9.5,
-      "median": 5,
-      "p90": 25,
-      "p99": 40,
+      "n": 7491,
+      "mittel": 8.7,
+      "median": 4,
+      "p90": 23,
+      "p99": 39,
       "min": 0,
       "max": 78
     },
     "fehlend_geschaetzt": {
-      "n": 6472,
+      "n": 7491,
       "mittel": 0.0,
       "median": 0,
       "p90": 0,
-      "p99": 1,
+      "p99": 0,
       "min": 0,
       "max": 10
     },
-    "bloecke_ohne_fehlende": 6404,
+    "bloecke_ohne_fehlende": 7423,
     "hinweis": "geschaetzt gegen die bei uns per inv angekuendigten Transaktionen, kein eigener Mempool"
   },
   "stale": {
-    "anzahl": 20,
+    "anzahl": 244,
     "bestaetigungen": 6,
-    "anteil_prozent": 0.308,
+    "anteil_prozent": 3.065,
     "noch_offen_unter_6": 0,
-    "ohne_kopf": 0,
+    "ohne_kopf": 2,
     "bloecke": [
       {
         "height": 341286,
@@ -401,6 +408,2022 @@
         "first_seen_type": "inv",
         "peers_announced": 2,
         "canonical_hash_at_height": "0000000085d31fff6bf9de76e607c15c7d55ed93b065d23e461267920db700f3"
+      },
+      {
+        "height": 347763,
+        "hash": "000000000016bfa197efd48bc793fc6029b990bc819671bbdaaf0bf00394072a",
+        "header_time_utc": "2026-10-29T21:33:34Z",
+        "first_seen_utc": "2026-10-29T21:33:35.712Z",
+        "first_seen_type": "inv",
+        "peers_announced": 2,
+        "canonical_hash_at_height": "00000000000c52b39c2fc3cfb7050452fb18fa021c402e3da50833c699aa2669"
+      },
+      {
+        "height": 347765,
+        "hash": "00000000001bc3bd35acf2993e5295fd55cc3bb96397a3ec67b34a4261206c7f",
+        "header_time_utc": "2026-10-29T21:33:40Z",
+        "first_seen_utc": "2026-10-29T21:33:41.397Z",
+        "first_seen_type": "inv",
+        "peers_announced": 2,
+        "canonical_hash_at_height": "00000000001c9aa4e6b4ace68021459d12f7d30f85d6a590f103748a68fc1a4d"
+      },
+      {
+        "height": 347766,
+        "hash": "0000000000198052e73e5f668856c2bfeb0d7824833bb743bbe0de2fea169814",
+        "header_time_utc": "2026-10-29T21:33:41Z",
+        "first_seen_utc": "2026-10-29T21:33:43.421Z",
+        "first_seen_type": "inv",
+        "peers_announced": 2,
+        "canonical_hash_at_height": "0000000000014b0e50838c746265b0e23dda9e0fc4727870cdcd29375cff6010"
+      },
+      {
+        "height": 347775,
+        "hash": "000000000002fca7f81826353b98109e4433e5e50c010b1ec2e2b7aa628c2f57",
+        "header_time_utc": "2026-10-29T21:33:59Z",
+        "first_seen_utc": "2026-10-29T21:34:00.053Z",
+        "first_seen_type": "inv",
+        "peers_announced": 3,
+        "canonical_hash_at_height": "00000000000cc92804cbe0d4b0cf839f3b2cc1e477ee0c0edc77c7693402e3c3"
+      },
+      {
+        "height": 347776,
+        "hash": "000000000016742c78d450a3da6dc86871e784674fbc1517622bb5adba4ecb5e",
+        "header_time_utc": "2026-10-29T21:34:00Z",
+        "first_seen_utc": "2026-10-29T21:34:05.969Z",
+        "first_seen_type": "inv",
+        "peers_announced": 2,
+        "canonical_hash_at_height": "00000000000e7a40b5e2ab393fd2d6cb3412e2d228a47aa99bc156d1a9ed67ab"
+      },
+      {
+        "height": 347781,
+        "hash": "000000000014d608b49d1a0e84ea4a4a863d85c78f0675937b6400a39822a3af",
+        "header_time_utc": "2026-10-29T21:34:14Z",
+        "first_seen_utc": "2026-10-29T21:34:14.760Z",
+        "first_seen_type": "inv",
+        "peers_announced": 3,
+        "canonical_hash_at_height": "000000000007f7a202b28851588eab567389a3201f4e9c32b34ee6b140ad8ce2"
+      },
+      {
+        "height": 347786,
+        "hash": "0000000000126562a79dab06a54d7fccd8da6c4ac9b6363c61260e66c5d779ae",
+        "header_time_utc": "2026-10-29T21:34:27Z",
+        "first_seen_utc": "2026-10-29T21:34:28.724Z",
+        "first_seen_type": "inv",
+        "peers_announced": 3,
+        "canonical_hash_at_height": "00000000001d27a78b069f0ff469c08f76b0cc3598965e7c526c01a9b8ceb262"
+      },
+      {
+        "height": 347787,
+        "hash": "00000000001083590588b82e8eb608626b5c48c0f50ae1d255fe13cbee478635",
+        "header_time_utc": "2026-10-29T21:34:34Z",
+        "first_seen_utc": "2026-10-29T21:34:36.124Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000049255e5ffca5c63b9a24fb8f7a1c97122e8af2e706715b6e8d8e7"
+      },
+      {
+        "height": 347789,
+        "hash": "000000000007a79dbfbe8bd7bb1ab944f2503375dcb0b781d2d23f8c9be90d2f",
+        "header_time_utc": "2026-10-29T21:34:44Z",
+        "first_seen_utc": "2026-10-29T21:34:45.001Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "0000000000010ca08b2faa1aa672a0bec3fa4b122bc2c1c9a01bc7b51452aaf0"
+      },
+      {
+        "height": 347797,
+        "hash": "00000000000034a651df3f7b775ee13b4615854980460357e61ec8d6a901acf7",
+        "header_time_utc": "2026-10-29T21:35:01Z",
+        "first_seen_utc": "2026-10-29T21:35:03.713Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000be96ef7945cd73a56a37d701ffb7aa9a59591159900886ae7044c"
+      },
+      {
+        "height": 347798,
+        "hash": "000000000002e607b4586d06b904535d95f8a6fd80890aa606fd38a493911633",
+        "header_time_utc": "2026-10-29T21:35:03Z",
+        "first_seen_utc": "2026-10-29T21:35:05.310Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001d6f4653b8cd649f0cf52e08f5718532d0668380033b4263d7a9e9"
+      },
+      {
+        "height": 347800,
+        "hash": "00000000000c6f7a9bacb18b7de88779ad410ea024c8bff4f86d0ae7436361f1",
+        "header_time_utc": "2026-10-29T21:35:09Z",
+        "first_seen_utc": "2026-10-29T21:35:10.396Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000012650b641d3689745c2d58236c793ca11f88259a46e92cd059d7c2"
+      },
+      {
+        "height": 347805,
+        "hash": "000000000004974aec98693b9baa937060fde60100ba5747e1a32a0635d8165b",
+        "header_time_utc": "2026-10-29T21:35:18Z",
+        "first_seen_utc": "2026-10-29T21:35:19.974Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000143f9c9f183462ca6e0615be43d6430a9ff45f07e9c876994d9dc5"
+      },
+      {
+        "height": 347807,
+        "hash": "0000000000192c88f016ac227dd27622f75779b4f9f37d21c24a8ec2ad94efef",
+        "header_time_utc": "2026-10-29T21:35:20Z",
+        "first_seen_utc": "2026-10-29T21:35:24.062Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000012c38da2271fdf0c5d7aa6542bf5a46cb944c005c27d82afc5a641"
+      },
+      {
+        "height": 347808,
+        "hash": "00000000001c005a2017431d0930e8ad9819b015cabcccc3dd60af7c4f928660",
+        "header_time_utc": "2026-10-29T21:35:24Z",
+        "first_seen_utc": "2026-10-29T21:35:25.939Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000018978b31be47d52419ac1b141d8ce9801b3d46c66c292d842675df"
+      },
+      {
+        "height": 347809,
+        "hash": "000000000000e8ee2274fabeead20ee03e438cb3f5560d66cdf5d50bd9a30d59",
+        "header_time_utc": "2026-10-29T21:35:26Z",
+        "first_seen_utc": "2026-10-29T21:35:28.720Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000017f7a150fd8216a567fe1593a48e723e830877a7516b3a6aa8f223"
+      },
+      {
+        "height": 347811,
+        "hash": "0000000000071f09314b5b6e0b88ab9463bc9f5e7ad19851470f55792f605014",
+        "header_time_utc": "2026-10-29T21:35:31Z",
+        "first_seen_utc": "2026-10-29T21:35:33.151Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001634817b0fc69f9f133cb2409118d6ce788c52c02808b99be2a9c0"
+      },
+      {
+        "height": 347812,
+        "hash": "000000000008e3a58ba48bea5f9e1ca96094ab6c999e8ee582450d221f709c12",
+        "header_time_utc": "2026-10-29T21:35:33Z",
+        "first_seen_utc": "2026-10-29T21:35:35.010Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000010c15e856344041d2bc75b98164e473f36dd9d7bc489e6419d7544"
+      },
+      {
+        "height": 347815,
+        "hash": "0000000000139fc8c8318b77c52b47774376e87f41f099c17cd76bf946f94200",
+        "header_time_utc": "2026-10-29T21:35:49Z",
+        "first_seen_utc": "2026-10-29T21:35:50.665Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000c93572d1ccab82d651047652052c3847c8f8abe268b55d9799046"
+      },
+      {
+        "height": 347816,
+        "hash": "0000000000035d599fed3906ec82c56942db137386fbd16dda3fad9fe27ee584",
+        "header_time_utc": "2026-10-29T21:35:51Z",
+        "first_seen_utc": "2026-10-29T21:35:52.474Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001c3deb0704e894d58e68bcfc5107174521d73f4c9905abae9ee83b"
+      },
+      {
+        "height": 347818,
+        "hash": "000000000009bb17dc24f79f397582af003e4be9cdb0824efe547e76dbae8b08",
+        "header_time_utc": "2026-10-29T21:35:54Z",
+        "first_seen_utc": "2026-10-29T21:35:57.921Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "0000000000005abacec6f506057fb4edf1ab054fa73bf7f6a5baab075fb8f5ff"
+      },
+      {
+        "height": 347820,
+        "hash": "0000000000067bffcf0be46fabf206ff05e7ed672b078c43ced9ca523fc505c3",
+        "header_time_utc": "2026-10-29T21:36:02Z",
+        "first_seen_utc": "2026-10-29T21:36:03.267Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000ab41c72d399e6d81f2fefb6ef601dd28a9e52bee15c249b6d7869"
+      },
+      {
+        "height": 347825,
+        "hash": "000000000012d55a336f8ba70b8821e563560d79bbb8abb5a37b05ccecfc8185",
+        "header_time_utc": "2026-10-29T21:36:16Z",
+        "first_seen_utc": "2026-10-29T21:36:18.794Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000b7cbaf15d31eee63251de63a84b715084fb5db07f01de21e9b370"
+      },
+      {
+        "height": 347842,
+        "hash": "0000000000071eab34d71a712e9139b47fdc0ac313d63d513c7dcefa314525a4",
+        "header_time_utc": "2026-10-29T21:36:54Z",
+        "first_seen_utc": "2026-10-29T21:36:54.758Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000128e00f00c627529daf3e361f9a13470529aa00d29cec50709fd66"
+      },
+      {
+        "height": 347853,
+        "hash": "00000000000caec2d89e37f85aa66a82187f05f1bf49fc53e16a9e52a2365d06",
+        "header_time_utc": "2026-10-29T21:37:24Z",
+        "first_seen_utc": "2026-10-29T21:37:24.986Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "00000000001be75f9e2248cb5e53ce94de8c07fe161cee83940231395eb8ed75"
+      },
+      {
+        "height": 347855,
+        "hash": "000000000015f7cce46958f14507518f834d025dad361d9db64e0f38b292bd73",
+        "header_time_utc": "2026-10-29T21:37:28Z",
+        "first_seen_utc": "2026-10-29T21:37:31.117Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000d766c542a1b46057404b17c9a0705ec54611e090e362944fec12b"
+      },
+      {
+        "height": 347856,
+        "hash": "00000000000ef220dba75240b7650d3f571d4fabdd4baf84b5fa0af48ede7d62",
+        "header_time_utc": "2026-10-29T21:37:31Z",
+        "first_seen_utc": "2026-10-29T21:37:31.689Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000001f098a16d9313d846ea2c2f5f21a09bbdf530cb2991f76e0ed719"
+      },
+      {
+        "height": 347859,
+        "hash": "000000000007122f40f1ed983c6d480f91402e0f9942dfcacd1d28bf30b0ffce",
+        "header_time_utc": "2026-10-29T21:37:33Z",
+        "first_seen_utc": "2026-10-29T21:37:35.838Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000045542d3d26149f2f817c6043742c9de49c1c60c561ca7997d3697"
+      },
+      {
+        "height": 347860,
+        "hash": "00000000001c4106fee35b407037c7cdefdad3f73e84e62c8ac476fde47b3e16",
+        "header_time_utc": "2026-10-29T21:37:36Z",
+        "first_seen_utc": "2026-10-29T21:37:37.207Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "0000000000044874199ab4489ef4098e09abb31f574055c5150ed0ef1e5e06d6"
+      },
+      {
+        "height": 347862,
+        "hash": "000000000002e767e29d211610441c46afd79fc9618e6473db6ec6799f56a1e0",
+        "header_time_utc": "2026-10-29T21:37:39Z",
+        "first_seen_utc": "2026-10-29T21:37:41.721Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001608552e9ccbb87c54f4872f30804bfde1e81fd7a9687615e3fad9"
+      },
+      {
+        "height": 347864,
+        "hash": "00000000000a985e1183253c9fba5e138cbe52bd1e641ba27623936b7a4fd256",
+        "header_time_utc": "2026-10-29T21:37:47Z",
+        "first_seen_utc": "2026-10-29T21:37:48.006Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000016db71ff14e56f3f090d8d23f4dc9684a02682c5d1542d5d0b3101"
+      },
+      {
+        "height": 347869,
+        "hash": "00000000000d756d9c642e489bd87dcdf46d49d6f42e69ca597071753bb0ab57",
+        "header_time_utc": "2026-10-29T21:38:01Z",
+        "first_seen_utc": "2026-10-29T21:38:03.662Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "0000000000020a4d6548405853cb23906bcd627b243f0807fc2ae5263b2e9c0b"
+      },
+      {
+        "height": 347870,
+        "hash": "00000000000a0b93d314b341e86bb88eda43ff1460d786e82af61d203fd4d7c9",
+        "header_time_utc": "2026-10-29T21:38:03Z",
+        "first_seen_utc": "2026-10-29T21:38:07.115Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001b4258a872808a774aa3df1bd92c01f43f1f430169897c0b194a6d"
+      },
+      {
+        "height": 347871,
+        "hash": "00000000000e97cb7067a0704c41ca006a203a23f410f02f813d36d2d80fd270",
+        "header_time_utc": "2026-10-29T21:38:07Z",
+        "first_seen_utc": "2026-10-29T21:38:09.605Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001272bb2528ad82a32ea7d3f5520585cfaff9d1a5e723055c95b910"
+      },
+      {
+        "height": 347872,
+        "hash": "000000000006302a3cde6bba0b060ec6b3baa6c44800af2094c9535b62e27dcf",
+        "header_time_utc": "2026-10-29T21:38:09Z",
+        "first_seen_utc": "2026-10-29T21:38:10.389Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000013c397b299dfaad6734adfd105a28fe58addce13af983d2e7ce152"
+      },
+      {
+        "height": 347873,
+        "hash": "0000000000192e3d84499d8acfe53a3b2b3472535c1b7231405b0cdd388f723a",
+        "header_time_utc": "2026-10-29T21:38:14Z",
+        "first_seen_utc": "2026-10-29T21:38:15.541Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000d98254045d0d0cf03d1feb5e9bf0a8c48f4034cb5619e85e314ba"
+      },
+      {
+        "height": 347881,
+        "hash": "000000000009a730b8328fc11fa80c06aaeba5ca583d1e7fcedb1abe502e64a5",
+        "header_time_utc": "2026-10-29T21:38:35Z",
+        "first_seen_utc": "2026-10-29T21:38:37.483Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000110cdf541e863f96c1f63ebcfea6b7516f93f65020d07b5cad8b47"
+      },
+      {
+        "height": 347883,
+        "hash": "0000000000188c624944d6b94e2e678a28d6b50e1e5a0b6666590830332bf56b",
+        "header_time_utc": "2026-10-29T21:38:39Z",
+        "first_seen_utc": "2026-10-29T21:38:40.252Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000deaaca2f28f14885383cdde33cf0c1924e74b8766ab8cb5b63801"
+      },
+      {
+        "height": 347886,
+        "hash": "00000000000034aeac2799bfaf51ddcc755ff651af5c788d578ccea65d585bed",
+        "header_time_utc": "2026-10-29T21:38:44Z",
+        "first_seen_utc": "2026-10-29T21:38:46.275Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000fc49d172a1dab885cc7623f642cbe2e8cd4b1daa24158e9623a4b"
+      },
+      {
+        "height": 347888,
+        "hash": "000000000005a26cc3ae863b030c1e93b3d493f6f608f9aa9c184c2b87c82e7a",
+        "header_time_utc": "2026-10-29T21:38:47Z",
+        "first_seen_utc": "2026-10-29T21:38:49.217Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000001b5340d93ddf88eedef384098c983a2907575ab824b7f44dc8813"
+      },
+      {
+        "height": 347893,
+        "hash": "000000000007d8c88648abe51c47c110d721a85e1f977c127498c895d9a4ea5f",
+        "header_time_utc": "2026-10-29T21:38:57Z",
+        "first_seen_utc": "2026-10-29T21:38:58.718Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000018ec607bd8b1481c200a422e644b4a2ead56dca799f8eafe80bd3a"
+      },
+      {
+        "height": 347896,
+        "hash": "00000000000c746ca53a0c8fee6d34407822dfbb15fa446348a2a6b61a273e05",
+        "header_time_utc": "2026-10-29T21:39:14Z",
+        "first_seen_utc": "2026-10-29T21:39:15.095Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000003832334bef06ccad10211dca0458ac2e77f9efa3fe5194a3fed13"
+      },
+      {
+        "height": 347902,
+        "hash": "0000000000028a087fecd7082064207128e924d0b83fe48732218c5b282b3fbe",
+        "header_time_utc": "2026-10-29T21:39:22Z",
+        "first_seen_utc": "2026-10-29T21:39:24.274Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001c715ce22257c071315649724a069eea9a5de151a9f5c1b7501220"
+      },
+      {
+        "height": 347910,
+        "hash": "00000000000bcf5c61cfdcb861e1c72d4a93a0e28a97da78ce2064c6f799d733",
+        "header_time_utc": "2026-10-29T21:39:39Z",
+        "first_seen_utc": "2026-10-29T21:39:42.014Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000c8743d3db89978ca3fdb62a5445eabf9307dd39f20b0866522a60"
+      },
+      {
+        "height": 347911,
+        "hash": "0000000000157c3aafb7d07e869963e98380478911ff1640fdf34cad7eb23379",
+        "header_time_utc": "2026-10-29T21:39:42Z",
+        "first_seen_utc": "2026-10-29T21:39:45.116Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001b003b42369cd2ff4b11dc5ea42c1b4a277fca9483d170bd5d9654"
+      },
+      {
+        "height": 347912,
+        "hash": "00000000000a8b1b9802a8f8549cb6021f0cfb0a10a6930ec50c4455c1d469be",
+        "header_time_utc": "2026-10-29T21:39:45Z",
+        "first_seen_utc": "2026-10-29T21:39:46.582Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000001c999048f41dfeb430f9f83fae5f1fddb565a088ec4d25f9c7ce5"
+      },
+      {
+        "height": 347920,
+        "hash": "00000000000030b0bb5aa95b564e4e592a0f6aafb03d2645132d32a3ffd42849",
+        "header_time_utc": "2026-10-29T21:39:57Z",
+        "first_seen_utc": "2026-10-29T21:40:00.502Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000003787c4a05d4ec5d751ebb1c80f343bd14ba02d728a1df690cea98"
+      },
+      {
+        "height": 347921,
+        "hash": "0000000000017b291eec6893f7a5980fcaf611fa98d3465d8405e08d5ce97aac",
+        "header_time_utc": "2026-10-29T21:40:01Z",
+        "first_seen_utc": "2026-10-29T21:40:03.712Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000000777f2c725e406e4d2500903bcdafd6e27662d3358378c454a5f9"
+      },
+      {
+        "height": 347925,
+        "hash": "00000000001b5549d0689ffe9285d77adb9e772cbb6cfc6c17f643c30ad3cb6c",
+        "header_time_utc": "2026-10-29T21:40:10Z",
+        "first_seen_utc": "2026-10-29T21:40:12.100Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000608b7f7caeb7b54811e66e16a07f43b37e5b085b4536cbdf2ae27"
+      },
+      {
+        "height": 347928,
+        "hash": "00000000001321ff374f73620507af69de8d4a6503d16650ceda41497a47ee72",
+        "header_time_utc": "2026-10-29T21:40:17Z",
+        "first_seen_utc": "2026-10-29T21:40:20.436Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "00000000001afb188cf58c40fd635db357aeacc11a2ccd9eed9d16af68393873"
+      },
+      {
+        "height": 347929,
+        "hash": "0000000000098cf51b5a8a1a4df28d64e4de32a483f46780160781fb824570ad",
+        "header_time_utc": "2026-10-29T21:40:21Z",
+        "first_seen_utc": "2026-10-29T21:40:25.031Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000019d4d91b2f8134d0c22b0f969098eb6afa70617bcea9fcac2aad29"
+      },
+      {
+        "height": 347932,
+        "hash": "0000000000005a55dd07c9498f7e509e58ffbe8cabc5acd3228349c7dc24c4fb",
+        "header_time_utc": "2026-10-29T21:40:34Z",
+        "first_seen_utc": "2026-10-29T21:40:34.833Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000015db41875d9668f51d7db7aaa2d3bd16d0635a8f2d43696db86090"
+      },
+      {
+        "height": 347935,
+        "hash": "00000000000a568e9603dc427d340a25faca5c2af9ddb4b4698569c27a90fd48",
+        "header_time_utc": "2026-10-29T21:40:37Z",
+        "first_seen_utc": "2026-10-29T21:40:38.877Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000109d4853f3c73b68f4686a7c1ae7406fa8c94a8a58cc7c0e9e74a3"
+      },
+      {
+        "height": 347936,
+        "hash": "000000000001bc4e1e4cb616f34d9d03a4e0072bb9f465b5071a8b73e98d74ce",
+        "header_time_utc": "2026-10-29T21:40:39Z",
+        "first_seen_utc": "2026-10-29T21:40:40.880Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000d20f39f6bbcfaf38f4be3480e025b57fa927dcf366fb309f9f65c"
+      },
+      {
+        "height": 347944,
+        "hash": "00000000000ef0dfd6537dc01a4cf4ff0be1c132dc3b8f8917188d35c33b10f9",
+        "header_time_utc": "2026-10-29T21:40:58Z",
+        "first_seen_utc": "2026-10-29T21:40:58.729Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000008205c24f11b7b6bcfa7c30133a12ca39d3d2e7a00266755e52852"
+      },
+      {
+        "height": 347949,
+        "hash": "00000000000d61bd8f5ddb5c0792e34a6cb4177efc3e5434ef96e49114d3a81d",
+        "header_time_utc": "2026-10-29T21:41:13Z",
+        "first_seen_utc": "2026-10-29T21:41:18.733Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000013e721993a792b945d24a28836e7f1da10c85bb263ecce453e7ad1"
+      },
+      {
+        "height": 347952,
+        "hash": "00000000000091f4ea2dc7ccc21a938ce192bc9abe77aaf76d086e9b78d5fac7",
+        "header_time_utc": "2026-10-29T21:41:21Z",
+        "first_seen_utc": "2026-10-29T21:41:22.779Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "00000000000bab1b28dffe6a308110564455af5be7fef9577308e8a05b43cf28"
+      },
+      {
+        "height": 347953,
+        "hash": "000000000007e91ec96048995811e5f77576a13e9e08a711795dc11b258c94c5",
+        "header_time_utc": "2026-10-29T21:41:29Z",
+        "first_seen_utc": "2026-10-29T21:41:30.486Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000a1ef15cd2785816061f09c4b093949ae869571747b052bc59694d"
+      },
+      {
+        "height": 347955,
+        "hash": "00000000000d263d8bd34c23952244940210a81e20bee6f5ebaf48afaa584d79",
+        "header_time_utc": "2026-10-29T21:41:32Z",
+        "first_seen_utc": "2026-10-29T21:41:36.631Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "00000000000acb2726e5c75501e951c8a27ea3a90f2e0c6e657472d9da2012bf"
+      },
+      {
+        "height": 347959,
+        "hash": "0000000000147ee6269e3ad259d8c953fd3b9a3823737b89a7fbeff910ce99fe",
+        "header_time_utc": "2026-10-29T21:41:48Z",
+        "first_seen_utc": "2026-10-29T21:41:53.283Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000019e0f7f5af419479adfc87f91d8f2dd8db40928e12a8f152c591dd"
+      },
+      {
+        "height": 347960,
+        "hash": "0000000000177973ac6a4c768d1dcf8cd155e70abe644e799f30521f77cdb9ce",
+        "header_time_utc": "2026-10-29T21:41:53Z",
+        "first_seen_utc": "2026-10-29T21:41:54.991Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "0000000000078b6496cc58fb9747b8da2e37495a7068f02eee274d8d694c95bc"
+      },
+      {
+        "height": 347962,
+        "hash": "0000000000101ca63a2b957d1e9ccdb0024d821dbb733e81d23663d046c1e0c7",
+        "header_time_utc": "2026-10-29T21:41:59Z",
+        "first_seen_utc": "2026-10-29T21:41:59.635Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000c53fa9e503f002b78ffe41eb25257c9d844c04e7062352a430207"
+      },
+      {
+        "height": 347963,
+        "hash": "0000000000082abf3b644416dbac4f2caa33d2db527d1505d0318d023f79e2e0",
+        "header_time_utc": "2026-10-29T21:41:59Z",
+        "first_seen_utc": "2026-10-29T21:42:01.118Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000073f16f78f8d72ab586ab050a7de219b34e263784e47b6bcab4386"
+      },
+      {
+        "height": 347964,
+        "hash": "00000000000299d05e2af19f0286da379c6723e7bf23285b1489194fcaa676fb",
+        "header_time_utc": "2026-10-29T21:42:01Z",
+        "first_seen_utc": "2026-10-29T21:42:02.950Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001ac675773990a0c852f7ee11ebd175adba9a6274720ca077ea22b7"
+      },
+      {
+        "height": 347965,
+        "hash": "000000000005c77891f1f2ae1b52c9829025d03494b5244aa1e6992a8cc0fd3e",
+        "header_time_utc": "2026-10-29T21:42:03Z",
+        "first_seen_utc": "2026-10-29T21:42:03.849Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001c78216784f2fc3dcd632eba8c59a19fb04067bd13a54f31387ee6"
+      },
+      {
+        "height": 347967,
+        "hash": "000000000017cc60a417eb7fb9accca881228544bfb43537595bc7a7ee390d6f",
+        "header_time_utc": "2026-10-29T21:42:05Z",
+        "first_seen_utc": "2026-10-29T21:42:06.935Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000008e70a6cd0c3728333f52b05d3a5fcd57c07f8fd4424e55454899e"
+      },
+      {
+        "height": 347970,
+        "hash": "0000000000180317eb8e1bc126241fe45eba668e48f7ac4c4f0c8333fcb42310",
+        "header_time_utc": "2026-10-29T21:42:09Z",
+        "first_seen_utc": "2026-10-29T21:42:11.795Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000006b116eb064adb0ac61e931bf455ccf850714ea12a282a7f923a0e"
+      },
+      {
+        "height": 347979,
+        "hash": "00000000001577bee211c7ce0cd9a986de61acedff590f47137cb8117c2ac006",
+        "header_time_utc": "2026-10-29T21:42:29Z",
+        "first_seen_utc": "2026-10-29T21:42:29.544Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "00000000001ca576f33da8ce5c2b35940c1a829269d53cb3285db2f230fb12bb"
+      },
+      {
+        "height": 347982,
+        "hash": "00000000001230bdb4e126e4eaedcbc613967d4054a1d8037717884b33f7def3",
+        "header_time_utc": "2026-10-29T21:42:35Z",
+        "first_seen_utc": "2026-10-29T21:42:37.013Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000075f64303290086f6fd7de786e0c79834fe9e93df81a3c601b8a3"
+      },
+      {
+        "height": 347984,
+        "hash": "00000000001d272e17d0bb086f6758a03f03434a8902349de5b1b2a592800cc9",
+        "header_time_utc": "2026-10-29T21:42:44Z",
+        "first_seen_utc": "2026-10-29T21:42:44.770Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000b05e585acbb78849e9dcdc91f1dcfe83a63d7c0e8ff7c00ced278"
+      },
+      {
+        "height": 347987,
+        "hash": "0000000000157b3855ae306d7b1007e9b95bb0169596907ecc10bab47b5a1270",
+        "header_time_utc": "2026-10-29T21:42:50Z",
+        "first_seen_utc": "2026-10-29T21:42:53.292Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000006e22377e0254bc6d6160ec85fcd1789d5e5a85a2356f200a9c35e"
+      },
+      {
+        "height": 347993,
+        "hash": "00000000000e1a0da4fec3fadff6244cb997d8c887c70a22f497c984953f74d8",
+        "header_time_utc": "2026-10-29T21:43:08Z",
+        "first_seen_utc": "2026-10-29T21:43:09.378Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000016706cd5c50e0b9ddbf0931bcac20de510f7fe69b39695086e1352"
+      },
+      {
+        "height": 347995,
+        "hash": "0000000000140ae20071a76eac2b9ae63177392fe3b4d85f464618426bcf95e8",
+        "header_time_utc": "2026-10-29T21:43:16Z",
+        "first_seen_utc": "2026-10-29T21:43:19.355Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000174e9115dfa9454c089a177af7f8c0723ad40bcf1eeaed840fe60a"
+      },
+      {
+        "height": 347997,
+        "hash": "000000000003a1761af79ce1da2f66b2088afa4ec8451695a92a03da597e3212",
+        "header_time_utc": "2026-10-29T21:43:20Z",
+        "first_seen_utc": "2026-10-29T21:43:21.503Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000108f8c0adffc25a56cb9f4c00dd61a98e775c80db869a5b05b1783"
+      },
+      {
+        "height": 348001,
+        "hash": "00000000001790a30e93053f172c65d1c9112dcb8336d899b5b6d6944c22201c",
+        "header_time_utc": "2026-10-29T21:43:27Z",
+        "first_seen_utc": "2026-10-29T21:43:30.836Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000008adb07778904840ca6c43e9b1eb1bfb536b0f99be74b07e008d4f"
+      },
+      {
+        "height": 348003,
+        "hash": "00000000000fa97d740e75ea363a45bd0a025aa697e78e54f54e7894c8400b3b",
+        "header_time_utc": "2026-10-29T21:43:33Z",
+        "first_seen_utc": "2026-10-29T21:43:37.758Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000008688408ce4cb82315bf879d3ade8a5d89aa1006dfb3e658ef9d4d"
+      },
+      {
+        "height": 348004,
+        "hash": "000000000015c4ff392cf87240d151ce16af34e22d2bb97b4ef6a52c05fe90f1",
+        "header_time_utc": "2026-10-29T21:43:38Z",
+        "first_seen_utc": "2026-10-29T21:43:39.333Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000006d9b7a26b80f0dfc75d87b3b3a870e5464ea5a374198178b791e4"
+      },
+      {
+        "height": 348005,
+        "hash": "0000000000132e495debf75b989032f92a78365b97f1c85d5533b061da7527b2",
+        "header_time_utc": "2026-10-29T21:43:39Z",
+        "first_seen_utc": "2026-10-29T21:43:41.345Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000012619fb9513c5a5eb86765c0bf84941bf5a54e1f0983de819eb260"
+      },
+      {
+        "height": 348008,
+        "hash": "000000000008668dafb4e2d88204581be25e83c6f09e252f14952d1e0b8b92ef",
+        "header_time_utc": "2026-10-29T21:43:44Z",
+        "first_seen_utc": "2026-10-29T21:43:45.670Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001305e51578a5aa5200dce11209fcd15173d31a53b0e2ffe0f6cf1b"
+      },
+      {
+        "height": 348011,
+        "hash": "00000000000666bcaf2891a8950df6fbfe23150b06624aa34a1236497188caca",
+        "header_time_utc": "2026-10-29T21:43:50Z",
+        "first_seen_utc": "2026-10-29T21:43:51.366Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000a11597197af15a5182c7f1b48fc6c03a61435b813157724f89fdf"
+      },
+      {
+        "height": 348016,
+        "hash": "0000000000042e1a3a4f1e9d2d8b2dcb415cf2c9fe7dc199d4e2f504f8371605",
+        "header_time_utc": "2026-10-29T21:44:00Z",
+        "first_seen_utc": "2026-10-29T21:44:02.094Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000160a6d8e55499218ab084f01fdc26144b87362e1aeb1c7b99a63b9"
+      },
+      {
+        "height": 348017,
+        "hash": "0000000000179577b48d11014f4292106eafac491276d9981082cb5f19748174",
+        "header_time_utc": "2026-10-29T21:44:02Z",
+        "first_seen_utc": "2026-10-29T21:44:03.816Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000fd317191276aa71e4ecb8482cd081cbdd9efacad309621f8a8ef3"
+      },
+      {
+        "height": 348018,
+        "hash": "0000000000199008fa5ea33b0b8777460e5de7c49c737c7aa525c53a78cd46f6",
+        "header_time_utc": "2026-10-29T21:44:04Z",
+        "first_seen_utc": "2026-10-29T21:44:06.285Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000011b2c3b1369987f9973d224e8fd06fcac6287756b7ea1cf9f981b"
+      },
+      {
+        "height": 348029,
+        "hash": "0000000000180803712e141b383e61a0a4923e715bde44501312475f49d254bb",
+        "header_time_utc": "2026-10-29T21:44:21Z",
+        "first_seen_utc": "2026-10-29T21:44:23.942Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000012e927e5dad9de710458c3cae9b2ad3e23e5db4ff7832c68ad07c4"
+      },
+      {
+        "height": 348030,
+        "hash": "00000000001a94b3f515c323ff2ac304d2eacd4d2a7fe6e508c9ea97468f1b84",
+        "header_time_utc": "2026-10-29T21:44:24Z",
+        "first_seen_utc": "2026-10-29T21:44:26.482Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001178fca2aab354aafedb96fc6301427b72614af324bbe3571db060"
+      },
+      {
+        "height": 348031,
+        "hash": "000000000012af1d43ff646b0e3dc0fd136611db441a8d00085d28fb0eea43b7",
+        "header_time_utc": "2026-10-29T21:44:27Z",
+        "first_seen_utc": "2026-10-29T21:44:27.832Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001c5f262ed2deaae8f5b0b3b161d258fafe9d9fc57cd198e6f4bb54"
+      },
+      {
+        "height": 348039,
+        "hash": "00000000000deca001fba8353a1a5bc5b1ecdcb4ac2145ebd6e96b4b6c72e368",
+        "header_time_utc": "2026-10-29T21:44:37Z",
+        "first_seen_utc": "2026-10-29T21:44:39.569Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000d7c2e157f8cfc8b660476405f3a5c0b89482a99aedda306ee7b8b"
+      },
+      {
+        "height": 348040,
+        "hash": "00000000001914f6366f9fedbc16e6890db188c117b97dd2453a1b5cf5bf30b3",
+        "header_time_utc": "2026-10-29T21:44:39Z",
+        "first_seen_utc": "2026-10-29T21:44:41.454Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000e2823c7e8c2d19496233230b8eb828486388a5609f60fb2c25082"
+      },
+      {
+        "height": 348042,
+        "hash": "0000000000193b94a21ad0fde32238b8cc7fadb9d3168012df9a3a97d394117d",
+        "header_time_utc": "2026-10-29T21:44:43Z",
+        "first_seen_utc": "2026-10-29T21:44:46.300Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000006e2dbc388f442ea8a1285d2539f168e0ef7e3ff47023ad3e6476f"
+      },
+      {
+        "height": 348045,
+        "hash": "000000000017145bf09a1f6462eedbc99511ede33c1acb7370bf59b2954e21b7",
+        "header_time_utc": "2026-10-29T21:44:51Z",
+        "first_seen_utc": "2026-10-29T21:44:55.669Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000b1ea9eea01e6393b66cf69733ec0915455cb1a483cf7410e4870c"
+      },
+      {
+        "height": 348047,
+        "hash": "000000000012e6dec29c8473d296840f5713049ce754b8505f3285ba70bf0861",
+        "header_time_utc": "2026-10-29T21:44:56Z",
+        "first_seen_utc": "2026-10-29T21:44:57.597Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000015d532de01501e78db2694bb57f8e602ffe5173d9a9dcf53b1ac82"
+      },
+      {
+        "height": 348048,
+        "hash": "000000000016c038d0b89a2ac2e76f99e85f33f88ead56947d2e6395f46ec4cd",
+        "header_time_utc": "2026-10-29T21:44:58Z",
+        "first_seen_utc": "2026-10-29T21:45:00.823Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "00000000001b870134190be92f7a64ef554e2581e9e14b2658fd7ec97e87ced9"
+      },
+      {
+        "height": 348050,
+        "hash": "00000000001525bf4df6d3491337c7e90101b1bbbf5681fe549375612383e2b8",
+        "header_time_utc": "2026-10-29T21:45:02Z",
+        "first_seen_utc": "2026-10-29T21:45:03.571Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000627c26086e01409e772f19603c632a2513e647f51d0eebdfa915e"
+      },
+      {
+        "height": 348051,
+        "hash": "00000000001ad4aee47483eeeed83c2c1d88aa2f1f03110a3b05311b98398d11",
+        "header_time_utc": "2026-10-29T21:45:09Z",
+        "first_seen_utc": "2026-10-29T21:45:09.950Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000009a6473635e2b829267f00b2a41298c181b6e0c67740e711b0b9b6"
+      },
+      {
+        "height": 348054,
+        "hash": "00000000000f78f6e50e2e72e6011f80df6634884d5c8e4e120fd8f689574966",
+        "header_time_utc": "2026-10-29T21:45:19Z",
+        "first_seen_utc": "2026-10-29T21:45:22.331Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000158247ed32a5b1e234f815072b6d1da86e90b4988db07e08520ef4"
+      },
+      {
+        "height": 348061,
+        "hash": "000000000005a68655255d6ed52c0bded5a0601af2fccd1664a97f461c3ff6db",
+        "header_time_utc": "2026-10-29T21:45:40Z",
+        "first_seen_utc": "2026-10-29T21:45:40.841Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000fb670b21504e46acd294406d6774edc1b0c020f49c0b96edf74b1"
+      },
+      {
+        "height": 348064,
+        "hash": "00000000001022b94bade20fb77fd137e77b6c62608f7b742eaa1462be4a5cfc",
+        "header_time_utc": "2026-10-29T21:45:49Z",
+        "first_seen_utc": "2026-10-29T21:45:52.436Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000013aa6af9e1f797ea1c7e96768f3736bbfe38f6d8ed897de95da907"
+      },
+      {
+        "height": 348068,
+        "hash": "00000000000a4a87a4891abf2cf6306142f928b7083d74a337a3e17a1c5a03c4",
+        "header_time_utc": "2026-10-29T21:45:56Z",
+        "first_seen_utc": "2026-10-29T21:45:56.869Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000fac2157c59e261c08809515681d3c41660e143a8814e7cc74cc56"
+      },
+      {
+        "height": 348072,
+        "hash": "0000000000061e728cc1990f814b4016f0dc207b0c07528970fe18b9be6a5437",
+        "header_time_utc": "2026-10-29T21:46:06Z",
+        "first_seen_utc": "2026-10-29T21:46:07.623Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000017506a5b0183da0b7e034aa35da2a71415dbbc9f7e2dbe908b7b58"
+      },
+      {
+        "height": 348075,
+        "hash": "000000000008e5a6ab85d9f3436c558a73a29716c060d3a674a937feeef9eca7",
+        "header_time_utc": "2026-10-29T21:46:16Z",
+        "first_seen_utc": "2026-10-29T21:46:18.741Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000feff91be7fed0cefa9b2563993a1bf036dd2bffd45bfc93ff0ac7"
+      },
+      {
+        "height": 348076,
+        "hash": "00000000001b26d6ca5fa46e631d5f60d337696bda0c7e2a91fdc8a06090638b",
+        "header_time_utc": "2026-10-29T21:46:18Z",
+        "first_seen_utc": "2026-10-29T21:46:21.167Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000012968848b6b072decf4f5bc9c41cdee079f3a7e6707a7cf6dde456"
+      },
+      {
+        "height": 348081,
+        "hash": "000000000010efd9bbb0e571a936886b896c072be74dc8544c6b01178da688ea",
+        "header_time_utc": "2026-10-29T21:46:30Z",
+        "first_seen_utc": "2026-10-29T21:46:33.085Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000099d012bbafece81d529c4e726fffba8418b90b00234dcf292a816"
+      },
+      {
+        "height": 348082,
+        "hash": "000000000001303972703ae89d43a60ff24cfad2e5b9ce923c1b769ba82c7277",
+        "header_time_utc": "2026-10-29T21:46:33Z",
+        "first_seen_utc": "2026-10-29T21:46:34.248Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001516f5eba789de1ddd56a7b01363fd436cbae88f62d070d253dc88"
+      },
+      {
+        "height": 348093,
+        "hash": "00000000001386497e30eaeace8fdbfbbb4de05584103d26048cf4858c91b365",
+        "header_time_utc": "2026-10-29T21:46:55Z",
+        "first_seen_utc": "2026-10-29T21:46:56.675Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001918f62f5be5cb9c7355e6935b7b7f1ef35dfef378de4039a71f43"
+      },
+      {
+        "height": 348095,
+        "hash": "00000000000d5253dd852404bdf0b636d84c448e3a9cdac1f501a8c1ada64889",
+        "header_time_utc": "2026-10-29T21:46:57Z",
+        "first_seen_utc": "2026-10-29T21:47:01.826Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000cb9d398972f486bf85485463a98d2e7585927cdb5e3568c2ad40c"
+      },
+      {
+        "height": 348109,
+        "hash": "000000000010451a637be8248e7b47ebd8a98166ffc2b8c1a291878ad9b91dda",
+        "header_time_utc": "2026-10-29T21:47:32Z",
+        "first_seen_utc": "2026-10-29T21:47:33.828Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000008e414cbd8f1f31aa0de9f374215f42729ca8a941a4e3737cd6f4a"
+      },
+      {
+        "height": 348117,
+        "hash": "00000000000d88a1dc60e7c177c6486efbfaf40e5c93113a4d3bac1b9df40e7f",
+        "header_time_utc": "2026-10-29T21:47:50Z",
+        "first_seen_utc": "2026-10-29T21:47:51.100Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000cd7c15e15c4e2650b97c97a4162e7f6ed58cde06b1e99190c8ca1"
+      },
+      {
+        "height": 348120,
+        "hash": "000000000016d12358dbb985337f500fcf2185df975963cee506d03582a3d91f",
+        "header_time_utc": "2026-10-29T21:47:59Z",
+        "first_seen_utc": "2026-10-29T21:48:02.978Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000004d57f9e945a7bbdb2a692e6b1a4f8b219a22d89dbdfe07d47c282"
+      },
+      {
+        "height": 348123,
+        "hash": "00000000000215e38d1cd2bf234c2154412a2bc991644e5f1aee925cbdb3b716",
+        "header_time_utc": "2026-10-29T21:48:09Z",
+        "first_seen_utc": "2026-10-29T21:48:10.548Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "0000000000094f3398d65d4f42e45a356b700e000cb581b72781f0cad6d54724"
+      },
+      {
+        "height": 348125,
+        "hash": "0000000000003b6856de7e62c5afc4917f64db76450288607b4c5e7da6c2c270",
+        "header_time_utc": "2026-10-29T21:48:14Z",
+        "first_seen_utc": "2026-10-29T21:48:17.761Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000b6ff7d395c03488708c9fe613f48dc7a3ae9807c97fcdee59f753"
+      },
+      {
+        "height": 348127,
+        "hash": "000000000017e73eb29f408fff83ab7d96011125a42a0273d11331c54acb4f28",
+        "header_time_utc": "2026-10-29T21:48:20Z",
+        "first_seen_utc": "2026-10-29T21:48:22.857Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000d21240ad1ef6abac9e2ec0f14fdbf28033419861a61fe18d16daa"
+      },
+      {
+        "height": 348129,
+        "hash": "00000000001bb97b3497e826fe2709781fac70cf4c44e129a2f1b39268d648ac",
+        "header_time_utc": "2026-10-29T21:48:29Z",
+        "first_seen_utc": "2026-10-29T21:48:31.125Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "0000000000120843dd653ccf5c1082443376cd0e6eeabcde9ea8c0c5f2975d3a"
+      },
+      {
+        "height": 348132,
+        "hash": "00000000001039f4b5f5487f406aeb0140a9d363a01803e95d7f12d8449d1a39",
+        "header_time_utc": "2026-10-29T21:48:43Z",
+        "first_seen_utc": "2026-10-29T21:48:46.732Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000018dc2525f4137653a1c829f11451ea58e5e3a5292a0eac0a55c5cb"
+      },
+      {
+        "height": 348138,
+        "hash": "0000000000135628e6649ba03c16bc5e5d3e5d1ce8b240c4ad71ea6ba93c1125",
+        "header_time_utc": "2026-10-29T21:48:59Z",
+        "first_seen_utc": "2026-10-29T21:49:01.885Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000008096d20bf2f5d92913a39befbe0eb8ce7874e4b6fd9160110fb82"
+      },
+      {
+        "height": 348139,
+        "hash": "000000000015bd4c8664f3a614010f70cc3320ca07e36ec20a8c3e4894addf0d",
+        "header_time_utc": "2026-10-29T21:49:01Z",
+        "first_seen_utc": "2026-10-29T21:49:03.205Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001396beddcfd782bb01e88f8ee37eee46c80561d870d58961460fed"
+      },
+      {
+        "height": 348140,
+        "hash": "00000000001aab615e3576d53e15be4d827ecd84ba1d4e12fb1c27e249cef6d8",
+        "header_time_utc": "2026-10-29T21:49:03Z",
+        "first_seen_utc": "2026-10-29T21:49:05.837Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000010b652df4b3df37ef77fc367ecdc7252b8d34bcfb59a1547c15276"
+      },
+      {
+        "height": 348144,
+        "hash": "00000000000733b6251bda9ea59afdd68e524d22e06a5a8e1b341d6361763499",
+        "header_time_utc": "2026-10-29T21:49:14Z",
+        "first_seen_utc": "2026-10-29T21:49:15.347Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000626d2fccca365160dfe516d2c897c8b5dadf2dc6da2a3a6511b96"
+      },
+      {
+        "height": 348145,
+        "hash": "00000000000055d407f84f88aa95c1a88e092b590b2e8657517eb31ff0d12ab7",
+        "header_time_utc": "2026-10-29T21:49:19Z",
+        "first_seen_utc": "2026-10-29T21:49:20.297Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001c09692c450ede0d4ccf049b163f9f4f0df7a7d23d8156fb1e3a2a"
+      },
+      {
+        "height": 348148,
+        "hash": "000000000002eb8c40677ba8562b1844d95a42c89973cd713a7f93e7431324a4",
+        "header_time_utc": "2026-10-29T21:49:22Z",
+        "first_seen_utc": "2026-10-29T21:49:24.597Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "00000000000010236065201a5776752db0a1fd1262118af0dfbb411a92db2984"
+      },
+      {
+        "height": 348152,
+        "hash": "000000000005c383c220d5c6d638e86619266aff1da80f31b638d36bb44d2d97",
+        "header_time_utc": "2026-10-29T21:49:33Z",
+        "first_seen_utc": "2026-10-29T21:49:35.500Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000010b6bf667527e44269e6895f7b47a55d659d191d88fed97d112c0c"
+      },
+      {
+        "height": 348156,
+        "hash": "000000000013e12a45f334f471e006ae94bebeb5aa4e07a490f8bd4da603eda6",
+        "header_time_utc": "2026-10-29T21:49:40Z",
+        "first_seen_utc": "2026-10-29T21:49:41.649Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000003f4561e23af7d5a6fe8afa9ec789db8c4a5b9382560574fe3b2bf"
+      },
+      {
+        "height": 348162,
+        "hash": "0000000000171b82422896f89c3fc0ff37e319a0c8d712e37398c7f2bf34844c",
+        "header_time_utc": "2026-10-29T21:49:59Z",
+        "first_seen_utc": "2026-10-29T21:50:00.071Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000191c70c971c40c2f7824bb9d13713f4fbe589efa518f4250b117b6"
+      },
+      {
+        "height": 348171,
+        "hash": "0000000000005145a2c61032038df848ce14969706b99d7cf374012228753a08",
+        "header_time_utc": "2026-10-29T21:50:13Z",
+        "first_seen_utc": "2026-10-29T21:50:18.038Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000007c1fbf9eb0c0ad7dbb930a392ae3aaa3b54028c031284b7c634d0"
+      },
+      {
+        "height": 348175,
+        "hash": "000000000018921d1551d70ca08fcb580eb6a2806e4a3aef1d04696dfb40ea82",
+        "header_time_utc": "2026-10-29T21:50:25Z",
+        "first_seen_utc": "2026-10-29T21:50:26.547Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "00000000001a37fd9cec11788663ea43fb8118219947d730e46a48cca6fe3a4f"
+      },
+      {
+        "height": 348186,
+        "hash": "000000000000f5e11baa2c1bf0f02839f9d275dc85a532604598a13d88c2f049",
+        "header_time_utc": "2026-10-29T21:50:53Z",
+        "first_seen_utc": "2026-10-29T21:50:53.715Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001bb86a703bfa72e1bede8ae666eb8f9699a08b14e59aaac6992332"
+      },
+      {
+        "height": 348188,
+        "hash": "00000000001ce82a485537e3ac382e5703d49dd7397cc3ac66b3115bd12fd6ca",
+        "header_time_utc": "2026-10-29T21:50:55Z",
+        "first_seen_utc": "2026-10-29T21:50:56.753Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000016bbd87969af747882d8b8dcb78cf606809cad2c92fe50a3592827"
+      },
+      {
+        "height": 348194,
+        "hash": "000000000018c9eb99c3988766bad155098dc84ac19653b8faad5aac2323d54c",
+        "header_time_utc": "2026-10-29T21:51:10Z",
+        "first_seen_utc": "2026-10-29T21:51:11.624Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000012095ae95ff483ca394382516b0a8f2680faf00fb25310b098dd19"
+      },
+      {
+        "height": 348195,
+        "hash": "00000000000806a49511ff1f7cf1f315a8272272fd76041e8684b1e0fc537868",
+        "header_time_utc": "2026-10-29T21:51:14Z",
+        "first_seen_utc": "2026-10-29T21:51:14.854Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000013a1ab4cb816bd2c165e8cdd974e35b302c62068ec2ff76d3dd6a4"
+      },
+      {
+        "height": 348201,
+        "hash": "0000000000048719dcad9e770e2fb743f63f6fb096536f77b59f539bf673a32e",
+        "header_time_utc": "2026-10-29T21:51:29Z",
+        "first_seen_utc": "2026-10-29T21:51:33.586Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001708497a976b7271ca13a51c2d82cf46a419003bb955c53165503a"
+      },
+      {
+        "height": 348204,
+        "hash": "000000000003be1b8337254d02ac3e29641b90a80eaeaccb6aaaccb4e5f2427b",
+        "header_time_utc": "2026-10-29T21:51:40Z",
+        "first_seen_utc": "2026-10-29T21:51:41.234Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000b172ad9a4b9f046c07814117f3843a9623c990e337c8c134deb41"
+      },
+      {
+        "height": 348209,
+        "hash": "000000000018fb8cf980f6959ffd3128828e8ff799754babadd1d646a6531e32",
+        "header_time_utc": "2026-10-29T21:51:50Z",
+        "first_seen_utc": "2026-10-29T21:51:53.608Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000123226a6c1a7cbdc41f5baf436e36f26c8eaaeb108451d65084d12"
+      },
+      {
+        "height": 348213,
+        "hash": "00000000001316bcde6edd6941297b9c1f7b42aa29ab0c4a84998d0fba90893e",
+        "header_time_utc": "2026-10-29T21:52:02Z",
+        "first_seen_utc": "2026-10-29T21:52:03.292Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000791c78fbe71d53e74c427842ebdea5c3a7fef02e34a0d009d0e18"
+      },
+      {
+        "height": 348215,
+        "hash": "0000000000166f260e26b16013409cbbd980bb2c671bcdb0a35e0e45c64d0913",
+        "header_time_utc": "2026-10-29T21:52:05Z",
+        "first_seen_utc": "2026-10-29T21:52:07.442Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000a2e73747ae8d40eecff2b2e8a59a6cd444fd3db379e3848f5458f"
+      },
+      {
+        "height": 348216,
+        "hash": "00000000001cb73e904d5348d43614cf76a4e28acfa3312a6b3d14f092e94115",
+        "header_time_utc": "2026-10-29T21:52:07Z",
+        "first_seen_utc": "2026-10-29T21:52:09.092Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000018dfdce56e03e9c641761fb3a94198dac415e4f3dcb86c29529da9"
+      },
+      {
+        "height": 348220,
+        "hash": "000000000015079bb7f1cc9cfcd102e4a52e9d758af2df93591621d5cf3af6a8",
+        "header_time_utc": "2026-10-29T21:52:15Z",
+        "first_seen_utc": "2026-10-29T21:52:16.332Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000012b82468f17d4a5e45e2fc7e34c9d375645cf2d5d05a16f9485535"
+      },
+      {
+        "height": 348222,
+        "hash": "000000000009a3b335b3c8fac61989e8d437453d0f92261dc18ff531079a8fdf",
+        "header_time_utc": "2026-10-29T21:52:29Z",
+        "first_seen_utc": "2026-10-29T21:52:30.339Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000013967d0dc616a5a323500670850d7432819d3a6df423048797e1ce"
+      },
+      {
+        "height": 348226,
+        "hash": "00000000000dea955f5db0d916402ff293febeb75cc3354f46b5f12c8c688a2f",
+        "header_time_utc": "2026-10-29T21:52:38Z",
+        "first_seen_utc": "2026-10-29T21:52:40.190Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000019687126eab08f9f75dd400c0cb19f40316faf3aa774069c30d4e5"
+      },
+      {
+        "height": 348229,
+        "hash": "0000000000104930de3f0820ff94868d8c49c00727e67d8e7b1c4cf5859aa4bc",
+        "header_time_utc": "2026-10-29T21:52:44Z",
+        "first_seen_utc": "2026-10-29T21:52:45.817Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000084c7cc1327a17ae80ff7f7cbcef83ebf4cf1b0949983094483e34"
+      },
+      {
+        "height": 348230,
+        "hash": "000000000011dcbb3c900b130ce108178c65c10d9f1b2ff481e0bf8fd9930197",
+        "header_time_utc": "2026-10-29T21:52:46Z",
+        "first_seen_utc": "2026-10-29T21:52:48.248Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000166ce451609ceaef9d6c4525f79eac4761566d84692e9a644b2a87"
+      },
+      {
+        "height": 348231,
+        "hash": "00000000000e1a62ce966dff77cd48332aecbfe869edbbcf992f31c6d2fc3f1a",
+        "header_time_utc": "2026-10-29T21:52:48Z",
+        "first_seen_utc": "2026-10-29T21:52:49.326Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000000e744b2366a45bf45b06ccf870b959eb3319b32d8f6df462e8daf"
+      },
+      {
+        "height": 348232,
+        "hash": "000000000006d9f7ff1ae5675faccd92c5d680997400671c07a23f1073f8c84f",
+        "header_time_utc": "2026-10-29T21:52:49Z",
+        "first_seen_utc": "2026-10-29T21:52:50.303Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000007069c140c3668cf1a67e6b6e3fb8144c0b04aeb972cbcbc711372"
+      },
+      {
+        "height": 348234,
+        "hash": "0000000000137ccfc34dbd630f5f215d52d8c1fd77fd7cfccf0d7a51ce10c347",
+        "header_time_utc": "2026-10-29T21:52:55Z",
+        "first_seen_utc": "2026-10-29T21:52:56.680Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001d1dd6eb0d3dc659247c1cb0539c2959a2c3a0fa627b0c29018ba6"
+      },
+      {
+        "height": 348237,
+        "hash": "00000000000ed744396e909597351af0808e9ba425503362557b59a2d8fb3048",
+        "header_time_utc": "2026-10-29T21:52:59Z",
+        "first_seen_utc": "2026-10-29T21:53:00.528Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000014c64f6f445e546761c3282ab24a03d35eff9cb87726ce964316df"
+      },
+      {
+        "height": 348240,
+        "hash": "00000000001931e5621c42b8efb80b217ce1f57478c109aca276f42187225eb0",
+        "header_time_utc": "2026-10-29T21:53:03Z",
+        "first_seen_utc": "2026-10-29T21:53:04.626Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "00000000001835dbfae3a73a54ed417daf930c2998885fb6d8716c7114d7b8b1"
+      },
+      {
+        "height": 348241,
+        "hash": "000000000001ca05095facf6e906fc94579025897969baa647ed0fac262e3871",
+        "header_time_utc": "2026-10-29T21:53:04Z",
+        "first_seen_utc": "2026-10-29T21:53:05.453Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000a24a283bda95d7ee40a2ed2266940ca65d20acbac07ce32cb55b6"
+      },
+      {
+        "height": 348242,
+        "hash": "00000000000dcdbe5fa3e345510cb6784c5397b8c40f32b04c58bb86486a6151",
+        "header_time_utc": "2026-10-29T21:53:06Z",
+        "first_seen_utc": "2026-10-29T21:53:07.110Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000057e5bd9d01fb7414179f05d8a852961434f50c77d5a3b14f1b94"
+      },
+      {
+        "height": 348243,
+        "hash": "00000000001498eb69de9eb4d5843efacd037e9dc7d702353dd4513026134cd8",
+        "header_time_utc": "2026-10-29T21:53:08Z",
+        "first_seen_utc": "2026-10-29T21:53:13.516Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000012608f4f6e27acf14fdadf8baa3c53f0631ce73982da3ef9a92799"
+      },
+      {
+        "height": 348251,
+        "hash": "000000000000148f8b43a8edb4bf3c36df6ea0926f0c350225227731dceed43c",
+        "header_time_utc": "2026-10-29T21:53:34Z",
+        "first_seen_utc": "2026-10-29T21:53:36.653Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000086895283887b305b64e3fdb00113f2867f4a7f87d9e3df5ef88b9"
+      },
+      {
+        "height": 348260,
+        "hash": "0000000000198079a64af2f415f827e1cfcbbb59ffcd0b3ad29bebd83e0cb451",
+        "header_time_utc": "2026-10-29T21:53:52Z",
+        "first_seen_utc": "2026-10-29T21:53:55.912Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000005c0e16bb459aee791bc818da9aa30cb9f5c919e0f4e5ed9173330"
+      },
+      {
+        "height": 348261,
+        "hash": "00000000001d1c0855b785c4d0930f7a64463e27c783a39689bb244984287908",
+        "header_time_utc": "2026-10-29T21:53:56Z",
+        "first_seen_utc": "2026-10-29T21:53:57.129Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000005ace76eeeb32854e0d53f6e7b152166b37862eb91ef24e668a4f"
+      },
+      {
+        "height": 348264,
+        "hash": "0000000000010134016e887509925de916678eaf7f758204ead6b559c735f507",
+        "header_time_utc": "2026-10-29T21:54:04Z",
+        "first_seen_utc": "2026-10-29T21:54:06.060Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000002dbdeb5475efa28142514f9c64a9e005865974f5445b64d3f3822"
+      },
+      {
+        "height": 348266,
+        "hash": "000000000014e0e8fcc07ab7462cd21938af4f9123f010ae5b5df181aa14e271",
+        "header_time_utc": "2026-10-29T21:54:07Z",
+        "first_seen_utc": "2026-10-29T21:54:08.832Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001745e02d1c958ff51912db87f99ea4f1a96584f8c9f8e891a736a0"
+      },
+      {
+        "height": 348271,
+        "hash": "000000000015cc84b5c4f4245e2341059d56f5391a182b844aed4affd289159e",
+        "header_time_utc": "2026-10-29T21:54:15Z",
+        "first_seen_utc": "2026-10-29T21:54:18.797Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000196055472c6b9236c95d36af9759d4e8916fba0655a98e3268fd4e"
+      },
+      {
+        "height": 348272,
+        "hash": "0000000000046b568008edf37467effeb93bb9de1867a0bf9381dff1bc3ca684",
+        "header_time_utc": "2026-10-29T21:54:18Z",
+        "first_seen_utc": "2026-10-29T21:54:20.493Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000d00d69d14210560edfb3489324dc3a704d0df6e8a4bed6e12364c"
+      },
+      {
+        "height": 348275,
+        "hash": "00000000000cad652d73d8fe2eff3b09a1c1ae73b77919ec7855e43e5bea9ca2",
+        "header_time_utc": "2026-10-29T21:54:23Z",
+        "first_seen_utc": "2026-10-29T21:54:24.077Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000143fec942b691b9409e6b1a44e1a67a76cc932d9f51d980241f063"
+      },
+      {
+        "height": 348281,
+        "hash": "000000000006bca9a285c2a31d9b3205ccf8404bb7decd3cd4d3366019b68d08",
+        "header_time_utc": "2026-10-29T21:54:32Z",
+        "first_seen_utc": "2026-10-29T21:54:33.299Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000065cb940737826d632fa2d0bb2d49d86d24649941752058af0f652"
+      },
+      {
+        "height": 348282,
+        "hash": "0000000000182f6bf3f80a582c4091323b125ccbad454950669c3ffd1f7bfb2b",
+        "header_time_utc": "2026-10-29T21:54:33Z",
+        "first_seen_utc": "2026-10-29T21:54:36.555Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000000cf8fda7bd38720b2e483ea0592375e6eac1226484193fecc0dec"
+      },
+      {
+        "height": 348283,
+        "hash": "000000000006703a526da8da75339a5d3d2162aefa977ccb6980f5f9cd63db18",
+        "header_time_utc": "2026-10-29T21:54:36Z",
+        "first_seen_utc": "2026-10-29T21:54:37.510Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000019cfa05cf48bb55e067d0b2cb189ea05806c2b2ffec369a61b4215"
+      },
+      {
+        "height": 348294,
+        "hash": "0000000000016e9bd3397acbac3c824a39ca5017f47d1bbc7abfc2e45dff6232",
+        "header_time_utc": "2026-10-29T21:55:13Z",
+        "first_seen_utc": "2026-10-29T21:55:16.063Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000009784043194a926c5acf18c641caaab6b99fcbbb523e8be8f96bf9"
+      },
+      {
+        "height": 348295,
+        "hash": "00000000000f8262726e46e7c6bd76b4b5d42c1727a2d5fb96f74494f4e8bbdb",
+        "header_time_utc": "2026-10-29T21:55:17Z",
+        "first_seen_utc": "2026-10-29T21:55:18.808Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000138bf8119f9b5932b86b6985fc180eeace344dd4b671c948dc753d"
+      },
+      {
+        "height": 348296,
+        "hash": "0000000000153378baaf226ffee289dd0b3731dc719fe94e2517e777f21ade33",
+        "header_time_utc": "2026-10-29T21:55:19Z",
+        "first_seen_utc": "2026-10-29T21:55:19.852Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000f1f237c30ba176fa0f101394c89ee08fd5368d4bf9014389bf320"
+      },
+      {
+        "height": 348297,
+        "hash": "00000000000b5bd508e91df3f464ab4207f94cf39000115733b05d13d66efbeb",
+        "header_time_utc": "2026-10-29T21:55:19Z",
+        "first_seen_utc": "2026-10-29T21:55:21.271Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000170ff19604e0b607f1554caaf6880aa956f91d167859775766b20a"
+      },
+      {
+        "height": 348298,
+        "hash": "000000000000136ea304b8c638a1afc3d014f7beb05d4f7e28959ca9e76ef21e",
+        "header_time_utc": "2026-10-29T21:55:22Z",
+        "first_seen_utc": "2026-10-29T21:55:23.623Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001c3a0ee163a73dbd811e3023c6a1b5acb698af68ebb0b26b97cc66"
+      },
+      {
+        "height": 348307,
+        "hash": "00000000001cd8473c35fec180c4c2f2ea20d460c79bdfd46e04ac6cb84c7958",
+        "header_time_utc": "2026-10-29T21:55:43Z",
+        "first_seen_utc": "2026-10-29T21:55:45.187Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000107f087489d8fd94aee83ef6f19202502494038aa2c8ae4082e39a"
+      },
+      {
+        "height": 348310,
+        "hash": "00000000001ac7447b9b2868abadc847284b302a3e04a54b9b1ea2d1d3813fc4",
+        "header_time_utc": "2026-10-29T21:55:48Z",
+        "first_seen_utc": "2026-10-29T21:55:49.638Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000006f1eadd56db7436554e06ebd35f381adc4ed590ba8e1337ccc42f"
+      },
+      {
+        "height": 348311,
+        "hash": "00000000000e6ff57c7b906f239f1d4e77a905c5af577ee1568cb61405a8b91a",
+        "header_time_utc": "2026-10-29T21:55:49Z",
+        "first_seen_utc": "2026-10-29T21:55:50.581Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "00000000000b94a747541af6a9aba96cb231ac5909c6be113bafafc3517d6d36"
+      },
+      {
+        "height": 348313,
+        "hash": "0000000000065b218a8e077aa9a1a0b78e6b12f0892bedc9b3d02d3b01ddcb2a",
+        "header_time_utc": "2026-10-29T21:55:54Z",
+        "first_seen_utc": "2026-10-29T21:55:58.436Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000017c2b3a31741ade5d776ae6588c4604281ba7ca54952a6d28b64e5"
+      },
+      {
+        "height": 348317,
+        "hash": "0000000000005665048773d7e4ee93c5ec9853d883df1782e493f723a9814ae1",
+        "header_time_utc": "2026-10-29T21:56:09Z",
+        "first_seen_utc": "2026-10-29T21:56:11.229Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001456748ca89f3509779a3b62933e25b511d0cdf6138ccba77a41f8"
+      },
+      {
+        "height": 348321,
+        "hash": "00000000001040419c7dc40f325b446565dbee38cc28d1cc0788d4a53905614a",
+        "header_time_utc": "2026-10-29T21:56:20Z",
+        "first_seen_utc": "2026-10-29T21:56:22.516Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000005ab7b35057de4e124cabcda0fe44f06d1e50c3a53bd1c284ff16c"
+      },
+      {
+        "height": 348322,
+        "hash": "0000000000155b1e40dd85e0c5ef5a4bada69f323c0fdbf31c50290924c18bbd",
+        "header_time_utc": "2026-10-29T21:56:23Z",
+        "first_seen_utc": "2026-10-29T21:56:23.969Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000043475ffba2404afb7963d962f89f55e33f809076bf2e8346f7eb8"
+      },
+      {
+        "height": 348323,
+        "hash": "000000000014c00b91260251c5947aad1de47317a3b7106404b91f55f49ce760",
+        "header_time_utc": "2026-10-29T21:56:24Z",
+        "first_seen_utc": "2026-10-29T21:56:25.975Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000571dde8f8a5934efced7b52cc7a0c650cc726c3558745699a284b"
+      },
+      {
+        "height": 348329,
+        "hash": "00000000000cf4dca050181d591534556d1cffaf3154530c63fa93d3810731ce",
+        "header_time_utc": "2026-10-29T21:56:35Z",
+        "first_seen_utc": "2026-10-29T21:56:39.198Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000e5e1a82a71c8b619f01ffdf1263e4b1df1af00ea62a268466c7c8"
+      },
+      {
+        "height": 348329,
+        "hash": "00000000001ba1f5b2c0bfaa7d3b083058e618fb5377625d3c5790096330ad3d",
+        "header_time_utc": "2026-10-29T21:56:35Z",
+        "first_seen_utc": "2026-10-29T21:56:41.267Z",
+        "first_seen_type": "inv",
+        "peers_announced": 4,
+        "canonical_hash_at_height": "00000000000e5e1a82a71c8b619f01ffdf1263e4b1df1af00ea62a268466c7c8"
+      },
+      {
+        "height": 348330,
+        "hash": "00000000000fd4b54bffa7cf95575557fb2fbc91b3318810a101c001b8d94921",
+        "header_time_utc": "2026-10-29T21:56:39Z",
+        "first_seen_utc": "2026-10-29T21:56:40.547Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "000000000010f83b784a13f13b4e1e1356b77c0159ba2013a146a21025c13108"
+      },
+      {
+        "height": 348336,
+        "hash": "0000000000170fb16fe2d1527743004a4350a3284cd5f829fbebbedeaebe2461",
+        "header_time_utc": "2026-10-29T21:56:50Z",
+        "first_seen_utc": "2026-10-29T21:56:51.498Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001149e113b89b98096a316ff9c43dd417d82c056a3dac5bc3d51d66"
+      },
+      {
+        "height": 348339,
+        "hash": "000000000019666f405cadc07b91550ce62ad59bfb9bfc608391f8a2e4f12af3",
+        "header_time_utc": "2026-10-29T21:56:55Z",
+        "first_seen_utc": "2026-10-29T21:56:57.248Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "00000000000f942ec1aefdceb9fa952f06a3c98020a91ecffe1bc91e0d2670ba"
+      },
+      {
+        "height": 348344,
+        "hash": "00000000000c4c91d6f06022c0a9470bb08d25c5956804cc4becb9098f4a7a67",
+        "header_time_utc": "2026-10-29T21:57:04Z",
+        "first_seen_utc": "2026-10-29T21:57:09.205Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001aff6c3a14b6fef2a73e469f512c89ae862a4f015c0e1df5fb41d8"
+      },
+      {
+        "height": 348347,
+        "hash": "000000000018a36ce01bad1cd1f2768a730935223282bd95f1216e1faa5c93c6",
+        "header_time_utc": "2026-10-29T21:57:13Z",
+        "first_seen_utc": "2026-10-29T21:57:13.653Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001b6e15f92fb2b3ef0deebf1f5dec381dc9f2bed99265769c045f1a"
+      },
+      {
+        "height": 348354,
+        "hash": "0000000000020ff46155b510f1ba1ad1c594c8eb7675d95a0e00c905a7e63deb",
+        "header_time_utc": "2026-10-29T21:57:31Z",
+        "first_seen_utc": "2026-10-29T21:57:32.054Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000018ffe25f9c0216c4b8bca927003ebaecacdd801ab08dafdec8e456"
+      },
+      {
+        "height": 348364,
+        "hash": "00000000000df2a857cdd46622e9c24a158e8f87a8eefb0a8fa0a07ad52b90c3",
+        "header_time_utc": "2026-10-29T21:57:55Z",
+        "first_seen_utc": "2026-10-29T21:57:57.822Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000a2d4a2e7a8d1530a9c4df225aa41e0d72727f138b5021a4a6052f"
+      },
+      {
+        "height": 348368,
+        "hash": "0000000000080705e592118e72091bbf24b405c74f8f91ac869af21dfd6e4338",
+        "header_time_utc": "2026-10-29T21:58:08Z",
+        "first_seen_utc": "2026-10-29T21:58:14.254Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000175ff6ef2a826f433b56998da2e1a7d80bef9368942603c2fe3e91"
+      },
+      {
+        "height": 348372,
+        "hash": "000000000018d561ffcf6defec11315be40f0ed5dfa5e0b99d79d914ed28736b",
+        "header_time_utc": "2026-10-29T21:58:19Z",
+        "first_seen_utc": "2026-10-29T21:58:21.926Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000014a1122096dd258a8f0d72ef50609b9348750509d4e4c4277f31ab"
+      },
+      {
+        "height": 348373,
+        "hash": "00000000001511000ba3cdced7f3171fa2fa12992e3fe947a71ae41a3ec2f9c2",
+        "header_time_utc": "2026-10-29T21:58:21Z",
+        "first_seen_utc": "2026-10-29T21:58:23.391Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000155512a4c81ae7bb300f7bc9ca0a7a6fe3a6daff602792de5957a7"
+      },
+      {
+        "height": 348376,
+        "hash": "000000000010a2a9bf6e85950ea4306e0ec5a224531cdbd950116abd2db31857",
+        "header_time_utc": "2026-10-29T21:58:27Z",
+        "first_seen_utc": "2026-10-29T21:58:27.645Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000010f857797e823446d7e936905b8f851f98a49ee451483d99c460ad"
+      },
+      {
+        "height": 348384,
+        "hash": "00000000000ec8f3e5b6972997571949f1803d3706a2d20b310903d87b243545",
+        "header_time_utc": "2026-10-29T21:58:46Z",
+        "first_seen_utc": "2026-10-29T21:58:47.286Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000117b5cfa9951b9f3086af28cd856c0c55db379ea63be3763e78bc9"
+      },
+      {
+        "height": 348387,
+        "hash": "0000000000120ab951d25d1d2f66fc4adb0202727c7173dc746b0e073158c93d",
+        "header_time_utc": "2026-10-29T21:58:51Z",
+        "first_seen_utc": "2026-10-29T21:58:52.020Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000114d850b2d6f1f351dd9ee557b45b55dd4b1e30ba8215142ce581c"
+      },
+      {
+        "height": 348395,
+        "hash": "0000000000112af2956ae956ba785c5737b1b83bcb05e8e3efafc79f6892127f",
+        "header_time_utc": "2026-10-29T21:59:04Z",
+        "first_seen_utc": "2026-10-29T21:59:08.852Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000ed5b0ef52844b047962de54de1406fe7cdc7a13d1a2e7dac0e0c2"
+      },
+      {
+        "height": 348400,
+        "hash": "000000000009c5ccb97fa78815fa1b7663419ddaf908535e8892131b2a08e993",
+        "header_time_utc": "2026-10-29T21:59:24Z",
+        "first_seen_utc": "2026-10-29T21:59:28.270Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "00000000000716fe7e012266f59fef6d2ab6588ed6dfee188678ee2d40aab44c"
+      },
+      {
+        "height": 348401,
+        "hash": "00000000000310a02b067c7853293a2e1e64bcb8da027278fb34610eab25dc09",
+        "header_time_utc": "2026-10-29T21:59:29Z",
+        "first_seen_utc": "2026-10-29T21:59:30.822Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000001746d93ed8329fdff245322f84c039bb847c16ecb5d1e5d76aba0f"
+      },
+      {
+        "height": 348406,
+        "hash": "00000000000c11bf098288496f82448d9eed99b3d5fd25da68a70d252987595f",
+        "header_time_utc": "2026-10-29T21:59:37Z",
+        "first_seen_utc": "2026-10-29T21:59:37.839Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000018b02897ae5a76a6bc85dbec55e3362091e583134bb69cd63e4e7a"
+      },
+      {
+        "height": 348410,
+        "hash": "000000000009a48c9db138609feb0386fd592fb44aef47198d96e7e10a3b32bb",
+        "header_time_utc": "2026-10-29T21:59:47Z",
+        "first_seen_utc": "2026-10-29T21:59:51.829Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000080c82a9610cbe5aa4d75346d69e8f7ed07c0ae4e99a57cb9e37fb"
+      },
+      {
+        "height": 348412,
+        "hash": "000000000002b09416064223fd09558a1304e3ca3a54190ad46186d198e6dc69",
+        "header_time_utc": "2026-10-29T21:59:54Z",
+        "first_seen_utc": "2026-10-29T21:59:55.383Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "0000000000033646c1bcb8f303b9eda4817a45b645a9fc2d07f934bab0dfe906"
+      },
+      {
+        "height": 348413,
+        "hash": "0000000000150d654063f00383e1384f36db95d835f96ca364cc459b4dbbb737",
+        "header_time_utc": "2026-10-29T21:59:56Z",
+        "first_seen_utc": "2026-10-29T21:59:57.413Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000a5a4eb915d59990e46e870a42e30d65f8c9c554c2e97b8029ffcd"
+      },
+      {
+        "height": 348418,
+        "hash": "000000000002f44dbaded41d4b44656e2fca8e83fb5fd2841f944f77be2e5522",
+        "header_time_utc": "2026-10-29T22:00:09Z",
+        "first_seen_utc": "2026-10-29T22:00:10.338Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000113ab03cc7fca4640f67e57e61b3eca57431f3e34f8d0e4123a1b9"
+      },
+      {
+        "height": 348420,
+        "hash": "0000000000108fed150f636c9fd5983159d889debc7b8799097f1ad17809ec5f",
+        "header_time_utc": "2026-10-29T22:00:10Z",
+        "first_seen_utc": "2026-10-29T22:00:12.917Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000000bf45e0e692c5e2be139a1d41bb5e2283c6f7e0df1ed9d0bc2965"
+      },
+      {
+        "height": 348427,
+        "hash": "000000000011799dd93a9475e70d158579f5e419ee07767e44fa84e3ff3336a8",
+        "header_time_utc": "2026-10-29T22:00:34Z",
+        "first_seen_utc": "2026-10-29T22:00:36.085Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000effbd23397ecf2d9eb84db4897f5f19f61dfaca5f28a38bbe90da"
+      },
+      {
+        "height": 348430,
+        "hash": "000000000007c1dc32609403ea113abde9827ab2bfb2798995e1df095000f3b3",
+        "header_time_utc": "2026-10-29T22:00:44Z",
+        "first_seen_utc": "2026-10-29T22:00:46.653Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000668c9f89cf63d01575974a327080baf64443a476b81e3d79c74a0"
+      },
+      {
+        "height": 348431,
+        "hash": "000000000009c86ba17bf1cf7703eb46d91fcd44471cd1109258169362f471c9",
+        "header_time_utc": "2026-10-29T22:00:46Z",
+        "first_seen_utc": "2026-10-29T22:00:49.758Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000e6c95fd9b48013af14ca062e5d1cd36363833a523ffd6e9d03bda"
+      },
+      {
+        "height": 348435,
+        "hash": "00000000000660ab50122aeaa15b6042794aec58b1dffbf087b177d831d4ceb5",
+        "header_time_utc": "2026-10-29T22:01:02Z",
+        "first_seen_utc": "2026-10-29T22:01:09.601Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "00000000000b6bffac78204ca9ffd47f0c9a774b983d2aed471721006b5ac042"
+      },
+      {
+        "height": 348440,
+        "hash": "0000000000053a9cd4a6f64fd8d8e284d4d953853ef0dc556fe3c2d87427703d",
+        "header_time_utc": "2026-10-29T22:01:19Z",
+        "first_seen_utc": "2026-10-29T22:01:24.130Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000000079001ae3d173ba19e822ff987415bc30a1ded210e8a4a3b913880"
+      },
+      {
+        "height": 348442,
+        "hash": "00000000000276b5f94fecc12cad9fbca1411ff484d3b76ef164180ea997c630",
+        "header_time_utc": "2026-10-29T22:01:29Z",
+        "first_seen_utc": "2026-10-29T22:01:33.622Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "00000000000fa24dd3d7fe615f91f3dda84e2f1c69277d011948f34d927fb79b"
+      },
+      {
+        "height": 348449,
+        "hash": "00000000000cfcbb38394a337f44265996ea453adb72ff8ab446b90ace56d78d",
+        "header_time_utc": "2026-10-29T22:01:42Z",
+        "first_seen_utc": "2026-10-29T22:01:45.481Z",
+        "first_seen_type": "inv",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "00000000000df2e64099cfd590fd3ee5ba39ad8605267ebd21b62c58fbf3111c"
+      },
+      {
+        "height": 348450,
+        "hash": "00000000000aff0a3609381142d4c6f0690ad611a3d5f996c051cef44d15cf7c",
+        "header_time_utc": "2026-10-29T22:01:45Z",
+        "first_seen_utc": "2026-10-29T22:01:48.619Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "00000000000fd6928bf1a21ead5e2a8d535485faf9cd39a6481d8365d2f2e712"
+      },
+      {
+        "height": 348453,
+        "hash": "000000000008ba96f981deddc72e01cecd970e409ed03c0d476663a9e84f0069",
+        "header_time_utc": "2026-10-29T22:01:57Z",
+        "first_seen_utc": "2026-10-29T22:01:59.086Z",
+        "first_seen_type": "inv",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "000000000004f4fbf808a1bb7e879eea9666f528a636fec9823b7ba9d9c25cb7"
+      },
+      {
+        "height": 348497,
+        "hash": "0000000000010dcb22a90f7832b32752f64484340bd811d1887fb0f1115d41bb",
+        "header_time_utc": "2026-10-29T22:05:20Z",
+        "first_seen_utc": "2026-10-29T22:05:24.182Z",
+        "first_seen_type": "inv",
+        "peers_announced": 12,
+        "canonical_hash_at_height": "000000000006dc185abf98881c9c37602a29df6faae93b9b1906b9e94bde6db3"
+      },
+      {
+        "height": 348501,
+        "hash": "00000000000223d6e6979b13a547cecf7c2521a454d50bdc44e634bb330ec370",
+        "header_time_utc": "2026-10-29T22:05:49Z",
+        "first_seen_utc": "2026-10-29T22:05:50.299Z",
+        "first_seen_type": "inv",
+        "peers_announced": 9,
+        "canonical_hash_at_height": "000000000002626ceb6424659ee6cb10830adf77501c822e1fcb28a1faa27cb6"
+      },
+      {
+        "height": 348503,
+        "hash": "000000000006ae21b6e6fb39397ed0104f6cf9134fdf0ab9e5a77b7c7934ced7",
+        "header_time_utc": "2026-10-29T22:06:04Z",
+        "first_seen_utc": "2026-10-29T22:06:07.894Z",
+        "first_seen_type": "inv",
+        "peers_announced": 9,
+        "canonical_hash_at_height": "0000000000082ff4c256244d2ca1baf5cb7f3024588f406626c466a1980dfde3"
+      },
+      {
+        "height": 348514,
+        "hash": "0000000000015883b40f54fd82405c8ea61dec767757a3f7f5bbc169d8886ff5",
+        "header_time_utc": "2026-10-29T22:07:22Z",
+        "first_seen_utc": "2026-10-29T22:07:25.356Z",
+        "first_seen_type": "inv",
+        "peers_announced": 12,
+        "canonical_hash_at_height": "0000000000001006296646da9ea871ab6f308938e5e6fb5d1be6868b92ce0739"
+      },
+      {
+        "height": 348517,
+        "hash": "00000000000561ad0748c1248140867405cfc8367fb57e6c9207ff8e075bcf51",
+        "header_time_utc": "2026-10-29T22:07:54Z",
+        "first_seen_utc": "2026-10-29T22:07:59.784Z",
+        "first_seen_type": "inv",
+        "peers_announced": 9,
+        "canonical_hash_at_height": "0000000000033c4083a8320af0ec6a72225f368c5890fe47db3b3c8807b81c52"
+      },
+      {
+        "height": 348541,
+        "hash": "000000000001033fc100d0a58feeff2bf68086e23efb41d0e5476f7422b550d6",
+        "header_time_utc": "2026-10-29T22:12:04Z",
+        "first_seen_utc": "2026-10-29T22:12:09.795Z",
+        "first_seen_type": "inv",
+        "peers_announced": 9,
+        "canonical_hash_at_height": "000000000004f178d51772e039212f895eb445df96f982a210dab66d1c24ba2c"
+      },
+      {
+        "height": 348565,
+        "hash": "0000000000033704fb1f07cf84cfcc540eb1ed373ab584c375980a15c3de128b",
+        "header_time_utc": "2026-10-29T22:17:09Z",
+        "first_seen_utc": "2026-10-29T22:17:12.818Z",
+        "first_seen_type": "inv",
+        "peers_announced": 9,
+        "canonical_hash_at_height": "0000000000001eadbe2f0eeffa813ba0473d63cded913ff51100e5467a662ad0"
+      },
+      {
+        "height": 348568,
+        "hash": "00000000000171bed16686a2e17738f89adc45ce9c22335603d485bab4f9f53c",
+        "header_time_utc": "2026-10-29T22:17:29Z",
+        "first_seen_utc": "2026-10-29T22:17:34.906Z",
+        "first_seen_type": "inv",
+        "peers_announced": 12,
+        "canonical_hash_at_height": "000000000001bf1f0473f4d7de6f99aac898fbb97ad753655dba4be94ed6e782"
+      },
+      {
+        "height": 348587,
+        "hash": "000000000003dc675438a88e7169953b536fa9727020dcf7675f374970e02735",
+        "header_time_utc": "2026-10-29T22:21:49Z",
+        "first_seen_utc": "2026-10-29T22:21:54.302Z",
+        "first_seen_type": "inv",
+        "peers_announced": 12,
+        "canonical_hash_at_height": "0000000000014da254c9bf8306efa87a66aa65911acfd9e1d2b27bfc30ccada1"
+      },
+      {
+        "height": 348591,
+        "hash": "0000000000037a741d10d185bdf7a808131d18d10dda21abcc53f063aa973691",
+        "header_time_utc": "2026-10-29T22:22:54Z",
+        "first_seen_utc": "2026-10-29T22:22:58.935Z",
+        "first_seen_type": "inv",
+        "peers_announced": 9,
+        "canonical_hash_at_height": "00000000000070e8d34f003b1b129fb87b639d3c2a0b68fedfd7e37ccdf55591"
+      },
+      {
+        "height": 348592,
+        "hash": "0000000000038c86da819fe3a838f25f9b06510662ba467a362a83e03d013a75",
+        "header_time_utc": "2026-10-29T22:23:04Z",
+        "first_seen_utc": "2026-10-29T22:23:06.444Z",
+        "first_seen_type": "inv",
+        "peers_announced": 12,
+        "canonical_hash_at_height": "0000000000032c03f8433f16cd8dc1f25ff2377961b9be1f1dde31a42de1d25a"
+      },
+      {
+        "height": 348613,
+        "hash": "0000000000017ffd184bbd3b993f571f35a2101a33542e12fdb00e65cad72eee",
+        "header_time_utc": "2026-10-29T22:27:57Z",
+        "first_seen_utc": "2026-10-29T22:28:00.540Z",
+        "first_seen_type": "inv",
+        "peers_announced": 9,
+        "canonical_hash_at_height": "000000000000aac9131d45a0eb55ae414541b0e3179e3d70daef4ef68e2eb712"
+      },
+      {
+        "height": 348770,
+        "hash": "000000000000b3a10e2b892dbcf6d444817ada0bb3c2ad46df2aad27a01d1da5",
+        "header_time_utc": "2026-10-29T23:36:59Z",
+        "first_seen_utc": "2026-10-29T23:37:03.131Z",
+        "first_seen_type": "inv",
+        "peers_announced": 23,
+        "canonical_hash_at_height": "0000000000009b2d61ee1dfae1860701c1367c87add87ab2c3d16ed921a850b8"
+      },
+      {
+        "height": 348787,
+        "hash": "000000000000f6a829c9df8b978ff7ac4ee1f054708311fbfac0986903087d5f",
+        "header_time_utc": "2026-10-29T23:44:37Z",
+        "first_seen_utc": "2026-10-29T23:44:38.002Z",
+        "first_seen_type": "inv",
+        "peers_announced": 23,
+        "canonical_hash_at_height": "0000000000003ad50e543d849b688ae714c625640698349f4147190d036373bd"
+      },
+      {
+        "height": 348788,
+        "hash": "000000000000c68dd53465793df44510c7252ae586cce525a5fca84b4d3a15d4",
+        "header_time_utc": "2026-10-29T23:45:04Z",
+        "first_seen_utc": "2026-10-29T23:45:09.684Z",
+        "first_seen_type": "inv",
+        "peers_announced": 23,
+        "canonical_hash_at_height": "000000000000b2aba76ca17cb78a2dd8a23827eb8576e0f9411e126b8b23433b"
+      },
+      {
+        "height": 348789,
+        "hash": "00000000000092c107630053ec853d4802f01218c88e84c910e70bb922f1240a",
+        "header_time_utc": "2026-10-29T23:46:29Z",
+        "first_seen_utc": "2026-10-29T23:46:32.572Z",
+        "first_seen_type": "inv",
+        "peers_announced": 23,
+        "canonical_hash_at_height": "000000000000d10679a8c3974352b2ddb1b4d8ff5a16850c5ccad6f82e0e295f"
+      },
+      {
+        "height": 348835,
+        "hash": "000000000000dbe339c03ba9449783a56f4bc3d48089b1cfcf0bd8971671891e",
+        "header_time_utc": "2026-10-30T00:18:19Z",
+        "first_seen_utc": "2026-10-30T00:18:24.096Z",
+        "first_seen_type": "inv",
+        "peers_announced": 27,
+        "canonical_hash_at_height": "000000000000cbc660abed50d6ede4661fa26fbcb94e48f392351e47b5dc33d6"
+      },
+      {
+        "height": 348862,
+        "hash": "0000000000008755b739792c659a98eed751beee05cf3194303231462e8baf3b",
+        "header_time_utc": "2026-10-30T00:36:54Z",
+        "first_seen_utc": "2026-10-30T00:36:56.854Z",
+        "first_seen_type": "inv",
+        "peers_announced": 32,
+        "canonical_hash_at_height": "0000000000009f664ca094432b2fa867ee7a79cf48569eb9018d750d64f2a2bf"
+      },
+      {
+        "height": 348881,
+        "hash": "00000000001030ac650b505288962b6a668f6ecc4e4e03b41830014e9c9601c5",
+        "header_time_utc": "2026-10-30T00:57:59Z",
+        "first_seen_utc": "2026-10-30T00:58:04.608Z",
+        "first_seen_type": "inv",
+        "peers_announced": 32,
+        "canonical_hash_at_height": "000000000018e4772c9b08428982cc36ed8e21d1559e1b8e620e6042b0085b04"
+      },
+      {
+        "height": 348940,
+        "hash": "0000000000009fdbace229fa4a13b79506cc0e5a756ed114d5532107082af02a",
+        "header_time_utc": "2026-10-30T01:53:44Z",
+        "first_seen_utc": "2026-10-30T01:53:48.659Z",
+        "first_seen_type": "inv",
+        "peers_announced": 21,
+        "canonical_hash_at_height": "0000000000006778e3624783fdab86fef966bdd1ec62b74c7277707be5332cd2"
       }
     ]
   }
