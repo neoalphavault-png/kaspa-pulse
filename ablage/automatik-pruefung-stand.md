@@ -1,39 +1,35 @@
 # Automatik-Pruefung, Stand
 
-Zeitpunkt: 29.10.2026, 09:41 bis 10:05 Uhr Berlin (08:41 bis 09:05 utc).
-Donnerstag, also kein Montagsbericht und keine Kanalzeile.
+Stand: 30.10.2026, 10:00 Berlin (09:00 utc)
 
 ## Meldung an Ben
 
-1. Unsicherheit zuerst: vidIQ-Credits stehen auf 4 (0 von 2.000 erneuerbar,
-   4 von 100 Zusatz), Erneuerung erst 03.11.2026 12:57 utc. Jeder
-   YouTube-Abruf kostet 5, deshalb heute kein einziger YouTube-Abruf
-   moeglich; der Montagsbericht am 02.11. ist so nicht machbar.
-2. NOD: heute lag bis 08:41 utc kein Lauf vor, die Pruefung hat
-   `number-of-day.yml` genau einmal gestartet (Lauf 253, Run-ID
-   40843958387, 08:41:27 bis 08:42:23 utc). Lauf gruen, Commit `930d457`.
-3. X-Post: ja. `nod-2026-10-29`, Post-ID 2115725891041219019,
-   29.10. 08:42:15 utc.
-4. Datenstaende: ok. `kas-candles.json` 2026-10-29 06:22 utc;
-   `multibagger-pick.json` und `multibagger-state.json` auf 28.10.,
-   dem letzten Handelstag.
-5. Wachstumslog: keine Videozeile faellig. Short `Iag-KuxkRn0` und Reel
-   `De_t8qkDe57` erreichen die 48-Stunden-Marke erst um 11:00 bzw.
-   11:10 utc, also nach der Pruefung, und sind morgen faellig; Weekly
-   `qAT9Y33A4f4` steht seit 28.10. in der Datei. Diff: 75 Einfuegungen,
-   0 Loeschungen, nur `wachstum-log.md` geaendert.
-6. Nicht pruefbar: ob am 28.10. auf einem der beiden YouTube-Kanaele etwas
-   erschienen ist, das heute eine Zeile braechte. Credits reichen nicht,
-   `youtube.com` ist aus der Sitzung gesperrt. Keine Zeile erfunden, die
-   Pruefung am 30.10. holt es nach.
-7. Reels: 0 eingetragen, keines im Fenster von 48 bis 72 Stunden
-   (26.10. 08:41 bis 27.10. 08:41 utc). Keine Skip-Raten-Pruefung faellig,
-   also keine Zwei-Satz-Notiz.
-8. Branch `claude/wachstumslog-2026-10-29` in pulse-studio, Commit
-   `1a7aa6f`, gepusht.
+Unsicherheit zuerst: vidIQ-Credits stehen auf 4, Erneuerung erst am
+03.11.2026 12:57:46 utc; YouTube-Abrufe kosten je 5 Credits,
+vidiq_watch_shortform_content kostet 10 - heute waren deshalb keine
+YouTube-Werte und keine Reel-Ansicht moeglich. Diese Pruefung hat
+0 Credits verbraucht.
 
-## Freie Zahlen ohne Credits
+NOD: heute lag bis 08:41 utc kein Lauf vor, die Pruefung hat
+number-of-day.yml genau einmal gestartet - Lauf 258, Run-ID 41028182464,
+gruen (08:41:47 bis 08:42:31 utc), Commit e33ab7f auf main.
 
-Kanal Kaspa Pulse: 109 Abonnenten, 16.614 Aufrufe, 47 Videos.
-Instagram `kaspapulse`: 87 Follower (85 am 28.10.), 23.651 Aufrufe in
-30 Tagen.
+X-Post: ja, nod-2026-10-30, Post-ID 2116088320178397270, 30.10. 08:42:25 utc.
+
+Datenstaende: ok. kas-candles.json auf 2026-10-30 06:21 utc;
+Multibagger-Laufdatum 29.10., der letzte Handelstag, last_run 29.10.
+
+Wachstumslog: Short Iag-KuxkRn0 (27.10. 11:00 utc, 69,7 h) war faellig und
+steht als "offen" in der Tabelle, weil vidiq_video_stats 5 Credits kostet
+und 4 vorhanden sind. Der Kanal Kaspa Pulse ist von 47 auf 49 Videos
+gewachsen; welche beiden Videos das sind, war ohne Credits nicht
+feststellbar, die Zeilen stehen morgen an. Diff: 83 Einfuegungen,
+0 Loeschungen. Branch claude/wachstumslog-2026-10-30, Commit 29fb383.
+
+Reels: 1 Zeile eingetragen, De_t8qkDe57 vom 27.10. (186 Aufrufe,
+Skip-Rate 81,2 %, geschauter Anteil 15,5 %, 5,0 s, 9 Likes). Die Ansicht
+war wegen der Skip-Rate ueber 80 % faellig, vidiq_watch_shortform_content
+kostet jedoch 10 Credits und wurde abgelehnt - die Zwei-Satz-Notiz zur
+ersten Sekunde bleibt offen.
+
+Ablage: claude/ablage-automatik-pruefung, Head dieser Commit.
