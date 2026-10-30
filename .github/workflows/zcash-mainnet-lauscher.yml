@@ -160,8 +160,26 @@ jobs:
       - name: kette danach abrufen
         env:
           AB: ${{ steps.ein.outputs.kette_ab }}
+          NAME: ${{ steps.ein.outputs.name }}
         run: |
           set -eu
+          # Start der Kette: hoechstens kette_ab, aber nie ueber dem Lauf mit der
+          # kleinsten Median-Hoehe der Peers (minus 100), damit die Kette das
+          # ganze Fenster der Messreihe abdeckt. Sonst lehnt zcash_koepfe.py vor
+          # NU7 jeden Peer als "zurueck" ab (Kettentest 28.10.2026: Spitze
+          # 3.533.690, kette_ab 3.540.000). Median, damit ein alter Peer mit
+          # niedriger Hoehe den Start nicht nach unten zieht.
+          AB=$(python3 - "daten/data/zcash-mainnet/lauscher-$NAME" "$AB" <<'PY'
+          import glob, json, statistics, sys
+          ordner, ab = sys.argv[1], int(sys.argv[2])
+          for m in glob.glob(f"{ordner}/s*-meta.json"):
+              hoehen = [p["gemeldete_hoehe"] for p in json.load(open(m)).get("peers", []) if p.get("gemeldete_hoehe")]
+              if hoehen:
+                  ab = min(ab, int(statistics.median(hoehen)) - 100)
+          print(ab)
+          PY
+          )
+          echo "kette ab $AB"
           python3 scripts/zcash/zcash_koepfe.py --netz mainnet --ab "$AB" --vorlauf 0 --gegenproben 1 \
             --aus "$RUNNER_TEMP/kette.csv.gz" --meta "$RUNNER_TEMP/kette-meta.json"
 
