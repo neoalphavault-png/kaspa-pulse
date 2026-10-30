@@ -81,7 +81,8 @@ BALKEN_UNTEN = 1100
 # Posttermine (Ben, 25.10.2026): der Entwurf kommt 2 Stunden vorher nach
 # #moderator-only, zum Termin postet scripts/karussell_post.py. Wochentag
 # 0 = montag.
-POSTZEIT = {"woche": (5, "11:00"), "story": (2, "18:00"), "meme": (5, "15:00")}
+# schalter: einmalig Fr 6.11.2026 zum Reward Cut (Ben, 29.10.2026), look_motor.SCHALTER_TAG
+POSTZEIT = {"woche": (5, "11:00"), "story": (2, "18:00"), "meme": (5, "15:00"), "schalter": (4, "11:00")}
 UHRZEIT = {a: "%s %s" % (("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")[t], hm) for a, (t, hm) in POSTZEIT.items()}
 # Die Caption nach den Content-Regeln (Ben, 25.10.2026): fuenf Bloecke,
 # Haken mit Zahl, ein Satz, eine Frage, die Newsletter-Zeile, hoechstens
@@ -457,7 +458,21 @@ def naechster(wochentag, heute=None):
     return d.isoformat()
 
 
-def vorbereiten(art, fuer, history=None, story=None):
+def vorbereiten(art, fuer, history=None, story=None, teiltag=False):
+    if art == "schalter":
+        import look_motor
+        try:
+            z = look_motor.schalter_zahlen(teiltag=teiltag)
+        except look_motor.Stopp as exc:
+            raise Stopp("schalter, %s" % exc)
+        ss = look_motor.schalter_seiten(z)
+        cap = look_motor.schalter_caption(z, ss)
+        fehler = text_pruefen(seiten_texte(ss) + look_motor.texte([(None, x["inhalt"], None) for x in ss]))
+        fehler += caption_pruefen(cap)
+        if fehler:
+            raise Stopp("textpruefung, %s" % "; ".join(fehler))
+        vorbereiten.schalter = z
+        return ss, cap
     if art == "woche":
         h = json.loads(Path(history or HISTORY).read_text(encoding="utf-8"))
         jetzt, vorher = ausgaben_fuer(h, fuer)
@@ -487,7 +502,7 @@ LOOK_V2_AB = "2026-10-31"
 
 
 def v2(art, fuer):
-    return art == "woche" and str(fuer) >= LOOK_V2_AB
+    return art == "schalter" or (art == "woche" and str(fuer) >= LOOK_V2_AB)
 
 
 def rendern(art, fuer, ss, looks, out, motiv=None, speicher=None, merken=False):
@@ -497,7 +512,10 @@ def rendern(art, fuer, ss, looks, out, motiv=None, speicher=None, merken=False):
     if v2(art, fuer):
         import look_motor
         try:
-            bilder, info = look_motor.karussell_woche(fuer, ss, out, speicher, merken=merken)
+            if art == "schalter":
+                bilder, info = look_motor.karussell_schalter(fuer, ss, out, speicher, merken=merken)
+            else:
+                bilder, info = look_motor.karussell_woche(fuer, ss, out, speicher, merken=merken)
         except look_motor.Stopp as exc:
             raise Stopp("look v2, %s" % exc)
         rendern.info = info
