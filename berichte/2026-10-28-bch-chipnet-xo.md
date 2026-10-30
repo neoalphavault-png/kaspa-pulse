@@ -129,6 +129,56 @@ window 1 oct 2026, 00:01 to 28 oct 2026, 14:06 utc, blocks 325,791 to 329,866.
 method on pulsehawk.io
 ```
 
+## Format F, Stand 30.10.
+
+Bens Entscheidung vom 28.10.: F geht als PulseHawk-Post am Sa 31.10. um 16:30 Berlin raus. A wird nicht gepostet. Die Wartezeit geht als Antwort an Jonathan Silverblood, Frage 1 an das XO-Team stellt Ben. Ein Zuhörer auf chipnet läuft vorerst nicht.
+
+**Neuer Kopf**
+- **Zählung:** Lauf [41030633445](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/41030633445) am 30.10.2026, Abruf 09:03:34 UTC, grün, Bot-Commit `d628009`.
+- **Prüfung:** Gegenprobe mit 3 Peers, je 500 von 500 Hashes gleich. Keine Adressen in Daten und Log.
+- **Kette:** Blöcke 325.791 bis 330.124, 01.10. 00:01 bis 30.10. 09:00 UTC, 4.334 Abstände.
+
+| Kennzahl | counted | computed (600 s) |
+|---|---:|---:|
+| Median | 471 s | 415,9 s |
+| p90 | 1.215 s | 1.381,6 s |
+| p99 | 1.480,7 s | 2.763,1 s |
+| Anteil über 20 min | 21,25 % | 13,53 % |
+| Blöcke mit Mindestschwierigkeit | 921, alle nach mehr als 1.200 s | im Modell 0 |
+| Längste Lücke | 2.223 s (07.10.) | |
+| Wartezeit ab Zufallszeitpunkt Median / p90 / p99 | 397 / 1.004 / 1.291 s | 415,9 / 1.381,6 / 2.763,1 s |
+| wBCH-Transaktionen seit 01.10. | 17, keine neue seit 25.10. | |
+
+**Text** (264 Zeichen, wie X zählt, der Link mit 23. Ohne Link-Zählung 253 Zeichen):
+
+```
+bch chipnet, and how we compare it.
+we counted 921 of 4,334 blocks since 1 oct at minimum difficulty, all after gaps over 20 min.
+our computed line is an ideal 600 s chain without that rule.
+window 1 oct 00:01 to 30 oct 09:03 utc.
+method on pulsehawk.io
+```
+
+**Prüfung des Textes**
+- `regel_pruefen` aus `scripts/ph/ph_entwurf.py` meldet keinen Fund.
+- Selbst geprüft:
+  - kein Satzanfang mit Ziffer, kein XO-Bezug, keine Preise
+  - Doppelpunkte nur in Uhrzeiten, keine Gedankenstriche und keine Pfeile
+  - kein now, live oder today
+- Das Fenster nennt Enddatum und UTC-Uhrzeit, die letzte Zeile ist „method on pulsehawk.io“.
+
+**Grafiken** auf `messung/bch-chipnet-xo`:
+- `data/bch-chipnet/format-f-2026-10-30/format-f-1600x900.png`
+- `data/bch-chipnet/format-f-2026-10-30/format-f-1080x1350.png`
+
+Inhalt: gezählte Verteilung der Abstände, Blöcke mit Mindestschwierigkeit dunkler, darüber die berechnete Kurve für ideale 600 s, senkrechte Linie bei 1.200 s, Falke, „Data from PulseHawk“, Fenster unten. Beide habe ich auf 390 px Breite angesehen: lesbar, nichts abgeschnitten.
+
+**Zwei Entwürfe in #ph-entwuerfe**, je HTTP 200:
+- 09:02 UTC, der erste: Im Hochformat stand der Titel nur 18 px vor dem rechten Rand, weil die Schrift auf dem Runner breiter ist als lokal.
+- 09:05 UTC, der gültige: mit kleinerem Titel.
+
+Bitte den zweiten nehmen. Die Zahlen sind in beiden gleich, nur die Uhrzeit im Fenster ist 09:01 gegen 09:03.
+
 ## 6. Dateien
 
 - Skripte: `scripts/bch/chipnet_koepfe.py`, `scripts/bch/chipnet_auswertung.py`, `scripts/bch/chipnet_wbch.py`
