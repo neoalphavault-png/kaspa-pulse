@@ -1,0 +1,26 @@
+{
+  "_quelle": "Ben 29.10.2026. Hoehe und Mindest-Protokoll aus ZIP 259 (zcash/zips, Commit 80c9e3a, 20.10.2026) und den Release Notes von Zebra 7.0.0 (22.10.2026). erwartet_utc ist computed: Median unserer Vorhersage vom Wochenstand 28.10.2026 (messung/zcash-mainnet, stand-2026-10-28.json). Vor dem Fenster mit dem Stand vom 04.11. nachziehen.",
+  "kette": "zcash-mainnet",
+  "quelle": {"art": "zcash_p2p", "netz": "mainnet"},
+  "scharf": true,
+  "aktivierung": {
+    "name": "nu7",
+    "hoehe": 3543405,
+    "erwartet_utc": "2026-11-06T02:26:16Z"
+  },
+  "min_protokoll": 170190,
+  "ziel_s": 75,
+  "ziel_nach_s": 25,
+  "fenster": {"vor_h": 24, "nach_h": 72},
+  "takt_s": 60,
+  "signale": {
+    "blockpause": {"hinweis_s": 600, "alarm_s": 1200},
+    "kettenspaltung": {"min_peers": 2, "min_tiefe": 2, "ruhe_s": 1800},
+    "reorg": {"min_tiefe": 2, "ende_bloecke": 6},
+    "peers_vor_upgrade": {"zeitpunkte_h": [0, 6]},
+    "median_abstand": {"n": 12, "faktor": 2},
+    "eigene_sicht": {"min_verbindungen": 2, "nach_s": 300}
+  },
+  "meldung": {"webhook_env": "DISCORD_WEBHOOK_LOG", "sperre_s": 1800},
+  "ablage": {"branch": "messung/zcash-mainnet", "log": "wache/wache-log.csv"}
+}

@@ -1,0 +1,26 @@
+{
+  "_quelle": "BEISPIEL, NICHT SCHARF (Ben 29.10.2026). Zeigt, wie eine zweite Chain aussieht: nur diese Datei aendert sich, der Kern bleibt gleich. Die Quelle bch_p2p ist noch nicht gebaut; sie wuerde tempnet_lauscher.py so einbinden wie quelle_zcash.py den Zcash-Zuhoerer. Werte fuer das BCH-Upgrade 2027 sind Platzhalter: Aktivierung nach Zeit (BCHN upgrade2027ActivationTime 1794744000 = 15.11.2026 12:00 UTC fuer chipnet), keine Hoehe; die Hoehe des ersten Blocks nach der Aktivierung muesste die Quelle melden. min_protokoll ist fuer BCH nicht festgelegt, deshalb 0 (Signal d liefert dann 0 %).",
+  "kette": "bch-chipnet",
+  "quelle": {"art": "bch_p2p", "netz": "chipnet"},
+  "scharf": false,
+  "aktivierung": {
+    "name": "upgrade-2027",
+    "hoehe": 0,
+    "erwartet_utc": "2026-11-15T12:00:00Z"
+  },
+  "min_protokoll": 0,
+  "ziel_s": 600,
+  "ziel_nach_s": 600,
+  "fenster": {"vor_h": 24, "nach_h": 72},
+  "takt_s": 60,
+  "signale": {
+    "blockpause": {"hinweis_s": 1800, "alarm_s": 3600},
+    "kettenspaltung": {"min_peers": 2, "min_tiefe": 2, "ruhe_s": 7200},
+    "reorg": {"min_tiefe": 2, "ende_bloecke": 6},
+    "peers_vor_upgrade": {"zeitpunkte_h": [0, 6]},
+    "median_abstand": {"n": 12, "faktor": 2},
+    "eigene_sicht": {"min_verbindungen": 2, "nach_s": 300}
+  },
+  "meldung": {"webhook_env": "DISCORD_WEBHOOK_LOG", "sperre_s": 1800},
+  "ablage": {"branch": "messung/bch-chipnet-xo", "log": "wache/wache-log.csv"}
+}

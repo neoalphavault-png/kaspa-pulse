@@ -6,7 +6,8 @@
 # Damit kann dieser Schluessel KEINE Shell bekommen, kein Port- und kein
 # Agent-Forwarding, kein Terminal. Er kann genau zwei Dinge:
 #
-#   put <name>   einen Wert von stdin als Credential ablegen
+#   put <name>   einen Wert von stdin als Credential ablegen (vier erlaubte Namen,
+#                discord_webhook_log seit 29.10.2026 fuer die Upgrade-Wache)
 #   liste        Namen, Groessen und Datum der Credentials zeigen
 #
 # Mehr nicht. Selbst wenn der private Schluessel aus den GitHub-Secrets
@@ -15,7 +16,7 @@ set -eu
 
 BEFEHL="${SSH_ORIGINAL_COMMAND:-}"
 case "$BEFEHL" in
-  "put discord_webhook"|"put telegram_bot_token"|"put telegram_chat_id")
+  "put discord_webhook"|"put discord_webhook_log"|"put telegram_bot_token"|"put telegram_chat_id")
     exec sudo -n /usr/local/sbin/kp-credstore-put "${BEFEHL#put }"
     ;;
   "liste")
