@@ -44,6 +44,8 @@ Log steht es am 01.10. wörtlich: *„kein cron im fenster"*.
 | `takt-karussell-story` | Mi 18:00 | `karussell.yml`, `art=story schritt=posten start=takt` |
 | `takt-karussell-meme-entwurf` | Sa 13:00 | `karussell.yml`, `art=meme schritt=entwurf start=takt` |
 | `takt-karussell-meme` | Sa 15:00 | `karussell.yml`, `art=meme schritt=posten start=takt` |
+| `takt-karussell-schalter-entwurf` | einmalig Fr 6.11.2026 09:00 | `karussell.yml`, `art=schalter schritt=entwurf fuer=2026-11-06 start=takt` |
+| `takt-karussell-schalter` | einmalig Fr 6.11.2026 11:00 | `karussell.yml`, `art=schalter schritt=posten fuer=2026-11-06 start=takt` |
 
 Die Uhrzeiten stehen in Ortszeit, als Anhang an der Kalenderzeile:
 

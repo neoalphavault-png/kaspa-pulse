@@ -1,0 +1,11 @@
+[Unit]
+Description=Kaspa Pulse Takt, Schalter-Karussell zum Reward Cut, Entwurf einmalig Fr 6.11.2026 09:00 Berlin fuer 11:00
+
+[Timer]
+Unit=takt@karussell-schalter-entwurf.service
+OnCalendar=2026-11-06 09:00:00 Europe/Berlin
+Persistent=true
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target
