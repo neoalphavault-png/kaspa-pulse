@@ -67,6 +67,13 @@
     "motiv": "knotennetz",
     "schritt": 1,
     "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-10-30",
+    "look": "teal",
+    "motiv": "punktraster",
+    "schritt": 2,
+    "serie": "tagesgrafik"
    }
   ],
   "story/instagram": [
@@ -77,11 +84,6 @@
    }
   ],
   "tagesgrafik/discord": [
-   {
-    "datum": "2026-10-18",
-    "look": "hell",
-    "schritt": 1
-   },
    {
     "datum": "2026-10-19",
     "look": "teal",
@@ -136,6 +138,11 @@
     "datum": "2026-10-29",
     "look": "dunkel",
     "schritt": 0
+   },
+   {
+    "datum": "2026-10-30",
+    "look": "hell",
+    "schritt": 1
    }
   ],
   "tagesgrafik/instagram": [
@@ -157,11 +164,6 @@
   ],
   "tagesgrafik/threads": [
    {
-    "datum": "2026-10-18",
-    "look": "hell",
-    "schritt": 1
-   },
-   {
     "datum": "2026-10-19",
     "look": "teal",
     "schritt": 2
@@ -215,15 +217,15 @@
     "datum": "2026-10-29",
     "look": "dunkel",
     "schritt": 0
+   },
+   {
+    "datum": "2026-10-30",
+    "look": "hell",
+    "schritt": 1
    }
   ],
   "tagesgrafik/x": [
    {
-    "datum": "2026-10-18",
-    "look": "hell",
-    "schritt": 1
-   },
-   {
     "datum": "2026-10-19",
     "look": "teal",
     "schritt": 2
@@ -277,6 +279,11 @@
     "datum": "2026-10-29",
     "look": "dunkel",
     "schritt": 0
+   },
+   {
+    "datum": "2026-10-30",
+    "look": "hell",
+    "schritt": 1
    }
   ]
  }
