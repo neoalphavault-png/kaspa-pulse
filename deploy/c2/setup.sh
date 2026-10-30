@@ -38,7 +38,8 @@ GITHUB_ED25519="SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU"
 # .timer-Datei unter taktgeber/ ab und schreibt den Namen hier hin.
 TAKTE="tagesgrafik instagram-bild reel weeklynumbers number-of-day cheat-sheet shorts-nachtrag story-vorlage ig-story-auto
 karussell-woche-entwurf karussell-woche karussell-story-entwurf karussell-story
-karussell-meme-entwurf karussell-meme"
+karussell-meme-entwurf karussell-meme
+karussell-schalter-entwurf karussell-schalter"
 ALARM_UNITS="entity-x-alarm.service entity-x-sync.service entity-x-sync.timer"
 
 meldung() { printf '\n== %s\n' "$*"; }

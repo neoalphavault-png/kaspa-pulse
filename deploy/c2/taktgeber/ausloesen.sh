@@ -69,6 +69,14 @@ case "$1" in
   karussell-meme)
     "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=meme schritt=posten fuer= start=takt
     ;;
+  # Schalter-Karussell zum Reward Cut, einmalig Fr 6.11.2026 (Ben, 30.10.2026).
+  # fuer steht fest, karussell_post.py nimmt die Art schalter nur an diesem Tag.
+  karussell-schalter-entwurf)
+    "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=schalter schritt=entwurf fuer=2026-11-06 start=takt
+    ;;
+  karussell-schalter)
+    "$HIER/takt.sh" "$REPO_PULSE" karussell.yml art=schalter schritt=posten fuer=2026-11-06 start=takt
+    ;;
   reel)
     # Leere Eingaben: der Lauf nimmt den Short, der jetzt faellig ist.
     # live steuert die Variable REELS_LIVE, nicht der Takt.
