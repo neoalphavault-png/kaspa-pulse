@@ -106,7 +106,7 @@ def grafik(pfad, breite, hoehe, paare, fenster):
     hoch = hoehe > breite
     # Lesbar auf 390 px Breite: Schrift in Pixeln mal 390/breite soll mindestens 9 px ergeben.
     s = breite / 1600
-    gr = {"titel": 50 * s if not hoch else 46 * s * 1.48, "unter": 30 * s if not hoch else 30 * s * 1.48,
+    gr = {"titel": 50 * s if not hoch else 40 * s * 1.48, "unter": 30 * s if not hoch else 30 * s * 1.48,
           "achse": 30 * s if not hoch else 30 * s * 1.48, "fuss": 28 * s if not hoch else 26 * s * 1.48}
     fig = plt.figure(figsize=(breite / 100, hoehe / 100), dpi=100, facecolor=FARBE["bg"])
     if hoch:
