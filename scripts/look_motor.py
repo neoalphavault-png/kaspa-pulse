@@ -61,6 +61,7 @@ LOOKS = ("A-papier", "A-teal", "B-foto", "D-dunkel", "D-hell")
 LOGO = {"schwarz": (TINTE, TINTE), "weiss": ("#F2F5F4", "#F2F5F4"), "normal": ("#F2F5F4", TEAL)}
 LOGO_MIN = 4.5
 ORANGE_MAX = 0.05                      # hoechstens rund 5 % der flaeche
+WEICH_RADIUS = 28                      # gauss-radius in px fuer fotos in look B (Ben, 30.10.2026)
 KURZLINK_NL = "kaspapulse.com/nl"
 HALLOWEEN = "2026-10-31"
 FOTO_KUERBIS = REPO / "graphics" / "fotos" / "kuerbis-grok.jpg"
@@ -155,6 +156,7 @@ def foto_orange(pfad, ziel=None):
     """Farbkorrektur am vorhandenen Foto (Ben, 28.10.2026): das kuehle
     Streiflicht an der Kuerbiskante wird warmes Orange. Nichts wird
     gezeichnet, nur der Farbton der Pixel im Teal- und Cyan-Bereich gedreht.
+    Danach stark weichgezeichnet (WEICH_RADIUS).
     Gibt (jpeg-bytes, anteil umgefaerbter pixel) zurueck."""
     from PIL import Image
     im = Image.open(pfad).convert("RGB")
@@ -169,6 +171,10 @@ def foto_orange(pfad, ziel=None):
                 r2, g2, b2 = colorsys.hsv_to_rgb(oh, min(1.0, s * 1.15), v)
                 px[x, y] = (int(r2 * 255), int(g2 * 255), int(b2 * 255))
                 n += 1
+    # stark weichgezeichnet (Ben, 30.10.2026, Regel Hintergrund vom 29.10.):
+    # das foto ist flaeche, keine kante darf wie eine linie oder ein datenpunkt wirken
+    from PIL import ImageFilter
+    im = im.filter(ImageFilter.GaussianBlur(WEICH_RADIUS))
     buf = io.BytesIO()
     im.save(buf, "JPEG", quality=92)
     if ziel:
@@ -313,6 +319,10 @@ def seite_html(look, inh, foto_bytes=None):
                 "<div class='t quelle' style='left:72px;right:72px;top:1000px;color:%s'>%s</div>"
                 % (text, esc(inh["quelle"])),
             ]
+            if inh.get("paar_d"):
+                # das paar vorher und nachher auch im D-look (schalter-karussell, Ben 30.10.2026)
+                teile.append("<div class='t' style='left:72px;right:72px;top:850px;color:%s'>%s</div>"
+                             % ("#F2F5F4" if dunkel else TINTE, _paar(inh["paar"], text)))
             if not dunkel:
                 # Teal als Strich unter der schwarzen Zahl, nie als Schrift auf hellem Grund
                 teile.append("<div class='linie' style='left:72px;width:240px;top:682px;height:8px;"
@@ -495,6 +505,133 @@ def texte(plan):
     return aus
 
 
+# ------------------------------------------------------------ schalter
+
+# Das Schalter-Karussell "off / on" zum Reward Cut vom 4.11.2026 (Ben,
+# 29.10.2026, Fenster nach Variante a am 30.10.2026). Post Fr 6.11. 11:00,
+# am 4.11. laeuft der Collab mit Kasforge. Hashrate als Tagesmittel (UTC) aus
+# der kaspa rest api, die zwei Tage vor dem Cut gegen den ersten vollen Tag
+# danach. Der Tag des Cuts zaehlt nicht, er ist halb vorher, halb nachher.
+SCHALTER_TAG = "2026-11-06"
+SCHALTER_CUT = "2026-11-04"
+SCHALTER_VOR = ("2026-11-02", "2026-11-03")
+SCHALTER_NACH = ("2026-11-05",)
+
+
+def schalter_zahlen(heute=None, tage=None, teiltag=False):
+    """Hashrate vorher und nachher in PH/s, die Belohnung vor und nach dem
+    Cut aus dem Emissionsplan. Ein Tag, der in UTC noch laeuft, zaehlt nur
+    in einer Probe (teiltag), die Seiten sagen das nicht, die Meldung schon."""
+    import statistics
+    import tagesgrafik as tg
+    heute = str(heute or dt.datetime.now(dt.timezone.utc).date())
+    tage = tg.m_hashrate_tage() if tage is None else tage
+    offen = [d for d in SCHALTER_VOR + SCHALTER_NACH if d >= heute]
+    if offen and not teiltag:
+        raise Stopp("hashrate, %s ist in utc noch nicht vorbei" % ", ".join(offen))
+    fehlt = [d for d in SCHALTER_VOR + SCHALTER_NACH if d not in tage]
+    if fehlt:
+        raise Stopp("hashrate, kein tagesmittel fuer %s" % ", ".join(fehlt))
+    nod = tg.reward_plan()
+    mittag = dt.datetime.combine(dt.date.fromisoformat(SCHALTER_VOR[-1]), dt.time(12),
+                                 dt.timezone.utc).timestamp()
+    alt, neu, cut_ts = nod.reward_state(mittag)
+    cut = dt.datetime.fromtimestamp(cut_ts, dt.timezone.utc)
+    if cut.date().isoformat() != SCHALTER_CUT:
+        raise Stopp("der cut faellt auf %s, nicht auf %s" % (cut.date(), SCHALTER_CUT))
+    vor = statistics.mean(tage[d] for d in SCHALTER_VOR) / 1000.0
+    nach = statistics.mean(tage[d] for d in SCHALTER_NACH) / 1000.0
+    return {"vor": vor, "nach": nach, "aenderung": (nach / vor - 1) * 100,
+            "alt": "%.2f" % alt, "neu": "%.2f" % neu, "cut": cut.isoformat(), "teiltag": offen}
+
+
+def _hr(x):
+    return "%s PH/s" % ganz(round(x))
+
+
+def schalter_seiten(z):
+    """Die Seiten als Texte fuer die Wachen (karussell.seiten_texte) und als
+    Inhalt fuer seite_html. art haken und zahl wie im Wochen-Karussell."""
+    cut = tag(SCHALTER_CUT)
+    vor_txt = "2 and 3 nov"
+    nach_txt = tag_kurz(SCHALTER_NACH[0])
+    a = z["aenderung"]
+    richtung = ("%.1f%% higher" % a) if a > 0.05 else (("%.1f%% lower" % -a) if a < -0.05 else "about the same")
+    vergleich = "%s than on %s" % (richtung, vor_txt) if richtung != "about the same" else \
+        "about the same as on %s" % vor_txt
+    titel = {"kicker": "off / on", "kicker_r": "reward cut, %s" % cut,
+             "zahl": z["neu"], "label": "KAS per block from %s, before it was %s" % (cut, z["alt"]),
+             "paar": (("until %s" % tag_kurz(SCHALTER_CUT), "%s KAS a block" % z["alt"]),
+                      ("from %s" % tag_kurz(SCHALTER_CUT), "%s KAS a block" % z["neu"])),
+             "quelle": "computed, emission schedule, cut on %s, %s utc"
+                       % (cut, dt.datetime.fromisoformat(z["cut"]).strftime("%H:%M")),
+             "paar_d": True}
+    hash_ = {"kicker": "off / on", "kicker_r": "network hashrate",
+             "zahl": ganz(round(z["nach"])),
+             "label": "PH/s on %s, the first full day after the cut, %s" % (tag(SCHALTER_NACH[0]), vergleich),
+             "paar": ((vor_txt, _hr(z["vor"])), (nach_txt, _hr(z["nach"]))),
+             "quelle": "source kaspa rest api, daily means computed by kaspa pulse, %s" % tag(SCHALTER_NACH[-1]),
+             "paar_d": True}
+    return [
+        {"art": "haken", "id": "reward", "kopf": "BLOCK REWARD", "zahl": titel["zahl"], "satz": titel["label"],
+         "quelle": titel["quelle"], "inhalt": titel},
+        {"art": "zahl", "id": "hashrate", "kopf": "HASHRATE", "zahl": hash_["zahl"], "satz": hash_["label"],
+         "quelle": hash_["quelle"], "inhalt": hash_},
+    ]
+
+
+def schalter_caption(z, ss):
+    import karussell
+    return karussell.caption(
+        "%s KAS per block from %s, down from %s" % (z["neu"], tag(SCHALTER_CUT), z["alt"]),
+        "network hashrate %s on %s against %s on 2 and 3 nov 2026, source kaspa rest api, "
+        "the reward computed from the emission schedule" % (_hr(z["nach"]), tag_kurz(SCHALTER_NACH[0]),
+                                                            _hr(z["vor"])),
+        "which number do you watch after a reward cut?")
+
+
+def plan_schalter(fuer, ss, speicher, merken=True):
+    """Titel Belohnung, dann Hashrate, dann Newsletter. Der Titel-Look laeuft
+    durch die Rotation des Kanals karussell, A oder D, nie zweimal derselbe."""
+    import look_takt
+    titel = look_takt.richtung_faellig(speicher, "karussell", fuer, "schalter", erlaubt=("A", "D"))
+    looks = ("A-papier", "D-dunkel") if titel == "A" else ("D-dunkel", "A-papier")
+    plan = [(looks[0], ss[0]["inhalt"], "titel"), (looks[1], ss[1]["inhalt"], "zahl")]
+    plan.append(("D-hell" if plan[-1][0].startswith("A") else "A-papier", newsletter_inhalt(), "newsletter"))
+    if merken:
+        look_takt.richtung_merken(speicher, "karussell", fuer, "schalter", erlaubt=("A", "D"))
+    return plan
+
+
+def karussell_schalter(fuer, ss, out, speicher=None, merken=False):
+    """Baut die drei Seiten als PNG 1080x1350. Gibt (pngs, info) zurueck."""
+    import look_takt
+    import tagesgrafik as tg
+    from playwright.sync_api import sync_playwright
+    sp = speicher if speicher is not None else look_takt.lesen()
+    if not merken:
+        sp = json.loads(json.dumps(sp))
+    plan = plan_schalter(fuer, ss, sp, merken=True)
+    out = Path(out)
+    out.mkdir(parents=True, exist_ok=True)
+    pngs, info = [], []
+    with sync_playwright() as p:
+        b = tg.chromium_start(p)
+        try:
+            for i, (look, inh, art) in enumerate(plan, 1):
+                png = out / ("karussell-schalter-%s-%d-%s.png" % (fuer, i, look))
+                variante, werte = seite_rendern(b, look, inh, png, sp, "karussell")
+                pngs.append(png)
+                info.append({"seite": i, "look": look, "art": art, "logo": variante,
+                             "logo_kontrast": {k: round(v, 2) for k, v in werte.items()}})
+        finally:
+            b.close()
+    if merken and speicher is not None:
+        speicher.clear()
+        speicher.update(sp)
+    return pngs, {"seiten": info}
+
+
 # ------------------------------------------------------------ selbsttest
 
 def selbsttest():
@@ -575,6 +712,58 @@ def selbsttest():
        and kontrast(STEIN_TEXT, STEIN_DUNKEL) >= 7 and kontrast(LEISE_HELL, STEIN_HELL) >= 7
        and kontrast(TINTE, STEIN_HELL) >= 7)
     ok("teal als schrift auf hellem stein waere unter 7:1, deshalb nur strich", kontrast(TEAL, STEIN_HELL) < 7)
+    # foto in look B stark weichgezeichnet (Ben, 30.10.2026)
+    from PIL import Image, ImageFilter
+    roh = Image.open(FOTO_KUERBIS).convert("L")
+    weich = Image.open(io.BytesIO(foto_orange(FOTO_KUERBIS)[0])).convert("L")
+
+    def kanten(im):
+        # staerkste kanten, das 99,9-%-quantil des kantenbilds in voller aufloesung
+        e = im.filter(ImageFilter.FIND_EDGES)
+        h = e.crop((40, 40, e.width - 40, e.height - 40)).histogram()      # ohne den bildrand
+        rest = 0.001 * im.width * im.height
+        for wert in range(255, -1, -1):
+            rest -= h[wert]
+            if rest <= 0:
+                return wert
+        return 0
+    ok("kuerbis-foto weichgezeichnet, staerkste kanten unter einem fuenftel", kanten(weich) < kanten(roh) / 5,
+       round(kanten(roh), 2), round(kanten(weich), 2))
+    # schalter-karussell zum reward cut (Ben, 29.10. und 30.10.2026)
+    tage = {"2026-11-02": 380000.0, "2026-11-03": 384000.0, "2026-11-04": 383000.0, "2026-11-05": 390000.0}
+    z = schalter_zahlen("2026-11-06", tage)
+    ok("schalter, 2 und 3 nov gegen 5 nov, mittel in PH/s", round(z["vor"]) == 382 and round(z["nach"]) == 390
+       and round(z["aenderung"], 1) == 2.1, z)
+    ok("schalter, belohnung 2.06 auf 1.94 computed, cut am 4.11.", z["alt"] == "2.06" and z["neu"] == "1.94"
+       and z["cut"].startswith("2026-11-04"), z)
+    try:
+        schalter_zahlen("2026-11-05", tage)
+        ok("schalter, laufender utc-tag stoppt", False)
+    except Stopp:
+        ok("schalter, laufender utc-tag stoppt", True)
+    ok("schalter, probe darf den laufenden tag nehmen",
+       schalter_zahlen("2026-11-05", tage, teiltag=True)["teiltag"] == ["2026-11-05"])
+    try:
+        schalter_zahlen("2026-11-06", {k: v for k, v in tage.items() if k != "2026-11-02"})
+        ok("schalter, fehlender tag stoppt", False)
+    except Stopp:
+        ok("schalter, fehlender tag stoppt", True)
+    import karussell
+    sss = schalter_seiten(z)
+    cap = schalter_caption(z, sss)
+    tx = karussell.seiten_texte(sss) + texte([(None, x["inhalt"], None) for x in sss])
+    ok("schalter, texte bestehen die wachen", karussell.text_pruefen(tx) == [], karussell.text_pruefen(tx))
+    ok("schalter, caption besteht die wachen", karussell.caption_pruefen(cap) == [], karussell.caption_pruefen(cap))
+    ok("schalter, kein kausalsatz", not any(w in " ".join(tx + [cap]).lower()
+                                             for w in ("because", "caused", "due to", "miners left")))
+    ok("schalter, seite 2 nennt 2 and 3 nov und 5 nov", "2 and 3 nov" in " ".join(tx) and "5 nov" in " ".join(tx))
+    for lt, erwartet in (("A", ["A-papier", "D-dunkel", "A-papier"]), ("D", ["D-dunkel", "A-papier", "D-hell"])):
+        spp = {"kanaele": {"richtung/karussell": [{"datum": "2026-10-31", "serie": "woche",
+                                                    "richtung": "D" if lt == "A" else "A"}]}}
+        pl = plan_schalter(SCHALTER_TAG, sss, spp, merken=False)
+        ok("schalter, titel %s, nie zwei gleiche looks hintereinander" % lt,
+           [x[0] for x in pl] == erwartet and all(a[0] != b[0] for a, b in zip(pl, pl[1:])), [x[0] for x in pl])
+    ok("schalter, nur am 6.11.", SCHALTER_TAG == "2026-11-06" and karussell.POSTZEIT["schalter"] == (4, "11:00"))
     print("%d fehler" % len(f))
     return 1 if f else 0
 

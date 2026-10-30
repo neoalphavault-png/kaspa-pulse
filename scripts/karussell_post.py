@@ -21,7 +21,7 @@ gepostet hat sie niemand. Ab jetzt laeuft jeder Termin in zwei Schritten:
             Vorschau-Lauf, nach dem Ben KARUSSELL_LIVE setzt.
 
 TERMINE (karussell.POSTZEIT): woche Sa 11:00, story Mi 18:00, meme Sa 15:00,
-Entwurf jeweils 2 Stunden vorher. Der Takt kommt von c2.
+einmalig schalter Fr 6.11.2026 11:00 (Reward Cut), Entwurf jeweils 2 Stunden vorher. Der Takt kommt von c2.
 
 SCHARF nur, wenn alles zusammenkommt:
   - der Lauf kommt vom Takt (--start takt). Von Hand ist immer trocken.
@@ -70,7 +70,7 @@ UPLOADS = "https://uploads.github.com"
 VORLAUF = dt.timedelta(hours=2)
 FENSTER = (dt.timedelta(minutes=-15), dt.timedelta(minutes=90))
 MAX_SEITEN = 10
-ARTEN = ("woche", "story", "meme")
+ARTEN = ("woche", "story", "meme", "schalter")
 UA = "kaspa-pulse-karussell"
 # Zweite Ablage (Ben, 28.10.2026): ohne MEDIA_REPO_TOKEN legt der Lauf die
 # JPEGs mit GITHUB_TOKEN unter ig/karussell/ in dieses Repo, wie die Story und
@@ -124,6 +124,10 @@ def postzeit(art, fuer):
 
 def termin_pruefen(art, fuer):
     import karussell
+    if art == "schalter":
+        import look_motor
+        if fuer != look_motor.SCHALTER_TAG:
+            raise Stopp("das schalter-karussell gibt es nur am %s, nicht am %s" % (look_motor.SCHALTER_TAG, fuer))
     tag = karussell.POSTZEIT[art][0]
     if dt.date.fromisoformat(fuer).weekday() != tag:
         raise Stopp("%s postet am %s, der %s ist ein anderer wochentag"
@@ -199,7 +203,9 @@ def bauen(art, fuer, out, look, motiv=None, speicher=None, merken=False):
         fehler = meme_wahr.pruefen(ss, cap) + karussell.caption_pruefen(cap) + karussell.deckblatt_pruefen(ss)
         motiv = meme_wahr.MOTIV
     else:
-        ss, cap = karussell.vorbereiten(art, fuer)
+        # eine probe darf beim schalter einen laufenden utc-tag nehmen, gemerkt wird dann nichts
+        ss, cap = karussell.vorbereiten(art, fuer, teiltag=not merken) if art == "schalter" \
+            else karussell.vorbereiten(art, fuer)
         bilder = karussell.rendern(art, fuer, ss, (look,), out, motiv, speicher=speicher, merken=merken)
         fehler = karussell.deckblatt_pruefen(ss)
         motiv = ""
@@ -245,6 +251,9 @@ def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, send
     sag("entwurf %s fuer %s, look %s, %d seiten" % (art, fuer, look, len(bilder)))
     if senden:
         vor = "PROBE, geht nicht raus. " if probe else ""
+        teil = (getattr(karussell.vorbereiten, "schalter", None) or {}).get("teiltag") if art == "schalter" else None
+        if teil:
+            vor += "VORLAEUFIG, %s ist in utc noch nicht vorbei, der entwurf am posttag rechnet neu. " % ", ".join(teil)
         if stopp_gesetzt(fuer):
             vor += "STOPP GESETZT (KARUSSELL_STOPP), geht nicht raus. "
         karussell.ops_senden(art, fuer, look, bilder, cap, vor=vor)
@@ -622,8 +631,18 @@ def selbsttest():
     os.environ.pop("KARUSSELL_LIVE", None)
     utc = dt.timezone.utc
     sa_1100 = dt.datetime(2026, 10, 31, 10, 0, tzinfo=utc)       # 11:00 berlin, winterzeit
-    ok("postzeiten woche sa 11:00, story mi 18:00, meme sa 15:00",
-       karussell.POSTZEIT == {"woche": (5, "11:00"), "story": (2, "18:00"), "meme": (5, "15:00")})
+    ok("postzeiten woche sa 11:00, story mi 18:00, meme sa 15:00, schalter fr 11:00",
+       karussell.POSTZEIT == {"woche": (5, "11:00"), "story": (2, "18:00"), "meme": (5, "15:00"),
+                              "schalter": (4, "11:00")})
+    ok("schalter fr 6.11. 11:00 berlin ist 10:00 utc",
+       postzeit("schalter", "2026-11-06").astimezone(utc) == dt.datetime(2026, 11, 6, 10, 0, tzinfo=utc))
+    try:
+        termin_pruefen("schalter", "2026-11-13")
+        ok("schalter nur am 6.11.", False)
+    except Stopp:
+        ok("schalter nur am 6.11.", True)
+    ok("schalter ohne datum ist der naechste freitag",
+       fuer_aufloesen("schalter", "", dt.datetime(2026, 11, 5, 17, 0, tzinfo=utc)) == "2026-11-06")
     ok("woche sa 31.10. 11:00 berlin ist 10:00 utc", postzeit("woche", "2026-10-31").astimezone(utc) == sa_1100)
     ok("entwurf 2 stunden vorher", VORLAUF == dt.timedelta(hours=2))
     leer = {"posts": []}

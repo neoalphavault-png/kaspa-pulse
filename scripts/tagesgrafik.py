@@ -1699,6 +1699,16 @@ FORM_KENNZAHL = {
     11: {"dormant"},
 }
 GESPERRTE_KENNZAHLEN = set()   # vom zeitplanlauf gesetzt, messen_1 liest es
+# Dieselbe Zahl hoechstens einmal pro Tag auf Instagram (Ben, 28.10.2026): an
+# diesen Tagen traegt ein Sonder-Karussell die Kennzahl, die Tagesgrafik nicht.
+# 6.11.2026 Schalter-Karussell zum Reward Cut mit der Hashrate (Ben, 30.10.2026).
+KARUSSELL_KENNZAHL = {"2026-11-06": "hashrate"}
+
+
+def karussell_sperre(heute):
+    """(kennzahl, formen) fuer diesen Berliner Tag, sonst (None, set())."""
+    k = KARUSSELL_KENNZAHL.get(str(heute))
+    return k, {f for f, ks in FORM_KENNZAHL.items() if k and k in ks}
 
 
 def notd_heute(now, log_pfad=None):
@@ -2189,6 +2199,11 @@ def main(argv=None):
             GESPERRTE_KENNZAHLEN.clear()
             if notd in NOTD_KENNZAHL:
                 GESPERRTE_KENNZAHLEN.add(NOTD_KENNZAHL[notd])
+            k_kar, f_kar = karussell_sperre(heute)
+            if k_kar:
+                GESPERRTE_KENNZAHLEN.add(k_kar)
+                ausgeschl |= f_kar
+                print("%s steht heute im karussell, formen %s gesperrt" % (k_kar, sorted(f_kar)))
             print("zahl des tages %s (%s), uebersprungen %s" % (notd, woher, sorted(ausgeschl) or "keine"))
             m = None
             while m is None:
@@ -2596,6 +2611,9 @@ def selbsttest():
     ok("zahl des tages blocks_per_day sperrt form 4 und 6", kollision("blocks_per_day") == {4, 6})
     ok("zahl des tages hashrate sperrt form 8", kollision("hashrate_move") == {8})
     ok("zahl des tages kurs sperrt nichts", kollision("weekly_line") == set())
+    ok("schalter-karussell am 6.11. sperrt die hashrate, form 8",
+       karussell_sperre(dt.date(2026, 11, 6)) == ("hashrate", {8}))
+    ok("an anderen tagen keine karussell-sperre", karussell_sperre(dt.date(2026, 11, 5)) == (None, set()))
     woche = {"laeufe": [{"datum": "2026-10-06", "form": 2}, {"datum": "2026-10-07", "form": 3}]}
     tag_x = dt.date(2026, 10, 8)
     ohne, _ = waehle_form(tag_x, woche)
