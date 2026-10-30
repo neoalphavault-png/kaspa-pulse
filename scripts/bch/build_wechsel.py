@@ -18,6 +18,10 @@ Laut Forum (cculianu, 29.10.2026) hatte der Build von 9500 P2P-Netzwerkfehler;
    (timestamp_deviation, propagation_spread, Peers je Block, welche Kennung
    zuerst ankuendigte), angekuendigte Bloecke, die nie in die Kette kamen
    (stale nach 6 Bestaetigungen), Median und p90 der Blockabstaende.
+4. timestamp_deviation (Ankunft minus Header-Zeit) zweimal: alle Bloecke, und
+   ohne Bloecke, deren Header-Zeit genau 120 s nach dem Vorgaenger liegt
+   (Ben, 30.10.2026; laut Rufitnes, Forum #26, kommen diese fast alle von
+   einem Miner). Gezaehlt wird nur die Anzahl, keine Coinbase-Daten.
 
 Eingang: der Ordner data/bch/lauscher (Laeufe mit meta.json und
 ereignisse.jsonl.gz, dazu bloecke.csv und zusammenfassung.json der letzten
@@ -42,6 +46,7 @@ from collections import Counter, defaultdict
 from datetime import datetime, timezone
 
 ABBRUCH_FENSTER_S = 180
+GENAU_S = 120
 
 
 def ts(text):
@@ -116,6 +121,9 @@ def seite(bloecke, stale, erst, von, bis, alt):
         return None
     ab = [int(z["interval_s"]) for z in b if z["interval_s"] not in ("", None)]
     dev = [float(z["timestamp_deviation_s"]) for z in b if z["timestamp_deviation_s"]]
+    dev_ohne = [float(z["timestamp_deviation_s"]) for z in b
+                if z["timestamp_deviation_s"] and z["interval_s"] != str(GENAU_S)]
+    genau = sum(1 for z in b if z["interval_s"] == str(GENAU_S))
     spr = [int(z["propagation_spread_ms"]) for z in b if z["propagation_spread_ms"]]
     peers = [int(z["peers_announced"]) for z in b if z["peers_announced"]]
     zuerst = Counter(erst[z["hash"]][1] for z in b if z["hash"] in erst)
@@ -126,7 +134,10 @@ def seite(bloecke, stale, erst, von, bis, alt):
         "kettenbloecke": len(b), "hoehen": [int(b[0]["height"]), int(b[-1]["height"])],
         "abstaende": {"n": len(ab), "median_s": r(quantil(ab, 0.5)), "p90_s": r(quantil(ab, 0.9))},
         "timestamp_deviation_s": {"median": r(quantil(dev, 0.5), 2), "p90": r(quantil(dev, 0.9), 2),
-                                  "p99": r(quantil(dev, 0.99), 2)},
+                                  "p99": r(quantil(dev, 0.99), 2), "n": len(dev)},
+        "timestamp_deviation_ohne_120s": {"median": r(quantil(dev_ohne, 0.5), 2), "p90": r(quantil(dev_ohne, 0.9), 2),
+                                          "p99": r(quantil(dev_ohne, 0.99), 2), "n": len(dev_ohne),
+                                          "ausgelassen": genau},
         "propagation_spread_ms": {"median": r(quantil(spr, 0.5), 0), "p90": r(quantil(spr, 0.9), 0)},
         "peers_je_block_median": r(quantil(peers, 0.5), 0),
         "zuerst_angekuendigt_von": dict(zuerst.most_common()),
@@ -204,7 +215,11 @@ def main():
         md += ["", f"## {name}, {s['fenster_utc'][0]} bis {s['fenster_utc'][1]} UTC", "",
                f"- Kettenbloecke {s['kettenbloecke']}, Hoehen {s['hoehen'][0]} bis {s['hoehen'][1]}",
                f"- Abstaende Median {s['abstaende']['median_s']} s, p90 {s['abstaende']['p90_s']} s",
-               f"- timestamp_deviation Median {s['timestamp_deviation_s']['median']} s, p90 {s['timestamp_deviation_s']['p90']} s",
+               f"- timestamp_deviation, alle {s['timestamp_deviation_s']['n']} Bloecke: Median {s['timestamp_deviation_s']['median']} s, "
+               f"p90 {s['timestamp_deviation_s']['p90']} s, p99 {s['timestamp_deviation_s']['p99']} s",
+               f"- timestamp_deviation ohne {s['timestamp_deviation_ohne_120s']['ausgelassen']} Bloecke mit genau 120 s "
+               f"({s['timestamp_deviation_ohne_120s']['n']} Bloecke): Median {s['timestamp_deviation_ohne_120s']['median']} s, "
+               f"p90 {s['timestamp_deviation_ohne_120s']['p90']} s, p99 {s['timestamp_deviation_ohne_120s']['p99']} s",
                f"- propagation_spread Median {s['propagation_spread_ms']['median']} ms, p90 {s['propagation_spread_ms']['p90']} ms",
                f"- zuerst angekuendigt von '{args.alt}': {s['anteil_zuerst_alt_prozent']} %",
                f"- stale {s['stale']['anzahl']} ({s['stale']['anteil_prozent']} %), zuerst von {s['stale']['zuerst_von']}"]
