@@ -1,6 +1,6 @@
 {
   "quelle": "BCH-Chipnet P2P (getheaders), Peers aus BCHN chainparams (CChipNetParams)",
-  "abruf_utc": "2026-10-30T09:01:21Z",
+  "abruf_utc": "2026-10-30T09:03:34Z",
   "start_checkpoint": 313653,
   "erste_hoehe": 313654,
   "spitze_hoehe": 330124,
@@ -14,15 +14,23 @@
   },
   "checkpoints_geprueft": 1,
   "peer_software": [
+    "/Bitcoin Cash Node:28.0.2(EB2.0)/",
+    "/Bitcoin Cash Node:29.0.0(EB2.0)/",
     "/Bitcoin Cash Node:29.2.0/",
     "/Rapids:2026-10.cfdd3221/"
   ],
   "peer_fehler": 0,
   "zielhoehe_gemeldet": 330124,
   "zielhoehe_aus_chipnet_peers": 4,
-  "proben_tempnet_oder_ohne_antwort": 1,
+  "proben_tempnet_oder_ohne_antwort": 0,
   "abzweige_verworfen": [],
   "gegenproben": [
+    {
+      "agent": "/Bitcoin Cash Node:29.0.0(EB2.0)/",
+      "verglichen": 500,
+      "gleich": 500,
+      "spitze_peer": 330124
+    },
     {
       "agent": "/Bitcoin Cash Node:29.2.0/",
       "verglichen": 500,
