@@ -73,6 +73,9 @@ REGELN, vor jedem Rendern erzwungen (textpruefung()):
   X-Text in drei Zeilen, ohne Link, unter 240 Zeichen: Zeile 1 ohne
   Dezimalstelle, Zeile 3 eine Frage. Der Link steht nur im Feld antwort,
   seit 17.10.2026 der Kurzlink https://kaspapulse.com/x statt eines UTM-Links.
+  Solange @gokugalax das Label von X traegt (X_LINKANTWORT nicht gesetzt,
+  Ben 31.10.2026), hat auch die Antwort keinen Link und keine Domain, und sie
+  wiederholt keine Zahl aus Bild oder Post (content_wache.antwort_verstoesse).
 
 ROTATION (waehle_form()). Ereignis schlaegt Plan: Reward-Senkung in hoechstens
 3 Tagen gibt Form 3, eine Entity-X-Bewegung ab 500.000 KAS in den letzten
@@ -106,6 +109,7 @@ Kontrolle. Fehlt das Secret, wird nur protokolliert, ohne Abbruch.
     python3 scripts/tagesgrafik.py --selftest
 """
 import argparse
+import html as html_mod
 import base64
 import datetime as dt
 import json
@@ -1239,9 +1243,12 @@ def textpruefung(s, form):
         fehler += pruefe_eine(v, form, k)
     # das feld antwort ist der einzige ort mit link (Ben, 30.09.2026, v4). der
     # link selbst ist von den satzregeln ausgenommen, der rest nicht.
+    import content_wache
     lk = antwort_link(form)
-    if s.get("antwort", "").count(lk) != 1:
+    label = x_label()
+    if not label and s.get("antwort", "").count(lk) != 1:
         fehler.append("antwort traegt den link %s nicht genau einmal" % lk)
+    fehler += content_wache.antwort_verstoesse(s.get("antwort", ""), bild_texte(s), label)
     fehler += pruefe_eine(s.get("antwort", "").replace(lk, ""), form, "antwort")
     # die antwort geht als x-antwort raus, x zaehlt jeden link als 23 zeichen
     lang = len(s.get("antwort", "").replace(lk, "x" * 23))
@@ -1465,6 +1472,28 @@ def antwort_link(form):
     return kurzlinks.kurzlink("x")
 
 
+def x_label():
+    """True, solange @gokugalax das Label von X traegt (Ben, 31.10.2026). Der
+    Schalter ist derselbe wie fuer automatische Antworten mit Link,
+    X_LINKANTWORT (x_post.py, seit 09.10.2026): fehlt er, gilt das Label, und
+    die Antwort unter dem X-Post traegt keinen Link und keine Domain."""
+    import x_post
+    return not x_post.linkantwort_an()
+
+
+def bild_texte(s):
+    """Alle Texte aus Bild und X-Post, gegen die die Antwort nichts
+    wiederholen darf. Die Beschriftungen im Objekt (Balken, Legende) zaehlen mit."""
+    aus = [s.get(k, "") for k in ("kopf", "zahl", "bedeutung", "zusatz", "datumszeile", "x")]
+    if callable(s.get("objekt")):
+        try:
+            svg = s["objekt"](60, 400, 960, 700)
+            aus += [html_mod.unescape(t) for t in re.findall(r"<text[^>]*>([^<]*)</text>", svg)]
+        except Exception:                                   # noqa: BLE001
+            pass
+    return [t for t in aus if t]
+
+
 def texte(s, form, messzeit):
     """X in drei Zeilen (Ben, 30.09.2026, v4): der Satz zum Nachsprechen, das
     Fenster oder die Quelle, der Haken als Frage. Die Aufloesung steht im
@@ -1479,7 +1508,11 @@ def texte(s, form, messzeit):
     x1 = s["x1"].rstrip(".") + "."
     x2 = s["x2"].rstrip(".") + "."
     s["x"] = "%s\n%s\n%s" % (x1, x2, s["x3"])
-    s["antwort"] = "%s %s %s" % (s["aufloesung"], MAIL_SATZ, antwort_link(form))
+    # die antwort loest auf und wiederholt keine zahl aus bild oder post,
+    # solange das x-label gilt ohne link (Ben, 31.10.2026)
+    import content_wache
+    aufl = content_wache.ohne_wiederholung(s["aufloesung"], bild_texte(s))
+    s["antwort"] = " ".join(t for t in (aufl, MAIL_SATZ, "" if x_label() else antwort_link(form)) if t)
     s["discord"] = "%s\n%s\n\nshare it first, it goes on x at %s.\n%s" % (x1, x2, X_ZEIT, MAIL_SATZ)
     # Zahl mit Einheit und Datum der Zahl zuerst, die Caption fuehrt mit
     # beidem (Ben, 09.10.2026) und die Kommentar-Entwuerfe nutzen sie auch.
@@ -2334,6 +2367,9 @@ def selbsttest():
         print("%-4s %s" % ("ok" if bed else "FEHL", name))
         fehler += 0 if bed else 1
 
+    import content_wache
+    # der selbsttest laeuft mit dem x-label (ohne X_LINKANTWORT), wie der workflow
+    alt_linkantwort = os.environ.pop("X_LINKANTWORT", None)
     log = {"laeufe": []}
     for f in sorted(FAKE):
         try:
@@ -2556,10 +2592,12 @@ def selbsttest():
         z = sf["x"].split("\n")
         ok("form %d, x in drei zeilen, zeile 1 ohne dezimalstelle, zeile 3 eine frage" % f,
            len(z) == 3 and not re.search(r"\d\.\d", z[0]) and z[2].endswith("?"))
-        ok("form %d, link nur im feld antwort" % f,
+        ok("form %d, kein link und keine domain, auch nicht in der antwort (x-label)" % f,
            all("kaspapulse" not in sf[k] and "http" not in sf[k]
-               for k in ("x", "discord", "bedeutung", "datumszeile", "kopf", "zahl"))
-           and sf["antwort"].endswith(" https://kaspapulse.com/x") and "utm_" not in sf["antwort"])
+               for k in ("x", "discord", "bedeutung", "datumszeile", "kopf", "zahl", "antwort"))
+           and not content_wache.LINK_ODER_DOMAIN.search(sf["antwort"]))
+        ok("form %d, antwort wiederholt keine zahl aus bild oder post" % f,
+           not (content_wache.kennzahlen(sf["antwort"]) & content_wache.kennzahlen(" ".join(bild_texte(sf)))))
         ok("form %d, discord mit 17:00 und mail-satz ohne link" % f,
            sf["discord"].split("\n")[:2] == z[:2] and sf["discord"].endswith(MAIL_SATZ))
     kaputt = dict(seite_bauen(4, FAKE[4], FAKE_NOW, log))
@@ -2570,11 +2608,35 @@ def selbsttest():
     kaputt = dict(seite_bauen(4, FAKE[4], FAKE_NOW, log))
     kaputt["discord"] += " " + antwort_link(4)
     ok("link im discord-text faellt", bool(textpruefung(kaputt, 4)))
-    kaputt = dict(seite_bauen(4, FAKE[4], FAKE_NOW, log), antwort="about 10 per heartbeat.")
-    ok("antwort ohne link faellt", any("link" in f for f in textpruefung(kaputt, 4)))
-    lang = dict(seite_bauen(4, FAKE[4], FAKE_NOW, log))
-    lang["antwort"] = "a" * 260 + " " + antwort_link(4)
-    ok("antwort ueber 280 nach x-zaehlung faellt", any("280" in f for f in textpruefung(lang, 4)))
+    # x-label (Ben, 31.10.2026): kein link, keine domain, keine zahl doppelt
+    s2 = seite_bauen(2, FAKE[2], FAKE_NOW, log)
+    for zusatz in (" https://kaspapulse.com/x", " kaspapulse.com/x", " see kaspapulse.com"):
+        kaputt = dict(s2, antwort=s2["antwort"] + zusatz)
+        ok("x-label, %r in der antwort faellt" % zusatz.strip(),
+           any("domain" in f for f in textpruefung(kaputt, 2)))
+    kaputt = dict(s2, antwort="that is %s of all KAS. %s" % (s2["zahl"], MAIL_SATZ))
+    ok("x-label, die zahl aus dem bild (%s) in der antwort faellt" % s2["zahl"],
+       any("wiederholt" in f for f in textpruefung(kaputt, 2)))
+    # der fall vom 31.10.2026: 5.55 % im bild, die antwort nannte sie noch einmal
+    w2 = json.loads(json.dumps(FAKE[2]))
+    w2["bal"] = w2["circ"] * 0.0555
+    s555 = seite_bauen(2, w2, FAKE_NOW, log)
+    ok("x-label, form 2 mit 5.55%% im bild, die antwort nennt sie nicht (%s)" % s555["zahl"],
+       s555["zahl"] == "5.55%" and "5.55" not in s555["antwort"] and "kaspapulse" not in s555["antwort"]
+       and s2["zahl"].rstrip("%") not in s2["antwort"])
+    os.environ["X_LINKANTWORT"] = "an"
+    try:
+        mit = seite_bauen(4, FAKE[4], FAKE_NOW, log)
+        ok("ohne x-label traegt die antwort den kurzlink genau einmal",
+           mit["antwort"].endswith(" https://kaspapulse.com/x") and mit["antwort"].count("kaspapulse") == 1
+           and "utm_" not in mit["antwort"])
+        kaputt = dict(mit, antwort="about 10 per heartbeat.")
+        ok("ohne x-label faellt eine antwort ohne link", any("link" in f for f in textpruefung(kaputt, 4)))
+        lang = dict(mit)
+        lang["antwort"] = "a" * 260 + " " + antwort_link(4)
+        ok("antwort ueber 280 nach x-zaehlung faellt", any("280" in f for f in textpruefung(lang, 4)))
+    finally:
+        os.environ.pop("X_LINKANTWORT", None)
     ok("form 8, eine hashrate, als tageswert gekennzeichnet",
        "daily hashrate 28 sep" in s8["datumszeile"] and "measured" not in json.dumps(s8, default=str)
        and abs(FAKE[8]["ph"] - FAKE[8]["reihe"][-1]) < 1e-9)
@@ -2715,8 +2777,8 @@ def selbsttest():
     ok("form 11, datumszeile nur mit quelle, ohne counted by",
        s11["datumszeile"].endswith("source kaspalytics, age estimated by daa score, 28 sep 2026")
        and SELBST not in s11["datumszeile"])
-    ok("form 11, antwort mit der 2-jahres-zahl und form11", "25.75%" in s11["antwort"]
-       and s11["antwort"].endswith(antwort_link(11)) and "utm_" not in s11["antwort"])
+    ok("form 11, die 2-jahres-zahl steht in der legende, die antwort wiederholt sie nicht",
+       "25.75%" not in s11["antwort"] and "50.58%" not in s11["antwort"] and "kaspapulse" not in s11["antwort"])
     for wort in ("dormant", "hodl", "diamond hands"):
         ok("form 11, %r faellt" % wort, bool(pruefe_eine("the %s coins stay put" % wort, 11)))
     ok("form 11, motiv faellt", bool(pruefe_eine("holders are waiting deliberately", 11)))
@@ -2887,7 +2949,8 @@ def selbsttest():
             ok("oeffentlich haengt genau das discord-bild dran", namen == [bild.name])
             ok("oeffentlich pingt niemanden", nutz["allowed_mentions"] == {"parse": []})
             fremd = [w for w in ("selbstpruefung", "kontrolle", "ANTWORT", "INSTAGRAM",
-                                 "#daily-graphic", sd["antwort"], sd["instagram"], sd["pruefung"])
+                                 "#daily-graphic", sd["antwort"].replace(MAIL_SATZ, "").strip(),
+                                 sd["instagram"], sd["pruefung"])
                      if w and w in nutz["content"]]
             ok("nichts aus der kontrolle im oeffentlichen post", not fremd)
             ok("der oeffentliche text ist schon durch die wache",
@@ -2936,6 +2999,8 @@ def selbsttest():
                 os.environ[k] = v
     ok("eine adresse wird aus jeder meldung entfernt",
        "geheim" not in _ohne_url("kaputt bei https://discord.com/api/webhooks/1/geheim jetzt"))
+    if alt_linkantwort is not None:
+        os.environ["X_LINKANTWORT"] = alt_linkantwort
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 
