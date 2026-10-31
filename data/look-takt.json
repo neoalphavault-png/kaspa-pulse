@@ -74,6 +74,13 @@
     "motiv": "punktraster",
     "schritt": 2,
     "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-10-31",
+    "look": "hell",
+    "motiv": "hoehenlinien",
+    "schritt": 3,
+    "serie": "tagesgrafik"
    }
   ],
   "story/instagram": [
@@ -89,11 +96,6 @@
    }
   ],
   "tagesgrafik/discord": [
-   {
-    "datum": "2026-10-19",
-    "look": "teal",
-    "schritt": 2
-   },
    {
     "datum": "2026-10-20",
     "look": "hell",
@@ -148,6 +150,11 @@
     "datum": "2026-10-30",
     "look": "hell",
     "schritt": 1
+   },
+   {
+    "datum": "2026-10-31",
+    "look": "teal",
+    "schritt": 2
    }
   ],
   "tagesgrafik/instagram": [
@@ -169,11 +176,6 @@
   ],
   "tagesgrafik/threads": [
    {
-    "datum": "2026-10-19",
-    "look": "teal",
-    "schritt": 2
-   },
-   {
     "datum": "2026-10-20",
     "look": "hell",
     "schritt": 3
@@ -227,15 +229,15 @@
     "datum": "2026-10-30",
     "look": "hell",
     "schritt": 1
+   },
+   {
+    "datum": "2026-10-31",
+    "look": "teal",
+    "schritt": 2
    }
   ],
   "tagesgrafik/x": [
    {
-    "datum": "2026-10-19",
-    "look": "teal",
-    "schritt": 2
-   },
-   {
     "datum": "2026-10-20",
     "look": "hell",
     "schritt": 3
@@ -289,6 +291,11 @@
     "datum": "2026-10-30",
     "look": "hell",
     "schritt": 1
+   },
+   {
+    "datum": "2026-10-31",
+    "look": "teal",
+    "schritt": 2
    }
   ]
  }
