@@ -148,6 +148,62 @@ def ungenau_im_quelltext(ordner=None):
     return funde
 
 
+# Die Antwort unter dem X-Post (Ben, 31.10.2026). Solange @gokugalax das
+# Label von X traegt, steht dort kein Link und keine Domain, auch nicht
+# kaspapulse.com/x. Und sie nennt keine Zahl, die schon im Bild oder im Post
+# steht: sie loest auf, sie wiederholt nicht.
+LINK_ODER_DOMAIN = re.compile(
+    r"(https?://\S+|\bwww\.\S+|\b[a-z0-9][a-z0-9-]*\.(?:com|io|org|net|de|xyz|html|app|dev|info|co|ai|fi)\b"
+    r"(?:/\S*)?|\blink in (?:the )?bio\b)", re.I)
+# Eine Kennzahl ist eine Zahl mit Komma, Dezimalstelle, % oder Kurzform
+# (M, B, x), oder eine ganze Zahl ab drei Stellen. Kleine ganze Zahlen wie
+# "8 hours", "10 minutes" oder "1 in 18" sind Fenster und Masse, keine Kennzahl.
+# Jahreszahlen und Tage mit Monat zaehlen nicht.
+_MONAT = r"(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*"
+_KENNZAHL = re.compile(r"(?<![\w.])[+]?(\d{1,3}(?:,\d{3})+|\d+\.\d+|\d{3,})(%|[mbkx]\b)?", re.I)
+_DATUM_WEG = re.compile(r"\b\d{1,2} " + _MONAT + r"\b|\b" + _MONAT + r" \d{4}\b|\b20\d\d\b|\b\d{1,2}:\d{2}\b", re.I)
+
+
+def kennzahlen(text):
+    """Die Kennzahlen eines Textes, vereinheitlicht (ohne + und %)."""
+    t = _DATUM_WEG.sub(" ", LINK_ODER_DOMAIN.sub(" ", text or ""))
+    return {m.group(1) + (m.group(2) or "").lower().replace("%", "") for m in _KENNZAHL.finditer(t)}
+
+
+def antwort_verstoesse(antwort, gesehen, label=True):
+    """antwort ist der Text unter dem X-Post, gesehen alle Texte aus Bild und
+    Post. label True heisst: X hat das Label gesetzt, also kein Link."""
+    aus = []
+    if label:
+        aus += ["link oder domain %r in der antwort, solange das x-label gilt" % m.group(0)
+                for m in LINK_ODER_DOMAIN.finditer(antwort or "")]
+    doppelt = kennzahlen(antwort) & kennzahlen(" ".join(gesehen))
+    if doppelt:
+        aus.append("die antwort wiederholt %s aus bild oder post" % ", ".join(sorted(doppelt)))
+    return aus
+
+
+def ohne_wiederholung(text, gesehen):
+    """Laesst aus text die Teilsaetze weg, die eine Kennzahl aus gesehen
+    wiederholen. Teilsaetze trennt ein Komma, Saetze ein Punkt."""
+    schon = kennzahlen(" ".join(gesehen))
+    saetze = []
+    for satz in re.split(r"(?<=\.)\s+", (text or "").strip()):
+        ende = "." if satz.endswith(".") else ""
+        alle = (satz[:-1] if ende else satz).split(", ")
+        teile = [t for t in alle if not (kennzahlen(t) & schon)]
+        if len(teile) < len(alle):
+            # was nach dem streichen nur noch ein datum ist ("as of 28 sep"), faellt mit
+            teile = [t for t in teile if re.sub(r"\b(as|of|on|in|at|utc|to|from)\b", " ",
+                                                 _DATUM_WEG.sub(" ", t)).strip(" ,.")]
+        if not teile:
+            continue
+        if teile[0].startswith("and "):
+            teile[0] = teile[0][4:]
+        saetze.append(", ".join(teile) + ende)
+    return " ".join(saetze)
+
+
 def text_verstoesse(text):
     """Die Textregeln fuer einen sichtbaren Text. Leere Liste heisst gruen."""
     import number_of_day
@@ -361,6 +417,25 @@ def selbsttest():
         print("%-4s %s" % ("ok" if bed else "FEHL", name))
         fehler += 0 if bed else 1
 
+    # antwort unter dem x-post (Ben, 31.10.2026)
+    bild = ["ENTITY X", "5.55%", "one wallet holds about 1 in 18 of all KAS, 31 oct 2026"]
+    for antwort, label, soll in (
+            ("1,539,942,995 KAS sit in that one wallet on 31 oct. all the weekly numbers in one mail, every monday.",
+             True, 0),
+            ("that is 5.55% of all KAS on 31 oct.", True, 1),
+            ("1,539,942,995 KAS on 31 oct. https://kaspapulse.com/x", True, 1),
+            ("1,539,942,995 KAS on 31 oct. kaspapulse.com/x", True, 1),
+            ("1,539,942,995 KAS on 31 oct, more on kaspapulse.com.", True, 1),
+            ("1,539,942,995 KAS on 31 oct. https://kaspapulse.com/x", False, 0),
+            ("8 hours and 10 minutes on 31 oct 2026, 14:08 utc.", True, 0)):
+        v = antwort_verstoesse(antwort, bild, label)
+        ok("antwort %r, label %s, %d verstoss" % (antwort[:40], "an" if label else "aus", soll), len(v) == soll)
+    ok("ohne wiederholung faellt der teilsatz mit 5.55% weg",
+       ohne_wiederholung("1,539,942,995 KAS sit in that one wallet on 31 oct, 5.55% of all KAS.", bild)
+       == "1,539,942,995 KAS sit in that one wallet on 31 oct.")
+    ok("ohne wiederholung laesst keinen reinen datumsrest stehen",
+       ohne_wiederholung("5.55% in one wallet, as of 31 oct. its address is public.", bild)
+       == "its address is public.")
     # text
     for t, was in (("hashrate up 42 percent", "percent"), ("balance: 1,442 KAS", "doppelpunkt"),
                    ("up — down", "gedankenstrich"), ("from 5 -> 6", "ascii-pfeil"),
