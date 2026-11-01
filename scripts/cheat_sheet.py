@@ -38,6 +38,7 @@ import datetime as dt
 import json
 import math
 import os
+import re
 import statistics
 import sys
 from pathlib import Path
@@ -845,7 +846,7 @@ def karten(p):
                   "blocks per second. the cut lands on a block score, so the exact minute drifts "
                   "a little.",
              signal="whether fees grow while the reward shrinks. see number 6.",
-             src="from the emission schedule, counted by kaspa pulse"),
+             src="computed from the emission schedule"),
         dict(n=6, tag="miners", q="what actually pays the miners?",
              big="%sx" % fmt(ge_x), unit="more KAS from new coins than from fees",
              date="%d days, %s to %s" % (ge["tage"], tag_kurz(ge["von"]), tag_lang(ge["bis"])),
@@ -1169,6 +1170,190 @@ def bauen(p, edition, ziel=None):
     return rendern(html(p, edition), ziel)
 
 
+# ---------------------------------------------------------------- teaser
+
+# Teaser statt vollem Karussell (Ben, 01.11.2026). Das volle Karussell und das
+# Deckblatt zeigten alle 8 Zahlen, damit war der Inhalt verschenkt, fuer den
+# man sich anmelden soll (ad1-whales-v3: 0 Anmeldungen). Gleiche Logik wie
+# kaspapulse.com/whales: 2 Zahlen offen, 6 gesperrt. Die gesperrten Werte sind
+# ein unscharfer Block ohne Ziffer, im HTML steht keine echte Zahl.
+#   seite 1  titel, alle 8 fragen, werte 1 und 5 offen, 6 gesperrt
+#   seite 2  zahl 1 (biggest wallet) voll, wie im pdf
+#   seite 3  zahl 5 (next reward cut) voll, wie im pdf
+#   seite 4  "6 more numbers, dated and sourced, in the cheat sheet. free by email, link in bio."
+# Dazu das Titelmotiv als Anzeigenbild 1080x1350 und 1080x1920, unten frei,
+# dort liegt der Button von Instagram.
+TEASER_OFFEN = (1, 5)
+TEASER_SCHLUSS = ("6 more numbers, dated and sourced, in the cheat sheet.", "free by email, link in bio.")
+ANZEIGE_FREI_UNTEN = {1350: 230, 1920: 380}      # px ohne text, dort liegt der instagram-button
+ANZEIGE_FREI_OBEN = {1350: 0, 1920: 250}         # story: profilzeile oben
+
+TEASER_CSS = """
+.row .zu,.lk .zu{display:inline-flex;gap:5px;align-items:flex-end;filter:blur(5px)}
+.row .zu i,.lk .zu i{display:block;width:22px;height:30px;border-radius:5px;background:%s;opacity:.6}
+.row .zu i:nth-child(2),.lk .zu i:nth-child(2){height:26px}
+.row .zu i:nth-child(3),.lk .zu i:nth-child(3){width:9px;height:9px}
+.cv.tz h1{font-size:88px}
+.cv.tz .row .t{font-size:27px}
+.cv.tz .row{padding:8px 0}
+.cv.tz.anz h1{margin-top:30px;font-size:78px}
+.cv.tz.anz .sub{margin-top:14px;font-size:30px}
+.cv.tz.anz .row{padding:6px 0}
+.tz-ende h2{margin-top:44px;font-family:Archivo;font-weight:900;font-size:78px;line-height:.98;letter-spacing:-.03em;text-wrap:balance}
+.tz-ende .lks{margin-top:34px;border-top:2px solid %s}
+.tz-ende .lk{display:grid;grid-template-columns:56px 1fr auto;align-items:center;gap:16px;padding:12px 0;border-bottom:2px solid %s}
+.tz-ende .lk .i{font-family:PlexMono;font-size:24px;color:%s}
+.tz-ende .lk .t{font-size:28px;font-weight:500;color:%s}
+.tz-ende .cta{margin-top:auto;margin-bottom:40px;background:%s;color:%s;border-radius:22px;padding:30px 36px}
+.tz-ende .cta b{display:block;font-family:Archivo;font-weight:800;font-size:46px;line-height:1.08}
+""" % (ACC, LINE, LINE, INK3, INK, ACC, BG)
+
+
+def teaser_datum(p, n):
+    """Das Datum zur offenen Zahl in der Zeile des Titels. Die Senkung traegt
+    ihren Zeitpunkt, alle anderen ihren Stichtag."""
+    name = ZAHLEN[n - 1][0]
+    if name == "senkung":
+        t = dt.datetime.fromisoformat(p["zahlen"]["senkung"]["zeit_utc"].replace("Z", "+00:00"))
+        return "%s, %s utc" % (tag_lang(t.date()), t.strftime("%H:%M"))
+    return "as of %s" % tag_lang(p["zahlen"][name]["stichtag"])
+
+
+def zu_block():
+    return '<span class="zu" aria-hidden="true"><i></i><i></i><i></i><i></i></span>'
+
+
+def teaser_titel(p, k, edition, h=SEITE_PX[1], fuss=True):
+    """Das Titelmotiv: alle 8 Fragen, nur die Werte 1 und 5 offen."""
+    marke = edition_marke(p, edition)
+    zeilen = []
+    for c in k:
+        if c["n"] in TEASER_OFFEN:
+            klein = "%s · %s" % (teaser_datum(p, c["n"]), c["src"].split(" · ")[0])
+            wert = c["big"]
+        else:
+            klein, wert = "in the cheat sheet", zu_block()
+        zeilen.append('<div class="row"><div class="i">%02d</div><div class="t">%s<small>%s</small></div>'
+                      '<div class="v">%s</div></div>' % (c["n"], c["q"], klein, wert))
+    frei_o, frei_u = ANZEIGE_FREI_OBEN.get(h, 0), (0 if fuss else ANZEIGE_FREI_UNTEN.get(h, 0))
+    stil = "height:%dpx;padding-top:%dpx;padding-bottom:%dpx" % (h, 56 + frei_o, frei_u)
+    fusszeile = ('<div class="foot"><span>2 of 8 open · %s</span><b>kaspapulse.com</b></div>' % marke
+                 if fuss else "")
+    return """<section class="pg cv tz%s" style="%s">%s
+<h1>the 8 kaspa numbers <em>whales watch</em></h1>
+<div class="sub">%s. dated and sourced.</div>
+<div class="list">%s</div>%s</section>""" % ("" if fuss else " anz", stil, top(marke), marke, "".join(zeilen),
+                                             fusszeile)
+
+
+def teaser_ende(k, edition, p):
+    zu = "".join('<div class="lk"><div class="i">%02d</div><div class="t">%s</div>%s</div>'
+                 % (c["n"], c["q"], zu_block()) for c in k if c["n"] not in TEASER_OFFEN)
+    return """<section class="pg tz-ende">%s
+<h2>%s</h2>
+<div class="lks">%s</div>
+<div class="cta"><b>%s</b></div></section>""" % (top(edition_marke(p, edition)), TEASER_SCHLUSS[0], zu,
+                                                  TEASER_SCHLUSS[1])
+
+
+def edition_marke(p, edition):
+    monat = dt.date.fromisoformat(p["stand"])
+    return "edition %d · %s %d" % (edition, MONATE_LANG[monat.month - 1], monat.year)
+
+
+def teaser_seiten(p, edition):
+    """[(name, breite, hoehe, section-html)] in der Reihenfolge des Karussells,
+    dann die beiden Anzeigenbilder."""
+    k = karten(p)
+    nach_n = {c["n"]: c for c in k}
+    return [("teaser-1-titel", 1080, 1350, teaser_titel(p, k, edition)),
+            ("teaser-2-zahl-1", 1080, 1350, seite(nach_n[1])),
+            ("teaser-3-zahl-5", 1080, 1350, seite(nach_n[5])),
+            ("teaser-4-schluss", 1080, 1350, teaser_ende(k, edition, p)),
+            ("anzeige-1080x1350", 1080, 1350, teaser_titel(p, k, edition, 1350, fuss=False)),
+            ("anzeige-1080x1920", 1080, 1920, teaser_titel(p, k, edition, 1920, fuss=False))]
+
+
+def teaser_pruefen(p, edition, seiten=None):
+    """Was im Teaser nicht stehen darf: keine Ziffer in einem gesperrten Wert,
+    keiner der 6 gesperrten Werte irgendwo, Textregeln fuer alle Texte, unten
+    in den Anzeigen kein Text (das misst teaser_rendern im Bild)."""
+    import content_wache
+    k = karten(p)
+    seiten = seiten or teaser_seiten(p, edition)
+    fehler = []
+    alles = " ".join(h for _, _, _, h in seiten)
+    for z in re.findall(r'<span class="zu"[^>]*>.*?</span>', alles):
+        if re.search(r"\d", re.sub(r"<[^>]+>", "", z)):
+            fehler.append("ziffer in einem gesperrten wert")
+    for c in k:
+        if c["n"] in TEASER_OFFEN:
+            continue
+        for feld in ("big", "date"):
+            # die frage darf stehen, der wert und sein datum nicht
+            if c[feld] and re.search(r"(?<![\w.,])%s(?![\w.,])" % re.escape(c[feld]), alles):
+                fehler.append("zahl %d, %s %r steht im teaser" % (c["n"], feld, c[feld]))
+    texte = [re.sub(r"\s+", " ", t).strip() for t in re.findall(r">([^<>]+)<", alles)]
+    for t in texte:
+        if t:
+            fehler += ["%s in %r" % (v, t[:50]) for v in content_wache.text_verstoesse(t)]
+    return fehler
+
+
+def teaser_caption(p, edition):
+    """Ohne Engagement-Koeder, mit Edition und Monat (Ben, 01.11.2026)."""
+    monat = dt.date.fromisoformat(p["stand"])
+    return ("the 8 kaspa numbers whales watch, edition %d, %s %d. 2 of them in this post, the biggest "
+            "wallet and the next block reward cut, each with its date and source. the other 6 are in "
+            "the cheat sheet, free by email, link in bio.\n\n#kaspa #kas #blockdag"
+            % (edition, MONATE_LANG[monat.month - 1], monat.year))
+
+
+def teaser_rendern(p, edition, ordner):
+    """Rendert Teaser und Anzeigen als PNG. Gibt (karussell, anzeigen, fehler)
+    zurueck, fehler mit Kontrast unter 7:1 und Text im freien Bereich."""
+    import hintergrund
+    from playwright.sync_api import sync_playwright
+    seiten = teaser_seiten(p, edition)
+    fehler = teaser_pruefen(p, edition, seiten)
+    ordner = Path(ordner)
+    ordner.mkdir(parents=True, exist_ok=True)
+    launch = {}
+    for c in ("/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
+              "/opt/pw-browsers/chromium/chrome-linux/chrome"):
+        if os.path.exists(c):
+            launch["executable_path"] = c
+            break
+    fonts = schriften()
+    pngs = []
+    with sync_playwright() as pw:
+        b = pw.chromium.launch(**launch)
+        try:
+            for name, w, h, sec in seiten:
+                pg = b.new_page(viewport={"width": w, "height": h}, device_scale_factor=1)
+                pg.set_content("<!doctype html><html><head><meta charset='utf-8'><style>%s%s"
+                               ".pg{width:%dpx;height:%dpx}</style></head><body>%s</body></html>"
+                               % (css(fonts), TEASER_CSS, w, h, sec))
+                pg.wait_for_timeout(400)
+                ziel = ordner / ("%s.png" % name)
+                pg.screenshot(path=str(ziel))
+                fehler += ["%s, %s" % (name, v) for v in hintergrund.kontrast_verstoesse(pg)]
+                frei = ANZEIGE_FREI_UNTEN.get(h, 0) if name.startswith("anzeige") else 0
+                if frei:
+                    tief = pg.evaluate("() => Math.max(0, ...[...document.querySelectorAll('section *')]"
+                                       ".filter(e => e.childNodes.length && [...e.childNodes].some("
+                                       "n => n.nodeType === 3 && n.textContent.trim()))"
+                                       ".map(e => e.getBoundingClientRect().bottom))")
+                    if tief > h - frei:
+                        fehler.append("%s, text reicht bis %d px, frei bleiben die unteren %d px"
+                                      % (name, tief, frei))
+                pg.close()
+                pngs.append(ziel)
+        finally:
+            b.close()
+    return pngs[:4], pngs[4:], fehler
+
+
 def festschreiben(p, edition, pdf, log=None, pfad=LOG):
     """Die Ausgabe in das Log eintragen und das Datei unter der Adresse der
     Webseite ersetzen. Nur hier, nie beim bloßen Bauen: ein Probelauf darf
@@ -1313,13 +1498,20 @@ def ops_schicken(text, dateien, scharf, ig=None):
         ops_melden.hand(kopf + "\n\n" + text, dateien, "cheat-sheet")
     if not ig:
         return
-    pngs, caption, kontrast = ig
+    pngs, caption, kontrast = ig[:3]
+    anzeigen = list(ig[3]) if len(ig) > 3 else []
     if kontrast:
         ops_melden.log("cheat sheet, instagram-paket NICHT geschickt, kontrast unter 7:1\n"
                        + "\n".join(kontrast[:20]), was="cheat-sheet instagram")
         return
     paket = ("%d seiten in dieser reihenfolge als karussell hochladen, 1080x1350, ohne musik, "
              "caption kopieren\n```\n%s\n```" % (len(pngs), caption))
+    if anzeigen:
+        # teaser (Ben, 01.11.2026): das volle karussell geht nicht mehr raus
+        paket = ("TEASER, 2 von 8 zahlen offen. " + paket +
+                 "\ndazu %d anzeigenbilder (1080x1350 feed, 1080x1920 story und reels), nicht ins "
+                 "karussell. unten bleibt der bereich fuer den instagram-button frei." % len(anzeigen))
+    pngs = list(pngs) + anzeigen
     if probe:
         ops_melden.log("PROBE, instagram-paket, nicht posten.\n" + paket,
                        [(x, "image/png") for x in pngs], "cheat-sheet instagram")
@@ -1345,9 +1537,17 @@ def main(argv=None):
     ap.add_argument("--melden", action="store_true",
                     help="pdf und deckblatt melden, scharf nach #ops-log, sonst VON HAND nach #moderator-only")
     ap.add_argument("--selbsttest", action="store_true")
+    ap.add_argument("--teaser", help="nur den teaser aus --aus bauen, in diesen ordner, nichts senden")
     a = ap.parse_args(argv)
     if a.selbsttest:
         return selbsttest()
+    if a.teaser:
+        p = _json(a.aus or PROBE_FEST)
+        k_, an_, f_ = teaser_rendern(p, a.edition or 1, a.teaser)
+        print("\n".join(str(x) for x in k_ + an_))
+        print("\n".join(f_) or "alle pruefungen gruen")
+        print(teaser_caption(p, a.edition or 1))
+        return 1 if f_ else 0
     heute = dt.date.fromisoformat(a.stand) if a.stand else dt.datetime.now(dt.timezone.utc).date()
     p = _json(a.aus) if a.aus else probe(heute)
     if a.stand:
@@ -1378,6 +1578,10 @@ def main(argv=None):
     info = getattr(rendern, "letzte", {"pngs": [], "kontrast": []})
     print("instagram, %d seiten unter %s, kontrast %s" % (
         len(info["pngs"]), ig_ordner(pdf), "; ".join(info["kontrast"]) or "alle ab 7:1"))
+    # gepostet wird der teaser, nicht mehr das volle karussell (Ben, 01.11.2026)
+    t_karussell, t_anzeigen, t_fehler = teaser_rendern(p, edition, pdf.with_name(pdf.stem + "-teaser"))
+    print("teaser, %d seiten und %d anzeigen, %s" % (len(t_karussell), len(t_anzeigen),
+                                                      "; ".join(t_fehler) or "alle pruefungen gruen"))
     if a.melden:
         text = ops_text(p, edition, pdf, a.veroeffentlichen)
         print(text)
@@ -1386,7 +1590,7 @@ def main(argv=None):
             print("heute schon gemeldet, lauf %s. nichts doppelt" % frueher)
             return 0
         ops_schicken(text, [(deck, "image/png"), (pdf, "application/pdf")], a.veroeffentlichen,
-                     (info["pngs"], ig_caption(p, edition), info["kontrast"]) if info["pngs"] else None)
+                     (t_karussell, teaser_caption(p, edition), t_fehler, t_anzeigen) if t_karussell else None)
     return 0
 
 
@@ -1556,6 +1760,30 @@ def selbsttest():
     import content_wache
     ok("caption besteht die textregeln", content_wache.text_verstoesse(ig_caption(p2, 2)) == [],
        content_wache.text_verstoesse(ig_caption(p2, 2)))
+    # teaser (Ben, 01.11.2026)
+    ts = teaser_seiten(p2, 2)
+    ok("teaser, 4 karussellseiten und 2 anzeigen in 1350 und 1920",
+       [(w, h) for _, w, h, _ in ts] == [(1080, 1350)] * 5 + [(1080, 1920)])
+    ok("teaser, pruefung gruen", teaser_pruefen(p2, 2, ts) == [], teaser_pruefen(p2, 2, ts))
+    k2 = karten(p2)
+    titel = ts[0][3]
+    ok("teaser, alle 8 fragen auf dem titel", all(c["q"] in titel for c in k2))
+    ok("teaser, werte 1 und 5 offen mit datum", k2[0]["big"] in titel and k2[4]["big"] in titel
+       and "as of %s" % tag_lang(p2["zahlen"]["entityx"]["stichtag"]) in titel)
+    ok("teaser, 6 werte gesperrt, im html keine echte zahl",
+       titel.count('class="zu"') == 6 and not any(
+           re.search(r"(?<![\w.,])%s(?![\w.,])" % re.escape(c["big"]), " ".join(x[3] for x in ts))
+           for c in k2 if c["n"] not in TEASER_OFFEN))
+    ok("teaser, schlussseite mit bens satz", TEASER_SCHLUSS[0] in ts[3][3] and TEASER_SCHLUSS[1] in ts[3][3])
+    kaputt = [(n, w, h, x.replace('<span class="zu" aria-hidden="true">', '<span class="zu" aria-hidden="true">13.4%', 1))
+              for n, w, h, x in ts]
+    ok("teaser, ein wert im gesperrten block faellt auf", teaser_pruefen(p2, 2, kaputt) != [])
+    tc = teaser_caption(p2, 2)
+    ok("teaser-caption mit edition und monat, ohne koeder", "edition 2, november 2026" in tc
+       and content_wache.text_verstoesse(tc) == []
+       and not re.search(r"(?i)\b(comment|like|share|tag a|save this|follow)\b", tc), tc)
+    ok("fusszeile seite 6, computed statt counted",
+       karten(p2)[4]["src"] == "computed from the emission schedule")
     ok("INK3 traegt 7:1 auf grund und flaeche", kontrast_hex(INK3, BG) >= 7 and kontrast_hex(INK3, SURF) >= 7,
        kontrast_hex(INK3, BG), kontrast_hex(INK3, SURF))
 
@@ -1605,6 +1833,12 @@ def selbsttest():
             leise("t", [], False, (pngs, ig_caption(p2, 2), ["seite 5, kontrast 5.8:1"]))
             ok("kontrast unter 7:1, kein paket, liste nach log",
                [g[0] for g in gesendet] == ["hand", "log"] and b"NICHT" in gesendet[-1][1], [g[0] for g in gesendet])
+            # teaser (Ben, 01.11.2026): 4 seiten und 2 anzeigen in einer von-hand-nachricht
+            gesendet.clear()
+            leise("t", [], False, (pngs[:4], "cap", [], pngs[:2]))
+            ok("teaser, 4 seiten und 2 anzeigen von hand",
+               [g[0] for g in gesendet] == ["hand", "hand"]
+               and gesendet[-1][1].count(b'name="files[') == 6 and b"TEASER" in gesendet[-1][1])
     finally:
         ops_melden._post = echt_post
         for k_, v_ in alt_env.items():
