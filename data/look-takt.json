@@ -14,6 +14,34 @@
     "motiv": "punktraster",
     "schritt": 2,
     "serie": "meme"
+   },
+   {
+    "datum": "2026-11-01",
+    "look": "hell",
+    "motiv": "hoehenlinien",
+    "schritt": 3,
+    "serie": "tagesgrafik"
+   }
+  ],
+  "tagesgrafik/discord": [
+   {
+    "datum": "2026-11-01",
+    "look": "dunkel",
+    "schritt": 0
+   }
+  ],
+  "tagesgrafik/threads": [
+   {
+    "datum": "2026-11-01",
+    "look": "dunkel",
+    "schritt": 0
+   }
+  ],
+  "tagesgrafik/x": [
+   {
+    "datum": "2026-11-01",
+    "look": "dunkel",
+    "schritt": 0
    }
   ]
  }
