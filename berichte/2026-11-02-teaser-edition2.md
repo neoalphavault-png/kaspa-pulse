@@ -1,6 +1,16 @@
-# Bericht 2.11.2026: Teaser Cheat Sheet Edition 2
+# Bericht 2.11.2026: Teaser Cheat Sheet Edition 2 (Nachtrag 1.11.2026, aus dem veröffentlichten Lauf)
 
 Auftrag von Ben vom 1.11.2026, Frist Mo 2.11. 14:00 Berlin. Gebaut am 1.11.2026 und gemergt mit #224.
+
+## Nachtrag 1.11.2026, Teaser aus dem veröffentlichten Lauf
+Ben hat Edition 2 am 1.11. um 13:07 Berlin veröffentlicht: Lauf cheat sheet #7 (41304892613), Log n=2.
+
+- **Quelle:** Der Teaser ist neu gebaut aus `data/whales-stand.json`. Das ist die Messung, die Lauf #7 mit PDF und /whales committet hat, gebaut um 12:07:26 UTC.
+- **Abweichungen gegenüber der Probe 41286982337:** keine. Alle 8 Karten stimmen in Wert, Einheit, Datum und Herkunft überein, ebenso die 8 Stichtage im Log. Die 6 Bilder sind pixelgleich mit denen vom Mittag.
+- **Fußzeile Seite 6:** Lauf #7 lief vor dem Merge von #224. Das veröffentlichte PDF trägt deshalb noch „from the emission schedule, counted by kaspa pulse“. Ab Edition 3 steht dort „computed from the emission schedule“.
+- **Brevo:** Vorlage 15 bleibt unverändert. Ben hat die Willkommensmail ohne Edition und Monat umgestellt, sie passt jetzt jeden Monat. Den Schritt „Willkommensmail umstellen“ gibt es in keinem Ablauf und in keiner Meldung mehr. Der Satz dazu im Nachtrag vom 29.10. in `berichte/2026-10-30-look-v2.md` ist damit überholt.
+
+---
 
 ## Warum
 Das volle Karussell und das Deckblatt zeigten alle 8 Zahlen. Damit war der Inhalt verschenkt, für den man sich anmelden soll. Die Anzeige ad1-whales-v3 brachte 0 Anmeldungen. Der Teaser folgt deshalb derselben Logik wie kaspapulse.com/whales: 2 Zahlen offen, 6 gesperrt.
@@ -60,18 +70,16 @@ Seite 3 und der Titel nennen den Reward Cut am 4 nov. Wird der Teaser nach dem 4
 Siehe „📤 VON HAND“ im Discord-Abschnitt.
 
 <!-- discord -->
-**Teaser Cheat Sheet Edition 2, 1.11.2026**
-- **4 Seiten 1080x1350:** Titel mit allen 8 Fragen, offen nur Zahl 1 (5.6%, 1 nov 2026) und Zahl 5 (4 nov), die anderen 6 unscharf ohne Zahl im HTML. Dann Zahl 1 voll, Zahl 5 voll, Schluss „6 more numbers…“.
-- **Anzeigen:** 1080x1350 und 1080x1920, unten frei für den Button.
-- **Prüfung:** Kontrast 7:1, Textregeln, Selbsttest grün. Gemergt mit #224.
-- **Künftig** baut jeder Lauf den Teaser mit, das volle Karussell geht nicht mehr raus.
-- **Fußzeile Seite 6** jetzt „computed from the emission schedule“.
+**Teaser Cheat Sheet Edition 2, aus dem veröffentlichten Lauf #7**
+- Neu gebaut aus der veröffentlichten Messung (data/whales-stand.json, Log Edition 2).
+- **Abweichungen:** keine. Alle 8 Werte und Stichtage sind gleich wie in der Probe, die Bilder sind pixelgleich.
+- **Brevo:** Vorlage 15 bleibt, wie du sie umgestellt hast. Der Schritt ist gestrichen.
 - **Bericht:** berichte/2026-11-02-teaser-edition2.md
 <!-- teil -->
 📤 VON HAND
-Instagram, Teaser Cheat Sheet Edition 2, am besten bis Di 3.11. (der Cut ist am 4.11.).
+Instagram, Teaser Cheat Sheet Edition 2, heute Abend, aus dem veröffentlichten Lauf #7.
 - **Karussell:** Bild 1 bis 4 in dieser Reihenfolge, 1080x1350, ohne Musik.
-- **Anzeige:** Bild 5 im Feed, Bild 6 für Story und Reels, nicht ins Karussell.
+- **Anzeige:** Bild 5 im Feed (1080x1350), Bild 6 für Story und Reels (1080x1920), nicht ins Karussell. Unten ist Platz für den Button.
 Caption kopieren
 ```
 the 8 kaspa numbers whales watch, edition 2, november 2026. 2 of them in this post, the biggest wallet and the next block reward cut, each with its date and source. the other 6 are in the cheat sheet, free by email, link in bio.
