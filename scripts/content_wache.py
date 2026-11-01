@@ -204,6 +204,20 @@ def ohne_wiederholung(text, gesehen):
     return " ".join(saetze)
 
 
+# Die Zahl des Tages (X, @gokugalax) zeigt keine Preise, kein USD und kein
+# "today" (Ben, 01.11.2026). Sie zeigt gezaehlte und berechnete On-Chain-Zahlen
+# mit Datum. "$KAS" ist der Cashtag und kein Preis, "$" vor einer Ziffer schon.
+NOD_VERBOTEN = re.compile(
+    r"(\$\s?\d|\busd\b|\bus\s?dollars?\b|\bdollars?\b|\bcents?\b|\beur\b|\beuro?s?\b"
+    r"|\bprices?\b|\bpriced\b|\bspot\b|\bvalued\b|\bmarket ?cap\w*\b|\bsats?\b|\bsatoshis?\b"
+    r"|\bath\b|\ball.time high\b|\btoday'?s?\b)", re.I)
+
+
+def zahl_des_tages_verstoesse(text):
+    """Was die Zahl des Tages in keinem Text tragen darf, als Liste."""
+    return ["%r in der zahl des tages" % m.group(0) for m in NOD_VERBOTEN.finditer(text or "")]
+
+
 def text_verstoesse(text):
     """Die Textregeln fuer einen sichtbaren Text. Leere Liste heisst gruen."""
     import number_of_day
@@ -417,6 +431,10 @@ def selbsttest():
         print("%-4s %s" % ("ok" if bed else "FEHL", name))
         fehler += 0 if bed else 1
 
+    # zahl des tages ohne preis, usd und today (Ben, 01.11.2026)
+    for t, soll in (("$55.9K of new supply", 1), ("342 PH today", 1), ("priced in usd", 2),
+                    ("a $KAS holder count on 1 nov 2026", 0), ("hashrate 342 PH/s on 1 nov 2026", 0)):
+        ok("zahl des tages %r, %d verstoss" % (t, soll), len(zahl_des_tages_verstoesse(t)) == soll)
     # antwort unter dem x-post (Ben, 31.10.2026)
     bild = ["ENTITY X", "5.55%", "one wallet holds about 1 in 18 of all KAS, 31 oct 2026"]
     for antwort, label, soll in (

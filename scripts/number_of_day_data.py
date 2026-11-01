@@ -434,10 +434,11 @@ def cand_cut_today(ctx):
     prev_ts = nxt_ts - STEP
     prev_day = dt.datetime.fromtimestamp(prev_ts, dt.timezone.utc).date()
     today = ctx["today"]
+    # der tag des schnitts statt "this morning" oder "today" (Ben, 01.11.2026)
     if today == prev_day:
-        landed, when = True, "this morning"
+        landed, when = True, "on %s" % stichtag(prev_day)
     elif today == cut_day:
-        landed, when = False, "this morning"
+        landed, when = False, "on %s" % stichtag(cut_day)
     else:
         return None
     if landed:
@@ -454,7 +455,7 @@ def cand_cut_today(ctx):
     if landed:
         tail = "*%s fewer KAS* minted every day from this cut on." % fmt_int(gone)
     else:
-        tail = "*%s KAS* per day stop being minted today." % fmt_int(gone)
+        tail = "*%s KAS* per day stop being minted from %s on." % (fmt_int(gone), stichtag(cut_day))
     return {
         "score": 1000.0,
         "payload": {
@@ -524,7 +525,7 @@ def cand_cut_countdown(ctx):
                 {
                     "kind": "compare",
                     "title": "TIME TO THE NEXT REDUCTION",
-                    "sub": "counted from today, in days",
+                    "sub": "counted from %s, in days" % stichtag(ctx["today"]),
                     "rows": [
                         {"label": "kaspa", "sub": "monthly",
                          "value": "%d" % d, "pct": a, "tone": "teal"},
@@ -637,7 +638,7 @@ def _move_candidate(ctx, key, title, unit_fmt, label, headline_word,
                     "title": title,
                     "sub": "same measurement, two dates",
                     "rows": [
-                        {"label": "today", "sub": "",
+                        {"label": stichtag(ctx["today"]), "sub": "",
                          "value": unit_fmt(now), "pct": a,
                          "tone": "teal" if change > 0 else "red"},
                         {"label": age_phrase(age), "sub": "",
@@ -656,9 +657,10 @@ def _move_candidate(ctx, key, title, unit_fmt, label, headline_word,
             "sources": sources,
             "site": "kaspapulse.com",
             "post": post_block(
-                "%s on kaspa is %s %.0f%% against %s. %s today, %s then, %s"
+                # der messtag statt "today" (Ben, 01.11.2026)
+                "%s on kaspa is %s %.0f%% against %s. %s on %s, %s then, %s"
                 % (headline_word, direction, abs(change), age_phrase(age),
-                   unit_fmt(now), unit_fmt(then), herkunft_post(sources, age)),
+                   unit_fmt(now), stichtag(ctx["today"]), unit_fmt(then), herkunft_post(sources, age)),
                 "the weekly readings behind that are on " + SITE_URL + ". the "
                 "anchor is the weekly reading we archived, not a chart high."),
         },
@@ -1106,12 +1108,45 @@ def recent_picks(log, today, window=None):
             if name and (name not in out or age < out[name]):
                 out[name] = age
     return out
+# Keine Preise, kein USD, kein "today" in der Zahl des Tages (Ben, 01.11.2026).
+# Wir zeigen gezaehlte und berechnete On-Chain-Zahlen mit Datum. Diese
+# Kandidaten rechnen mit Kurs oder Dollar und kommen nicht mehr dran. Ihr Code
+# bleibt, die Messwerte laufen weiter ins Log.
+OHNE_PREIS_GESPERRT = {"emission_vs_btc", "weekly_line", "sats_divergence", "tvl_move"}
+
+
+def oeffentliche_texte(payload, pfad="root"):
+    """Alle sichtbaren Texte des Payloads, ohne Farb- und Formfelder."""
+    if isinstance(payload, dict):
+        for k, v in payload.items():
+            if k in ("tone", "kind", "color", "font", "site"):
+                continue
+            yield from oeffentliche_texte(v, pfad + "." + k)
+    elif isinstance(payload, list):
+        for i, v in enumerate(payload):
+            yield from oeffentliche_texte(v, "%s[%d]" % (pfad, i))
+    elif isinstance(payload, str):
+        yield pfad, payload
+
+
+def nod_verstoesse(payload):
+    """Die Wache fuer die Zahl des Tages: Hauptpost ohne Link, und kein Text mit
+    Preis, USD oder "today" (content_wache.zahl_des_tages_verstoesse)."""
+    import content_wache
+    aus = hauptpost_verstoesse((payload.get("post") or {}).get("x", ""))
+    for pfad, t in oeffentliche_texte(payload):
+        aus += ["%s in %s" % (v, pfad) for v in content_wache.zahl_des_tages_verstoesse(t)]
+    return aus
+
+
 def choose(ctx, log, force=None):
     cooled = recent_picks(log, ctx["today"])
     scored = []   # waehlbar
     spare = []    # nur standardsperre, darf im notfall einspringen
     locked = []   # eigene MIN_GAP, kommt heute unter keinen umstaenden dran
     for name, fn in CANDIDATES:
+        if name in OHNE_PREIS_GESPERRT:
+            continue
         try:
             res = fn(ctx)
         except Exception as exc:  # noqa: BLE001
@@ -1260,11 +1295,11 @@ def main():
         print("")
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
-    fehler = hauptpost_verstoesse((payload.get("post") or {}).get("x", ""))
+    fehler = nod_verstoesse(payload)
     if fehler:
         # vor dem posten abbrechen, nichts schreiben, nach #ops-log melden
-        text = ("zahl des tages %s, ABBRUCH vor dem posten, kandidat %s: %s. der link gehoert "
-                "nur in die selbstantwort, nichts gepostet" % (today, name, "; ".join(fehler)))
+        text = ("zahl des tages %s, ABBRUCH vor dem posten, kandidat %s: %s. kein link im hauptpost, "
+                "kein preis, kein usd, kein today. nichts gepostet" % (today, name, "; ".join(fehler)))
         print(text)
         set_output("picked", "0")
         try:
@@ -1453,7 +1488,8 @@ def run_selftest():
     if res:
         walk_and_check(res["payload"])
         rows = res["payload"]["panes"][0]["rows"]
-        ok("heutiger wert steht zuerst", rows[0]["label"] == "today")
+        ok("heutiger wert steht zuerst, mit dem messtag statt today",
+           rows[0]["label"] == stichtag(far["today"]), rows[0]["label"])
         ok("anker ist nicht der eintrag von heute",
            "342" not in rows[1]["value"], rows[1]["value"])
         # herkunft und messtag (Ben, 17.10.2026)
@@ -1481,8 +1517,8 @@ def run_selftest():
     print("auswahl und cooldown")
     name, payload, scored = choose(far, [])
     # im fixture verdoppelt sich der tvl, die hashrate steigt um 37 prozent.
-    # die groessere bewegung muss gewinnen, nicht die gewohnheit.
-    ok("ohne schnitt gewinnt die groesste bewegung", name == "tvl_move", name)
+    # der tvl ist in usd und seit 01.11.2026 gesperrt, also gewinnt die hashrate.
+    ok("ohne schnitt gewinnt die groesste bewegung ohne usd", name == "hashrate_move", name)
     ok("die ruhige kennzahl verliert",
        [n for _, n, _, _ in scored].index("mined_left") > 1,
        [n for _, n, _, _ in scored])
@@ -1695,6 +1731,32 @@ def run_selftest():
                 bad.append("%s hat keinen link in der antwort" % n)
     ok("jeder kandidat liefert einen posttext", seen_posts >= len(CANDIDATES))
     ok("posttexte halten den hausstil", not bad, bad)
+    # 01.11.2026: keine preise, kein usd, kein today (Ben)
+    schnitt = build_context(now_ts=ANCHOR_TS + STEP + 60, live=FAKE_LIVE, history=FAKE_HISTORY)
+    funde = []
+    for n, fn in CANDIDATES:
+        if n in OHNE_PREIS_GESPERRT:
+            continue
+        for c in (far, cut_ctx, cd_ctx, schnitt):
+            r = fn(c)
+            if r:
+                funde += ["%s, %s" % (n, v) for v in nod_verstoesse(r["payload"])]
+    ok("kein kandidat traegt preis, usd oder today", not funde, funde)
+    for name_, ctx_ in (("far", far), ("cut", cut_ctx), ("countdown", cd_ctx), ("schnitt", schnitt)):
+        try:
+            gewaehlt = choose(ctx_, [])[0]
+        except (Skip, Stop):
+            gewaehlt = None
+        ok("auswahl %s nimmt keinen preis-kandidaten (%s)" % (name_, gewaehlt),
+           gewaehlt not in OHNE_PREIS_GESPERRT)
+    ok("preis-kandidaten gesperrt", OHNE_PREIS_GESPERRT ==
+       {"emission_vs_btc", "weekly_line", "sats_divergence", "tvl_move"})
+    for t, soll in (("kaspa creates about $55.9K of new supply per day.", True),
+                    ("342 PH today, 250 PH then.", True), ("valued at the spot price", True),
+                    ("one kas buys 30 satoshis", True), ("1.83M usd locked", True),
+                    ("hashrate 342 PH on 1 nov, $KAS", False), ("1,680,086 KAS a day from 4 nov", False)):
+        v = nod_verstoesse({"post": {"x": t}})
+        ok("wache %s %r" % ("stoppt" if soll else "laesst", t), bool(v) is soll, v)
     # 28.10.2026: kein link, keine domain, kein "link in bio" im hauptpost
     for t in ("both read from defillama.com 23 days apart.", "see kaspapulse.com", "https://x.co/a",
               "www.kaspa.org", "the full chart, link in bio.", "both read from api.kaspa.org 27 days apart."):

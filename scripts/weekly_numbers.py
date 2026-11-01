@@ -146,6 +146,7 @@ PLAUSIBLE = {
     "active_addr": (100, 5e7),
     "tps": (0.0, 3000.0),
     "holders": (10000, 5e8),
+    "holders_100kas": (10000, 5e7),
     "dormant_pct": (0.0, 100.0),
     "exchange_kas": (1e6, 3e10),
     "price": (0.0001, 100.0),
@@ -192,7 +193,7 @@ MANUAL_KEYS = []          # seit 23.09.2026 leer, siehe KL_FELDER
 AUTO_KEYS = [
     "hashrate", "block_reward", "emission", "mined_pct",
     "tvl_kasplex", "tvl_igra", "tvl_total", "dex_vol", "chain_fees",
-    "holders", "active_addr", "dormant_pct", "exchange_kas", "tps",
+    "holders", "active_addr", "dormant_pct", "exchange_kas", "tps", "holders_100kas",
 ]
 
 MONTHS = ["january", "february", "march", "april", "may", "june", "july",
@@ -352,6 +353,12 @@ def month_day(d):
     return "%s %d" % (MONTHS[d.month - 1], d.day)
 
 
+def tag_kurz(d):
+    """2026-10-25 -> "25 oct 2026", wie im karussell und im cheat sheet."""
+    d = dt.date.fromisoformat(str(d)[:10])
+    return "%d %s %d" % (d.day, MONTHS[d.month - 1][:3], d.year)
+
+
 def delta(key, now, prev):
     """gibt (kreis, text) zurueck, oder (None, None) ohne vergleichswoche"""
     if now is None or prev is None:
@@ -464,9 +471,12 @@ def build_message(v, prev, issue, week_date, read, price=None, show_usd=False,
     out.append("tps **%s**%s" % (
         fmt_num(v["tps"], 2),
         tail("tps", v["tps"], tps_prev, extra)))
-    out.append("addresses holding a balance **%s**%s" % (
-        fmt_int(v["holders"]),
-        tail("holders", v["holders"], prev.get("holders"), extra)))
+    # dieselbe definition wie karussell und cheat sheet (Ben, 01.11.2026):
+    # adressen ab 100 KAS, mit dem stichtag der quelle. die reihe "holders"
+    # (meaningful-balance) hat keine belegte schwelle und steht nicht mehr im post.
+    if v.get("holders_100kas") is not None:
+        out.append("addresses with 100 KAS or more **%s** as of %s" % (
+            fmt_int(v["holders_100kas"]), tag_kurz(v["holders_100kas_tag"])))
     out.append("")
 
     out.append("\U0001f9f1 **layer 2**")
@@ -836,6 +846,32 @@ def fetch_holders():
     return kl_feld("holders")
 
 
+SCHWELLE_100 = "distribution/kas-threshold/100+"
+
+
+def fetch_ab_100(heute=None, holer=None):
+    """(wert, stichtag) der Adressen ab 100 KAS aus Kaspalytics, der letzte
+    abgeschlossene Tag vor heute (Ben, 01.11.2026). Die Schwelle steht im
+    Pfad der Quelle, dieselbe Reihe wie im Karussell und im Cheat Sheet."""
+    heute = heute or dt.datetime.now(dt.timezone.utc).date()
+    d = (holer or kaspalytics.hole)(SCHWELLE_100)
+    werte = kaspalytics.reihe(d, "Addresses")
+    tage = {}
+    for lab, w in zip(d.get("labels") or [], werte):
+        if w is None:
+            continue
+        try:
+            t = kaspalytics.stichtag(lab, "bestand")
+        except ValueError:
+            continue
+        if t < heute:
+            tage[t] = float(w)
+    if not tage:
+        raise RuntimeError("kaspalytics liefert keine adressen ab 100 KAS")
+    t = max(tage)
+    return tage[t], t.isoformat()
+
+
 def collect_auto(now_ts, override):
     """holt was zu holen ist. jedes feld laesst sich per override setzen."""
     v = {}
@@ -854,6 +890,17 @@ def collect_auto(now_ts, override):
     take("hashrate", fetch_hashrate)
     take("mined_pct", lambda: fetch_supply()["mined_pct"])
     take("holders", fetch_holders)
+    if override.get("holders_100kas") is not None:
+        if not override.get("holders_100kas_tag"):
+            errors.append("holders_100kas (override ohne holders_100kas_tag, jede zahl braucht ihren stichtag)")
+        else:
+            v["holders_100kas"] = float(override["holders_100kas"])
+            v["holders_100kas_tag"] = str(override["holders_100kas_tag"])
+    else:
+        try:
+            v["holders_100kas"], v["holders_100kas_tag"] = fetch_ab_100(utc(now_ts).date())
+        except Exception as exc:  # noqa: BLE001
+            errors.append("holders_100kas (%s)" % exc)
     take("active_addr", lambda: kl_feld("active_addr"))
     take("dormant_pct", lambda: kl_feld("dormant_pct"))
     take("exchange_kas", lambda: kl_feld("exchange_kas"))
@@ -1179,6 +1226,8 @@ GOLD_NOW = {
     "active_addr": 13940,
     "tps": 0.91,
     "holders": 747603,
+    "holders_100kas": 295772.0,
+    "holders_100kas_tag": "2026-10-25",
     "dormant_pct": 50.60,
     "exchange_kas": 3854799342.0,
 }
@@ -1199,7 +1248,8 @@ GOLD_MSG = "\n".join([
     "\U0001f310 **network** · source kaspalytics",
     "active addresses **13,940** per day",
     "tps **0.91** \U0001f7e2 up 21.3%",
-    "addresses holding a balance **747,603**",
+    # seit 01.11.2026 die adressen ab 100 KAS mit stichtag (Ben)
+    "addresses with 100 KAS or more **295,772** as of 25 oct 2026",
     "",
     "\U0001f9f1 **layer 2**",
     "total tvl **$1.83M** \U0001f534 down 6.6%",
@@ -1463,6 +1513,9 @@ def run_selftest():
         if pfad.startswith("supply/inactive"):
             return {"labels": bestand, "datasets": [
                 {"label": "CSPERCENT", "data": [50.5 + i / 100.0 for i in range(n)]}]}
+        if pfad == SCHWELLE_100:
+            return {"labels": bestand, "datasets": [
+                {"label": "Addresses", "data": [295000 + i for i in range(n)]}]}
         if pfad.startswith("supply/exchange-holdings"):
             return {"labels": bestand, "datasets": [
                 {"label": "Balance", "data": [3.8e9 + i for i in range(n)]}]}
@@ -1530,6 +1583,19 @@ def run_selftest():
            all(x in v_ganz for x in ("holders", "active_addr", "dormant_pct",
                                      "exchange_kas", "tps")))
         ok("tps ist das wochenmittel, nicht der tageswert", v_ganz["tps"] == 1.0)
+        # adressen ab 100 KAS mit stichtag (Ben, 01.11.2026)
+        ok("adressen ab 100 KAS mit stichtag vor heute",
+           v_ganz.get("holders_100kas", 0) >= 295000 and
+           v_ganz.get("holders_100kas_tag", "9999") < dt.datetime.now(dt.timezone.utc).date().isoformat(),
+           (v_ganz.get("holders_100kas"), v_ganz.get("holders_100kas_tag")))
+        ok("newsletter mit derselben definition wie karussell und cheat sheet",
+           "addresses with 100 KAS or more **295,772** as of 25 oct 2026" in GOLD_MSG
+           and "holding a balance" not in GOLD_MSG)
+        try:
+            collect_auto(time.time(), dict(rest, holders_100kas=1.0))
+            ok("override ohne stichtag stoppt", False)
+        except Stop as exc:
+            ok("override ohne stichtag stoppt", "holders_100kas_tag" in str(exc))
     finally:
         kaspalytics.hole = echte_hole
         kaspalytics_reset()
@@ -1544,8 +1610,11 @@ def run_selftest():
             "exchange_kas": 3790000000, "tps": 2.76,
             "hashrate": 300.0, "mined_pct": 93.0,
             "tvl_kasplex": 1.0, "tvl_igra": 1.0,
-            "dex_vol": 1.0, "chain_fees": 1.0})
+            "dex_vol": 1.0, "chain_fees": 1.0,
+            "holders_100kas": 295772, "holders_100kas_tag": "2026-10-25"})
         ok("override setzt holders", v_ov["holders"] == 792098.0)
+        ok("override setzt adressen ab 100 KAS mit stichtag",
+           v_ov["holders_100kas"] == 295772.0 and v_ov["holders_100kas_tag"] == "2026-10-25")
         ok("override setzt active_addr", v_ov["active_addr"] == 7760.0)
         ok("override setzt dormant_pct", v_ov["dormant_pct"] == 50.54)
         ok("override setzt exchange_kas", v_ov["exchange_kas"] == 3790000000.0)
