@@ -1537,12 +1537,17 @@ def main(argv=None):
     ap.add_argument("--melden", action="store_true",
                     help="pdf und deckblatt melden, scharf nach #ops-log, sonst VON HAND nach #moderator-only")
     ap.add_argument("--selbsttest", action="store_true")
-    ap.add_argument("--teaser", help="nur den teaser aus --aus bauen, in diesen ordner, nichts senden")
+    ap.add_argument("--teaser", help="nur den teaser aus --aus bauen (eine probe oder data/whales-stand.json), "
+                                     "in diesen ordner, nichts senden")
     a = ap.parse_args(argv)
     if a.selbsttest:
         return selbsttest()
     if a.teaser:
         p = _json(a.aus or PROBE_FEST)
+        if "probe" in p and "zahlen" not in p:
+            # data/whales-stand.json: der veroeffentlichte stand, mit seiner edition
+            a.edition = a.edition or int(p.get("edition", 1))
+            p = p["probe"]
         k_, an_, f_ = teaser_rendern(p, a.edition or 1, a.teaser)
         print("\n".join(str(x) for x in k_ + an_))
         print("\n".join(f_) or "alle pruefungen gruen")
