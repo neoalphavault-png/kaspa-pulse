@@ -11,12 +11,12 @@ In diesem Ordner steht kein Wert, keine IP und kein Hostname.
 | `upgrade-wache@.service` | Dauerdienst, eine Instanz je Chain (`upgrade-wache@zcash-mainnet`). Takt 60 s im Skript. Außerhalb des Fensters ruht die Wache und baut keine Verbindungen auf, deshalb darf die Unit vorher laufen. Nach einem Absturz startet sie nach 10 s neu. |
 | `start.sh` | Setzt `DISCORD_WEBHOOK_LOG` aus dem Credential `discord_webhook_log` und startet `scripts/wache/wache.py` mit der Konfiguration der Chain. |
 | `upgrade-wache-sync@.service`, `.timer` | Stündlich zur Minute 23: das Log der Wache auf den Datenbranch aus der Konfiguration (Zcash: `messung/zcash-mainnet`, Datei `wache/wache-log.csv`), mit Secret-Scan, als `kpbot` mit dem Deploy Key. |
-| `sync.sh` | Der Ablauf dazu, in einem eigenen flachen Klon unter `/var/lib/kaspa-pulse/wache/<kette>/repo`. |
+| `sync.sh` | Der Ablauf dazu, in einem eigenen flachen Klon unter `/var/lib/kaspa-pulse/wache/<kette>/repo`. Nach dem Fenster (Zeile `fenster_zu` im Log) kommen die Rohdaten dazu, nach `wache/roh/` (`scripts/wache/roh_export.py`: nur das Fenster, keine Adressen, mit `SHA256SUMS`). |
 
 Auf c2 liegt alles unter `/var/lib/kaspa-pulse/wache/<kette>/`:
 - `wache-log.csv`: das Log
 - `zustand.json`: die Meldesperren und die Proben, übersteht einen Neustart
-- `roh/`: die Ankündigungen und Köpfe des Zuhörers, bleiben auf c2
+- `roh/`: die Ankündigungen und Köpfe des Zuhörers und die Software der Peers. Sie gehen erst nach dem Fenster ins Repo, gefiltert auf das Fenster, und ohne Adressen.
 
 ## Warum ein eigenes Credential
 
@@ -44,7 +44,7 @@ Auf c2 liegt alles unter `/var/lib/kaspa-pulse/wache/<kette>/`:
 sudo /opt/kaspa-pulse/deploy/c2/setup.sh wache-aus zcash-mainnet
 ```
 
-Das hält Dienst und Timer an und bringt das letzte Log ins Repo. Bleibt der Dienst stehen, ruht er nur: Nach dem Fenster baut er keine Verbindungen mehr auf.
+Das hält Dienst und Timer an und bringt das letzte Log und die Rohdaten ins Repo. Vorher muss im Log `fenster_zu` stehen, das schreibt die Wache von selbst, sobald das Fenster zu ist. Bleibt der Dienst stehen, ruht er nur: Nach dem Fenster baut er keine Verbindungen mehr auf.
 
 ## Zeiten
 

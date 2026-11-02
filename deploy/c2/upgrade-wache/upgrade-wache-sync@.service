@@ -1,6 +1,6 @@
 # Bringt das Log der Upgrade-Wache %i stuendlich auf den Datenbranch aus der
 # Konfiguration (ablage.branch, ablage.log), als kpbot mit dem Deploy Key.
-# Nur das Log, keine Rohdaten. Keine Werte in dieser Datei.
+# Nach dem Fenster auch die Rohdaten (sync.sh). Keine Werte in dieser Datei.
 [Unit]
 Description=Kaspa Pulse Upgrade-Wache %i, Log ins Repo
 After=network-online.target
