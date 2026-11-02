@@ -1,0 +1,9 @@
+# suche nach der vorherigen tx des alexandria-ankers, vom pruning-punkt (31.10. 15:16 utc) bis dort, wo die erste suche begann (1.11. 15:24 utc).
+# je zeile ein stueck "von bis", aeltestes zuerst, je 2 min ueberlappung.
+gesucht=b8b7538d45eeeb8349baf5fbd33c87f27ebc83637bd47642e9f0e1779c705e31
+2026-10-31T15:16:00Z 2026-10-31T19:20:00Z
+2026-10-31T19:18:00Z 2026-10-31T23:20:00Z
+2026-10-31T23:18:00Z 2026-11-01T03:20:00Z
+2026-11-01T03:18:00Z 2026-11-01T07:20:00Z
+2026-11-01T07:18:00Z 2026-11-01T11:20:00Z
+2026-11-01T11:18:00Z 2026-11-01T15:26:00Z

@@ -108,7 +108,7 @@ def kopf(b):
 def betraege(tx, vorher):
     """Summe der Ausgaenge, Eingaenge aus den gefundenen vorherigen Outputs,
     Gebuehr. vorher: {"txid:index": amount}."""
-    aus = sum(zahl(feld(o, "amount")) or 0 for o in feld(tx, "outputs") or [])
+    aus = sum(zahl(feld(o, "value", "amount")) or 0 for o in feld(tx, "outputs") or [])
     ein, fehlt = 0, []
     for e in feld(tx, "inputs") or []:
         po = feld(e, "previousOutpoint") or {}
@@ -129,7 +129,7 @@ def vorher_aus(txs, gesucht):
         i = tx_id(t)
         if i in gesucht:
             for n, o in enumerate(feld(t, "outputs") or []):
-                aus["%s:%d" % (i, n)] = zahl(feld(o, "amount")) or 0
+                aus["%s:%d" % (i, n)] = zahl(feld(o, "value", "amount")) or 0
     return aus
 
 
@@ -271,6 +271,80 @@ async def knoten_lauf(anker, rolle, partner, out, suche_h):
     return 0 if erg.get("tx_gefunden") else 1
 
 
+async def eingang_suchen(les, gesucht, von_ms, bis_ms):
+    """Vorherige Tx vorwaerts suchen, von von_ms bis bis_ms (Blockzeit)."""
+    erg = {"von_utc": iso_ms(von_ms), "bis_utc": iso_ms(bis_ms), "gefunden": [], "meldungen": []}
+    dag = await les.rufe("get_block_dag_info")
+    pp = feld(dag, "pruningPointHash")
+    pp_ts = await les.ts(pp) if pp else None
+    erg["pruning_punkt_utc"] = iso_ms(pp_ts) if pp_ts else ""
+    if pp_ts is None or pp_ts > von_ms:
+        erg["meldungen"].append("pruning-punkt liegt nach dem anfang, gesucht ab dem pruning-punkt")
+        s0 = pp
+    else:
+        s0 = await nz.start_finden(les, pp, von_ms)
+    low, gesehen, spaet_max = s0, set(), 0
+    while True:
+        rb = await les.rufe("get_blocks", {"lowHash": low, "includeBlocks": True, "includeTransactions": True})
+        bl, hs = feld(rb, "blocks") or [], feld(rb, "blockHashes") or []
+        neu, spaet = 0, 0
+        for b in bl:
+            _, kb = kopf(b)
+            if kb["hash"] in gesehen:
+                continue
+            gesehen.add(kb["hash"])
+            neu += 1
+            spaet = max(spaet, kb["zeit_ms"] or 0)
+            for t in feld(b, "transactions") or []:
+                if tx_id(t) in gesucht:
+                    erg["gefunden"].append({"tx": tx_id(t), "block": kb["hash"], "zeit_utc": iso_ms(kb["zeit_ms"]),
+                                            "daa_score": kb["daa_score"],
+                                            "outputs_sompi": [zahl(feld(o, "value", "amount")) for o in feld(t, "outputs") or []],
+                                            "roh": rein(t)})
+        spaet_max = max(spaet_max, spaet)
+        if erg["gefunden"] or not neu or not hs or spaet > bis_ms:
+            break
+        low = hs[-1]
+    erg["bloecke"], erg["gelesen_bis_utc"] = len(gesehen), iso_ms(spaet_max) if spaet_max else ""
+    erg["lueckenlos_bis_ende"] = bool(erg["gefunden"]) or spaet_max > bis_ms
+    return erg
+
+
+async def block_lesen(les, h, gesucht):
+    """Einen Block direkt lesen und die gesuchten Tx darin."""
+    b, k = kopf(await les.rufe("get_block", {"hash": h, "includeTransactions": True}))
+    aus = [{"tx": tx_id(t), "outputs_sompi": [zahl(feld(o, "value", "amount")) for o in feld(t, "outputs") or []]}
+           for t in feld(b, "transactions") or [] if tx_id(t) in gesucht]
+    return {"block": k["hash"], "zeit_utc": iso_ms(k["zeit_ms"]) if k["zeit_ms"] else "", "daa_score": k["daa_score"],
+            "kettenblock": k["kettenblock"], "gefunden": aus}
+
+
+async def such_lauf(rolle, partner, out, gesucht, von_ms=None, bis_ms=None, block=None):
+    os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
+    rpc, takt, meta = await nz.verbinden(rolle, partner)
+    try:
+        les = nz.Leser(rpc, takt)
+        try:
+            erg = await (block_lesen(les, block, gesucht) if block else eingang_suchen(les, gesucht, von_ms, bis_ms))
+        except Exception as exc:  # noqa: BLE001
+            erg = {"meldungen": ["fehler, %s" % type(exc).__name__], "gefunden": []}
+        erg["abfragen"] = les.abfragen
+    finally:
+        try:
+            await rpc.disconnect()
+        except Exception:  # noqa: BLE001
+            pass
+    erg["knoten"], erg["gelesen_utc"] = meta, iso_ms(int(time.time() * 1000))
+    with open(out + ".json", "w", encoding="utf-8") as fh:
+        json.dump(erg, fh, ensure_ascii=False, indent=1, sort_keys=True)
+    print("%s kennung %s, %s bis %s, bloecke %s, gelesen bis %s, lueckenlos %s, gefunden %d, outputs %s, block-zeit %s, meldungen %s" % (
+        rolle, meta.get("kennung", ""), erg.get("von_utc", ""), erg.get("bis_utc", ""), erg.get("bloecke", ""),
+        erg.get("gelesen_bis_utc", ""), erg.get("lueckenlos_bis_ende", ""), len(erg.get("gefunden", [])),
+        [g.get("outputs_sompi") for g in erg.get("gefunden", [])], [g.get("zeit_utc", erg.get("zeit_utc", "")) for g in erg.get("gefunden", [])],
+        "; ".join(erg.get("meldungen", []))))
+    return 0
+
+
 # archiv: seite und verlinkte dateien desselben hosts byte-genau sichern
 LINK = re.compile(r"""(?:href|src)\s*=\s*["']([^"'#]+)["']|["'](/(?:api|files?|download|manifest|study)[^"'\s]*)["']""", re.I)
 
@@ -328,7 +402,7 @@ def selbsttest():
     ok("payload aus zahlenliste", payload_bytes(list(erw.encode())) == erw.encode())
     ok("anderer payload ungleich", not payload_pruefen(pb[:-1] + b"0", erw)["gleich_erwartet"])
     tx = {"inputs": [{"previousOutpoint": {"transactionId": "AA" * 32, "index": 1}}],
-          "outputs": [{"amount": 99000000}, {"amount": 779400}], "verboseData": {"transactionId": "bb" * 32}}
+          "outputs": [{"value": 99000000}, {"value": 779400}], "verboseData": {"transactionId": "bb" * 32}}
     vor = {"transactions": [{"verboseData": {"transactionId": "aa" * 32}, "outputs": [{"amount": 5}, {"amount": 100000000}]}]}
     v = vorher_aus(vor["transactions"], {"aa" * 32})
     b = betraege(tx, v)
@@ -357,9 +431,17 @@ def main(argv=None):
     ap.add_argument("--extra", nargs="*", default=[])
     ap.add_argument("--out", default="out/anker")
     ap.add_argument("--selbsttest", action="store_true")
+    ap.add_argument("--gesucht", default="", help="vorherige tx-ids, kommagetrennt")
+    ap.add_argument("--von")
+    ap.add_argument("--bis")
+    ap.add_argument("--block", default="")
     a = ap.parse_args(argv)
     if a.selbsttest:
         return selbsttest()
+    if a.gesucht:
+        g = {x.strip().lower() for x in a.gesucht.split(",") if HEX64.match(x.strip().lower())}
+        return asyncio.run(such_lauf(a.rolle, a.partner, a.out, g, nz.utc_ms(a.von) if a.von else None,
+                                     nz.utc_ms(a.bis) if a.bis else None, a.block.lower() or None))
     if a.archiv:
         archiv(a.archiv, a.out, a.extra)
         return 0

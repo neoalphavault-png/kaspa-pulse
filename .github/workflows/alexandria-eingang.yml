@@ -1,0 +1,126 @@
+# Kaspa Pulse - eingang des alexandria-ankers suchen (Ben, 02.11.2026)
+#
+# Liegt bewusst NUR auf dem Branch messung/alexandria-anker. Nicht gemergt.
+# Nur lesend. Sucht die vorherige Tx in Stuecken bis zum Pruning-Punkt, je
+# Stueck ein Knoten. Wird sie gefunden, lesen zwei verschiedene Knoten den
+# Block direkt. Ins Log gehen nur Zeiten, Betraege und ja/nein, die Rohdaten
+# nur als JSON auf diesen Branch.
+
+name: alexandria eingang
+
+on:
+  push:
+    branches:
+      - messung/alexandria-anker
+    paths:
+      - messung/alexandria/eingang.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alexandria-eingang
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      stuecke: ${{ steps.p.outputs.stuecke }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        run: |
+          python3 -c "
+          import json
+          z=[l.split() for l in open('messung/alexandria/eingang.txt') if l.strip() and not l.startswith('#') and '=' not in l]
+          print('stuecke='+json.dumps([{'n':i+1,'von':x[0],'bis':x[1]} for i,x in enumerate(z)]))
+          " | tee -a "$GITHUB_OUTPUT"
+
+  stueck:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        s: ${{ fromJSON(needs.plan.outputs.stuecke) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: sdk, version und pruefsumme fest
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+      - name: suchen
+        env:
+          VON: ${{ matrix.s.von }}
+          BIS: ${{ matrix.s.bis }}
+          N: ${{ matrix.s.n }}
+        run: |
+          G=$(grep '^gesucht=' messung/alexandria/eingang.txt | cut -d= -f2-)
+          mkdir -p out
+          python3 scripts/alexandria_anker.py --gesucht "$G" --von "$VON" --bis "$BIS" --rolle k1 --out "out/s$N" > out/s$N.log 2>&1 || true
+          grep -vE 'wss?://|[0-9]{1,3}(\.[0-9]{1,3}){3}' out/s$N.log || true
+          rm -f out/s$N.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alexandria-eingang-s${{ matrix.s.n }}
+          path: out/
+          retention-days: 7
+
+  zusammen:
+    needs: [plan, stueck]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: sdk, version und pruefsumme fest
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: alexandria-eingang-s*
+          path: out/stuecke
+          merge-multiple: true
+      - name: gefundenen block auf zwei knoten lesen
+        run: |
+          G=$(grep '^gesucht=' messung/alexandria/eingang.txt | cut -d= -f2-)
+          B=$(python3 -c "
+          import glob, json
+          for p in sorted(glob.glob('out/stuecke/s*.json')):
+              for g in json.load(open(p)).get('gefunden', []):
+                  print(g['block']); raise SystemExit
+          ")
+          if [ -z "$B" ]; then echo "in keinem stueck gefunden"; exit 0; fi
+          P="$RUNNER_TEMP/alx-partner.json"
+          python3 scripts/alexandria_anker.py --gesucht "$G" --block "$B" --rolle k1 --partner "$P" --out out/bestaetigt-k1 > out/b1.log 2>&1 &
+          P1=$!
+          sleep 20
+          python3 scripts/alexandria_anker.py --gesucht "$G" --block "$B" --rolle k2 --partner "$P" --out out/bestaetigt-k2 > out/b2.log 2>&1 &
+          wait $P1 || true
+          wait || true
+          cat out/b1.log out/b2.log | grep -vE 'wss?://|[0-9]{1,3}(\.[0-9]{1,3}){3}' || true
+          rm -f out/b1.log out/b2.log
+      - name: rohdaten auf den messbranch
+        run: |
+          set -euo pipefail
+          Z=messung/alexandria/roh/eingang-$(date -u +%Y%m%dT%H%M%SZ)
+          mkdir -p "$Z"
+          cp -r out/. "$Z/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898309+github-actions[bot]@users.noreply.github.com"
+          git add "$Z"
+          git commit -q -m "messung: alexandria-anker eingang $(basename "$Z")"
+          for v in 1 2 3; do
+            git pull -q --rebase origin "$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && { echo "rohdaten gesichert"; exit 0; }
+            sleep $((v * 3))
+          done
+          exit 1
