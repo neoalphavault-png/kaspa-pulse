@@ -6,7 +6,9 @@ Was es auf jeder oeffentlichen Seite schreibt, jeweils zwischen eigenen Marken,
 damit ein zweiter Lauf nichts aendert:
 
   <!--AUTO:seo-kopf-->      im <head>: canonical, Open Graph, Twitter Card und ein
-                            WebPage-Schema mit dateModified. Titel und Beschreibung
+                            WebPage-Schema mit datePublished und dateModified, beide
+                            mit Uhrzeit und Zeitzone in UTC (Ben, 02.11.2026, Rich
+                            Results Test). Titel und Beschreibung
                             kommen aus <title> und <meta name="description"> der
                             Seite, es gibt sie also nur an einer Stelle.
   <!--AUTO:seitenstand-->   erste Zeile im <footer>, sichtbar: "page last updated ...".
@@ -22,7 +24,9 @@ WANN EINE SEITE ALS GEAENDERT GILT
   (div class="subscribe") und ohne die Stand-Zeile selbst.
   Ein neuer Menuepunkt oder ein neuer Titel macht eine Seite also nicht
   "neu", ein neuer Absatz oder eine neue Zahl schon. Hash und Datum stehen in
-  data/seiten-stand.json. Der erste Stand kam mit --init aus der Git-Historie,
+  data/seiten-stand.json, dazu "zeit" (Zeitpunkt der Aenderung, der Lauf, der
+  sie bemerkt hat; im Workflow seiten-zahlen also der Lauf, der die Zahlen
+  nachgezogen hat) und "veroeffentlicht" (erster Commit der Datei), beide UTC. Der erste Stand kam mit --init aus der Git-Historie,
   je Seite der letzte Commit, der diesen Text geaendert hat.
 
 Seiten mit <meta name="robots" content="noindex..."> bekommen nur den Kopf,
@@ -206,25 +210,37 @@ def attr(x):
     return htmlmod.escape(x, quote=True)
 
 
-def schema(t, d, u, iso, datei, bild):
+def mit_zeit(iso):
+    """Ein Tag ohne Uhrzeit als Zeitpunkt in UTC. Der Rich Results Test will
+    Datum, Uhrzeit und Zeitzone (Ben, 02.11.2026)."""
+    return iso if "T" in str(iso) else "%sT00:00:00+00:00" % iso
+
+
+def schema(t, d, u, iso, datei, bild, zeiten=None):
     """WebPage, dazu fuer Unterseiten Article und BreadcrumbList, fuer Seiten
-    mit eigener Datenreihe ein Dataset. Die Startseite bleibt WebPage."""
+    mit eigener Datenreihe ein Dataset. Die Startseite bleibt WebPage.
+    zeiten ist (veroeffentlicht, geaendert), beides mit Uhrzeit und Zeitzone."""
     org = {"@type": "Organization", "name": "Kaspa Pulse", "url": BASIS}
+    erst, zuletzt = zeiten or (None, None)
+    zuletzt = zuletzt or mit_zeit(iso)
+    erst = erst or zuletzt
     seite = {"@type": "WebPage", "@id": u, "name": t, "description": d, "url": u, "inLanguage": "en",
-             "dateModified": iso, "isPartOf": {"@type": "WebSite", "name": "Kaspa Pulse", "url": BASIS},
+             "datePublished": erst, "dateModified": zuletzt,
+             "isPartOf": {"@type": "WebSite", "name": "Kaspa Pulse", "url": BASIS},
              "publisher": org}
     if datei == "index.html":
         return dict({"@context": "https://schema.org"}, **{k: v for k, v in seite.items() if k != "@id"})
     teile = [seite,
              {"@type": "Article", "headline": t[:110], "description": d, "mainEntityOfPage": u, "url": u,
-              "inLanguage": "en", "dateModified": iso, "image": bild, "author": org, "publisher": org},
+              "inLanguage": "en", "datePublished": erst, "dateModified": zuletzt, "image": bild, "author": org,
+              "publisher": org},
              {"@type": "BreadcrumbList", "itemListElement": [
                  {"@type": "ListItem", "position": 1, "name": "Kaspa Pulse", "item": BASIS},
                  {"@type": "ListItem", "position": 2, "name": t, "item": u}]}]
     ds = DATASETS.get(datei)
     if ds:
         x = {"@type": "Dataset", "name": ds["name"], "description": ds["description"], "url": u,
-             "dateModified": iso, "creator": org, "publisher": org,
+             "datePublished": erst, "dateModified": zuletzt, "creator": org, "publisher": org,
              "measurementTechnique": ds["measurementTechnique"], "variableMeasured": ds["variableMeasured"]}
         for k in ("temporalCoverage", "isBasedOn"):
             if ds.get(k):
@@ -236,7 +252,7 @@ def schema(t, d, u, iso, datei, bild):
     return {"@context": "https://schema.org", "@graph": teile}
 
 
-def kopf_block(s, datei, iso):
+def kopf_block(s, datei, iso, zeiten=None):
     t, d, u = titel(s), beschreibung(s), url(datei)
     bild, alt = BILDER.get(datei, (None, BILD_ALT))
     bild = BASIS + bild if bild else BILD
@@ -257,7 +273,7 @@ def kopf_block(s, datei, iso):
               '<meta name="twitter:image" content="%s">' % bild,
               '<meta name="twitter:image:alt" content="%s">' % attr(alt)]
         if iso:
-            ld = schema(t, d, u, iso, datei, bild)
+            ld = schema(t, d, u, iso, datei, bild, zeiten)
             js = json.dumps(ld, ensure_ascii=False, indent=1).replace("</", "<\\/")
             z.append('<script type="application/ld+json">\n%s\n</script>' % js)
     return "<!--AUTO:seo-kopf-->\n%s\n<!--/AUTO:seo-kopf-->" % "\n".join(z)
@@ -266,8 +282,8 @@ def kopf_block(s, datei, iso):
 KOPF = re.compile(r"(?s)<!--AUTO:seo-kopf-->.*?<!--/AUTO:seo-kopf-->")
 
 
-def kopf(s, datei, iso):
-    neu = kopf_block(s, datei, iso)
+def kopf(s, datei, iso, zeiten=None):
+    neu = kopf_block(s, datei, iso, zeiten)
     if KOPF.search(s):
         return KOPF.sub(lambda _m: neu, s, count=1)
     s = re.sub(r'<link rel="canonical" href="[^"]*">\n', "", s)
@@ -345,12 +361,56 @@ def stand_text(st):
     return json.dumps(st, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
 
 
-def stand_neu(st, datei, h, heute):
+def stand_neu(st, datei, h, heute, jetzt=None):
+    """Datum der letzten Inhaltsaenderung. Mit jetzt (UTC, mit Zeitzone)
+    traegt eine Aenderung auch ihren Zeitpunkt in "zeit" ein: das ist dann der
+    Lauf, der die Seite geaendert hat, also bei Zahlen der Lauf von
+    seiten_zahlen.py und seo_seiten.py im selben Workflow."""
     alt = st.get(datei)
     if alt and alt.get("hash") == h:
         return alt["datum"]
-    st[datei] = {"datum": heute, "hash": h}
+    neu = {"datum": heute, "hash": h}
+    if jetzt:
+        neu["zeit"] = jetzt
+    if alt and alt.get("veroeffentlicht"):
+        neu["veroeffentlicht"] = alt["veroeffentlicht"]
+    st[datei] = neu
     return heute
+
+
+def utc(ts):
+    """git %cI (mit Ortszeit-Versatz) als Zeitpunkt in UTC, +00:00."""
+    t = dt.datetime.fromisoformat(ts.strip())
+    return t.astimezone(dt.timezone.utc).isoformat(timespec="seconds")
+
+
+def git_zeiten(datei):
+    """(erster Commit, Liste aller Commits) der Datei, als UTC-Zeitpunkte."""
+    try:
+        log = subprocess.run(["git", "log", "--format=%cI", "--", datei], cwd=REPO,
+                             capture_output=True, text=True, check=True).stdout.split()
+    except (OSError, subprocess.CalledProcessError):
+        return None, []
+    zeiten = [utc(z) for z in log if z.strip()]
+    return (zeiten[-1] if zeiten else None), zeiten
+
+
+def zeiten_ergaenzen(st, datei, jetzt):
+    """Fehlende Zeitpunkte einmalig aus der Git-Historie: "zeit" ist der
+    letzte Commit am Tag der Inhaltsaenderung, sonst Mitternacht UTC dieses
+    Tags; "veroeffentlicht" der erste Commit der Datei, fuer eine neue Datei
+    der Lauf selbst. Gibt (veroeffentlicht, geaendert) zurueck."""
+    e = st[datei]
+    if not e.get("zeit") or not e.get("veroeffentlicht"):
+        erst, alle = git_zeiten(datei)
+        if not e.get("zeit"):
+            am_tag = [z for z in alle if z[:10] == e["datum"]]
+            e["zeit"] = am_tag[0] if am_tag else mit_zeit(e["datum"])
+        if not e.get("veroeffentlicht"):
+            e["veroeffentlicht"] = erst or e["zeit"]
+    if e["veroeffentlicht"] > e["zeit"]:
+        e["veroeffentlicht"] = e["zeit"]
+    return e["veroeffentlicht"], e["zeit"]
 
 
 # ---------------------------------------------------------------- sitemap
@@ -407,8 +467,9 @@ def git_datum(datei):
     return vorher_datum
 
 
-def lauf(schreiben=True, heute=None, init=False):
-    heute = heute or dt.datetime.now(dt.timezone.utc).date().isoformat()
+def lauf(schreiben=True, heute=None, init=False, jetzt=None):
+    jetzt = jetzt or dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+    heute = heute or jetzt[:10]
     punkte = menue()
     st = stand_laden()
     abweichung, daten = [], {}
@@ -416,15 +477,16 @@ def lauf(schreiben=True, heute=None, init=False):
         p = REPO / datei
         s = p.read_text(encoding="utf-8")
         oeffentlich = not noindex(s)
-        iso = None
+        iso, zeiten = None, None
         if oeffentlich:
             h = inhalt_hash(s)
             if init and datei not in st:
                 st[datei] = {"datum": git_datum(datei) or heute, "hash": h}
-            iso = stand_neu(st, datei, h, heute)
+            iso = stand_neu(st, datei, h, heute, jetzt)
+            zeiten = zeiten_ergaenzen(st, datei, jetzt)
             daten[datei] = iso
         n = nav(s, datei, punkte)
-        n = kopf(n, datei, iso)
+        n = kopf(n, datei, iso, zeiten)
         if oeffentlich:
             n = fuss(n, iso)
         if n != s:
@@ -485,7 +547,7 @@ def selbsttest():
        and k.index("<!--AUTO:seo-kopf-->") < k.index('<link rel="icon"'))
     ok("titel im attribut maskiert", 'content="Kaspa&#x27;s &quot;Test&quot; Page"' in k)
     ok("beschreibung nicht doppelt maskiert", 'og:description" content="A &amp; B."' in k)
-    ok("schema mit dateModified", '"dateModified": "2026-10-06"' in k)
+    ok("schema mit dateModified mit uhrzeit und zeitzone", '"dateModified": "2026-10-06T00:00:00+00:00"' in k)
     ok("kopf wiederholbar", kopf(k, "x.html", "2026-10-06") == k)
     ok("eigenes share-bild je seite", 'og-builders.png' in kopf(n, "for-builders.html", "2026-10-07")
        and 'og-card.png' in k)
@@ -537,8 +599,25 @@ def selbsttest():
     ok("dataset mit methode, zeitraum und json-link", dsx["distribution"][0]["contentUrl"]
        == BASIS + "data/address-thresholds-log.json" and dsx["temporalCoverage"] == "2023-08-27/.."
        and len(dsx["description"]) >= 50)
-    ok("article mit dateModified und bild", kd["@graph"][1]["dateModified"] == "2026-10-27"
+    ok("article mit dateModified und bild", kd["@graph"][1]["dateModified"] == "2026-10-27T00:00:00+00:00"
        and kd["@graph"][1]["image"].endswith("og-card.png"))
+    # rich results test (Ben, 02.11.2026): datePublished und dateModified mit uhrzeit und zeitzone
+    kz = json.loads(re.search(r"(?s)ld\+json\">\n(.*?)\n</script>", kopf(
+        n, "kaspa-supply.html", "2026-10-27", ("2026-09-01T10:15:00+00:00", "2026-10-27T06:00:00+00:00"))).group(1))
+    zeitform = re.compile(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\+00:00$")
+    ok("webpage, article und dataset mit datePublished und dateModified in utc",
+       all(zeitform.match(x.get(k, "")) for x in kz["@graph"] if x["@type"] != "BreadcrumbList"
+           for k in ("datePublished", "dateModified"))
+       and kz["@graph"][1]["datePublished"] == "2026-09-01T10:15:00+00:00"
+       and kz["@graph"][1]["dateModified"] == "2026-10-27T06:00:00+00:00")
+    ok("git-zeit mit versatz wird utc", utc("2026-10-27T08:05:12+02:00") == "2026-10-27T06:05:12+00:00")
+    stz = {}
+    stand_neu(stz, "x.html", "h1", "2026-11-02", "2026-11-02T07:30:00+00:00")
+    ok("aenderung traegt den zeitpunkt des laufs", stz["x.html"]["zeit"] == "2026-11-02T07:30:00+00:00")
+    stz["x.html"]["veroeffentlicht"] = "2026-10-01T09:00:00+00:00"
+    stand_neu(stz, "x.html", "h2", "2026-11-03", "2026-11-03T07:30:00+00:00")
+    ok("veroeffentlicht bleibt bei einer aenderung", stz["x.html"]["veroeffentlicht"] == "2026-10-01T09:00:00+00:00"
+       and stz["x.html"]["zeit"] == "2026-11-03T07:30:00+00:00")
     ki = json.loads(re.search(r"(?s)ld\+json\">\n(.*?)\n</script>", kopf(n, "index.html", "2026-10-27")).group(1))
     ok("startseite bleibt webpage", ki["@type"] == "WebPage" and "@graph" not in ki)
     ok("datasets zeigen auf dateien, die es gibt", all((REPO / v["daten"]).is_file()

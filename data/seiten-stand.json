@@ -1,166 +1,248 @@
 {
   "archive/index.html": {
     "datum": "2026-11-02",
-    "hash": "ba1facb16627d79f"
+    "hash": "ba1facb16627d79f",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-11-02T06:34:26+00:00"
   },
   "entity-x.html": {
     "datum": "2026-10-26",
-    "hash": "5c67224e803c1b5f"
+    "hash": "5c67224e803c1b5f",
+    "veroeffentlicht": "2026-07-28T07:26:29+00:00",
+    "zeit": "2026-10-26T20:02:27+00:00"
   },
   "for-builders.html": {
     "datum": "2026-10-24",
-    "hash": "401866f4be5be323"
+    "hash": "401866f4be5be323",
+    "veroeffentlicht": "2026-10-07T13:30:13+00:00",
+    "zeit": "2026-10-24T00:00:00+00:00"
   },
   "how-we-fund-this.html": {
     "datum": "2026-10-24",
-    "hash": "468edf1d441c29b8"
+    "hash": "468edf1d441c29b8",
+    "veroeffentlicht": "2026-10-06T10:45:22+00:00",
+    "zeit": "2026-10-24T00:00:00+00:00"
   },
   "index.html": {
     "datum": "2026-11-02",
-    "hash": "198537b0cec1ed84"
+    "hash": "198537b0cec1ed84",
+    "veroeffentlicht": "2026-07-22T08:17:39+00:00",
+    "zeit": "2026-11-02T07:54:15+00:00"
   },
   "kaspa-covenants.html": {
     "datum": "2026-10-26",
-    "hash": "e0b0dd63415d4b23"
+    "hash": "e0b0dd63415d4b23",
+    "veroeffentlicht": "2026-09-22T08:11:33+00:00",
+    "zeit": "2026-10-26T20:02:27+00:00"
   },
   "kaspa-data-sources.html": {
     "datum": "2026-10-24",
-    "hash": "d677367786c31403"
+    "hash": "d677367786c31403",
+    "veroeffentlicht": "2026-08-19T12:32:20+00:00",
+    "zeit": "2026-10-24T00:00:00+00:00"
   },
   "kaspa-halving.html": {
     "datum": "2026-10-27",
-    "hash": "e906826d016078e1"
+    "hash": "e906826d016078e1",
+    "veroeffentlicht": "2026-07-30T07:08:26+00:00",
+    "zeit": "2026-10-27T20:06:43+00:00"
   },
   "kaspa-hashrate.html": {
     "datum": "2026-11-02",
-    "hash": "d4fb01d8a9abda87"
+    "hash": "d4fb01d8a9abda87",
+    "veroeffentlicht": "2026-07-29T18:24:29+00:00",
+    "zeit": "2026-11-02T07:54:15+00:00"
   },
   "kaspa-mining.html": {
     "datum": "2026-11-02",
-    "hash": "6c5073e3adef9156"
+    "hash": "6c5073e3adef9156",
+    "veroeffentlicht": "2026-07-31T06:55:54+00:00",
+    "zeit": "2026-11-02T07:54:15+00:00"
   },
   "kaspa-security-budget.html": {
     "datum": "2026-10-26",
-    "hash": "fcc41552c6e5aa0a"
+    "hash": "fcc41552c6e5aa0a",
+    "veroeffentlicht": "2026-09-01T13:51:21+00:00",
+    "zeit": "2026-10-26T20:02:27+00:00"
   },
   "kaspa-smart-contracts.html": {
     "datum": "2026-11-02",
-    "hash": "c41dbc040bb439bf"
+    "hash": "c41dbc040bb439bf",
+    "veroeffentlicht": "2026-07-31T06:55:54+00:00",
+    "zeit": "2026-11-02T07:54:15+00:00"
   },
   "kaspa-staking.html": {
     "datum": "2026-10-26",
-    "hash": "511e0f82efb5339a"
+    "hash": "511e0f82efb5339a",
+    "veroeffentlicht": "2026-08-06T05:37:50+00:00",
+    "zeit": "2026-10-26T20:02:27+00:00"
   },
   "kaspa-supply.html": {
     "datum": "2026-11-02",
-    "hash": "79acd11543ac8a36"
+    "hash": "79acd11543ac8a36",
+    "veroeffentlicht": "2026-07-30T10:37:32+00:00",
+    "zeit": "2026-11-02T07:54:15+00:00"
   },
   "kaspa-toccata.html": {
     "datum": "2026-11-02",
-    "hash": "6393f25c8872019f"
+    "hash": "6393f25c8872019f",
+    "veroeffentlicht": "2026-08-19T17:20:53+00:00",
+    "zeit": "2026-11-02T07:54:15+00:00"
   },
   "kaspa-token-standard.html": {
     "datum": "2026-11-02",
-    "hash": "45b8c1a370ca8ccc"
+    "hash": "45b8c1a370ca8ccc",
+    "veroeffentlicht": "2026-08-13T20:45:00+00:00",
+    "zeit": "2026-11-02T07:54:15+00:00"
   },
   "kaspa-tvl.html": {
     "datum": "2026-10-26",
-    "hash": "76d490a90bc289c9"
+    "hash": "76d490a90bc289c9",
+    "veroeffentlicht": "2026-07-29T07:30:33+00:00",
+    "zeit": "2026-10-26T20:02:27+00:00"
   },
   "kaspa-wallets.html": {
     "datum": "2026-10-27",
-    "hash": "2725b5ab27f87d20"
+    "hash": "2725b5ab27f87d20",
+    "veroeffentlicht": "2026-08-07T07:22:40+00:00",
+    "zeit": "2026-10-27T20:06:43+00:00"
   },
   "kaspa-web-wallet-safe.html": {
     "datum": "2026-10-24",
-    "hash": "230e787b592c02f6"
+    "hash": "230e787b592c02f6",
+    "veroeffentlicht": "2026-10-06T10:45:22+00:00",
+    "zeit": "2026-10-24T00:00:00+00:00"
   },
   "kaspa-weekly.html": {
     "datum": "2026-10-26",
-    "hash": "36a4a8bc843039bc"
+    "hash": "36a4a8bc843039bc",
+    "veroeffentlicht": "2026-09-07T12:09:26+00:00",
+    "zeit": "2026-10-26T20:02:27+00:00"
   },
   "kcc-20.html": {
     "datum": "2026-11-02",
-    "hash": "17fabc8ccacf2b38"
+    "hash": "17fabc8ccacf2b38",
+    "veroeffentlicht": "2026-11-02T07:54:15+00:00",
+    "zeit": "2026-11-02T07:54:15+00:00"
   },
   "kron.html": {
     "datum": "2026-10-26",
-    "hash": "26bcc8a122d18dc2"
+    "hash": "26bcc8a122d18dc2",
+    "veroeffentlicht": "2026-08-01T09:59:28+00:00",
+    "zeit": "2026-10-26T20:02:27+00:00"
   },
   "merged-mining.html": {
     "datum": "2026-10-24",
-    "hash": "96ee5efd7489ac99"
+    "hash": "96ee5efd7489ac99",
+    "veroeffentlicht": "2026-07-29T06:56:26+00:00",
+    "zeit": "2026-10-24T00:00:00+00:00"
   },
   "method/index.html": {
     "datum": "2026-10-26",
-    "hash": "4e38c11446e5f523"
+    "hash": "4e38c11446e5f523",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-10-26T15:47:23+00:00"
   },
   "week/2026-07-13/index.html": {
     "datum": "2026-10-28",
-    "hash": "61050626a405e7aa"
+    "hash": "61050626a405e7aa",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-10-28T08:42:04+00:00"
   },
   "week/2026-07-20/index.html": {
     "datum": "2026-10-28",
-    "hash": "6f87c59aba96b43f"
+    "hash": "6f87c59aba96b43f",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-10-28T08:42:04+00:00"
   },
   "week/2026-07-27/index.html": {
     "datum": "2026-10-28",
-    "hash": "51a395dacd758a28"
+    "hash": "51a395dacd758a28",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-10-28T08:42:04+00:00"
   },
   "week/2026-08-03/index.html": {
     "datum": "2026-10-28",
-    "hash": "2789fd5c6680a40b"
+    "hash": "2789fd5c6680a40b",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-10-28T08:42:04+00:00"
   },
   "week/2026-08-10/index.html": {
     "datum": "2026-10-28",
-    "hash": "3582223139175c2e"
+    "hash": "3582223139175c2e",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-10-28T08:42:04+00:00"
   },
   "week/2026-08-17/index.html": {
     "datum": "2026-10-28",
-    "hash": "5a5e7cd908d3bda7"
+    "hash": "5a5e7cd908d3bda7",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-10-28T08:42:04+00:00"
   },
   "week/2026-08-24/index.html": {
     "datum": "2026-10-28",
-    "hash": "352a1d3851533056"
+    "hash": "352a1d3851533056",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-10-28T08:42:04+00:00"
   },
   "week/2026-08-31/index.html": {
     "datum": "2026-10-28",
-    "hash": "256c685e189710ce"
+    "hash": "256c685e189710ce",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-10-28T08:42:04+00:00"
   },
   "week/2026-09-07/index.html": {
     "datum": "2026-10-28",
-    "hash": "fb0e5f9b12f772fa"
+    "hash": "fb0e5f9b12f772fa",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-10-28T08:42:04+00:00"
   },
   "week/2026-09-14/index.html": {
     "datum": "2026-10-28",
-    "hash": "cb775a80c5988089"
+    "hash": "cb775a80c5988089",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-10-28T08:42:04+00:00"
   },
   "week/2026-09-21/index.html": {
     "datum": "2026-10-28",
-    "hash": "f03542f9aa721a8c"
+    "hash": "f03542f9aa721a8c",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-10-28T08:42:04+00:00"
   },
   "week/2026-09-28/index.html": {
     "datum": "2026-10-28",
-    "hash": "a56fb376ef26a3e7"
+    "hash": "a56fb376ef26a3e7",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-10-28T08:42:04+00:00"
   },
   "week/2026-10-05/index.html": {
     "datum": "2026-10-28",
-    "hash": "559ba135836cb1be"
+    "hash": "559ba135836cb1be",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-10-28T08:42:04+00:00"
   },
   "week/2026-10-12/index.html": {
     "datum": "2026-10-28",
-    "hash": "1593edfec3261404"
+    "hash": "1593edfec3261404",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-10-28T08:42:04+00:00"
   },
   "week/2026-10-19/index.html": {
     "datum": "2026-10-28",
-    "hash": "7a6175a1e1b2a8a4"
+    "hash": "7a6175a1e1b2a8a4",
+    "veroeffentlicht": "2026-10-21T13:23:26+00:00",
+    "zeit": "2026-10-28T08:42:04+00:00"
   },
   "week/2026-10-26/index.html": {
     "datum": "2026-10-28",
-    "hash": "9c9cfa2e25799129"
+    "hash": "9c9cfa2e25799129",
+    "veroeffentlicht": "2026-10-26T06:37:21+00:00",
+    "zeit": "2026-10-28T08:42:04+00:00"
   },
   "week/2026-11-02/index.html": {
     "datum": "2026-11-02",
-    "hash": "882e7cbd145fc9c4"
+    "hash": "882e7cbd145fc9c4",
+    "veroeffentlicht": "2026-11-02T06:34:26+00:00",
+    "zeit": "2026-11-02T06:34:26+00:00"
   }
 }
