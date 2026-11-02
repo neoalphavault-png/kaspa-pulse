@@ -21,6 +21,13 @@
     "motiv": "hoehenlinien",
     "schritt": 3,
     "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-11-02",
+    "look": "dunkel",
+    "motiv": "partikel-puls",
+    "schritt": 0,
+    "serie": "tagesgrafik"
    }
   ],
   "tagesgrafik/discord": [
@@ -28,6 +35,11 @@
     "datum": "2026-11-01",
     "look": "dunkel",
     "schritt": 0
+   },
+   {
+    "datum": "2026-11-02",
+    "look": "hell",
+    "schritt": 1
    }
   ],
   "tagesgrafik/threads": [
@@ -35,6 +47,11 @@
     "datum": "2026-11-01",
     "look": "dunkel",
     "schritt": 0
+   },
+   {
+    "datum": "2026-11-02",
+    "look": "hell",
+    "schritt": 1
    }
   ],
   "tagesgrafik/x": [
@@ -42,6 +59,11 @@
     "datum": "2026-11-01",
     "look": "dunkel",
     "schritt": 0
+   },
+   {
+    "datum": "2026-11-02",
+    "look": "hell",
+    "schritt": 1
    }
   ]
  }
