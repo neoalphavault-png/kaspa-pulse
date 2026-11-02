@@ -71,7 +71,10 @@ FORM_TITEL = "get all 8 numbers of the %s edition, plus the weekly numbers every
 FORM_TEXT = ("free, one mail every monday, unsubscribe anytime. after you confirm, "
              "the cheat sheet pdf comes with the welcome mail.")
 URL = "https://kaspapulse.com/whales/"
-ANZEIGE = "https://kaspapulse.com/whales?utm_source=ig&utm_medium=paid&utm_campaign=ad1-whales-v3"
+# mit schraegstrich, wie canonical und kurzlink (Ben, 02.11.2026). /whales ohne
+# schraegstrich leitet GitHub Pages per 301 auf /whales/ weiter, die utm-werte
+# bleiben dabei erhalten (geprueft 02.11.2026); direkt spart es die weiterleitung.
+ANZEIGE = "https://kaspapulse.com/whales/?utm_source=ig&utm_medium=paid&utm_campaign=ad1-whales-v3"
 
 TITEL = "The 8 Kaspa Numbers Whales Watch, Kaspa Pulse"
 BESCHREIBUNG = ("8 Kaspa numbers whales watch, each with its date and source. The largest wallet, "
@@ -541,6 +544,7 @@ def selbsttest():
     ok("link nach aussen faellt auf",
        pruefen_inhalt(s.replace("</footer>", '<a href="https://example.com">x</a></footer>'), ks) != [])
     ok("anzeige-url mit paid", "utm_medium=paid" in ANZEIGE)
+    ok("anzeige-url mit schraegstrich wie canonical", ANZEIGE.startswith(URL + "?"))
 
     # ab edition 2 (Ben, 29.10.2026)
     t = seite(p, 2)
