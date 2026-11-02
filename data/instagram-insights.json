@@ -1835,6 +1835,13 @@
      "comments": 0,
      "saved": 1,
      "shares": 0
+    },
+    "2026-11-02": {
+     "reach": 31,
+     "likes": 4,
+     "comments": 0,
+     "saved": 1,
+     "shares": 0
     }
    }
   },
@@ -1880,6 +1887,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-02": {
+     "reach": 48,
+     "likes": 7,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -1922,6 +1936,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-02": {
+     "reach": 142,
+     "likes": 10,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -1954,6 +1975,13 @@
     "2026-11-01": {
      "reach": 2093,
      "likes": 9,
+     "comments": 0,
+     "saved": 2,
+     "shares": 2
+    },
+    "2026-11-02": {
+     "reach": 2093,
+     "likes": 10,
      "comments": 0,
      "saved": 2,
      "shares": 2
@@ -1995,6 +2023,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-02": {
+     "reach": 38,
+     "likes": 6,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -2020,6 +2055,13 @@
     "2026-11-01": {
      "reach": 137,
      "likes": 6,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    },
+    "2026-11-02": {
+     "reach": 140,
+     "likes": 7,
      "comments": 0,
      "saved": 0,
      "shares": 0
@@ -2054,6 +2096,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-02": {
+     "reach": 39,
+     "likes": 9,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -2072,6 +2121,13 @@
     "2026-11-01": {
      "reach": 94,
      "likes": 17,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    },
+    "2026-11-02": {
+     "reach": 102,
+     "likes": 19,
      "comments": 0,
      "saved": 0,
      "shares": 0
@@ -2099,6 +2155,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-02": {
+     "reach": 44,
+     "likes": 4,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -2113,9 +2176,47 @@
      "comments": 2,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-02": {
+     "reach": 37,
+     "likes": 9,
+     "comments": 2,
+     "saved": 0,
+     "shares": 0
+    }
+   }
+  },
+  "18118257431517570": {
+   "gepostet_utc": "2026-11-02T09:13:03+0000",
+   "typ": "CAROUSEL_ALBUM",
+   "permalink": "https://www.instagram.com/p/DfO9UEWiMI9/",
+   "tage": {
+    "2026-11-02": {
+     "reach": 89,
+     "likes": 16,
+     "comments": 0,
+     "saved": 0,
+     "shares": 1
+    }
+   }
+  },
+  "18154528384553058": {
+   "gepostet_utc": "2026-11-02T08:31:41+0000",
+   "typ": "IMAGE",
+   "permalink": "https://www.instagram.com/p/DfO4kr7l1n4/",
+   "form": 3,
+   "caption_sha": "ad69f09d4b73",
+   "frage": null,
+   "tage": {
+    "2026-11-02": {
+     "reach": 15,
+     "likes": 2,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   }
  },
- "stand_utc": "2026-11-01T12:01:40+00:00"
+ "stand_utc": "2026-11-02T13:49:57+00:00"
 }
