@@ -1,0 +1,18 @@
+{
+ "hinweis": "Stand der KCC-20-Zaehlung fuer kcc-20.html (seiten_zahlen.py). Summen aus dem Bericht berichte/2026-10-23-kcc20-zaehlung.md, je Token aus der CSV. Alles counted by Kaspa Pulse vom eigenen Knoten, Zustaende per Hash bewiesen. Eine neue Zaehlung schreibt hier Datei und Summen neu.",
+ "stichzeit_utc": "2026-10-26T12:00:00Z",
+ "datei": "kcc20/ergebnis/kcc20-tokens-2026-10-26.csv",
+ "laeufe": [39967185904, 40087545641, 40186478752, 40308051997],
+ "tokens": 240,
+ "halter_outputs": 2646,
+ "halter_eindeutig": 857,
+ "transfers_counted": 4560,
+ "transfers_von_utc": "2026-10-22T05:53:20Z",
+ "krc20_gleicher_ticker": 62,
+ "migration": {
+  "geprueft": "2026-10-29",
+  "ergebnis": "rot",
+  "bericht": "berichte/2026-11-02-kcc20-migration.md"
+ },
+ "kcc20_final": "2026-10-21"
+}

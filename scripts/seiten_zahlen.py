@@ -22,6 +22,9 @@ wortgleich in den sichtbaren FAQ-Block.
   kurzfakt + faq   kaspa-supply.html           halter und adressen aus
                                                data/address-thresholds-log.json (Kaspalytics)
   kurzfakt         kaspa-smart-contracts.html  covenant-bestand wie oben
+  kurzfakt, kcc20-zahlen, kcc20-tabelle, kcc20-migration, faq
+                   kcc-20.html                 eigene KCC-20-Zaehlung aus data/kcc20-stand.json
+                                               und der CSV dort, "counted" (Ben, 02.11.2026)
 
 Alle diese Zahlen kommen von fremden Quellen, also "source", nie "counted".
 
@@ -308,6 +311,107 @@ def hashrate_html(d, wochen=8):
             "faq": faq, "ph": d["ph"], "jetzt": jetzt}
 
 
+# ------------------------------------------------------------- kcc-20 (Ben, 02.11.2026)
+# kcc-20.html, SEO-Massnahme 6. Kern ist unsere eigene Zaehlung vom eigenen
+# Knoten, "counted". Summen aus data/kcc20-stand.json, je Token aus der CSV, die
+# dort genannt ist. Eine neue Zaehlung schreibt beide neu, die Seite zieht beim
+# naechsten Lauf nach. Kein Kurs, keine Mengen, keine Empfehlung.
+
+def kcc20_daten(stand=None):
+    import csv
+    st = stand if stand is not None else lies_json("data/kcc20-stand.json")
+    if not st:
+        return None
+    pfad = REPO / st["datei"]
+    if not pfad.exists():
+        return None
+    zeilen = [z for z in csv.reader(pfad.read_text(encoding="utf-8").splitlines()) if z and not z[0].startswith("#")]
+    kopf, rest = zeilen[0], zeilen[1:]
+    tokens = [dict(zip(kopf, z)) for z in rest]
+    tokens.sort(key=lambda t: (-int(t["halter"]), -int(t["halter_outputs"]), t["covenant_id"]))
+    return {"stand": st, "tokens": tokens}
+
+
+def kcc20_zeit(iso):
+    t = dt.datetime.fromisoformat(iso.replace("Z", "+00:00"))
+    return "%s, %s UTC" % (datum(t.date().isoformat()), t.strftime("%H:%M"))
+
+
+def kcc20_fakt(d):
+    st = d["stand"]
+    return ("<b>%s.</b> %s KCC-20 tokens with %s unique holders and %s KCC-20 transfers since %s, counted by "
+            "Kaspa Pulse on our own Kaspa node. KCC-20 has been final since %s, source the kaspanet/kccs repository."
+            % (kcc20_zeit(st["stichzeit_utc"]), ganz(st["tokens"]), ganz(st["halter_eindeutig"]),
+               ganz(st["transfers_counted"]), kcc20_zeit(st["transfers_von_utc"]), datum(st["kcc20_final"])))
+
+
+def kcc20_zahlen(d):
+    st = d["stand"]
+    zeit = kcc20_zeit(st["stichzeit_utc"])
+    fakten = [
+        (ganz(st["tokens"]), "KCC-20 tokens with at least one unspent output whose state we proved by hash"),
+        (ganz(st["halter_eindeutig"]), "unique holders, each owner counted once across all tokens"),
+        (ganz(st["halter_outputs"]), "holder outputs, unspent outputs with a proven KCC-20 state"),
+        (ganz(st["transfers_counted"]), "KCC-20 transfers from %s to the snapshot, each transaction once"
+         % kcc20_zeit(st["transfers_von_utc"])),
+    ]
+    teile = "".join('<div class="fact"><div class="v teal">%s</div><div class="l">%s</div></div>' % (v, l)
+                    for v, l in fakten)
+    return ('<div class="facts">%s</div><p class="quelle">snapshot %s, counted by Kaspa Pulse on our own '
+            'Kaspa node, every holder output proven by hash against the KCC-20 test vectors.</p>' % (teile, zeit))
+
+
+def kcc20_tabelle(d, n=10):
+    st = d["stand"]
+    zeilen = []
+    for i, t in enumerate(d["tokens"][:n], 1):
+        zeilen.append("<tr><td>%d</td><td class=\"n\">%s</td><td><code>%s</code></td><td class=\"hl\">%s</td>"
+                      "<td>%s</td><td>%s</td></tr>" % (
+                          i, htmlesc(t["ticker"] or "no name"), htmlesc(t["covenant_id"][:10]), ganz(int(t["halter"])),
+                          ganz(int(t["halter_outputs"])), ganz(int(t["transfers_counted"]))))
+    return ('<div class="tblwrap"><table><thead><tr><th>#</th><th>ticker</th><th>covenant id</th><th>holders</th>'
+            '<th>holder outputs</th><th>transfers</th></tr></thead><tbody>%s</tbody></table></div>'
+            '<p class="quelle">the %d KCC-20 tokens with the most holders, snapshot %s, counted by Kaspa Pulse. '
+            'Transfers since %s. Tickers are not unique, the covenant id tells tokens apart. The full list of all %s '
+            'tokens is in <a href="https://github.com/neoalphavault-png/kaspa-pulse/blob/main/%s">our repository</a>.</p>'
+            % ("".join(zeilen), min(n, len(d["tokens"])), kcc20_zeit(st["stichzeit_utc"]),
+               kcc20_zeit(st["transfers_von_utc"]), ganz(st["tokens"]), st["datei"]))
+
+
+def kcc20_migration(d):
+    st = d["stand"]
+    m = st["migration"]
+    if m.get("ergebnis") != "rot":
+        return None
+    return ("<p>As of %s, <b>no migration from KRC-20 to KCC-20 can be counted</b>. No project runs a migration on "
+            "mainnet that is described in an official source and leaves a marker on chain that ties a KCC-20 token "
+            "to a KRC-20 token. The tools we found are drafts and switched off. %s of the %s KCC-20 tokens share a "
+            "ticker with a KRC-20 token, source kasplex. A shared ticker does not make it the same token. As soon "
+            "as a migration runs with an on-chain marker, we count it per token on this page.</p>"
+            % (datum(m["geprueft"]), ganz(st["krc20_gleicher_ticker"]), ganz(st["tokens"])))
+
+
+def kcc20_faq(d):
+    st = d["stand"]
+    zeit = kcc20_zeit(st["stichzeit_utc"])
+    return {
+        "How many KCC-20 tokens are there?":
+            "%s KCC-20 tokens at %s, with %s unique holders and %s holder outputs, counted by Kaspa Pulse on our "
+            "own Kaspa node. A token counts only if at least one unspent output carries a KCC-20 state that we proved "
+            "by hash." % (ganz(st["tokens"]), zeit, ganz(st["halter_eindeutig"]), ganz(st["halter_outputs"])),
+        "Can KRC-20 tokens migrate to KCC-20?":
+            "Not in a way anyone can count yet. As of %s no project runs an officially described migration on "
+            "mainnet that leaves a marker on chain. %s KCC-20 tokens share a ticker with a KRC-20 token, source "
+            "kasplex, and a shared ticker does not make it the same token."
+            % (datum(st["migration"]["geprueft"]), ganz(st["krc20_gleicher_ticker"])),
+    }
+
+
+def htmlesc(t):
+    import html
+    return html.escape(str(t), quote=True)
+
+
 AUFGABEN = [
     ("kaspa-supply.html", "supply-antwort", lambda: supply_satz(lies_json("data/weekly.json"))),
     ("kaspa-smart-contracts.html", "covenant-zahl", lambda: covenant_satz(lies_json("data/covenants-log.json"))),
@@ -316,6 +420,10 @@ AUFGABEN = [
     ("kaspa-supply.html", "kurzfakt", lambda: halter_fakt(lies_json("data/address-thresholds-log.json"))),
     ("kaspa-supply.html", "halter-tabelle", lambda: halter_tabelle(lies_json("data/address-thresholds-log.json"))),
     ("kaspa-halving.html", "kurzfakt", lambda: halving_fakt(halving_daten())),
+    ("kcc-20.html", "kurzfakt", lambda: (lambda d: kcc20_fakt(d) if d else None)(kcc20_daten())),
+    ("kcc-20.html", "kcc20-zahlen", lambda: (lambda d: kcc20_zahlen(d) if d else None)(kcc20_daten())),
+    ("kcc-20.html", "kcc20-tabelle", lambda: (lambda d: kcc20_tabelle(d) if d else None)(kcc20_daten())),
+    ("kcc-20.html", "kcc20-migration", lambda: (lambda d: kcc20_migration(d) if d else None)(kcc20_daten())),
 ]
 
 # FAQ-Antworten mit Zahl, je Seite ein dict frage -> antwort
@@ -323,6 +431,7 @@ FAQ_AUFGABEN = [
     ("kaspa-supply.html", lambda: halter_faq(lies_json("data/address-thresholds-log.json"))),
     ("kaspa-halving.html", lambda: halving_faq(halving_daten())),
     ("kaspa-supply.html", lambda: supply_faq(lies_json("data/weekly.json"))),
+    ("kcc-20.html", lambda: (lambda d: kcc20_faq(d) if d else None)(kcc20_daten())),
 ]
 
 
@@ -506,6 +615,22 @@ def selbsttest():
        and "week of 28 September 2026" in h["hashrate-wochen"] and "5 October" not in h["hashrate-wochen"])
     ok("ersetzen zwischen marken", ersetze("a<!--AUTO:x-->alt<!--/AUTO:x-->b", "x", "neu")
        == "a<!--AUTO:x-->neu<!--/AUTO:x-->b")
+    # kcc-20.html (Ben, 02.11.2026)
+    import content_wache
+    kd = kcc20_daten()
+    ok("kcc-20 stand und csv lesbar, 240 tokens", kd is not None and len(kd["tokens"]) == kd["stand"]["tokens"] == 240)
+    if kd:
+        teile = [kcc20_fakt(kd), kcc20_zahlen(kd), kcc20_tabelle(kd), kcc20_migration(kd)] + list(kcc20_faq(kd).values())
+        alles = " ".join(re.sub(r"<[^>]+>", " ", t) for t in teile)
+        ok("kcc-20 texte halten die textregeln", not [v for t in teile for v in
+                                                    content_wache.text_verstoesse(re.sub(r"<[^>]+>", " ", t))])
+        ok("kcc-20 eigene zaehlung heisst counted, mit stichzeit", "counted by Kaspa Pulse" in alles
+           and "26 October 2026, 12:00 UTC" in alles)
+        ok("kcc-20 ohne preis und ohne mengen", not re.search(r"(?i)\$|\busd\b|\bprice[sd]?\b|basiseinheit", alles))
+        ok("kcc-20 tabelle nach haltern, groesster zuerst", [t["ticker"] for t in kd["tokens"][:2]] == ["THEN", "GUZA"]
+           and kcc20_tabelle(kd).count("<tr><td>") == 10)
+        ok("kcc-20 migration ehrlich, nichts zaehlbar am 29.10.", "no migration from KRC-20 to KCC-20 can be counted"
+           in kcc20_migration(kd) and "62 of the 240" in kcc20_migration(kd))
     print("%d fehler" % len(f))
     return 1 if f else 0
 

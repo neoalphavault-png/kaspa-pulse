@@ -90,6 +90,20 @@ DATASETS = {
         "isBasedOn": "https://www.kaspalytics.com/",
         "daten": "data/covenants-log.json",
     },
+    # kcc-20.html (Ben, 02.11.2026): unsere eigene zaehlung vom eigenen knoten
+    "kcc-20.html": {
+        "name": "KCC-20 tokens on Kaspa, counted from our own node",
+        "description": "Every KCC-20 token on Kaspa layer 1 with holders, holder outputs and transfers at a fixed "
+                       "snapshot, counted by Kaspa Pulse on its own Kaspa node, each holder output proven by hash "
+                       "against the KCC-20 conformance vectors. Sums per token, no addresses.",
+        "measurementTechnique": "snapshot of the unspent output set on a Kaspa node at a fixed time, read twice, "
+                                "covenant outputs counted as KCC-20 only if the script hash equals the KCC-20 template "
+                                "with the output state; transfers from the node's gapless window",
+        "variableMeasured": ["KCC-20 tokens", "unique holders", "holder outputs", "KCC-20 transfers"],
+        "isBasedOn": "https://github.com/kaspanet/kccs",
+        "daten": "kcc20/ergebnis/kcc20-tokens-2026-10-26.csv",
+        "format": "text/csv",
+    },
     "kaspa-weekly.html": {
         "name": "Kaspa Pulse weekly numbers",
         "description": "The weekly Kaspa numbers of the Kaspa Pulse newsletter, hashrate, block reward, emission, "
@@ -216,7 +230,7 @@ def schema(t, d, u, iso, datei, bild):
             if ds.get(k):
                 x[k] = ds[k]
         if ds.get("daten"):
-            x["distribution"] = [{"@type": "DataDownload", "encodingFormat": "application/json",
+            x["distribution"] = [{"@type": "DataDownload", "encodingFormat": ds.get("format", "application/json"),
                                   "contentUrl": BASIS + ds["daten"]}]
         teile.append(x)
     return {"@context": "https://schema.org", "@graph": teile}
