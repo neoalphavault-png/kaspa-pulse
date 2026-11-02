@@ -79,6 +79,9 @@ def main():
         jetzt = time.time()
         offen, start, ende = kern.fenster(jetzt)
         if jetzt >= ende:
+            if quelle is not None:
+                quelle.anhalten()   # Rohdaten enden mit dem Fenster
+                quelle = None
             if jetzt - letzte_ruhe >= 3600:
                 kern.log(None, "wache", 0, 0, "fenster_zu")
                 print(f"{utc(jetzt)} fenster zu, wache ruht", flush=True)

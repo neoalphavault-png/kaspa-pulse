@@ -14,13 +14,17 @@ Konfiguration (scripts/wache/ketten/<kette>.json), die Daten aus einer Quelle
   und auf Anfrage probe() -> Liste der Protokollversionen erreichbarer Peers
 
 Signale (Ben, Schwellen in der Konfiguration):
-  blockpause      kein neuer Block seit hinweis_s / alarm_s
+  blockpause      kein neuer Block seit hinweis_s / alarm_s; ab der
+                  Aktivierungshoehe (Spitze >= hoehe, wie bei median_abstand)
+                  gelten die Schwellen aus "nach_aktivierung" (Ben 02.11.2026:
+                  NU7 300 / 600 s, also 12 und 24 Zielabstaende)
   kettenspaltung  zwei Zweige ab der Aktivierungshoehe, je Seite mindestens
                   min_peers Peers, beide mehr als min_tiefe Bloecke tief
   reorg           unsere Spitze springt auf einen Zweig, der mindestens
                   min_tiefe Bloecke unter der alten Spitze abzweigt
   peers_vor_upgrade  Anteil erreichbarer Peers mit Protokoll unter dem
-                  Mindestwert, zur Aktivierung und nach 6 h (nur Anteil)
+                  Mindestwert, zu den Zeitpunkten aus der Konfiguration
+                  (NU7: Aktivierung, +6 h, +24 h, +72 h), mit n
   median_abstand  Median der letzten n Abstaende (Kopf-Zeitstempel) ueber
                   faktor x Zielabstand der Hoehe
   eigene_sicht    (zusaetzlich) weniger als min_verbindungen Peers: dann
@@ -284,6 +288,8 @@ class Kern:
 
         # a) Blockpause, nur mit eigener Sicht
         b = s["blockpause"]
+        if hoehe is not None and hoehe >= akt and "nach_aktivierung" in b:
+            b = b["nach_aktivierung"]
         if tip and tip["erst_ms"] and not blind:
             pause = jetzt - tip["erst_ms"] / 1000
             st = "alarm" if pause >= b["alarm_s"] else "hinweis" if pause >= b["hinweis_s"] else None
@@ -334,7 +340,8 @@ class Kern:
                 alt = sum(1 for v in versionen if v < self.cfg["min_protokoll"])
                 anteil = round(100 * alt / len(versionen), 1)
                 self.z["proben"][schl] = {"utc": utc(jetzt), "peers": len(versionen), "vor_upgrade": alt,
-                                          "anteil_prozent": anteil}
+                                          "anteil_prozent": anteil, "hoehe": hoehe,
+                                          "versionen": {str(v): versionen.count(v) for v in sorted(set(versionen))}}
                 titel = f"aktivierung + {vers_h} h" if vers_h else "aktivierung"
                 self.log(hoehe, "peers_vor_upgrade", anteil, self.cfg["min_protokoll"], "info")
                 self.melden("info", "peers_vor_upgrade", hoehe, jetzt,
