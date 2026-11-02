@@ -1,7 +1,7 @@
 {
   "archive/index.html": {
-    "datum": "2026-10-26",
-    "hash": "80e4e6fe8bf35f89"
+    "datum": "2026-11-02",
+    "hash": "ba1facb16627d79f"
   },
   "entity-x.html": {
     "datum": "2026-10-26",
@@ -16,8 +16,8 @@
     "hash": "468edf1d441c29b8"
   },
   "index.html": {
-    "datum": "2026-10-27",
-    "hash": "eab1a12f02b1f79c"
+    "datum": "2026-11-02",
+    "hash": "6b9e75770d5ee623"
   },
   "kaspa-covenants.html": {
     "datum": "2026-10-26",
@@ -32,12 +32,12 @@
     "hash": "e906826d016078e1"
   },
   "kaspa-hashrate.html": {
-    "datum": "2026-11-01",
-    "hash": "fc06b30cfcedef94"
+    "datum": "2026-11-02",
+    "hash": "d4fb01d8a9abda87"
   },
   "kaspa-mining.html": {
-    "datum": "2026-11-01",
-    "hash": "6c5073e3adef9156"
+    "datum": "2026-11-02",
+    "hash": "77888594cac25af0"
   },
   "kaspa-security-budget.html": {
     "datum": "2026-10-26",
@@ -52,8 +52,8 @@
     "hash": "511e0f82efb5339a"
   },
   "kaspa-supply.html": {
-    "datum": "2026-10-28",
-    "hash": "b96aa78695cabe81"
+    "datum": "2026-11-02",
+    "hash": "79acd11543ac8a36"
   },
   "kaspa-toccata.html": {
     "datum": "2026-10-27",
@@ -154,5 +154,9 @@
   "week/2026-10-26/index.html": {
     "datum": "2026-10-28",
     "hash": "9c9cfa2e25799129"
+  },
+  "week/2026-11-02/index.html": {
+    "datum": "2026-11-02",
+    "hash": "882e7cbd145fc9c4"
   }
 }
