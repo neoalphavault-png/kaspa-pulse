@@ -1,0 +1,103 @@
+# upgrade-wache-test.yml - Probe der Upgrade-Wache (Ben, 29.10.2026, Punkt 6).
+#
+# Laeuft nur auf dem Branch wache/prototyp, bei jedem Push auf scripts/wache/
+# oder diese Datei. Der Betrieb selbst laeuft auf c2 (deploy/c2/upgrade-wache/),
+# nicht hier.
+#
+# simulation: die Wache gegen die Aufzeichnung unseres Testnet-Zuhoerers vom
+#   17.10.2026 (messung/zcash-nu7), ein Szenario je Signal. Ohne Netz.
+#   Steht "[test senden]" in der Commit-Nachricht, geht je Signal genau eine
+#   Beispielmeldung mit "TEST" nach #ops-log (DISCORD_WEBHOOK_LOG). Das Secret
+#   steht nur in diesem einen Schritt.
+# live: 15 Minuten echter Betrieb gegen das Zcash Mainnet, trocken (nichts
+#   wird gesendet), dazu einmal die Peer-Probe. Prueft Verbindungen, Anker und
+#   Takt. Danach: keine IP und kein Hostname im Log der Wache.
+name: upgrade wache test
+
+on:
+  push:
+    branches: ["wache/prototyp"]
+    paths:
+      - "scripts/wache/**"
+      - ".github/workflows/upgrade-wache-test.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upgrade-wache-test
+  cancel-in-progress: false
+
+jobs:
+  simulation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          ref: messung/zcash-nu7
+          path: daten
+          sparse-checkout: data/zcash
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: simulation, trocken
+        run: |
+          set -eu
+          D=daten/data/zcash
+          python3 scripts/wache/simulation.py --ereignisse $D/lauscher-ereignisse.jsonl.gz \
+            --koepfe $D/lauscher-koepfe.jsonl.gz --meta $D/lauscher-meta.json \
+            --kette $D/testnet-koepfe.csv.gz --aus "$RUNNER_TEMP/sim" | grep -v '^\[trocken\]'
+          python3 -c 'import json,sys;d=json.load(open(sys.argv[1]));[print(("ok  " if s["ok"] else "FEHL"), s["szenario"], *s["meldungen"][:3], sep="\n   ") for s in d["szenarien"]]' \
+            "$RUNNER_TEMP/sim/simulation.json" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: beispielmeldungen nach ops-log
+        if: contains(github.event.head_commit.message, '[test senden]')
+        env:
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
+        run: |
+          set -eu
+          D=daten/data/zcash
+          python3 scripts/wache/simulation.py --ereignisse $D/lauscher-ereignisse.jsonl.gz \
+            --koepfe $D/lauscher-koepfe.jsonl.gz --meta $D/lauscher-meta.json \
+            --kette $D/testnet-koepfe.csv.gz --aus "$RUNNER_TEMP/sim-senden" --senden | grep -v '^\[trocken\]'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: upgrade-wache-simulation
+          path: ${{ runner.temp }}/sim/
+          retention-days: 30
+
+  live:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: peer-probe
+        run: |
+          python3 scripts/wache/wache.py --kette scripts/wache/ketten/zcash-mainnet.json \
+            --ablage "$RUNNER_TEMP/probe" --probe 2>&1 | tee "$RUNNER_TEMP/probe.txt"
+
+      - name: 15 minuten live, trocken
+        run: |
+          set -eu
+          python3 scripts/wache/wache.py --kette scripts/wache/ketten/zcash-mainnet.json \
+            --ablage "$RUNNER_TEMP/wache" --trocken --test --fenster-offen --dauer-min 15
+          { echo "## Upgrade-Wache, 15 min live (trocken)"; echo '```'; cat "$RUNNER_TEMP/wache/wache-log.csv"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: keine adressen im log
+        run: |
+          set -eu
+          if grep -Eh '([0-9]{1,3}\.){3}[0-9]{1,3}|\[[0-9a-f:]{6,}\]' "$RUNNER_TEMP/wache/wache-log.csv" "$RUNNER_TEMP/wache/zustand.json"; then
+            echo "::error::adresse im log der wache"; exit 1
+          fi
+          echo "log und zustand ohne adressen"

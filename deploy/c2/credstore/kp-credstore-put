@@ -14,7 +14,7 @@ set -eu
 
 NAME="${1:?name fehlt}"
 case "$NAME" in
-  discord_webhook|telegram_bot_token|telegram_chat_id) ;;
+  discord_webhook|discord_webhook_log|telegram_bot_token|telegram_chat_id) ;;
   gh_dispatch_token)
     echo "kp-credstore-put: $NAME wird nur von Hand eingegeben, siehe deploy/c2/taktgeber/README.md" >&2
     exit 2 ;;

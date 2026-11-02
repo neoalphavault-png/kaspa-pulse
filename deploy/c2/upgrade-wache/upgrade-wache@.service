@@ -1,0 +1,33 @@
+# Kaspa Pulse, Upgrade-Wache auf c2 (Ben, 29.10.2026)
+# Eine Instanz je Chain-Konfiguration: upgrade-wache@zcash-mainnet.service
+# liest scripts/wache/ketten/zcash-mainnet.json. Takt 60 s im Skript.
+# Ausserhalb des Fensters (Aktivierung -24 h bis +72 h) ruht die Wache,
+# deshalb darf die Unit vorher schon laufen.
+# Keine Werte in dieser Datei. Der Webhook fuer #ops-log kommt
+# verschluesselt ueber LoadCredentialEncrypted aus /etc/credstore.encrypted/.
+[Unit]
+Description=Kaspa Pulse Upgrade-Wache %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=kpbot
+Group=kpbot
+WorkingDirectory=/opt/kaspa-pulse
+ExecStartPre=/usr/bin/git -C /opt/kaspa-pulse pull --ff-only --quiet
+ExecStart=/opt/kaspa-pulse/deploy/c2/upgrade-wache/start.sh %i
+# Kein geplanter Neustart im Fenster: ein Neustart setzt den Blockbaum
+# zurueck (die Meldesperren bleiben in zustand.json erhalten).
+Restart=on-failure
+RestartSec=10
+StateDirectory=kaspa-pulse
+Environment=PYTHONUNBUFFERED=1
+LoadCredentialEncrypted=discord_webhook_log
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/kaspa-pulse /var/lib/kaspa-pulse
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
