@@ -1,9 +1,9 @@
 {
-  "week": "2026-10-26",
+  "week": "2026-11-02",
   "manual": {},
-  "read": "the close rose 2.01% from saturday 17 october to saturday 24 october, the first green week since the week that closed on saturday 26 september, after drops of 9.98%, 5.43% and 13.34% in the 3 weeks before. it sits 1.41% above the 50 week average, the 5th close above that line in the 51 weeks our series carries it, since 2 november 2025. hashrate read 380.94 PH/s on saturday 24 october and averaged 361.41 PH/s from 18 to 24 october, against 351.97 PH/s from 11 to 17 october, in our own daily log.",
+  "read": "the close fell 9.65% from saturday 24 october to saturday 31 october, after rising 2.01% the week before. it sits 7.72% below the 50 week average, after 1.41% above it a week earlier. in the 52 weeks our series carries that line, since 2 november 2025, it is the only week that lost both the 21 week and the 50 week average in one step. hashrate read 368.09 PH/s on saturday 31 october and averaged 356.32 PH/s from 25 to 31 october, against 361.41 PH/s from 18 to 24 october, in our own daily log.",
   "override": {
-    "hashrate": 380.94
+    "hashrate": 368.09
   },
   "issue": null,
   "_hinweise": {
