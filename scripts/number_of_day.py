@@ -132,6 +132,26 @@ LOOK_FARBEN = {
                "teal-dk": "#04211C", "red": "#5B0F0F", "txt": "#04211C", "dim": "#0A332C",
                "dimmer": "#0A332C", "faint": "#9AF5E3", "grid": "#2FBFA3", "ctx": "#0F4A40",
                "bar": "#9AF5E3", "dot": "#2FBFA3", "track": "#2FBFA3"},
+    # look v2 (Ben, 29.10.2026, nachtrag teil 2): dieselben gruende wie das
+    # karussell. keine graue karte mit kaesten mehr, die abschnitte stehen
+    # auf dem grund und trennen sich mit einer linie (css unten). card ist
+    # deshalb der grund. in D-dunkel steht die grosse zahl in #49EACB.
+    "A-papier": {"bg": "#F4F1EA", "card": "#F4F1EA", "line": "#D8D0C2", "teal": "#085042", "marke": "#0B1A17",
+                 "teal-dk": "#085042", "red": "#7A2626", "txt": "#0B1A17", "dim": "#3A4744",
+                 "dimmer": "#3A4744", "faint": "#CFC7B8", "grid": "#D8D0C2", "ctx": "#6B655B",
+                 "bar": "#CFC7B8", "dot": "#D8D0C2", "track": "#E8E2D6", "zahl": "#0B1A17"},
+    "A-teal":   {"bg": "#49EACB", "card": "#49EACB", "line": "#2FBFA3", "teal": "#04211C", "marke": "#04211C",
+                 "teal-dk": "#04211C", "red": "#5B0F0F", "txt": "#04211C", "dim": "#0A332C",
+                 "dimmer": "#0A332C", "faint": "#9AF5E3", "grid": "#2FBFA3", "ctx": "#0F4A40",
+                 "bar": "#9AF5E3", "dot": "#2FBFA3", "track": "#3BD3B6", "zahl": "#04211C"},
+    "D-dunkel": {"bg": "#1F1D1A", "card": "#1F1D1A", "line": "#3A3631", "teal": "#49EACB", "marke": "#49EACB",
+                 "teal-dk": "#49EACB", "red": "#F0948E", "txt": "#ECE7DE", "dim": "#D6D0C6",
+                 "dimmer": "#D6D0C6", "faint": "#4A463F", "grid": "#3A3631", "ctx": "#8C857A",
+                 "bar": "#4A463F", "dot": "#3A3631", "track": "#2B2925", "zahl": "#49EACB"},
+    "D-hell":   {"bg": "#ECE7DE", "card": "#ECE7DE", "line": "#CFC6B8", "teal": "#085042", "marke": "#0B1A17",
+                 "teal-dk": "#085042", "red": "#7A2626", "txt": "#0B1A17", "dim": "#2F3B37",
+                 "dimmer": "#2F3B37", "faint": "#C9C0B2", "grid": "#CFC6B8", "ctx": "#6B655B",
+                 "bar": "#C9C0B2", "dot": "#CFC6B8", "track": "#DDD5C8", "zahl": "#0B1A17"},
 }
 
 
@@ -218,7 +238,12 @@ em{font-style:normal;color:var(--teal);font-weight:inherit}
 .anchor .a{font-size:44px;line-height:1.24;color:var(--txt)}
 .anchor .a em{color:var(--teal);font-weight:600;font-style:normal}
 /* im teal-look ist der akzent die textfarbe, die betonung wird markiert */
-body[data-look=teal] em,body[data-look=teal] .anchor .a em{background:var(--txt);color:var(--bg);
+/* look v2: keine karte, die abschnitte trennt eine linie auf dem grund */
+body[data-look^="A-"] .p,body[data-look^="D-"] .p{background:transparent;border:0;border-top:2px solid var(--line);
+  border-radius:0;padding-left:0;padding-right:0}
+body[data-look^="A-"] .value,body[data-look^="D-"] .value{color:var(--zahl)}
+body[data-look=teal] em,body[data-look=teal] .anchor .a em,
+body[data-look=A-teal] em,body[data-look=A-teal] .anchor .a em{background:var(--txt);color:var(--bg);
   padding:0 8px;border-radius:6px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .note{margin-top:10px;font-size:34px;color:var(--dim);line-height:1.28}
 .foot{margin-top:8px;padding-top:8px;border-top:2px solid var(--line);

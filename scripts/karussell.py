@@ -229,10 +229,20 @@ def seiten_story(st, fuer=None):
         teile = [t for t in (x.get("datum", "") or stand, x.get("quelle", "")) if t]
         s.append({"art": "gedanke", "kopf": x["kopf"].upper(), "satz": x["satz"], "zahl": x.get("zahl", ""),
                   "datum": " · ".join(teile), "quelle": x.get("quelle", "")})
-    s.append({"art": "abbinder", "datum": "the story of %s, %s" % (s[0]["satz"], stand)})
+    # schluss ist die newsletter-folie wie im wochen-karussell (Ben, 28.10.2026, teil 2 punkt 7)
+    s.append(newsletter_seite())
     for i, x in enumerate(s):
         x["seite"], x["von"] = i + 1, len(s)
     return s
+
+
+def newsletter_seite():
+    """Die Newsletter-Schlussfolie, dieselben Texte wie in look_motor
+    (Wochen-Karussell): ohne Engagement-Koeder, mit dem Kurzlink."""
+    import look_motor
+    n = look_motor.newsletter_inhalt()
+    return {"art": "newsletter", "kopf": n["kicker"].upper(), "satz": n["titel"], "link": n["link"],
+            "datum": n["label"]}
 
 
 # ------------------------------------------------------------ html
@@ -312,7 +322,13 @@ def seite_html(s, look):
         return zg, ("<div class='zahl' data-rolle='zahl' style='top:%dpx;font-size:%dpx'>%s%s</div>"
                     % (top, zg, esc(ziffern),
                        "<span class='einheit' data-rolle='einheit'>%s</span>" % esc(einheit) if einheit else ""))
-    if s["art"] == "abbinder":
+    if s["art"] == "newsletter":
+        # ohne seitenzahl: eine ziffer ohne datum stoppt die wache, und die folie traegt keine zahl
+        innen = ("<div class='kopf' data-rolle='titel'>%s</div>"
+                 "<div class='gross' style='top:300px;font-size:96px'>%s</div>"
+                 "<div class='folgen' style='top:760px'>%s</div>%s"
+                 % (esc(s["kopf"]), esc(s["satz"]), esc(s["link"]), datum))
+    elif s["art"] == "abbinder":
         innen = ("<div class='kopf' data-rolle='titel'>KASPA PULSE</div>%s"
                  "<div class='gross'>%s</div><div class='folgen'>%s</div>%s"
                  % (nr, esc(ABBINDER[0]), esc(ABBINDER[1]), datum))
@@ -660,9 +676,12 @@ def selbsttest():
     ok("than ever faellt auf", bool(text_pruefen(["more work than ever on 10 oct"])))
     ok("kein haken verspricht einen rekord", not text_pruefen([haken(x) for x in kandidaten(b, a)]))
     st = seiten_story(PROBE_STORY, "2026-10-28")
-    ok("story mit titel, vier gedanken und abbinder", len(st) == 6 and st[0]["art"] == "titel"
-       and st[-1]["art"] == "abbinder")
-    ok("jede story-seite traegt ein datum", all(re.search(r"\d{1,2} [a-z]{3} \d{4}", x["datum"]) for x in st))
+    ok("story mit titel, vier gedanken und newsletter-folie", len(st) == 6 and st[0]["art"] == "titel"
+       and st[-1]["art"] == "newsletter" and st[-1]["link"] == "kaspapulse.com/nl")
+    ok("jede story-seite mit zahl traegt ein datum", all(re.search(r"\d{1,2} [a-z]{3} \d{4}", x["datum"])
+                                                         for x in st if x["art"] != "newsletter"))
+    ok("newsletter-folie ohne engagement-koeder", not re.search(
+        r"(?i)\b(follow|like|share|comment|tag a)\b", " ".join(str(v) for v in st[-1].values())))
     ok("story-texte halten die wachen", not text_pruefen(seiten_texte(st)))
     cs = caption_story(PROBE_STORY, st)
     ok("story-caption nennt das video ohne link (%s)" % "; ".join(caption_pruefen(cs)),

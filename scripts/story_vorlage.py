@@ -1051,14 +1051,17 @@ def selbsttest():
     with sync_playwright() as pw:
         b = tg.chromium_start(pw)
         try:
+            import look_takt
+            # die alten looks und ab 03.11.2026 die looks von v2 (Ben, teil 2)
+            alle_looks = ("dunkel", "hell", "teal") + look_takt.TAKT_V2
             for s in alle:
-                for lk in ("dunkel", "hell", "teal"):
+                for lk in alle_looks:
                     png = out / ("story-%s-%s-%s.png" % (s["datum_tag"], s["art"], lk))
                     try:
                         # jede story mit motiv, je look ein anderes (Ben, 25.10.2026)
                         import hintergrund
                         rendern(s, lk, png, b, hintergrund.motiv_datum(
-                            s["datum_tag"], 3 * ("dunkel", "hell", "teal").index(lk)))
+                            s["datum_tag"], 3 * alle_looks.index(lk)))
                         gut = True
                     except Stopp as exc:
                         gut = str(exc)

@@ -114,6 +114,9 @@ def seiten(fuer, zweite=None):
     if zweite:
         z, satz, datum, cap = zweite
         s.append({"art": "zahl", "zahl": z, "satz": satz, "datum": datum, "caption": cap})
+        # als karussell endet das meme mit der newsletter-folie (Ben, 28.10.2026, teil 2 punkt 7)
+        import karussell
+        s.append(karussell.newsletter_seite())
     for i, x in enumerate(s):
         x["seite"], x["von"] = i + 1, len(s)
     return s
@@ -124,6 +127,9 @@ def esc(t):
 
 
 def seite_html(s, look):
+    if s["art"] == "newsletter":
+        import karussell
+        return karussell.seite_html(s, look)
     import look_takt
     import tagesgrafik as tg
     import wortmarke
@@ -216,7 +222,8 @@ def selbsttest():
 
     ss = seiten("2026-10-24", zahl_seite2("crescendo", "2026-10-24"))
     cap = caption(ss)
-    ok("zwei seiten, jede mit datum", len(ss) == 2 and all("2026" in x["datum"] or "2025" in x["datum"] for x in ss))
+    ok("zwei seiten mit datum, dann die newsletter-folie", len(ss) == 3 and ss[-1]["art"] == "newsletter"
+       and all("2026" in x["datum"] or "2025" in x["datum"] for x in ss[:2]))
     ok("symbole ergeben KAsPa, ordnungszahlen nach IUPAC", not [f for f in pruefen(ss, cap) if "ordnung" in f or "symbol" in f])
     ok("texte und caption halten die wachen (%s)" % "; ".join(pruefen(ss, cap)), not pruefen(ss, cap))
     ok("caption nach den content-regeln, frage an dritter stelle",
