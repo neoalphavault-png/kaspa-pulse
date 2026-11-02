@@ -1,0 +1,78 @@
+# Kaspa Pulse - alexandria-anker auf testnet-10 unabhaengig pruefen (Ben, 02.11.2026)
+#
+# Liegt bewusst NUR auf dem Branch messung/alexandria-anker. Nicht gemergt.
+# Nur lesend: zwei Knoten (k2 meidet den Knoten von k1), dazu die oeffentliche
+# Archivseite byte-genau. Ins Log gehen nur ja/nein, Zeiten, Betraege und
+# Laengen. Die Rohdaten (auch Scripts der Ausgaenge) kommen nur als JSON nach
+# messung/alexandria/roh/ auf diesen Branch. Keine Wallet, keine Schluessel,
+# keine Secrets.
+
+name: alexandria anker
+
+on:
+  push:
+    branches:
+      - messung/alexandria-anker
+    paths:
+      - messung/alexandria/anker.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alexandria-anker
+  cancel-in-progress: false
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: sdk, version und pruefsumme fest
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+      - name: selbsttest
+        run: python3 scripts/alexandria_anker.py --selbsttest | tail -n 1
+      - name: archivseite byte-genau
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          U=$(grep '^archiv=' messung/alexandria/anker.txt | cut -d= -f2-)
+          B=${U%/study/*}
+          python3 scripts/alexandria_anker.py --archiv "$U" --extra "$B/api/study/52" "$B/api/studies/52" "$B/study/52/manifest" "$B/api/study/52/manifest" "$B/manifest.json" --out out/archiv
+      - name: zwei knoten
+        run: |
+          mkdir -p out
+          P="$RUNNER_TEMP/alx-partner.json"
+          python3 scripts/alexandria_anker.py --anker messung/alexandria/anker.txt --rolle k1 --partner "$P" --out out/k1 > out/k1.log 2>&1 &
+          P1=$!
+          sleep 20
+          python3 scripts/alexandria_anker.py --anker messung/alexandria/anker.txt --rolle k2 --partner "$P" --out out/k2 > out/k2.log 2>&1 &
+          P2=$!
+          S=0
+          wait $P1 || S=1
+          wait $P2 || S=1
+          cat out/k1.log out/k2.log | grep -vE 'wss?://|[0-9]{1,3}(\.[0-9]{1,3}){3}' || true
+          rm -f out/k1.log out/k2.log
+          exit $S
+      - name: rohdaten auf den messbranch
+        if: always()
+        run: |
+          set -euo pipefail
+          Z=messung/alexandria/roh/$(date -u +%Y%m%dT%H%M%SZ)
+          mkdir -p "$Z"
+          cp -r out/. "$Z/" 2>/dev/null || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898309+github-actions[bot]@users.noreply.github.com"
+          git add "$Z"
+          git commit -q -m "messung: alexandria-anker rohdaten $(basename "$Z")"
+          for v in 1 2 3; do
+            git pull -q --rebase origin "$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && { echo "rohdaten gesichert"; exit 0; }
+            sleep $((v * 3))
+          done
+          exit 1

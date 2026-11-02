@@ -1,0 +1,9 @@
+# erster alexandria-anker auf testnet-10, angaben des teams (kas knight, 1.11.2026), source team
+tx=3db50bc618db869ebfdda76381d7d5beb491f61a97426faadd02d831dfd70269
+block=9afd242166b4ddc2b900b30c6d6016014414c2dd199d7856804213bf0618a7d5
+annahme_utc=2026-11-01T21:24:24.537Z
+payload=ALX-KASPA-1|study|52|4fdbb5b5344a7aa285b1426a3df7fff61e2d69396130ccffea2bab52cbeccc01
+eingang_sompi=100000000
+ausgaenge_sompi=99779400
+gebuehr_sompi=220600
+archiv=https://the-alexandria-protocol.replit.app/study/52
