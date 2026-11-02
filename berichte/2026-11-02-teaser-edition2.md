@@ -1,6 +1,14 @@
-# Bericht 2.11.2026: Teaser Cheat Sheet Edition 2 (Nachtrag 1.11.2026, aus dem veröffentlichten Lauf)
+# Bericht 2.11.2026: Teaser Cheat Sheet Edition 2 (Nachtrag 2.11.2026, erneut gesendet)
 
 Auftrag von Ben vom 1.11.2026, Frist Mo 2.11. 14:00 Berlin. Gebaut am 1.11.2026 und gemergt mit #224.
+
+## Nachtrag 2.11.2026, Teaser erneut gesendet
+- **Anlass:** Ben schrieb am 2.11., der Teaser sei nicht in #moderator-only angekommen.
+- **Laut Log angekommen:** Der Versand vom 1.11. war im Log erfolgreich. Lauf 41308663059, 12:54 UTC, Teil 2 ging an #moderator-only mit HTTP 200. Warum er nicht zu sehen ist, lässt sich von hier nicht prüfen.
+- **Neu gebaut:** Der Teaser ist neu gebaut aus dem veröffentlichten Lauf #7 vom 1.11. (`data/whales-stand.json`, Log Edition 2, gebaut 12:07:26 UTC). Alle Prüfungen sind grün, die Bilder sind pixelgleich mit denen vom 1.11.
+- **Erneut gesendet:** 4 Seiten, die Anzeigen in 1080x1350 und 1080x1920 und die Caption, als eine VON-HAND-Nachricht nach #moderator-only. Die Lauf-ID steht im Chat mit Ben.
+
+---
 
 ## Nachtrag 1.11.2026, Teaser aus dem veröffentlichten Lauf
 Ben hat Edition 2 am 1.11. um 13:07 Berlin veröffentlicht: Lauf cheat sheet #7 (41304892613), Log n=2.
@@ -70,16 +78,16 @@ Seite 3 und der Titel nennen den Reward Cut am 4 nov. Wird der Teaser nach dem 4
 Siehe „📤 VON HAND“ im Discord-Abschnitt.
 
 <!-- discord -->
-**Teaser Cheat Sheet Edition 2, aus dem veröffentlichten Lauf #7**
-- Neu gebaut aus der veröffentlichten Messung (data/whales-stand.json, Log Edition 2).
-- **Abweichungen:** keine. Alle 8 Werte und Stichtage sind gleich wie in der Probe, die Bilder sind pixelgleich.
-- **Brevo:** Vorlage 15 bleibt, wie du sie umgestellt hast. Der Schritt ist gestrichen.
-- **Bericht:** berichte/2026-11-02-teaser-edition2.md
+**Teaser Cheat Sheet Edition 2, erneut gesendet am 2.11.**
+Aus dem veröffentlichten Lauf #7 vom 1.11. (Log Edition 2), Prüfungen grün. Die Nachricht mit den Bildern steht in #moderator-only.
 <!-- teil -->
-📤 VON HAND
-Instagram, Teaser Cheat Sheet Edition 2, heute Abend, aus dem veröffentlichten Lauf #7.
-- **Karussell:** Bild 1 bis 4 in dieser Reihenfolge, 1080x1350, ohne Musik.
-- **Anzeige:** Bild 5 im Feed (1080x1350), Bild 6 für Story und Reels (1080x1920), nicht ins Karussell. Unten ist Platz für den Button.
+📤 VON HAND, Teaser Cheat Sheet Edition 2, für die Anzeige heute
+**Karussell, Bild 1 bis 4**, 1080x1350, in dieser Reihenfolge, ohne Musik
+1. Titel, alle 8 Fragen, 2 Werte offen, 6 weich
+2. Zahl 1, biggest wallet, voll
+3. Zahl 5, next reward cut, voll
+4. Schlussseite
+**Anzeige, Bild 5 und 6**, nicht ins Karussell: Bild 5 Feed 1080x1350, Bild 6 Story und Reels 1080x1920. Unten ist Platz für den Button.
 Caption kopieren
 ```
 the 8 kaspa numbers whales watch, edition 2, november 2026. 2 of them in this post, the biggest wallet and the next block reward cut, each with its date and source. the other 6 are in the cheat sheet, free by email, link in bio.
