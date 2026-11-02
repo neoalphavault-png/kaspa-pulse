@@ -19,6 +19,7 @@ Protokollversion, dann trennen. Keine Adresse wird gespeichert oder gedruckt.
 """
 import csv
 import gzip
+import json
 import os
 import queue
 import struct
@@ -63,6 +64,10 @@ class QuelleZcash:
                            os.path.join(roh_ordner, f"{stempel}-koepfe.jsonl"), self.q)
         self.letzter_anker = 0
         self.anker_laeuft = False
+        # Software der verbundenen Peers fuer die Rohdaten (Report v1), nur
+        # Kennung, Protokoll und unsere Nummer je Peer, keine Adresse
+        self.peers_pfad = os.path.join(roh_ordner, f"{stempel}-peers.json")
+        self.peers_text = None
         threading.Thread(target=self._verbinden_schleife, daemon=True).start()
 
     # ------------------------------------------------------------ verbindungen
@@ -131,11 +136,29 @@ class QuelleZcash:
             else:
                 kern.ankuendigung(obj["t_ms"], obj["peer"], obj["hash"])
         kern.verbindungen(self.verbunden())
+        self._peers_schreiben()
         if kern.tip is None:
             self.anker_anstossen(dringend=True)
         elif kern.braucht_anker():
             self.anker_anstossen()
         return n
+
+    def _peers_schreiben(self):
+        with self.z.lock:
+            peers = [{k: p.get(k) for k in ("peer", "software", "version", "gemeldete_hoehe", "verbunden_utc",
+                                             "getrennt_utc", "ankuendigungen")} for p in self.z.peers]
+        text = json.dumps({"netz": self.netz, "peers": peers}, indent=1, ensure_ascii=False)
+        if text == self.peers_text:
+            return
+        self.peers_text = text
+        with open(self.peers_pfad + ".tmp", "w") as f:
+            f.write(text)
+        os.replace(self.peers_pfad + ".tmp", self.peers_pfad)
+
+    def anhalten(self):
+        """Nach dem Fenster: keine neuen Verbindungen, die Peer-Schleifen enden."""
+        self.z.ende = time.time()
+        self._peers_schreiben()
 
     # ------------------------------------------------------------ probe
     def probe(self):
