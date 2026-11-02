@@ -1,0 +1,19 @@
+{
+ "abfragen": 588,
+ "bis_utc": "2026-10-31T19:20:00.000Z",
+ "bloecke": 146144,
+ "gefunden": [],
+ "gelesen_bis_utc": "2026-10-31T19:20:04.677Z",
+ "gelesen_utc": "2026-11-02T08:08:50.609Z",
+ "knoten": {
+  "gleich_wie_partner": false,
+  "kennung": "da0ae1241a",
+  "version": "2.1.0"
+ },
+ "lueckenlos_bis_ende": true,
+ "meldungen": [
+  "pruning-punkt liegt nach dem anfang, gesucht ab dem pruning-punkt"
+ ],
+ "pruning_punkt_utc": "2026-10-31T15:16:55.382Z",
+ "von_utc": "2026-10-31T15:16:00.000Z"
+}

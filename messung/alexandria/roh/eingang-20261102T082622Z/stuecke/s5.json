@@ -1,0 +1,17 @@
+{
+ "abfragen": 864,
+ "bis_utc": "2026-11-01T11:20:00.000Z",
+ "bloecke": 144928,
+ "gefunden": [],
+ "gelesen_bis_utc": "2026-11-01T11:20:07.285Z",
+ "gelesen_utc": "2026-11-02T08:23:57.856Z",
+ "knoten": {
+  "gleich_wie_partner": false,
+  "kennung": "813b7ce939",
+  "version": "2.1.0"
+ },
+ "lueckenlos_bis_ende": true,
+ "meldungen": [],
+ "pruning_punkt_utc": "2026-10-31T15:16:55.382Z",
+ "von_utc": "2026-11-01T07:18:00.000Z"
+}
