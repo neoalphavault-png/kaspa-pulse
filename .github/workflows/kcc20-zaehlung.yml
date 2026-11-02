@@ -214,3 +214,42 @@ jobs:
             /mnt/kp/aus/kcc20-namen.csv
           if-no-files-found: ignore
           retention-days: 30
+
+  # Ergebnisse, die keine Adressen und keine Tx-IDs tragen, auf diesen Branch
+  # (Ben, 02.11.2026: Artefakte sind von Claudes Umgebung aus nicht ladbar).
+  # Eigener Job mit contents: write, ohne Knoten und ohne fremden Code.
+  sichern:
+    needs: zaehlen
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: kcc20-zaehlung
+          path: ${{ runner.temp }}/aus
+      - name: summen und csv auf den branch
+        run: |
+          set -euo pipefail
+          A="$RUNNER_TEMP/aus"
+          tag=$(sed -n 's/^stichzeit=//p' kcc20/start.txt | cut -c1-10)
+          Z="kcc20/laeufe/$tag-$GITHUB_RUN_ID"
+          mkdir -p "$Z"
+          for f in stand.json tx-stand.json kcc20-tokens.csv kcc20-zaehlung.json kcc20-namen.csv; do
+            if [ -f "$A/$f" ]; then cp "$A/$f" "$Z/"; fi
+          done
+          # vergleich ab einem zeitpunkt aus der tx-liste, nur zahlen, keine tx-ids
+          python3 scripts/kcc20_vergleich.py "$A/kcc20-tx-liste.jsonl" "$(sed -n 's/^vergleich_ab=//p' kcc20/start.txt)" "$Z/vergleich.json"
+          if grep -rlE 'kaspa:[a-z0-9]{40,}|([0-9]{1,3}\.){3}[0-9]{1,3}' "$Z"; then echo "adresse oder ip gefunden, nichts gesichert"; exit 1; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898309+github-actions[bot]@users.noreply.github.com"
+          git add "$Z"
+          git commit -q -m "kcc20: ergebnis lauf $GITHUB_RUN_ID ($tag), summen ohne adressen"
+          for v in 1 2 3; do
+            git pull -q --rebase origin "$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && { echo "gesichert in $Z"; exit 0; }
+            sleep $((v * 3))
+          done
+          exit 1
