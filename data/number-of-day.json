@@ -1,43 +1,43 @@
 {
-  "issue": "NOV 1 2026",
+  "issue": "NOV 2 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "3",
-  "value_label": "days until the next kaspa reward cut",
-  "headline": "bitcoin waits *532 days*.\nkaspa cuts 17 times before then.",
+  "value": "864,000",
+  "value_label": "blocks the kaspa network produces every single day",
+  "headline": "bitcoin finds *144 blocks*.\nkaspa finds 864,000.",
   "panes": [
     {
       "kind": "compare",
-      "title": "TIME TO THE NEXT REDUCTION",
-      "sub": "counted from today, in days",
+      "title": "BLOCKS IN TWENTY FOUR HOURS",
+      "sub": "protocol target, not an average of a good day",
       "rows": [
         {
           "label": "kaspa",
-          "sub": "monthly",
-          "value": "3",
-          "pct": 0.603578104442792,
+          "sub": "ten per second",
+          "value": "864,000",
+          "pct": 100.0,
           "tone": "teal"
         },
         {
           "label": "bitcoin",
-          "sub": "estimated",
-          "value": "532",
-          "pct": 100.0,
+          "sub": "one per ten minutes",
+          "value": "144",
+          "pct": 2.0,
           "tone": "grey"
         }
       ]
     },
     {
       "kind": "anchor",
-      "title": "WHAT CHANGES",
+      "title": "WHY IT DOES NOT COLLAPSE",
       "lines": [
-        "daily emission drops from 1.78 million to *1.68 million KAS*. no vote, no announcement."
+        "parallel blocks are not thrown away. they are *ordered and kept*."
       ]
     }
   ],
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "the next kaspa reward cut lands in 3 days. bitcoin waits about 532 days for its next one, and kaspa cuts 17 more times before that date. daily emission drops from 1.78 million to 1.68 million KAS, the block reward from 2.0602 to 1.9445.",
-    "reply": "the countdown runs on kaspapulse.com/kaspa-halving.html. the kaspa date is arithmetic, the bitcoin date is an estimate."
+    "x": "kaspa produces 864,000 blocks a day. bitcoin produces about 144. ten every second against one every ten minutes. blocks found at the same moment are not discarded, they are ordered and kept, and that is the part most comparisons leave out.",
+    "reply": "how that ordering works is explained on kaspapulse.com. the coins per block shrink, the number of blocks does not."
   }
 }
