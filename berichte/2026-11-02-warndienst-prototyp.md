@@ -10,7 +10,7 @@ Auftrag (Ben, 29.10.2026, Frist Mo 02.11. 16:00 Berlin): Rund um die NU7-Aktivie
 | Mindest-Protokollversion | 170190 | ZIP 259, `MIN_NETWORK_PROTOCOL_VERSION (NU7) Mainnet: 170190`: „nodes compatible with NU7 activation on that network MUST advertise a network protocol version greater than or equal to …“ |
 | Software | Zebra 7.0.0, veröffentlicht 22.10.2026 | [Release Notes Zebra 7.0.0](https://github.com/ZcashFoundation/zebra/releases/tag/v7.0.0): „This release supports the NU7 network upgrade on Mainnet, which activates at height 3,543,405.“ und „advertise network protocol version 170190“ |
 | Erwartete Zeit | **keine in einer Primärquelle** | Weder ZIP 259 noch die Zebra-Release-Notes nennen ein Datum oder eine Uhrzeit. Nachrichtenseiten schreiben „5. November“. |
-| Erwartete Zeit, computed | 06.11.2026 02:26 UTC, 90-%-Band 05.11. 23:01 bis 06.11. 05:51 UTC | Unsere Vorhersage aus dem Wochenstand 28.10.2026 (Tempo der letzten 14 Tage, 75,29 s). Mit genau 75 s gerechnet: 06.11. 01:37 UTC. Zakura (laut Ben): 06.11. 00:50 UTC. |
+| Erwartete Zeit, computed | 06.11.2026 02:39:52 UTC, 90-%-Band 06.11. 00:28:23 bis 05:00:17 UTC | Unsere Vorhersage vom 02.11.2026 (Spitze 3.539.287, Abstände der letzten 7 Tage, 75,42 s; `berichte/2026-11-02-nu7-hoehe-pruefung.md`). Vorher 28.10.: 02:26 UTC, Band 05.11. 23:01 bis 06.11. 05:51 UTC. Zakura (laut Ben): 06.11. 00:50 UTC. |
 
 zips.z.cash, z.cash und zfnd.org sind aus unserer Umgebung nicht erreichbar. Die ZIP-Datei habe ich deshalb aus dem GitHub-Repo `zcash/zips` gelesen. Eine Zakura-Release-Seite habe ich nicht gefunden.
 
@@ -18,8 +18,8 @@ Die erwartete Zeit steht in der Konfiguration (`aktivierung.erwartet_utc`). Sie 
 
 ## 1. Fenster
 
-- **Beginn:** erwartete Aktivierung minus 24 h, also ab 05.11. 02:26 UTC (03:26 Berlin).
-- **Ende:** erster NU7-Block, den die Wache selbst sieht, plus 72 h. Bei Aktivierung um 06.11. 02:26 UTC also 09.11. 02:26 UTC.
+- **Beginn:** erwartete Aktivierung minus 24 h, also ab 05.11. 02:39:52 UTC (03:39 Berlin).
+- **Ende:** erster NU7-Block, den die Wache selbst sieht, plus 72 h. Bei Aktivierung um 06.11. 02:40 UTC also 09.11. 02:40 UTC.
 - **Vorlauf:** Zehn Minuten vor dem Fenster baut die Wache ihre Verbindungen auf, damit die Höhen zum Beginn verankert sind.
 - **Außerhalb:** Die Wache ruht. Sie baut keine Verbindung auf und schreibt nur stündlich eine Zeile „ruht“ ins Log.
 
@@ -172,6 +172,6 @@ Die Zeiten in den Meldungen sind die Zeiten der Aufzeichnung vom 17.10., nicht d
 1. **Den PR prüfen und mergen.** Er ändert Workflow-, deploy- und c2-Dateien, deshalb kein Selbst-Merge.
 2. **Auf c2:** `sudo /opt/kaspa-pulse/deploy/c2/setup.sh wache zcash-mainnet`. Der erste Lauf hält an, weil das Credential noch fehlt, das ist erwartet. Er hat dann die neuen Schreibhilfen installiert.
 3. **Auf GitHub:** `server-secrets` von Hand starten, mit **was = nur-wache**.
-4. **Auf c2 noch einmal:** `sudo /opt/kaspa-pulse/deploy/c2/setup.sh wache zcash-mainnet`, danach `journalctl -u upgrade-wache@zcash-mainnet -n 20`. Dort muss „ruht, fenster ab 2026-11-05 02:26:16 UTC“ stehen.
+4. **Auf c2 noch einmal:** `sudo /opt/kaspa-pulse/deploy/c2/setup.sh wache zcash-mainnet`, danach `journalctl -u upgrade-wache@zcash-mainnet -n 20`. Dort muss „ruht, fenster ab 2026-11-05 02:39:52 UTC“ stehen.
 
 Die Schritte stehen auch in `deploy/c2/upgrade-wache/README.md`. Nach dem Fenster: `sudo /opt/kaspa-pulse/deploy/c2/setup.sh wache-aus zcash-mainnet`.

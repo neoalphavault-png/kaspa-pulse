@@ -48,4 +48,4 @@ Das hält Dienst und Timer an und bringt das letzte Log ins Repo. Bleibt der Die
 
 ## Zeiten
 
-Fenster und Zeiten stehen in UTC in der Konfiguration (`aktivierung.erwartet_utc`, `fenster.vor_h`, `fenster.nach_h`). Für NU7 ab 05.11. 02:26 UTC (03:26 Berlin), bis 72 h nach dem ersten NU7-Block. Der Sync-Timer läuft zur Minute 23 jeder Stunde, in UTC und Berlin gleich.
+Fenster und Zeiten stehen in UTC in der Konfiguration (`aktivierung.erwartet_utc`, `fenster.vor_h`, `fenster.nach_h`). Für NU7 ab 05.11. 02:39 UTC (03:39 Berlin), Stand 02.11., bis 72 h nach dem ersten NU7-Block. Der Sync-Timer läuft zur Minute 23 jeder Stunde, in UTC und Berlin gleich.
