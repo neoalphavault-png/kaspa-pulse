@@ -81,7 +81,39 @@ LOOKS = {
     "teal":   {"grund": "#49EACB", "text": "#04211C", "text2": "#0A332C",
                "akzent": "#04211C", "akzent2": "#0F4A40", "rest": "#9AF5E3",
                "flaeche": "#3BD3B6", "markierung": "#04211C"},
+    # Look v2 Teil 2 (Ben, 28.10. und 29.10.2026): Tagesgrafik und Zahl des
+    # Tages auf A und D wie das Karussell (look_motor.py), mit denselben
+    # Gruenden. B kommt nur mit einem Motiv aus data/motive/, bis dahin A
+    # oder D. Jede Schrift haelt 7:1 auf dem grund und auf der flaeche.
+    # marke ist PULSE in der Wortmarke: auf hellem Grund schwarz wie KASPA
+    # (Logo-Regel, Variante schwarz), auf dunklem Stein in #49EACB (normal).
+    "A-papier": {"grund": "#F4F1EA", "text": "#0B1A17", "text2": "#3A4744",
+                 "akzent": "#085042", "akzent2": "#0B5A4B", "rest": "#CFC7B8",
+                 "flaeche": "#E8E2D6", "markierung": "#49EACB", "marke": "#0B1A17"},
+    "A-teal":   {"grund": "#49EACB", "text": "#04211C", "text2": "#0A332C",
+                 "akzent": "#04211C", "akzent2": "#0F4A40", "rest": "#9AF5E3",
+                 "flaeche": "#3BD3B6", "markierung": "#04211C", "marke": "#04211C"},
+    "D-dunkel": {"grund": "#1F1D1A", "text": "#ECE7DE", "text2": "#D6D0C6",
+                 "akzent": "#49EACB", "akzent2": "#3BD3B6", "rest": "#4A463F",
+                 "flaeche": "#2B2925", "markierung": "#49EACB", "marke": "#49EACB",
+                 "zahl": "#49EACB"},
+    "D-hell":   {"grund": "#ECE7DE", "text": "#0B1A17", "text2": "#2F3B37",
+                 "akzent": "#07463A", "akzent2": "#09493E", "rest": "#C9C0B2",
+                 "flaeche": "#DDD5C8", "markierung": "#49EACB", "marke": "#0B1A17"},
 }
+
+# Ab diesem Tag laeuft eine Serie im Takt von Look v2 (Ben, 28.10.2026, Teil 2).
+# A und D im Wechsel, nie zweimal derselbe Look hintereinander, gleiche Laenge
+# wie TAKT, damit der Schritt im Speicher weiterzaehlt. Serien ohne Eintrag
+# bleiben im alten Takt, bis ihr Generator die neuen Looks kann.
+TAKT_V2 = ("A-papier", "D-dunkel", "A-teal", "D-hell")
+V2_AB = {"tagesgrafik": "2026-11-03", "zahl": "2026-11-03", "story": "2026-11-03"}
+
+
+def takt(serie, datum):
+    """Der Takt, der fuer diese Serie an diesem Tag gilt."""
+    ab = V2_AB.get(serie)
+    return TAKT_V2 if ab and str(datum) >= ab else TAKT
 
 # Schnitte, die eingebettet werden. Anton und Permanent Marker kommen mit
 # dem Meme-Geruest, mit ihrer OFL-Datei.
@@ -156,7 +188,7 @@ def faellig(speicher, serie, kanal, datum):
         schritt = VERSATZ.get(serie, 0) % len(TAKT)
     else:
         schritt = (max(frueher, key=lambda e: e["datum"])["schritt"] + 1) % len(TAKT)
-    return schritt, TAKT[schritt]
+    return schritt, takt(serie, datum)[schritt]
 
 
 def merken(speicher, serie, kanal, datum, sonder=None):
@@ -214,7 +246,7 @@ def raster_faellig(speicher, serie, datum):
             schritt = (max(am_tag, key=_raster_ort)["schritt"] + 1) % len(TAKT)
         else:
             schritt = (raster_faellig(speicher, "tagesgrafik", datum)[0] + 1) % len(TAKT)
-        return schritt, TAKT[schritt]
+        return schritt, takt(serie, datum)[schritt]
     ort = (datum, RANG[serie])
     davor = [e for e in reihe if _raster_ort(e) < ort]
     if davor:
@@ -223,7 +255,7 @@ def raster_faellig(speicher, serie, datum):
         # der erste raster-eintrag knuepft an den alten takt der tagesgrafik an
         alt = [e for e in speicher.get("kanaele", {}).get("tagesgrafik/instagram", []) if e["datum"] < datum]
         schritt = ((max(alt, key=lambda e: e["datum"])["schritt"] + 1) % len(TAKT)) if alt else 0
-    return schritt, TAKT[schritt]
+    return schritt, takt(serie, datum)[schritt]
 
 
 def raster_motiv(speicher, serie, datum):
@@ -540,6 +572,22 @@ def selbsttest():
         os.environ["ZIEL"] = alt_ziel
     if alt_ops is not None:
         os.environ["DISCORD_WEBHOOK_OPS"] = alt_ops
+    # look v2 teil 2 (Ben, 28.10. und 29.10.2026): ab 03.11.2026 a und d im wechsel
+    ok("vor dem 03.11. gilt der alte takt", takt("tagesgrafik", "2026-11-02") == TAKT)
+    ok("ab dem 03.11. tagesgrafik, zahl des tages und story auf v2",
+       all(takt(se, "2026-11-03") == TAKT_V2 for se in ("tagesgrafik", "zahl", "story")))
+    ok("karussell und meme bleiben im alten takt (eigene looks in look_motor)",
+       takt("karussell", "2026-11-03") == TAKT and takt("meme", "2026-11-03") == TAKT)
+    sp_v2 = {"kanaele": {}}
+    folge_v2 = [merken(sp_v2, "zahl", "x", "2026-11-%02d" % d) for d in range(1, 10)]
+    ok("zahl des tages auf x wechselt am 03.11. auf v2", folge_v2[0] in TAKT and folge_v2[2] in TAKT_V2)
+    familie = [x.split("-")[0] for x in folge_v2[2:]]
+    ok("nie zweimal dieselbe richtung hintereinander", all(a != b for a, b in zip(familie, familie[1:])),)
+    ok("jeder v2-look ist bekannt, mit allen farben",
+       all(set(LOOKS["dunkel"]) <= set(LOOKS[x]) for x in TAKT_V2))
+    ok("jede schrift der v2-looks haelt 7:1 auf grund und flaeche",
+       all(_kontrast(LOOKS[x][f], LOOKS[x][g]) >= 7 for x in TAKT_V2 for f in ("text", "text2", "akzent")
+           for g in ("grund", "flaeche")))
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 

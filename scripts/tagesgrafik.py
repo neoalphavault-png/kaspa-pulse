@@ -382,15 +382,17 @@ BG, AK, RESTTON, WEISS = "#080B0F", "#49EACB", "#2B7A6C", "#FFFFFF"
 # Bild aus look_takt.LOOKS. TEXT2 ist die zweite Textfarbe (Datum, kleine
 # Beschriftung), MARK die Markierung (Pulslinie).
 TEXT2, MARK, LOOK = "#A9B7B4", "#49EACB", "dunkel"
+ZAHL = WEISS
 
 
 def look_setzen(name):
     """Stellt alle Farben auf einen Look. Die Vorlagen lesen die Farben beim
     Zeichnen, also gilt der Look fuer das naechste html()."""
-    global BG, AK, RESTTON, WEISS, AK_DUNKEL, TEXT2, MARK, LOOK
+    global BG, AK, RESTTON, WEISS, AK_DUNKEL, TEXT2, MARK, LOOK, ZAHL
     import look_takt
     lk = look_takt.look(name)
     BG, AK, RESTTON, WEISS = lk["grund"], lk["akzent"], lk["rest"], lk["text"]
+    ZAHL = lk.get("zahl", lk["text"])
     AK_DUNKEL, TEXT2, MARK, LOOK = lk["akzent2"], lk["text2"], lk["markierung"], name
 
 
@@ -1541,7 +1543,7 @@ body{width:1080px;height:1350px;background:%(grund)s;position:relative;overflow:
   font-family:'IBM Plex Sans',sans-serif;-webkit-font-smoothing:antialiased;font-feature-settings:'tnum' 1}
 .kopf{position:absolute;left:60px;right:60px;top:66px;font-family:'Archivo',sans-serif;font-weight:800;
   font-size:64px;line-height:1;letter-spacing:1px;color:%(text)s;white-space:nowrap}
-.zahl{position:absolute;left:60px;top:146px;font-family:'Archivo',sans-serif;font-weight:900;color:%(text)s;
+.zahl{position:absolute;left:60px;top:146px;font-family:'Archivo',sans-serif;font-weight:900;color:%(zahlfarbe)s;
   line-height:0.86;letter-spacing:-4px;white-space:nowrap}
 .zahl .einheit{font-size:0.36em;font-weight:800;letter-spacing:0;margin-left:18px}
 .bed{position:absolute;left:60px;right:60px;font-weight:500;font-size:44px;line-height:1.18;color:%(akzent)s}
@@ -1610,7 +1612,9 @@ def html(s, look=None):
     # keine pulslinie mehr neben der marke: ein ornament, das wie daten aussieht (Ben, 29.10.2026)
     sig = "<div class='sig' data-rolle='fuss'>%s</div>" % wortmarke.html()
     css = (look_takt.schriften_css() + CSS % {
-        "grund": BG, "text": WEISS, "text2": TEXT2, "akzent": AK}
+        "grund": BG, "text": WEISS, "text2": TEXT2, "akzent": AK,
+        # look v2: in D-dunkel steht die grosse zahl in #49EACB (Ben, 28.10.2026)
+        "zahlfarbe": ZAHL}
         + wortmarke.css(look=LOOK))
     return ("<!DOCTYPE html><html><head><meta charset='utf-8'><style>%s</style></head><body data-look='%s'>"
             "<div class='kopf' data-rolle='titel'>%s</div>%s"
