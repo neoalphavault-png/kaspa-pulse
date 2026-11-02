@@ -37,6 +37,27 @@
     "true",
     "false"
    ]
+  },
+  {
+   "datum": "2026-11-02",
+   "tag": "mo",
+   "art": "quiz",
+   "frage": "how much did kaspa hashrate move this week?",
+   "richtig": 2,
+   "aufloesung": {
+    "frage": "how much did kaspa hashrate move this week?",
+    "zahl": "-0.5%",
+    "einheit": "",
+    "satz": "hashrate 381 PH/s in the week to 24 oct, -0.5% against 17 oct",
+    "datum": "week to 24 oct 2026 · source kaspa rest api"
+   },
+   "quelle_vorlage": "weekly 2026-10-26",
+   "antworten": [
+    "+5.5%",
+    "-2.8%",
+    "-0.5%",
+    "+2.5%"
+   ]
   }
  ]
 }
