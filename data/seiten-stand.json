@@ -17,7 +17,7 @@
   },
   "index.html": {
     "datum": "2026-11-02",
-    "hash": "6b9e75770d5ee623"
+    "hash": "198537b0cec1ed84"
   },
   "kaspa-covenants.html": {
     "datum": "2026-10-26",
@@ -37,15 +37,15 @@
   },
   "kaspa-mining.html": {
     "datum": "2026-11-02",
-    "hash": "77888594cac25af0"
+    "hash": "6c5073e3adef9156"
   },
   "kaspa-security-budget.html": {
     "datum": "2026-10-26",
     "hash": "fcc41552c6e5aa0a"
   },
   "kaspa-smart-contracts.html": {
-    "datum": "2026-10-27",
-    "hash": "67fcc84b87485357"
+    "datum": "2026-11-02",
+    "hash": "c41dbc040bb439bf"
   },
   "kaspa-staking.html": {
     "datum": "2026-10-26",
@@ -56,12 +56,12 @@
     "hash": "79acd11543ac8a36"
   },
   "kaspa-toccata.html": {
-    "datum": "2026-10-27",
-    "hash": "088e99865604b148"
+    "datum": "2026-11-02",
+    "hash": "6393f25c8872019f"
   },
   "kaspa-token-standard.html": {
-    "datum": "2026-10-27",
-    "hash": "49dd09a869ca958b"
+    "datum": "2026-11-02",
+    "hash": "45b8c1a370ca8ccc"
   },
   "kaspa-tvl.html": {
     "datum": "2026-10-26",
@@ -78,6 +78,10 @@
   "kaspa-weekly.html": {
     "datum": "2026-10-26",
     "hash": "36a4a8bc843039bc"
+  },
+  "kcc-20.html": {
+    "datum": "2026-11-02",
+    "hash": "17fabc8ccacf2b38"
   },
   "kron.html": {
     "datum": "2026-10-26",

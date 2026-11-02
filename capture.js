@@ -33,6 +33,7 @@
     ]},
     { t: "tokens", k: [
       ["token standards", "/kaspa-token-standard.html"],
+      ["kcc-20 tokens", "/kcc-20.html"],
       ["smart contracts", "/kaspa-smart-contracts.html"],
       ["kron", "/kron.html"],
       ["tvl", "/kaspa-tvl.html"]
