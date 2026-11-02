@@ -22,6 +22,8 @@ wortgleich in den sichtbaren FAQ-Block.
   kurzfakt + faq   kaspa-supply.html           halter und adressen aus
                                                data/address-thresholds-log.json (Kaspalytics)
   kurzfakt         kaspa-smart-contracts.html  covenant-bestand wie oben
+  tvl-zahl         kaspa-tvl.html              TVL von Kasplex und Igra, datiert, source
+                                               defillama (Ben, 02.11.2026), Rueckfall Tageslog
   kurzfakt, kcc20-zahlen, kcc20-tabelle, kcc20-migration, faq
                    kcc-20.html                 eigene KCC-20-Zaehlung aus data/kcc20-stand.json
                                                und der CSV dort, "counted" (Ben, 02.11.2026)
@@ -315,6 +317,70 @@ def hashrate_html(d, wochen=8):
             "faq": faq, "ph": d["ph"], "jetzt": jetzt}
 
 
+# ------------------------------------------------------------- tvl (Ben, 02.11.2026)
+# kaspa-tvl.html zeigte "Total value locked on Kaspa · today" und lud die Zahl
+# erst im Browser. Google sah keine Zahl und dafuer ein Echtzeitwort. Jetzt
+# steht eine datierte Ablesung im HTML: beim Lauf von DefiLlama gelesen, sonst
+# der letzte Tageswert aus data/number-of-day-log.json (ebenfalls DefiLlama).
+
+LLAMA = "https://api.llama.fi/v2/chains"
+
+
+def tvl_geld(n):
+    if n >= 1e9:
+        return "$%.2fB" % (n / 1e9)
+    if n >= 1e6:
+        return "$%.2fM" % (n / 1e6)
+    if n >= 1e3:
+        return "$%.0fK" % (n / 1e3)
+    return "$%.0f" % n
+
+
+def tvl_daten(jetzt=None, holer=None, log=None):
+    jetzt = jetzt or dt.datetime.now(dt.timezone.utc)
+    try:
+        if holer is None:
+            req = urllib.request.Request(LLAMA, headers={"User-Agent": UA, "Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=40) as r:
+                liste = json.loads(r.read().decode("utf-8"))
+        else:
+            liste = holer()
+        tvl = {(c.get("name") or "").lower(): float(c.get("tvl") or 0) for c in liste}
+        kasplex, igra = tvl.get("kasplex", 0.0), tvl.get("igra", 0.0)
+        gesamt = kasplex + igra
+        alle = sum(v for v in tvl.values() if v > 0)
+        if gesamt > 0:
+            return {"datum": jetzt.date().isoformat(), "gesamt": gesamt, "kasplex": kasplex, "igra": igra,
+                    "anteil": 100.0 * gesamt / alle if alle else None}
+    except Exception as exc:                        # noqa: BLE001
+        print("kaspa-tvl.html, defillama nicht erreichbar (%s), nehme das tageslog" % type(exc).__name__)
+    log = log if log is not None else lies_json("data/number-of-day-log.json")
+    for r in reversed(log or []):
+        if r.get("tvl_total"):
+            return {"datum": str(r["date"])[:10], "gesamt": float(r["tvl_total"]), "kasplex": None, "igra": None,
+                    "anteil": None}
+    return None
+
+
+def tvl_block(d):
+    tag = datum(d["datum"])
+
+    def wert(v, f):
+        return f(v) if v is not None else "&mdash;"
+    anteil = d.get("anteil")
+    anteil_t = ("%.4f%%" % anteil if anteil < 0.01 else "%.3f%%" % anteil) if anteil is not None else None
+    return ('\n    <div class="lbl"><i></i>Total value locked on Kaspa · %s</div>\n'
+            '    <div class="big" id="tvlTotal">%s</div>\n'
+            '    <div class="cap" id="tvlCap">Kasplex and Igra combined on %s, Kaspa layer 1 holds none of it, '
+            'source defillama</div>\n'
+            '    <div class="split">\n'
+            '      <div><div class="v" id="vKasplex">%s</div><div class="k">Kasplex L2</div></div>\n'
+            '      <div><div class="v" id="vIgra">%s</div><div class="k">Igra L2</div></div>\n'
+            '      <div><div class="v" id="vShare">%s</div><div class="k">share of all DeFi</div></div>\n'
+            '    </div>\n  ' % (tag, tvl_geld(d["gesamt"]), tag, wert(d.get("kasplex"), tvl_geld),
+                                wert(d.get("igra"), tvl_geld), anteil_t or "&mdash;"))
+
+
 # ------------------------------------------------------------- kcc-20 (Ben, 02.11.2026)
 # kcc-20.html, SEO-Massnahme 6. Kern ist unsere eigene Zaehlung vom eigenen
 # Knoten, "counted". Summen aus data/kcc20-stand.json, je Token aus der CSV, die
@@ -498,6 +564,8 @@ def main(argv=None):
         mz = mining_daten(hr["ph"], hr["jetzt"], halving_daten(hr["jetzt"])) if hr else None
         for name in ("mining-zahlen", "kurzfakt"):
             aufgaben.append(("kaspa-mining.html", name, (lambda n=name: mz[n] if mz else None)))
+    tv = tvl_daten() if "--ohne-netz" not in argv else tvl_daten(holer=lambda: [])
+    aufgaben.append(("kaspa-tvl.html", "tvl-zahl", lambda: tvl_block(tv) if tv else None))
     faq_aufgaben = list(FAQ_AUFGABEN)
     if "--ohne-netz" not in argv:
         faq_aufgaben.append(("kaspa-hashrate.html", lambda: hr["faq"] if hr else None))
@@ -619,8 +687,20 @@ def selbsttest():
        and "week of 28 September 2026" in h["hashrate-wochen"] and "5 October" not in h["hashrate-wochen"])
     ok("ersetzen zwischen marken", ersetze("a<!--AUTO:x-->alt<!--/AUTO:x-->b", "x", "neu")
        == "a<!--AUTO:x-->neu<!--/AUTO:x-->b")
-    # kcc-20.html (Ben, 02.11.2026)
+    # kaspa-tvl.html (Ben, 02.11.2026): datierte zahl statt "today"
     import content_wache
+    liste = [{"name": "Kasplex", "tvl": 300000.0}, {"name": "Igra", "tvl": 506015.0}, {"name": "Bitcoin", "tvl": 9e9}]
+    tv = tvl_daten(dt.datetime(2026, 11, 2, 6, 17, tzinfo=dt.timezone.utc), holer=lambda: liste)
+    tb = tvl_block(tv)
+    ok("tvl mit zahl, datum und source defillama", "$806K" in tb and "2 November 2026" in tb
+       and "source defillama" in tb and "today" not in tb)
+    ok("tvl-text haelt die textregeln", not content_wache.text_verstoesse(re.sub(r"<[^>]+>", " ", tb)))
+    def kaputt():
+        raise OSError("weg")
+    tv2 = tvl_daten(holer=kaputt, log=[{"date": "2026-11-01", "tvl_total": 790000.0}])
+    ok("tvl ohne netz aus dem tageslog, mit dessen datum", tv2["datum"] == "2026-11-01" and tv2["gesamt"] == 790000.0
+       and "&mdash;" in tvl_block(tv2) and "1 November 2026" in tvl_block(tv2))
+    # kcc-20.html (Ben, 02.11.2026)
     kd = kcc20_daten()
     ok("kcc-20 stand und csv lesbar, 240 tokens", kd is not None and len(kd["tokens"]) == kd["stand"]["tokens"] == 240)
     if kd:

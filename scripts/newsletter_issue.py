@@ -188,6 +188,24 @@ def naechste_nummer(datum, verz=None):
     return 1 if v is None else v[2] + 1
 
 
+# Die Ausgaben liegen auch auf der Website unter /newsletter/ (Ben, 02.11.2026).
+# Sie sind Mail-Vorlagen, keine Seiten: der Platzhalter VIDEO_URL in einer
+# Kopie erzeugte bei Google einen 404. Jede Ausgabe traegt deshalb noindex,
+# nofollow; "set" schreibt es in jede neue Ausgabe, wo es noch fehlt.
+ROBOTS = '<meta name="robots" content="noindex, nofollow">'
+ROBOTS_RE = re.compile(r'<meta name="robots" content="[^"]*">', re.I)
+
+
+def robots_setzen(text):
+    """Setzt noindex, nofollow in den <head>, direkt nach charset. Wiederholbar."""
+    if ROBOTS_RE.search(text):
+        return ROBOTS_RE.sub(ROBOTS, text, count=1)
+    m = re.search(r"<meta charset=[^>]*>", text, re.I) or re.search(r"<head[^>]*>", text, re.I)
+    if not m:
+        return text
+    return text[:m.end()] + "\n" + ROBOTS + text[m.end():]
+
+
 def setze(pfad, verz=None):
     """Nummer in die Datei schreiben. Gibt (alt, neu) zurueck."""
     datum = datum_aus_pfad(pfad)
@@ -207,7 +225,7 @@ def setze(pfad, verz=None):
             n_zahl += n
         neue_teile.append(stueck)
     with open(pfad, "w", encoding="utf-8") as fh:
-        fh.write("".join(neue_teile))
+        fh.write(robots_setzen("".join(neue_teile)))
     print("%s: ausgabe %s, %d fundstelle(n) und %d platzhalter geschrieben"
           % (os.path.basename(pfad), neu, n_zahl, n_platz))
     if n_zahl + n_platz == 0:
@@ -322,7 +340,18 @@ def selbsttest():
     for f in (vorl, a1, a2):
         os.remove(f)
 
-    print("selbsttest ok: offene platzhalter, recycelter videolink, hochzaehlen, platzhalter, wiederholbar, luecke, leeres verzeichnis")
+    # noindex, nofollow fuer die kopien auf der website (Ben, 02.11.2026)
+    k = '<html><head>\n<meta charset="utf-8">\n<title>issue 9</title></head><body></body></html>'
+    r1 = robots_setzen(k)
+    assert r1.count(ROBOTS) == 1 and r1.index(ROBOTS) > r1.index("charset"), r1
+    assert robots_setzen(r1) == r1
+    assert robots_setzen(k.replace("<title>", '<meta name="robots" content="index">\n<title>')).count(ROBOTS) == 1
+    p_r = schreib("2026-11-23.html", k)
+    setze(p_r, v)
+    assert ROBOTS in open(p_r, encoding="utf-8").read()
+    os.remove(p_r)
+
+    print("selbsttest ok: offene platzhalter, recycelter videolink, hochzaehlen, platzhalter, wiederholbar, luecke, leeres verzeichnis, noindex")
     return 0
 
 

@@ -19,7 +19,8 @@ Stand auf einem anderen Ref (meist origin/main), und gibt aus:
          how-we-fund-this.html
   4. das fo-verify-Tag in index.html ist unveraendert da
   5. fuer Seiten, deren title oder description sich aendert: title hoechstens
-     60 Zeichen, description 140 bis 155 Zeichen, kein Doppelpunkt, kein
+     60 Zeichen, description hoechstens 155 Zeichen (unter 140 ist eine
+     Warnung, Ben 02.11.2026), kein Doppelpunkt, kein
      Gedankenstrich (Bens Regel fuer Veroeffentlichtes)
 
     python3 scripts/seo_pruefung.py --gegen origin/main            # tabelle + pruefung
@@ -191,8 +192,13 @@ def zeilen(gegen):
         if geaendert:
             if len(t1) > TITEL_MAX:
                 fehler.append("%s, title %d zeichen, hoechstens %d" % (n, len(t1), TITEL_MAX))
-            if not BESCHR_MIN <= len(d1) <= BESCHR_MAX:
-                fehler.append("%s, description %d zeichen, soll %d bis %d" % (n, len(d1), BESCHR_MIN, BESCHR_MAX))
+            # Ben, 02.11.2026: "Beschreibung hoechstens 155 Zeichen". Die
+            # Obergrenze stoppt, unter 140 ist nur noch ein Hinweis (seine
+            # freigegebenen Texte fuer kaspa-tvl und kaspa-wallets sind kuerzer).
+            if len(d1) > BESCHR_MAX:
+                fehler.append("%s, description %d zeichen, hoechstens %d" % (n, len(d1), BESCHR_MAX))
+            elif len(d1) < BESCHR_MIN:
+                warn.append("%s, description %d zeichen, unter %d" % (n, len(d1), BESCHR_MIN))
             for teil, txt in (("title", t1), ("description", d1)):
                 for s in stilfehler(txt):
                     fehler.append("%s, %s mit %s" % (n, teil, s))
