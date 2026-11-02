@@ -37,6 +37,10 @@ SEO-Runde v2, Ben 27.10.2026 abends:
                                                Nach der Stufe springt der Satz von selbst
                                                auf die naechste.
 
+dateModified: seo_seiten.py laeuft im selben Workflow direkt danach. Hat sich
+der sichtbare Text einer Seite geaendert, setzt es dateModified auf den
+Zeitpunkt dieses Laufs, mit Uhrzeit und Zeitzone (Ben, 02.11.2026).
+
 Faellt eine Quelle aus oder fehlt ein Wert, bleibt der alte Satz stehen.
 Lieber ein Satz mit altem Datum als einer ohne Datum.
 
