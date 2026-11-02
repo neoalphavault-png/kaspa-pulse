@@ -11427,11 +11427,81 @@
       "holders_100kas": 295772,
       "quelle": "kaspalytics",
       "abgerufen_utc": "2026-10-26T12:26:47+00:00"
+    },
+    {
+      "datum": "2026-10-26",
+      "holders_all": 54888103,
+      "holders_mean": 808444,
+      "holders_001kas": 768570,
+      "holders_1kas": 566448,
+      "holders_100kas": 295822,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-11-02T14:59:52+00:00"
+    },
+    {
+      "datum": "2026-10-27",
+      "holders_all": 54888444,
+      "holders_mean": 808785,
+      "holders_001kas": 768911,
+      "holders_1kas": 566787,
+      "holders_100kas": 296006,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-11-02T14:59:52+00:00"
+    },
+    {
+      "datum": "2026-10-28",
+      "holders_all": 54888747,
+      "holders_mean": 809088,
+      "holders_001kas": 769214,
+      "holders_1kas": 567013,
+      "holders_100kas": 295944,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-11-02T14:59:52+00:00"
+    },
+    {
+      "datum": "2026-10-29",
+      "holders_all": 54888904,
+      "holders_mean": 809245,
+      "holders_001kas": 769375,
+      "holders_1kas": 567139,
+      "holders_100kas": 295932,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-11-02T14:59:52+00:00"
+    },
+    {
+      "datum": "2026-10-30",
+      "holders_all": 54888871,
+      "holders_mean": 809212,
+      "holders_001kas": 769342,
+      "holders_1kas": 566965,
+      "holders_100kas": 295551,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-11-02T14:59:52+00:00"
+    },
+    {
+      "datum": "2026-10-31",
+      "holders_all": 54889361,
+      "holders_mean": 809702,
+      "holders_001kas": 769836,
+      "holders_1kas": 567231,
+      "holders_100kas": 295633,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-11-02T14:59:52+00:00"
+    },
+    {
+      "datum": "2026-11-01",
+      "holders_all": 54889828,
+      "holders_mean": 810169,
+      "holders_001kas": 770339,
+      "holders_1kas": 567588,
+      "holders_100kas": 295822,
+      "quelle": "kaspalytics",
+      "abgerufen_utc": "2026-11-02T14:59:52+00:00"
     }
   ],
   "hinweis": "schwellen, keine stufen: jede reihe zaehlt alle adressen AB einem betrag. die stufentabelle laesst sich daraus nicht rekonstruieren.",
   "hinweis_holders_all": "holders_all zaehlt jede adresse mit irgendeinem guthaben, auch staub. am 21.09.2026 waren das 54.876.372 gegen 796.711 bei holders_mean. als 'zahl der halter' ist holders_all falsch.",
   "holders_all_ab": "2023-09-28",
   "hinweis_holders_all_bruch": "holders_all ist erst ab 2023-09-28 vergleichbar. vom 24. auf den 25.09.2023 springt das feld von 282.629 auf 33.505.003 und bis zum 28.09.2023 auf 53.877.217, waehrend die vier anderen reihen glatt weiterlaufen - eine umstellung an der quelle, kein wachstum. jede zaehlung ueber holders_all beginnt an diesem tag.",
-  "aktualisiert_utc": "2026-10-26T12:26:47+00:00"
+  "aktualisiert_utc": "2026-11-02T14:59:52+00:00"
 }
