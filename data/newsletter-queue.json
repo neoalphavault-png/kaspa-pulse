@@ -4,8 +4,8 @@
  "html_path": "newsletter/2026-11-02.html",
  "list_id": 16,
  "sender": "hello@kaspapulse.com",
- "status": "draft",
- "scheduled_at": null,
+ "status": "queued",
+ "scheduled_at": "2026-11-02T18:00:00.000+01:00",
  "created_at": "2026-11-02T11:08:43Z",
  "history": [
   {
@@ -154,6 +154,14 @@
    "step": "test",
    "campaign_id": 46,
    "test_to": "benni.alkanli@gmail.com"
+  },
+  {
+   "at": "2026-11-02T11:21:42Z",
+   "step": "schedule",
+   "campaign_id": 46,
+   "scheduled_at": "2026-11-02T18:00:00.000+01:00",
+   "list_id": 16,
+   "result": "geplant"
   }
  ],
  "_hinweise": {
