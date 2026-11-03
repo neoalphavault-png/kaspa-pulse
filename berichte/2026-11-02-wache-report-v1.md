@@ -81,7 +81,81 @@ Ben hat am 2.11. entschieden, dass die NU7-Messung der erste „PulseHawk Upgrad
    - Nach der Zeile `fenster_zu` kommen Log und Rohdaten.
    - Der dritte Lauf meldet „log unveraendert“.
    - Der Secret-Scan ist jedes Mal sauber.
+   - **Dieser Test war fehlerhaft**, siehe den Abschnitt „Nachtrag 3.11.“: Die Zeile `fenster_zu` hatte ich mit `echo` angehängt, also mit `\n`. Die Wache selbst schreibt `\r\n`.
 4. **Simulation der Wache:** Alle 6 Szenarien sind weiter ok.
+
+## Nachtrag 3.11.: Fensterende in `sync.sh` (PR #242)
+
+**Fehler, gefunden von Ben:** `wache_kern.log` schreibt mit `csv.writer` und `newline=""`, also mit `\r\n` am Zeilenende. `grep -q ',fenster_zu$'` trifft `fenster_zu\r` nicht. Damit wären die Rohdaten nie ins Repo gekommen, auch nicht bei `setup.sh wache-aus`. Mein erster Test hat das nicht gezeigt, weil ich die Zeile von Hand mit `\n` angehängt hatte.
+
+**Geändert in `deploy/c2/upgrade-wache/sync.sh`:**
+1. Die Erkennung entfernt vorher die `\r`: `tr -d '\r' < "$LOG" | grep -q ',fenster_zu$'`.
+2. Bricht `roh_export.py` ab, etwa bei einem Adressfund oder einem anderen Fehler, geht das Log trotzdem ins Repo. Danach endet das Skript mit `exit 1` und schreibt „fehler: rohdaten nicht exportiert“ nach stderr. So zeigen `systemctl status upgrade-wache-sync@zcash-mainnet` und `journalctl` den Fehler. Das gilt auch, wenn das Log unverändert ist.
+
+**Neuer Test mit einem Log, das die Wache selbst schreibt:**
+- Alle Logzeilen kommen aus `Kern.log`: `start`, `aktivierung_gesehen` und nach dem Fenster `fenster_zu`, wie in `wache.py`. Nur Lauf 4 hängt zusätzlich eine `lauf`-Zeile mit `printf` an, ebenfalls mit `\r\n`.
+- Die Rohdaten stammen aus der Testnet-Aufzeichnung vom 17.10.
+- Gepusht wird in ein lokales Test-Repo, ohne Netz.
+
+So endet die letzte Logzeile (`od -c`):
+
+```
+   e   n   s   t   e   r   _   z   u  \r  \n
+```
+
+**Mit dem alten `sync.sh` (`b191618`):** Lauf 2 nach `fenster_zu` meldet nur „log gepusht, 4 zeilen“, ohne Rohdaten. Der Fehler ist damit nachgestellt.
+
+**Mit dem neuen `sync.sh`:**
+
+```
+== lauf 1, fenster offen
+secret-scan: alle dateien im checkout, nichts gefunden
+log gepusht, 3 zeilen
+exit 0
+== lauf 2, nach fenster_zu
+secret-scan: alle dateien im checkout, nichts gefunden
+log gepusht, 4 zeilen, rohdaten in wache/roh
+exit 0
+== lauf 3, unveraendert
+log unveraendert
+exit 0
+== adresse in peers.json eingeschleust
+abbruch: adresse in peers.json, nichts geschrieben
+rohdaten nicht exportiert, nur das log
+secret-scan: alle dateien im checkout, nichts gefunden
+log gepusht, 5 zeilen
+fehler: rohdaten nicht exportiert
+exit 1
+== lauf 5, log unveraendert, export weiter fehlerhaft
+abbruch: adresse in peers.json, nichts geschrieben
+rohdaten nicht exportiert, nur das log
+log unveraendert
+fehler: rohdaten nicht exportiert
+exit 1
+== commits im test-repo
+upgrade-wache testkette: log [bot]
+upgrade-wache testkette: log und rohdaten [bot]
+upgrade-wache testkette: log [bot]
+init
+== dateien
+README
+wache/roh/SHA256SUMS
+wache/roh/ereignisse.jsonl.gz
+wache/roh/koepfe.jsonl.gz
+wache/roh/peers.json
+wache/roh/wache-log.csv
+wache/roh/zustand.json
+wache/wache-log.csv
+```
+
+**Was der Test zeigt:**
+- Mit Adressfund kommt das Log ins Repo, die Rohdaten nicht. Eingeschleust war im Test eine Adresse aus dem Bereich, der für Dokumentation reserviert ist; der Wert steht hier bewusst nicht.
+- Was zuvor sauber exportiert wurde, bleibt im Repo stehen.
+
+**Commits auf `wache/report-v1-c2`:**
+- `8311f2f`: die Änderung an `sync.sh`.
+- Danach habe ich `main` hineingemergt (`c1f7057`), weil dieser Bericht erst auf `main` liegt.
+- Den neuen Kopf nenne ich in der Meldung an Ben, weil ein Commit seinen eigenen Hash nicht enthalten kann.
 
 ## M6: Die Definition trifft eine gesunde Kette fast nie
 
