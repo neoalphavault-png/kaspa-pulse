@@ -8,60 +8,12 @@
   "sha256": "870260b8a905dd48673ab119384ac375ec24fc4561e59125f0bfb08a2c5ba700"
  },
  {
-  "url": "https://the-alexandria-protocol.replit.app/api/study/52",
-  "fehler": "HTTPError HTTP Error 404: Not Found"
- },
- {
   "url": "https://the-alexandria-protocol.replit.app/api/studies/52",
   "status": 200,
   "typ": "application/json; charset=utf-8",
   "bytes": 1442,
   "datei": "002.bin",
   "sha256": "cf2b9bc052bd206197168eaac6a899884035065833e7bc2994d220eea6ed2faf"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/study/52/manifest",
-  "status": 200,
-  "typ": "text/html; charset=utf-8",
-  "bytes": 1568,
-  "datei": "003.bin",
-  "sha256": "870260b8a905dd48673ab119384ac375ec24fc4561e59125f0bfb08a2c5ba700"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/study/52/manifest",
-  "fehler": "HTTPError HTTP Error 404: Not Found"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/manifest.json",
-  "status": 200,
-  "typ": "text/html; charset=utf-8",
-  "bytes": 1568,
-  "datei": "005.bin",
-  "sha256": "870260b8a905dd48673ab119384ac375ec24fc4561e59125f0bfb08a2c5ba700"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/favicon.svg",
-  "status": 200,
-  "typ": "image/svg+xml",
-  "bytes": 163,
-  "datei": "006.bin",
-  "sha256": "8ffbde9092b1fa4de97c9481b76f518b131268c82e7c555041925225b1dab6e0"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/assets/index-oa915kFZ.js",
-  "status": 200,
-  "typ": "text/javascript; charset=utf-8",
-  "bytes": 524045,
-  "datei": "007.bin",
-  "sha256": "ac92d4c6286bbc3fb7ad2440da2da4c43cbf9df0ed2ed18d92421f214da1663d"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/assets/index-CkLKKfsV.css",
-  "status": 200,
-  "typ": "text/css; charset=utf-8",
-  "bytes": 117727,
-  "datei": "008.bin",
-  "sha256": "471882994aca93c161c205afdea2a76ea87ba31518e219959b557beaea0049f4"
  },
  {
   "url": "https://the-alexandria-protocol.replit.app/api/studies/52/file",
@@ -72,187 +24,11 @@
   "sha256": "a286f3ffe06f7c9699d9dac4d4bab47f677000d50c80de6f7a036f08c392161c"
  },
  {
-  "url": "https://the-alexandria-protocol.replit.app/api/__clerk",
-  "status": 200,
-  "typ": "application/json",
-  "bytes": 0,
-  "datei": "010.bin",
-  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/healthz",
-  "status": 200,
-  "typ": "application/json; charset=utf-8",
-  "bytes": 15,
-  "datei": "011.bin",
-  "sha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/studies",
-  "status": 200,
-  "typ": "application/json; charset=utf-8",
-  "bytes": 15298,
-  "datei": "012.bin",
-  "sha256": "bdba1c2d0752546c3d5c128dd2a81484d12da997bf68619c4778098816d008f3"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/studies/uploads/request-url",
-  "fehler": "HTTPError HTTP Error 404: Not Found"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/dashboard",
-  "status": 200,
-  "typ": "application/json; charset=utf-8",
-  "bytes": 4953,
-  "datei": "014.bin",
-  "sha256": "fb33606d24962e61617c2678ec59f63a3a38a3a449599894ef518d9aed100526"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/timeline",
-  "status": 200,
-  "typ": "application/json; charset=utf-8",
-  "bytes": 4017,
-  "datei": "015.bin",
-  "sha256": "4f88bca9ac7b8b6a632b00f395e085376c6e3585db51a40e4ea3ba6e2fdb612c"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/graph",
-  "status": 200,
-  "typ": "application/json; charset=utf-8",
-  "bytes": 1779,
-  "datei": "016.bin",
-  "sha256": "c7b9f4dd7dfd22b08dbabfd2c34d6a96f75805660c335bf00afb0afa988f028b"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/funding",
-  "status": 200,
-  "typ": "application/json; charset=utf-8",
-  "bytes": 309,
-  "datei": "017.bin",
-  "sha256": "4478c1e6bde42dcbd1953bac4865ad3e5cd3c3b995069ece08b85c385d11a5f6"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/depositions",
-  "status": 200,
-  "typ": "application/json; charset=utf-8",
-  "bytes": 992,
-  "datei": "018.bin",
-  "sha256": "c2969b5ac24f58827b2b666ac6f84bd1cf3112f18099ccfcb6dd93a60c58cded"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/depositions/drafts",
-  "fehler": "HTTPError HTTP Error 401: Unauthorized"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/vault",
-  "fehler": "HTTPError HTTP Error 401: Unauthorized"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/credibility-watch",
-  "status": 200,
-  "typ": "application/json; charset=utf-8",
-  "bytes": 2097,
-  "datei": "021.bin",
-  "sha256": "8b9a5df02b50e02c63c5ae68ba2deac353536c0abd6b3f2637b6ff09c5b1f4ae"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/credibility",
-  "fehler": "HTTPError HTTP Error 400: Bad Request"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/verification",
-  "fehler": "HTTPError HTTP Error 400: Bad Request"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/anchors/authorization",
-  "fehler": "HTTPError HTTP Error 400: Bad Request"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/anchors/preview",
-  "fehler": "HTTPError HTTP Error 404: Not Found"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/anchors/submit",
-  "fehler": "HTTPError HTTP Error 404: Not Found"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/anchors/status",
-  "fehler": "HTTPError HTTP Error 400: Bad Request"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/verification/hash",
-  "fehler": "HTTPError HTTP Error 400: Bad Request"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/study/:id",
-  "status": 200,
-  "typ": "text/html; charset=utf-8",
-  "bytes": 1568,
-  "datei": "029.bin",
-  "sha256": "870260b8a905dd48673ab119384ac375ec24fc4561e59125f0bfb08a2c5ba700"
- },
- {
   "url": "https://the-alexandria-protocol.replit.app/api/studies/51/file",
   "status": 200,
   "typ": "application/pdf",
   "bytes": 27738,
   "datei": "030.bin",
   "sha256": "8d1f00e440dc03fdbc7f5d4cb524208255b45dfed962445d092820e3399e9315"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/studies/50/file",
-  "status": 200,
-  "typ": "text/plain",
-  "bytes": 48,
-  "datei": "031.bin",
-  "sha256": "054f8e5b99b7edbda75d7eeb5f020512a47b1d35ef9f94bedb27e2c27f997d43"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/studies/49/file",
-  "status": 200,
-  "typ": "text/plain",
-  "bytes": 37,
-  "datei": "032.bin",
-  "sha256": "3ca7c4aed7c1a6d54351f9847278b53e08ace235e02ef4b43ab8fc5b31208da0"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/studies/48/file",
-  "status": 200,
-  "typ": "text/plain",
-  "bytes": 37,
-  "datei": "033.bin",
-  "sha256": "3ca7c4aed7c1a6d54351f9847278b53e08ace235e02ef4b43ab8fc5b31208da0"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/studies/31/file",
-  "status": 200,
-  "typ": "application/pdf",
-  "bytes": 33062,
-  "datei": "034.bin",
-  "sha256": "1a179e284fb569fda28717478d53a973b04bceac9b3a51028aaf4e1f96d49067"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/studies/30/file",
-  "status": 200,
-  "typ": "application/pdf",
-  "bytes": 29200,
-  "datei": "035.bin",
-  "sha256": "91b6ab646cbc50db310885541bfa585555c0a7fe7536b0b141e305e875f8092c"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/studies/7/file",
-  "status": 200,
-  "typ": "application/pdf",
-  "bytes": 102220,
-  "datei": "036.bin",
-  "sha256": "fd4ae71c44523b910fd8dbdd841cdbebebb8018ebf41a48d2cdb9f87bf85a7d3"
- },
- {
-  "url": "https://the-alexandria-protocol.replit.app/api/studies/6/file",
-  "status": 200,
-  "typ": "application/pdf",
-  "bytes": 33335,
-  "datei": "037.bin",
-  "sha256": "6bec62e558e5c422303066629ca6e7e415333d639cec1957621da0a20e1467d4"
  }
 ]
