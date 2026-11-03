@@ -111,6 +111,9 @@ Im Testnet nach NU7 ergab das 1.541 min, 913 min und 800 min.
 
 ## Offene Fragen an Ben
 
+Alle drei sind am 3.11. beantwortet, siehe den Abschnitt „Antworten Ben 3.11. und Umsetzung“.
+
+
 1. **M6:** Welche Definition geht in die Spezifikation v1 (pulsehawk.io/standard)? Die Seite wird bis Do 5.11. gebaut, die Frage sollte vorher geklärt sein. Mein Vorschlag steht oben. Die CSV enthält alle drei Varianten. Was nicht in die Spezifikation kommt, kann im Report als Anmerkung stehen oder entfallen.
 2. **M3:** Gezählt wird jeder Wechsel unserer Spitze, auch Tiefe 1. Das passiert bei einem gesunden Netz ab und zu, wenn zwei Blöcke gleichzeitig gefunden werden. Soll der Report alle Wechsel nennen oder erst ab Tiefe 2? Die CSV hat Zahl und größte Tiefe; die Zahl ab Tiefe 2 lässt sich aus dem Log ergänzen.
 3. **Grenzen der Zeitbasis:** M3 und M4 nehmen die Zeit unserer Wache (Ankunft), M1, M2 und M6 die Kopfzeiten. Die Fenstergrenzen weichen dadurch um Sekunden voneinander ab. Für v1 reicht das aus meiner Sicht; bitte bestätigen.
@@ -129,6 +132,35 @@ Im Testnet nach NU7 ergab das 1.541 min, 913 min und 800 min.
    sudo /opt/kaspa-pulse/deploy/c2/setup.sh wache-aus zcash-mainnet
    ```
    Dabei kommen Log und Rohdaten ins Repo.
+
+## Antworten Ben 3.11. und Umsetzung
+
+Die drei offenen Fragen hat Ben am 3.11. beantwortet. Umgesetzt ist das in `scripts/wache/report_v1.py`, auf dem Branch `wache/report-v1-spec`.
+
+1. **M6, Spezifikation v1.0:**
+   - Gemessen wird das gleitende Mittel der Abstände der letzten 60 min, innerhalb ± 20 % des Ziels (bei 25 s also 20 bis 30 s).
+   - „Stabil“ ist der erste Zeitpunkt, ab dem dieses Mittel 60 min ohne Unterbrechung im Band bleibt. Der früheste mögliche Wert ist 60 min nach der Aktivierung, weil vorher keine volle Stunde vorliegt.
+   - Die CSV hat jetzt nur noch `zeit_bis_stabil` und `anteil_im_band`. Die beiden p50-Varianten sind entfallen.
+   - Die PulseHawk-Seite übernimmt genau diese Definition in pulsehawk.io/standard.
+2. **M3:**
+   - Jeder Wechsel unserer Spitze zählt, als Verteilung nach Tiefe: `reorgs_tiefe_1`, `reorgs_tiefe_2` und `reorgs_tiefe_3_plus`.
+   - Die Kopfzahl `reorgs_ab_tiefe_2` zählt erst ab Tiefe 2, wie der Alarm der Wache. Die Wache meldet Reorgs schon heute erst ab Tiefe 2 (`reorg.min_tiefe` 2).
+   - Dazu kommt weiter die größte Tiefe.
+3. **Zeitbasis:**
+   - M3 und M4 nehmen die Ankunftszeit bei der Wache, M1, M2 und M6 die Kopfzeiten der Blöcke.
+   - Das steht in der Anmerkung jeder dieser Zeilen und kommt im Report unter „Grenzen“.
+
+**Tests:**
+
+| Daten | zeit_bis_stabil | anteil_im_band |
+|---|---:|---:|
+| Testnet-Aktivierung 4.465.026, 72 h danach | 60,6 min | 82,9 % |
+| Testnet-Aufzeichnung vom 17.10. mit dem Log aus der Simulation | 60,2 min | 97,6 % |
+| Mainnet mit 75 s als Ziel, als Gegenprobe (gesunde Kette, weniger Blöcke je Stunde, also mehr Rauschen) | 263,6 min | 88,5 % |
+
+- Die Simulation mit 25 s ergab vorher 97,5 % im Band.
+- M3 mit dem Log aus der Simulation: Tiefe 1 einmal, Tiefe 2 einmal, Kopfzahl ab Tiefe 2 gleich 1.
+- `sha256sum -c` ist OK.
 
 ## Merge-Zeilen
 
