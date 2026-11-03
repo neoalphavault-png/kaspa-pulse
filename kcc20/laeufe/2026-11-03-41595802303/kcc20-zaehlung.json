@@ -1,0 +1,57 @@
+{
+ "quelle": "counted by kaspa pulse, eigener knoten, zustaende per blake2b-hash bewiesen",
+ "tokens_mit_lebenden_outputs": 313,
+ "tokens_mit_aktivitaet_seit": 305,
+ "halter_outputs": 4021,
+ "halter_je_token_summiert": 2808,
+ "halter_eindeutig": 1406,
+ "transfers_counted": 737,
+ "transfers_counted_ab_utc": "2026-11-01T06:23:49.852000+00:00",
+ "eigene_fenster_utc": [
+  [
+   "2026-10-22T05:53:20.248000+00:00",
+   "2026-10-23T15:10:43.594000+00:00"
+  ],
+  [
+   "2026-10-23T05:54:55.536000+00:00",
+   "2026-10-24T12:40:31.510000+00:00"
+  ],
+  [
+   "2026-10-24T05:58:31.821000+00:00",
+   "2026-10-25T12:17:40.786000+00:00"
+  ],
+  [
+   "2026-10-25T06:06:09.858000+00:00",
+   "2026-10-26T12:17:43.558000+00:00"
+  ],
+  [
+   "2026-11-01T06:23:49.852000+00:00",
+   "2026-11-02T20:02:58.952000+00:00"
+  ],
+  [
+   "2026-11-01T18:25:00.829000+00:00",
+   "2026-11-03T12:17:39.730000+00:00"
+  ]
+ ],
+ "transfers_vor_eigenem_fenster_nicht_counted": 8472,
+ "transfers_seit": 9209,
+ "transfers_seit_je_quelle": {
+  "api-tx.jsonl": 6292,
+  "frueherer lauf": 2397,
+  "tx.jsonl": 520
+ },
+ "transfers_je_token_summiert": 9257,
+ "transfer_tx_ohne_bewiesenen_token_seit": 0,
+ "token_outputs_nicht_bewiesen": 124,
+ "token_outputs_nicht_bewiesen_kas": 1071.0,
+ "tokens_mit_unbewiesenen_outputs": 124,
+ "covenant_utxos_gesamt": 19789,
+ "covenant_utxos_nicht_dekodiert": 15768,
+ "covenant_utxos_nicht_dekodiert_kas": 1517562.8636444,
+ "covenant_ids_nicht_dekodiert": 1640,
+ "lebende_outputs_ohne_erzeugende_tx": 0,
+ "templates": 6,
+ "tx_gelesen": 23659,
+ "stichzeit": "2026-11-03T12:00:00Z",
+ "transfers_seit_utc": "2026-10-21T00:00:00Z"
+}
