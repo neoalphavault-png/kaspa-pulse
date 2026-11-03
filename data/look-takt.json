@@ -28,6 +28,13 @@
     "motiv": "partikel-puls",
     "schritt": 0,
     "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-11-03",
+    "look": "D-dunkel",
+    "motiv": "zahnraeder",
+    "schritt": 1,
+    "serie": "tagesgrafik"
    }
   ],
   "story/instagram": [
@@ -35,6 +42,11 @@
     "datum": "2026-11-02",
     "look": "dunkel",
     "schritt": 0
+   },
+   {
+    "datum": "2026-11-03",
+    "look": "D-dunkel",
+    "schritt": 1
    }
   ],
   "tagesgrafik/discord": [
@@ -47,6 +59,11 @@
     "datum": "2026-11-02",
     "look": "hell",
     "schritt": 1
+   },
+   {
+    "datum": "2026-11-03",
+    "look": "A-teal",
+    "schritt": 2
    }
   ],
   "tagesgrafik/threads": [
@@ -59,6 +76,11 @@
     "datum": "2026-11-02",
     "look": "hell",
     "schritt": 1
+   },
+   {
+    "datum": "2026-11-03",
+    "look": "A-teal",
+    "schritt": 2
    }
   ],
   "tagesgrafik/x": [
@@ -71,6 +93,11 @@
     "datum": "2026-11-02",
     "look": "hell",
     "schritt": 1
+   },
+   {
+    "datum": "2026-11-03",
+    "look": "A-teal",
+    "schritt": 2
    }
   ]
  }

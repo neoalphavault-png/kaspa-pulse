@@ -1,43 +1,43 @@
 {
-  "issue": "NOV 2 2026",
+  "issue": "NOV 3 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "864,000",
-  "value_label": "blocks the kaspa network produces every single day",
-  "headline": "bitcoin finds *144 blocks*.\nkaspa finds 864,000.",
+  "value": "1",
+  "value_label": "day until the next kaspa reward cut",
+  "headline": "bitcoin waits *530 days*.\nkaspa cuts 17 times before then.",
   "panes": [
     {
       "kind": "compare",
-      "title": "BLOCKS IN TWENTY FOUR HOURS",
-      "sub": "protocol target, not an average of a good day",
+      "title": "TIME TO THE NEXT REDUCTION",
+      "sub": "counted from 3 nov, in days",
       "rows": [
         {
           "label": "kaspa",
-          "sub": "ten per second",
-          "value": "864,000",
-          "pct": 100.0,
+          "sub": "monthly",
+          "value": "1",
+          "pct": 0.22838375723909699,
           "tone": "teal"
         },
         {
           "label": "bitcoin",
-          "sub": "one per ten minutes",
-          "value": "144",
-          "pct": 2.0,
+          "sub": "estimated",
+          "value": "530",
+          "pct": 100.0,
           "tone": "grey"
         }
       ]
     },
     {
       "kind": "anchor",
-      "title": "WHY IT DOES NOT COLLAPSE",
+      "title": "WHAT CHANGES",
       "lines": [
-        "parallel blocks are not thrown away. they are *ordered and kept*."
+        "daily emission drops from 1.78 million to *1.68 million KAS*. no vote, no announcement."
       ]
     }
   ],
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "kaspa produces 864,000 blocks a day. bitcoin produces about 144. ten every second against one every ten minutes. blocks found at the same moment are not discarded, they are ordered and kept, and that is the part most comparisons leave out.",
-    "reply": "how that ordering works is explained on kaspapulse.com. the coins per block shrink, the number of blocks does not."
+    "x": "the next kaspa reward cut lands in 1 day. bitcoin waits about 530 days for its next one, and kaspa cuts 17 more times before that date. daily emission drops from 1.78 million to 1.68 million KAS, the block reward from 2.0602 to 1.9445.",
+    "reply": "the countdown runs on kaspapulse.com/kaspa-halving.html. the kaspa date is arithmetic, the bitcoin date is an estimate."
   }
 }

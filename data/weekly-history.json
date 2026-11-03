@@ -207,5 +207,26 @@
     "tps": 0.92,
     "tps_def": "standard_7d",
     "dex_def": "total7d"
+  },
+  {
+    "week": "2026-11-02",
+    "issue": 17,
+    "hashrate": 368.09,
+    "block_reward": 2.060172,
+    "emission": 1779988.811045,
+    "mined_pct": 96.814352,
+    "tvl_kasplex": 253865.118003,
+    "tvl_igra": 551494.138094,
+    "tvl_total": 805359.256097,
+    "dex_vol": 135517.47,
+    "chain_fees": 81.27,
+    "holders": 810169.0,
+    "active_addr": 6745.0,
+    "dormant_pct": 52.17,
+    "exchange_kas": 3620893007.0,
+    "tps": 0.86,
+    "holders_100kas": 295822.0,
+    "tps_def": "standard_7d",
+    "dex_def": "total7d"
   }
 ]
