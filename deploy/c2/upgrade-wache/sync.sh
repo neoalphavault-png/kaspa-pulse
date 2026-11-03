@@ -20,13 +20,17 @@ BRANCH="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["ablage
 ZIEL="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["ablage"]["log"])' "$KONFIG")"
 QUELLE="$(git -C /opt/kaspa-pulse remote get-url origin)"
 ROH=""
-if grep -q ',fenster_zu$' "$LOG"; then
+EXPORT_FEHLER=0
+# wache_kern.log schreibt mit csv.writer, also mit \r\n am Zeilenende:
+# vor dem Vergleich die \r entfernen.
+if tr -d '\r' < "$LOG" | grep -q ',fenster_zu$'; then
   if python3 /opt/kaspa-pulse/scripts/wache/roh_export.py --kette "$KONFIG" --ablage "$ABLAGE" \
        --aus "$ABLAGE/export.neu"; then
     rm -rf "$ABLAGE/export" && mv "$ABLAGE/export.neu" "$ABLAGE/export"
     ROH="$(dirname "$ZIEL")/roh"
   else
     rm -rf "$ABLAGE/export.neu"
+    EXPORT_FEHLER=1
     echo "rohdaten nicht exportiert, nur das log" >&2
   fi
 fi
@@ -50,7 +54,8 @@ for v in 1 2 3; do
   fi
   if git -C "$KLON" diff --cached --quiet; then
     echo "log unveraendert"
-    exit 0
+    [ "$EXPORT_FEHLER" -eq 0 ] || echo "fehler: rohdaten nicht exportiert" >&2
+    exit "$EXPORT_FEHLER"
   fi
   # Wie scripts/zcash/daten_committen.sh: eine Kopie von secret_scan.py
   # prueft das Repo, in dem sie liegt, hier also den Datenbranch.
@@ -61,7 +66,10 @@ for v in 1 2 3; do
   git -C "$KLON" commit --quiet -m "upgrade-wache $KETTE: log${ROH:+ und rohdaten} [bot]"
   if git -C "$KLON" push --quiet origin "HEAD:$BRANCH"; then
     echo "log gepusht, $(wc -l < "$LOG") zeilen${ROH:+, rohdaten in $ROH}"
-    exit 0
+    # Fehler beim Export erst nach dem Log-Push melden, damit
+    # systemctl status und journalctl ihn zeigen
+    [ "$EXPORT_FEHLER" -eq 0 ] || echo "fehler: rohdaten nicht exportiert" >&2
+    exit "$EXPORT_FEHLER"
   fi
   sleep 10
 done
