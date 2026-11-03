@@ -179,6 +179,86 @@ Inhalt: gezählte Verteilung der Abstände, Blöcke mit Mindestschwierigkeit dun
 
 Bitte den zweiten nehmen. Die Zahlen sind in beiden gleich, nur die Uhrzeit im Fenster ist 09:01 gegen 09:03.
 
+## Tempnet vor und nach dem Build-Wechsel
+
+Ben hat den Auftrag am 30.10. gegeben, Frist 3.11. 18:00 Berlin. Ausgewertet sind die Zuhörer-Läufe vom 25.10. 09:15 bis 3.11. 03:15 UTC.
+
+**Werkzeug und Daten:**
+- Skript `scripts/bch/build_wechsel.py`
+- Ergebnis `data/bch/build-wechsel.json` und `.md` auf `messung/bch-tempnet`, Commit `3901cfa` mit [skip ci]
+
+Peers stehen dort nur mit Software und Protokoll, ohne Adressen. Coinbase-Daten liest das Skript nicht.
+
+### Kennungen und Wechselzeitpunkt
+
+Alle Peers melden in allen Läufen Protokoll 70016 und unveränderte Kennungen.
+
+| Kennung | Protokoll | gesehen |
+|---|---|---|
+| `/Bitcoin Cash Node:29.2.1(9500-tempnet)/` | 70016 | 25.10. bis 3.11. |
+| `/Bitcoin Cash Node:29.2.1(tempnet-20261015)/` | 70016 | 25.10. bis 3.11. |
+| `/Bitcoin Cash Node:29.2.1(my-tempnet-node)/` | 70016 | 25.10. bis 3.11. |
+| `/Vcash:0.1/` | 70016 | 25.10. bis 3.11. |
+
+**Gemeinsame Abbrüche** (alle Verbindungen einer Kennung binnen 3 min):
+- 26.10. 08:30:51 UTC, 9500, 3 Verbindungen
+- 29.10. 20:39:44 UTC, my-tempnet-node, 2 Verbindungen
+- **29.10. 22:35:59 UTC, 9500, 3 Verbindungen.** Danach verbindet sich 9500 wieder, mit derselben Kennung.
+
+**Mein Schluss:** 9500 wurde am 29.10. um 22:35:59 UTC neu gestartet. Das passt zur Angabe im Forum, dass 9500 am 29.10. auf den Stand von wip2 gezogen hat. Beweisen lässt es sich aus unseren Daten nicht, weil die Kennung gleich blieb. Ich nehme den Zeitpunkt als Schnitt, erfinde aber keinen anderen.
+
+**Wichtig:** Die Veränderung beginnt schon etwa 1,5 h vor dem Neustart. Ab 29.10. 21:00 UTC steigt der Median der timestamp_deviation von etwa 0,8 auf etwa 3,2 s. In derselben Stunde kommen 688 Kettenblöcke (sonst etwa 60 je Stunde) und 193 stale-Blöcke, davon 184 zuerst von 9500.
+
+### Vor und nach dem Neustart
+
+| | vorher, 25.10. 09:15 bis 29.10. 22:35 UTC | nachher, 29.10. 22:35 bis 3.11. 03:15 UTC |
+|---|---:|---:|
+| Kettenblöcke | 7.370 (Höhen 341.252 bis 348.633) | 6.008 (Höhen 348.634 bis 354.641) |
+| Abstände Median / p90 | 36 / 127 s | 42 / 126 s |
+| propagation_spread Median / p90 | 7.515 / 10.864 ms | 7.276 / 10.273 ms |
+| zuerst angekündigt von 9500 | 19,9 % | 20,5 % |
+| stale (6 Bestätigungen) | 236, 3,10 % | 149, 2,42 % |
+| stale zuerst von | 9500 211, tempnet-20261015 20, my-tempnet-node 4, Vcash 1 | tempnet-20261015 128, 9500 20, my-tempnet-node 1 |
+
+### timestamp_deviation, alle und ohne Blöcke mit genau 120 s
+
+timestamp_deviation ist unsere erste Sicht minus die Kopfzeit des Blocks. Ausgelassen sind im zweiten Durchgang die Blöcke, deren Kopfzeit genau 120 s nach dem Vorgänger liegt.
+
+| Fenster | Blöcke | Median | p90 | p99 |
+|---|---:|---:|---:|---:|
+| vorher, alle | 7.370 | 0,86 s | 3,81 s | 29,34 s |
+| vorher, ohne 161 Blöcke mit genau 120 s | 7.209 | 0,85 s | 3,61 s | 7,42 s |
+| nachher, alle | 6.008 | 3,20 s | 4,89 s | 14,21 s |
+| nachher, ohne 54 Blöcke mit genau 120 s | 5.954 | 3,20 s | 4,86 s | 10,94 s |
+
+**Zur Einordnung:** Die Spalte „nachher“ mischt mehrere Abschnitte, deshalb hier zusätzlich nach Zeitabschnitten. Diese Tabelle ist mit demselben Skript gerechnet, aber nicht in der JSON.
+
+| Abschnitt UTC | Blöcke | alle Median / p90 / p99 | genau 120 s | ohne sie Median / p90 / p99 |
+|---|---:|---|---:|---|
+| 25.10. 09:17 bis 28.10. 07:36 (Woche 2) | 4.207 | 0,78 / 3,40 / 31,07 s | 107 | 0,76 / 3,23 / 5,21 s |
+| 29.10. 21:00 bis 30.10. 17:00 | 2.103 | 3,23 / 6,02 / 13,16 s | 18 | 3,22 / 6,02 / 13,13 s |
+| 30.10. 17:00 bis 31.10. 00:00 | 128 | 0,82 / 3,80 / 34,27 s | 0 | gleich |
+| 31.10. 00:00 bis 2.11. 22:00 | 3.729 | 3,19 / 4,08 / 5,73 s | 36 | 3,18 / 4,06 / 4,86 s |
+| 2.11. 22:00 bis 3.11. 04:00 | 955 | 3,35 / 6,50 / 18,80 s | 0 | gleich |
+
+**Was die Abschnitte zeigen:**
+1. **Blöcke mit genau 120 s:** Vor dem Wechsel tragen sie fast das ganze lange Ende. Ohne sie fällt p99 in Woche 2 von 31,1 auf 5,2 s und vorher insgesamt von 29,3 auf 7,4 s. Nach dem Wechsel sind sie seltener (0,9 % statt 2,2 % der Blöcke) und ändern p99 nur noch wenig.
+2. **Median:** Er liegt seit 29.10. 21:00 UTC bei etwa 3,2 s statt 0,8 s, und das über mehrere Tage und viele Läufe des Zuhörers. Eine Ausnahme ist der ruhige Abschnitt am 30.10. abends mit nur 128 Blöcken, dort liegt er wieder bei 0,8 s. Ob die Ursache eine geänderte Zeitstempel-Wahl eines Miners ist, eine Änderung im Netz oder etwas bei uns, sagen unsere Daten nicht. Gegen eine Uhr bei uns spricht, dass die Läufe auf wechselnden Runnern laufen.
+3. **Anteil von 9500 an den ersten Ankündigungen:** Er war direkt nach dem Neustart sehr hoch, vom 29.10. 23 Uhr bis 30.10. 12 Uhr 60 bis 100 % je Stunde. Ab 31.10. liegt er bei 3 bis 9 % je vollem Tag. Der Durchschnitt von 20,5 % für „nachher“ verdeckt das.
+4. **Zwei Stale-Wellen, von verschiedenen Ankündigern:**
+   - Die erste kam am 29.10. ab 21 Uhr, die stale-Blöcke kamen fast alle zuerst von 9500.
+   - Die zweite kam am 2.11. ab 22 Uhr, mit 112 stale-Blöcken, fast alle zuerst von tempnet-20261015.
+   - Beide Male kamen gleichzeitig viel mehr Kettenblöcke als sonst.
+
+### Welche älteren Zahlen betroffen sein können
+
+- **Woche 2 vom 28.10.** und der Forum-Entwurf dazu: Das Fenster endet am 28.10. 07:36, also vor dem Wechsel. Die Zahlen bleiben gültig.
+  - Anders steht es um das p99 der timestamp_deviation von 31,1 s. Es kommt fast nur von den Blöcken mit genau 120 s, ohne sie liegt es bei 5,2 s. Woche 2 sagt das schon (41 der 42 Blöcke über p99). Wird der Wert öffentlich wiederholt, sollte die Zahl ohne diese Blöcke daneben stehen.
+- **Zwischenstand vom 30.10. 13:18 UTC:**
+  - Er ist überholt. Für „nachher“ lagen dort nur 15 h Daten vor, aus der Phase direkt nach dem Neustart: 84 % zuerst von 9500, p99 37,63 s.
+  - Diese Zahlen bitte nicht verwenden.
+- **Ab Woche 3 (Wochenlauf 4.11.):** Ein Mittel über die ganze Woche würde zwei Zustände mischen, Median etwa 0,8 s bis 29.10. 21:00 und etwa 3,2 s danach. Die Woche wird deshalb getrennt ausgewiesen, wie in der geplanten Aufgabe für den 4.11. vorgesehen.
+
 ## 6. Dateien
 
 - Skripte: `scripts/bch/chipnet_koepfe.py`, `scripts/bch/chipnet_auswertung.py`, `scripts/bch/chipnet_wbch.py`
