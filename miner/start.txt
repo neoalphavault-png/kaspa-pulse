@@ -1,0 +1,4 @@
+# miner nach dem reward cut (ben, 02.11. und 03.11.2026), aufzeichnung gestartet am 03.11.2026
+# cut 2026-11-04T13:45:00Z. zwei gleich lange fenster direkt davor und danach, je lueckenlos aus dem eigenen knoten,
+# so lang wie moeglich, mindestens 48 h. der fruehste beobachtete kettenblock (miner/daten/stand.json) legt die laenge fest.
+cut=2026-11-04T13:45:00Z

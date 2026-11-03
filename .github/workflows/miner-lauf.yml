@@ -1,0 +1,164 @@
+# Kaspa Pulse - ein Lauf "Miner nach dem Cut" (Ben, 02.11. und 03.11.2026)
+#
+# Liegt bewusst NUR auf dem Branch messung/miner-nach-cut. Nicht gemergt.
+# Eigener Mainnet-Knoten im Runner (rusty-kaspa v2.1.0), frisch synchronisiert,
+# dann gestoppt. kp-coinbase liest aus den UTXO-Diffs der Kettenbloecke, die
+# frueher Laeufe noch nicht gelesen haben, jede neue und jede ausgegebene
+# Coinbase-Ausgabe. Knoten-Logs nur in eine Datei, nie ausgegeben. Hochgeladen
+# und gesichert werden nur Summen: keine Adresse, kein Skript, keine Tx-ID.
+# Keine Wallet, keine Schluessel, keine Secrets.
+
+name: miner lauf
+
+on:
+  workflow_call:
+    inputs:
+      nr:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  zaehlen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    env:
+      KASPA_TAG: v2.1.0
+      APP: /mnt/kp/app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: sdk, version und pruefsumme fest
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+
+      - name: selbsttests
+        run: |
+          python3 scripts/kp_stichzeit_warten.py --selbsttest | tail -n 1
+          python3 scripts/miner_cut.py --selbsttest | tail -n 1
+
+      - name: ab welchem daa (stand auf dem branch)
+        id: ab
+        run: |
+          set -euo pipefail
+          git fetch -q origin "$GITHUB_REF_NAME"
+          ab=$(git show FETCH_HEAD:miner/daten/stand.json 2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin).get('letzter_daa', 0))" 2>/dev/null || echo 0)
+          echo "ab_daa=$ab" >> "$GITHUB_OUTPUT"
+          echo "lese ab daa $ab"
+
+      - name: platz schaffen
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost || true
+          sudo mkdir -p /mnt/kp && sudo chown "$USER" /mnt/kp
+          df -h / /mnt | tail -n 2
+
+      - name: kaspad holen (fertiges release)
+        id: bin
+        run: |
+          set -euo pipefail
+          mkdir -p /mnt/kp/bin && cd /mnt/kp/bin
+          curl -fsSL -H "Authorization: Bearer ${{ github.token }}" \
+            "https://api.github.com/repos/kaspanet/rusty-kaspa/releases/tags/${KASPA_TAG}" > rel.json
+          url=$(python3 -c "
+          import json
+          a=[x for x in json.load(open('rel.json'))['assets'] if 'linux' in x['name'] and ('amd64' in x['name'] or 'x86_64' in x['name']) and x['name'].endswith('.zip')]
+          print(a[0]['browser_download_url'] if a else '')")
+          if [ -z "$url" ]; then echo "kein fertiges linux-release gefunden"; echo "ok=nein" >> "$GITHUB_OUTPUT"; exit 0; fi
+          curl -fsSL "$url" -o k.zip && unzip -q k.zip
+          k=$(find . -type f -name kaspad | head -n 1)
+          chmod +x "$k" && cp "$k" /mnt/kp/kaspad
+          sha256sum /mnt/kp/kaspad | cut -c1-64
+          echo "ok=ja" >> "$GITHUB_OUTPUT"
+
+      - name: knoten starten, ausgabe nur in datei
+        if: steps.bin.outputs.ok == 'ja'
+        run: |
+          mkdir -p "$APP"
+          nohup /mnt/kp/kaspad --yes --appdir="$APP" --nologfiles --disable-upnp \
+            --rpclisten-borsh > /mnt/kp/kaspad.log 2>&1 &
+          echo $! > /mnt/kp/kaspad.pid
+          echo "start_ms=$(( $(date +%s) * 1000 ))" > /mnt/kp/start.txt
+          sleep 20
+          kill -0 "$(cat /mnt/kp/kaspad.pid)" && echo "knoten laeuft"
+
+      - name: rusty-kaspa quelle und werkzeug bauen
+        run: |
+          set -euo pipefail
+          git clone -q --depth 1 --branch "$KASPA_TAG" https://github.com/kaspanet/rusty-kaspa /mnt/kp/rk
+          cp -r miner/werkzeug /mnt/kp/rk/kp-coinbase
+          cd /mnt/kp/rk
+          sed -i '0,/^members = \[/s//members = [\n    "kp-coinbase",/' Cargo.toml
+          export CARGO_TARGET_DIR=/mnt/kp/target
+          nice cargo build -q --release -p kp-coinbase
+          ls -la /mnt/kp/target/release/kp-coinbase | awk '{print $5, $9}'
+
+      - name: warten bis synchron
+        run: |
+          s=$(sed -n 's/^start_ms=//p' /mnt/kp/start.txt)
+          python3 scripts/kp_stichzeit_warten.py --stichzeit-ms "$(( s - 1200000 ))" --max-min 180 --vorlauf-min 1
+
+      - name: knoten stoppen
+        if: always()
+        run: |
+          p=$(cat /mnt/kp/kaspad.pid 2>/dev/null || true)
+          [ -n "$p" ] && kill -INT "$p" 2>/dev/null || true
+          for i in $(seq 1 120); do kill -0 "$p" 2>/dev/null || break; sleep 5; done
+          kill -0 "$p" 2>/dev/null && echo "knoten noch nicht beendet" || echo "knoten beendet"
+
+      - name: coinbase aus den utxo-diffs
+        run: |
+          set -uo pipefail
+          mkdir -p /mnt/kp/aus
+          for d in $(ls -d "$APP"/kaspa-mainnet/datadir/consensus/consensus-* | sort -r); do
+            echo "versuche $(basename "$d")"
+            if /mnt/kp/target/release/kp-coinbase "$d" /mnt/kp/aus "${{ steps.ab.outputs.ab_daa }}" 2> /mnt/kp/aus/stderr.txt; then
+              grep -v -E '([0-9]{1,3}\.){3}[0-9]{1,3}' /mnt/kp/aus/stderr.txt | tail -n 3
+              rm -f /mnt/kp/aus/stderr.txt
+              wc -l /mnt/kp/aus/raus.csv /mnt/kp/aus/rein.csv /mnt/kp/aus/daa-zeit.csv
+              exit 0
+            fi
+            grep -v -E '([0-9]{1,3}\.){3}[0-9]{1,3}' /mnt/kp/aus/stderr.txt | tail -n 3
+          done
+          exit 1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: miner-lauf-${{ inputs.nr }}
+          path: /mnt/kp/aus/
+          retention-days: 14
+          if-no-files-found: error
+
+  sichern:
+    needs: zaehlen
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: miner-lauf-${{ inputs.nr }}
+          path: ${{ runner.temp }}/lauf
+      - name: datenstand fortschreiben und sichern
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898309+github-actions[bot]@users.noreply.github.com"
+          for v in 1 2 3; do
+            git fetch -q origin "$GITHUB_REF_NAME" && git reset -q --hard FETCH_HEAD
+            python3 scripts/miner_cut.py --fortschreiben "$RUNNER_TEMP/lauf" --daten miner/daten --lauf-id "${GITHUB_RUN_ID}-${{ inputs.nr }}"
+            if grep -rlE 'kaspa:[a-z0-9]{40,}|([0-9]{1,3}\.){3}[0-9]{1,3}' miner/daten; then echo "adresse oder ip, nichts gesichert"; exit 1; fi
+            git add miner/daten
+            git commit -q -m "miner: lauf ${{ inputs.nr }}, datenstand fortgeschrieben"
+            git push -q origin "HEAD:$GITHUB_REF_NAME" && { echo "gesichert"; exit 0; }
+            sleep $((v * 5))
+          done
+          exit 1

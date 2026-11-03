@@ -1,0 +1,14 @@
+[package]
+name = "kp-coinbase"
+description = "Kaspa Pulse: Coinbase-Ausgaben und ihre erste Ausgabe aus den UTXO-Diffs eines gestoppten Knotens"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+kaspa-consensus.workspace = true
+kaspa-consensus-core.workspace = true
+kaspa-database.workspace = true
+kaspa-hashes.workspace = true
+serde_json.workspace = true

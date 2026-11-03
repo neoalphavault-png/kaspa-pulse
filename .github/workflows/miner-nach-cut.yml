@@ -1,0 +1,398 @@
+# Kaspa Pulse - "Miner nach dem Cut", Aufzeichnung (Ben, 02.11. und 03.11.2026)
+#
+# Liegt bewusst NUR auf dem Branch messung/miner-nach-cut. Nicht gemergt.
+# Ein Push von miner/start.txt startet eine Kette von 24 Laeufen (miner-lauf.yml),
+# dazwischen je ein Wartejob von 5 h 30 min ohne Abfragen. Jeder Lauf liest die
+# Kette ab dem Stand des vorigen, so bleibt das Fenster lueckenlos, solange
+# zwischen zwei Laeufen weniger als rund 30 h liegen. Ein gescheiterter Lauf
+# haelt die Kette nicht an, der naechste liest dann mit ab.
+
+name: miner nach cut
+
+on:
+  push:
+    branches:
+      - messung/miner-nach-cut
+    paths:
+      - miner/start.txt
+
+permissions:
+  contents: write
+
+concurrency:
+  group: miner-nach-cut
+  cancel-in-progress: false
+
+jobs:
+  l01:
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "01"
+
+  w01:
+    needs: l01
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l02:
+    needs: w01
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "02"
+
+  w02:
+    needs: l02
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l03:
+    needs: w02
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "03"
+
+  w03:
+    needs: l03
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l04:
+    needs: w03
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "04"
+
+  w04:
+    needs: l04
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l05:
+    needs: w04
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "05"
+
+  w05:
+    needs: l05
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l06:
+    needs: w05
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "06"
+
+  w06:
+    needs: l06
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l07:
+    needs: w06
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "07"
+
+  w07:
+    needs: l07
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l08:
+    needs: w07
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "08"
+
+  w08:
+    needs: l08
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l09:
+    needs: w08
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "09"
+
+  w09:
+    needs: l09
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l10:
+    needs: w09
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "10"
+
+  w10:
+    needs: l10
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l11:
+    needs: w10
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "11"
+
+  w11:
+    needs: l11
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l12:
+    needs: w11
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "12"
+
+  w12:
+    needs: l12
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l13:
+    needs: w12
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "13"
+
+  w13:
+    needs: l13
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l14:
+    needs: w13
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "14"
+
+  w14:
+    needs: l14
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l15:
+    needs: w14
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "15"
+
+  w15:
+    needs: l15
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l16:
+    needs: w15
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "16"
+
+  w16:
+    needs: l16
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l17:
+    needs: w16
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "17"
+
+  w17:
+    needs: l17
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l18:
+    needs: w17
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "18"
+
+  w18:
+    needs: l18
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l19:
+    needs: w18
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "19"
+
+  w19:
+    needs: l19
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l20:
+    needs: w19
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "20"
+
+  w20:
+    needs: l20
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l21:
+    needs: w20
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "21"
+
+  w21:
+    needs: l21
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l22:
+    needs: w21
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "22"
+
+  w22:
+    needs: l22
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l23:
+    needs: w22
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "23"
+
+  w23:
+    needs: l23
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - name: warten ohne abfragen
+        run: sleep 19800
+
+  l24:
+    needs: w23
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/miner-lauf.yml
+    with:
+      nr: "24"
