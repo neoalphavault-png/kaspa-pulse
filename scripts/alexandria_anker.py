@@ -20,7 +20,7 @@ DAA-Score, Betraege, Laengen. Die Rohdaten (mit Scripts der Ausgaenge) gehen
 nur ins JSON, das der Workflow auf den Messbranch legt.
 
     python3 scripts/alexandria_anker.py --anker messung/alexandria/anker.txt --rolle k1 --partner P --out out/k1
-    python3 scripts/alexandria_anker.py --archiv URL --out out/archiv
+    python3 scripts/alexandria_anker.py --archiv URL [URL ...] --out out/archiv
     python3 scripts/alexandria_anker.py --selbsttest
 """
 import argparse
@@ -31,7 +31,6 @@ import os
 import re
 import sys
 import time
-import urllib.parse
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -92,6 +91,28 @@ def rein(x):
     if hasattr(x, "__dict__"):
         return rein(vars(x))
     return str(x)
+
+
+ADRESSFELDER = ("scriptPublicKeyAddress", "scriptPublicKey", "address", "scriptPublicKeyAddresses")
+ADRESSE = re.compile(r"kaspa(?:test|dev|sim)?:[a-z0-9]{20,}")
+
+
+def ersatz(wert):
+    """Laenge und sha256 statt eines Adressfelds (Ben, 03.11.2026)."""
+    s = wert if isinstance(wert, str) else json.dumps(wert, sort_keys=True)
+    return {"laenge": len(s), "sha256": hashlib.sha256(s.encode()).hexdigest()}
+
+
+def ohne_adressen(x):
+    """Kopie ohne Adressen: Adressfelder werden Laenge und sha256, Adressen in
+    anderen Texten ebenso."""
+    if isinstance(x, dict):
+        return {k: (ersatz(v) if k in ADRESSFELDER and v not in (None, "") else ohne_adressen(v)) for k, v in x.items()}
+    if isinstance(x, list):
+        return [ohne_adressen(v) for v in x]
+    if isinstance(x, str) and ADRESSE.search(x):
+        return ADRESSE.sub(lambda m: "[adresse sha256 %s]" % hashlib.sha256(m.group(0).encode()).hexdigest(), x)
+    return x
 
 
 def kopf(b):
@@ -265,7 +286,7 @@ async def knoten_lauf(anker, rolle, partner, out, suche_h):
     erg["knoten"] = meta
     erg["gelesen_utc"] = iso_ms(int(time.time() * 1000))
     with open(out + ".json", "w", encoding="utf-8") as fh:
-        json.dump({"pruefung": erg, "roh": roh}, fh, ensure_ascii=False, indent=1, sort_keys=True)
+        json.dump(ohne_adressen({"pruefung": erg, "roh": roh}), fh, ensure_ascii=False, indent=1, sort_keys=True)
     for z in zusammenfassung(rolle, meta, erg):
         print(z)
     return 0 if erg.get("tx_gefunden") else 1
@@ -336,7 +357,7 @@ async def such_lauf(rolle, partner, out, gesucht, von_ms=None, bis_ms=None, bloc
             pass
     erg["knoten"], erg["gelesen_utc"] = meta, iso_ms(int(time.time() * 1000))
     with open(out + ".json", "w", encoding="utf-8") as fh:
-        json.dump(erg, fh, ensure_ascii=False, indent=1, sort_keys=True)
+        json.dump(ohne_adressen(erg), fh, ensure_ascii=False, indent=1, sort_keys=True)
     print("%s kennung %s, %s bis %s, bloecke %s, gelesen bis %s, lueckenlos %s, gefunden %d, outputs %s, block-zeit %s, meldungen %s" % (
         rolle, meta.get("kennung", ""), erg.get("von_utc", ""), erg.get("bis_utc", ""), erg.get("bloecke", ""),
         erg.get("gelesen_bis_utc", ""), erg.get("lueckenlos_bis_ende", ""), len(erg.get("gefunden", [])),
@@ -345,8 +366,8 @@ async def such_lauf(rolle, partner, out, gesucht, von_ms=None, bis_ms=None, bloc
     return 0
 
 
-# archiv: seite und verlinkte dateien desselben hosts byte-genau sichern
-LINK = re.compile(r"""(?:href|src)\s*=\s*["']([^"'#]+)["']|["'](/(?:api|files?|download|manifest|study)[^"'\s]*)["']""", re.I)
+# archiv: nur die ausdruecklich genannten urls, byte-genau, keine link-verfolgung
+# (Ben, 03.11.2026: der erste lauf folgte links und holte die ganze api)
 
 
 def holen(url, limit=20 * 1024 * 1024):
@@ -355,17 +376,13 @@ def holen(url, limit=20 * 1024 * 1024):
         return r.status, r.headers.get("Content-Type", ""), r.read(limit)
 
 
-def archiv(start, out, extra=(), max_dateien=60):
+def archiv(urls, out, hole=holen):
+    """Holt genau die genannten urls, sonst nichts."""
     os.makedirs(out, exist_ok=True)
-    host = urllib.parse.urlparse(start).netloc
-    offen, gesehen, liste = [start] + list(extra), set(), []
-    while offen and len(gesehen) < max_dateien:
-        u = offen.pop(0)
-        if u in gesehen:
-            continue
-        gesehen.add(u)
+    liste = []
+    for u in dict.fromkeys(urls):
         try:
-            st, ct, daten = holen(u)
+            st, ct, daten = hole(u)
         except Exception as exc:  # noqa: BLE001
             liste.append({"url": u, "fehler": type(exc).__name__ + " " + str(exc)[:120]})
             continue
@@ -374,11 +391,6 @@ def archiv(start, out, extra=(), max_dateien=60):
             fh.write(daten)
         liste.append({"url": u, "status": st, "typ": ct, "bytes": len(daten), "datei": name + ".bin",
                       "sha256": hashlib.sha256(daten).hexdigest()})
-        if "html" in ct or "javascript" in ct or "json" in ct:
-            for m in LINK.finditer(daten.decode("utf-8", "replace")):
-                z = urllib.parse.urljoin(u, m.group(1) or m.group(2))
-                if urllib.parse.urlparse(z).netloc == host and z not in gesehen:
-                    offen.append(z)
     with open(os.path.join(out, "liste.json"), "w", encoding="utf-8") as fh:
         json.dump(liste, fh, indent=1)
     for e in liste:
@@ -417,6 +429,26 @@ def selbsttest():
     zus = "\n".join(zusammenfassung("k1", {"kennung": "abcdefghij"}, {"tx_gefunden": True, "payload_text": erw,
                                                                       "enthaltende_bloecke": []}))
     ok("log ohne script", "script" not in zus.lower() or "kein script" in zus.lower())
+    adr = "kaspatest:" + "q" * 61
+    roh = {"tx": {"outputs": [{"value": 1, "scriptPublicKey": "20" + "ab" * 32 + "ac",
+                               "verboseData": {"scriptPublicKeyAddress": adr, "scriptPublicKeyType": "PubKey"}}],
+                  "payload": "414c58"}, "notiz": "an " + adr}
+    sauber = json.dumps(ohne_adressen(roh))
+    ok("keine adresse und kein script im gespeicherten json", adr not in sauber and "ab" * 32 not in sauber)
+    ok("adressfeld wird laenge und sha256", ohne_adressen(roh)["tx"]["outputs"][0]["verboseData"]["scriptPublicKeyAddress"]
+       == {"laenge": len(adr), "sha256": hashlib.sha256(adr.encode()).hexdigest()})
+    ok("betrag, typ und payload bleiben", '"value": 1' in sauber and "PubKey" in sauber and "414c58" in sauber)
+    geholt = []
+
+    def hole(u):
+        geholt.append(u)
+        return 200, "text/html", b'<a href="/api/studies">x</a><script src="/assets/a.js"></script>'
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        archiv(["https://beispiel.invalid/study/52", "https://beispiel.invalid/api/studies/52"], d, hole=hole)
+        ok("archiv holt nur die genannten urls, folgt keinem link",
+           geholt == ["https://beispiel.invalid/study/52", "https://beispiel.invalid/api/studies/52"]
+           and sorted(os.listdir(d)) == ["000.bin", "001.bin", "liste.json"])
     print("%d fehler" % len(f))
     return 1 if f else 0
 
@@ -427,8 +459,7 @@ def main(argv=None):
     ap.add_argument("--rolle", choices=["k1", "k2"])
     ap.add_argument("--partner", default="")
     ap.add_argument("--suche-h", type=int, default=SUCHE_H)
-    ap.add_argument("--archiv")
-    ap.add_argument("--extra", nargs="*", default=[])
+    ap.add_argument("--archiv", nargs="*", default=[], help="genau diese urls, keine link-verfolgung")
     ap.add_argument("--out", default="out/anker")
     ap.add_argument("--selbsttest", action="store_true")
     ap.add_argument("--gesucht", default="", help="vorherige tx-ids, kommagetrennt")
@@ -443,7 +474,7 @@ def main(argv=None):
         return asyncio.run(such_lauf(a.rolle, a.partner, a.out, g, nz.utc_ms(a.von) if a.von else None,
                                      nz.utc_ms(a.bis) if a.bis else None, a.block.lower() or None))
     if a.archiv:
-        archiv(a.archiv, a.out, a.extra)
+        archiv(a.archiv, a.out)
         return 0
     return asyncio.run(knoten_lauf(a.anker, a.rolle, a.partner, a.out, a.suche_h))
 

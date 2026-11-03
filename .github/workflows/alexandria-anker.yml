@@ -42,9 +42,9 @@ jobs:
         continue-on-error: true
         run: |
           set -uo pipefail
-          U=$(grep '^archiv=' messung/alexandria/anker.txt | cut -d= -f2-)
-          B=${U%/study/*}
-          python3 scripts/alexandria_anker.py --archiv "$U" --extra "$B/api/study/52" "$B/api/studies/52" "$B/study/52/manifest" "$B/api/study/52/manifest" "$B/manifest.json" --out out/archiv
+          # nur die in anker.txt ausdruecklich genannten urls, keine link-verfolgung (Ben, 03.11.2026)
+          mapfile -t U < <(grep '^archiv=' messung/alexandria/anker.txt | cut -d= -f2-)
+          python3 scripts/alexandria_anker.py --archiv "${U[@]}" --out out/archiv
       - name: zwei knoten
         run: |
           mkdir -p out
