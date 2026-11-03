@@ -412,19 +412,31 @@
    "outputs": [
     {
      "covenant": null,
-     "scriptPublicKey": "000020aa9236f08732a5056ab00621576fa4bcdd480d029e814f872c05a3a90795db57ac",
+     "scriptPublicKey": {
+      "laenge": 72,
+      "sha256": "1ac93c9bceac76be8d412ead744acaa3dc86f3899902a5eed0e2daf001cc1fd9"
+     },
      "value": 11000000,
      "verboseData": {
-      "scriptPublicKeyAddress": "kaspatest:qz4fydhssue22pt2kqrzz4m05j7d6jqdq20gznu89sz682g8jhd4wrusgtwmf",
+      "scriptPublicKeyAddress": {
+       "laenge": 71,
+       "sha256": "204150c557b3b40af8336f27d6b789345db0b8ceeef3eb613144ab125100588e"
+      },
       "scriptPublicKeyType": "PubKey"
      }
     },
     {
      "covenant": null,
-     "scriptPublicKey": "000020aa9236f08732a5056ab00621576fa4bcdd480d029e814f872c05a3a90795db57ac",
+     "scriptPublicKey": {
+      "laenge": 72,
+      "sha256": "1ac93c9bceac76be8d412ead744acaa3dc86f3899902a5eed0e2daf001cc1fd9"
+     },
      "value": 88779400,
      "verboseData": {
-      "scriptPublicKeyAddress": "kaspatest:qz4fydhssue22pt2kqrzz4m05j7d6jqdq20gznu89sz682g8jhd4wrusgtwmf",
+      "scriptPublicKeyAddress": {
+       "laenge": 71,
+       "sha256": "204150c557b3b40af8336f27d6b789345db0b8ceeef3eb613144ab125100588e"
+      },
       "scriptPublicKeyType": "PubKey"
      }
     }
