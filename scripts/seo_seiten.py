@@ -49,6 +49,14 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 BASIS = "https://kaspapulse.com/"
+
+
+def kcc20_datei(vorgabe="kcc20/ergebnis/kcc20-tokens-2026-10-26.csv"):
+    """CSV der letzten KCC-20-Zaehlung, wie data/kcc20-stand.json sie nennt (Ben, 03.11.2026)."""
+    try:
+        return json.loads((REPO / "data/kcc20-stand.json").read_text(encoding="utf-8"))["datei"]
+    except (OSError, ValueError, KeyError):
+        return vorgabe
 BILD = BASIS + "og-card.png"
 BILD_ALT = "Kaspa Pulse, on-chain numbers for Kaspa"
 # seiten mit eigenem share-bild (Ben, 07.10.2026): datei, alt-text
@@ -105,7 +113,7 @@ DATASETS = {
                                 "with the output state; transfers from the node's gapless window",
         "variableMeasured": ["KCC-20 tokens", "unique holders", "holder outputs", "KCC-20 transfers"],
         "isBasedOn": "https://github.com/kaspanet/kccs",
-        "daten": "kcc20/ergebnis/kcc20-tokens-2026-10-26.csv",
+        "daten": kcc20_datei(),
         "format": "text/csv",
     },
     "kaspa-weekly.html": {
