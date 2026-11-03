@@ -13,7 +13,7 @@ Die Tx ist auf Testnet-10 vorhanden und angenommen, genau in dem Block, den das 
 - **Läufe** auf dem Messbranch `messung/alexandria-anker`:
   - [Lauf 41406868017](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/41406868017): Tx, Block, Annahme, Payload, Suche nach dem Eingang 6 h zurück, Archivseite. k1 gelesen 07:53:53 UTC, k2 07:55:43 UTC.
   - [Lauf 41409677674](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/41409677674): Suche nach dem Eingang vom Pruning-Punkt bis 1.11. 15:26 UTC, sechs Stücke, 07:58 bis 08:26 UTC.
-- **Rohdaten:** `messung/alexandria/roh/20261102T075543Z/k1.json` und `k2.json` (die ganze Tx, wie die Knoten sie liefern, dazu der Kopf des annehmenden Blocks), `messung/alexandria/roh/eingang-20261102T082622Z/` (Suche) und `messung/alexandria/roh/20261102T075543Z/archiv/` (Archivseite byte-genau). Die Rohdaten enthalten die Scripts der Ausgänge, deshalb stehen sie nur dort und nicht in diesem Bericht.
+- **Rohdaten:** `messung/alexandria/roh/20261102T075543Z/k1.json` und `k2.json` (die ganze Tx, wie die Knoten sie liefern, dazu der Kopf des annehmenden Blocks), `messung/alexandria/roh/eingang-20261102T082622Z/` (Suche) und `messung/alexandria/roh/20261102T075543Z/archiv/` (Archivseite byte-genau, nur noch study 51 und 52). Seit dem 3.11. stehen Adresse und Script jedes Ausgangs dort nur noch als Länge und sha256, siehe Nachtrag unten.
 - **Skript:** `scripts/alexandria_anker.py`, Workflows `alexandria-anker.yml` und `alexandria-eingang.yml`, nur auf dem Messbranch.
 
 ## 1. Tx vorhanden und angenommen
@@ -80,7 +80,7 @@ Gelesen am 2.11.2026 von 07:31:49 bis 07:31:59 UTC vom GitHub-Runner, nur GET, o
 | | Wert | Quelle |
 |---|---|---|
 | Eintrag 52 | Version 2, Vorgänger 51, gleiche Lineage wie 51 | source Archiv, `/api/studies/52` |
-| Zeitleiste | AP-0052 Version 2 folgt AP-0051, AP-0051 ist die erste Ablage | source Archiv, `/api/timeline` |
+| Zeitleiste | AP-0052 Version 2 folgt AP-0051, AP-0051 ist die erste Ablage | source Archiv, `/api/timeline`, gelesen am 2.11., seit dem 3.11. nicht mehr auf dem Messbranch |
 | Datei zu 52 | PDF, 27,725 Byte, sha256 `a286f3ffe06f7c9699d9dac4d4bab47f677000d50c80de6f7a036f08c392161c` | counted aus `/api/studies/52/file` |
 | fileHash laut Archiv | gleicher Wert | source Archiv, also stimmt die Datei mit dem Fingerabdruck des Archivs überein |
 | Datei zu 51 | 27,738 Byte, sha256 gleich dem fileHash von 51 im Archiv | counted gegen source Archiv |
@@ -111,7 +111,19 @@ Hinweis: Der Abstract von Eintrag 52 sagt "This record is not yet anchored to Ka
 
 ## Nebenbei
 
-Das Skript hat beim Abholen der Archivseite alle Links derselben Seite verfolgt und dabei auch andere öffentliche Einträge und Endpunkte gelesen, nur per GET. Drei davon antworteten mit 401 (Entwürfe, Vault), einige mit 400 oder 404. Die öffentlichen Antworten liegen mit auf dem Messbranch. Nichts davon geht in diesen Bericht ein außer den Einträgen 51 und 52.
+Das Skript hat beim Abholen der Archivseite alle Links derselben Seite verfolgt und dabei auch andere öffentliche Einträge und Endpunkte gelesen, nur per GET. Drei davon antworteten mit 401 (Entwürfe, Vault), einige mit 400 oder 404. Das war außerhalb des Auftrags. Seit dem 3.11. liegen nur noch die Abrufe zu study 51 und 52 auf dem Messbranch, siehe Nachtrag unten.
+
+## Nachtrag 3.11.2026, Messbranch bereinigt
+
+Ben hat am 3.11. darauf hingewiesen, dass der öffentliche Branch `messung/alexandria-anker` Adressen und Abrufe außerhalb des Auftrags enthielt. Behoben in drei neuen Commits, ohne Workflow-Lauf und ohne Force-Push:
+
+1. **2666fcd:** In `k1.json` und `k2.json` stehen `scriptPublicKeyAddress` und `scriptPublicKey` jedes Ausgangs nur noch als Länge und sha256. Beträge, Typ, Payload und Blockdaten sind unverändert.
+2. **dbc9e24:** Aus `archiv/` ist alles entfernt außer den Abrufen zu study 51 und 52: Seite `/study/52`, Eintrag `/api/studies/52`, Datei `/api/studies/52/file`, Datei `/api/studies/51/file`. 22 Dateien sind weg, darunter die übrige API und die Dateien zu study 6, 7, 30, 31 und 48 bis 50.
+3. **cc556c8:** `scripts/alexandria_anker.py` holt nur noch die URLs, die in `anker.txt` ausdrücklich genannt sind, und folgt keinem Link. Jede JSON-Datei wird vor dem Speichern ohne Adressen geschrieben (Länge und sha256). Der Selbsttest prüft beides, 12 von 12 grün. Der Workflow `alexandria-anker.yml` übergibt nur noch diese URLs.
+
+**Neuer Kopf von `messung/alexandria-anker`: `cc556c8`.**
+
+Die alten Commits (f7fbf7c mit den Rohdaten, 9284085) enthalten die Adressen und Abrufe weiter in der Historie. Ob die Historie neu geschrieben wird, entscheidet Ben. Beim Push lief nur der automatische Secret-Scan, kein Mess-Workflow.
 
 ## Offene Fragen an Ben
 
