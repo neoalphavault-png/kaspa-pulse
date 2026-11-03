@@ -1,0 +1,47 @@
+> **VORABSTAND 3.11.**, noch nicht posten. Die Kopfzahlen fehlen, weil die Kette auf dem Datenbranch vom 28.10. stammt. Der Zuhörer reicht bis 3.11. 13:59 UTC. Der endgültige Text kommt am 4.11. bis 12:00 Berlin, nach dem Wochenlauf.
+
+# Forum draft, BCH tempnet week 3 (Ben posts)
+
+Window 28 Oct 10:00 utc to 4 Nov 10:00 utc, split at 29 Oct 21:00 utc. Header chain up to block 345,623, listener data up to 3 Nov 13:59 utc. Reply to bitcoincashautist and rufitnes. Everything below this line is the post.
+
+@bitcoincashautist @rufitnes week three of our tempnet counts.
+
+**Two windows.** Our listener numbers change from 29 Oct 21:00 utc on, shortly before the node restart discussed in this thread. So every table below has one column before and one after that hour, and no value is averaged across both.
+
+**Block intervals from our own headers**
+
+| | before, 28 Oct 10:00 utc to 29 Oct 21:00 utc | after, 29 Oct 21:00 utc to 4 Nov 10:00 utc | computed for 60 s |
+|---|---:|---:|---:|
+| blocks | 345,614 to 345,623 | n/a | |
+| intervals | 10 | n/a | |
+| mean | 59.5 s | n/a s | 60 s |
+| median | 41.0 s | n/a s | 41.6 s |
+| p90 | 130.3 s | n/a s | 138.2 s |
+| p99 | 173.2 s | n/a s | 276.3 s |
+| share above 5 min | 0.0 % (0) | n/a % (n/a) | 0.67 % |
+| longest gap | 178 s | n/a s | about 173 s |
+| blocks with minimum difficulty | 2 | n/a | |
+| intervals of exactly 120 s | 0 | n/a | |
+
+**Listener on our own network path**
+
+| | before | after |
+|---|---:|---:|
+| chain blocks seen | 2,113 | 7,449 |
+| peers announcing a block, median | 23 | 16 |
+| timestamp_deviation, median / p90 / p99, all blocks | 0.80 / 3.34 / 36.3 s | 3.19 / 5.29 / 14.1 s |
+| same without blocks exactly 120 s after their parent | 0.78 / 3.20 / 5.1 s (without 46) | 3.18 / 5.25 / 12.2 s (without 55) |
+| propagation_spread, median / p90 | 7.8 / 11.0 s | 7.2 / 10.3 s |
+| stale blocks after 6 confirmations | 4 of 2,117 announced (0.19 %) | 398 of 7,847 announced (5.07 %) |
+
+**A correction to how we showed week two.** We gave a timestamp_deviation p99 of 31.1 s. Without the 107 blocks whose header timestamp is exactly 120 s after their parent the p99 is 5.2 s, so that tail came almost entirely from those blocks. Thanks to rufitnes, who showed on 30 Oct that 101 of these blocks come from one miner. We only count timestamps and do not look at who mined a block.
+
+**Stale blocks** use the same definition as in week two. A block counts as stale when it was announced to us and is not in the chain 6 blocks later, and the share is stale blocks over chain blocks plus stale blocks.
+
+In the before window 38 blocks reached one of our peers more than 10 min after the first announcement, between 29 Oct 00:21 utc and 29 Oct 00:55 utc. That is why we leave out the p99 of propagation_spread this week.
+
+Of the 398 stale blocks in the after window, 356 fall into three short periods, 216 from 29 Oct 21:00 utc to 29 Oct 23:00 utc with 488 chain blocks per hour, 112 from 2 Nov 22:00 utc to 3 Nov 00:00 utc with 369 chain blocks per hour and 28 from 3 Nov 08:00 utc to 3 Nov 09:00 utc with 254 chain blocks per hour. Across the whole after window the median is 58 chain blocks per hour.
+
+**Coverage.** The listener covered 151.5 h of the window in 29 segments, with 35 to 47 peers that confirm the fork at block 327,989. There was no gap between segments.
+
+All numbers in the tables are counted by us from our own header chain and our own listener, except the column computed for an ideal 60 s chain. The listener keeps running until the tempnet ends on 15 Nov.
