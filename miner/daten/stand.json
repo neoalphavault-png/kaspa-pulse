@@ -1,0 +1,23 @@
+{
+ "laeufe": [
+  {
+   "lauf": "41698334356-01",
+   "von_daa": 581806661,
+   "bis_daa": 583148588,
+   "von_utc": "2026-11-02T06:28:56Z",
+   "bis_utc": "2026-11-03T19:44:56Z",
+   "pruning_punkt_utc": "2026-11-02T06:28:56Z",
+   "kettenbloecke": 185709,
+   "coinbase_neu": 1340964,
+   "coinbase_ausgegeben": 1183177,
+   "ausgegeben_vor_beobachtung": 148706,
+   "ohne_zeit": 0
+  }
+ ],
+ "letzter_daa": 583148588,
+ "erster_daa": 581806661,
+ "erster_ms": 1793600936847,
+ "letzter_ms": 1793735096869,
+ "erster_utc": "2026-11-02T06:28:56Z",
+ "letzter_utc": "2026-11-03T19:44:56Z"
+}
