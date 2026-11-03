@@ -236,6 +236,43 @@ Die drei offenen Fragen hat Ben am 3.11. beantwortet. Umgesetzt ist das in `scri
 - M3 mit dem Log aus der Simulation: Tiefe 1 einmal, Tiefe 2 einmal, Kopfzahl ab Tiefe 2 gleich 1.
 - `sha256sum -c` ist OK.
 
+## Nachtrag 3.11.: M6 an Spezifikation v1.0 angeglichen
+
+Kleiner Auftrag von Ben am 3.11., Frist Fr 6.11. 18:00. Nur `scripts/wache/report_v1.py` ändert sich, auf c2 nichts. Die Wache läuft unverändert weiter.
+
+**Was sich ändert:**
+1. **„Stabil“ zählt nur mit vollen 60 min:** Ein Zeitpunkt t gilt nur dann als stabil, wenn die 60 min danach ganz in den Daten liegen, also t + 3.600 s höchstens bis zur letzten Kopfzeit im Fenster reicht. Vorher zählte auch ein Band, das nur bis zum Datenende hielt. Die Prüfung steckt jetzt in einer eigenen Funktion `stabil_ab()`.
+2. **`zeit_bis_stabil` in Sekunden:** Ganzzahlig, Einheit `s`, gezählt ab der Kopfzeit des Aktivierungsblocks. Vorher stand der Wert in Minuten mit einer Nachkommastelle.
+3. **Selbsttest:** `python3 scripts/wache/report_v1.py --selbsttest`, gebaut wie der in `scripts/archiv.py`. Er gibt 0 zurück, wenn alles besteht, sonst 1.
+
+**Selbsttest, Ausgabe:**
+
+```
+ok   durchgehend im band: stabil ab dem ersten zeitpunkt
+ok   erst ab 600 s im band: stabil ab 600
+ok   band haelt 50 min bis datenende: nicht stabil
+ok   band haelt genau 60 min bis datenende: stabil
+ok   unterbrechung bei 1200 und 4800: stabil ab 4860
+ok   randwerte 20 und 30 zaehlen ins band
+ok   leerer verlauf
+ok   nie im band
+
+alle testfaelle bestanden
+```
+
+**Der alte Fehler ist damit abgedeckt:** Für den Fall „Band hält 50 min bis Datenende“ liefert die bisherige Logik t = 3.000 s. Die neue liefert „nie“.
+
+**Gegen echte Daten:**
+
+| Daten | zeit_bis_stabil | anteil_im_band |
+|---|---:|---:|
+| Testnet-Aktivierung 4.465.026, 72 h danach | 3.635 s (vorher 60,6 min) | 82,9 % |
+| Testnet-Aufzeichnung vom 17.10. mit Rohdaten | 3.612 s (vorher 60,2 min) | 97,6 % |
+
+Die Werte sind gleich geblieben, weil „stabil“ dort weit vor dem Datenende liegt. `sha256sum -c` ist OK.
+
+**Grenze:** Der Selbsttest läuft nicht in CI, weil das eine Änderung an einem Workflow wäre. Ich rufe ihn vor dem Report am 9.11. von Hand auf.
+
 ## Merge-Zeilen
 
 - [PR #241](https://github.com/neoalphavault-png/kaspa-pulse/pull/241) (`wache/report-v1`), Squash-Merge `7a1508f` am 2.11.2026. Ab jetzt sind auf `main` live: die Blockpause ab NU7 mit 300 und 600 s, die Proben bei 0, 6, 24 und 72 h, die Software der Peers in den Rohdaten, `roh_export.py` und `report_v1.py`. Auf c2 greift das erst nach `setup.sh wache zcash-mainnet`.

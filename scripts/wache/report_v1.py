@@ -9,7 +9,8 @@ Spezifikation v1 (pulsehawk.io/standard), je Upgrade:
   M4  Kettenspaltung: Dauer
   M5  Peer-Probe bei Aktivierung, +24 h, +72 h (dazu +6 h), jeweils mit n
   M6  Zeit bis stabil: gleitendes 1-h-Mittel der Abstaende innerhalb +-20 %
-      des Ziels, 60 min ohne Unterbrechung (Spezifikation v1.0, Ben 03.11.2026;
+      des Ziels, 60 min ohne Unterbrechung, die ganz in den Daten liegen;
+      zeit_bis_stabil in s, ganzzahlig (Spezifikation v1.0, Ben 03.11.2026;
       der woertliche 1-h-p50 +-10 % traf eine gesunde Kette fast nie, siehe
       berichte/2026-11-02-wache-report-v1.md)
   M7  erster Block ab der Aktivierungshoehe: Zeit und Abstand zu unserer Schaetzung
@@ -96,18 +97,71 @@ def abstaende(kette, hoehen):
     return [(h, kette[h][1] - kette[h - 1][1]) for h in hoehen if h - 1 in kette]
 
 
+def stabil_ab(verlauf, lo, hi, halten_s=STABIL_HALTEN_S):
+    """Erster Zeitpunkt t, ab dem jeder Wert in [t, t + halten_s] im Band [lo, hi] liegt.
+
+    verlauf: [(zeit, wert)] aufsteigend. Gezaehlt wird t nur, wenn die ganzen
+    halten_s danach in den Daten liegen (t + halten_s <= letzte Zeit); ein
+    Band, das nur bis zum Datenende haelt, zaehlt nicht (Spezifikation v1.0).
+    """
+    if not verlauf:
+        return None
+    ende = verlauf[-1][0]
+    drin = [lo <= w <= hi for _, w in verlauf]
+    for i, (t, _) in enumerate(verlauf):
+        if not drin[i] or t + halten_s > ende:
+            continue
+        j = i
+        while j < len(verlauf) and verlauf[j][0] <= t + halten_s and drin[j]:
+            j += 1
+        if j == len(verlauf) or verlauf[j][0] > t + halten_s:
+            return t
+    return None
+
+
+def selbsttest():
+    f = []
+
+    def ok(name, bed, info=""):
+        print("%-4s %s%s" % ("ok" if bed else "FEHL", name, ("  " + str(info)) if not bed and info else ""))
+        if not bed:
+            f.append(name)
+
+    v = [(t, 25.0) for t in range(0, 7201, 60)]
+    ok("durchgehend im band: stabil ab dem ersten zeitpunkt", stabil_ab(v, 20, 30) == 0)
+    v = [(t, 40.0 if t < 600 else 25.0) for t in range(0, 7201, 60)]
+    ok("erst ab 600 s im band: stabil ab 600", stabil_ab(v, 20, 30) == 600)
+    v = [(t, 40.0 if t < 3000 else 25.0) for t in range(0, 6001, 60)]
+    ok("band haelt 50 min bis datenende: nicht stabil", stabil_ab(v, 20, 30) is None, stabil_ab(v, 20, 30))
+    v = [(t, 40.0 if t < 2400 else 25.0) for t in range(0, 6001, 60)]
+    ok("band haelt genau 60 min bis datenende: stabil", stabil_ab(v, 20, 30) == 2400, stabil_ab(v, 20, 30))
+    v = [(t, 40.0 if t in (1200, 4800) else 25.0) for t in range(0, 9001, 60)]
+    ok("unterbrechung bei 1200 und 4800: stabil ab 4860", stabil_ab(v, 20, 30) == 4860, stabil_ab(v, 20, 30))
+    ok("randwerte 20 und 30 zaehlen ins band", stabil_ab([(0, 20.0), (1800, 30.0), (3600, 25.0)], 20, 30) == 0)
+    ok("leerer verlauf", stabil_ab([], 20, 30) is None)
+    ok("nie im band", stabil_ab([(t, 50.0) for t in range(0, 7201, 60)], 20, 30) is None)
+    print("")
+    print("%d fehler" % len(f) if f else "alle testfaelle bestanden")
+    return 1 if f else 0
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--kette", required=True)
-    ap.add_argument("--koepfe", required=True)
+    ap.add_argument("--selbsttest", action="store_true")
+    ap.add_argument("--kette")
+    ap.add_argument("--koepfe")
     ap.add_argument("--roh")
-    ap.add_argument("--aus", required=True)
+    ap.add_argument("--aus")
     ap.add_argument("--hoehe", type=int, help="Aktivierungshoehe statt der aus der Konfiguration (Test)")
     ap.add_argument("--schaetzung", help="Schaetzung UTC statt erwartet_utc (Test)")
     ap.add_argument("--band", nargs=2, help="90-%%-Band UTC statt band_utc (Test)")
     ap.add_argument("--quelle-hoehe", default="ZIP 259; Zebra 7.0.0 zebra-chain/src/parameters/constants.rs",
                     help="Beleg der Aktivierungshoehe")
     args = ap.parse_args()
+    if args.selbsttest:
+        return selbsttest()
+    if not (args.kette and args.koepfe and args.aus):
+        ap.error("--kette, --koepfe und --aus sind noetig")
 
     cfg = json.load(open(args.kette))
     akt = args.hoehe or cfg["aktivierung"]["hoehe"]
@@ -245,22 +299,14 @@ def main():
             verlauf.append((t, sum(w60) / len(w60)))
         lo, hi = ziel * (1 - STABIL_TOLERANZ), ziel * (1 + STABIL_TOLERANZ)
         drin = [lo <= m <= hi for _, m in verlauf]
-        stabil = None
-        for i, (t, _) in enumerate(verlauf):
-            if not drin[i]:
-                continue
-            j = i
-            while j < len(verlauf) and verlauf[j][0] <= t + STABIL_HALTEN_S and drin[j]:
-                j += 1
-            if j == len(verlauf) or verlauf[j][0] > t + STABIL_HALTEN_S:
-                stabil = t
-                break
+        stabil = stabil_ab(verlauf, lo, hi)
         anm = (f"Spezifikation v1.0: gleitendes Mittel der Abstaende der letzten 60 min innerhalb {round(lo, 1)} "
                f"bis {round(hi, 1)} s (Ziel {ziel} s +-20 %); stabil = erster Zeitpunkt, ab dem es 60 min ohne "
-               f"Unterbrechung im Band bleibt, fruehestens 60 min nach der Aktivierung; n = Zeitpunkte ab dann; "
+               f"Unterbrechung im Band bleibt, fruehestens 60 min nach der Aktivierung; die 60 min danach muessen "
+               f"ganz in den Daten liegen; Sekunden ab der Kopfzeit des Aktivierungsblocks; n = Zeitpunkte ab dann; "
                f"Zeitbasis: Kopfzeiten")
-        zeile("M6", "zeit_bis_stabil", round((stabil - von) / 60, 1) if stabil else "nie", "min", "counted",
-              von, bis, len(verlauf), quelle_k, anm + (f"; stabil ab {utc(stabil)} UTC" if stabil else ""))
+        zeile("M6", "zeit_bis_stabil", int(round(stabil - von)) if stabil is not None else "nie", "s", "counted",
+              von, bis, len(verlauf), quelle_k, anm + (f"; stabil ab {utc(stabil)} UTC" if stabil is not None else ""))
         zeile("M6", "anteil_im_band", r(100 * sum(drin) / len(drin) if drin else None), "%", "counted",
               von, bis, len(verlauf), quelle_k, "Anteil der Zeitpunkte, an denen das gleitende Mittel im Band liegt")
 
@@ -310,4 +356,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
