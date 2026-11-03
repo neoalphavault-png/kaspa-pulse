@@ -166,3 +166,4 @@ Die drei offenen Fragen hat Ben am 3.11. beantwortet. Umgesetzt ist das in `scri
 
 - [PR #241](https://github.com/neoalphavault-png/kaspa-pulse/pull/241) (`wache/report-v1`), Squash-Merge `7a1508f` am 2.11.2026. Ab jetzt sind auf `main` live: die Blockpause ab NU7 mit 300 und 600 s, die Proben bei 0, 6, 24 und 72 h, die Software der Peers in den Rohdaten, `roh_export.py` und `report_v1.py`. Auf c2 greift das erst nach `setup.sh wache zcash-mainnet`.
 - [PR #242](https://github.com/neoalphavault-png/kaspa-pulse/pull/242) (`wache/report-v1-c2`) ist offen. Ben prüft und merged.
+- [PR #245](https://github.com/neoalphavault-png/kaspa-pulse/pull/245) (`wache/report-v1-spec`), Squash-Merge `f254ce7` am 3.11.2026. Ab jetzt ist auf `main` live: `report_v1.py` mit M6 nach Spezifikation v1.0 (1-h-Mittel ± 20 %, 60 min), M3 als Verteilung nach Tiefe mit Kopfzahl ab Tiefe 2 und der Zeitbasis in jeder Zeile.
