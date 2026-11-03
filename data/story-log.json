@@ -58,6 +58,23 @@
     "-0.5%",
     "+2.5%"
    ]
+  },
+  {
+   "datum": "2026-11-03",
+   "tag": "di",
+   "art": "slider",
+   "frage": "how many KAS are mined during one football match of 90 minutes?",
+   "richtig": null,
+   "aufloesung": {
+    "frage": "how many KAS are mined during one football match of 90 minutes?",
+    "zahl": "111k",
+    "einheit": "KAS",
+    "satz": "1,779,989 KAS a day, so 111,249 KAS in one football match of 90 minutes",
+    "datum": "as of 2 nov 2026 · source kaspa emission schedule"
+   },
+   "quelle_vorlage": "emission 2026-11-02",
+   "antwort": "111k KAS",
+   "emoji": "⚽"
   }
  ]
 }
