@@ -264,7 +264,7 @@ def forum(r_):
         f"Window {tag(r_['fenster_utc'][0])} to {tag(r_['fenster_utc'][1])}, split at {tag(r_['schnitt_utc'])}. "
         f"Header chain up to block {r_['koepfe_spitze']:,}, listener data up to {tag(r_['lauscher_bis_utc'])}. "
         "Reply to bitcoincashautist and rufitnes. " + TRENNER,
-        "@bitcoincashautist @rufitnes week three of our tempnet counts.", "",
+        "@bitcoincashautist @rufitnes Week three of our tempnet counts.", "",
         f"**Two windows.** Our listener numbers change from {tag(r_['schnitt_utc'])} on, shortly before the node "
         "restart discussed in this thread. So every table below has one column before and one after that hour, "
         "and no value is averaged across both.", "",
