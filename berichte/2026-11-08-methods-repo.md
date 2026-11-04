@@ -12,7 +12,7 @@ Ben hat am 4.11. das öffentliche Methoden-Repo für PulseHawk beauftragt, dazu 
 
 ## 1. Inhalt
 
-[PR pulsehawk/methods#1](https://github.com/pulsehawk/methods/pull/1), Branch `nu7-report-v1`, Commit `0f27809`.
+[PR pulsehawk/methods#1](https://github.com/pulsehawk/methods/pull/1), Branch `nu7-report-v1`, Kopf `ad2bf2b`.
 
 | Datei | Inhalt |
 |---|---|
@@ -67,7 +67,13 @@ Die NU7-Eingangsdaten kommen nach dem Fenster als PR nach `data/zcash-mainnet-nu
 | PH-M-003 | Protokollversion beim Handschlag | M5 |
 | PH-M-004 | erste Sicht und Ausbreitung | erste Sicht in M7 |
 
-Den Vorschlag habe ich am 4.11. an die Sitzung „PulseHawk Seite“ geschickt. Eine Antwort steht noch aus.
+**Abgestimmt mit der Sitzung „PulseHawk Seite“ am 4.11.:** Die Seite übernimmt PH-M-001 bis 004 so und ergänzt zwei weitere Kennungen. Beide stehen jetzt auch in METHODS.md (Commit `ad2bf2b`).
+- **PH-M-005**, stale-Blöcke nach 6 Bestätigungen: nicht im NU7-Report.
+- **PH-M-006**, Prognose der Aktivierungszeit: gilt für die Schätzungszeilen in M7 (computed).
+
+METHODS.md hat dazu einen Abschnitt „Validation so far“. Die Seite bekommt von mir:
+- die drei Befehle für „reproduce this“, für das Beispiel und für den NU7-Mainnet-Report. Den Mainnet-Teil markiert die Seite bis zum Daten-PR als „kommt“.
+- die Dateinamen je Kennung. Header-Client, Zuhörer, PH-M-005 und PH-M-006 sind noch nicht im Repo; auf der Seite steht dafür „implementation follows“.
 
 ## 4. Ringversuch
 
