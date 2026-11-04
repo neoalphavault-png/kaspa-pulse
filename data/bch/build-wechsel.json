@@ -1086,6 +1086,55 @@
      "verbindungen": 21
     }
    ]
+  },
+  {
+   "lauf": "20261103T0307",
+   "start_utc": "2026-11-03T03:07:31Z",
+   "ende_utc": "2026-11-03T08:37:31Z",
+   "kennungen": [
+    {
+     "software": "/Bitcoin Cash Node:29.2.1(9500-tempnet)/",
+     "protokoll": 70016,
+     "verbindungen": 6
+    },
+    {
+     "software": "/Bitcoin Cash Node:29.2.1(my-tempnet-node)/",
+     "protokoll": 70016,
+     "verbindungen": 6
+    },
+    {
+     "software": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+     "protokoll": 70016,
+     "verbindungen": 11
+    },
+    {
+     "software": "/Vcash:0.1/",
+     "protokoll": 70016,
+     "verbindungen": 20
+    }
+   ]
+  },
+  {
+   "lauf": "20261103T0829",
+   "start_utc": "2026-11-03T08:29:44Z",
+   "ende_utc": "2026-11-03T13:59:44Z",
+   "kennungen": [
+    {
+     "software": "/Bitcoin Cash Node:29.2.1(9500-tempnet)/",
+     "protokoll": 70016,
+     "verbindungen": 2
+    },
+    {
+     "software": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+     "protokoll": 70016,
+     "verbindungen": 11
+    },
+    {
+     "software": "/Vcash:0.1/",
+     "protokoll": 70016,
+     "verbindungen": 22
+    }
+   ]
   }
  ],
  "gemeinsame_abbrueche": [
@@ -1109,10 +1158,17 @@
    "verbindungen": 3,
    "von_utc": "2026-10-29 22:35:59",
    "bis_utc": "2026-10-29 22:35:59"
+  },
+  {
+   "lauf": "20261103T0307",
+   "software": "/Bitcoin Cash Node:29.2.1(my-tempnet-node)/",
+   "verbindungen": 6,
+   "von_utc": "2026-11-03 08:22:47",
+   "bis_utc": "2026-11-03 08:24:29"
   }
  ],
- "alt_zuletzt_verbunden_utc": "2026-11-03 03:15:18",
- "daten_bis_utc": "2026-11-03 03:15:18",
+ "alt_zuletzt_verbunden_utc": "2026-11-03 13:59:46",
+ "daten_bis_utc": "2026-11-03 13:59:44",
  "wechsel_utc": "2026-10-29 22:35:59",
  "wechsel_grund": "gemeinsamer Abbruch aller Verbindungen mit '9500-tempnet' (Neustart)",
  "vorher": {
@@ -2587,49 +2643,49 @@
  "nachher": {
   "fenster_utc": [
    "2026-10-29 22:35:59",
-   "2026-11-03 03:15:18"
+   "2026-11-03 13:59:44"
   ],
-  "kettenbloecke": 6008,
+  "kettenbloecke": 6542,
   "hoehen": [
    348634,
-   354641
+   355175
   ],
   "abstaende": {
-   "n": 6008,
-   "median_s": 42.0,
-   "p90_s": 126.0
+   "n": 6542,
+   "median_s": 40.0,
+   "p90_s": 128.0
   },
   "timestamp_deviation_s": {
    "median": 3.2,
-   "p90": 4.89,
-   "p99": 14.21,
-   "n": 6008
+   "p90": 5.11,
+   "p99": 14.96,
+   "n": 6542
   },
   "timestamp_deviation_ohne_120s": {
    "median": 3.2,
-   "p90": 4.86,
-   "p99": 10.94,
-   "n": 5954,
-   "ausgelassen": 54
+   "p90": 5.04,
+   "p99": 12.42,
+   "n": 6487,
+   "ausgelassen": 55
   },
   "propagation_spread_ms": {
-   "median": 7276.0,
-   "p90": 10273.0
+   "median": 7296.0,
+   "p90": 10280.0
   },
   "peers_je_block_median": 19.0,
   "zuerst_angekuendigt_von": {
-   "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/": 3837,
-   "/Bitcoin Cash Node:29.2.1(9500-tempnet)/": 1233,
-   "/Bitcoin Cash Node:29.2.1(my-tempnet-node)/": 784,
-   "/Vcash:0.1/": 154
+   "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/": 4120,
+   "/Bitcoin Cash Node:29.2.1(9500-tempnet)/": 1402,
+   "/Bitcoin Cash Node:29.2.1(my-tempnet-node)/": 834,
+   "/Vcash:0.1/": 186
   },
-  "anteil_zuerst_alt_prozent": 20.5,
+  "anteil_zuerst_alt_prozent": 21.4,
   "stale": {
-   "anzahl": 149,
-   "anteil_prozent": 2.42,
+   "anzahl": 182,
+   "anteil_prozent": 2.71,
    "zuerst_von": {
-    "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/": 128,
-    "/Bitcoin Cash Node:29.2.1(9500-tempnet)/": 20,
+    "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/": 142,
+    "/Bitcoin Cash Node:29.2.1(9500-tempnet)/": 39,
     "/Bitcoin Cash Node:29.2.1(my-tempnet-node)/": 1
    },
    "bloecke": [
@@ -3526,6 +3582,204 @@
      "hash": "000000000c0b934cb9bfe815bab0522b858a42f80900fe6043109b0529009dd8",
      "first_seen_utc": "2026-11-03T02:25:43.510Z",
      "peers": 32
+    },
+    {
+     "hoehe": 354668,
+     "hash": "000000001224e79742a34834320baf8799375cadc19782a5bcef094bd06a1eda",
+     "first_seen_utc": "2026-11-03T04:36:17.905Z",
+     "peers": 10
+    },
+    {
+     "hoehe": 354727,
+     "hash": "00000000000bfcbcf121ffdc14b31bfcc07c6fefc42725e5f3e869a2691ffe39",
+     "first_seen_utc": "2026-11-03T08:22:38.043Z",
+     "peers": 28
+    },
+    {
+     "hoehe": 354729,
+     "hash": "000000000004440fc5bf6854c3595896cbe7630b567d76f3868ed09b76447db0",
+     "first_seen_utc": "2026-11-03T08:22:46.234Z",
+     "peers": 37
+    },
+    {
+     "hoehe": 354745,
+     "hash": "000000000010cb528dc865c36f67f86a3746c4dbffac5127acc0c1315b06a4d7",
+     "first_seen_utc": "2026-11-03T08:23:47.115Z",
+     "peers": 37
+    },
+    {
+     "hoehe": 354746,
+     "hash": "00000000000e189df2c43c9b8c06b6fbc1790c6f91b364dd3c5138f614383494",
+     "first_seen_utc": "2026-11-03T08:23:57.329Z",
+     "peers": 28
+    },
+    {
+     "hoehe": 354748,
+     "hash": "000000000002cb7c9aa037fb730ea79f518da5bd1e4919ad4db5cdf1e532c7d9",
+     "first_seen_utc": "2026-11-03T08:24:21.462Z",
+     "peers": 37
+    },
+    {
+     "hoehe": 354768,
+     "hash": "00000000000742f728fb9ebddc3f1ec15a8c6ea579db3745b84427d7aa393c29",
+     "first_seen_utc": "2026-11-03T08:25:59.595Z",
+     "peers": 28
+    },
+    {
+     "hoehe": 354769,
+     "hash": "00000000001b7cdee7f8f493db3f664812755a4d5e4ae7b84ea60eab28558d62",
+     "first_seen_utc": "2026-11-03T08:25:59.966Z",
+     "peers": 37
+    },
+    {
+     "hoehe": 354771,
+     "hash": "0000000000123c5615735841543475e9f9a8304790392bd316622b878ba9fe07",
+     "first_seen_utc": "2026-11-03T08:26:18.631Z",
+     "peers": 37
+    },
+    {
+     "hoehe": 354772,
+     "hash": "0000000000067e169e55210e45ac10373be95c95a670c2f41f2cdcac3446d925",
+     "first_seen_utc": "2026-11-03T08:26:28.179Z",
+     "peers": 37
+    },
+    {
+     "hoehe": 354781,
+     "hash": "00000000000258d15ab4eb8a7a74ef664f90fcfbffa86a49468d60c462ef2401",
+     "first_seen_utc": "2026-11-03T08:27:15.158Z",
+     "peers": 28
+    },
+    {
+     "hoehe": 354785,
+     "hash": "00000000000c577ec3a27d1c308070a668aebf19ff032276d70e9a5b26d0994e",
+     "first_seen_utc": "2026-11-03T08:27:22.996Z",
+     "peers": 37
+    },
+    {
+     "hoehe": 354803,
+     "hash": "0000000000009e4f93b4f77d4e0548b2db7083594ae52201ffc4b22bb79137f3",
+     "first_seen_utc": "2026-11-03T08:28:33.856Z",
+     "peers": 28
+    },
+    {
+     "hoehe": 354809,
+     "hash": "00000000000b774afb9f577eb7760c6b33f43cdfe27038dc403f3be3fa87618f",
+     "first_seen_utc": "2026-11-03T08:28:57.746Z",
+     "peers": 37
+    },
+    {
+     "hoehe": 354819,
+     "hash": "0000000000018de85f60512b5571d05f4538e4f74709d227b4bd6f5ca1a20ee9",
+     "first_seen_utc": "2026-11-03T08:30:11.920Z",
+     "peers": 30
+    },
+    {
+     "hoehe": 354825,
+     "hash": "000000000000c792f8e91a9b454536119d9c9fccfa74ec88ce9fe3f07586dabd",
+     "first_seen_utc": "2026-11-03T08:30:29.321Z",
+     "peers": 40
+    },
+    {
+     "hoehe": 354829,
+     "hash": "0000000000035112ea6b2f46bdf426f3be45e0e62cd6b14f18015406cacf03d0",
+     "first_seen_utc": "2026-11-03T08:30:50.809Z",
+     "peers": 30
+    },
+    {
+     "hoehe": 354835,
+     "hash": "0000000000035bffe4cca378e648077adc7a58955a4384ef83089da33c67ed0a",
+     "first_seen_utc": "2026-11-03T08:31:28.680Z",
+     "peers": 40
+    },
+    {
+     "hoehe": 354848,
+     "hash": "0000000000060aac13886926d9e59f2e2e31b6c7987fd4351aa39279b7f95bc5",
+     "first_seen_utc": "2026-11-03T08:32:40.804Z",
+     "peers": 40
+    },
+    {
+     "hoehe": 354860,
+     "hash": "000000000004ca7a6e3345c079d32aabb562db6ea486108151f683d0ddaf1b7c",
+     "first_seen_utc": "2026-11-03T08:34:33.324Z",
+     "peers": 40
+    },
+    {
+     "hoehe": 354863,
+     "hash": "00000000000a243eb8f03efa8cf9f1fbe16c7104b0cbddb483914e9cd722ba5a",
+     "first_seen_utc": "2026-11-03T08:35:20.141Z",
+     "peers": 40
+    },
+    {
+     "hoehe": 354866,
+     "hash": "0000000000052f619e3cffe352a14a47963ae1389b2b81d120566b48102662ce",
+     "first_seen_utc": "2026-11-03T08:35:42.712Z",
+     "peers": 30
+    },
+    {
+     "hoehe": 354884,
+     "hash": "0000000000070a4afeb35b498b1239335f7779ac52aac5eca790fdeb7d721604",
+     "first_seen_utc": "2026-11-03T08:38:18.919Z",
+     "peers": 3
+    },
+    {
+     "hoehe": 354897,
+     "hash": "0000000000021ef3e873a6c0cfd73abf8ea62213910f103f87f2ccd2caf7bd5b",
+     "first_seen_utc": "2026-11-03T08:40:52.712Z",
+     "peers": 2
+    },
+    {
+     "hoehe": 354907,
+     "hash": "000000000001a09a25d7d976b1ce13972baf63d44d3a3158d6e5ea3880bbc587",
+     "first_seen_utc": "2026-11-03T08:42:05.838Z",
+     "peers": 3
+    },
+    {
+     "hoehe": 354931,
+     "hash": "000000000001460649b0d9136bd91d96ea92234bdad799ba729d7953c6c3ee59",
+     "first_seen_utc": "2026-11-03T08:49:54.647Z",
+     "peers": 2
+    },
+    {
+     "hoehe": 354948,
+     "hash": "0000000000046309ae88aa0447ed8b0992f7f22bbac44c7b415cdd577365a604",
+     "first_seen_utc": "2026-11-03T08:54:05.985Z",
+     "peers": 3
+    },
+    {
+     "hoehe": 354951,
+     "hash": "000000000004224755cd4a3082761418a994a49600bd8b5c0cf1a2055161b2d8",
+     "first_seen_utc": "2026-11-03T08:55:15.171Z",
+     "peers": 2
+    },
+    {
+     "hoehe": 354962,
+     "hash": "000000000005136b95ca44fdfabfe398ab5ed943379865d20a5a33093fd8a7f1",
+     "first_seen_utc": "2026-11-03T08:56:55.532Z",
+     "peers": 2
+    },
+    {
+     "hoehe": 354979,
+     "hash": "000000000004076ac158cededbf39421d1c3dd7e24235802a6b915518189e086",
+     "first_seen_utc": "2026-11-03T09:03:15.835Z",
+     "peers": 6
+    },
+    {
+     "hoehe": 354997,
+     "hash": "00000000000242d96fbc7f18a2004642384d6cf2f4805529889635be77f1b03d",
+     "first_seen_utc": "2026-11-03T09:11:52.328Z",
+     "peers": 6
+    },
+    {
+     "hoehe": 355001,
+     "hash": "0000000000014c0c66d60235ff0e7c1b8327de44b234bfc8d618e29fb9ee118a",
+     "first_seen_utc": "2026-11-03T09:13:42.619Z",
+     "peers": 6
+    },
+    {
+     "hoehe": 355132,
+     "hash": "000000000012bf8157345bde174a15b62fbcf0a18a6fe9b85a32029dbc8b4f83",
+     "first_seen_utc": "2026-11-03T10:31:34.980Z",
+     "peers": 16
     }
    ]
   }
