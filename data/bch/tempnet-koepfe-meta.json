@@ -1,37 +1,36 @@
 {
   "quelle": "BCH-Tempnet P2P (getheaders), Peers aus der oeffentlichen Tempnet-Konfiguration",
-  "abruf_utc": "2026-10-28T10:09:45Z",
+  "abruf_utc": "2026-11-04T10:07:51Z",
   "start_checkpoint": 327988,
   "erste_hoehe": 327989,
-  "spitze_hoehe": 345623,
-  "spitze_hash": "000000006e4129becc68a1d56cbcd284e05c77ec20b165a4f6ea2c60e48a055b",
+  "spitze_hoehe": 356042,
+  "spitze_hash": "00000000ebc44723938c94136a414eaaec7a1f05144b8070ac5becfa9c4b3745",
   "fixpunkte": {
     "letzter_gemeinsamer": 327988,
     "erster_tempnet": 327989
   },
   "checkpoints_geprueft": 1,
   "peer_software": [
-    "/Bitcoin Cash Node:29.2.1(my-tempnet-node)/",
-    "/Vcash:0.1/",
+    "/Bitcoin Cash Node:29.2.1/",
     "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/"
   ],
   "peer_fehler": 0,
-  "zielhoehe_gemeldet": 345620,
+  "zielhoehe_gemeldet": 356042,
   "zielhoehe_aus_peers_mit_abzweig": 4,
-  "proben_ohne_abzweig": 8,
+  "proben_ohne_abzweig": 3,
   "abzweige_verworfen": [],
   "gegenproben": [
-    {
-      "agent": "/Vcash:0.1/",
-      "verglichen": 500,
-      "gleich": 500,
-      "spitze_peer": 345623
-    },
     {
       "agent": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
       "verglichen": 500,
       "gleich": 500,
-      "spitze_peer": 345623
+      "spitze_peer": 356042
+    },
+    {
+      "agent": "/Bitcoin Cash Node:29.2.1/",
+      "verglichen": 500,
+      "gleich": 500,
+      "spitze_peer": 356042
     }
   ],
   "gegenproben_ohne_antwort": [],
