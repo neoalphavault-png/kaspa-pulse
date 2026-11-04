@@ -558,6 +558,28 @@
      "verhaeltnis": 642.72
     }
    }
+  },
+  {
+   "datum": "2026-11-04",
+   "form": 10,
+   "grund": "tag der reward-senkung, zahl des tages cut_today (vorab gerechnet), uebersprungen [3]",
+   "messzeit_utc": "2026-11-04T06:30:52+00:00",
+   "looks": {
+    "instagram": "A-teal",
+    "threads": "D-hell",
+    "x": "D-hell",
+    "discord": "D-hell"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-05",
+     "bis": "2026-11-03",
+     "fees": 85530.42408921,
+     "emission": 53414051.22647911,
+     "verhaeltnis": 624.5
+    }
+   }
   }
  ]
 }

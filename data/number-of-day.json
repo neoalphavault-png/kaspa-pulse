@@ -1,43 +1,44 @@
 {
-  "issue": "NOV 3 2026",
+  "issue": "NOV 4 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "1",
-  "value_label": "day until the next kaspa reward cut",
-  "headline": "bitcoin waits *530 days*.\nkaspa cuts 17 times before then.",
+  "value": "5.61%",
+  "value_label": "kaspa block reward, falls on 4 nov",
+  "headline": "*twelve cuts a year*,\nnot one every four.",
   "panes": [
     {
       "kind": "compare",
-      "title": "TIME TO THE NEXT REDUCTION",
-      "sub": "counted from 3 nov, in days",
+      "title": "SIZE OF ONE CUT",
+      "sub": "how much new supply disappears at once",
       "rows": [
         {
           "label": "kaspa",
-          "sub": "monthly",
-          "value": "1",
-          "pct": 0.22838375723909699,
+          "sub": "every month",
+          "value": "5.61%",
+          "pct": 11.225137463661294,
           "tone": "teal"
         },
         {
           "label": "bitcoin",
-          "sub": "estimated",
-          "value": "530",
-          "pct": 100.0,
+          "sub": "every four years",
+          "value": "50%",
+          "pct": 100,
           "tone": "grey"
         }
       ]
     },
     {
       "kind": "anchor",
-      "title": "WHAT CHANGES",
+      "title": "WHAT THAT MEANS",
       "lines": [
-        "daily emission drops from 1.78 million to *1.68 million KAS*. no vote, no announcement."
+        "twelve small steps, the *same 50%*.",
+        "*99,903 KAS* per day stop being minted from 4 nov on."
       ]
     }
   ],
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "the next kaspa reward cut lands in 1 day. bitcoin waits about 530 days for its next one, and kaspa cuts 17 more times before that date. daily emission drops from 1.78 million to 1.68 million KAS, the block reward from 2.0602 to 1.9445.",
-    "reply": "the countdown runs on kaspapulse.com/kaspa-halving.html. the kaspa date is arithmetic, the bitcoin date is an estimate."
+    "x": "the kaspa block reward falls 5.61% on 4 nov. bitcoin does 50% once every four years. kaspa does one small step every month, and twelve of them land on the same 50%. the network mints 99,903 fewer KAS per day than before the cut, emission went from 1.78 million to 1.68 million.",
+    "reply": "the emission numbers are on kaspapulse.com/kaspa-halving.html. the exact minute drifts, the cut lands on a block score, not a clock."
   }
 }

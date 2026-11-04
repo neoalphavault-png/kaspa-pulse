@@ -1,65 +1,74 @@
 # Automatik-Pruefung, Stand
 
-**Zeitpunkt: Dienstag, 03.11.2026, 10:05 Berlin** (09:05 utc).
+**Zeitpunkt: Mittwoch, 04.11.2026, 09:55 Berlin** (08:55 utc).
 
 Kein Montagslauf, deshalb ohne Uhrwerk-Bericht und ohne Kanalzeile.
 
 ## Meldung an Ben
 
-Unsicherheit zuerst: vidIQ-Guthaben steht auf 0 von 150, Reset 24.11. 19:14 utc, bis dahin keine vidIQ-Werte, auch keine oeffentlichen; Kanal Pulse Hawk daher heute nicht pruefbar; Ablage-Branch wird von automerge-claude.yml sofort nach main geholt und geloescht.
-NOD: heute lag bis 08:41 utc kein Lauf vor, die Pruefung hat genau einmal gestartet, Lauf 278 (Run-ID 41605223692, workflow_dispatch), gruen, 59 Sekunden.
-X-Post: ja, nod-2026-11-03, Post-ID 2117537996362936556, 03.11. 08:42:55 utc.
-Datenstaende: Kerzen gruen (kas-candles.json auf 03.11. 07:11 utc), Multibagger abweichend, Schlusskurs 30.10. bei letztem Handelstag 02.11., last_run 02.11., der heutige Scanner-Lauf steht noch aus; nicht repariert.
-Wachstumslog: keine Zeile faellig, Weekly Yj_0S7wFLos erreicht die 24 h erst heute 15:00 utc, Short MMAsFwslJpo die 48 h am 04.11. 16:00 utc, Short 0IpwOkAi42A und Erklaerer YvM8g-3r-Jg stehen schon drin; Diff: 78 Einfuegungen, 0 Loeschungen; Branch claude/wachstumslog-2026-11-03, Commit bb80076.
-Reels: 0 eingetragen, kein Reel im Fenster 31.10. 08:41 bis 01.11. 08:41 utc, nur Bild-Beitraege, keine Reel-Ansicht faellig.
+Unsicherheit zuerst: vidIQ-Guthaben steht auf 0 von 150, Reset 24.11. 19:14 utc, bis dahin keine vidIQ-Werte, auch keine oeffentlichen; Kaspa Pulse ist am verbundenen Konto nicht freigegeben, Instagram-Liste leer, youtube.com aus dieser Umgebung nicht erreichbar; Kanal Pulse Hawk daher heute nicht pruefbar; Ablage-Branch wird von automerge-claude.yml sofort nach main geholt und geloescht.
+NOD: heute lag bis 08:41 utc kein Lauf vor, die Pruefung hat genau einmal gestartet, Lauf 283 (Run-ID 41801497007, workflow_dispatch), gruen, 52 Sekunden.
+X-Post: ja, nod-2026-11-04, Post-ID 2117900311910367343, 04.11. 08:42:37 utc.
+Datenstaende: Kerzen gruen (kas-candles.json auf 04.11. 06:55 utc), Multibagger abweichend, Schlusskurs 02.11. bei letztem Handelstag 03.11., last_run 03.11., der heutige Scanner-Lauf steht noch aus; nicht repariert.
+Wachstumslog: eine Zeile eingetragen, Weekly Yj_0S7wFLos (02.11. 15:00 utc, 41,8 h alt), alle elf Werte offen, weil vidIQ bei 0 Credits auch oeffentlich nichts liefert; Short MMAsFwslJpo wird am 04.11. 16:00 utc faellig, also morgen; Diff: 88 Einfuegungen, 0 Loeschungen; Branch claude/wachstumslog-2026-11-04, Commit 6f42e71.
+Reels: 0 eingetragen, kein Reel im Fenster 01.11. 08:45 bis 02.11. 08:45 utc, keine Reel-Ansicht faellig.
 Haengende Laeufe: keiner ausser dem bekannten.
 Ablage: claude/ablage-automatik-pruefung, Head <dieser Commit>
 
 ## Belege
 
-- NOD-Lauf 278, Run-ID 41605223692, `workflow_dispatch`, 08:42:04 bis
-  08:43:03 utc, Schluss `success`. Kein zweiter Start.
-- `data/x-post-log.json`, Eintrag `nod-2026-11-03`, Post-ID
-  2117537996362936556, `posted_at` 2026-11-03T08:42:55Z.
-- `data/kas-candles.json`, Feld `updated`: `2026-11-03 07:11 utc`.
-- pulsehawk-site `data/multibagger-pick.json`: `date` 2026-11-02, Pick MRNA,
-  Feld `d` (Schlusskurs) **2026-10-30**; `multibagger-state.json`:
-  `last_run` 2026-11-02, Cursor 261; `multibagger-universe.json`: `date`
-  2026-10-30. Scanner `multibagger.yml` ("365 days later scanner") lief
-  zuletzt 02.11. 13:23 bis 14:57 utc, `success`.
+- NOD-Lauf 283, Run-ID 41801497007, `workflow_dispatch`, 08:41:53 bis
+  08:42:45 utc, Schluss `success`. Kein zweiter Start.
+- `data/x-post-log.json`, Eintrag `nod-2026-11-04`, Post-ID
+  2117900311910367343, `posted_at` 2026-11-04T08:42:37Z.
+- `data/kas-candles.json`, Feld `updated`: `2026-11-04 06:55 utc`.
+- pulsehawk-site `data/multibagger-pick.json`: `date` 2026-11-03, Pick MRNA,
+  Feld `d` (Schlusskurs) **2026-11-02**; `multibagger-state.json`:
+  `last_run` 2026-11-03, Cursor 964; `multibagger-universe.json`: `date`
+  2026-10-30. Der Scan-Commit lief zuletzt am 03.11. 14:15 utc; die vier
+  Commits davor liegen zwischen 12:24 und 14:57 utc, also stets vor dem
+  US-Schluss. Das Muster ist damit bauartbedingt, nicht neu.
 - `vidiq_balance`: `totalCredits` 0, `renewableCredits` 0 von 150,
-  `addOnCredits` 0, `renewableResetsAt` 2026-11-24T19:14:21Z. Gestern 95.
-  Zwei Abrufe gingen durch (je 5 Credits), der dritte wurde mit
-  "Not enough credits" abgewiesen.
+  `addOnCredits` 0, `renewableResetsAt` 2026-11-24T19:14:21Z. Unveraendert
+  gegenueber dem 03.11.
 - `vidiq_user_channels`: `authenticatedAs` neo.alphavault@gmail.com, ein
   Kanal "Entrepreneurs Unveiled"; Kaspa Pulse nicht freigegeben.
   `vidiq_instagram_connected_accounts`: leere Liste. Stand unveraendert
   gegenueber dem 02.11.
-- Fenster-Rechnung zur Stichzeit 03.11. 08:41 utc: Weekly `Yj_0S7wFLos`
-  (02.11. 15:00 utc) 17,7 h alt, 24-h-Marke 03.11. 15:00 utc. Short
-  `MMAsFwslJpo` (02.11. 16:00 utc) 16,7 h alt, 48-h-Marke 04.11. 16:00 utc.
-- Reel-Fenster 48 bis 72 h = 31.10. 08:41 bis 01.11. 08:41 utc.
-  `data/insights/manifest.jsonl` fuehrt fuer Instagram am 30.10., 31.10.,
-  02.11. und 03.11. je einen Beitrag im Format `bild`, fuer den 01.11.
-  keinen. Jueneste Reel-Messung im Sammler: Veroeffentlichung 30.10.
-  11:10 utc, am 02.11. eingetragen.
+- Oeffentlicher Ersatzweg geprueft und nicht verfuegbar: Abruf des
+  YouTube-Kanal-Feeds endet im CONNECT-Tunnel mit 403.
+- Fenster-Rechnung zur Stichzeit 04.11. 08:45 utc: Weekly `Yj_0S7wFLos`
+  (02.11. 15:00 utc) 41,8 h alt, 24-h-Marke am 03.11. 15:00 utc passiert,
+  Zeile heute eingetragen. Short `MMAsFwslJpo` (02.11. 16:00 utc) 40,8 h
+  alt, 48-h-Marke erst 04.11. 16:00 utc, nicht vorgezogen.
+- Videoliste nicht erneuerbar: beide Eintraege stammen aus dem
+  vidIQ-Abruf vom 03.11., dem letzten, der durchging. Ob am 03.11. ein
+  weiterer Short erschien, ist von hier aus nicht pruefbar; seine
+  48-h-Marke laege erst am 05.11.
+- Reel-Fenster 48 bis 72 h = 01.11. 08:45 bis 02.11. 08:45 utc. Der
+  Sammler in pulse-studio (`data/insights/manifest.jsonl`) fuehrt als
+  Reels den 30.10. 11:11 utc und den 03.11. 11:09 utc (`DfRvUSoDSV8`),
+  dazwischen keinen. Das Reel vom 03.11. wird am 05.11. faellig.
 - Haengende Laeufe: `queued` nur Lauf 166 (bekannter Fall vom 07.10.).
-  `in_progress`: `bch tempnet lauscher` Lauf 42 (seit 08:29 utc),
-  `entity-x-alert` Lauf 1219 (seit 08:11 utc), `kcc20 zaehlung` Lauf 7
-  (seit 07:21 utc, wartet nach Bauart auf die Stichzeit 03.11. 12:00 utc).
-  Kein Haenger.
+  `in_progress`: `entity-x-alert` Lauf 1227 (seit 06:32 utc, 2,2 h, laeuft
+  nach Bauart rund 5 Stunden) und `miner nach cut` Lauf 1 (seit 03.11.
+  18:55 utc, Kette von 24 Laeufen im Abstand von rund 7,5 Stunden,
+  Fortschritt zuletzt 08:29 utc). Kein Haenger.
 
 ## Was Ben tun muss
 
-1. **vidIQ-Guthaben ist leer** und erneuert sich erst am 24.11. Bis dahin
-   bleiben alle vidIQ-Werte offen, auch die oeffentlichen Aufrufzahlen, mit
-   denen die Pruefung bisher die Short-Zeilen gefuellt hat.
+1. **vidIQ-Guthaben ist leer** und erneuert sich erst am 24.11. Solange
+   bleibt jede Videozeile offen, auch die oeffentlichen Aufrufzahlen. Die
+   heute faellige Weekly-Zeile ist deshalb die erste, die ganz leer in der
+   Datei steht.
 2. **vidIQ haengt weiter am falschen Konto** (neo.alphavault@gmail.com,
    Kaspa Pulse nicht freigegeben, kein Instagram-Konto verbunden).
-   Unveraendert seit dem 02.11.
-3. **Multibagger liegt einen Handelstag hinten.** Nach dem heutigen
-   Scanner-Lauf sollte der Stand auf dem Schlusskurs vom 02.11. stehen.
-   Wenn nicht, ist es mehr als eine Laufzeit-Frage.
+   Unveraendert seit dem 02.11. Ohne diese Freigabe bleibt Schritt 7
+   (Instagram-Reels) dauerhaft ohne Werte.
+3. **Multibagger liegt einen Handelstag hinten.** Der Scanner laeuft
+   mittags, vor dem US-Schluss; das ist bauartbedingt. Wenn der Stand nach
+   dem heutigen Lauf nicht auf dem Schlusskurs vom 03.11. steht, ist es
+   mehr als eine Laufzeit-Frage.
 4. **Ablage-Branch und automerge.** `automerge-claude.yml` holt jeden Push
    auf `claude/**` nach main und loescht den Branch. Ein dauerhafter
    Ablage-Branch mit Force-Push ist in diesem Repo dadurch nicht moeglich;
