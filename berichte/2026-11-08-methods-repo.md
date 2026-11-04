@@ -12,7 +12,7 @@ Ben hat am 4.11. das öffentliche Methoden-Repo für PulseHawk beauftragt, dazu 
 
 ## 1. Inhalt
 
-[PR pulsehawk/methods#1](https://github.com/pulsehawk/methods/pull/1), Branch `nu7-report-v1`, Kopf `ad2bf2b`.
+[PR pulsehawk/methods#1](https://github.com/pulsehawk/methods/pull/1), Branch `nu7-report-v1`, gemergt am 4.11. als `04f3f6c`.
 
 | Datei | Inhalt |
 |---|---|
@@ -95,6 +95,15 @@ Zählung mit dem Header-Client und die BCH-Tempnet-Skripte sollen nach demselben
 
 ## Was Ben tun muss
 
-1. [pulsehawk/methods#1](https://github.com/pulsehawk/methods/pull/1) prüfen und mergen.
-2. Den Branch `zugang-test` in pulsehawk/methods löschen.
-3. Die Fragen oben beantworten, möglichst vor dem 9.11.
+1. In pulsehawk/methods die Branches `zugang-test` und `nu7-report-v1` löschen. Mir verweigert GitHub das mit HTTP 403.
+2. Die Fragen oben beantworten, möglichst vor dem 9.11.
+
+## Merge-Zeilen
+
+Merge-Regel vom 4.11.: Ich merge selbst, auch in pulsehawk/methods, außer bei Workflows, `deploy/`, c2-Dateien, Secrets, roten Checks, Konflikten oder Texten, die die Textregeln nicht bestehen.
+
+| PR | Merge | Was jetzt live ist |
+|---|---|---|
+| [pulsehawk/methods#1](https://github.com/pulsehawk/methods/pull/1) | Squash `04f3f6c`, 4.11. | `report_v1.py` mit Selbsttest, METHODS.md mit PH-M-001 bis 006, FORMATS.md, ROUND_ROBIN.md, `tools/heads_from_rpc.py`, das Beispiel vom 17.10. und die NU7-Konfiguration mit der Schätzung vom 4.11. (02:40:58 UTC, Band 01:14:45 bis 04:07:28). Die Doku hat vorher den Textregel-Check bestanden; dafür habe ich Doppelpunkte im Fließtext ersetzt. |
+| [kaspa-pulse#253](https://github.com/neoalphavault-png/kaspa-pulse/pull/253) | Squash `8fb01eb`, 4.11. | Forumsentwurf Woche 3 mit den drei Korrekturen |
+| [kaspa-pulse#254](https://github.com/neoalphavault-png/kaspa-pulse/pull/254) | Squash `49a7734`, 4.11. | Upgrade-Wache: erwartet 6.11. 02:40:58 UTC, Band 01:14:45 bis 04:07:28. Auf c2 greift das erst nach `setup.sh wache zcash-mainnet`. |
