@@ -82,7 +82,11 @@
    },
    "abdeckung": {
     "laeufe": 7,
-    "abgedeckt_h": 35.8,
+    "abgedeckt_h": 35.0,
+    "laufdauer_summe_h": 35.8,
+    "fenster_h": 35.0,
+    "daten_bis_utc": "2026-10-29 21:00:00",
+    "von_fensterbeginn_bis_datenende_h": 35.0,
     "peers_je_lauf": [
      35,
      47
@@ -183,7 +187,11 @@
    },
    "abdeckung": {
     "laeufe": 22,
-    "abgedeckt_h": 115.7,
+    "abgedeckt_h": 113.0,
+    "laufdauer_summe_h": 115.7,
+    "fenster_h": 133.0,
+    "daten_bis_utc": "2026-11-03 13:59:44",
+    "von_fensterbeginn_bis_datenende_h": 113.0,
     "peers_je_lauf": [
      35,
      47
@@ -198,6 +206,26 @@
     ]
    }
   }
+ },
+ "abdeckung_gesamt": {
+  "laeufe": 28,
+  "abgedeckt_h": 148.0,
+  "laufdauer_summe_h": 151.5,
+  "fenster_h": 168.0,
+  "daten_bis_utc": "2026-11-03 13:59:44",
+  "von_fensterbeginn_bis_datenende_h": 148.0,
+  "peers_je_lauf": [
+   35,
+   47
+  ],
+  "luecken": [
+   {
+    "von_utc": "2026-11-03 13:59:44",
+    "bis_utc": "2026-11-04 10:00:00",
+    "dauer_s": 72016,
+    "fensterende": true
+   }
+  ]
  },
  "woche2_vergleich": {
   "fenster_utc": [

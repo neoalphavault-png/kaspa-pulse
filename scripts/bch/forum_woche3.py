@@ -31,6 +31,7 @@ import gzip
 import json
 import math
 import os
+import sys
 from datetime import datetime, timezone
 
 POW_LIMIT_BITS = 0x1D00FFFF
@@ -155,6 +156,19 @@ def lauscher_teil(bloecke, stale, von, bis):
     }
 
 
+def vereinigung(segmente):
+    """Laenge der Vereinigung von Zeitabschnitten [(a, e)] in s; Ueberlappungen zaehlen einmal."""
+    summe, ende = 0.0, None
+    for a, e in sorted(segmente):
+        if ende is None or a > ende:
+            summe += e - a
+            ende = e
+        elif e > ende:
+            summe += e - ende
+            ende = e
+    return summe
+
+
 def abdeckung(ordner, von, bis):
     laeufe = []
     for d in sorted(glob.glob(os.path.join(ordner, "2*"))):
@@ -170,21 +184,63 @@ def abdeckung(ordner, von, bis):
         bis_jetzt = max(bis_jetzt, e)
     if bis_jetzt < bis - 1:
         luecken.append({"von_utc": utc(bis_jetzt), "bis_utc": utc(bis), "dauer_s": round(bis - bis_jetzt), "fensterende": True})
-    return {"laeufe": len(laeufe), "abgedeckt_h": r(sum(e - a for a, e, _ in laeufe) / 3600, 1),
+    abgedeckt = vereinigung([(a, e) for a, e, _ in laeufe])
+    assert abgedeckt <= bis - von + 1e-6, "abgedeckt groesser als das fenster"
+    return {"laeufe": len(laeufe),
+            "abgedeckt_h": r(abgedeckt / 3600, 1),           # Vereinigung, Ueberlappungen einmal
+            "laufdauer_summe_h": r(sum(e - a for a, e, _ in laeufe) / 3600, 1),
+            "fenster_h": r((bis - von) / 3600, 1),
+            "daten_bis_utc": utc(bis_jetzt),
+            "von_fensterbeginn_bis_datenende_h": r((bis_jetzt - von) / 3600, 1),
             "peers_je_lauf": [min((p for *_, p in laeufe), default=0), max((p for *_, p in laeufe), default=0)],
             "luecken": luecken}
 
 
+def selbsttest():
+    f = []
+
+    def ok(name, bed, info=""):
+        print("%-4s %s%s" % ("ok" if bed else "FEHL", name, ("  " + str(info)) if not bed and info else ""))
+        if not bed:
+            f.append(name)
+
+    ok("ohne ueberlappung", vereinigung([(0, 10), (20, 30)]) == 20)
+    ok("ueberlappung zaehlt einmal", vereinigung([(0, 10), (5, 15)]) == 15)
+    ok("enthalten", vereinigung([(0, 100), (10, 20)]) == 100)
+    ok("unsortiert, beruehrend", vereinigung([(10, 20), (0, 10)]) == 20)
+    ok("leer", vereinigung([]) == 0)
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        for name, s, e in (("20261028T1000", "2026-10-28T10:00:00Z", "2026-10-28T15:30:00Z"),
+                           ("20261028T1520", "2026-10-28T15:20:00Z", "2026-10-28T20:50:00Z"),
+                           ("20261028T2040", "2026-10-28T20:40:00Z", "2026-10-29T02:10:00Z")):
+            os.makedirs(os.path.join(d, name))
+            json.dump({"start_utc": s, "ende_utc": e, "peers": [{}] * 40}, open(os.path.join(d, name, "meta.json"), "w"))
+        a = abdeckung(d, ts("2026-10-28T10:00:00Z"), ts("2026-10-29T00:00:00Z"))
+        ok("drei laeufe mit 10 min ueberlappung, fenster 14 h: abgedeckt 14 h", a["abgedeckt_h"] == 14.0, a)
+        ok("abgedeckt_h nie groesser als das fenster", a["abgedeckt_h"] <= a["fenster_h"], a)
+        ok("laufdauer_summe zaehlt die ueberlappung doppelt", a["laufdauer_summe_h"] == 14.3, a)
+        ok("keine luecke", a["luecken"] == [], a["luecken"])
+    print("")
+    print("%d fehler" % len(f) if f else "alle testfaelle bestanden")
+    return 1 if f else 0
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--koepfe", required=True)
-    ap.add_argument("--lauscher", required=True)
-    ap.add_argument("--von", required=True)
-    ap.add_argument("--bis", required=True)
+    ap.add_argument("--selbsttest", action="store_true")
+    ap.add_argument("--koepfe")
+    ap.add_argument("--lauscher")
+    ap.add_argument("--von")
+    ap.add_argument("--bis")
     ap.add_argument("--schnitt", default="2026-10-29T21:00:00Z")
-    ap.add_argument("--json", required=True)
+    ap.add_argument("--json")
     ap.add_argument("--md", help="Forumsentwurf (englisch) schreiben")
     a = ap.parse_args()
+    if a.selbsttest:
+        sys.exit(selbsttest())
+    if not (a.koepfe and a.lauscher and a.von and a.bis and a.json):
+        ap.error("--koepfe, --lauscher, --von, --bis und --json sind noetig")
     von, bis, schnitt = ts(a.von), ts(a.bis), ts(a.schnitt)
 
     with gzip.open(a.koepfe, "rt") as f:
@@ -199,6 +255,7 @@ def main():
     for teil, (x, y) in (("vor", (von, schnitt)), ("nach", (schnitt, bis))):
         r_["teile"][teil] = {"fenster_utc": [utc(x), utc(y)], "koepfe": koepfe_teil(kette, x, y),
                              "lauscher": lauscher_teil(bloecke, stale, x, y), "abdeckung": abdeckung(a.lauscher, x, y)}
+    r_["abdeckung_gesamt"] = abdeckung(a.lauscher, von, bis)
     w2 = lauscher_teil(bloecke, stale, ts(WOCHE2[0]), ts(WOCHE2[1]) + 1)
     r_["woche2_vergleich"] = {"fenster_utc": list(WOCHE2), "timestamp_deviation_s": w2["timestamp_deviation_s"],
                               "timestamp_deviation_ohne_120s": w2["timestamp_deviation_ohne_120s"]}
@@ -265,8 +322,9 @@ def forum(r_):
         f"Header chain up to block {r_['koepfe_spitze']:,}, listener data up to {tag(r_['lauscher_bis_utc'])}. "
         "Reply to bitcoincashautist and rufitnes. " + TRENNER,
         "@bitcoincashautist @rufitnes Week three of our tempnet counts.", "",
-        f"**Two windows.** Our listener numbers change from {tag(r_['schnitt_utc'])} on, shortly before the node "
-        "restart discussed in this thread. So every table below has one column before and one after that hour, "
+        f"**Two windows.** Our listener numbers change from {tag(r_['schnitt_utc'])} on. At 22:35 utc all our "
+        "connections to one node dropped in the same second, which looks like a restart, but the change in our numbers "
+        f"starts about 95 min earlier. So every table below has one column before and one after {tag(r_['schnitt_utc'])}, "
         "and no value is averaged across both.", "",
         f"**Block intervals from our own headers**", "",
         f"| | before, {tag(fv[0])} to {tag(fv[1])} | after, {tag(fn[0])} to {tag(fn[1])} | computed for 60 s |",
@@ -312,8 +370,8 @@ def forum(r_):
         f"**A correction to how we showed week two.** We gave a timestamp_deviation p99 of {z(w2a['p99'], 1)} s. "
         f"Without the {w2o['ausgelassen']} blocks whose header timestamp is exactly 120 s after their parent the p99 "
         f"is {z(w2o['p99'], 1)} s, so that tail came almost entirely from those blocks. Thanks to rufitnes, who showed "
-        "on 30 Oct that 101 of these blocks come from one miner. We only count timestamps and do not look at who mined "
-        "a block.", "",
+        "on 30 Oct that 101 of the 106 such blocks in his data come from one miner (source rufitnes). We only count "
+        "timestamps and do not look at who mined a block.", "",
         "**Stale blocks** use the same definition as in week two. A block counts as stale when it was announced to us "
         "and is not in the chain 6 blocks later, and the share is stale blocks over chain blocks plus stale blocks.", "",
     ]
@@ -335,19 +393,21 @@ def forum(r_):
                           f"{'period' if len(w) == 1 else 'periods'}, {liste}. Across the whole {teil} window the "
                           f"median is {l_['kette_je_h_median']} chain blocks per hour.".replace("{teil}", teil))
             zeilen.append("")
-    luecken = [l_ for t_ in (v, n) for l_ in t_["abdeckung"]["luecken"] if not l_.get("fensterende")]
-    abg = v["abdeckung"]["abgedeckt_h"] + n["abdeckung"]["abgedeckt_h"]
-    zeilen.append(f"**Coverage.** The listener covered {z(round(abg, 1))} h of the window in "
-                  f"{v['abdeckung']['laeufe'] + n['abdeckung']['laeufe']} segments, with "
-                  f"{min(v['abdeckung']['peers_je_lauf'][0], n['abdeckung']['peers_je_lauf'][0])} to "
-                  f"{max(v['abdeckung']['peers_je_lauf'][1], n['abdeckung']['peers_je_lauf'][1])} peers that confirm the "
-                  "fork at block 327,989." + (" Gaps between segments were " + ", ".join(
-                      f"{round(l_['dauer_s'] / 60)} min from {tag(l_['von_utc'])}" for l_ in luecken) + "." if luecken else
-                      " There was no gap between segments.")
+    g = r_["abdeckung_gesamt"]
+    luecken = [l_ for l_ in g["luecken"] if not l_.get("fensterende")]
+    ende = [l_ for l_ in g["luecken"] if l_.get("fensterende")]
+    zeilen.append(f"**Coverage.** The listener covered {z(g['abgedeckt_h'], 1)} h of the "
+                  f"{z(g['von_fensterbeginn_bis_datenende_h'], 1)} h from window start to {tag(g['daten_bis_utc'])}, in "
+                  f"{g['laeufe']} segments with {g['peers_je_lauf'][0]} to {g['peers_je_lauf'][1]} peers that confirm the "
+                  "fork at block 327,989."
+                  + (" Gaps between segments were " + ", ".join(
+                      f"{round(l_['dauer_s'] / 60)} min from {tag(l_['von_utc'])}" for l_ in luecken) + "." if luecken
+                     else (" There was no gap between segments."
+                           if abs(g["abgedeckt_h"] - g["von_fensterbeginn_bis_datenende_h"]) < 0.05 else ""))
                   + "".join(f" Listener data ends at {tag(l_['von_utc'])}, because the segment after it stopped "
                             "without saving its data, so the last "
                             f"{round(l_['dauer_s'] / 3600)} h of the window are missing from the listener tables."
-                            for t_ in (v, n) for l_ in t_["abdeckung"]["luecken"] if l_.get("fensterende")))
+                            for l_ in ende))
     zeilen += ["", "All numbers in the tables are counted by us from our own header chain and our own listener, "
                "except the column computed for an ideal 60 s chain. The listener keeps running until the tempnet ends "
                "on 15 Nov.", ""]
