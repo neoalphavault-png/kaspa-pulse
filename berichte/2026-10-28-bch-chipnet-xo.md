@@ -259,6 +259,27 @@ timestamp_deviation ist unsere erste Sicht minus die Kopfzeit des Blocks. Ausgel
   - Diese Zahlen bitte nicht verwenden.
 - **Ab Woche 3 (Wochenlauf 4.11.):** Ein Mittel über die ganze Woche würde zwei Zustände mischen, Median etwa 0,8 s bis 29.10. 21:00 und etwa 3,2 s danach. Die Woche wird deshalb getrennt ausgewiesen, wie in der geplanten Aufgabe für den 4.11. vorgesehen.
 
+### Stand 4.11., Schnitt 29.10. 21:00 UTC
+
+Ben hat am 3.11. entschieden, dass der Schnitt bei 21:00 UTC liegt, nicht beim Neustart um 22:35 UTC. Ausgewertet ist die Woche vom 28.10. 10:00 bis 4.11. 10:00 UTC. Die Köpfe stammen aus dem Wochenlauf vom 4.11. (Spitze 356.042), der Zuhörer reicht bis 3.11. 13:59 UTC.
+
+Zahlen: `data/bch/tempnet-woche3-forum-2026-11-04.json` auf `messung/bch-tempnet` (`e6f219c`). Ausführlich steht alles in `berichte/2026-11-04-bch-tempnet.md` auf demselben Branch.
+
+| | vorher | nachher |
+|---|---:|---:|
+| timestamp_deviation Median / p90 / p99, alle | 0,80 / 3,34 / 36,3 s | 3,19 / 5,29 / 14,1 s |
+| dto. ohne genau 120 s | 0,78 / 3,20 / 5,1 s (46 ausgelassen) | 3,18 / 5,25 / 12,2 s (55 ausgelassen) |
+| propagation_spread Median / p90 | 7,8 / 11,0 s | 7,2 / 10,3 s |
+| stale nach 6 Bestätigungen | 4 von 2.117 (0,19 %) | 398 von 7.847 (5,07 %) |
+| Abstände Median / p90 (Köpfe) | 43,0 / 132,0 s | 30,0 / 129,0 s |
+
+**Gegenüber dem 3.11. ist neu:**
+- Eine dritte Stale-Welle am 3.11. von 8 bis 9 Uhr UTC mit 28 stale-Blöcken.
+- Nachher wechseln sich Schübe und lange Lücken ab: 130 Abstände über 5 min, längste Lücke 1.159 s.
+- Die Bewertung der älteren Zahlen bleibt wie oben.
+
+Der Forumsbeitrag für Woche 3 nutzt diese Zahlen. Er liegt in `berichte/2026-11-04-bch-tempnet-woche3-forum.md` auf `main`, PR #251.
+
 ## 6. Dateien
 
 - Skripte: `scripts/bch/chipnet_koepfe.py`, `scripts/bch/chipnet_auswertung.py`, `scripts/bch/chipnet_wbch.py`
