@@ -343,7 +343,11 @@ def forum(r_):
                   f"{max(v['abdeckung']['peers_je_lauf'][1], n['abdeckung']['peers_je_lauf'][1])} peers that confirm the "
                   "fork at block 327,989." + (" Gaps between segments were " + ", ".join(
                       f"{round(l_['dauer_s'] / 60)} min from {tag(l_['von_utc'])}" for l_ in luecken) + "." if luecken else
-                      " There was no gap between segments."))
+                      " There was no gap between segments.")
+                  + "".join(f" Listener data ends at {tag(l_['von_utc'])}, because the segment after it stopped "
+                            "without saving its data, so the last "
+                            f"{round(l_['dauer_s'] / 3600)} h of the window are missing from the listener tables."
+                            for t_ in (v, n) for l_ in t_["abdeckung"]["luecken"] if l_.get("fensterende")))
     zeilen += ["", "All numbers in the tables are counted by us from our own header chain and our own listener, "
                "except the column computed for an ideal 60 s chain. The listener keeps running until the tempnet ends "
                "on 15 Nov.", ""]
