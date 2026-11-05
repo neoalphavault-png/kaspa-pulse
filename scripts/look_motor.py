@@ -570,7 +570,7 @@ def schalter_seiten(z):
              "zahl": ganz(round(z["nach"])),
              "label": "PH/s on %s, the first full day after the cut, %s" % (tag(SCHALTER_NACH[0]), vergleich),
              "paar": ((vor_txt, _hr(z["vor"])), (nach_txt, _hr(z["nach"]))),
-             "quelle": "source kaspa rest api, daily means computed by kaspa pulse, %s" % tag(SCHALTER_NACH[-1]),
+             "quelle": "source kaspa rest api, daily means by kaspa pulse, %s" % tag(SCHALTER_NACH[-1]),
              "paar_d": True}
     return [
         {"art": "haken", "id": "reward", "kopf": "BLOCK REWARD", "zahl": titel["zahl"], "satz": titel["label"],
@@ -756,6 +756,11 @@ def selbsttest():
     ok("schalter, caption besteht die wachen", karussell.caption_pruefen(cap) == [], karussell.caption_pruefen(cap))
     ok("schalter, kein kausalsatz", not any(w in " ".join(tx + [cap]).lower()
                                              for w in ("because", "caused", "due to", "miners left")))
+    # "computed" nur fuer werte aus festen protokollregeln, ein tagesmittel aus
+    # fremddaten gehoert nicht dazu (Ben, 5.11.2026)
+    ok("schalter, quelle bild 2 ohne computed", sss[1]["quelle"]
+       == "source kaspa rest api, daily means by kaspa pulse, 5 nov 2026" and "computed" not in sss[1]["quelle"],
+       sss[1]["quelle"])
     ok("schalter, seite 2 nennt 2 and 3 nov und 5 nov", "2 and 3 nov" in " ".join(tx) and "5 nov" in " ".join(tx))
     for lt, erwartet in (("A", ["A-papier", "D-dunkel", "A-papier"]), ("D", ["D-dunkel", "A-papier", "D-hell"])):
         spp = {"kanaele": {"richtung/karussell": [{"datum": "2026-10-31", "serie": "woche",
