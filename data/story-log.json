@@ -94,6 +94,21 @@
     "up",
     "down"
    ]
+  },
+  {
+   "datum": "2026-11-05",
+   "tag": "do",
+   "art": "zitat",
+   "frage": "what should we count next?",
+   "richtig": null,
+   "aufloesung": {
+    "frage": "yesterday's number",
+    "zahl": "5.61%",
+    "einheit": "",
+    "satz": "kaspa block reward, falls on 4 nov",
+    "datum": "4 nov 2026 · source kaspa rest api"
+   },
+   "quelle_vorlage": "zahl des tages 2026-11-04, kein erklaerer gefunden"
   }
  ]
 }
