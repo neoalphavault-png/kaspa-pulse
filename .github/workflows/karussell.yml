@@ -16,14 +16,14 @@ name: karussell
 # um die Postzeit und ohne Stopp. Von Hand ist immer trocken. Notbremse:
 # Variable KARUSSELL_STOPP auf JJJJ-MM-TT oder immer.
 #
-# Termine: woche Sa 11:00, story Mi 18:00, meme Sa 15:00 (Berlin), einmalig
+# Termine: woche Sa 12:30 (bis 5.11.2026 11:00), story Mi 18:00, meme Sa 15:00 (Berlin), einmalig
 # schalter Fr 6.11.2026 11:00 (Reward Cut), Entwurf je 2 Stunden vorher. Die Logik steht in scripts/karussell_post.py.
 
 on:
   workflow_dispatch:
     inputs:
       art:
-        description: "woche (sa 11:00), story (mi 18:00), meme (sa 15:00) oder schalter (nur fr 6.11.2026 11:00)"
+        description: "woche (sa 12:30), story (mi 18:00), meme (sa 15:00) oder schalter (nur fr 6.11.2026 11:00)"
         type: choice
         options:
           - woche

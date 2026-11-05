@@ -1955,7 +1955,7 @@ def ops_senden(png, vorschau, s, form, grund, kanalbilder=None, looks=None):
                                              "https://x.com/compose/post", rest),
                         [kanalbilder["x"]] if kanalbilder.get("x") else [png], "x-tagesgrafik")
     if s.get("instagram"):
-        ops_text("INSTAGRAM, caption fuer den post um 09:30, nach discord (nur wenn IG_MODUS "
+        ops_text("INSTAGRAM, caption fuer den post um 12:30, nach discord (nur wenn IG_MODUS "
                  "scharf, stoppen mit der variable IG_STOPP=%s)\n```\n%s\n```" % (
                      heute_iso(s), s["instagram"]), "instagram-caption")
 

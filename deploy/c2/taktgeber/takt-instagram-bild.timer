@@ -1,10 +1,12 @@
 [Unit]
-Description=Kaspa Pulse Takt, Instagram-Bild 09:30 Berlin
+Description=Kaspa Pulse Takt, Instagram-Bild 12:30 Berlin
 
 [Timer]
 Unit=takt@instagram-bild.service
-# Nach dem Discord-Post, im Fenster 09:25 bis 11:30 Berlin.
-OnCalendar=*-*-* 09:30:00 Europe/Berlin
+# Nach dem Discord-Post, im Fenster 12:25 bis 14:30 Berlin. 12:30 statt
+# 09:30 (Ben, 5.11.2026): nach den Insights sind die Follower Mo bis Sa
+# 12 bis 18 Uhr und So 15 bis 18 Uhr aktiv.
+OnCalendar=*-*-* 12:30:00 Europe/Berlin
 Persistent=true
 AccuracySec=30s
 

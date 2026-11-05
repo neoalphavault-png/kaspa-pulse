@@ -1,15 +1,24 @@
 [Unit]
-Description=Kaspa Pulse Takt, Reel zur Short-Zeit
+Description=Kaspa Pulse Takt, Reel Di bis So 15:30, Mo 17:00 Berlin
 
 [Timer]
 Unit=takt@reel.service
-# Dieselben Zeiten wie die Shorts auf YouTube: Di bis So 12:00, Mo 17:00
-# (sendezeit() in pulse-studio, docs/projekt/shorts-ledger.md).
-OnCalendar=Tue,Wed,Thu,Fri,Sat,Sun *-*-* 12:00:00 Europe/Berlin
+# Ab 5.11.2026 (Ben) ist der Reel von der Short-Zeit ENTKOPPELT: Di bis So
+# 15:30, Mo 17:00, nach den Instagram-Insights (Follower Mo bis Sa 12 bis
+# 18 Uhr, So 15 bis 18 Uhr aktiv). Der YouTube-Short bleibt Di bis So 12:00.
+# Bis dahin galten fuer beide dieselben Zeiten (sendezeit() in pulse-studio,
+# docs/projekt/shorts-ledger.md).
+#
+# ERST NACH DEM MERGE IN PULSE-STUDIO AKTIV. Das Faelligkeitsfenster des
+# Reels (plus/minus 20 Minuten) steht in pulse-studio, die passende
+# Aenderung macht die Sitzung "shorts builder". Laeuft dieser Timer vorher,
+# weist der Reel-Lauf 15:30 als "nicht faellig" ab. Reihenfolge und Befehle
+# fuer c2: berichte/2026-11-05-instagram-zeiten.md.
+OnCalendar=Tue,Wed,Thu,Fri,Sat,Sun *-*-* 15:30:00 Europe/Berlin
 OnCalendar=Mon *-*-* 17:00:00 Europe/Berlin
-# NICHT nachholen. Ein Reel, das zwei Stunden spaeter kommt, ist kein
-# Reel zur Short-Zeit - und das Faelligkeitsfenster im Skript (plus/minus
-# 20 Minuten) wuerde es ohnehin abweisen.
+# NICHT nachholen. Ein Reel, das zwei Stunden spaeter kommt, liegt
+# ausserhalb seines Termins - und das Faelligkeitsfenster im Skript
+# (plus/minus 20 Minuten) wuerde es ohnehin abweisen.
 Persistent=false
 AccuracySec=15s
 

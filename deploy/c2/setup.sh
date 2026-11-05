@@ -357,8 +357,8 @@ nachziehen() {
   echo
   hinweis "list-timers schreibt in der Zeitzone des Servers. Zum Vergleich"
   hinweis "in Ortszeit, so wie die Timer es jetzt rechnen:"
-  for e in "*-*-* 07:30:00" "*-*-* 09:30:00" "*-*-* 10:12:00" \
-           "*-*-* 11:42:00" "Tue..Sun *-*-* 12:00:00" "Mon *-*-* 17:00:00" \
+  for e in "*-*-* 07:30:00" "*-*-* 12:30:00" "*-*-* 10:12:00" \
+           "*-*-* 11:42:00" "Tue..Sun *-*-* 15:30:00" "Mon *-*-* 17:00:00" \
            "Mon *-*-* 18:40:00" "*-*-01 09:00:00"; do
     printf '   %-28s -> ' "$e"
     systemd-analyze calendar "$e Europe/Berlin" | awk -F': +' '/Next elapse/ {print $2}'

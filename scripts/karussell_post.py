@@ -20,7 +20,7 @@ gepostet hat sie niemand. Ab jetzt laeuft jeder Termin in zwei Schritten:
   probe     beides in einem Lauf, nie veroeffentlicht, nichts gemerkt. Der
             Vorschau-Lauf, nach dem Ben KARUSSELL_LIVE setzt.
 
-TERMINE (karussell.POSTZEIT): woche Sa 11:00, story Mi 18:00, meme Sa 15:00,
+TERMINE (karussell.POSTZEIT): woche Sa 12:30 (bis 5.11.2026 11:00), story Mi 18:00, meme Sa 15:00,
 einmalig schalter Fr 6.11.2026 11:00 (Reward Cut), Entwurf jeweils 2 Stunden vorher. Der Takt kommt von c2.
 
 SCHARF nur, wenn alles zusammenkommt:
@@ -632,9 +632,9 @@ def selbsttest():
     os.environ.pop("KARUSSELL_STOPP", None)
     os.environ.pop("KARUSSELL_LIVE", None)
     utc = dt.timezone.utc
-    sa_1100 = dt.datetime(2026, 10, 31, 10, 0, tzinfo=utc)       # 11:00 berlin, winterzeit
-    ok("postzeiten woche sa 11:00, story mi 18:00, meme sa 15:00, schalter fr 11:00",
-       karussell.POSTZEIT == {"woche": (5, "11:00"), "story": (2, "18:00"), "meme": (5, "15:00"),
+    sa_1230 = dt.datetime(2026, 10, 31, 11, 30, tzinfo=utc)      # 12:30 berlin, winterzeit
+    ok("postzeiten woche sa 12:30, story mi 18:00, meme sa 15:00, schalter fr 11:00",
+       karussell.POSTZEIT == {"woche": (5, "12:30"), "story": (2, "18:00"), "meme": (5, "15:00"),
                               "schalter": (4, "11:00")})
     ok("schalter fr 6.11. 11:00 berlin ist 10:00 utc",
        postzeit("schalter", "2026-11-06").astimezone(utc) == dt.datetime(2026, 11, 6, 10, 0, tzinfo=utc))
@@ -645,30 +645,33 @@ def selbsttest():
         ok("schalter nur am 6.11.", True)
     ok("schalter ohne datum ist der naechste freitag",
        fuer_aufloesen("schalter", "", dt.datetime(2026, 11, 5, 17, 0, tzinfo=utc)) == "2026-11-06")
-    ok("woche sa 31.10. 11:00 berlin ist 10:00 utc", postzeit("woche", "2026-10-31").astimezone(utc) == sa_1100)
+    ok("woche sa 31.10. 12:30 berlin ist 11:30 utc", postzeit("woche", "2026-10-31").astimezone(utc) == sa_1230)
+    ok("woche: 11:00 berlin, der alte termin, ist nicht mehr im fenster",
+       "fenster" in (faellig("woche", "2026-10-31", "takt", {"posts": []},
+                             dt.datetime(2026, 10, 31, 10, 0, tzinfo=utc)) or ""))
     ok("entwurf 2 stunden vorher", VORLAUF == dt.timedelta(hours=2))
     leer = {"posts": []}
-    ok("im fenster faellig", faellig("woche", "2026-10-31", "takt", leer, sa_1100) is None)
+    ok("im fenster faellig", faellig("woche", "2026-10-31", "takt", leer, sa_1230) is None)
     ok("zu frueh nicht faellig", "fenster" in (faellig("woche", "2026-10-31", "takt", leer,
-                                                     sa_1100 - dt.timedelta(minutes=30)) or ""))
+                                                     sa_1230 - dt.timedelta(minutes=30)) or ""))
     ok("zwei stunden zu spaet nicht faellig", "fenster" in (faellig("woche", "2026-10-31", "takt", leer,
-                                                                  sa_1100 + dt.timedelta(hours=2)) or ""))
+                                                                  sa_1230 + dt.timedelta(hours=2)) or ""))
     ok("anderer tag nicht faellig", "nicht heute" in (faellig("woche", "2026-10-31", "takt", leer,
-                                                            sa_1100 - dt.timedelta(days=1)) or ""))
-    ok("von hand ohne fenster", faellig("woche", "2026-10-31", "hand", leer, sa_1100 - dt.timedelta(days=3)) is None)
+                                                            sa_1230 - dt.timedelta(days=1)) or ""))
+    ok("von hand ohne fenster", faellig("woche", "2026-10-31", "hand", leer, sa_1230 - dt.timedelta(days=3)) is None)
     os.environ["KARUSSELL_STOPP"] = "2026-10-31"
-    ok("stopp mit datum greift", "STOPP" in (faellig("woche", "2026-10-31", "takt", leer, sa_1100) or ""))
+    ok("stopp mit datum greift", "STOPP" in (faellig("woche", "2026-10-31", "takt", leer, sa_1230) or ""))
     os.environ["KARUSSELL_STOPP"] = "immer"
-    ok("stopp immer greift, auch von hand", bool(faellig("woche", "2026-10-31", "hand", leer, sa_1100)))
+    ok("stopp immer greift, auch von hand", bool(faellig("woche", "2026-10-31", "hand", leer, sa_1230)))
     os.environ["KARUSSELL_STOPP"] = "2026-10-24"
-    ok("stopp fuer einen anderen tag greift nicht", faellig("woche", "2026-10-31", "takt", leer, sa_1100) is None)
+    ok("stopp fuer einen anderen tag greift nicht", faellig("woche", "2026-10-31", "takt", leer, sa_1230) is None)
     os.environ.pop("KARUSSELL_STOPP")
     gepostet = {"posts": [{"art": "woche", "fuer": "2026-10-31", "modus": "scharf", "media": "1", "permalink": "p"},
                           {"art": "meme", "fuer": "2026-10-31", "modus": "scharf", "media": "2",
                            "motiv": "kaspa-chemie"},
                           {"art": "story", "fuer": "2026-11-04", "modus": "trocken"}]}
     ok("schon gepostet nicht noch einmal", "schon gepostet" in (faellig("woche", "2026-10-31", "takt",
-                                                                       gepostet, sa_1100) or ""))
+                                                                       gepostet, sa_1230) or ""))
     ok("ein trockener eintrag sperrt nicht", schon_gepostet(gepostet, "story", fuer="2026-11-04") is None)
     ok("ein meme-motiv nur einmal", schon_gepostet(gepostet, "meme", motiv="kaspa-chemie") is not None)
     for wert, soll in (("true", True), ("JA", True), ("1", True), ("false", False), ("", False), ("scharf", False)):
@@ -682,7 +685,7 @@ def selbsttest():
         ok("woche an einem freitag stoppt", True)
     ok("ohne datum der naechste samstag", fuer_aufloesen("meme", "", dt.datetime(2026, 10, 25, 12, tzinfo=utc))
        == "2026-10-31")
-    ok("am posttag selbst heute", fuer_aufloesen("woche", "", sa_1100) == "2026-10-31")
+    ok("am posttag selbst heute", fuer_aufloesen("woche", "", sa_1230) == "2026-10-31")
     os.environ["MEDIA_REPO_TOKEN"] = "ghp_" + "x" * 30
     ok("sauber verbirgt den media-token", "ghp_" not in sauber("fehler bei " + os.environ["MEDIA_REPO_TOKEN"]))
 
@@ -751,18 +754,18 @@ def selbsttest():
         # vom takt, live, im fenster: veroeffentlicht
         os.environ["KARUSSELL_LIVE"] = "true"
         aufrufe.clear()
-        e = posten("woche", "2026-10-31", quelle=quelle, start="takt", log_pfad=logp, now=sa_1100, takt=0)
+        e = posten("woche", "2026-10-31", quelle=quelle, start="takt", log_pfad=logp, now=sa_1230, takt=0)
         ok("takt plus KARUSSELL_LIVE veroeffentlicht", e["modus"] == "scharf" and e["media"] == "999"
            and any(a[0] == "graph" and a[2].endswith("media_publish") for a in aufrufe))
         try:
-            posten("woche", "2026-10-31", quelle=quelle, start="takt", log_pfad=logp, now=sa_1100, takt=0)
+            posten("woche", "2026-10-31", quelle=quelle, start="takt", log_pfad=logp, now=sa_1230, takt=0)
             ok("zweiter lauf am selben termin postet nicht", False)
         except NichtFaellig:
             ok("zweiter lauf am selben termin postet nicht", True)
         # probe: nie scharf, nichts im log
         logp2 = tmp / "log2.json"
         e = posten("woche", "2026-10-31", quelle=quelle, start="takt", probe=True, log_pfad=logp2,
-                   now=sa_1100, takt=0)
+                   now=sa_1230, takt=0)
         ok("probe ist nie scharf und schreibt kein log", e["modus"] == "trocken" and not logp2.exists())
         os.environ.pop("KARUSSELL_LIVE")
         # eine seite: einzelbild
@@ -893,7 +896,7 @@ def selbsttest():
            and [g[0] for g in gesendet] == ["hand"])
         t = gesendet[-1][1]
         ok("nennt zeit, plattform, permalink und satz",
-           t.startswith("📤 VON HAND Sa ab 11:15, Instagram-App, Kanal Kaspa Community.")
+           t.startswith("📤 VON HAND Sa ab 12:45, Instagram-App, Kanal Kaspa Community.")
            and "https://www.instagram.com/p/abc/" in t and satz in t)
         ok("hoechstens eine aufforderung je woche", lauf(eintrag=ep, manifest=mk) is None and len(gesendet) == 1)
         (tmp / "logc.json").unlink()

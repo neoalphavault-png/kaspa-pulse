@@ -1,9 +1,10 @@
 [Unit]
-Description=Kaspa Pulse Takt, Karussell Woche, posten Sa 11:00 Berlin
+Description=Kaspa Pulse Takt, Karussell Woche, posten Sa 12:30 Berlin
 
 [Timer]
 Unit=takt@karussell-woche.service
-OnCalendar=Sat *-*-* 11:00:00 Europe/Berlin
+# 12:30 statt 11:00 (Ben, 5.11.2026), nach den Instagram-Insights.
+OnCalendar=Sat *-*-* 12:30:00 Europe/Berlin
 Persistent=true
 AccuracySec=30s
 

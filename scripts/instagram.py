@@ -9,10 +9,10 @@ ausgegeben, nie geschrieben und steht in keiner Fehlermeldung: jede Antwort
 der API laeuft durch sauber(), bevor sie irgendwo erscheint. IG_USER_ID und
 FB_PAGE_ID sind Variablen, keine Geheimnisse.
 
-ABLAUF UM 09:30 BERLIN, NACH DISCORD (Job "instagram" in tagesgrafik.yml)
+ABLAUF UM 12:30 BERLIN, NACH DISCORD (Job "instagram" in tagesgrafik.yml)
     faellig     liefert die Grafik von heute, wenn 07:30 sie mit "senden"
                 ausgeliefert hat (Eintrag in data/tagesgrafik-log.json), wenn es
-                zwischen 09:25 und 11:30 Berlin ist, wenn heute noch nichts in
+                zwischen 12:25 und 14:30 Berlin ist, wenn heute noch nichts in
                 data/instagram-log.json steht und wenn IG_STOPP nicht auf heute
                 oder "immer" steht
     artefakt    holt PNG und Caption aus dem Artefakt genau des Laufs, der die
@@ -74,7 +74,10 @@ INSIGHTS = REPO / "data" / "instagram-insights.json"
 KOMMENTARE = REPO / "data" / "instagram-kommentare.json"
 ANTWORTEN = REPO / "data" / "instagram-antworten.json"
 METRIKEN = ("reach", "likes", "comments", "saved", "shares")
-FENSTER_BERLIN = ((9, 25), (11, 30))   # Ben, 08.10.2026: Discord kommt immer zuerst
+# Ben, 08.10.2026: Discord kommt immer zuerst. Ben, 5.11.2026: 12:30 statt
+# 09:30, nach den Insights sind die Follower Mo bis Sa 12 bis 18 Uhr und So
+# 15 bis 18 Uhr aktiv. Um 09:30 war noch niemand da.
+FENSTER_BERLIN = ((12, 25), (14, 30))
 INSIGHT_TAGE = 7
 KOMMENTAR_TAGE = 14
 JPEG_QUALITAET = 92
@@ -1044,15 +1047,17 @@ def selbsttest():
     # faellig
     lg = {"laeufe": [{"datum": "2026-10-09", "form": 4, "messzeit_utc": "2026-10-09T05:31:00+00:00"}]}
     t = lambda h, m: dt.datetime(2026, 10, 9, h, m, tzinfo=dt.timezone.utc)   # noqa: E731
-    ok("faellig um 09:35 berlin (07:35 utc, sommerzeit)", faellig(t(7, 35), lg, {"posts": []})[0] is not None)
-    ok("nicht faellig um 09:05 berlin, vor discord", faellig(t(7, 5), lg, {"posts": []})[0] is None)
-    ok("nicht faellig ab 11:30 berlin", faellig(t(9, 30), lg, {"posts": []})[0] is None)
-    ok("nicht faellig ohne gesendete grafik", faellig(t(7, 35), {"laeufe": []}, {"posts": []})[0] is None)
-    ok("nicht doppelt am tag", faellig(t(7, 35), lg, {"posts": [{"datum": "2026-10-09"}]})[0] is None)
-    ok("IG_STOPP fuer heute und immer", faellig(t(7, 35), lg, {"posts": []}, "2026-10-09")[0] is None
-       and faellig(t(7, 35), lg, {"posts": []}, "immer")[0] is None
-       and faellig(t(7, 35), lg, {"posts": []}, "2026-10-08")[0] is not None)
-    ok("von hand ohne fenster und tagessperre", faellig(t(12, 0), lg, {"posts": [{"datum": "2026-10-09"}]},
+    ok("faellig um 12:35 berlin (10:35 utc, sommerzeit)", faellig(t(10, 35), lg, {"posts": []})[0] is not None)
+    ok("nicht faellig um 12:05 berlin, vor dem fenster", faellig(t(10, 5), lg, {"posts": []})[0] is None)
+    ok("nicht faellig ab 14:30 berlin", faellig(t(12, 30), lg, {"posts": []})[0] is None
+       and faellig(t(12, 29), lg, {"posts": []})[0] is not None)
+    ok("nicht mehr faellig um 09:35 berlin, der alte termin", faellig(t(7, 35), lg, {"posts": []})[0] is None)
+    ok("nicht faellig ohne gesendete grafik", faellig(t(10, 35), {"laeufe": []}, {"posts": []})[0] is None)
+    ok("nicht doppelt am tag", faellig(t(10, 35), lg, {"posts": [{"datum": "2026-10-09"}]})[0] is None)
+    ok("IG_STOPP fuer heute und immer", faellig(t(10, 35), lg, {"posts": []}, "2026-10-09")[0] is None
+       and faellig(t(10, 35), lg, {"posts": []}, "immer")[0] is None
+       and faellig(t(10, 35), lg, {"posts": []}, "2026-10-08")[0] is not None)
+    ok("von hand ohne fenster und tagessperre", faellig(t(16, 0), lg, {"posts": [{"datum": "2026-10-09"}]},
                                                          hand=True)[0] is not None)
     ok("von hand nie scharf", main(["posten", "--hand", "--modus", "scharf", "--bild", "x", "--caption", "x"]) == 1)
     # die drei wege
@@ -1069,9 +1074,9 @@ def selbsttest():
     ok("takt darf scharf", scharf_erlaubt("takt", "scharf") is True)
     ok("geplant darf scharf", scharf_erlaubt("geplant", "scharf") is True)
     # der takt behaelt fenster und tagessperre, anders als der handstart
-    ok("takt ohne fenster nicht faellig", faellig(t(12, 0), lg, {"posts": []})[0] is None)
+    ok("takt ohne fenster nicht faellig", faellig(t(16, 0), lg, {"posts": []})[0] is None)
     ok("takt nicht zweimal am tag",
-       faellig(t(7, 35), lg, {"posts": [{"datum": "2026-10-09"}]})[0] is None)
+       faellig(t(10, 35), lg, {"posts": [{"datum": "2026-10-09"}]})[0] is None)
     import tempfile as _tf
     with _tf.TemporaryDirectory() as tmp:
         Path(tmp, "eintrag.json").write_text(json.dumps({"form": 2, "messzeit_utc": "2026-10-08T06:44:02+00:00"}))
@@ -1087,7 +1092,7 @@ def selbsttest():
         finally:
             artefakt = echt
         ok("fehlt das artefakt, gruen mit gefunden=0", rc == 0 and "gefunden=0" in ausgang.read_text())
-    ok("winterzeit, 08:30 utc ist 09:30 berlin", faellig(dt.datetime(2026, 11, 2, 8, 30, tzinfo=dt.timezone.utc),
+    ok("winterzeit, 11:30 utc ist 12:30 berlin", faellig(dt.datetime(2026, 11, 2, 11, 30, tzinfo=dt.timezone.utc),
                                                           {"laeufe": [{"datum": "2026-11-02", "form": 1,
                                                                        "messzeit_utc": "x"}]}, {"posts": []})[0])
     # jpeg
