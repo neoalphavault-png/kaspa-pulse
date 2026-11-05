@@ -27,6 +27,8 @@ Token steht in keiner URL, sondern im Authorization-Header.
     python3 scripts/threads.py posten --bild URL --text-datei t.json --modus trocken|scharf
     python3 scripts/threads.py container --text "..." [--bild URL] [--thema Crypto]
     python3 scripts/threads.py wache --text "..."
+    python3 scripts/threads.py nachholen
+    python3 scripts/threads.py log-sichern --veroeffentlicht 0|1 --lauf URL
     python3 scripts/threads.py --selbsttest
 
 Was dieses Skript NICHT tut: es loescht nicht und es antwortet nicht. Und es erfindet keinen Text: der Text kommt aus der
@@ -330,12 +332,136 @@ def posten(text, bild, modus, tag, log_pfad=None, hand=False, tok=None, oeffner=
     m = graph("%s/threads_publish" % nutzer, {"creation_id": cid}, post=True, tok=tok, oeffner=oeffner)
     erg = {"tag": tag, "container": cid, "media": str(m.get("id", "")), "modus": "scharf",
            "bild": bild, "text": text}
+    # sofort melden, dass der post draussen ist, noch vor dem log: scheitert
+    # danach etwas, darf der lauf nicht "kein post" sagen (Ben, 5.11.2026)
+    ausgabe(veroeffentlicht="1", media=erg["media"])
     log = json_laden(log_pfad or LOG, {"posts": []})
     log.setdefault("posts", []).append(erg)
     Path(log_pfad or LOG).write_text(json.dumps(log, ensure_ascii=False, indent=1) + "\n",
                                      encoding="utf-8")
     print("veroeffentlicht, media %s" % erg["media"])
     return erg
+
+
+# ------------------------------------------- log sichern und nachholen
+
+# Ben, 5.11.2026. Am 5.11. war der Post draussen, aber der Push des Logs kam
+# mit "fatal error in commit_refs_rules" zurueck, und der Lauf meldete
+# "heute kein post". Jetzt: pull --rebase vor jedem Push, bis zu drei
+# Wiederholungen nach 10, 20 und 40 s. Scheitert auch das, bleibt der Lauf
+# gruen, wenn veroeffentlicht wurde, und der Eintrag kommt beim naechsten
+# Lauf ueber die Threads-API zurueck ins Log (nachholen).
+PUSH_PAUSEN = (10, 20, 40)
+NACHHOLEN_TAGE = 7
+LOG_REL = "data/threads-post-log.json"
+
+
+def ausgabe(**werte):
+    """Schritt-Ausgaben fuer GitHub Actions, ausserhalb von Actions nichts."""
+    ziel = os.environ.get("GITHUB_OUTPUT", "")
+    if ziel:
+        with open(ziel, "a", encoding="utf-8") as fh:
+            for k, v in werte.items():
+                fh.write("%s=%s\n" % (k, v))
+
+
+def _git(*args):
+    import subprocess
+    return subprocess.run(("git",) + args).returncode
+
+
+def _ops_log(text):
+    import ops_melden
+    ops_melden.log(text, was="threads log")
+
+
+def log_sichern(veroeffentlicht, lauf="", pfad=LOG_REL, zweig="main", git=None,
+                schlafen=time.sleep, melden=None):
+    """Committet das Log und pusht es, mit pull --rebase vor jedem Versuch.
+    Gibt "unveraendert", "gesichert", "nicht gesichert" (gepostet, Push
+    gescheitert, gruen mit Meldung) oder "rot" (nicht gepostet) zurueck."""
+    git = git or _git
+    git("add", pfad)
+    if git("diff", "--staged", "--quiet") == 0:
+        print("log unveraendert, kein commit")
+        return "unveraendert"
+    if git("commit", "-m", "threads log [bot]") != 0:
+        print("commit gescheitert")
+        return "nicht gesichert" if veroeffentlicht else "rot"
+    for i, pause in enumerate((0,) + PUSH_PAUSEN):
+        if pause:
+            print("push abgelehnt, neuer versuch in %d s" % pause)
+            schlafen(pause)
+        if git("pull", "--rebase", "--autostash", "origin", zweig) != 0:
+            git("rebase", "--abort")
+            continue
+        if git("push", "origin", "HEAD:%s" % zweig) == 0:
+            print("log gesichert, versuch %d" % (i + 1))
+            return "gesichert"
+    print("push nach %d versuchen abgelehnt" % (len(PUSH_PAUSEN) + 1))
+    if veroeffentlicht:
+        (melden or _ops_log)("threads gepostet, log nicht gesichert. der eintrag wird beim "
+                             "naechsten lauf ueber die threads-api nachgeholt.\n" + lauf)
+        return "nicht gesichert"
+    return "rot"
+
+
+def _zeit(wert):
+    try:
+        return dt.datetime.strptime(str(wert), "%Y-%m-%dT%H:%M:%S%z")
+    except ValueError:
+        return None
+
+
+def nachtragen(log, posts, heute):
+    """Posts aus der Threads-API, die im Log fehlen, kommen als Eintrag dazu,
+    ein Eintrag ohne Text bekommt ihn. Gibt die geaenderten Eintraege zurueck.
+    Der Tag ist der Berliner Tag des Zeitstempels, wie beim Posten."""
+    import instagram
+    eintraege = log.setdefault("posts", [])
+    bekannt = {str(e.get("media", "")): e for e in eintraege if e.get("media")}
+    geaendert = []
+    for p in posts:
+        mid = str(p.get("id", ""))
+        if not re.fullmatch(r"\d+", mid):
+            continue
+        if mid in bekannt:
+            e = bekannt[mid]
+            if not e.get("text") and p.get("text"):
+                e["text"] = p["text"]
+                geaendert.append(e)
+            continue
+        ts = _zeit(p.get("timestamp"))
+        if ts is None:
+            continue
+        e = {"tag": instagram.berlin(ts).date().isoformat(), "container": "", "media": mid,
+             "modus": "scharf", "bild": "", "text": p.get("text", ""), "nachgeholt": heute}
+        eintraege.append(e)
+        bekannt[mid] = e
+        geaendert.append(e)
+    eintraege.sort(key=lambda e: e.get("tag", ""))
+    return geaendert
+
+
+def nachholen(log_pfad=None, tok=None, oeffner=None, now=None):
+    """Fragt die eigenen Posts der letzten Tage ab und traegt fehlende ins Log."""
+    import instagram
+    now = now or dt.datetime.now(dt.timezone.utc)
+    tok = tok or token()
+    nutzer = nutzer_id(tok=tok, oeffner=oeffner)
+    seit = int((now - dt.timedelta(days=NACHHOLEN_TAGE)).timestamp())
+    d = graph("%s/threads" % nutzer, {"fields": "id,text,timestamp", "since": str(seit), "limit": "25"},
+              tok=tok, oeffner=oeffner)
+    log = json_laden(log_pfad or LOG, {"posts": []})
+    neu = nachtragen(log, d.get("data", []), instagram.berlin(now).date().isoformat())
+    if neu:
+        Path(log_pfad or LOG).write_text(json.dumps(log, ensure_ascii=False, indent=1) + "\n",
+                                         encoding="utf-8")
+    for e in neu:
+        print("nachgeholt, %s media %s" % (e["tag"], e["media"]))
+    if not neu:
+        print("log vollstaendig, nichts nachzuholen")
+    return neu
 
 
 # -------------------------------------------------------------- selbsttest
@@ -498,7 +624,7 @@ def selbsttest():
     def zeit(h, m):
         return dt.datetime(2026, 10, 20, h, m, tzinfo=dt.timezone.utc)     # mesz, +2
     lg = {"laeufe": [{"datum": "2026-10-20", "form": 4, "messzeit_utc": "2026-10-20T05:30:00+00:00"}]}
-    alt = {k: os.environ.pop(k, None) for k in ("ZIEL", ENV_LIVE)}
+    alt = {k: os.environ.pop(k, None) for k in ("ZIEL", ENV_LIVE, "GITHUB_OUTPUT")}
     pruefe("faellig um 17:10 berlin", faellig(zeit(15, 10), lg, {"posts": []})[0] is not None, True)
     pruefe("nicht faellig um 16:30 berlin", faellig(zeit(14, 30), lg, {"posts": []})[0] is None, True)
     pruefe("nicht doppelt am tag",
@@ -542,6 +668,46 @@ def selbsttest():
         pruefe("ohne THREADS_LIVE kein threads_publish",
                any(w[1].endswith("threads_publish") for w in wege) or e["modus"] != "trocken", False)
         pruefe("trocken nicht im log", len(json.loads(lp.read_text())["posts"]), 1)
+    # push abgelehnt (Ben, 5.11.2026): nach der veroeffentlichung gruen mit
+    # meldung, ohne veroeffentlichung rot und ohne "gepostet"
+    def git_nein(*args):
+        aufrufe.append(args)
+        if args[0] == "diff":
+            return 1
+        return 1 if args[0] == "push" else 0
+    for gepostet, soll in ((True, "nicht gesichert"), (False, "rot")):
+        aufrufe, pausen, meldungen = [], [], []
+        erg = log_sichern(gepostet, "LAUF", git=git_nein, schlafen=pausen.append, melden=meldungen.append)
+        was = "nach" if gepostet else "ohne"
+        pruefe("push abgelehnt %s veroeffentlichung, ergebnis" % was, erg, soll)
+        pruefe("push abgelehnt %s veroeffentlichung, pausen 10 20 40" % was, pausen, [10, 20, 40])
+        pruefe("push abgelehnt %s veroeffentlichung, 4 pushes" % was,
+               sum(1 for a in aufrufe if a[0] == "push"), 4)
+        pruefe("push abgelehnt %s veroeffentlichung, pull --rebase vor jedem push" % was,
+               sum(1 for a in aufrufe if a[:2] == ("pull", "--rebase")), 4)
+        pruefe("push abgelehnt %s veroeffentlichung, meldung" % was,
+               [m.split(".")[0] for m in meldungen],
+               ["threads gepostet, log nicht gesichert"] if gepostet else [])
+    aufrufe, pausen = [], []
+    zweiter = iter((1, 0))
+    erg = log_sichern(True, git=lambda *a: (aufrufe.append(a) or (next(zweiter) if a[0] == "push"
+                                                               else (1 if a[0] == "diff" else 0))),
+                      schlafen=pausen.append, melden=lambda m: None)
+    pruefe("zweiter push geht durch, gesichert", (erg, pausen), ("gesichert", [10]))
+    pruefe("unveraendertes log ohne commit",
+           log_sichern(True, git=lambda *a: 0, schlafen=pausen.append), "unveraendert")
+    lg = {"posts": [{"tag": "2026-11-05", "media": "175", "text": ""}]}
+    neu = nachtragen(lg, [{"id": "175", "text": "t5", "timestamp": "2026-11-05T16:11:45+0000"},
+                          {"id": "176", "text": "t6", "timestamp": "2026-11-06T16:11:45+0000"},
+                          {"id": "x", "text": "kaputt"}], "2026-11-06")
+    pruefe("nachtragen fuellt den fehlenden text", lg["posts"][0]["text"], "t5")
+    pruefe("nachtragen holt den fehlenden post, berliner tag", (lg["posts"][1]["tag"], lg["posts"][1]["media"]),
+           ("2026-11-06", "176"))
+    pruefe("nachtragen zweimal aendert nichts", nachtragen(lg, [{"id": "176", "text": "t6",
+                                                                  "timestamp": "2026-11-06T16:11:45+0000"}],
+                                                            "2026-11-06"), [])
+    pruefe("nachgeholter post sperrt den tag", darf_posten(lg, "2026-11-06", 1), False)
+
     for k, v in alt.items():
         if v is None:
             os.environ.pop(k, None)
@@ -558,7 +724,8 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("befehl", nargs="?",
-                    choices=["me", "container", "wache", "faellig", "artefakt", "posten"])
+                    choices=["me", "container", "wache", "faellig", "artefakt", "posten",
+                             "nachholen", "log-sichern"])
     ap.add_argument("--text", default="")
     ap.add_argument("--text-datei", default="", help="-threads.json aus dem artefakt")
     ap.add_argument("--ziel", default="out/th")
@@ -567,6 +734,8 @@ def main(argv=None):
     ap.add_argument("--takt", action="store_true", help="vom takt auf c2, fenster und sperre gelten")
     ap.add_argument("--bild", default="")
     ap.add_argument("--thema", default=THEMA)
+    ap.add_argument("--veroeffentlicht", default="", help="log-sichern, 1 wenn der post draussen ist")
+    ap.add_argument("--lauf", default="", help="log-sichern, link auf den lauf fuer die meldung")
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args(argv)
     if a.selbsttest:
@@ -609,6 +778,13 @@ def main(argv=None):
         if not text:
             sys.exit("kein text, weder warteschlange noch tagesgrafik")
         posten(text, a.bild, a.modus, tag, hand=a.hand)
+    elif a.befehl == "nachholen":
+        nachholen()
+    elif a.befehl == "log-sichern":
+        erg = log_sichern(a.veroeffentlicht == "1", a.lauf,
+                          zweig=os.environ.get("GITHUB_REF_NAME", "") or "main")
+        ausgabe(gesichert="0" if erg in ("nicht gesichert", "rot") else "1")
+        return 1 if erg == "rot" else 0
     else:
         ap.print_help()
         return 2
