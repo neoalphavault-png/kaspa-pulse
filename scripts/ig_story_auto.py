@@ -397,8 +397,10 @@ def posten(info, jpeg, warte_takt=10, warte_max=300, warten=True):
         time.sleep(warte_takt)
     if status != "FINISHED":
         raise Stopp("container %s endet mit status %s, keine story" % (cid, status or "-"))
-    m = ig.graph("POST", "%s/media_publish" % u, {"creation_id": cid})
-    media = str(m.get("id", ""))
+    # Pause und Nachfassen bei code 9007 aus instagram.py (Ben, 5.11.2026).
+    # Eine Story hat keine Caption: steht der Container schon auf PUBLISHED,
+    # geht sie nicht doppelt raus, die media-id bleibt dann leer.
+    media = ig.veroeffentlichen(u, cid, None)
     merk = ig.json_laden(MERK, {"stories": []})
     merk.setdefault("stories", []).append({
         "datum": info["datum_tag"], "art": info["art"], "form": info.get("form"), "container": cid,
@@ -521,7 +523,8 @@ def selbsttest():
         if pfad.endswith("/media_publish"):
             return {"id": "222"}
         return {"status_code": "FINISHED"}
-    alt_graph, alt_merk = ig.graph, globals()["MERK"]
+    alt_graph, alt_merk, alt_schlafen = ig.graph, globals()["MERK"], ig._schlafen
+    ig._schlafen = lambda s: None
     with tempfile.TemporaryDirectory() as d:
         globals()["MERK"] = Path(d) / "merk.json"
         ig.graph = falsch
@@ -531,7 +534,7 @@ def selbsttest():
             media = posten({"datum_tag": "2026-10-27", "art": "tagesgrafik", "form": 11}, jp, warte_takt=0, warten=False)
             merk = json.loads(globals()["MERK"].read_text())
         finally:
-            ig.graph, globals()["MERK"] = alt_graph, alt_merk
+            ig.graph, globals()["MERK"], ig._schlafen = alt_graph, alt_merk, alt_schlafen
     ok("story-container mit media_type STORIES", aufrufe[0][2].get("media_type") == "STORIES"
        and aufrufe[0][2]["image_url"].endswith("/ig/story-auto-2026-10-27.jpg"))
     ok("kein sticker, keine caption", "caption" not in aufrufe[0][2] and not any("sticker" in str(a) for a in aufrufe))

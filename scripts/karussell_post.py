@@ -454,9 +454,11 @@ def container(urls, caption, takt=5):
     return cid
 
 
-def veroeffentlichen(cid):
+def veroeffentlichen(cid, caption):
+    """media_publish mit Pause und Nachfassen bei code 9007 aus instagram.py
+    (Ben, 5.11.2026), ein schon veroeffentlichter Container geht nicht doppelt raus."""
     u = ig().ig_user()
-    media = str(ig().graph("POST", "%s/media_publish" % u, {"creation_id": cid}).get("id", ""))
+    media = ig().veroeffentlichen(u, cid, caption)
     try:
         link = ig().graph("GET", media, {"fields": "permalink"}).get("permalink", "")
     except Exception as exc:                          # noqa: BLE001
@@ -599,7 +601,7 @@ def posten(art, fuer, quelle=None, start="hand", probe=False, log_pfad=None, now
         cid = container(urls, m["caption"], takt)
         eintrag.update(container=cid, status="FINISHED")
         if scharf:
-            media, link = veroeffentlichen(cid)
+            media, link = veroeffentlichen(cid, m["caption"])
             eintrag.update(media=media, permalink=link)
             sag("veroeffentlicht", media, link)
         else:
@@ -728,9 +730,9 @@ def selbsttest():
             return {"permalink": "https://www.instagram.com/p/x/"}
         return {"status_code": "FINISHED"}
 
-    alt = (globals()["gh_media"], globals()["abholbar"], instagram.graph)
+    alt = (globals()["gh_media"], globals()["abholbar"], instagram.graph, instagram._schlafen)
     globals()["gh_media"], globals()["abholbar"] = gh_falsch, lambda url, soll: True
-    instagram.graph = graph_falsch
+    instagram.graph, instagram._schlafen = graph_falsch, lambda s: None
     os.environ["IG_USER_ID"] = "17841400000000000"
     try:
         logp = tmp / "log.json"
@@ -800,7 +802,7 @@ def selbsttest():
         except Stopp:
             ok("ein entwurf fuer eine andere art stoppt", True)
     finally:
-        globals()["gh_media"], globals()["abholbar"], instagram.graph = alt
+        globals()["gh_media"], globals()["abholbar"], instagram.graph, instagram._schlafen = alt
         os.environ.pop("MEDIA_REPO_TOKEN", None)
 
     # ohne MEDIA_REPO_TOKEN: ablage unter ig/karussell/ auf main

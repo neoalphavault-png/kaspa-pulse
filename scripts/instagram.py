@@ -21,7 +21,9 @@ ABLAUF UM 09:30 BERLIN, NACH DISCORD (Job "instagram" in tagesgrafik.yml)
     jpeg        PNG nach JPEG, Instagram nimmt kein PNG. Ablage in ig/, der
                 Workflow committet sie, kaspapulse.com liefert sie aus
     posten      wartet, bis die URL das JPEG liefert, legt den Container an,
-                prueft seinen Status und veroeffentlicht nur mit --modus scharf.
+                prueft seinen Status und veroeffentlicht nur mit --modus scharf,
+                5 s nach FINISHED; bei code 9007 bis zu vier weitere Versuche,
+                nie doppelt (veroeffentlichen(), Ben 5.11.2026).
                 Trocken (Vorgabe) bleibt der Container unveroeffentlicht,
                 Caption und Status stehen im Log
 
@@ -80,6 +82,15 @@ JPEG_QUALITAET = 92
 
 class Fehler(Exception):
     pass
+
+
+class GraphFehler(Fehler):
+    """Fehler aus graph() mit http-status, code und error_subcode der Graph API,
+    damit veroeffentlichen() den Fall "media id is not available" erkennt."""
+
+    def __init__(self, text, http=0, code=None, subcode=None):
+        super().__init__(text)
+        self.http, self.code, self.subcode = http, code, subcode
 
 
 class KeinArtefakt(Fehler):
@@ -160,8 +171,11 @@ def graph(methode, pfad, params=None, versuche=3):
             d = {"roh": roh[:300].decode("utf-8", "replace")}
         if status >= 400 or "error" in d:
             fehler = d.get("error", d) if isinstance(d, dict) else d
-            raise Fehler(sauber("graph %s %s, http %s, %s" % (
-                methode, pfad.split("?")[0], status, json.dumps(fehler, ensure_ascii=False)[:500])))
+            code = fehler.get("code") if isinstance(fehler, dict) else None
+            subcode = fehler.get("error_subcode") if isinstance(fehler, dict) else None
+            raise GraphFehler(sauber("graph %s %s, http %s, %s" % (
+                methode, pfad.split("?")[0], status, json.dumps(fehler, ensure_ascii=False)[:500])),
+                status, code, subcode)
         return d
     raise Fehler("graph %s %s, keine antwort" % (methode, pfad))
 
@@ -357,6 +371,60 @@ def url_warten(url, laenge, frist=600, takt=15):
     raise Fehler("bild nach %d s nicht oeffentlich, zuletzt %s" % (frist, letzter))
 
 
+# ---------------------------------------------------------------- veroeffentlichen
+
+# media_publish direkt nach FINISHED (Ben, 5.11.2026). Am 5.11. kam die Antwort
+# http 400, code 9007, error_subcode 2207027 "media id is not available"
+# (Lauf 41994939458): Meta meldet FINISHED, bevor der Container wirklich
+# veroeffentlicht werden kann. Darum erst kurz warten und bei genau diesem
+# Fehler nachfassen. Vor jedem neuen Versuch fragt der Lauf den Container ab:
+# steht er schon auf PUBLISHED, ist der Post draussen und darf nicht ein
+# zweites Mal raus. Jeder andere Fehler bricht sofort ab, wie bisher.
+PAUSE_NACH_FINISHED = 5
+NACHFASSEN = (15, 30, 45, 60)            # vier weitere versuche
+NOCH_NICHT_CODE, NOCH_NICHT_SUBCODE = 9007, 2207027
+_schlafen = time.sleep                   # im selbsttest ersetzt
+
+
+def noch_nicht_bereit(exc):
+    return isinstance(exc, GraphFehler) and (exc.code == NOCH_NICHT_CODE or exc.subcode == NOCH_NICHT_SUBCODE)
+
+
+def media_zur_caption(u, caption):
+    """Die media-id eines schon veroeffentlichten Containers: die letzten fuenf
+    Posts, abgeglichen ueber die Caption. Ohne Caption (Story) bleibt sie leer."""
+    if not caption:
+        return ""
+    d = graph("GET", "%s/media" % u, {"fields": "id,caption,timestamp", "limit": 5})
+    for m in d.get("data", []):
+        if (m.get("caption") or "").strip() == caption.strip():
+            return str(m.get("id", ""))
+    raise Fehler("container steht auf PUBLISHED, aber keiner der letzten 5 posts traegt die caption")
+
+
+def veroeffentlichen(u, cid, caption=None):
+    """media_publish fuer einen FINISHED-Container. Gibt die media-id zurueck,
+    auch wenn der Container zwischendurch schon veroeffentlicht wurde."""
+    _schlafen(PAUSE_NACH_FINISHED)
+    for n in range(len(NACHFASSEN) + 1):
+        if n:
+            _schlafen(NACHFASSEN[n - 1])
+            status = graph("GET", cid, {"fields": "status_code"}).get("status_code", "")
+            ausgabe("container %s vor versuch %d, status %s" % (cid, n + 1, status or "-"))
+            if status == "PUBLISHED":
+                media = media_zur_caption(u, caption)
+                ausgabe("container %s ist schon veroeffentlicht, media %s, kein zweiter post" % (cid, media or "-"))
+                return media
+        try:
+            return str(graph("POST", "%s/media_publish" % u, {"creation_id": cid}).get("id", ""))
+        except GraphFehler as exc:
+            if not noch_nicht_bereit(exc) or n == len(NACHFASSEN):
+                raise
+            ausgabe("media_publish versuch %d, noch nicht bereit (code %s, subcode %s), neuer versuch in %d s" % (
+                n + 1, exc.code, exc.subcode, NACHFASSEN[n]))
+    raise Fehler("media_publish ohne ergebnis")     # nicht erreichbar
+
+
 # ---------------------------------------------------------------- posten
 
 def posten(bild_url, caption, modus, warte_takt=10, warte_max=300):
@@ -386,8 +454,7 @@ def posten(bild_url, caption, modus, warte_takt=10, warte_max=300):
     if modus != "scharf" or look_takt.trockenlauf():
         ausgabe("trocken, container %s bleibt unveroeffentlicht" % cid)
         return erg
-    m = graph("POST", "%s/media_publish" % u, {"creation_id": cid})
-    erg["media"] = str(m.get("id", ""))
+    erg["media"] = veroeffentlichen(u, cid, caption)
     try:
         erg["permalink"] = graph("GET", erg["media"], {"fields": "permalink"}).get("permalink", "")
     except Fehler as exc:
@@ -771,6 +838,11 @@ def selbsttest():
                                            "timestamp": "2026-10-08T07:00:00+0000", "username": "olduser"}]})
         if "/replies" in url:
             return Antwort(200, {"id": "777"})
+        if "/nichtbereit" in url:
+            raise urllib.error.HTTPError(url, 400, "bad", {}, io.BytesIO(json.dumps(
+                {"error": {"message": "The media is not ready for publishing, please wait for a moment",
+                           "type": "OAuthException", "code": 9007, "error_subcode": 2207027,
+                           "error_user_msg": "media id is not available"}}).encode()))
         if "/fehler" in url:
             raise urllib.error.HTTPError(url, 400, "bad", {}, io.BytesIO(json.dumps(
                 {"error": {"message": "Invalid OAuth access token %s" % geheim,
@@ -778,6 +850,8 @@ def selbsttest():
         return Antwort(404, {"error": {"message": "unbekannt"}})
 
     _oeffnen = fake
+    pausen = []
+    globals()["_schlafen"] = pausen.append
     with tempfile.TemporaryDirectory() as tmp:
         LOG_IG, INSIGHTS = Path(tmp, "ig-log.json"), Path(tmp, "ins.json")
         KOMMENTARE, ANTWORTEN = Path(tmp, "kom.json"), Path(tmp, "ant.json")
@@ -791,6 +865,11 @@ def selbsttest():
             n_trocken = len(aufrufe)
             zustand["status"] = ["FINISHED"]
             erg_s = posten("https://kaspapulse.com/ig/x.jpg", cap, "scharf", warte_takt=0)
+            try:
+                graph("POST", "17841400000000000/nichtbereit", {"creation_id": "800"})
+                nicht_bereit = None
+            except Fehler as exc:
+                nicht_bereit = exc
             try:
                 graph("GET", "fehler")
                 fehlertext = ""
@@ -821,6 +900,9 @@ def selbsttest():
         ok("token nie in der url, nur im kopf", all(geheim not in a[1] and geheim not in a[2] for a in aufrufe)
            and all(a[3].get("Authorization") == "Bearer " + geheim for a in aufrufe if GRAPH in a[1]))
         ok("token nicht in der ausgabe", geheim not in log)
+        ok("graph liefert http 400, code 9007 und subcode 2207027 aus der antwort",
+           isinstance(nicht_bereit, GraphFehler) and (nicht_bereit.http, nicht_bereit.code, nicht_bereit.subcode)
+           == (400, 9007, 2207027) and noch_nicht_bereit(nicht_bereit))
         ok("fehlermeldung ohne token", fehlertext and geheim not in fehlertext and "***" in fehlertext)
         ok("caption geht als formularfeld, nicht in der url", any("caption=" in a[2] for a in aufrufe)
            and not any("caption=" in a[1] for a in aufrufe))
@@ -897,6 +979,57 @@ def selbsttest():
                                                                    for _ in range(5)}) == 5)
         ok("antwort geht raus und steht im log", ant == "777" and "777" in ANTWORTEN.read_text())
         ok("antwort mit kaufwort wird gestoppt", schlecht)
+    ok("scharf wartet nach FINISHED 5 s vor media_publish", pausen == [PAUSE_NACH_FINISHED] == [5])
+    # media_publish nachfassen (Ben, 5.11.2026, lauf 41994939458)
+    echt_graph = graph
+    rufe = []
+
+    def nachfass_lauf(antworten, status="FINISHED", medien=()):
+        """antworten: je media_publish ein fehlercode (code, subcode) oder eine media-id."""
+        rufe.clear()
+        pausen.clear()
+        folge = list(antworten)
+
+        def g(methode, pfad, params=None, versuche=3):
+            params = dict(params or {})
+            rufe.append((methode, pfad, params))
+            if pfad.endswith("/media_publish"):
+                a = folge.pop(0)
+                if isinstance(a, tuple):
+                    raise GraphFehler("graph POST x/media_publish, http 400, media id is not available",
+                                      400, a[0], a[1])
+                return {"id": a}
+            if params.get("fields") == "status_code":
+                return {"status_code": status}
+            if pfad.endswith("/media") and methode == "GET":
+                return {"data": list(medien)}
+            return {}
+        globals()["graph"] = g
+        try:
+            return veroeffentlichen("17841400000000000", "800", "the caption"), None
+        except Fehler as exc:
+            return None, exc
+        finally:
+            globals()["graph"] = echt_graph
+
+    def publishes():
+        return sum(1 for r in rufe if r[1].endswith("/media_publish"))
+    m, exc = nachfass_lauf([(9007, 2207027), "901"])
+    ok("einmal 9007, nach 15 s und status-abfrage erfolg", m == "901" and exc is None and publishes() == 2
+       and pausen == [5, 15] and sum(1 for r in rufe if r[2].get("fields") == "status_code") == 1)
+    m, exc = nachfass_lauf([(9007, 2207027)], status="PUBLISHED",
+                           medien=[{"id": "950", "caption": "anderer post"}, {"id": "902", "caption": "the caption"}])
+    ok("container schon PUBLISHED, kein zweiter post, media-id ueber die caption", m == "902" and exc is None
+       and publishes() == 1 and any(r[1].endswith("/media") and r[2].get("limit") == 5 for r in rufe))
+    m, exc = nachfass_lauf([(9007, None)], status="PUBLISHED", medien=[{"id": "950", "caption": "anderer post"}])
+    ok("PUBLISHED ohne passende caption stoppt, kein zweiter post", m is None and exc is not None
+       and publishes() == 1)
+    m, exc = nachfass_lauf([(None, 2207027)] * 5)
+    ok("hoechstens vier weitere versuche mit 15, 30, 45, 60 s", m is None and noch_nicht_bereit(exc)
+       and publishes() == 5 and pausen == [5, 15, 30, 45, 60])
+    m, exc = nachfass_lauf([(100, 33)])
+    ok("anderer fehler bricht sofort ab", m is None and isinstance(exc, GraphFehler) and exc.code == 100
+       and publishes() == 1 and pausen == [5])
     # bereinigung
     os.environ["INSTAGRAM_PAGE_TOKEN"] = geheim
     ok("sauber, wert, parameter, json, bearer, webhook", all(geheim not in sauber(t) for t in (
