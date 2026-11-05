@@ -580,6 +580,28 @@
      "verhaeltnis": 624.5
     }
    }
+  },
+  {
+   "datum": "2026-11-05",
+   "form": 2,
+   "grund": "entity-x-bewegung ab 500,000 KAS in 24 h",
+   "messzeit_utc": "2026-11-05T06:30:45+00:00",
+   "looks": {
+    "instagram": "D-hell",
+    "threads": "A-papier",
+    "x": "A-papier",
+    "discord": "A-papier"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-06",
+     "bis": "2026-11-04",
+     "fees": 86519.70503386,
+     "emission": 53357048.260917366,
+     "verhaeltnis": 616.7
+    }
+   }
   }
  ]
 }
