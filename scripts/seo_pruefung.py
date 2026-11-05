@@ -18,6 +18,8 @@ Stand auf einem anderen Ref (meist origin/main), und gibt aus:
          Hinweis "Some hardware links are affiliate links..." mit Link auf
          how-we-fund-this.html
   4. das fo-verify-Tag in index.html ist unveraendert da
+  6. keine Preise und kein "a close above" (scripts/preis_wache.py, Ben
+     5.11.2026), auf allen Seiten und in den Newsletter-Ausgaben ab 8.11.
   5. fuer Seiten, deren title oder description sich aendert: title hoechstens
      60 Zeichen, description hoechstens 155 Zeichen (unter 140 ist eine
      Warnung, Ben 02.11.2026), kein Doppelpunkt, kein
@@ -242,6 +244,10 @@ def pruefen(gegen=None, markdown=False):
         geaendert = gegen is None or alt is None or schema_stand(alt) != schema_stand(s)
         (fehler if geaendert else warn).extend(pruefe_schema(n, s))
     fehler += pruefe_affiliate(texte)
+    # keine preise, keine kursnahen saetze (Ben, 5.11.2026), auf allen
+    # seiten und in den newsletter-ausgaben ab 8.11.
+    import preis_wache
+    fehler += preis_wache.pruefe_seiten(dict(texte, **{n: lies(n) for n in preis_wache.newsletter_dateien()}))
     idx = texte.get("index.html") or ""
     if FO_TAG not in idx:
         fehler.append("index.html, fo-verify-tag fehlt oder ist veraendert")
@@ -286,6 +292,9 @@ def selbsttest():
     web = '<script type="application/ld+json">{"@type":"WebPage","name":"x"}</script>'
     ok("neuer WebPage-block aendert den faq-stand nicht", schema_stand(faq + web) == schema_stand(faq))
     ok("geaenderte faq aendert den stand", schema_stand(faq.replace("Is it safe?", "Is it ok?")) != schema_stand(faq))
+    import preis_wache
+    ok("preis-wache haengt drin und meldet mit seitenname",
+       preis_wache.pruefe_seiten({"x.html": "<p>from 150 € per round</p>"})[0].startswith("x.html, preis"))
     ok("doppelpunkt im titel erkannt", stilfehler("Kaspa Wallets: Web") == ["doppelpunkt"])
     ok("uhrzeit ist kein doppelpunkt", stilfehler("at 16:15 utc") == [])
     ok("gedankenstrich erkannt", stilfehler("Kaspa — Wallets") == ["gedankenstrich oder pfeil"])
