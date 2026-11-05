@@ -2114,6 +2114,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-05": {
+     "reach": 158,
+     "likes": 13,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -2166,6 +2173,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-05": {
+     "reach": 52,
+     "likes": 12,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -2204,6 +2218,13 @@
     },
     "2026-11-04": {
      "reach": 110,
+     "likes": 20,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    },
+    "2026-11-05": {
+     "reach": 112,
      "likes": 20,
      "comments": 0,
      "saved": 0,
@@ -2253,6 +2274,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-05": {
+     "reach": 55,
+     "likes": 4,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -2288,6 +2316,13 @@
      "comments": 2,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-05": {
+     "reach": 57,
+     "likes": 13,
+     "comments": 2,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -2313,6 +2348,13 @@
     "2026-11-04": {
      "reach": 170,
      "likes": 27,
+     "comments": 0,
+     "saved": 0,
+     "shares": 1
+    },
+    "2026-11-05": {
+     "reach": 179,
+     "likes": 28,
      "comments": 0,
      "saved": 0,
      "shares": 1
@@ -2347,6 +2389,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-05": {
+     "reach": 60,
+     "likes": 8,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -2365,6 +2414,13 @@
     "2026-11-04": {
      "reach": 281,
      "likes": 27,
+     "comments": 1,
+     "saved": 1,
+     "shares": 4
+    },
+    "2026-11-05": {
+     "reach": 310,
+     "likes": 33,
      "comments": 1,
      "saved": 1,
      "shares": 4
@@ -2392,6 +2448,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-05": {
+     "reach": 155,
+     "likes": 29,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -2403,6 +2466,13 @@
     "2026-11-04": {
      "reach": 65,
      "likes": 15,
+     "comments": 0,
+     "saved": 1,
+     "shares": 0
+    },
+    "2026-11-05": {
+     "reach": 117,
+     "likes": 22,
      "comments": 0,
      "saved": 1,
      "shares": 0
@@ -2423,6 +2493,13 @@
      "comments": 2,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-05": {
+     "reach": 607,
+     "likes": 65,
+     "comments": 5,
+     "saved": 1,
+     "shares": 0
     }
    }
   },
@@ -2437,9 +2514,47 @@
      "comments": 6,
      "saved": 2,
      "shares": 8
+    },
+    "2026-11-05": {
+     "reach": 3063,
+     "likes": 100,
+     "comments": 6,
+     "saved": 3,
+     "shares": 8
+    }
+   }
+  },
+  "17961203205255592": {
+   "gepostet_utc": "2026-11-05T11:12:53+0000",
+   "typ": "VIDEO",
+   "permalink": "https://www.instagram.com/reel/DfW5XXKFAgl/",
+   "tage": {
+    "2026-11-05": {
+     "reach": 162,
+     "likes": 11,
+     "comments": 0,
+     "saved": 1,
+     "shares": 0
+    }
+   }
+  },
+  "18137386549639741": {
+   "gepostet_utc": "2026-11-05T08:51:50+0000",
+   "typ": "IMAGE",
+   "permalink": "https://www.instagram.com/p/DfWpQ2rj-K5/",
+   "form": 2,
+   "caption_sha": "7c65427bc3e6",
+   "frage": null,
+   "tage": {
+    "2026-11-05": {
+     "reach": 24,
+     "likes": 3,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   }
  },
- "stand_utc": "2026-11-04T13:16:10+00:00"
+ "stand_utc": "2026-11-05T13:28:53+00:00"
 }
