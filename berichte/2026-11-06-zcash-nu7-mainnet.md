@@ -90,5 +90,5 @@ Quelle ist der Stand `stand-2026-11-06` auf `messung/zcash-mainnet`, Lauf von Ha
    journalctl -u upgrade-wache@zcash-mainnet --since "2026-11-06 02:50" | grep -iE "anker|fehler|error" | tail -30
    sudo systemctl restart upgrade-wache@zcash-mainnet
    ```
-   Die Ausgabe der ersten Zeile bitte schicken. Sie enthält keine Adressen, die Wache loggt nur Höhen und Fehlertypen.
+   Die Ausgabe der ersten Zeile bitte schicken. Vorher bitte prüfen, ob darin eine Adresse steht. Die Wache selbst druckt keine, aber eine Fehlerzeile des Header-Clients kann eine enthalten. In dem Fall die Adresse vor dem Schicken entfernen.
 2. pulsehawk-site PR #65 mit der CSV prüfen und mergen.
