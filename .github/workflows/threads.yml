@@ -36,7 +36,8 @@ concurrency:
 jobs:
   threads:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    # 45 statt 30: die wartezeit auf das bild ist 1500 s (Ben, 6.11.2026)
+    timeout-minutes: 45
     env:
       # --takt behaelt Zeitfenster und Tagessperre, --hand laesst beide weg
       # und ist nie scharf
@@ -86,13 +87,14 @@ jobs:
             git push
           fi
           # threads holt das bild ueber die oeffentliche adresse, also warten,
-          # bis kaspapulse.com genau diese datei ausliefert
+          # bis kaspapulse.com genau diese datei ausliefert. 1500 s statt 600,
+          # ein haengendes pages-deploy dauerte am 4.11. 14 minuten (Ben, 6.11.2026)
           python3 - "$JPEG" <<'PY'
           import sys, pathlib
           sys.path.insert(0, "scripts")
-          import instagram
+          import instagram, threads
           p = pathlib.Path(sys.argv[1])
-          instagram.url_warten(instagram.SEITE + "/ig/" + p.name, p.stat().st_size)
+          instagram.url_warten(instagram.SEITE + "/ig/" + p.name, p.stat().st_size, frist=threads.BILD_FRIST)
           print("oeffentlich, " + instagram.SEITE + "/ig/" + p.name)
           PY
       - name: container, status, veroeffentlichen nur wenn scharf
