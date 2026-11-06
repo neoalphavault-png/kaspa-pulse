@@ -24,7 +24,7 @@ Ben hat am 6.11. entschieden, das Wochen-Karussell auf Sa 13:00 zu legen und den
 - **Dry Run Fenster am Sa 7.11.:** fällig von 12:45 bis 14:30. Nicht fällig um 10:30, 11:00, 12:30, 12:44 und 14:31.
 - **Am Rand:** Der Meme-Entwurf läuft weiter Sa 13:00, gleichzeitig mit dem Wochen-Post. Das ist nur ein Entwurf, kein Post, und die Concurrency-Gruppe ist je Art getrennt (`karussell-woche`, `karussell-meme`). Die Reihenfolge im Profil berührt das nicht.
 - **Für Ben:** Merge heute vor 12:15. Danach auf c2 `sudo /opt/kaspa-pulse/deploy/c2/setup.sh nachziehen`. `list-timers` zeigt für `takt-karussell-woche-entwurf` Sa 10:00 UTC und für `takt-karussell-woche` Sa 12:00 UTC.
-- **Kopf:** wird nach dem Push eingetragen.
+- **Kopf:** `32ddab1` mit allen Änderungen für 13:00. Dieser Eintrag liegt als eigener Commit darauf.
 
 ---
 
