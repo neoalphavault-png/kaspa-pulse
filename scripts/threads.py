@@ -28,6 +28,7 @@ Token steht in keiner URL, sondern im Authorization-Header.
     python3 scripts/threads.py container --text "..." [--bild URL] [--thema Crypto]
     python3 scripts/threads.py wache --text "..."
     python3 scripts/threads.py nachholen
+    python3 scripts/threads.py bild --jpeg ig/<datei>.jpg
     python3 scripts/threads.py log-sichern --veroeffentlicht 0|1 --lauf URL
     python3 scripts/threads.py --selbsttest
 
@@ -356,7 +357,19 @@ NACHHOLEN_TAGE = 7
 # Wartezeit auf das Bild auf kaspapulse.com, nur fuer Threads (Ben, 6.11.2026).
 # Am 4.11. hing ein Pages-Deploy 14 Minuten, 600 s reichten nicht. Der Job in
 # threads.yml hat dafuer timeout-minutes 45, das Fenster reicht bis 19:30.
+# Seit dem 6.11. ist das nur der Rueckfall: Threads holt das Bild zuerst ueber
+# die raw-Adresse des Bild-Commits, mit 120 s (instagram.RAW_FRIST). Am 6.11.
+# lieferte Pages auch nach 1500 s nichts (Lauf 42249808757).
 BILD_FRIST = 1500
+
+
+def bild(jpeg, warten=None, sha=None):
+    """(url, quelle) fuer den Container: raw zuerst, kaspapulse.com als Rueckfall."""
+    import instagram
+    url, quelle = instagram.bild_bereit(jpeg, raw=True, raw_frist=instagram.RAW_FRIST,
+                                        pages_frist=BILD_FRIST, warten=warten, sha=sha)
+    ausgabe(bild=url, quelle=quelle)
+    return url, quelle
 LOG_REL = "data/threads-post-log.json"
 
 
@@ -705,7 +718,30 @@ def selbsttest():
     mt = re.search(r"timeout-minutes:\s*(\d+)", wf)
     pruefe("job-zeit reicht fuer die wartezeit plus 15 min",
            bool(mt) and int(mt.group(1)) * 60 >= BILD_FRIST + 15 * 60, True)
-    pruefe("workflow wartet mit threads.BILD_FRIST", "frist=threads.BILD_FRIST" in wf, True)
+    pruefe("workflow holt das bild mit threads.py bild", "scripts/threads.py bild --jpeg" in wf, True)
+    pruefe("container nimmt die adresse aus dem bild-schritt", "steps.b.outputs.bild" in wf, True)
+    import instagram
+    pruefe("raw-frist 120 s", instagram.RAW_FRIST, 120)
+    gefragt = []
+    def warten_raw_nein(url, laenge, frist=600, takt=15):
+        gefragt.append((url.split("/")[2], frist))
+        if "raw.githubusercontent.com" in url:
+            raise instagram.Fehler("bild nach 120 s nicht oeffentlich")
+        return True
+    with tempfile.TemporaryDirectory() as tmp:
+        jp = Path(tmp, "x-threads.jpg")
+        jp.write_bytes(b"0" * 10)
+        alt_cwd = os.getcwd()
+        os.chdir(tmp)
+        try:
+            u1, q1 = bild("x-threads.jpg", warten=lambda *a, **k: True, sha="a" * 40)
+            u2, q2 = bild("x-threads.jpg", warten=warten_raw_nein, sha="a" * 40)
+        finally:
+            os.chdir(alt_cwd)
+    pruefe("threads nimmt die raw-adresse des commits", (q1, u1.split("/")[2], "/" + "a" * 40 + "/" in u1),
+           ("raw", "raw.githubusercontent.com", True))
+    pruefe("rueckfall auf kaspapulse.com mit 1500 s", (q2, gefragt),
+           ("pages", [("raw.githubusercontent.com", 120), ("kaspapulse.com", 1500)]))
     lg = {"posts": [{"tag": "2026-11-05", "media": "175", "text": ""}]}
     neu = nachtragen(lg, [{"id": "175", "text": "t5", "timestamp": "2026-11-05T16:11:45+0000"},
                           {"id": "176", "text": "t6", "timestamp": "2026-11-06T16:11:45+0000"},
@@ -735,7 +771,7 @@ def main(argv=None):
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("befehl", nargs="?",
                     choices=["me", "container", "wache", "faellig", "artefakt", "posten",
-                             "nachholen", "log-sichern"])
+                             "nachholen", "log-sichern", "bild"])
     ap.add_argument("--text", default="")
     ap.add_argument("--text-datei", default="", help="-threads.json aus dem artefakt")
     ap.add_argument("--ziel", default="out/th")
@@ -744,6 +780,7 @@ def main(argv=None):
     ap.add_argument("--takt", action="store_true", help="vom takt auf c2, fenster und sperre gelten")
     ap.add_argument("--bild", default="")
     ap.add_argument("--thema", default=THEMA)
+    ap.add_argument("--jpeg", default="", help="bild, das jpeg unter ig/")
     ap.add_argument("--veroeffentlicht", default="", help="log-sichern, 1 wenn der post draussen ist")
     ap.add_argument("--lauf", default="", help="log-sichern, link auf den lauf fuer die meldung")
     ap.add_argument("--selbsttest", action="store_true")
@@ -790,6 +827,8 @@ def main(argv=None):
         posten(text, a.bild, a.modus, tag, hand=a.hand)
     elif a.befehl == "nachholen":
         nachholen()
+    elif a.befehl == "bild":
+        bild(a.jpeg)
     elif a.befehl == "log-sichern":
         erg = log_sichern(a.veroeffentlicht == "1", a.lauf,
                           zweig=os.environ.get("GITHUB_REF_NAME", "") or "main")

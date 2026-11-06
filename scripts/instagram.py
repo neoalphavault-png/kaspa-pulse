@@ -374,6 +374,95 @@ def url_warten(url, laenge, frist=600, takt=15):
     raise Fehler("bild nach %d s nicht oeffentlich, zuletzt %s" % (frist, letzter))
 
 
+# ---------------------------------------------------------------- bildquelle
+
+# BILD UEBER DIE RAW-ADRESSE DES BILD-COMMITS (Ben, 6.11.2026). Am 4.11. und
+# 6.11. hing das Pages-Deploy, kaspapulse.com lieferte das Bild nicht aus,
+# und Threads blieb ohne Post (Lauf 42249808757, 1500 s, http 404). Die
+# raw-Adresse eines Commits steht sofort nach dem Push und aendert sich nie:
+# raw.githubusercontent.com/<repo>/<commit-sha>/ig/<datei>, image/jpeg mit
+# genau der Laenge der Datei. Pages bleibt der Rueckfall.
+# Instagram bleibt bei Pages (IG_RAW), bis die Probe zeigt, dass Meta die
+# raw-Adresse fuer Instagram annimmt (threads.yml, Handlauf, quelle-probe).
+RAW_BASIS = "https://raw.githubusercontent.com"
+RAW_FRIST = 120
+IG_RAW = False
+
+
+def repo_name():
+    return os.environ.get("GITHUB_REPOSITORY", "").strip() or "neoalphavault-png/kaspa-pulse"
+
+
+def _git_log(pfad):
+    import subprocess
+    return subprocess.run(["git", "log", "-1", "--format=%H", "--", str(pfad)],
+                          capture_output=True, text=True).stdout
+
+
+def bild_commit(pfad, git_log=None):
+    """Der Commit, der die Datei zuletzt geschrieben hat, oder "" ohne Commit."""
+    sha = (git_log or _git_log)(pfad).strip()
+    return sha if re.fullmatch(r"[0-9a-f]{40}", sha) else ""
+
+
+def repo_pfad(pfad):
+    """Der Pfad im Repo, wie er in der Adresse steht (ig/<datei>)."""
+    pfad = Path(pfad)
+    if pfad.is_absolute():
+        try:
+            pfad = pfad.resolve().relative_to(REPO.resolve())
+        except ValueError:
+            raise Fehler("%s liegt nicht im repo" % pfad)
+    return pfad.as_posix()
+
+
+def raw_url(pfad, sha, repo=None):
+    return "%s/%s/%s/%s" % (RAW_BASIS, repo or repo_name(), sha, repo_pfad(pfad))
+
+
+def bild_bereit(pfad, raw=True, raw_frist=RAW_FRIST, pages_frist=600, warten=None, sha=None):
+    """(url, quelle). Zuerst die raw-Adresse des Bild-Commits, wenn raw, dann
+    kaspapulse.com als Rueckfall. Beide muessen image/jpeg mit genau der
+    Laenge der Datei liefern (url_warten)."""
+    warten = warten or url_warten
+    pfad = Path(pfad)
+    laenge = pfad.stat().st_size
+    if raw:
+        sha = bild_commit(pfad) if sha is None else sha
+        if sha:
+            url = raw_url(pfad, sha)
+            try:
+                warten(url, laenge, frist=raw_frist, takt=10)
+                ausgabe("bild ueber die raw-adresse, %s" % url)
+                return url, "raw"
+            except Fehler as exc:
+                ausgabe("raw-adresse nicht bereit, %s. rueckfall auf kaspapulse.com" % exc)
+        else:
+            ausgabe("kein commit fuer %s, rueckfall auf kaspapulse.com" % pfad.as_posix())
+    url = "%s/%s" % (SEITE, repo_pfad(pfad))
+    warten(url, laenge, frist=pages_frist)
+    ausgabe("bild ueber kaspapulse.com, %s" % url)
+    return url, "pages"
+
+
+def quelle_probe(bild_url, warte_takt=10, warte_max=300):
+    """Nur ein Container mit diesem Bild, ohne Caption, NIE veroeffentlicht.
+    Zeigt, ob Meta die Adresse fuer Instagram annimmt."""
+    u = ig_user()
+    c = graph("POST", "%s/media" % u, {"image_url": bild_url})
+    cid = str(c.get("id", ""))
+    if not re.fullmatch(r"\d+", cid):
+        raise Fehler("container ohne id")
+    status, ende = "", time.time() + warte_max
+    while time.time() < ende:
+        status = graph("GET", cid, {"fields": "status_code,status"}).get("status_code", "")
+        if status in ("FINISHED", "ERROR", "EXPIRED", "PUBLISHED"):
+            break
+        time.sleep(warte_takt)
+    ausgabe("quelle-probe, container %s, status %s, nicht veroeffentlicht, %s" % (cid, status or "-", bild_url))
+    return cid, status
+
+
 # ---------------------------------------------------------------- veroeffentlichen
 
 # media_publish direkt nach FINISHED (Ben, 5.11.2026). Am 5.11. kam die Antwort
@@ -1095,6 +1184,45 @@ def selbsttest():
     ok("winterzeit, 11:30 utc ist 12:30 berlin", faellig(dt.datetime(2026, 11, 2, 11, 30, tzinfo=dt.timezone.utc),
                                                           {"laeufe": [{"datum": "2026-11-02", "form": 1,
                                                                        "messzeit_utc": "x"}]}, {"posts": []})[0])
+    # bildquelle (Ben, 6.11.2026)
+    import tempfile as _tq
+    with _tq.TemporaryDirectory() as tq:
+        alt_cwd = os.getcwd()
+        os.chdir(tq)                      # relative pfade wie im workflow (ig/<datei>)
+        jp = Path("ig", "x-threads.jpg")
+        jp.parent.mkdir()
+        jp.write_bytes(b"\xff\xd8" + b"0" * 98)
+        sha = "5ac323ab001cc193e608361cee243cc936d328cc"
+        ok("raw-adresse des commits", raw_url("ig/x.jpg", sha, "o/r")
+           == "https://raw.githubusercontent.com/o/r/%s/ig/x.jpg" % sha)
+        ok("bild_commit nimmt nur einen sha", bild_commit(jp, lambda p: sha + "\n") == sha
+           and bild_commit(jp, lambda p: "") == "" and bild_commit(jp, lambda p: "fatal") == "")
+        gefragt = []
+        def warten_ok(url, laenge, frist=600, takt=15):
+            gefragt.append((url, laenge, frist))
+            return True
+        url, q = bild_bereit(jp, raw=True, warten=warten_ok, sha=sha)
+        ok("raw zuerst, 120 s, laenge der datei", q == "raw" and url.startswith(RAW_BASIS)
+           and url.endswith("/%s/%s" % (sha, jp.as_posix())) and gefragt == [(url, 100, 120)])
+        gefragt.clear()
+        def warten_raw_nein(url, laenge, frist=600, takt=15):
+            gefragt.append((url, laenge, frist))
+            if url.startswith(RAW_BASIS):
+                raise Fehler("bild nach 120 s nicht oeffentlich")
+            return True
+        url, q = bild_bereit(jp, raw=True, pages_frist=1500, warten=warten_raw_nein, sha=sha)
+        ok("raw nicht bereit, rueckfall auf pages mit eigener frist",
+           q == "pages" and url.startswith(SEITE) and [g[2] for g in gefragt] == [120, 1500])
+        gefragt.clear()
+        url, q = bild_bereit(jp, raw=True, warten=warten_ok, sha="")
+        ok("ohne commit gleich pages", q == "pages" and len(gefragt) == 1)
+        gefragt.clear()
+        url, q = bild_bereit(jp, raw=False, warten=warten_ok, sha=sha)
+        ok("instagram ohne IG_RAW bei pages, 600 s", q == "pages" and gefragt[0][2] == 600
+           and url == SEITE + "/ig/x-threads.jpg")
+        os.chdir(alt_cwd)
+    ok("absoluter pfad im repo wird ig/<datei>", repo_pfad(REPO / "ig" / "y.jpg") == "ig/y.jpg")
+    ok("instagram bleibt bis zur probe bei pages", IG_RAW is False)
     # jpeg
     try:
         from PIL import Image
@@ -1121,7 +1249,7 @@ def selbsttest():
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("befehl", nargs="?", choices=["faellig", "artefakt", "jpeg", "posten", "insights",
-                                                  "kommentare", "antworten"])
+                                                  "kommentare", "antworten", "quelle-probe"])
     ap.add_argument("--ziel", default="out/ig")
     ap.add_argument("--png")
     ap.add_argument("--bild")
@@ -1180,8 +1308,7 @@ def main(argv=None):
                 raise Fehler("von hand nur trocken")
             ig = json.loads(Path(a.caption).read_text(encoding="utf-8"))
             bild = Path(a.bild)
-            url = "%s/%s" % (SEITE, bild.as_posix())
-            url_warten(url, bild.stat().st_size)
+            url, quelle = bild_bereit(bild, raw=IG_RAW)
             ausgabe("caption\n%s" % ig["caption"])
             erg = posten(url, ig["caption"], a.modus)
             log = json_laden(LOG_IG, {"posts": []})
@@ -1189,7 +1316,7 @@ def main(argv=None):
                                  "start": start,
                                  "container": erg["container"], "status": erg["status"],
                                  "media": erg.get("media", ""), "permalink": erg.get("permalink", ""),
-                                 "bild": url, "zahl": ig.get("zahl"), "zahl_text": ig.get("zahl_text"),
+                                 "bild": url, "quelle": quelle, "zahl": ig.get("zahl"), "zahl_text": ig.get("zahl_text"),
                                  "tag": ig.get("tag"),
                                  "herkunft": ig.get("herkunft"), "caption": ig["caption"],
                                  "caption_sha": hashlib.sha256(ig["caption"].encode()).hexdigest()[:12],
@@ -1207,6 +1334,9 @@ def main(argv=None):
             ops("instagram %s (%s), form %s, container %s, status %s%s" % (
                 a.modus, start, ig["form"], erg["container"], erg["status"],
                 (", " + erg.get("permalink", "")) if erg.get("media") else ", nicht veroeffentlicht"))
+        elif a.befehl == "quelle-probe":
+            cid, status = quelle_probe(a.bild)
+            return 0 if status == "FINISHED" else 1
         elif a.befehl == "insights":
             insights(now)
         elif a.befehl == "kommentare":
