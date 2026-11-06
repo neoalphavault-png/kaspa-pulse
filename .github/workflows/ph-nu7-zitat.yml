@@ -1,0 +1,34 @@
+# ph-nu7-zitat.yml - Karte "expected against counted" zur Zcash-NU7-Aktivierung
+# nach #ph-entwuerfe (Ben, 06.11.2026, Zitatpost 16:30 Berlin, Ben postet selbst).
+#
+# Laeuft nur auf dem Branch ph/nu7-zitat, wie bch-chipnet.yml auf seinem
+# Messbranch. Gebaut und mit grafik_check-Funktionen geprueft wurde lokal
+# (scripts/ph/nu7_zitat.py, nu7_zitat_pruefen.py), hier wird nur geschickt.
+# Das Secret steht nur im Sendeschritt. Kein Merge nach main.
+name: ph nu7 zitat
+
+on:
+  push:
+    branches: ["ph/nu7-zitat"]
+    paths:
+      - "data/ph-nu7-zitat/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ph-nu7-zitat
+  cancel-in-progress: false
+
+jobs:
+  senden:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: pruefsummen
+        run: cd data/ph-nu7-zitat && sha256sum -c SHA256SUMS
+      - name: an ph-entwuerfe
+        env:
+          DISCORD_WEBHOOK_PH_DRAFTS: ${{ secrets.DISCORD_WEBHOOK_PH_DRAFTS }}
+        run: python3 scripts/ph/nu7_zitat_senden.py
