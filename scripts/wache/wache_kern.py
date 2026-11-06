@@ -29,6 +29,14 @@ Signale (Ben, Schwellen in der Konfiguration):
                   faktor x Zielabstand der Hoehe
   eigene_sicht    (zusaetzlich) weniger als min_verbindungen Peers: dann
                   sagt eine Blockpause nichts, wir melden unsere Blindheit
+  wache_haengt    Eigenwache (Ben 06.11.2026, nach dem Haenger in der
+                  NU7-Nacht): steht die eigene Spitze nach_s (600 s) lang,
+                  waehrend Peers neuere Bloecke ankuendigen, die wir nicht
+                  verknuepfen koennen, oder ein Peer eine hoehere Hoehe meldet,
+                  dann meldet die Wache "wache haengt" und verankert neu
+                  (quelle.nachziehen_anstossen). Solange es solche Hinweise auf
+                  neuere Bloecke gibt, gibt es keinen blockpause-Alarm: die
+                  Pause ist dann unsere, nicht die des Netzes.
 
 Meldungen: hoechstens eine je Signal und sperre_s (30 min). Ausnahme: der
 Aufstieg von Hinweis zu Alarm geht einmal sofort raus. Endet ein Signal,
@@ -52,6 +60,7 @@ TITEL = {
     "peers_vor_upgrade": "peers vor dem upgrade",
     "median_abstand": "median der letzten abstaende",
     "eigene_sicht": "eigene sicht (zu wenige verbindungen)",
+    "wache_haengt": "wache haengt (eigene spitze steht, das netz zeigt neuere bloecke)",
     "wache": "wache",
 }
 
@@ -152,8 +161,24 @@ class Kern:
 
     # ------------------------------------------------------------ eingang
     def anker(self, zeilen):
-        """zeilen: (hoehe, hash, zeit, nbits) einer bekannten Kette, aufsteigend."""
-        kum = 0
+        """zeilen: (hoehe, hash, zeit, nbits) einer bekannten Kette, aufsteigend.
+
+        Die aufsummierte Arbeit beginnt nicht bei null, sondern dort, wo der
+        Anker an den bekannten Baum anschliesst: an der Arbeit seines ersten
+        Kopfs, wenn wir ihn schon kennen, sonst am Block eine Hoehe darunter
+        auf dem Weg unserer Spitze. Vorher (bis 06.11.2026) begann sie bei null;
+        eine alte Spitze ausserhalb des Ankers wog dann dauerhaft mehr als die
+        echte Kette, und die eigene Spitze konnte stehen bleiben.
+        """
+        if not zeilen:
+            return
+        erste_h, erster = zeilen[0][0], zeilen[0][1]
+        k0 = self.knoten.get(erster)
+        if k0 and k0.get("arbeit") is not None:
+            kum = k0["arbeit"] - arbeit(zeilen[0][3])
+        else:
+            unten = self._block_auf_hoehe(erste_h - 1) if self.tip else None
+            kum = self.knoten[unten]["arbeit"] if unten else 0
         for hoehe, h, zeit, nbits in zeilen:
             kum += arbeit(nbits)
             k = self.knoten.get(h) or {"prev": None, "erst_ms": None, "peers": set()}
@@ -163,11 +188,57 @@ class Kern:
         hs = [z[1] for z in zeilen]
         for a, b in zip(hs, hs[1:]):
             self.knoten[b]["prev"] = a
-        if zeilen and (self.tip is None or self.knoten[hs[-1]]["arbeit"] >= self.knoten[self.tip]["arbeit"]):
+        if erste_h - 1 >= 0 and self.tip:
+            unten = self._block_auf_hoehe(erste_h - 1)
+            if unten and self.knoten[erster]["prev"] is None:
+                self.knoten[erster]["prev"] = unten
+        # Arbeit der schon verknuepften Nachfahren nachziehen
+        self._arbeit_neu()
+        if self.tip is None or self.knoten[hs[-1]]["arbeit"] >= self.knoten[self.tip]["arbeit"]:
             self.tip = hs[-1]
             self.knoten[self.tip]["erst_ms"] = self.knoten[self.tip]["erst_ms"] or self.uhr.jetzt() * 1000
         for h in hs:
             self._anhaengen(h)
+        self._spitze_neu()
+
+    def _arbeit_neu(self):
+        """Arbeit jedes verknuepften Knotens aus seinem Vorgaenger neu rechnen (nach Hoehe)."""
+        for h, k in sorted(((h, k) for h, k in self.knoten.items() if k.get("hoehe") is not None),
+                           key=lambda x: x[1]["hoehe"]):
+            p = self.knoten.get(k.get("prev"))
+            if p and p.get("arbeit") is not None and k.get("nbits") is not None:
+                k["arbeit"] = p["arbeit"] + arbeit(k["nbits"])
+
+    def _spitze_neu(self):
+        """Spitze = verknuepfter Knoten mit der meisten Arbeit (bei Gleichstand die bisherige)."""
+        beste = self.tip
+        for h, k in self.knoten.items():
+            if k.get("arbeit") is None or k.get("hoehe") is None:
+                continue
+            if beste is None or k["arbeit"] > self.knoten[beste]["arbeit"]:
+                beste = h
+        if beste != self.tip and beste is not None:
+            alt = self.tip
+            self.tip = beste
+            if self.knoten[beste]["erst_ms"] is None:
+                self.knoten[beste]["erst_ms"] = self.uhr.jetzt() * 1000
+            gem = self._abzweig(alt, beste) if alt else None
+            if gem is not None and gem != alt:
+                tiefe = self.knoten[alt]["hoehe"] - self.knoten[gem]["hoehe"]
+                self.reorgs.append((self.uhr.jetzt(), tiefe, self.knoten[beste]["hoehe"]))
+
+    def hinweise_auf_neuere(self, seit_s):
+        """Wie viele angekuendigte Bloecke seit seit_s (Unix) wir nicht verknuepfen
+        koennen oder die hoeher liegen als unsere Spitze; dazu die hoechste von
+        der Quelle gemeldete Hoehe."""
+        tip_h = self.knoten[self.tip]["hoehe"] if self.tip else None
+        n = 0
+        for k in self.knoten.values():
+            if not k["peers"] or k["erst_ms"] is None or k["erst_ms"] / 1000 <= seit_s:
+                continue
+            if k.get("hoehe") is None or (tip_h is not None and k["hoehe"] > tip_h):
+                n += 1
+        return n
 
     def kopf(self, h, prev, zeit, nbits):
         k = self.knoten.get(h)
@@ -286,15 +357,29 @@ class Kern:
         self.setzen("eigene_sicht", "hinweis" if blind else None, self.verbunden,
                     e["min_verbindungen"], hoehe, einheit="verbindungen", vergleich="unter")
 
-        # a) Blockpause, nur mit eigener Sicht
+        # a) Blockpause, nur mit eigener Sicht und nur, wenn nichts auf
+        #    neuere Bloecke deutet (sonst haengt die Wache, nicht das Netz)
         b = s["blockpause"]
         if hoehe is not None and hoehe >= akt and "nach_aktivierung" in b:
             b = b["nach_aktivierung"]
+        w = s.get("wache_haengt", {"nach_s": 600, "min_hinweise": 2})
         if tip and tip["erst_ms"] and not blind:
             pause = jetzt - tip["erst_ms"] / 1000
-            st = "alarm" if pause >= b["alarm_s"] else "hinweis" if pause >= b["hinweis_s"] else None
-            schw = b["alarm_s"] if st == "alarm" else b["hinweis_s"]
-            self.setzen("blockpause", st, round(pause), schw, hoehe, einheit="s")
+            fremd = self.hinweise_auf_neuere(tip["erst_ms"] / 1000)
+            extern = getattr(self.quelle, "hoehe_gemeldet", 0) or 0
+            belege = fremd >= w["min_hinweise"] or (hoehe is not None and extern > hoehe + 1)
+            if belege and pause >= min(b["hinweis_s"], w["nach_s"]) and self.quelle is not None \
+                    and hasattr(self.quelle, "nachziehen_anstossen"):
+                self.quelle.nachziehen_anstossen()
+            haengt = belege and pause >= w["nach_s"]
+            self.setzen("wache_haengt", "hinweis" if haengt else None, round(pause), w["nach_s"], hoehe,
+                        einheit="s", extra_wert=f"{fremd} neuere bloecke angekuendigt" if haengt else None)
+            if belege:
+                self.setzen("blockpause", None, round(pause), b["hinweis_s"], hoehe, einheit="s")
+            else:
+                st = "alarm" if pause >= b["alarm_s"] else "hinweis" if pause >= b["hinweis_s"] else None
+                schw = b["alarm_s"] if st == "alarm" else b["hinweis_s"]
+                self.setzen("blockpause", st, round(pause), schw, hoehe, einheit="s")
 
         # b) Kettenspaltung ab der Aktivierungshoehe
         k = s["kettenspaltung"]
@@ -389,7 +474,7 @@ class Kern:
         return beste
 
     # ------------------------------------------------------------ zustand und meldung
-    def setzen(self, signal, stufe, wert, schwelle, hoehe, einheit="", vergleich="ab"):
+    def setzen(self, signal, stufe, wert, schwelle, hoehe, einheit="", vergleich="ab", extra_wert=None):
         jetzt = self.uhr.jetzt()
         z = self.z["signale"].setdefault(signal, {"stufe": None, "seit": None, "gemeldet_utc": None,
                                                   "gemeldet_stufe": None, "episode_gemeldet": False})
@@ -414,7 +499,7 @@ class Kern:
         aufstieg = RANG[stufe] > RANG[z["gemeldet_stufe"]] and z["episode_gemeldet"]
         if frei or aufstieg:
             self.melden(stufe, signal, hoehe, jetzt, f"{wert} {einheit}".strip(),
-                        f"{vergleich} {schwelle} {einheit}".strip())
+                        f"{vergleich} {schwelle} {einheit}".strip(), extra=extra_wert)
             z.update(gemeldet_utc=datetime.fromtimestamp(jetzt, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                      gemeldet_stufe=stufe, episode_gemeldet=True)
 
