@@ -602,6 +602,28 @@
      "verhaeltnis": 616.7
     }
    }
+  },
+  {
+   "datum": "2026-11-06",
+   "form": 11,
+   "grund": "rotation, 3 laeufe in 30 tagen",
+   "messzeit_utc": "2026-11-06T06:30:53+00:00",
+   "looks": {
+    "instagram": "A-papier",
+    "threads": "D-dunkel",
+    "x": "D-dunkel",
+    "discord": "D-dunkel"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-07",
+     "bis": "2026-11-05",
+     "fees": 87930.2223021,
+     "emission": 53257145.165478565,
+     "verhaeltnis": 605.68
+    }
+   }
   }
  ]
 }

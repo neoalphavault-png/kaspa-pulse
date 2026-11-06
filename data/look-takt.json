@@ -49,6 +49,13 @@
     "motiv": "glitch-raster",
     "schritt": 3,
     "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-11-06",
+    "look": "A-papier",
+    "motiv": "blockstrom",
+    "schritt": 0,
+    "serie": "tagesgrafik"
    }
   ],
   "story/instagram": [
@@ -98,6 +105,11 @@
     "datum": "2026-11-05",
     "look": "A-papier",
     "schritt": 0
+   },
+   {
+    "datum": "2026-11-06",
+    "look": "D-dunkel",
+    "schritt": 1
    }
   ],
   "tagesgrafik/threads": [
@@ -125,6 +137,11 @@
     "datum": "2026-11-05",
     "look": "A-papier",
     "schritt": 0
+   },
+   {
+    "datum": "2026-11-06",
+    "look": "D-dunkel",
+    "schritt": 1
    }
   ],
   "tagesgrafik/x": [
@@ -152,6 +169,11 @@
     "datum": "2026-11-05",
     "look": "A-papier",
     "schritt": 0
+   },
+   {
+    "datum": "2026-11-06",
+    "look": "D-dunkel",
+    "schritt": 1
    }
   ]
  }
