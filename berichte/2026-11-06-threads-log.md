@@ -1,6 +1,18 @@
-# Bericht 6.11.2026: Threads-Lauf rot am 4.11. und 5.11., Log robust
+# Bericht 6.11.2026: Threads-Lauf rot am 4.11. und 5.11., Log robust (Nachtrag 6.11., Wartezeit 1500 s)
 
 Auftrag von Ben vom 5.11.2026. Ziel ist, dass der Lauf am Fr 6.11. um 17:10 Berlin komplett grün ist. Die Änderung betrifft `.github/workflows/threads.yml`, deshalb merged Ben.
+
+## Nachtrag 6.11.2026, Wartezeit auf das Bild 1500 s
+Ben hat am 6.11. dem Vorschlag aus „Risiko für Fr 6.11. 17:10“ zugestimmt.
+
+- **Warum ein neuer PR:** #260 war um 09:13 Berlin schon gemergt. Die Änderung kommt deshalb in einen eigenen PR von main, Branch `fix/threads-bild-frist`.
+- **Kopf der Änderung:** `75cae65`. Der Commit mit diesem Nachtrag liegt direkt darauf.
+- **Wartezeit:** `scripts/threads.py` hat die Konstante `BILD_FRIST = 1500`. Der Schritt „jpeg auf kaspapulse.com“ in `threads.yml` wartet jetzt mit `frist=threads.BILD_FRIST` statt mit 600 s. Instagram und das Karussell behalten 600 s.
+- **Job-Zeit:** `timeout-minutes` steigt von 30 auf 45. 1500 s Wartezeit plus etwa 2 min für den Rest des Laufs passen hinein, und das Zeitfenster bis 19:30 reicht ebenfalls.
+- **Selbsttest:** 79 Fälle, 0 falsch. Neu sind drei Fälle. Sie prüfen die Frist 1500 s, dass `timeout-minutes` die Frist plus 15 min abdeckt und dass der Workflow `threads.BILD_FRIST` nutzt.
+- **Prüfung:** YAML lädt. `url_warten` nimmt `frist` an. Secret-Scan ohne Fund.
+
+---
 
 ## 1. Ursache am 5.11., Lauf threads #20 (42061797050)
 **Was passiert ist**

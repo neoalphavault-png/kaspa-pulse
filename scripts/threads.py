@@ -353,6 +353,10 @@ def posten(text, bild, modus, tag, log_pfad=None, hand=False, tok=None, oeffner=
 # Lauf ueber die Threads-API zurueck ins Log (nachholen).
 PUSH_PAUSEN = (10, 20, 40)
 NACHHOLEN_TAGE = 7
+# Wartezeit auf das Bild auf kaspapulse.com, nur fuer Threads (Ben, 6.11.2026).
+# Am 4.11. hing ein Pages-Deploy 14 Minuten, 600 s reichten nicht. Der Job in
+# threads.yml hat dafuer timeout-minutes 45, das Fenster reicht bis 19:30.
+BILD_FRIST = 1500
 LOG_REL = "data/threads-post-log.json"
 
 
@@ -696,6 +700,12 @@ def selbsttest():
     pruefe("zweiter push geht durch, gesichert", (erg, pausen), ("gesichert", [10]))
     pruefe("unveraendertes log ohne commit",
            log_sichern(True, git=lambda *a: 0, schlafen=pausen.append), "unveraendert")
+    pruefe("wartezeit auf das bild 1500 s", BILD_FRIST, 1500)
+    wf = (ROOT / ".github" / "workflows" / "threads.yml").read_text(encoding="utf-8")
+    mt = re.search(r"timeout-minutes:\s*(\d+)", wf)
+    pruefe("job-zeit reicht fuer die wartezeit plus 15 min",
+           bool(mt) and int(mt.group(1)) * 60 >= BILD_FRIST + 15 * 60, True)
+    pruefe("workflow wartet mit threads.BILD_FRIST", "frist=threads.BILD_FRIST" in wf, True)
     lg = {"posts": [{"tag": "2026-11-05", "media": "175", "text": ""}]}
     neu = nachtragen(lg, [{"id": "175", "text": "t5", "timestamp": "2026-11-05T16:11:45+0000"},
                           {"id": "176", "text": "t6", "timestamp": "2026-11-06T16:11:45+0000"},
