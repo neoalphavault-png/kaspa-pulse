@@ -602,19 +602,34 @@ def kombinieren(b1, b2):
     return buf.getvalue(), zus
 
 
-async def lauf(von_ms, bis_ms, rolle, partner, out, ziel_sha="", kette=True, cov_sha=""):
-    try:
-        rpc, takt, kn = await verbinden(rolle, partner)
-    except Exception as exc:                             # noqa: BLE001
-        schreiben(out, [], {"status": "kein knoten, %s" % type(exc).__name__})
+VERSUCHE = 3   # 29.10.: zwei stuecke brachen mit einem rpc-fehler ab, im zweiten versuch gruen
+
+
+async def lauf(von_ms, bis_ms, rolle, partner, out, ziel_sha="", kette=True, cov_sha="", versuche=VERSUCHE):
+    """Bei einem Fehler (Exception aus dem Knoten) neu verbinden und das
+    ganze Stueck noch einmal lesen, hoechstens versuche-mal. Halbe Ergebnisse
+    werden nie zusammengesetzt."""
+    vorher = []
+    for v in range(1, versuche + 1):
+        try:
+            rpc, takt, kn = await verbinden(rolle, partner)
+        except Exception as exc:                         # noqa: BLE001
+            vorher.append("verbinden, %s" % type(exc).__name__)
+            continue
+        zeilen, meta = await zaehle(rpc, takt, von_ms, bis_ms, ziel_sha=ziel_sha, kette=kette, cov_sha=cov_sha)
+        meta.update(kn)
+        try:
+            await rpc.disconnect()
+        except Exception:                                # noqa: BLE001
+            pass
+        if not str(meta.get("status", "")).startswith("fehler") or v == versuche:
+            break
+        vorher.append(meta["status"])
+    else:
+        schreiben(out, [], {"status": "kein knoten, %s" % "; ".join(vorher), "versuche": versuche})
         return 1
-    zeilen, meta = await zaehle(rpc, takt, von_ms, bis_ms, ziel_sha=ziel_sha, kette=kette, cov_sha=cov_sha)
-    meta.update(kn)
+    meta["versuche"], meta["fruehere_versuche"] = v, vorher
     schreiben(out, zeilen, meta)
-    try:
-        await rpc.disconnect()
-    except Exception:                                    # noqa: BLE001
-        pass
     print("%s %s, %d minuten, %s abfragen" % (rolle, meta["status"], len(zeilen), meta.get("abfragen", "")))
     # nichts gelesen ist ein fehler, der lauf wird rot (09.10.: websocket getrennt, lauf blieb gruen)
     return 0 if meta["status"] == "gelesen" else 1
@@ -903,6 +918,24 @@ def selbsttest():
        rc == 1 and fk.zustand["hosts"] and adressfrei(alles) and "beispiel" not in alles
        and re.fullmatch(r"[0-9a-f]{10}", m.get("kennung", "")) is not None
        and "[knoten]" in " ".join(m.get("meldungen", [])))
+    # 06.11.2026: ein rpc-fehler fuehrt zu einem neuen versuch mit neuer verbindung
+    fk = fake_kaspa(fehler_bei="get_block_dag_info", nur_einmal=True)
+    alt = (sys.modules.get("kaspa"), Takt.__init__.__defaults__)
+    sys.modules["kaspa"], Takt.__init__.__defaults__ = fk, (0.01,)
+    try:
+        with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
+            asyncio.run(lauf(utc_ms("2026-10-08T20:02:00Z"), utc_ms("2026-10-08T20:13:00Z"), "k1",
+                             os.path.join(tmp, "p.json"), os.path.join(tmp, "k1")))
+            m2 = json.load(open(os.path.join(tmp, "k1.json"), encoding="utf-8"))
+    finally:
+        Takt.__init__.__defaults__ = alt[1]
+        if alt[0] is None:
+            sys.modules.pop("kaspa", None)
+        else:
+            sys.modules["kaspa"] = alt[0]
+    ok("rpc-fehler: zweiter versuch mit neuer verbindung, erster vermerkt",
+       m2.get("versuche") == 2 and len(m2.get("fruehere_versuche", [])) == 1
+       and m2["fruehere_versuche"][0].startswith("fehler") and len(fk.zustand["hosts"]) == 2)
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 

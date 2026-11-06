@@ -73,3 +73,48 @@ jobs:
                        cv.get("ziel_gesetzt", ""), cv.get("tx", ""), cv.get("ohne_txid", ""), cv.get("nur_ueber_eingang", "")]
               print(" ".join(str(w) if re.fullmatch(r"[A-Za-z0-9:.,_ -]*", str(w)) else "?" for w in werte))
           PY
+
+  # je sekunde und familie (Ben, 06.11.2026, stp-lauf 7.11.): aus den tx-listen
+  # im runner gezaehlt, ins repo nur zahlen, keine tx-id
+  sekunden:
+    needs: zahlen
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - id: lauf
+        run: |
+          set -euo pipefail
+          L=$(grep -v '^#' messung/tn10/nach/auswertung.txt | grep -oE '^[0-9]{6,15}$' | head -n 1)
+          P=$(sed -n 's/^plan=//p' messung/tn10/nach/auswertung.txt | head -n 1)
+          echo "lauf=$L" >> "$GITHUB_OUTPUT"
+          echo "plan=$P" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@v4
+        if: steps.lauf.outputs.plan != ''
+        with:
+          pattern: tn10-miner-s*
+          path: ${{ runner.temp }}/stuecke
+          run-id: ${{ steps.lauf.outputs.lauf }}
+          github-token: ${{ github.token }}
+      - name: je sekunde und schritt, nur zahlen auf den branch
+        if: steps.lauf.outputs.plan != ''
+        env:
+          LAUF: ${{ steps.lauf.outputs.lauf }}
+          PLAN: ${{ steps.lauf.outputs.plan }}
+        run: |
+          set -euo pipefail
+          Z="messung/tn10/ergebnisse/lauf-$LAUF"
+          python3 scripts/tn10_sekunden.py --listen "$RUNNER_TEMP/stuecke" --plan "$PLAN" --out "$Z"
+          if grep -rqE '[0-9a-f]{64}|kaspa(test)?:[a-z0-9]{20,}|([0-9]{1,3}\.){3}[0-9]{1,3}' "$Z"; then echo "id, adresse oder ip gefunden, nichts gesichert"; exit 1; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898309+github-actions[bot]@users.noreply.github.com"
+          git add "$Z"
+          git commit -q -m "messung: je sekunde und schritt, lauf $LAUF, nur zahlen"
+          for v in 1 2 3; do
+            git pull -q --rebase origin "$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && { echo "gesichert in $Z"; exit 0; }
+            sleep $((v * 3))
+          done
+          exit 1
