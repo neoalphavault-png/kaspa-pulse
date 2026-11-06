@@ -1,0 +1,34 @@
+# ph-stil-muster.yml - Muster des neuen PulseHawk-Stils nach #ph-entwuerfe
+# (Ben, 06.11.2026, NU7-Karte alt und neu nebeneinander, Frist 08.11. 18:00).
+#
+# Laeuft nur auf dem Branch ph/stil-muster, wie ph-nu7-zitat.yml. Gebaut und
+# geprueft wurde lokal mit scripts/ph/ph_stil.py und nu7_karte.py (Branch
+# ph/stil-2), hier wird nur geschickt, was in SHA256SUMS steht. Das Secret
+# steht nur im Sendeschritt. Kein Merge nach main.
+name: ph stil muster
+
+on:
+  push:
+    branches: ["ph/stil-muster"]
+    paths:
+      - "data/ph-stil-muster/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ph-stil-muster
+  cancel-in-progress: false
+
+jobs:
+  senden:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: pruefsummen
+        run: cd data/ph-stil-muster && sha256sum -c SHA256SUMS
+      - name: an ph-entwuerfe
+        env:
+          DISCORD_WEBHOOK_PH_DRAFTS: ${{ secrets.DISCORD_WEBHOOK_PH_DRAFTS }}
+        run: python3 scripts/ph/ph_bild_senden.py data/ph-stil-muster
