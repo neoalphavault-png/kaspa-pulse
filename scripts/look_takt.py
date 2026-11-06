@@ -210,16 +210,16 @@ def merken(speicher, serie, kanal, datum, sonder=None):
 # Karussell landen im selben Raster mit drei Spalten. Getrennte Takte
 # braechen dort das Muster dunkel, hell, teal, hell. Deshalb fuehrt
 # "raster/instagram" alle Posts in der Reihenfolge, in der sie im Raster
-# stehen: nach Datum, und am selben Tag nach RANG (die Tagesgrafik um 09:30
-# vor dem Karussell um 11:00 oder 18:00). Jeder Eintrag traegt seine Serie.
+# stehen: nach Datum, und am selben Tag nach RANG (die Tagesgrafik vor dem
+# Karussell, Sa Tagesgrafik 12:30 und Karussell 13:00, Mi Karussell 18:00). Jeder Eintrag traegt seine Serie.
 #
 # Das Karussell legt seinen Eintrag schon beim Entwurf am Vorabend an. Die
 # Tagesgrafik des Folgetags sieht ihn nicht als Vorgaenger, weil sie im
 # Rang davor steht, und rechnet vom Vortag weiter. Das Karussell nimmt den
 # Schritt nach ihr.
 RASTER = "raster/instagram"
-# Seit dem 25.10.2026 (Ben) postet der Samstag dreimal: Tagesgrafik 09:30,
-# Karussell 11:00, Meme 15:00. Das Meme steht deshalb hinter dem Karussell.
+# Seit dem 25.10.2026 (Ben) postet der Samstag dreimal: Tagesgrafik,
+# Karussell, Meme 15:00 (Tagesgrafik seit 5.11.2026 12:30, Karussell 13:00). Das Meme steht deshalb hinter dem Karussell.
 RANG = {"tagesgrafik": 1, "karussell": 2, "meme": 3}
 
 
@@ -475,7 +475,7 @@ def selbsttest():
        raster_faellig(sp4, "meme", "2026-10-25")[0] == (raster_faellig(sp4, "tagesgrafik", "2026-10-25")[0] + 1) % 4)
     ok("tagesgrafik am montag folgt dem meme",
        raster_faellig(sp4, "tagesgrafik", "2026-10-26")[0] == (raster_faellig(sp4, "meme", "2026-10-25")[0] + 1) % 4)
-    # samstag mit karussell 11:00 und meme 15:00 (Ben, 25.10.2026)
+    # samstag mit karussell (seit 6.11.2026 13:00) und meme 15:00 (Ben, 25.10.2026)
     sp5 = {"kanaele": {}}
     raster_merken(sp5, "tagesgrafik", "2026-10-31")
     raster_merken(sp5, "karussell", "2026-10-31")
@@ -540,7 +540,7 @@ def selbsttest():
     import instagram
     import post_number_of_day
     import x_post
-    jetzt = dt.datetime(2026, 10, 17, 7, 40, tzinfo=dt.timezone.utc)   # 09:40 berlin
+    jetzt = dt.datetime(2026, 10, 17, 10, 40, tzinfo=dt.timezone.utc)  # 12:40 berlin
     lg = {"laeufe": [{"datum": "2026-10-17", "form": 4, "messzeit_utc": "2026-10-17T05:30:00+00:00"}]}
     e, grund = instagram.faellig(jetzt, lg, {"posts": []})
     ok("instagram im trockenlauf nicht faellig (%s)" % grund, e is None and "trockenlauf" in grund)
