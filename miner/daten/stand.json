@@ -142,12 +142,25 @@
    "coinbase_ausgegeben": 165067,
    "ausgegeben_vor_beobachtung": 5738,
    "ohne_zeit": 0
+  },
+  {
+   "lauf": "41698334356-12",
+   "von_daa": 585433474,
+   "bis_daa": 585665807,
+   "von_utc": "2026-11-06T11:14:54Z",
+   "bis_utc": "2026-11-06T17:41:58Z",
+   "pruning_punkt_utc": "2026-11-05T06:37:18Z",
+   "kettenbloecke": 33191,
+   "coinbase_neu": 232048,
+   "coinbase_ausgegeben": 161789,
+   "ausgegeben_vor_beobachtung": 5726,
+   "ohne_zeit": 0
   }
  ],
- "letzter_daa": 585433466,
+ "letzter_daa": 585665807,
  "erster_daa": 581806661,
  "erster_ms": 1793600936847,
- "letzter_ms": 1793963693149,
+ "letzter_ms": 1793986918484,
  "erster_utc": "2026-11-02T06:28:56Z",
- "letzter_utc": "2026-11-06T11:14:53Z"
+ "letzter_utc": "2026-11-06T17:41:58Z"
 }
