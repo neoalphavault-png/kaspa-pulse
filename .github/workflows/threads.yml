@@ -50,6 +50,15 @@ jobs:
         run: "pip install --only-binary=:all: pillow==11.3.0"
       - name: selbsttest
         run: python3 scripts/threads.py --selbsttest
+      - name: log nachholen
+        # Ben, 5.11.2026: ein Post, dessen Log-Eintrag nicht gepusht werden
+        # konnte, kommt hier ueber die Threads-API zurueck ins Log, bevor
+        # die Tagessperre gelesen wird. Ein Fehler hier haelt den Post nicht auf.
+        continue-on-error: true
+        env:
+          THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
+          THREADS_USER_ID: ${{ vars.THREADS_USER_ID }}
+        run: python3 scripts/threads.py nachholen
       - name: grafik aus dem 07:30-lauf
         id: a
         env:
@@ -87,6 +96,7 @@ jobs:
           print("oeffentlich, " + instagram.SEITE + "/ig/" + p.name)
           PY
       - name: container, status, veroeffentlichen nur wenn scharf
+        id: p
         if: steps.a.outputs.faellig == '1' && steps.a.outputs.gefunden == '1'
         env:
           THREADS_TOKEN: ${{ secrets.THREADS_TOKEN }}
@@ -100,28 +110,35 @@ jobs:
           HAND=""; [ "$TH_START" = "--hand" ] && HAND="--hand"
           python3 scripts/threads.py posten --bild "$BILD" --text-datei "$TEXT" --modus "$MODUS" $HAND
       - name: log sichern
-        if: always() && steps.a.outputs.faellig == '1'
+        # pull --rebase vor jedem push, bis zu drei wiederholungen nach 10, 20
+        # und 40 s (Ben, 5.11.2026). Scheitert der push nach einem post, bleibt
+        # der schritt gruen, nach #ops-log geht "threads gepostet, log nicht
+        # gesichert", und "log nachholen" holt den eintrag beim naechsten lauf.
+        id: l
+        if: always()
+        env:
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
+          VEROEFFENTLICHT: ${{ steps.p.outputs.veroeffentlicht }}
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
-          git add data/threads-post-log.json 2>/dev/null || true
-          if git diff --staged --quiet; then
-            echo "log unveraendert, kein commit"
-          else
-            git commit -m "threads log [bot]"
-            git pull --rebase --autostash origin "$GITHUB_REF_NAME"
-            git push
-          fi
+          python3 scripts/threads.py log-sichern --veroeffentlicht "$VEROEFFENTLICHT" --lauf "$LAUF"
       - name: rot nach ops-log
+        # "kein post" nur, wenn wirklich nicht veroeffentlicht wurde
         if: failure()
         env:
           DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
+          VEROEFFENTLICHT: ${{ steps.p.outputs.veroeffentlicht }}
           LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           python3 - <<'PY' || true
           import os, sys
           sys.path.insert(0, "scripts")
           import ops_melden
-          text = "threads ist rot, heute kein post\n" + os.environ.get("LAUF", "")
-          ops_melden.log(text, was="rot")
+          if os.environ.get("VEROEFFENTLICHT") == "1":
+              text = "threads gepostet, der lauf ist trotzdem rot\n"
+          else:
+              text = "threads ist rot, heute kein post\n"
+          ops_melden.log(text + os.environ.get("LAUF", ""), was="rot")
           PY
