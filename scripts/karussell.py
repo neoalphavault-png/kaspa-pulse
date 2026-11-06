@@ -8,8 +8,9 @@ Variable KARUSSELL_LIVE=true (Ben, 25.10.2026). Karussells gehen ohne Musik raus
 Graph API kann keine anhaengen; bei Handposts darf Ben Pixabay-Musik dazulegen.
 
 ZWEI FORMATE
-  woche   Sa 12:30 "The week in numbers", 4 Seiten, Entwurf Sa 10:30
-          (bis 5.11.2026 Sa 11:00, Ben: nach den Instagram-Insights).
+  woche   Sa 13:00 "The week in numbers", 4 Seiten, Entwurf Sa 11:00
+          (bis 5.11.2026 Sa 11:00, Ben: nach den Instagram-Insights, 13:00
+          statt 12:30, damit die Tagesgrafik um 12:30 immer zuerst kommt).
           Seite 1 ein Haken-Satz und die staerkste Zahl der Woche, die stolz
           macht. Seite 2 und 3 je eine weitere Wochenzahl mit einem Satz und
           zwei Balken, Vorwoche gegen Woche, ab null, jeder Wert am Balken.
@@ -83,7 +84,7 @@ BALKEN_UNTEN = 1100
 # #moderator-only, zum Termin postet scripts/karussell_post.py. Wochentag
 # 0 = montag.
 # schalter: einmalig Fr 6.11.2026 zum Reward Cut (Ben, 29.10.2026), look_motor.SCHALTER_TAG
-POSTZEIT = {"woche": (5, "12:30"), "story": (2, "18:00"), "meme": (5, "15:00"), "schalter": (4, "11:00")}
+POSTZEIT = {"woche": (5, "13:00"), "story": (2, "18:00"), "meme": (5, "15:00"), "schalter": (4, "11:00")}
 UHRZEIT = {a: "%s %s" % (("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")[t], hm) for a, (t, hm) in POSTZEIT.items()}
 # Die Caption nach den Content-Regeln (Ben, 25.10.2026): fuenf Bloecke,
 # Haken mit Zahl, ein Satz, eine Frage, die Newsletter-Zeile, hoechstens
@@ -670,7 +671,7 @@ def selbsttest():
     ok("caption ohne quelle faellt auf", bool(caption_pruefen(c.replace("source ", "from "))))
     ok("deckblatt ohne diagramm", not deckblatt_pruefen(ss) and bool(deckblatt_pruefen(ss[1:])))
     ok("entwurf nennt postzeit und veto", veto_satz("woche", "2026-10-31")
-       .startswith("geht um 12:30 raus, Veto: karussell-stopp"))
+       .startswith("geht um 13:00 raus, Veto: karussell-stopp"))
     ok("caption mit link faellt auf", bool(caption_pruefen(c + " kaspapulse.com/ig")))
     ok("echtzeit faellt auf", bool(text_pruefen(["hashrate right now at 360 PH/s on 10 oct"])))
     ok("counted bei fremder quelle faellt auf", bool(text_pruefen(["week to 10 oct, counted · source defillama"])))

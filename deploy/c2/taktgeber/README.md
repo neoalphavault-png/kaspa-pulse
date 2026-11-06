@@ -39,8 +39,8 @@ Log steht es am 01.10. wörtlich: *„kein cron im fenster"*.
 | `takt-number-of-day` | täglich 10:12 und 11:42 | `number-of-day.yml` in kaspa-pulse |
 | `takt-story-vorlage` | Mo–Sa 07:45 | `story-vorlage.yml` in kaspa-pulse, `senden=true`, nur nach #moderator-only |
 | `takt-ig-story-auto` | Di und Do 17:30 | `ig-story-auto.yml` in kaspa-pulse, `modus=takt`, scharf nur mit `IG_STORY_AUTO_LIVE=true` |
-| `takt-karussell-woche-entwurf` | Sa 10:30 (bis 5.11.2026 09:00) | `karussell.yml`, `art=woche schritt=entwurf start=takt` |
-| `takt-karussell-woche` | Sa 12:30 (bis 5.11.2026 11:00) | `karussell.yml`, `art=woche schritt=posten start=takt` |
+| `takt-karussell-woche-entwurf` | Sa 11:00 (bis 5.11.2026 09:00) | `karussell.yml`, `art=woche schritt=entwurf start=takt` |
+| `takt-karussell-woche` | Sa 13:00 (bis 5.11.2026 11:00) | `karussell.yml`, `art=woche schritt=posten start=takt` |
 | `takt-karussell-story-entwurf` | Mi 16:00 | `karussell.yml`, `art=story schritt=entwurf start=takt` |
 | `takt-karussell-story` | Mi 18:00 | `karussell.yml`, `art=story schritt=posten start=takt` |
 | `takt-karussell-meme-entwurf` | Sa 13:00 | `karussell.yml`, `art=meme schritt=entwurf start=takt` |
@@ -114,8 +114,8 @@ Feed-Bilder liefen um 09:30, bevor jemand da war. Seit dem 5.11.2026 gilt:
 | --- | --- | --- |
 | `takt-instagram-bild` | täglich 09:30 | täglich 12:30, Fenster in `instagram.py` 12:25 bis 14:30 |
 | `takt-reel` | Di–So 12:00, Mo 17:00 | Di–So 15:30, Mo 17:00 |
-| `takt-karussell-woche-entwurf` | Sa 09:00 | Sa 10:30 |
-| `takt-karussell-woche` | Sa 11:00 | Sa 12:30 (`karussell.POSTZEIT`) |
+| `takt-karussell-woche-entwurf` | Sa 09:00 | Sa 11:00 |
+| `takt-karussell-woche` | Sa 11:00 | Sa 13:00 (`karussell.POSTZEIT`), nicht gleichzeitig mit der Tagesgrafik 12:30 |
 
 Der Discord-Post der Tagesgrafik bleibt 07:30. Der YouTube-Short bleibt
 Di–So 12:00: **der Reel ist ab jetzt von der Short-Zeit entkoppelt.** Sein
@@ -248,7 +248,7 @@ systemctl list-timers 'takt-karussell*' --no-pager
 ```
 
 Erwartet: sechs Zeilen. Die nächsten Termine stehen in UTC, im Winter eine
-Stunde vor Berlin (Sa 12:30 Berlin = 11:30 UTC).
+Stunde vor Berlin (Sa 13:00 Berlin = 12:00 UTC).
 
 Probe von Hand, ohne Takt (immer trocken, nichts wird veröffentlicht):
 Actions, `karussell`, Run workflow, `schritt=probe`.

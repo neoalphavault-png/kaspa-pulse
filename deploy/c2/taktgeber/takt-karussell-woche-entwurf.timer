@@ -1,10 +1,10 @@
 [Unit]
-Description=Kaspa Pulse Takt, Karussell Woche, Entwurf Sa 10:30 Berlin fuer 12:30
+Description=Kaspa Pulse Takt, Karussell Woche, Entwurf Sa 11:00 Berlin fuer 13:00
 
 [Timer]
 Unit=takt@karussell-woche-entwurf.service
-# 2 Stunden vor dem Termin, 10:30 statt 09:00 (Ben, 5.11.2026).
-OnCalendar=Sat *-*-* 10:30:00 Europe/Berlin
+# 2 Stunden vor dem Termin, 11:00 statt 09:00 (Ben, 6.11.2026).
+OnCalendar=Sat *-*-* 11:00:00 Europe/Berlin
 Persistent=true
 AccuracySec=30s
 

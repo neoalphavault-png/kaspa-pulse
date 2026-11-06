@@ -211,7 +211,7 @@ def merken(speicher, serie, kanal, datum, sonder=None):
 # braechen dort das Muster dunkel, hell, teal, hell. Deshalb fuehrt
 # "raster/instagram" alle Posts in der Reihenfolge, in der sie im Raster
 # stehen: nach Datum, und am selben Tag nach RANG (die Tagesgrafik vor dem
-# Karussell, seit 5.11.2026 beide Sa 12:30, das Karussell Mi 18:00). Jeder Eintrag traegt seine Serie.
+# Karussell, Sa Tagesgrafik 12:30 und Karussell 13:00, Mi Karussell 18:00). Jeder Eintrag traegt seine Serie.
 #
 # Das Karussell legt seinen Eintrag schon beim Entwurf am Vorabend an. Die
 # Tagesgrafik des Folgetags sieht ihn nicht als Vorgaenger, weil sie im
@@ -219,7 +219,7 @@ def merken(speicher, serie, kanal, datum, sonder=None):
 # Schritt nach ihr.
 RASTER = "raster/instagram"
 # Seit dem 25.10.2026 (Ben) postet der Samstag dreimal: Tagesgrafik,
-# Karussell, Meme 15:00 (Tagesgrafik und Karussell seit 5.11.2026 beide 12:30). Das Meme steht deshalb hinter dem Karussell.
+# Karussell, Meme 15:00 (Tagesgrafik seit 5.11.2026 12:30, Karussell 13:00). Das Meme steht deshalb hinter dem Karussell.
 RANG = {"tagesgrafik": 1, "karussell": 2, "meme": 3}
 
 
@@ -475,7 +475,7 @@ def selbsttest():
        raster_faellig(sp4, "meme", "2026-10-25")[0] == (raster_faellig(sp4, "tagesgrafik", "2026-10-25")[0] + 1) % 4)
     ok("tagesgrafik am montag folgt dem meme",
        raster_faellig(sp4, "tagesgrafik", "2026-10-26")[0] == (raster_faellig(sp4, "meme", "2026-10-25")[0] + 1) % 4)
-    # samstag mit karussell (seit 5.11.2026 12:30) und meme 15:00 (Ben, 25.10.2026)
+    # samstag mit karussell (seit 6.11.2026 13:00) und meme 15:00 (Ben, 25.10.2026)
     sp5 = {"kanaele": {}}
     raster_merken(sp5, "tagesgrafik", "2026-10-31")
     raster_merken(sp5, "karussell", "2026-10-31")
