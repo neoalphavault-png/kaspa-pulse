@@ -32,7 +32,7 @@ Ben hat am 5.11. einen eigenen PR mit kurzem Bericht zu `scripts/ph/ph_entwurf.p
 | kaspa-pulse | `.github/workflows/ph-entwurf-zcash-mainnet.yml` | `--selbsttest`, dann `zcash-mainnet --stand … --senden` nach jedem neuen Zcash-Mainnet-Stand |
 | pulsehawk-site | `.github/workflows/ph-entwurf-zcash.yml` | Testnet-CSV, Unterbefehl `zcash` |
 
-`scripts/ph/ph_hand.py` ist ein eigenes Skript. Es meldet danach in #moderator-only, dass ein Entwurf von Hand zu posten ist, und nutzt `regel_pruefen` nicht.
+`scripts/ph/ph_hand.py` ist ein eigenes Skript. Es meldet danach in #moderator-only, dass ein Entwurf von Hand zu posten ist. Dabei prüft es den Text mit `ph_entwurf.regel_pruefen`.
 
 ## Selbsttest
 
