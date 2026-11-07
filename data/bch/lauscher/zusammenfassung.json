@@ -392,9 +392,16 @@
       "ende_utc": "2026-11-07T13:27:33Z",
       "peers_ohne_abzweig_abgelehnt": 119,
       "peers": 65
+    },
+    {
+      "lauf": "20261107T1502",
+      "start_utc": "2026-11-07T15:02:31Z",
+      "ende_utc": "2026-11-07T15:07:31Z",
+      "peers_ohne_abzweig_abgelehnt": 12,
+      "peers": 5
     }
   ],
-  "abgedeckt_h": 302.7,
+  "abgedeckt_h": 302.8,
   "peer_software": [
     "/Bitcoin Cash Node:29.2.1(9500-tempnet)/",
     "/Bitcoin Cash Node:29.2.1(my-tempnet-node)/",
@@ -402,26 +409,26 @@
     "/Bitcoin Cash Node:29.2.1/",
     "/Vcash:0.1/"
   ],
-  "kette_spitze": 360250,
-  "kettenbloecke": 18120,
-  "davon_angekuendigt_gesehen": 18070,
+  "kette_spitze": 360340,
+  "kettenbloecke": 18126,
+  "davon_angekuendigt_gesehen": 18075,
   "first_seen_typ": {
-    "inv": 18041,
+    "inv": 18046,
     "headers": 29,
     "cmpctblock": 0
   },
   "timestamp_deviation_s": {
-    "n": 18070,
-    "mittel": 3.49,
+    "n": 18075,
+    "mittel": 3.491,
     "median": 2.494,
-    "p90": 4.861,
+    "p90": 4.863,
     "p99": 32.815,
     "min": 0.058,
     "max": 501.548
   },
   "propagation_spread_ms": {
-    "n": 18042,
-    "mittel": 9489.0,
+    "n": 18047,
+    "mittel": 9487.0,
     "median": 5085,
     "p90": 10428,
     "p99": 19191,
@@ -429,7 +436,7 @@
     "max": 2644850
   },
   "peers_je_block": {
-    "n": 18070,
+    "n": 18075,
     "mittel": 24.9,
     "median": 22,
     "p90": 49,
@@ -438,10 +445,10 @@
     "max": 85
   },
   "compact": {
-    "bloecke_mit_cmpctblock": 17653,
+    "bloecke_mit_cmpctblock": 17658,
     "davon_von_selbst": 0,
     "kurz_ids": {
-      "n": 17653,
+      "n": 17658,
       "mittel": 11.3,
       "median": 5,
       "p90": 31,
@@ -450,7 +457,7 @@
       "max": 938
     },
     "fehlend_geschaetzt": {
-      "n": 17653,
+      "n": 17658,
       "mittel": 0.7,
       "median": 0,
       "p90": 0,
@@ -458,14 +465,14 @@
       "min": 0,
       "max": 303
     },
-    "bloecke_ohne_fehlende": 17139,
+    "bloecke_ohne_fehlende": 17142,
     "hinweis": "geschaetzt gegen die bei uns per inv angekuendigten Transaktionen, kein eigener Mempool"
   },
   "stale": {
     "anzahl": 892,
     "bestaetigungen": 6,
-    "anteil_prozent": 4.704,
-    "noch_offen_unter_6": 0,
+    "anteil_prozent": 4.703,
+    "noch_offen_unter_6": 1,
     "ohne_kopf": 3,
     "bloecke": [
       {
