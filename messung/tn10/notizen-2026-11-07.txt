@@ -1,0 +1,8 @@
+# notizen fuer die berichte zum stp-lauf 7.11. (datei 1 und datei 2), stand ben 07.11.2026
+uhr datei 1 und 2: kopfzeit des annehmenden blocks (accept_utc), von stp bestaetigt, nichts geaendert
+stp live-gate der 8-familien-stufe liest seen_utc (erste sicht am desk), laut stp etwa 1 s neben accept_utc
+liegt eine familie in einer stufe bis 10 hops um die linie (1,026 bzw. 3,078): im bericht vermerken,
+  hops der ersten und letzten sekunde der stufe getrennt zeigen (schritte.csv nah_linie, erste_s, letzte_s,
+  schritte.json nah_an_linie_k1/k2). nicht entscheiden, nur zeigen
+stp: in den zwei bisherigen 32-familien-laeufen blieb die langsamste familie unter der linie (source stp),
+  die last laeuft trotzdem volle 45 min

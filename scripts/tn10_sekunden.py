@@ -12,6 +12,8 @@ tn10_nachzaehlung.py) und gibt NUR Zahlen aus, keine Tx-ID:
     schritte.csv   je Schritt und Familie: angenommen im Schritt, im
                    Nachlauf (bis NACHLAUF_S nach dem Ende), je Sekunde,
                    Landung (Anteil der Sekunden mit mindestens einem Hop)
+                   und je Stufe mit Linie: nah_linie (bis 10 Hops um die
+                   Linie), Hops in der ersten und letzten Sekunde getrennt
     schritte.json  dazu die Landung ueber alle Familien (union) und welcher
                    Plan galt (mit oder ohne f8)
 
@@ -34,6 +36,9 @@ from decimal import Decimal, ROUND_CEILING
 NACHLAUF_S = 10
 LINIE = Decimal("1.14")   # 0.95 x 1.2, gilt fuer die ganze stufe, nicht je minute (STP COUNT.md, Ben 07.11.2026)
 LINIE_AB_S = 900          # nur fuer die gezaehlten stufen (900 s, load 2,700 s), nicht fuer die rampe
+NAH_HOPS = 10             # |angenommen - linie| <= 10: im bericht vermerken, erste und letzte sekunde zeigen.
+                          # stps live-gate liest seen_utc, wir accept_utc, etwa 1 s auseinander (Ben, 07.11.2026).
+                          # nur zeigen, nicht entscheiden.
 
 
 def ms(text):
@@ -128,6 +133,9 @@ def schritte(sek, plan, var, praefix="f"):
                            "angenommen": im, "nachlauf": nach,
                            "je_s": "" if liste or not dauer else round(im / dauer, 3),
                            "linie_hops": linie, "ueber_linie": "" if linie == "" else ("ja" if im >= linie else "nein"),
+                           "nah_linie": "" if linie == "" else ("ja" if abs(im - linie) <= NAH_HOPS else "nein"),
+                           "erste_s": sek.get((a, f), 0) if b > a else "",
+                           "letzte_s": sek.get((b - 1, f), 0) if b > a else "",
                            "landung_pct": round(100 * sek_mit / (b - a), 2) if b > a else ""})
         if fams:
             union[s["name"]] = {"sekunden": b - a, "mit_hop": len(mit),
@@ -159,6 +167,9 @@ def minuten(sek, plan, var, praefix="f"):
     return aus
 
 
+SPALTEN_K = ("angenommen", "nachlauf", "je_s", "ueber_linie", "nah_linie", "erste_s", "letzte_s", "landung_pct")
+
+
 def auswerten(ordner, plan_text, out):
     plan = plan_lesen(plan_text)
     praefix = praefix_lesen(plan_text)
@@ -181,9 +192,10 @@ def auswerten(ordner, plan_text, out):
         erg["union_" + k] = u
         for r in z:
             je.setdefault((r["schritt"], r["familie"]), {c: r[c] for c in sp}).update(
-                {"%s_%s" % (k, c): r[c] for c in ("angenommen", "nachlauf", "je_s", "ueber_linie", "landung_pct")})
-    kopf = sp + ["%s_%s" % (k, c) for k in ("k1", "k2") for c in ("angenommen", "nachlauf", "je_s", "ueber_linie",
-                                                                  "landung_pct")]
+                {"%s_%s" % (k, c): r[c] for c in SPALTEN_K})
+        erg["nah_an_linie_" + k] = [{c: r[c] for c in ("schritt", "familie", "angenommen", "linie_hops", "erste_s",
+                                                      "letzte_s")} for r in z if r["nah_linie"] == "ja"]
+    kopf = sp + ["%s_%s" % (k, c) for k in ("k1", "k2") for c in SPALTEN_K]
     with open(os.path.join(out, "schritte.csv"), "w", encoding="utf-8", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=kopf, lineterminator="\n")
         w.writeheader()
@@ -271,6 +283,18 @@ def selbsttest():
         ok("ganze stufe: f1 1,026 ueber der linie, f2 1,025 nicht, nachlauf nicht in der rate",
            [(x["familie"], x["ueber_linie"], x["nachlauf"]) for x in z4] == [("f1", "ja", 5), ("f2", "nein", 0)]
            and z4[0]["je_s"] == 1.14)
+        # nah an der linie: 1,016 und 1,036 sind nah, 1,015 und 1,037 nicht; erste und letzte sekunde getrennt
+        pl5 = plan_lesen("beide f4 2026-11-07T19:00:00Z 2026-11-07T19:15:00Z 4\n")
+        s5 = {(a0 + i, f): 1 for i in range(900) for f in ("f1", "f2", "f3", "f4")}
+        for fam, extra in (("f1", 116), ("f2", 136), ("f3", 115), ("f4", 137)):
+            s5[(a0, fam)] += extra
+        s5[(a0 + 899, "f1")] = 4
+        z5, _ = schritte(s5, pl5, "ohne_f8")
+        ok("nah an der linie: 1,016 bis 1,036 ja, 1,015 und 1,037 nein",
+           [(x["familie"], x["angenommen"], x["nah_linie"]) for x in z5] ==
+           [("f1", 1019, "ja"), ("f2", 1036, "ja"), ("f3", 1015, "nein"), ("f4", 1037, "nein")])
+        ok("erste und letzte sekunde getrennt", (z5[0]["erste_s"], z5[0]["letzte_s"]) == (117, 4))
+        ok("kurze stufe: nah_linie leer", r[("f1", "f1")]["k1_nah_linie"] == "" and r[("f1", "f1")]["k1_erste_s"] == "1")
         ok("keine tx-id in der ausgabe", "a01" not in txt and "r01" not in txt)
     print("%d fehler" % len(f))
     return 1 if f else 0
