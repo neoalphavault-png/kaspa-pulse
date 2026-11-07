@@ -2,9 +2,10 @@
 """ph_stil.py - gemeinsamer Stil fuer alle PulseHawk-Grafiken (Ben, 06.11.2026).
 
 Ben: "zu fett, filigraner und dezenter, apple style". Alle Vorlagen
-(ph_entwurf bch und zcash, nu7_zitat, report-karten) nehmen ihre Werte von
-hier, damit eine Aenderung an einer Stelle reicht. Umgestellt werden die
-Vorlagen erst nach Bens Freigabe des Musters.
+(ph_entwurf bch und zcash, nu7_karte, report_karte) nehmen ihre Werte von
+hier, damit eine Aenderung an einer Stelle reicht. Freigegeben von Ben am
+07.11.2026. Dieselbe Datei liegt in kaspa-pulse und pulsehawk-site
+(scripts/ph/), wie ph_entwurf.py. Wer eine aendert, aendert beide.
 
 Vorgaben
   1. Schrift Inter (OFL, assets/fonts/inter). Grosse Zahl light 300,
@@ -16,9 +17,16 @@ Vorgaben
      Farbe nur wenn noetig und gedaempft.
   4. Diagramme: Linien 1,5 px, Band als Flaeche mit etwa 6 % Deckkraft ohne
      Kasten, Punkte 6 px, keine dicken Rahmen.
-  5. Falke klein oben links (36 px), keine grosse Wortmarke. Fuss
-     "Data from PulseHawk · pulsehawk.io" klein.
+  5. Falke in Tuerkis #49EACB oben mittig, etwa 56 px (Ben, 07.11.2026),
+     keine grosse Wortmarke. Fuss "Data from PulseHawk · pulsehawk.io" klein
+     unten. Der Falke ist die Marke und zaehlt nicht als das eine tuerkise
+     Element der Daten.
   6. Kleinschreibung, Textregeln und Zahlen aus dem Bericht bleiben.
+
+Zwei Wege: HTML-Karten (seite, rendern, pruefen) fuer das Hochformat und
+matplotlib (mpl_figur, mpl_fertig) fuer die Querformat-Entwuerfe aus
+ph_entwurf.py. Beide nehmen dieselben Werte und dieselbe Schrift (Inter als
+woff2 fuer Chromium, als ttf fuer matplotlib, umgewandelt mit fontTools).
 
 Untergrenze fuer Schrift bleibt 30 px bei 1080 Breite: im Feed steht das
 Bild bei etwa 390 px, aus 30 werden 11 px (grafik_check.py, 19.08.2026).
@@ -28,13 +36,14 @@ Bild bei etwa 390 px, aus 30 werden 11 px (grafik_check.py, 19.08.2026).
 import base64
 import json
 import os
+import re
 import subprocess
 import sys
 
 HIER = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.normpath(os.path.join(HIER, "..", ".."))
 SCHRIFTEN = os.path.join(REPO, "assets", "fonts", "inter")
-FALKE = os.path.join(REPO, "assets", "ph", "falke-hell.png")
+FALKE = os.path.join(REPO, "assets", "ph", "falke.png")          # tuerkis #49EACB
 
 # ------------------------------------------------------------------ werte
 FARBE = {
@@ -63,7 +72,7 @@ LINIE_PX = 1                  # Achsen, Trennlinien
 DIAGRAMM_LINIE_PX = 1.5       # Linien im Diagramm
 BAND_DECKKRAFT = 0.06
 PUNKT_PX = 6                  # Durchmesser
-FALKE_PX = 36
+FALKE_PX = 56
 FUSS = "Data from PulseHawk · pulsehawk.io"
 FORMAT = {"hoch": (1080, 1350), "quer": (1600, 900)}
 
@@ -92,18 +101,18 @@ html,body {{ width:{round(breite * skala)}px; height:{round(hoehe * skala)}px; b
          transform:scale({skala:.8f}); transform-origin:0 0; padding:{RAND}px;
          font-family:'Inter',sans-serif; font-weight:400; font-feature-settings:'tnum' 1, 'cv11' 1;
          -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; }}
-.falke {{ width:{FALKE_PX}px; height:{FALKE_PX}px; object-fit:contain; display:block; }}
+.falke {{ width:{FALKE_PX}px; height:{FALKE_PX}px; object-fit:contain; display:block; margin:0 auto; flex:none; }}
 .titel {{ font-size:{S["titel"][0]}px; font-weight:{S["titel"][1]}; letter-spacing:-0.5px; line-height:1.15; }}
 .zahl {{ font-size:{S["zahl"][0]}px; font-weight:{S["zahl"][1]}; letter-spacing:-4px; line-height:1.0; color:{F["text"]}; }}
 .unter {{ font-size:{S["unter"][0]}px; font-weight:{S["unter"][1]}; color:{F["neben"]}; line-height:1.25; }}
 .klein {{ font-size:{S["klein"][0]}px; font-weight:{S["klein"][1]}; color:{F["neben"]}; line-height:1.35; }}
-.fuss {{ margin-top:auto; font-size:{S["fuss"][0]}px; font-weight:{S["fuss"][1]}; color:{F["neben"]}; white-space:nowrap; }}
+.fuss {{ margin-top:auto; padding-top:40px; font-size:{S["fuss"][0]}px; font-weight:{S["fuss"][1]}; color:{F["neben"]}; white-space:nowrap; }}
 svg text {{ font-family:'Inter',sans-serif; font-feature-settings:'tnum' 1; }}
 """
 
 
 def seite(inhalt, breite=1080, hoehe=1350, skala=1.0, extra_css=""):
-    """Ganze Seite: Falke oben links, Inhalt, Fuss unten."""
+    """Ganze Seite: Falke oben mittig, Inhalt, Fuss unten."""
     return f"""<!DOCTYPE html><html><head><meta charset="utf-8"><style>
 {basis_css(breite, hoehe, skala)}
 {extra_css}
@@ -160,6 +169,23 @@ def messen(html_pfad, breite, hoehe):
     return json.loads(out)
 
 
+# Textregeln wie zeichen_pruefen in grafik_check.py von kaspa-pulse. Hier
+# abgeschrieben, damit ph_stil.py in kaspa-pulse und pulsehawk-site gleich ist.
+VERBOTEN = ["\u2014", "\u2013", " - ", ":", "\u2192"]
+AUSNAHME = re.compile(r"\d:\d|https?://|\w+\.(com|io|org|app|stream|fyi)")
+
+
+def zeichen_pruefen(text):
+    fehler = []
+    for zeile in text.splitlines():
+        if AUSNAHME.search(zeile):
+            continue
+        for v in VERBOTEN:
+            if v in zeile:
+                fehler.append("verbotenes zeichen %r in %r" % (v, zeile[:50]))
+    return fehler
+
+
 def pruefen_daten(d, breite, hoehe):
     """Liste der Klagen gegen die Vorgaben, leer heisst bestanden."""
     k = []
@@ -200,10 +226,7 @@ def pruefen_daten(d, breite, hoehe):
         k.append("fuss %r fehlt" % FUSS)
     if any(c.isupper() for c in d["sicht"].replace(FUSS, "")):
         k.append("grossbuchstaben ausserhalb des fusses")
-    # Textregeln aus grafik_check.py (kaspa-pulse)
-    sys.path.insert(0, os.path.join(REPO, "scripts"))
-    import grafik_check as G  # noqa: E402
-    k += G.zeichen_pruefen(d["sicht"].replace(FUSS, ""))
+    k += zeichen_pruefen(d["sicht"].replace(FUSS, ""))
     for w in ("now", "live"):
         if (" %s " % w) in (" " + d["sicht"].lower().replace("\n", " ") + " "):
             k.append("wort %r" % w)
@@ -222,6 +245,109 @@ def vorschau(png, ziel, breite_feed=390):
     return ziel
 
 
+# ------------------------------------------------------------------ matplotlib
+# Querformat 1600 x 900 fuer die Entwuerfe aus ph_entwurf.py. Groessen in px,
+# bei 100 dpi ist 1 px = 0.72 pt.
+SCHRIFT_QUER = {"titel": (60, 400), "unter": (38, 400), "achse": (34, 400), "legende": (34, 400),
+                "fuss": (32, 400)}
+FALKE_QUER_PX = 64
+
+
+def falke_farbe():
+    """Farbe der deckenden Pixel des Falken, als #rrggbb."""
+    from PIL import Image
+    with Image.open(FALKE) as im:
+        b = im.convert("RGBA").tobytes()
+        px = [b[i:i + 4] for i in range(0, len(b), 4) if b[i + 3] == 255]
+    r, g, b = (round(sum(p[i] for p in px) / len(px)) for i in range(3))
+    return "#%02x%02x%02x" % (r, g, b)
+
+
+def ttf(gewicht):
+    return os.path.join(SCHRIFTEN, f"inter-latin-{gewicht}-normal.ttf")
+
+
+def mpl_schrift(rolle, tabelle=None):
+    """FontProperties fuer eine Rolle, mit der Inter-Datei, nicht ueber den Namen."""
+    from matplotlib.font_manager import FontProperties
+    px, w = (tabelle or SCHRIFT_QUER)[rolle]
+    return FontProperties(fname=ttf(w), size=px * 0.72)
+
+
+def mpl_figur(titel, untertitel, breite=1600, hoehe=900, achse_unten_px=118):
+    """Figur mit Rand 96 px, Platz fuer Falke oben mittig, Titel links, Achse."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    F, T = FARBE, SCHRIFT_QUER
+    fig = plt.figure(figsize=(breite / 100, hoehe / 100), dpi=100, facecolor=F["grund"])
+    y_titel = RAND + FALKE_QUER_PX + 26                 # oberkante titel, px von oben
+    fig.text(RAND / breite, 1 - y_titel / hoehe, titel, color=F["text"], va="top",
+             fontproperties=mpl_schrift("titel"))
+    y_unter = y_titel + T["titel"][0] * 1.25
+    fig.text(RAND / breite, 1 - y_unter / hoehe, untertitel, color=F["neben"], va="top",
+             fontproperties=mpl_schrift("unter"))
+    oben = y_unter + T["unter"][0] * 1.25 + 40            # oberkante achse
+    unten = hoehe - RAND - T["fuss"][0] - 24 - achse_unten_px
+    links = RAND + 110                                    # platz fuer y-beschriftung
+    ax = fig.add_axes([links / breite, (hoehe - unten) / hoehe, (breite - RAND - links) / breite,
+                       (unten - oben) / hoehe], facecolor=F["grund"])
+    for k in ("top", "right"):
+        ax.spines[k].set_visible(False)
+    for k in ("left", "bottom"):
+        ax.spines[k].set_color(F["linie"])
+        ax.spines[k].set_linewidth(LINIE_PX * 0.72)
+    ax.tick_params(colors=F["neben"], width=LINIE_PX * 0.72, length=6)
+    ax.grid(axis="y", color=F["linie"], linewidth=LINIE_PX * 0.72)
+    ax.set_axisbelow(True)
+    return fig, ax
+
+
+def mpl_achse_texte(ax):
+    """Inter fuer Ticks und Achsenbeschriftungen, Farbe Nebentext."""
+    for t in ax.get_xticklabels() + ax.get_yticklabels():
+        t.set_fontproperties(mpl_schrift("achse"))
+        t.set_color(FARBE["neben"])
+    for lab in (ax.xaxis.label, ax.yaxis.label):
+        lab.set_fontproperties(mpl_schrift("achse"))
+        lab.set_color(FARBE["neben"])
+
+
+def mpl_fertig(fig, ax, pfad, breite=1600, hoehe=900):
+    """Legende ohne Rahmen, Fuss unten, speichern, Falke oben mittig einsetzen."""
+    import matplotlib.pyplot as plt
+    from matplotlib.ticker import FuncFormatter, MaxNLocator
+    from PIL import Image
+    ax.yaxis.set_major_locator(MaxNLocator(nbins=4))
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:,.0f}" if v == int(v) else f"{v:,.1f}"))
+    fig.canvas.draw()
+    mpl_achse_texte(ax)
+    leg = ax.get_legend()
+    if leg:
+        leg.get_frame().set_visible(False)
+        for t in leg.get_texts():
+            t.set_color(FARBE["neben"])
+            t.set_fontproperties(mpl_schrift("legende"))
+    fig.text(RAND / breite, RAND / hoehe, FUSS, color=FARBE["neben"], va="bottom",
+             fontproperties=mpl_schrift("fuss"))
+    fig.savefig(pfad, facecolor=FARBE["grund"])
+    plt.close(fig)
+    with Image.open(pfad) as im, Image.open(FALKE) as f:
+        im = im.convert("RGBA")
+        f = f.convert("RGBA")
+        f = f.resize((round(f.width * FALKE_QUER_PX / f.height), FALKE_QUER_PX), Image.LANCZOS)
+        im.alpha_composite(f, ((breite - f.width) // 2, RAND))
+        im.convert("RGB").save(pfad)
+    with Image.open(pfad) as im:
+        assert im.size == (breite, hoehe), f"grafik hat {im.size}, erwartet {breite}x{hoehe}"
+    return pfad
+
+
+def mpl_linie():
+    """Linienstaerke im Diagramm in pt (1,5 px)."""
+    return DIAGRAMM_LINIE_PX * 0.72
+
+
 # ------------------------------------------------------------------ selbsttest
 def selbsttest():
     fehler = []
@@ -230,9 +356,12 @@ def selbsttest():
         print("%-4s %s" % ("ok" if bed else "FEHL", name))
         if not bed:
             fehler.append(name)
-    ok("schriften da", all(os.path.exists(os.path.join(SCHRIFTEN, f"inter-latin-{w}-normal.woff2"))
-                           for w in (300, 400, 500)))
-    ok("falke da", os.path.exists(FALKE))
+    ok("schriften da", all(os.path.exists(os.path.join(SCHRIFTEN, f"inter-latin-{w}-normal.{e}"))
+                           for w in (300, 400, 500) for e in ("woff2", "ttf")))
+    ok("querformat nichts ueber 500, nichts unter 30", all(30 <= p and w <= GEWICHT_MAX
+                                                         for p, w in SCHRIFT_QUER.values()))
+    ok("falke da und tuerkis", os.path.exists(FALKE) and falke_farbe() == FARBE["tuerkis"].lower())
+    ok("falke 56 px", FALKE_PX == 56)
     ok("nichts ueber 500", max(w for _, w in SCHRIFT.values()) <= GEWICHT_MAX)
     ok("zahl hoechstens 160 und light", SCHRIFT["zahl"] == (160, 300))
     ok("keine schrift unter 30", min(p for p, _ in SCHRIFT.values()) >= SCHRIFT_MIN_PX)

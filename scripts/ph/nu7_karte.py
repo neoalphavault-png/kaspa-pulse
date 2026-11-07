@@ -4,7 +4,7 @@
 Muster fuer ph_stil.py: dieselben Zahlen wie die Karte vom 6.11.
 (berichte/2026-11-06-zcash-nu7-mainnet.md), jetzt filigran: Inter, grosse
 Zahl light 160 px, Raender 96 px, Tuerkis nur fuer die gezaehlte Linie,
-Band als Flaeche mit 6 % ohne Kasten, Falke klein oben links.
+Band als Flaeche mit 6 % ohne Kasten, Falke tuerkis oben mittig.
 
     python3 scripts/ph/nu7_karte.py --aus <ordner>
     -> nu7-neu-1080x1350.png, nu7-neu-390.png, nu7-neu-1080x1350.html
@@ -94,7 +94,7 @@ def svg():
 
 def html(skala=1.0):
     inhalt = f"""
-<div class="klein" style="margin-top:56px">zcash nu7 activation</div>
+<div class="klein" style="margin-top:48px">zcash nu7 activation</div>
 <div class="titel" style="margin-top:10px">expected against counted</div>
 <div class="zahl" style="margin-top:44px">6.9 min</div>
 <div class="unter" style="margin-top:14px">early, inside the 90% band</div>
