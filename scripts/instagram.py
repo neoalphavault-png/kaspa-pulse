@@ -421,17 +421,19 @@ def raw_url(pfad, sha, repo=None):
     return "%s/%s/%s/%s" % (RAW_BASIS, repo or repo_name(), sha, repo_pfad(pfad))
 
 
-def bild_bereit(pfad, raw=True, raw_frist=RAW_FRIST, pages_frist=600, warten=None, sha=None):
+def bild_bereit(pfad, raw=True, raw_frist=RAW_FRIST, pages_frist=600, warten=None, sha=None, ziel=None):
     """(url, quelle). Zuerst die raw-Adresse des Bild-Commits, wenn raw, dann
     kaspapulse.com als Rueckfall. Beide muessen image/jpeg mit genau der
-    Laenge der Datei liefern (url_warten)."""
+    Laenge der Datei liefern (url_warten). ziel ist der Pfad im Repo, wenn
+    die lokale Datei anders heisst (Karussell, ig/karussell/<name>)."""
     warten = warten or url_warten
     pfad = Path(pfad)
     laenge = pfad.stat().st_size
+    im_repo = ziel or repo_pfad(pfad)
     if raw:
         sha = bild_commit(pfad) if sha is None else sha
         if sha:
-            url = raw_url(pfad, sha)
+            url = raw_url(im_repo, sha)
             try:
                 warten(url, laenge, frist=raw_frist, takt=10)
                 ausgabe("bild ueber die raw-adresse, %s" % url)
@@ -440,7 +442,7 @@ def bild_bereit(pfad, raw=True, raw_frist=RAW_FRIST, pages_frist=600, warten=Non
                 ausgabe("raw-adresse nicht bereit, %s. rueckfall auf kaspapulse.com" % exc)
         else:
             ausgabe("kein commit fuer %s, rueckfall auf kaspapulse.com" % pfad.as_posix())
-    url = "%s/%s" % (SEITE, repo_pfad(pfad))
+    url = "%s/%s" % (SEITE, im_repo)
     warten(url, laenge, frist=pages_frist)
     ausgabe("bild ueber kaspapulse.com, %s" % url)
     return url, "pages"

@@ -163,6 +163,20 @@ def schon_gepostet(log, art, fuer=None, motiv=None):
     return None
 
 
+def meme_sperre(log, fuer=None):
+    """Ein Meme-Motiv geht nur einmal raus. Ist das Motiv aus meme_wahr schon
+    an einem anderen Tag gepostet, ist das Meme nicht dran (NichtFaellig, kein
+    Fehler). Am 7.11.2026 lief dieser Fall rot, weil main() NichtFaellig nach
+    dem allgemeinen except abfing (Ben, 7.11.2026)."""
+    import karussell
+    import meme_wahr
+    alt = schon_gepostet(log, "meme", motiv=meme_wahr.MOTIV)
+    if alt and alt.get("fuer") != fuer:
+        raise NichtFaellig("meme, but true: das motiv %s ging am %s raus, ein neues fehlt. "
+                           "sa %s bleibt ohne meme." % (meme_wahr.MOTIV, alt.get("fuer"),
+                                                        karussell.POSTZEIT["meme"][1]))
+
+
 def faellig(art, fuer, start, log, now=None):
     """None, wenn dran, sonst der Grund. Von Hand gibt es kein Fenster."""
     if stopp_gesetzt(fuer):
@@ -224,12 +238,7 @@ def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, send
     termin_pruefen(art, fuer)
     log = log_lesen(log_pfad)
     if art == "meme":
-        import meme_wahr
-        alt = schon_gepostet(log, "meme", motiv=meme_wahr.MOTIV)
-        if alt:
-            raise NichtFaellig("meme, but true: das motiv %s ging am %s raus, ein neues fehlt. "
-                               "sa %s bleibt ohne meme." % (meme_wahr.MOTIV, alt.get("fuer"),
-                                                            karussell.POSTZEIT["meme"][1]))
+        meme_sperre(log, fuer)
     sp = look_takt.lesen(speicher_pfad)
     serie = "meme" if art == "meme" else "karussell"
     look = look_takt.raster_faellig(sp, serie, fuer)[1]
@@ -366,7 +375,11 @@ def hochladen(jpeg, rid):
 
 def seiten_ablage(jpegs, frist=600, takt=15):
     """Committet die JPEGs ueber die GitHub-API nach ig/karussell/ auf main und
-    wartet, bis kaspapulse.com jedes mit genau seiner Laenge ausliefert."""
+    gibt je Seite die Adresse zurueck, unter der das Bild mit genau seiner
+    Laenge ausgeliefert wird. Seit dem 7.11.2026 (Ben) zuerst die raw-Adresse
+    des Commits, den die API fuer jede Seite zurueckgibt, 120 s, wie bei
+    Threads (#273) und der Tagesgrafik (#275). kaspapulse.com ist nur der
+    Rueckfall mit frist. seiten_ablage.quelle nennt danach raw oder pages."""
     import base64
     repo = os.environ.get("GITHUB_REPOSITORY", "")
     gt = os.environ.get("GITHUB_TOKEN", "")
@@ -377,22 +390,30 @@ def seiten_ablage(jpegs, frist=600, takt=15):
         raise Stopp("ablage unter ig/ nur vom branch main, nicht von %s" % zweig)
     kopf = {"Authorization": "Bearer " + gt, "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28", "User-Agent": UA, "Content-Type": "application/json"}
-    urls = []
+    abgelegt = []
     for j in jpegs:
         name = "%s-%s.jpg" % (Path(j).stem, uuid.uuid4().hex[:8])
         pfad = "%s/%s" % (SEITEN_ORDNER, name)
         body = json.dumps({"message": "karussell ablage %s [bot]" % name, "branch": "main",
                            "content": base64.b64encode(Path(j).read_bytes()).decode()}).encode()
-        status, _, _ = _roh("PUT", "https://api.github.com/repos/%s/contents/%s" % (repo, pfad), body, kopf)
+        status, roh, _ = _roh("PUT", "https://api.github.com/repos/%s/contents/%s" % (repo, pfad), body, kopf)
         if status not in (200, 201):
             raise Stopp(sauber("ablage %s, github http %s" % (pfad, status)))
-        sag("abgelegt", pfad)
-        urls.append((SEITE + "/" + pfad, Path(j).stat().st_size))
-    for url, laenge in urls:
         try:
-            ig().url_warten(url, laenge, frist=frist, takt=takt)
+            sha = str((json.loads(roh.decode("utf-8") or "{}").get("commit") or {}).get("sha", ""))
+        except ValueError:
+            sha = ""
+        sag("abgelegt", pfad, sha[:7] or "ohne commit")
+        abgelegt.append((j, pfad, sha if re.fullmatch(r"[0-9a-f]{40}", sha) else ""))
+    urls, quellen = [], []
+    for j, pfad, sha in abgelegt:
+        try:
+            url, quelle = ig().bild_bereit(j, raw=True, pages_frist=frist, sha=sha, ziel=pfad)
         except Exception as exc:                      # noqa: BLE001
             raise Stopp(sauber(str(exc)))
+        urls.append((url, Path(j).stat().st_size))
+        quellen.append(quelle)
+    seiten_ablage.quelle = "raw" if quellen and all(q == "raw" for q in quellen) else "pages"
     return [u for u, _ in urls]
 
 
@@ -576,6 +597,8 @@ def posten(art, fuer, quelle=None, start="hand", probe=False, log_pfad=None, now
     grund = faellig(art, fuer, start, log, now)
     if grund:
         raise NichtFaellig(grund)
+    if art == "meme":
+        meme_sperre(log, fuer)
     if quelle is None:
         quelle = artefakt_holen(art, fuer, tempfile.mkdtemp(prefix="karussell-"))
     m, bilder = manifest_lesen(quelle, art, fuer)
@@ -598,6 +621,7 @@ def posten(art, fuer, quelle=None, start="hand", probe=False, log_pfad=None, now
         else:
             urls = seiten_ablage(jpegs)
             eintrag["ablage"] = "ig"
+            eintrag["quelle"] = getattr(seiten_ablage, "quelle", "pages")
         cid = container(urls, m["caption"], takt)
         eintrag.update(container=cid, status="FINISHED")
         if scharf:
@@ -841,6 +865,26 @@ def selbsttest():
            len(gewartet) == 3 and bilder_urls == [u for u, _ in gewartet]
            and all(u.startswith("https://kaspapulse.com/ig/karussell/") for u in bilder_urls))
         ok("probe mit ablage unter ig bleibt trocken", e["modus"] == "trocken" and e.get("ablage") == "ig")
+        ok("ohne commit in der antwort rueckfall auf kaspapulse.com", e.get("quelle") == "pages")
+        # raw-adresse des ablage-commits (Ben, 7.11.2026)
+        sha_neu = "b1e22f68b65e258ee1bb78d11dd327fcf7765587"
+        gesetzt.clear()
+        gewartet.clear()
+        globals()["_roh"] = lambda m, u, body, k: (gesetzt.append((m, u)) or
+                                                   (201, json.dumps({"commit": {"sha": sha_neu}}).encode(), {}))
+        fristen = []
+        instagram.url_warten = lambda url, laenge, frist=600, takt=15: (gewartet.append((url, laenge))
+                                                                        or fristen.append(frist) or True)
+        aufrufe.clear()
+        e = posten("woche", "2026-10-31", quelle=quelle, start="hand", probe=True, log_pfad=tmp / "log7.json",
+                   takt=0)
+        bilder_urls = [a[3].get("image_url") for a in aufrufe if a[0] == "graph" and a[3].get("image_url")]
+        ok("instagram holt die seiten ueber die raw-adresse des ablage-commits, 120 s",
+           e.get("quelle") == "raw" and len(bilder_urls) == 3 and fristen == [120, 120, 120]
+           and all(u.startswith("https://raw.githubusercontent.com/neoalphavault-png/kaspa-pulse/%s/ig/karussell/"
+                                % sha_neu) for u in bilder_urls)
+           and [u for u, _ in gewartet] == bilder_urls)
+        globals()["_roh"] = roh_falsch
         os.environ["GITHUB_REF_NAME"] = "fix/x"
         try:
             posten("woche", "2026-10-31", quelle=quelle, start="hand", probe=True, log_pfad=tmp / "log6.json",
@@ -861,6 +905,31 @@ def selbsttest():
         ok("dasselbe meme-motiv kommt kein zweites mal", False)
     except NichtFaellig as exc:
         ok("dasselbe meme-motiv kommt kein zweites mal", "neues fehlt" in str(exc))
+    import meme_wahr
+    log_meme = {"posts": [{"art": "meme", "fuer": "2026-10-31", "modus": "scharf", "media": "2",
+                           "motiv": meme_wahr.MOTIV}]}
+    try:
+        meme_sperre(log_meme, "2026-11-07")
+        ok("meme-sperre am 7.11. fuer das motiv vom 31.10.", False)
+    except NichtFaellig as exc:
+        ok("meme-sperre am 7.11. fuer das motiv vom 31.10.", "neues fehlt" in str(exc))
+    ok("meme-sperre nicht am tag des posts selbst", meme_sperre(log_meme, "2026-10-31") is None)
+    alt_entwurf, alt_ops = globals()["entwurf"], ig().ops
+    gemeldet = []
+
+    def entwurf_nicht_dran(*a, **k):
+        raise NichtFaellig("meme, but true: das motiv x ging am 2026-10-31 raus, ein neues fehlt.")
+    globals()["entwurf"] = entwurf_nicht_dran
+    ig().ops = lambda text, *a, **k: gemeldet.append(text)
+    alt_out = os.environ.pop("GITHUB_OUTPUT", None)
+    try:
+        rc = main(["entwurf", "--art", "meme", "--fuer", "2026-11-07"])
+    finally:
+        globals()["entwurf"], ig().ops = alt_entwurf, alt_ops
+        if alt_out is not None:
+            os.environ["GITHUB_OUTPUT"] = alt_out
+    ok("nicht dran ist gruen (exit 0) mit meldung, nicht rot", rc == 0 and len(gemeldet) == 1
+       and "nicht dran" in gemeldet[0] and "neues fehlt" in gemeldet[0])
 
     # kaspa community (Ben, 28.10.2026), ohne netz, _post ist eine attrappe
     import io
@@ -981,6 +1050,13 @@ def main(argv=None):
         if a.schritt == "posten" and a.art == "woche" and a.start == "takt" and not a.probe:
             community_melden(fuer, grund_kein="der posten-lauf stoppte, %s" % sauber(exc))
         return 1
+    except NichtFaellig as exc:
+        # VOR dem allgemeinen except: NichtFaellig ist eine Exception und lief
+        # sonst als Fehler durch (7.11.2026, meme entwurf und posten rot)
+        sag("nicht dran, %s" % exc)
+        ig().ops("karussell %s fuer %s nicht dran, %s" % (a.art, fuer, exc))
+        ausgabe_datei(gebaut="0")
+        return 0
     except Exception as exc:                               # noqa: BLE001
         if a.schritt == "posten" and a.art == "woche" and a.start == "takt" and not a.probe:
             try:
@@ -988,11 +1064,6 @@ def main(argv=None):
             except Exception:                              # noqa: BLE001
                 pass
         raise
-    except NichtFaellig as exc:
-        sag("nicht dran, %s" % exc)
-        ig().ops("karussell %s fuer %s nicht dran, %s" % (a.art, fuer, exc))
-        ausgabe_datei(gebaut="0")
-        return 0
     ausgabe_datei(gebaut="1")
     return 0
 
