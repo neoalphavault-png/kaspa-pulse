@@ -20,10 +20,11 @@ on:
 permissions:
   contents: write
 env:
-  # X-PAUSE (Ben, 7.11.2026): der automatische x-post von @gokugalax setzt
-  # vom so 8.11. bis einschliesslich sa 14.11.2026 aus. discord, telegram,
-  # instagram, threads und pulsehawk laufen weiter. am so 15.11. diese eine
-  # zeile auf "true" stellen. bericht berichte/2026-11-08-goku-x-pause.md
+  # GOKU-X AUS (Ben, 7.11.2026, dauerhaft): auf @gokugalax geht kein post
+  # mehr raus, den ein workflow oder skript per api absetzt. discord,
+  # telegram, instagram, threads, newsletter und pulsehawk laufen weiter.
+  # x_post.py sperrt jeden POST ohne X_GOKU_AN=true. wieder an: diese zeile
+  # auf "true". bericht berichte/2026-11-08-goku-x-pause.md
   X_GOKU_AN: "false"
 jobs:
   x-test:
