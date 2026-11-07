@@ -1,6 +1,21 @@
-# Bericht 7.11.2026: Threads ohne Pages, Bild über die raw-Adresse des Commits
+# Bericht 7.11.2026: Threads ohne Pages, Bild über die raw-Adresse des Commits (Nachtrag 7.11., Probe grün, Instagram umgestellt)
 
 Auftrag von Ben vom 6.11.2026, Frist Sa 7.11. 15:00. Die Workflow-Datei ist geändert, deshalb merged Ben. Die Probe mit `--hand` folgt am Sa vor 17:10, das Ergebnis kommt als Nachtrag in diesen Bericht.
+
+## Nachtrag 7.11.2026, Probe grün, Instagram umgestellt
+Ben hat #273 am 7.11. um 09:18 Berlin gemergt. Die Probe lief direkt danach, als Handlauf von main mit `modus=trocken` (Lauf [42354928059](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/42354928059)). Sie war grün und dauerte 41 s.
+
+- **Bild:** `ig/tagesgrafik-2026-11-07-form08-threads.jpg` liegt in Commit `b1e22f6`. `threads.py bild` lieferte die raw-Adresse sofort nach dem Push, der Schritt brauchte 1 s.
+- **Threads:** Container 17894674326502428, erst IN_PROGRESS, dann FINISHED, nicht veröffentlicht. Threads nimmt die raw-Adresse also an.
+- **Instagram:** `quelle-probe` mit derselben Adresse ergab Container 18100475240222481 mit Status FINISHED, nicht veröffentlicht. Meta nimmt die raw-Adresse also auch für Instagram an.
+- **Umgestellt:** In `scripts/instagram.py` steht jetzt `IG_RAW = True`. Das Instagram-Bild kommt damit ab dem nächsten Post (heute 12:30) zuerst über die raw-Adresse, mit 120 s. kaspapulse.com bleibt Rückfall mit 600 s.
+  - Die Workflow-Datei bleibt unverändert. `tagesgrafik.yml` pusht das JPEG schon vor dem Posten.
+  - Nur `scripts/` und dieser Bericht sind geändert. Deshalb ist der Merge nach der Regel vom 26.10. ein Selbst-Merge.
+- **Selbsttest:** `instagram.py` mit 0 Fehlern, neu ist der Fall „instagram nimmt seit der probe vom 7.11. die raw-adresse“. `threads.py` mit 83 Fällen und 0 falsch, `look_takt.py` mit 0 Fehlern.
+- **Threads um 17:10:** Das JPEG von heute ist schon im Repo (`b1e22f6`). Der Takt nimmt die raw-Adresse dieses Commits und braucht Pages nicht.
+- **Offen:** Das Karussell (`karussell_post.seiten_ablage`) wartet weiter auf kaspapulse.com. Die Umstellung auf `bild_bereit` biete ich als eigenen PR an.
+
+---
 
 ## Anlass, Lauf threads #21 am 6.11. (42249808757)
 - **17:10:** Der Commit `5ac323a` „threads bild [bot]“ war um 17:10:27 Berlin auf main.
