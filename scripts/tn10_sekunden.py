@@ -29,8 +29,11 @@ import json
 import os
 import sys
 import tempfile
+from decimal import Decimal, ROUND_CEILING
 
 NACHLAUF_S = 10
+LINIE = Decimal("1.14")   # 0.95 x 1.2, gilt fuer die ganze stufe, nicht je minute (STP COUNT.md, Ben 07.11.2026)
+LINIE_AB_S = 900          # nur fuer die gezaehlten stufen (900 s, load 2,700 s), nicht fuer die rampe
 
 
 def ms(text):
@@ -110,17 +113,21 @@ def schritte(sek, plan, var, praefix="f"):
             continue
         a, b = s["von"] // 1000, s["bis"] // 1000
         fams = ["%s%d" % (praefix, i) for i in range(1, s["familien"] + 1)]
-        # rampenschritte tragen ihre 10 s aus schon im schlitz, dort kein nachlauf
-        nl = NACHLAUF_S if s["an_s"] >= b - a else 0
+        # rate nur aus hops innerhalb der stufe (STP COUNT.md, Ben 07.11.2026); was danach kommt,
+        # steht getrennt als nachlauf (bei der rampe die 10 s aus). "spaet..." ist eine reine liste.
+        liste = s["name"].startswith("spaet")
+        dauer = b - a
+        linie = int((LINIE * dauer).to_integral_value(rounding=ROUND_CEILING)) if dauer >= LINIE_AB_S and not liste else ""
         mit = set()
         for f in fams:
             im = sum(sek.get((x, f), 0) for x in range(a, b))
-            nach = sum(sek.get((x, f), 0) for x in range(b, b + nl))
+            nach = sum(sek.get((x, f), 0) for x in range(b, b + NACHLAUF_S))
             sek_mit = sum(1 for x in range(a, b) if sek.get((x, f), 0) > 0)
             mit |= {x for x in range(a, b) if sek.get((x, f), 0) > 0}
             zeilen.append({"schritt": s["name"], "von": iso_s(a), "bis": iso_s(b), "familie": f, "an_s": s["an_s"],
                            "angenommen": im, "nachlauf": nach,
-                           "je_s": round((im + nach) / s["an_s"], 3) if s["an_s"] else "",
+                           "je_s": "" if liste or not dauer else round(im / dauer, 3),
+                           "linie_hops": linie, "ueber_linie": "" if linie == "" else ("ja" if im >= linie else "nein"),
                            "landung_pct": round(100 * sek_mit / (b - a), 2) if b > a else ""})
         if fams:
             union[s["name"]] = {"sekunden": b - a, "mit_hop": len(mit),
@@ -167,15 +174,16 @@ def auswerten(ordner, plan_text, out):
             a, b = sek.get("k1", {}).get((s, f), 0), sek.get("k2", {}).get((s, f), 0)
             w.writerow([iso_s(s), f, a, b, int(a == b)])
     erg = {"variante": var, "nachlauf_s": NACHLAUF_S, "tx_k1": len(tx.get("k1", {})), "tx_k2": len(tx.get("k2", {}))}
-    sp = ["schritt", "von", "bis", "familie", "an_s"]
+    sp = ["schritt", "von", "bis", "familie", "an_s", "linie_hops"]
     je = {}
     for k in ("k1", "k2"):
         z, u = schritte(sek.get(k, {}), plan, var, praefix)
         erg["union_" + k] = u
         for r in z:
             je.setdefault((r["schritt"], r["familie"]), {c: r[c] for c in sp}).update(
-                {"%s_%s" % (k, c): r[c] for c in ("angenommen", "nachlauf", "je_s", "landung_pct")})
-    kopf = sp + ["%s_%s" % (k, c) for k in ("k1", "k2") for c in ("angenommen", "nachlauf", "je_s", "landung_pct")]
+                {"%s_%s" % (k, c): r[c] for c in ("angenommen", "nachlauf", "je_s", "ueber_linie", "landung_pct")})
+    kopf = sp + ["%s_%s" % (k, c) for k in ("k1", "k2") for c in ("angenommen", "nachlauf", "je_s", "ueber_linie",
+                                                                  "landung_pct")]
     with open(os.path.join(out, "schritte.csv"), "w", encoding="utf-8", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=kopf, lineterminator="\n")
         w.writeheader()
@@ -207,7 +215,7 @@ def selbsttest():
     t0 = ms("2026-11-07T19:00:00Z")
     plan = ("beide f1 2026-11-07T19:00:00Z 2026-11-07T19:01:00Z 1\n"
             "mit_f8 f8 2026-11-07T19:02:00Z 2026-11-07T19:03:00Z 8\n"
-            "ohne_f8 r1 2026-11-07T19:02:00Z 2026-11-07T19:03:00Z 4 50\n")
+            "ohne_f8 r1 2026-11-07T19:02:00Z 2026-11-07T19:02:50Z 4\n")
     with tempfile.TemporaryDirectory() as d:
         os.makedirs(os.path.join(d, "s1"))
         for k in ("k1", "k2"):
@@ -226,12 +234,15 @@ def selbsttest():
         e = auswerten(d, plan, out)
         r = {(x["schritt"], x["familie"]): x for x in csv.DictReader(open(os.path.join(out, "schritte.csv")))}
         ok("ohne f8 erkannt", e["variante"] == "ohne_f8")
-        ok("f1: 30 im schritt, 1 im nachlauf, 31/60 je s", r[("f1", "f1")]["k1_angenommen"] == "30"
-           and r[("f1", "f1")]["k1_nachlauf"] == "1" and r[("f1", "f1")]["k1_je_s"] == "0.517")
+        ok("f1: 30 in der stufe, 1 im nachlauf, rate nur aus der stufe 30/60", r[("f1", "f1")]["k1_angenommen"] == "30"
+           and r[("f1", "f1")]["k1_nachlauf"] == "1" and r[("f1", "f1")]["k1_je_s"] == "0.5")
         ok("landung f1 50 %", r[("f1", "f1")]["k1_landung_pct"] == "50.0")
-        ok("rampe je familie durch 50 s, ohne nachlauf", r[("r1", "f1")]["k1_je_s"] == str(round(3 / 50, 3))
-           and r[("r1", "f1")]["k1_nachlauf"] == "0")
-        ok("union-landung der rampe 10 von 60", e["union_k1"]["r1"]["mit_hop"] == 10)
+        ok("rampe je familie durch 50 s", r[("r1", "f1")]["k1_je_s"] == str(round(3 / 50, 3)))
+        ok("kurze stufe ohne linie", r[("f1", "f1")]["linie_hops"] == "" and r[("f1", "f1")]["k1_ueber_linie"] == "")
+        ok("linie exakt: 1,026 bei 900 s, 3,078 bei 2,700 s",
+           int((LINIE * 900).to_integral_value(rounding=ROUND_CEILING)) == 1026
+           and int((LINIE * 2700).to_integral_value(rounding=ROUND_CEILING)) == 3078)
+        ok("union-landung der rampe 10 von 50", e["union_k1"]["r1"]["mit_hop"] == 10 and e["union_k1"]["r1"]["sekunden"] == 50)
         ok("doppelte tx zaehlt einmal, k1 gleich k2", e["sekunden_ungleich"] == 0)
         mz = {x["minute_utc"]: x for x in csv.DictReader(open(os.path.join(out, "minuten.csv")))}
         ok("minute 19:00: summe 30, langsamste f1 0.5 je s", mz["2026-11-07T19:00Z"]["k1_summe"] == "30"
@@ -249,6 +260,17 @@ def selbsttest():
         e2 = auswerten(d, plan + "beide ruhe 2026-11-07T19:01:00Z 2026-11-07T19:02:00Z 0\n", os.path.join(d, "aus2"))
         ok("luecke: ein hop im nachlauf, keiner danach", e2["union_k1"]["ruhe"]["hops"] == 1
            and e2["union_k1"]["ruhe"]["hops_nach_nachlauf"] == 0)
+        # linie ueber die ganze stufe: 1,026 reicht, 1,025 nicht, auch wenn eine minute niedrig ist
+        a0 = t0 // 1000
+        pl = plan_lesen("beide f4 2026-11-07T19:00:00Z 2026-11-07T19:15:00Z 2\n")
+        s4 = {(a0 + i, f): 1 for i in range(900) for f in ("f1", "f2")}
+        s4[(a0, "f1")] += 126                        # 1,026 in der stufe
+        s4[(a0, "f2")] += 125                        # 1,025
+        s4[(a0 + 900, "f1")] = 5                     # nachlauf zaehlt nicht
+        z4, _ = schritte(s4, pl, "ohne_f8")
+        ok("ganze stufe: f1 1,026 ueber der linie, f2 1,025 nicht, nachlauf nicht in der rate",
+           [(x["familie"], x["ueber_linie"], x["nachlauf"]) for x in z4] == [("f1", "ja", 5), ("f2", "nein", 0)]
+           and z4[0]["je_s"] == 1.14)
         ok("keine tx-id in der ausgabe", "a01" not in txt and "r01" not in txt)
     print("%d fehler" % len(f))
     return 1 if f else 0
