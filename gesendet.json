@@ -170,6 +170,12 @@
    "datei": "berichte/2026-11-07-bch-zuhoerer-klaerung.md",
    "sha256": "b5f8f94c661fbf3b9c9b618e0b0f5ab7f449e36eaaf65c888632d4ebcf50d1e7",
    "utc": "2026-11-07T13:05:28Z"
+  },
+  {
+   "branch": "bericht/2026-11-07-monero-dauerlauf",
+   "datei": "berichte/2026-11-07-monero-stressnet-dauerlauf.md",
+   "sha256": "b81e3009701011d702744422859e6005a1be325abb3cd3afd7d0cffbe7a62970",
+   "utc": "2026-11-07T18:47:00Z"
   }
  ]
 }
