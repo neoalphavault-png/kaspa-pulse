@@ -47,6 +47,22 @@
    "media": "18131865161482444",
    "permalink": "https://www.instagram.com/p/DfZWEiUk8z2/",
    "zeit_utc": "2026-11-06T10:02:06+00:00"
+  },
+  {
+   "art": "woche",
+   "fuer": "2026-11-07",
+   "modus": "scharf",
+   "start": "takt",
+   "seiten": 3,
+   "look": "v2 A-papier/D-dunkel/A-papier",
+   "motiv": "",
+   "caption_sha": "684ba024aeae",
+   "ablage": "ig",
+   "container": "18100526297222481",
+   "status": "FINISHED",
+   "media": "18143026447617389",
+   "permalink": "https://www.instagram.com/p/DfcIlfOFzjj/",
+   "zeit_utc": "2026-11-07T12:01:55+00:00"
   }
  ],
  "community": [
@@ -59,6 +75,11 @@
    "woche": "2026-11-07",
    "art": "log",
    "zeit_utc": "2026-11-06T08:49:59+00:00"
+  },
+  {
+   "woche": "2026-11-07",
+   "art": "hand",
+   "zeit_utc": "2026-11-07T12:01:55+00:00"
   }
  ]
 }
