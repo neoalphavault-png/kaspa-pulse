@@ -1,6 +1,32 @@
-# Bericht 6.11.2026: Dataset-Lizenz, Newsletter-Archiv ohne Wenn-dann-Sätze, Textkorrekturen
+# Bericht 6.11.2026: Dataset-Lizenz, Newsletter-Archiv ohne Wenn-dann-Sätze, Textkorrekturen (Nachtrag 7.11.)
 
 Auftrag von Ben vom 6.11.2026, Frist So 8.11. 12:00, vor dem Newsletter am Sonntag. Claude prüft, Ben merged.
+
+## Nachtrag 7.11.2026, Bens Entscheidungen
+1. **Alert-Satz 14.9. und 21.9.:** ersetzt wie am 28.9. Dort steht jetzt „reward cuts and the chain's largest wallet moving get checked several times a day, not once a week, and posted when a check finds one.“
+2. **Description kaspa-hashrate:** vorher 176 Zeichen, also zu lang. Zwei Vorschläge, beide mit dem Suchbegriff vorne:
+   - **A, genommen, 148 Zeichen:** „Kaspa hashrate in PH per second, dated and sourced, with weekly averages of the last two months and the highest daily average in the source history.“
+   - **B, 144 Zeichen:** „Kaspa hashrate in PH/s, read once a day from the Kaspa REST API, with dated weekly averages and the highest daily average in the source history.“
+   - **Warum A:** A nimmt „PH per second“ aus dem Titel auf und sagt in drei Worten, wofür die Seite steht, „dated and sourced“. B nennt die Quelle, ist aber technischer und für einen Suchtreffer weniger klar.
+   - `seo_seiten.py` hat og:description, twitter:description und das Schema nachgezogen. `seo_pruefung.py` meldet für kaspa-hashrate keinen Fehler mehr.
+3. **Rebase auf main:** Der Branch ist auf main `a095c11` neu aufgesetzt, der frühere Merge-Commit fällt dabei weg.
+   - Konflikte gab es nur in den von `seo_seiten` erzeugten Dateien `data/seiten-stand.json` und `kaspa-tvl.html`. Dort habe ich den Stand von main genommen und `seo_seiten.py` neu laufen lassen.
+   - **Prüfungen:**
+     - `seo_seiten --pruefen` meldet „alles auf stand“.
+     - `seo_pruefung` meldet 0 Fehler. Die beiden Warnungen zu kaspa-tvl (132 Zeichen) und kaspa-wallets (137 Zeichen) stammen aus Bens freigegebenen Texten vom 2.11.
+     - `preis_wache` meldet 51 Seiten mit 0 Verstößen.
+     - Die Selbsttests von seo_seiten, seo_pruefung, preis_wache, plausible und rahmen sind grün.
+     - Secret-Scan ohne Fund.
+   - **Merge:** Selbst-Merge nach der Regel vom 26.10., es sind keine Workflow-, Deploy- oder c2-Dateien betroffen.
+
+**URLs für den Rich-Results-Test und die Validierung in Search Console:**
+- https://kaspapulse.com/kaspa-covenants.html
+- https://kaspapulse.com/kaspa-hashrate.html
+- https://kaspapulse.com/kaspa-supply.html
+- https://kaspapulse.com/kaspa-weekly.html
+- https://kaspapulse.com/kcc-20.html
+
+---
 
 ## 1. Dataset-Markup mit license und creator
 - **Was fehlte:** Search Console meldete im Dataset-Schema das Feld `license`.
