@@ -216,7 +216,12 @@ def bauen(art, fuer, out, look, motiv=None, speicher=None, merken=False):
     return ss, cap, bilder, motiv
 
 
-def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, senden=True):
+def meme_wahr_bauen():
+    import meme_wahr
+    return meme_wahr.bauen
+
+
+def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, senden=True, stimme_pfad=None):
     """Baut den Entwurf, legt das Manifest ab und schickt ihn nach ops.
     Gibt das Manifest zurueck, oder None, wenn nichts dran ist."""
     import karussell
@@ -244,7 +249,8 @@ def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, send
         info = getattr(karussell.rendern, "info", {}) or {}
         look = "v2 " + "/".join(x["look"] for x in info.get("seiten", []))
     m = {"art": art, "fuer": fuer, "postzeit": postzeit(art, fuer).isoformat(), "look": look,
-         "caption": cap, "motiv": motiv_meme, "hintergrund": motiv, "probe": probe,
+         "caption": cap, "bauplan": getattr(meme_wahr_bauen() if art == "meme" else karussell.vorbereiten,
+                                             "bauplan", ""), "motiv": motiv_meme, "hintergrund": motiv, "probe": probe,
          "bilder": [{"datei": Path(b).name, "sha256": sha(b)} for b in bilder],
          "zahlen": zahlen_aus(ss)}
     (out / "manifest.json").write_text(json.dumps(m, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
@@ -260,6 +266,13 @@ def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, send
     if not probe:
         look_takt.raster_merken(sp, serie, fuer)
         look_takt.schreiben(sp, speicher_pfad)
+        # stimm-regel (Ben, 07.11.2026): der bauplan der caption gilt ab jetzt
+        # fuer den tag, die naechsten kanaele sehen ihn in data/stimme-stand.json
+        stimm_stand = getattr(meme_wahr_bauen(), "stimm_stand", None) if art == "meme" else \
+            getattr(karussell.vorbereiten, "stimm_stand", None)
+        if stimm_stand is not None:
+            import stimme
+            stimme.schreiben(stimm_stand, stimme_pfad, heute=fuer)
     return m
 
 

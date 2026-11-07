@@ -520,10 +520,16 @@ def veroeffentlichen(u, cid, caption=None):
 
 # ---------------------------------------------------------------- posten
 
-def posten(bild_url, caption, modus, warte_takt=10, warte_max=300):
-    """Container anlegen, Status pruefen, nur mit modus scharf veroeffentlichen."""
+def posten(bild_url, caption, modus, warte_takt=10, warte_max=300, bauplan=None):
+    """Container anlegen, Status pruefen, nur mit modus scharf veroeffentlichen.
+    bauplan kommt aus dem -instagram.json der Tagesgrafik (Stimm-Regel, Ben,
+    07.11.2026); mit ihm prueft die Wache auch Frage, Schreibung und
+    Methoden-Wort."""
     from tagesgrafik import ig_pruefung
-    fehler = ig_pruefung(caption, None)
+    fehler = ig_pruefung(caption, None, bauplan=bauplan)
+    if bauplan:
+        import stimme
+        fehler += stimme.regel_verstoesse(caption, bauplan)
     if fehler:
         raise Fehler("caption nicht gruen, %s" % "; ".join(fehler))
     u = ig_user()
@@ -1311,7 +1317,7 @@ def main(argv=None):
             bild = Path(a.bild)
             url, quelle = bild_bereit(bild, raw=IG_RAW)
             ausgabe("caption\n%s" % ig["caption"])
-            erg = posten(url, ig["caption"], a.modus)
+            erg = posten(url, ig["caption"], a.modus, bauplan=ig.get("bauplan"))
             log = json_laden(LOG_IG, {"posts": []})
             log["posts"].append({"datum": ig["datum"], "form": ig["form"], "modus": a.modus,
                                  "start": start,

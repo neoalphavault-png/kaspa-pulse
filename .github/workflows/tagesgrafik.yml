@@ -148,6 +148,8 @@ jobs:
           # vorgemerkt. look-takt.json ist der Speicher des Look-Takts.
           git add data/tagesgrafik-log.json 2>/dev/null || true
           git add data/look-takt.json 2>/dev/null || true
+          # bauplaene des tages nach der stimm-regel (Ben, 07.11.2026)
+          git add data/stimme-stand.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "log unveraendert, kein commit"
           else

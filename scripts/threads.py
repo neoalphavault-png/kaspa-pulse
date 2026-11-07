@@ -120,20 +120,27 @@ def graph(weg, felder=None, post=False, tok=None, oeffner=None):
 
 # ------------------------------------------------------------------ wache
 
-def wache(text, heute=None):
+def wache(text, heute=None, bauplan=None):
     """Befunde als Liste, leer heisst sauber.
 
     Geprueft wird mit der Hauswache aus tagesgrafik.pruefe_eine - dieselbe,
     die die Tagesgrafik und die Instagram-Entwuerfe durchlaufen: kein
     Doppelpunkt, kein Gedankenstrich, kein Pfeil, kein Link, keine fremde
     Chain, keine Kaufwoerter, '%' statt 'percent', keine Kursangabe. Dazu
-    kommen die drei Regeln, die nur fuer Threads gelten."""
+    kommen die Regeln, die nur fuer Threads gelten.
+
+    Die Pflichtfrage am Ende ist seit der Stimm-Regel (Ben, 07.11.2026)
+    weg: kommt der Text aus der Tagesgrafik, traegt das -threads.json den
+    Bauplan, und dann steht eine Frage genau beim Bauplan frage
+    (stimme.regel_verstoesse). Ein Text von Hand aus der Warteschlange hat
+    keinen Bauplan, fuer ihn gilt nur die Hauswache."""
     from tagesgrafik import pruefe_eine, DATUM
-    befunde = list(pruefe_eine(text, None, "threads-text"))
+    befunde = list(pruefe_eine(text, None, "threads-text", massstab=bauplan == "vergleich"))
     if len(text) > TEXT_MAX:
         befunde.append("text ist %d zeichen lang, erlaubt sind %d" % (len(text), TEXT_MAX))
-    if not text.strip().endswith("?"):
-        befunde.append("der text endet nicht mit einer frage")
+    if bauplan:
+        import stimme
+        befunde += stimme.regel_verstoesse(text, bauplan)
     # Jede Zahl mit ihrem Datum. Geprueft wird am Text, nicht am Versprechen:
     # steht eine Ziffer drin, muss auch ein Datum drin stehen.
     ohne_datum = DATUM.sub(" ", text.lower())
@@ -302,10 +309,10 @@ def scharf(modus, hand=False):
 
 
 def posten(text, bild, modus, tag, log_pfad=None, hand=False, tok=None, oeffner=None,
-           warte_takt=10, warte_max=300):
+           warte_takt=10, warte_max=300, bauplan=None):
     """Container anlegen, auf FINISHED warten, nur scharf veroeffentlichen.
     Scharf steht der Post danach im Log, trocken nicht."""
-    befunde = wache(text)
+    befunde = wache(text, bauplan=bauplan)
     if befunde:
         sys.exit("der text haelt die wachen nicht ein, kein container: %s" % "; ".join(befunde))
     tok = tok or token()
@@ -524,8 +531,26 @@ def selbsttest():
            any("echtzeit" in b for b in wache("the heap went nowhere on 14 oct, ok?")), False)
     pruefe("link faellt auf",
            any("link" in b for b in wache("more on kaspapulse.com on 14 oct, ok?")), True)
-    pruefe("fehlende frage faellt auf",
-           any("frage" in b for b in wache("the hashrate on 14 oct is 338 PH.")), True)
+    # stimm-regel (Ben, 07.11.2026): keine pflichtfrage mehr, eine frage nur beim bauplan frage
+    pruefe("ohne frage ist ein text ohne bauplan sauber",
+           wache("The hashrate on 14 Oct is 338 PH, source Kaspa REST API."), [])
+    pruefe("bauplan frage ohne frage faellt auf",
+           any("frage" in b for b in wache("The hashrate on 14 Oct is 338 PH.", bauplan="frage")), True)
+    pruefe("frage beim bauplan pointe faellt auf",
+           any("frage" in b for b in wache("The hashrate on 14 Oct is 338 PH. Who checks it?",
+                                           bauplan="pointe")), True)
+    pruefe("bauplan frage mit frage ist sauber",
+           wache("The hashrate on 14 Oct is 338 PH. Who checks it?", bauplan="frage"), [])
+    pruefe("kleinschreibung faellt beim bauplan auf",
+           any("klein" in b for b in wache("the hashrate on 14 oct is 338 PH.", bauplan="beobachtung")), True)
+    pruefe("alte schlussfrage faellt auf",
+           any("alte" in b for b in wache("Kaspa miners ran 350 PH/s on 6 Nov 2026. What was that work paid?",
+                                          bauplan="frage")), True)
+    pruefe("bitcoin als massstab im bauplan vergleich ist sauber",
+           wache("Kaspa added 2,000 blocks in 8 hours on 6 Nov 2026. Bitcoin added 48 blocks in 8 hours "
+                 "on 6 Nov 2026.", bauplan="vergleich"), [])
+    pruefe("bitcoin mit werturteil faellt auch im vergleich auf",
+           bool(wache("Kaspa is faster than Bitcoin on 6 Nov 2026.", bauplan="vergleich")), True)
     pruefe("zahl ohne datum faellt auf",
            any("ohne datum" in b for b in wache("the hashrate is 338 PH, what next?")), True)
     pruefe("zu langer text faellt auf",
@@ -821,10 +846,13 @@ def main(argv=None):
     elif a.befehl == "posten":
         import instagram
         tag = instagram.berlin(dt.datetime.now(dt.timezone.utc)).date().isoformat()
-        text = warteschlange(tag) or (json_laden(a.text_datei, {}).get("text", "") if a.text_datei else a.text)
+        hand_text = warteschlange(tag)
+        aus_grafik = json_laden(a.text_datei, {}) if a.text_datei and not hand_text else {}
+        text = hand_text or aus_grafik.get("text", "") or ("" if a.text_datei else a.text)
         if not text:
             sys.exit("kein text, weder warteschlange noch tagesgrafik")
-        posten(text, a.bild, a.modus, tag, hand=a.hand)
+        # der bauplan kommt mit dem text aus der tagesgrafik (stimm-regel, Ben, 07.11.2026)
+        posten(text, a.bild, a.modus, tag, hand=a.hand, bauplan=aus_grafik.get("bauplan"))
     elif a.befehl == "nachholen":
         nachholen()
     elif a.befehl == "bild":
