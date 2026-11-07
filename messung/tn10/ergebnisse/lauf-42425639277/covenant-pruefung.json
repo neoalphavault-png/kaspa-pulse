@@ -1,0 +1,26 @@
+[
+ {
+  "teil": "s1-k1",
+  "status": "gelesen",
+  "ziel_gesetzt": 8,
+  "tx": 0,
+  "alle_cov_tx": 3221,
+  "alle_cov_ids": 866,
+  "id_form": {
+   "str 64": 10508
+  },
+  "andere_form_treffer": {}
+ },
+ {
+  "teil": "s1-k2",
+  "status": "gelesen",
+  "ziel_gesetzt": 8,
+  "tx": 0,
+  "alle_cov_tx": 3221,
+  "alle_cov_ids": 866,
+  "id_form": {
+   "str 64": 10508
+  },
+  "andere_form_treffer": {}
+ }
+]
