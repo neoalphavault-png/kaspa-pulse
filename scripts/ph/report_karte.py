@@ -79,7 +79,7 @@ td.c {{ text-align:right; color:{F["text"]}; font-weight:{T["label"][1]}; }}
 td.m {{ text-align:right; color:{F["neben"]}; width:220px; }}
 """
     inhalt = f"""
-<div class="klein" style="margin-top:48px">{H.escape(titel)}</div>
+<div class="klein kicker">{H.escape(titel)}</div>
 <div class="titel" style="margin-top:10px">block intervals after activation</div>
 <div class="zahl" style="margin-top:44px">{zahl(p50["value"])} s</div>
 <div class="unter" style="margin-top:14px">counted median, {zahl(modell)} s computed</div>

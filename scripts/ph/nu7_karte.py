@@ -94,11 +94,11 @@ def svg():
 
 def html(skala=1.0):
     inhalt = f"""
-<div class="klein" style="margin-top:48px">zcash nu7 activation</div>
+<div class="klein kicker">zcash nu7 activation</div>
 <div class="titel" style="margin-top:10px">expected against counted</div>
-<div class="zahl" style="margin-top:44px">6.9 min</div>
+<div class="zahl" style="margin-top:72px">6.9 min</div>
 <div class="unter" style="margin-top:14px">early, inside the 90% band</div>
-<div style="margin-top:72px">{svg()}</div>
+<div style="margin-top:104px">{svg()}</div>
 <div class="klein" style="margin-top:40px">header time counted on our own header client. band computed from the block pace of the 14 days before 4 nov.</div>
 """
     return S.seite(inhalt, B, H, skala)
