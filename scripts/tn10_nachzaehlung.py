@@ -190,6 +190,7 @@ class Covenant:
         # pruefung 8.11.: alle covenant-ausgaenge, egal welche id, nur zahlen
         self.alle_tx = 0
         self.alle_ids = set()       # nur hashes, verlaesst den runner nicht
+        self.je_id = {}             # hash -> set(txid), verlaesst den runner nicht
         self.id_form = {}           # "typ laenge" -> zahl
         self.andere_form = {}       # form -> treffer auf die zielhashes
 
@@ -206,6 +207,8 @@ class Covenant:
                 if cid:
                     alle = True
                     self.alle_ids.add(cov_hash(cid))
+                    if tid:
+                        self.je_id.setdefault(cov_hash(cid), set()).add(tid)
                     k = "%s %d" % (type(cid).__name__, len(str(cid).strip()))
                     self.id_form[k] = self.id_form.get(k, 0) + 1
                     if not f:
@@ -243,6 +246,13 @@ class Covenant:
             for t in feld(eintrag, "acceptedTransactionIds") or []:
                 if t in self.tx and h:
                     self.annahme[t] = h
+
+    def verteilung(self):
+        """nur zahlen: eindeutige tx mit covenant-ausgang, tx je id (die 40 groessten), ids ab 10/100 tx"""
+        n = sorted((len(v) for v in self.je_id.values()), reverse=True)
+        return {"alle_cov_tx_eindeutig": len(set().union(*self.je_id.values())) if self.je_id else 0,
+                "tx_je_id_top40": n[:40], "ids_ab_10_tx": sum(1 for x in n if x >= 10),
+                "ids_ab_100_tx": sum(1 for x in n if x >= 100), "ids_mit_1_tx": sum(1 for x in n if x == 1)}
 
     def spalten(self):
         return [("cov_%s_%s" % (f, k)) for f in self.familien for k in ("in_bloecken", "angenommen", "nie_angenommen")]
@@ -460,7 +470,7 @@ async def zaehle(rpc, takt, von_ms, bis_ms, rand_ms=RAND_MS, ziel_sha="", kette=
         meta["covenant"] = {"ziel_gesetzt": len(cv.ziele), "familien": cv.familien, "tx": len(cov_tx), "ohne_txid": cv.ohne_id,
                             "nur_ueber_eingang": cv.nur_eingang, "tx_liste": cov_tx,
                             "alle_cov_tx": cv.alle_tx, "alle_cov_ids": len(cv.alle_ids), "id_form": cv.id_form,
-                            "andere_form_treffer": cv.andere_form}
+                            "andere_form_treffer": cv.andere_form, **cv.verteilung()}
     aus = []
     spalten = SPALTEN + cv.spalten()
     for m in range(von_ms // 60000, -(-bis_ms // 60000)):
@@ -978,6 +988,8 @@ def selbsttest():
     ok("pruefung: ein covenant-ausgang, form bytes trifft, ohne treffer in tx",
        cvp.alle_tx == 1 and len(cvp.alle_ids) == 1 and cvp.andere_form == {"bytes": 1} and not cvp.tx
        and cvp.id_form == {"str 64": 1})
+    ok("pruefung: verteilung nur zahlen", cvp.verteilung() == {"alle_cov_tx_eindeutig": 1, "tx_je_id_top40": [1],
+                                                             "ids_ab_10_tx": 0, "ids_ab_100_tx": 0, "ids_mit_1_tx": 1})
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 

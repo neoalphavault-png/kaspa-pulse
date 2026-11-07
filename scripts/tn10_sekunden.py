@@ -221,7 +221,8 @@ def auswerten(ordner, plan_text, out):
         cv = m.get("covenant") or {}
         pr.append({"teil": os.path.basename(p)[:-5][:20], "status": str(m.get("status", ""))[:40],
                    **{k: cv.get(k, "") for k in ("ziel_gesetzt", "tx", "alle_cov_tx", "alle_cov_ids", "id_form",
-                                                 "andere_form_treffer")}})
+                                                 "andere_form_treffer", "alle_cov_tx_eindeutig", "tx_je_id_top40",
+                                                 "ids_ab_10_tx", "ids_ab_100_tx", "ids_mit_1_tx")}})
     with open(os.path.join(out, "covenant-pruefung.json"), "w", encoding="utf-8") as fh:
         json.dump(pr, fh, indent=1)
     erg["sekunden_ungleich"] = sum(1 for s, f in alle if sek.get("k1", {}).get((s, f), 0) != sek.get("k2", {}).get((s, f), 0))
