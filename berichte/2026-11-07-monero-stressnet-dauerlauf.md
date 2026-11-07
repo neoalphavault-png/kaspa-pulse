@@ -42,7 +42,7 @@ Blockabstände nach Kopfzeit, je UTC-Tag des Blocks. Computed gilt für exponent
 | negative Abstände | 0 | 0 | |
 | längste Lücke | 437 s vor 3.126.070 | 1.016 s vor 3.126.378 | |
 
-- **6.11.:** Der Tag ist nur zum Teil erfasst, gut 4,8 h ab 19:24 UTC. Die Blöcke kamen viel schneller als das Ziel, im Mittel alle 49 s. Das passt zu einer Schwierigkeit, die der Hashrate noch nachläuft. Die Ursache haben wir nicht untersucht.
+- **6.11.:** Der Tag ist nur zum Teil erfasst, 4,6 h ab 19:24 UTC. Die Blöcke kamen viel schneller als das Ziel, im Mittel alle 49 s. Das passt zu einer Schwierigkeit, die der Hashrate noch nachläuft. Die Ursache haben wir nicht untersucht.
 - **7.11.:** Median und Mittel liegen nahe am Modell. Die langen Abstände sind etwas häufiger als berechnet: p90 und p99 liegen darüber, der Anteil über 10 min ist 1,11 % statt 0,674 %.
 
 **Erste Sicht (nur Blöcke, die uns angekündigt wurden, 7.11.):**
