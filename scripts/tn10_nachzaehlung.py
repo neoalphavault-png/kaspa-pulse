@@ -129,6 +129,21 @@ def cov_hash(cid):
     return hashlib.sha256(str(cid).strip().lower().encode()).hexdigest()
 
 
+def cov_formen(cid):
+    """Pruefung 8.11.: andere Schreibweisen der Covenant-ID, falls kein Hash trifft.
+    Ergibt {form: sha256}; die ID selbst verlaesst die Funktion nie."""
+    t = str(cid).strip()
+    aus = {"roh": hashlib.sha256(t.encode()).hexdigest(), "gross": hashlib.sha256(t.upper().encode()).hexdigest()}
+    try:
+        b = bytes.fromhex(t)
+        aus["bytes"] = hashlib.sha256(b).hexdigest()
+        aus["umgedreht"] = hashlib.sha256(b[::-1].hex().encode()).hexdigest()
+        aus["bytes_umgedreht"] = hashlib.sha256(b[::-1]).hexdigest()
+    except ValueError:
+        pass
+    return aus
+
+
 FAMILIE = re.compile(r"^[a-z0-9_]{1,24}$")
 
 
@@ -172,6 +187,11 @@ class Covenant:
         self.annahme = {}           # txid -> annehmender block
         self.ohne_id = 0
         self.nur_eingang = 0
+        # pruefung 8.11.: alle covenant-ausgaenge, egal welche id, nur zahlen
+        self.alle_tx = 0
+        self.alle_ids = set()       # nur hashes, verlaesst den runner nicht
+        self.id_form = {}           # "typ laenge" -> zahl
+        self.andere_form = {}       # form -> treffer auf die zielhashes
 
     def block(self, b, ts):
         if not self.aktiv:
@@ -179,13 +199,24 @@ class Covenant:
         for tx in feld(b, "transactions") or []:
             tid = feld(feld(tx, "verboseData") or {}, "transactionId")
             aus = set()
+            alle = False
             for i, o in enumerate(feld(tx, "outputs") or []):
                 cid = feld(feld(o, "covenant") or {}, "covenantId")
                 f = self.ziele.get(cov_hash(cid)) if cid else None
+                if cid:
+                    alle = True
+                    self.alle_ids.add(cov_hash(cid))
+                    k = "%s %d" % (type(cid).__name__, len(str(cid).strip()))
+                    self.id_form[k] = self.id_form.get(k, 0) + 1
+                    if not f:
+                        for form, h in cov_formen(cid).items():
+                            if h in self.ziele:
+                                self.andere_form[form] = self.andere_form.get(form, 0) + 1
                 if f:
                     aus.add(f)
                     if tid:
                         self.ausgaenge["%s:%d" % (tid, i)] = f
+            self.alle_tx += 1 if alle else 0
             ein = {self.ausgaenge.get("%s:%s" % (feld(feld(e, "previousOutpoint") or {}, "transactionId"),
                                                  feld(feld(e, "previousOutpoint") or {}, "index")))
                    for e in feld(tx, "inputs") or []} - {None}
@@ -427,7 +458,9 @@ async def zaehle(rpc, takt, von_ms, bis_ms, rand_ms=RAND_MS, ziel_sha="", kette=
     cov_je, cov_tx = cv.auswerten(lambda h: z.bloecke.get(h, {}).get("ts"), kette)
     if cv.aktiv:
         meta["covenant"] = {"ziel_gesetzt": len(cv.ziele), "familien": cv.familien, "tx": len(cov_tx), "ohne_txid": cv.ohne_id,
-                            "nur_ueber_eingang": cv.nur_eingang, "tx_liste": cov_tx}
+                            "nur_ueber_eingang": cv.nur_eingang, "tx_liste": cov_tx,
+                            "alle_cov_tx": cv.alle_tx, "alle_cov_ids": len(cv.alle_ids), "id_form": cv.id_form,
+                            "andere_form_treffer": cv.andere_form}
     aus = []
     spalten = SPALTEN + cv.spalten()
     for m in range(von_ms // 60000, -(-bis_ms // 60000)):
@@ -936,6 +969,15 @@ def selbsttest():
     ok("rpc-fehler: zweiter versuch mit neuer verbindung, erster vermerkt",
        m2.get("versuche") == 2 and len(m2.get("fruehere_versuche", [])) == 1
        and m2["fruehere_versuche"][0].startswith("fehler") and len(fk.zustand["hosts"]) == 2)
+    # pruefung 8.11.: alle covenant-ausgaenge zaehlen, andere schreibweise der id erkennen, keine id in meta
+    cid = "ab12" * 16
+    cvp = Covenant("f1 %s\n" % hashlib.sha256(bytes.fromhex(cid)).hexdigest())
+    cvp.block({"transactions": [{"verboseData": {"transactionId": "t1"}, "inputs": [],
+                                 "outputs": [{"covenant": {"covenantId": cid}}]},
+                                {"verboseData": {"transactionId": "t2"}, "inputs": [], "outputs": [{}]}]}, 0)
+    ok("pruefung: ein covenant-ausgang, form bytes trifft, ohne treffer in tx",
+       cvp.alle_tx == 1 and len(cvp.alle_ids) == 1 and cvp.andere_form == {"bytes": 1} and not cvp.tx
+       and cvp.id_form == {"str 64": 1})
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 

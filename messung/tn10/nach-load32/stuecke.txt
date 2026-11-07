@@ -1,5 +1,3 @@
-# nachzaehlung datei 2 (zweite last 7.11., 21:10 bis 22:25 utc), vier stuecke mit kette, familien g1 bis g32 aus covenant-load32.sha256.
-2026-11-07T21:10:00Z 2026-11-07T21:30:00Z kette
-2026-11-07T21:30:00Z 2026-11-07T21:50:00Z kette
-2026-11-07T21:50:00Z 2026-11-07T22:10:00Z kette
-2026-11-07T22:10:00Z 2026-11-07T22:25:00Z kette
+# pruefung 8.11.: die nachzaehlung datei 2 (lauf 42421412383, vier stuecke 21:10 bis 22:25 utc) fand 0 covenant-tx.
+# ein kurzes stueck mit kette, zaehlt dazu alle covenant-ausgaenge und andere schreibweisen der id, nur zahlen.
+2026-11-07T21:30:00Z 2026-11-07T21:40:00Z kette
