@@ -1,3 +1,4 @@
-# lauf von tn10-miner, dessen zahlen tn10-auswertung ins log schreibt.
-# nachzaehlung stp-lauf 29.10. mit covenant.sha256, sechs stuecke gruen.
-40970671061
+# lauf von tn10-miner, dessen zahlen tn10-auswertung ins log und als sekunden/schritte auf den branch schreibt.
+# nachzaehlung stp-lauf sa 7.11. (datei 1, 18:45 bis 21:30 utc), acht stuecke gruen.
+42421412329
+plan=messung/tn10/lauf-2026-11-07.txt
