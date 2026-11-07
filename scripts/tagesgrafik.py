@@ -1483,7 +1483,7 @@ def ig_zahl(s, form):
               5: "%s more KAS for miners from new coins than from fees",
               8: "%s of hashrate",
               9: "%s addresses holding at least 100 KAS",
-              10: "%s of all KAS that will ever exist already mined",
+              10: "%s of all KAS that will ever exist is already mined",
               11: "%s of all KAS in circulation not moved in a year",
               13: "%s reachable nodes"}
     return muster[form] % z if form in muster else ""

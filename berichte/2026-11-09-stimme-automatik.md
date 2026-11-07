@@ -177,7 +177,7 @@ datierte Bitcoin-Zahl im Repo.
 
 **2026-11-04, Form 10 (Herkunft), Bauplan datum_voran.** textpruefung: gruen; ig_pruefung: gruen
 
-    On 4 Nov 2026, 96.82% of all KAS that will ever exist already mined.
+    On 4 Nov 2026, 96.82% of all KAS that will ever exist is already mined.
     
     Counted by Kaspa Pulse.
     
@@ -318,6 +318,12 @@ datierte Bitcoin-Zahl im Repo.
 - 2026-11-04: instagram datum_voran, threads frage, discord beobachtung
 - 2026-11-05: instagram zahl_zuerst, threads beobachtung, discord einordnung
 - 2026-11-07: instagram pointe, threads einordnung, discord datum_voran, karussell zahl_zuerst
+
+## Pruefung durch Claude (7.11.2026)
+- Alle Selbsttests aus der Tabelle oben laufen auf dem Kopf des PR bei mir gruen.
+- Korrigiert: Form 10 hiess "... that will ever exist already mined", der Satz hatte kein Verb. Jetzt steht dort "... is already mined" (`ig_zahl`), das Beispiel oben ist angepasst. Der Fehler stand schon auf main, mit dem Bauplan datum_voran faellt er mehr auf.
+- Schon auf main, nicht geaendert: Form 3 (Countdown zum Reward Cut) nennt "counted by Kaspa Pulse". Der Termin kommt aber aus dem Emissionsplan, nach den Textregeln waere "computed" richtig. Das betrifft die Datumszeile im Bild und die Caption, also mehr als diesen PR.
+- Discord: Der Satz "Share it first, it goes on X at 17:00." steht noch drin, weil die Wache ihn verlangt. Seit dem 7.11. postet niemand mehr per API auf @gokugalax (#285), und "Share it first" grenzt an Engagement-Koeder. Empfehlung: Satz und Pflicht in der Wache streichen.
 
 ## Offen fuer Ben
 
