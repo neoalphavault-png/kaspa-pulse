@@ -1,13 +1,11 @@
 {
   "netz": "zcash mainnet",
   "quelle": "eigene header ueber p2p",
-  "abruf_utc": "2026-11-06T13:05:22Z",
+  "abruf_utc": "2026-11-07T11:49:56Z",
   "peer_software": [
-    "/Zebra:7.0.0-modified/",
     "/Zebra:7.0.0/",
-    "/Zakura:1.8.3/",
-    "/Zakura:1.7.0/",
-    "/Zakura:1.8.0-modified/"
+    "/Zakura:1.8.4/",
+    "/Zakura:1.8.5/"
   ],
   "gegenproben": [
     {
@@ -31,10 +29,10 @@
   "nu7_hoehe": 3543405,
   "bereich": {
     "von_hoehe": 3489717,
-    "bis_hoehe": 3544750,
+    "bis_hoehe": 3548033,
     "von_utc": "2026-09-20 06:59:07",
-    "bis_utc": "2026-11-06 13:04:58",
-    "bloecke": 55034
+    "bis_utc": "2026-11-07 11:48:25",
+    "bloecke": 58317
   },
   "vor_nu7": {
     "abstaende": 53687,
@@ -117,17 +115,17 @@
   },
   "vorhersage": null,
   "nach_nu7": {
-    "abstaende": 1345,
+    "abstaende": 4628,
     "gezaehlt": {
-      "mittel_s": 28.15,
-      "median_s": 19,
-      "p90_s": 67.0,
-      "p99_s": 132.0,
+      "mittel_s": 25.86,
+      "median_s": 17.0,
+      "p90_s": 60.0,
+      "p99_s": 122.7,
       "laengste_luecke_s": 249,
       "laengste_luecke_vor_block": 3543445,
       "laengste_luecke_utc": "2026-11-06 03:11:24",
-      "anteil_ueber_3T_prozent": 7.21,
-      "anteil_ueber_T_ln1000_prozent": 0.149,
+      "anteil_ueber_3T_prozent": 5.25,
+      "anteil_ueber_T_ln1000_prozent": 0.13,
       "negativ": 0
     },
     "berechnet": {
@@ -136,32 +134,32 @@
       "median_s": 17.3,
       "p90_s": 57.6,
       "p99_s": 115.1,
-      "laengste_luecke_s": 195,
+      "laengste_luecke_s": 225,
       "anteil_ueber_3T_prozent": 4.98,
       "anteil_ueber_T_ln1000_prozent": 0.1
     },
     "bereich": {
       "von_hoehe": 3543406,
-      "bis_hoehe": 3544750
+      "bis_hoehe": 3548033
     },
     "erster_nu7_block_utc": "2026-11-06 02:34:02"
   },
   "einpendeln": {
-    "bloecke_nach_nu7": 1345,
+    "bloecke_nach_nu7": 4628,
     "fenster": 100,
     "toleranz_prozent": 20,
     "halten_bloecke": 1000,
     "eingependelt_ab_block": 3544439,
     "bloecke_bis_eingependelt": 1034,
     "stunden_bis_eingependelt": 8.4,
-    "vorlaeufig": true,
+    "vorlaeufig": false,
     "schwierigkeit_relativ_zu_vor_nu7": {
       "block_nu7_plus_1": 0.794,
       "block_nu7_plus_10": 0.767,
       "block_nu7_plus_100": 0.504,
       "block_nu7_plus_1000": 0.321
     },
-    "schwierigkeit_spitze_relativ": 0.335,
+    "schwierigkeit_spitze_relativ": 0.35,
     "berechnet_bei_gleicher_hashrate": 0.333
   }
 }
