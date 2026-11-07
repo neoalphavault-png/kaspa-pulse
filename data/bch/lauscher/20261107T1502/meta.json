@@ -1,0 +1,97 @@
+{
+  "art": "ein Zuhoerer (kein eigener Knoten), Verbindungen zu Tempnet-Knoten aus der oeffentlichen Konfiguration",
+  "start_utc": "2026-11-07T15:02:31Z",
+  "ende_utc": "2026-11-07T15:07:31Z",
+  "geplantes_ende_utc": "2026-11-07T15:07:31Z",
+  "dauer_min": 5.0,
+  "protokoll": 70016,
+  "peers": [
+    {
+      "peer": "peer_1",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 360333,
+      "verbunden_utc": "2026-11-07T15:02:37Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 6
+    },
+    {
+      "peer": "peer_2",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 360333,
+      "verbunden_utc": "2026-11-07T15:02:38Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 6
+    },
+    {
+      "peer": "peer_3",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 360334,
+      "verbunden_utc": "2026-11-07T15:02:40Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 5
+    },
+    {
+      "peer": "peer_4",
+      "software": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+      "version": 70016,
+      "gemeldete_hoehe": 360334,
+      "verbunden_utc": "2026-11-07T15:02:40Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 5
+    },
+    {
+      "peer": "peer_5",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 360334,
+      "verbunden_utc": "2026-11-07T15:02:41Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 4
+    }
+  ],
+  "peers_ohne_abzweig_abgelehnt": 12,
+  "block_hashes_gesehen": 6,
+  "koepfe_geholt": 6,
+  "zeitquelle": "Uhr des Runners (NTP), Millisekunden",
+  "labels": "peer_N je Lauf neu vergeben, nicht lauf-uebergreifend",
+  "uhr": {
+    "anfang": {
+      "zeit_utc": "2026-11-07T15:02:31Z",
+      "quelle": "chronyc tracking",
+      "werte": {
+        "System time": "0.000000000 seconds slow of NTP time",
+        "Last offset": "+0.000000000 seconds",
+        "RMS offset": "0.000000000 seconds",
+        "Leap status": "Not synchronised"
+      }
+    },
+    "ende": {
+      "zeit_utc": "2026-11-07T15:07:33Z",
+      "quelle": "chronyc tracking",
+      "werte": {
+        "System time": "0.000001277 seconds fast of NTP time",
+        "Last offset": "+0.000002032 seconds",
+        "RMS offset": "0.000010719 seconds",
+        "Leap status": "Normal"
+      }
+    }
+  }
+}
