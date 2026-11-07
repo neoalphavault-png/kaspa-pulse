@@ -2344,6 +2344,13 @@
      "comments": 2,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-07": {
+     "reach": 62,
+     "likes": 14,
+     "comments": 2,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -2382,6 +2389,13 @@
     },
     "2026-11-06": {
      "reach": 183,
+     "likes": 29,
+     "comments": 0,
+     "saved": 0,
+     "shares": 1
+    },
+    "2026-11-07": {
+     "reach": 184,
      "likes": 29,
      "comments": 0,
      "saved": 0,
@@ -2431,6 +2445,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-07": {
+     "reach": 68,
+     "likes": 10,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -2462,6 +2483,13 @@
     },
     "2026-11-06": {
      "reach": 320,
+     "likes": 33,
+     "comments": 1,
+     "saved": 1,
+     "shares": 4
+    },
+    "2026-11-07": {
+     "reach": 321,
      "likes": 33,
      "comments": 1,
      "saved": 1,
@@ -2504,6 +2532,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-07": {
+     "reach": 176,
+     "likes": 31,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -2529,6 +2564,13 @@
     "2026-11-06": {
      "reach": 124,
      "likes": 24,
+     "comments": 0,
+     "saved": 1,
+     "shares": 0
+    },
+    "2026-11-07": {
+     "reach": 126,
+     "likes": 25,
      "comments": 0,
      "saved": 1,
      "shares": 0
@@ -2563,6 +2605,13 @@
      "comments": 5,
      "saved": 1,
      "shares": 0
+    },
+    "2026-11-07": {
+     "reach": 709,
+     "likes": 70,
+     "comments": 5,
+     "saved": 1,
+     "shares": 0
     }
    }
   },
@@ -2591,6 +2640,13 @@
      "comments": 6,
      "saved": 3,
      "shares": 8
+    },
+    "2026-11-07": {
+     "reach": 3081,
+     "likes": 102,
+     "comments": 6,
+     "saved": 3,
+     "shares": 8
     }
    }
   },
@@ -2609,6 +2665,13 @@
     "2026-11-06": {
      "reach": 1833,
      "likes": 29,
+     "comments": 0,
+     "saved": 3,
+     "shares": 1
+    },
+    "2026-11-07": {
+     "reach": 2118,
+     "likes": 30,
      "comments": 0,
      "saved": 3,
      "shares": 1
@@ -2636,6 +2699,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-07": {
+     "reach": 44,
+     "likes": 5,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -2647,6 +2717,13 @@
     "2026-11-06": {
      "reach": 13,
      "likes": 3,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    },
+    "2026-11-07": {
+     "reach": 33,
+     "likes": 5,
      "comments": 0,
      "saved": 0,
      "shares": 0
@@ -2667,9 +2744,33 @@
      "comments": 2,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-07": {
+     "reach": 72,
+     "likes": 11,
+     "comments": 2,
+     "saved": 0,
+     "shares": 0
+    }
+   }
+  },
+  "17990673267115154": {
+   "gepostet_utc": "2026-11-07T11:30:42+0000",
+   "typ": "IMAGE",
+   "permalink": "https://www.instagram.com/p/DfcFAP0m9fO/",
+   "form": 8,
+   "caption_sha": "96f26f518e38",
+   "frage": null,
+   "tage": {
+    "2026-11-07": {
+     "reach": 2,
+     "likes": 2,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   }
  },
- "stand_utc": "2026-11-06T13:13:46+00:00"
+ "stand_utc": "2026-11-07T11:55:14+00:00"
 }
