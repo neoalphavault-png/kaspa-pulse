@@ -34,7 +34,9 @@ import csv
 import json
 import os
 import random
+import glob
 import re
+import select
 import socket
 import struct
 import sys
@@ -333,6 +335,7 @@ def epee_lesen(b):
 # ------------------------------------------------------------------ levin
 LEVIN_SIG = 0x0101010101012101
 HS, TIMED_SYNC, PING, SUPPORT = 1001, 1002, 1003, 1007
+GET_OBJ, OBJ = 2003, 2004
 FLUFFY, TX_HASH = 2008, 2011
 ANFRAGE, ANTWORT = 1, 2
 
@@ -368,8 +371,15 @@ def utc_ms(t):
 
 # ------------------------------------------------------------------ lauscher
 class Lauscher:
-    def __init__(self, dauer_s):
+    def __init__(self, dauer_s, bekannt=None, untergrenze=None, nachholen=0):
         self.dauer_s = dauer_s
+        self.bekannt = bekannt or {}  # hash -> hoehe aus frueheren Laeufen
+        self.untergrenze = untergrenze
+        self.nachholen = nachholen
+        self.warteschlange = []      # fehlende Vorgaenger (hash hex)
+        self.angefragt = {}          # hash -> zeit der Anfrage
+        self.holer = None            # Peer, der fehlende Bloecke nachholt
+        self.missed = 0
         self.lock = threading.Lock()
         self.adressen = []          # nur im speicher
         self.versucht = set()
@@ -417,6 +427,7 @@ class Lauscher:
             s.settimeout(90)
             with self.lock:
                 self.sockets.append(s)
+            zuletzt = time.time()
             with self.lock:
                 sp = self.spitze
             if z["modus"] == "spitze" and sp:
@@ -429,6 +440,12 @@ class Lauscher:
                                  "payload_data": sync})
             self.senden(s, levin(HS, hs, True, ANFRAGE))
             while time.time() < self.ende:
+                if not select.select([s], [], [], 5)[0]:
+                    if time.time() - zuletzt > 150:
+                        raise ConnectionError("still")
+                    self.holen(name, s)
+                    continue
+                zuletzt = time.time()
                 kopf = lesen_genau(s, 33)
                 sig, n, will, cmd, rc, flags, _pv = struct.unpack("<QQ?IiII", kopf)
                 if sig != LEVIN_SIG or n > 50_000_000:
@@ -451,6 +468,8 @@ class Lauscher:
                     if not z["stressnet"]:
                         raise ConnectionAbortedError("kein stressnet")
                     with self.lock:
+                        if self.holer is None:
+                            self.holer = name
                         kum = pd.get("cumulative_difficulty", 0) | (pd.get("cumulative_difficulty_top64", 0) << 64)
                         if not self.spitze or pd["current_height"] > self.spitze[0]:
                             self.spitze = (pd["current_height"], pd["top_id"], pd["top_version"], kum)
@@ -474,6 +493,13 @@ class Lauscher:
                     z["fluffy"] += 1
                     d = epee_lesen(nl)
                     self.block(d["b"]["block"], name, jetzt)
+                elif cmd == OBJ:
+                    d = epee_lesen(nl)
+                    with self.lock:
+                        self.missed += len(d.get("missed_ids", b"") or b"") // 32
+                    for e in d.get("blocks", []) or []:
+                        self.block(e["block"], name, jetzt, nachgeholt=True)
+                    self.holen(name, s)
                 elif cmd == TX_HASH:
                     z["tx_hash_nachrichten"] += 1
                     with self.lock:
@@ -489,12 +515,39 @@ class Lauscher:
         finally:
             if time.time() >= self.ende - 1:          # wir haben am Ende selbst getrennt
                 z["getrennt_grund"] = None
+            with self.lock:
+                if self.holer == name:
+                    self.holer = None
             z["getrennt_utc"] = utc(time.time())
             if s:
                 s.close()
             self.grund(z["getrennt_grund"] or "ende")
 
-    def block(self, blob, name, jetzt):
+    def holen(self, name, s):
+        """Der Holer fragt den naechsten fehlenden Vorgaenger an, einen zur Zeit."""
+        with self.lock:
+            if self.holer != name or not self.warteschlange:
+                return
+            jetzt = time.time()
+            if any(jetzt - t < 30 for t in self.angefragt.values()):
+                return
+            h = self.warteschlange[0]
+            if jetzt - self.angefragt.get(h, 0) < 30:
+                return
+            self.angefragt[h] = jetzt
+        nl = epee_schreiben({"blocks": U(T_STR, bytes.fromhex(h)), "prune": U(T_BOOL, True)})
+        self.senden(s, levin(GET_OBJ, nl, False, ANFRAGE))
+
+    def vorgaenger(self, k):
+        """Fehlt der Vorgaenger und liegt er ueber der Untergrenze, kommt er in die Warteschlange."""
+        if self.untergrenze is None:
+            self.untergrenze = k["hoehe"] - self.nachholen
+        p = k["prev"]
+        if (k["hoehe"] - 1 >= self.untergrenze and p not in self.bloecke and p not in self.bekannt
+                and p not in self.warteschlange):
+            self.warteschlange.append(p)
+
+    def block(self, blob, name, jetzt, nachgeholt=False):
         try:
             k = block_lesen(blob)
         except (Unbekannt, IndexError) as e:
@@ -502,13 +555,23 @@ class Lauscher:
                 self.gruende["block nicht lesbar: " + str(e)[:60]] = self.gruende.get("block nicht lesbar: " + str(e)[:60], 0) + 1
             return
         with self.lock:
-            if k["hash"] not in self.bloecke:
-                k["first_seen_ms"] = int(jetzt * 1000)
+            alt = self.bloecke.get(k["hash"])
+            if alt is None:
+                k["first_seen_ms"] = None if nachgeholt else int(jetzt * 1000)
+                k["quelle"] = "nachgeholt" if nachgeholt else "angekuendigt"
                 self.bloecke[k["hash"]] = k
                 if self.spitze and k["hoehe"] + 1 > self.spitze[0]:
                     sp = self.spitze
                     self.spitze = (k["hoehe"] + 1, bytes.fromhex(k["hash"]), k["major"], sp[3])
-            self.ankuendigungen.append((k["hash"], name, int(jetzt * 1000)))
+                self.vorgaenger(k)
+            elif not nachgeholt and alt["first_seen_ms"] is None:
+                alt["first_seen_ms"] = int(jetzt * 1000)
+                alt["quelle"] = "angekuendigt"
+            if k["hash"] in self.warteschlange:
+                self.warteschlange.remove(k["hash"])
+                self.angefragt.pop(k["hash"], None)
+            if not nachgeholt:
+                self.ankuendigungen.append((k["hash"], name, int(jetzt * 1000)))
 
     def start(self):
         for a in self.seeds():
@@ -545,16 +608,19 @@ def schreiben(l, aus, start):
     bl = sorted(l.bloecke.values(), key=lambda k: (k["hoehe"] or 0))
     nach_hash = {k["hash"]: k for k in bl}
     verkettet = sum(1 for k in bl if k["prev"] in nach_hash)
+    # bestaetigt: ein spaeterer Block nennt unseren Hash als Vorgaenger
+    bestaetigt = {k["prev"] for k in bl}
     with open(os.path.join(aus, "bloecke.csv"), "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["hoehe", "hash", "prev_hash", "header_zeit_utc", "major", "minor", "n_tx", "first_seen_utc",
-                    "peers_n", "spread_ms", "prev_ist_unser_hash"])
+        w.writerow(["hoehe", "hash", "prev_hash", "header_zeit_utc", "major", "minor", "n_tx", "quelle",
+                    "first_seen_utc", "peers_n", "spread_ms", "prev_ist_unser_hash"])
         for k in bl:
             ms = [m for h, _, m in l.ankuendigungen if h == k["hash"]]
             peers = {p for h, p, _ in l.ankuendigungen if h == k["hash"]}
             w.writerow([k["hoehe"], k["hash"], k["prev"], utc(k["zeit"]), k["major"], k["minor"], k["n_tx"],
-                        utc_ms(k["first_seen_ms"] / 1000), len(peers), max(ms) - min(ms),
-                        "ja" if k["prev"] in nach_hash else "unbekannt"])
+                        k["quelle"], utc_ms(k["first_seen_ms"] / 1000) if k["first_seen_ms"] else "",
+                        len(peers), (max(ms) - min(ms)) if ms else "",
+                        "ja" if (k["prev"] in nach_hash or k["prev"] in l.bekannt) else "unbekannt"])
     with open(os.path.join(aus, "ankuendigungen.csv"), "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["hash", "peer", "ankunft_utc"])
@@ -574,7 +640,12 @@ def schreiben(l, aus, start):
                                 "bis_ende_verbunden": sum(1 for z in sn if z["modus"] == m and z["getrennt_grund"] is None),
                                 "timed_sync": sum(z["timed_sync"] for z in sn if z["modus"] == m)}
                             for m in ("sync", "spitze")},
-        "bloecke": len(bl), "bloecke_hash_bestaetigt_durch_nachfolger": verkettet,
+        "bloecke": len(bl), "bloecke_hash_bestaetigt_durch_nachfolger": sum(1 for k in bl if k["hash"] in bestaetigt),
+        "bloecke_mit_bekanntem_vorgaenger": sum(1 for k in bl if k["prev"] in nach_hash or k["prev"] in l.bekannt),
+        "angekuendigt": sum(1 for k in bl if k["quelle"] == "angekuendigt"),
+        "nachgeholt": sum(1 for k in bl if k["quelle"] == "nachgeholt"),
+        "noch_fehlend": len(l.warteschlange), "missed_ids": l.missed,
+        "untergrenze": l.untergrenze,
         "hoehen": [bl[0]["hoehe"], bl[-1]["hoehe"]] if bl else None,
         "tx_hash_ankuendigungen": l.tx_ankuendigungen,
         "trennungen": l.gruende,
@@ -639,19 +710,30 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--selbsttest", action="store_true")
     ap.add_argument("--probe", action="store_true")
+    ap.add_argument("--lauf", action="store_true", help="dauerlauf (Ben, 07.11.2026)")
     ap.add_argument("--dauer", type=float, default=15, help="minuten")
+    ap.add_argument("--vorher", help="ordner mit frueheren laeufen (*/bloecke.csv)")
+    ap.add_argument("--nachholen", type=int, default=0,
+                    help="ohne fruehere laeufe so viele bloecke vor dem ersten nachholen")
     ap.add_argument("--aus")
     a = ap.parse_args()
     if a.selbsttest:
         return selbsttest()
-    if not a.probe or not a.aus:
-        ap.error("nur --probe mit --aus, der dauerlauf kommt nach bens ja")
+    if not (a.probe or a.lauf) or not a.aus:
+        ap.error("--probe oder --lauf, mit --aus")
+    bekannt = {}
+    if a.vorher:
+        for f in glob.glob(os.path.join(a.vorher, "**", "bloecke.csv"), recursive=True):
+            with open(f, newline="") as fh:
+                for z in csv.DictReader(fh):
+                    bekannt[z["hash"]] = int(z["hoehe"])
+    untergrenze = (max(bekannt.values()) + 1) if bekannt else None
     start = time.time()
-    l = Lauscher(a.dauer * 60)
+    l = Lauscher(a.dauer * 60, bekannt, untergrenze, a.nachholen)
     l.start()
     meta = schreiben(l, a.aus, start)
-    print(json.dumps({k: meta[k] for k in ("peers_versucht", "peers_stressnet", "bloecke",
-                                           "bloecke_hash_bestaetigt_durch_nachfolger", "stressnet_modus")}))
+    print(json.dumps({k: meta[k] for k in ("peers_versucht", "peers_stressnet", "bloecke", "angekuendigt",
+                                           "nachgeholt", "noch_fehlend", "bloecke_hash_bestaetigt_durch_nachfolger")}))
     return 0
 
 

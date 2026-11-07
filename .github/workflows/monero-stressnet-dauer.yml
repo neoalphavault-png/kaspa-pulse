@@ -1,0 +1,84 @@
+# monero-stressnet-dauer.yml - Dauerlauf des Zuhoerers im Monero-Stressnet
+# (Ben, 07.11.2026: Ja zum Dauerlauf nach der erfolgreichen Probe).
+#
+# Laeuft nur auf dem Branch messung/monero-stressnet, bei einem Push auf
+# data/monero-stressnet/dauer-anstoss.txt. Eine Matrix von 30 Laeufen zu je
+# 325 min, nacheinander (max-parallel 1), zusammen etwa 7 Tage. Ein
+# workflow_dispatch wie beim BCH-Zuhoerer ginge nur mit dem Workflow auf main.
+# Zwischen zwei Laeufen liegen 1 bis 2 min; Bloecke aus dieser Luecke holt der
+# naechste Lauf per P2P nach (quelle "nachgeholt", ohne Erste Sicht). Der
+# erste Lauf holt bis zu 720 Bloecke rueckwaerts nach, fuer ganze Tage.
+# Nach jedem Lauf die Auswertung je UTC-Tag (stressnet_auswertung.py).
+# Kein Secret, kein RPC; keine Adresse und kein Hostname in Daten oder Log.
+name: monero stressnet dauer
+
+on:
+  push:
+    branches: ["messung/monero-stressnet"]
+    paths:
+      - "data/monero-stressnet/dauer-anstoss.txt"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: monero-stressnet-dauer
+  cancel-in-progress: false
+
+jobs:
+  lauf:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        segment: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+                  21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: messung/monero-stressnet
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: selbsttest
+        run: |
+          python3 scripts/monero/stressnet_lauscher.py --selbsttest | tail -n 1
+          python3 scripts/monero/stressnet_auswertung.py --selbsttest | tail -n 1
+
+      - name: zuhoeren 325 min
+        id: lauf
+        env:
+          SEGMENT: ${{ matrix.segment }}
+        run: |
+          set -eu
+          git pull -q origin messung/monero-stressnet
+          ZIEL="data/monero-stressnet/lauf/$(date -u +%Y-%m-%d-%H%M)"
+          echo "ziel=$ZIEL" >> "$GITHUB_OUTPUT"
+          if [ "$SEGMENT" = "1" ]; then VOR="--nachholen 720"; else VOR="--vorher data/monero-stressnet"; fi
+          python3 scripts/monero/stressnet_lauscher.py --lauf --dauer 325 $VOR --aus "$ZIEL"
+
+      - name: auswertung und committen
+        if: always() && steps.lauf.outputs.ziel != ''
+        env:
+          ZIEL: ${{ steps.lauf.outputs.ziel }}
+        run: |
+          set -eu
+          git config user.name "monero stressnet bot"
+          git config user.email "bot@users.noreply.github.com"
+          git pull -q --rebase origin messung/monero-stressnet || true
+          python3 scripts/monero/stressnet_auswertung.py --daten data/monero-stressnet
+          { echo "## Monero Stressnet, $(basename "$ZIEL")"; echo '```'; cat "$ZIEL/meta.json" || true; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          git add data/monero-stressnet
+          python3 scripts/secret_scan.py --baum
+          if git diff --cached --quiet; then echo "nichts neu"; exit 0; fi
+          git commit -q -m "monero stressnet: lauf $(basename "$ZIEL") und auswertung [bot]"
+          for versuch in 1 2 3; do
+            git push -q origin HEAD:messung/monero-stressnet && exit 0
+            sleep $((versuch * 10))
+            git pull -q --rebase -X theirs origin messung/monero-stressnet
+          done
+          exit 1
