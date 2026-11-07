@@ -1,0 +1,66 @@
+# monero-stressnet-lauscher.yml - Probe des Zuhoerers im Monero-Stressnet
+# (Ben, 07.11.2026: Ja zu Weg b, zuerst die Probe mit 15 min).
+#
+# Laeuft nur auf dem Branch messung/monero-stressnet, bei einem Push auf
+# data/monero-stressnet/anstoss.txt. Nur --probe: der Dauerlauf kommt erst
+# nach Pruefung der Probe durch Claude und Bens Ja. Kein Secret, kein RPC.
+# scripts/monero/stressnet_lauscher.py liest die Seeds zur Laufzeit aus dem
+# Quelltext des Stressnet-Tags; keine Adresse und kein Hostname in Daten oder
+# Log. Ergebnis unter data/monero-stressnet/probe-<zeit>/ auf diesem Branch.
+name: monero stressnet lauscher
+
+on:
+  push:
+    branches: ["messung/monero-stressnet"]
+    paths:
+      - "data/monero-stressnet/anstoss.txt"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: monero-stressnet-lauscher
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: messung/monero-stressnet
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: selbsttest
+        run: python3 scripts/monero/stressnet_lauscher.py --selbsttest | tail -n 1
+
+      - name: probe 15 min
+        id: probe
+        run: |
+          set -eu
+          ZIEL="data/monero-stressnet/probe-$(date -u +%Y-%m-%d-%H%M)"
+          echo "ziel=$ZIEL" >> "$GITHUB_OUTPUT"
+          python3 scripts/monero/stressnet_lauscher.py --probe --dauer 15 --aus "$ZIEL"
+          { echo "## Monero Stressnet, Probe"; echo '```'; cat "$ZIEL/meta.json"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: committen
+        if: always() && steps.probe.outputs.ziel != ''
+        env:
+          ZIEL: ${{ steps.probe.outputs.ziel }}
+        run: |
+          set -eu
+          git config user.name "monero stressnet bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add "$ZIEL"
+          python3 scripts/secret_scan.py --baum
+          if git diff --cached --quiet; then echo "nichts neu"; exit 0; fi
+          git commit -q -m "monero stressnet: probe $(basename "$ZIEL") [bot]"
+          for versuch in 1 2 3; do
+            git pull -q --rebase origin messung/monero-stressnet && git push -q origin HEAD:messung/monero-stressnet && exit 0
+            sleep $((versuch * 10))
+          done
+          exit 1
