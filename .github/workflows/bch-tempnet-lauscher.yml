@@ -18,6 +18,14 @@
 #
 # Rohdaten je Lauf sofort auf messung/bch-tempnet unter data/bch/lauscher/<lauf>/,
 # danach Kette abrufen und alle Laeufe auswerten (bloecke.csv, zusammenfassung.json).
+#
+# Uhr (Ben, 07.11.2026, Forum rufitnes und bitcoincashautist): am Anfang und am
+# Ende jedes Laufs Versatz und Status der Uhr des Runners ins meta.json, unter
+# "uhr" (scripts/bch/uhr_versatz.py: chronyc tracking, sonst timedatectl
+# timesync-status). Nur System time, Last offset, RMS offset, Leap status bzw.
+# Offset, Jitter, Leap; keine Referenz-ID, kein Server. Liefert keine Quelle
+# einen Versatz, steht "versatz": "nicht verfügbar" im meta.json und der Lauf
+# laeuft weiter.
 name: bch tempnet lauscher
 
 on:
@@ -73,6 +81,13 @@ jobs:
           { echo "dauer=$DAUER"; echo "bis=$BIS"; echo "lauf=$LAUF"; } >> "$GITHUB_OUTPUT"
           echo "lauf $LAUF, $DAUER min, bis $BIS"
 
+      - name: uhr am anfang
+        continue-on-error: true
+        run: |
+          python3 scripts/bch/uhr_versatz.py > "$RUNNER_TEMP/uhr-anfang.json" \
+            || echo '{"versatz": "nicht verfügbar"}' > "$RUNNER_TEMP/uhr-anfang.json"
+          cat "$RUNNER_TEMP/uhr-anfang.json"
+
       - name: zuhoeren und naechsten lauf starten
         env:
           GH_TOKEN: ${{ github.token }}
@@ -98,6 +113,13 @@ jobs:
           fi
           wait $PID
 
+      - name: uhr am ende
+        continue-on-error: true
+        run: |
+          python3 scripts/bch/uhr_versatz.py > "$RUNNER_TEMP/uhr-ende.json" \
+            || echo '{"versatz": "nicht verfügbar"}' > "$RUNNER_TEMP/uhr-ende.json"
+          cat "$RUNNER_TEMP/uhr-ende.json"
+
       # Rohdaten sofort sichern (Lehre aus dem Zcash-Testnet, 17.10.2026)
       - name: rohdaten committen
         env:
@@ -108,6 +130,20 @@ jobs:
           mkdir -p "$O"
           for n in ereignisse koepfe compact; do gzip -n -c "$RUNNER_TEMP/lauf/$n.jsonl" > "$O/$n.jsonl.gz"; done
           cp "$RUNNER_TEMP/lauf/meta.json" "$O/meta.json"
+          python3 - "$O/meta.json" "$RUNNER_TEMP/uhr-anfang.json" "$RUNNER_TEMP/uhr-ende.json" <<'PY' || echo "::warning::uhr nicht ins meta.json geschrieben"
+          import json, sys
+          pfad, *uhr = sys.argv[1:]
+          def lesen(p):
+              try:
+                  return json.load(open(p))
+              except (OSError, ValueError):
+                  return {"versatz": "nicht verfügbar"}
+          meta = json.load(open(pfad))
+          meta["uhr"] = {"anfang": lesen(uhr[0]), "ende": lesen(uhr[1])}
+          if not any("quelle" in v for v in meta["uhr"].values()):
+              meta["versatz"] = "nicht verfügbar"
+          json.dump(meta, open(pfad, "w"), indent=2, ensure_ascii=False)
+          PY
           scripts/bch/daten_committen.sh "bch tempnet: zuhoerer lauf $LAUF [bot]"
 
       - name: kette danach abrufen
