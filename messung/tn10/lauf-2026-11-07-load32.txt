@@ -1,0 +1,6 @@
+# stp-lauf sa 7.11.2026, datei 2: zweite last nach dem ersten plan (ben, 7.11.), 32 familien g1 bis g32, gleiche rate, ein sender.
+# je zeile: variante name von bis familien [an_s]. vor und ruhe ohne familien: dort zaehlen nur hops, die nicht da sein sollten.
+praefix=g
+beide vor 2026-11-07T21:10:00Z 2026-11-07T21:15:00Z 0
+beide load32 2026-11-07T21:15:00Z 2026-11-07T22:00:00Z 32
+beide ruhe 2026-11-07T22:00:00Z 2026-11-07T22:25:00Z 0

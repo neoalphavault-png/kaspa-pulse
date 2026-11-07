@@ -41,6 +41,15 @@ def iso_s(s):
     return dt.datetime.fromtimestamp(s, dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def praefix_lesen(text):
+    """Familienpraefix aus einer Zeile praefix=g (Ben, 07.11.2026: zweite
+    Last mit g1 bis g32), sonst f."""
+    for z in text.splitlines():
+        if z.strip().startswith("praefix="):
+            return z.split("=", 1)[1].strip() or "f"
+    return "f"
+
+
 def plan_lesen(text):
     """Zeilen "variante name von bis familien an_s". variante "mit_f8",
     "ohne_f8" oder "beide". an_s: Sekunden mit Sender, leer heisst bis-von."""
@@ -94,13 +103,13 @@ def variante(sek, plan):
     return "mit_f8" if hoch > 0 else "ohne_f8"
 
 
-def schritte(sek, plan, var):
+def schritte(sek, plan, var, praefix="f"):
     zeilen, union = [], {}
     for s in plan:
         if s["variante"] not in ("beide", var):
             continue
         a, b = s["von"] // 1000, s["bis"] // 1000
-        fams = ["f%d" % i for i in range(1, s["familien"] + 1)]
+        fams = ["%s%d" % (praefix, i) for i in range(1, s["familien"] + 1)]
         # rampenschritte tragen ihre 10 s aus schon im schlitz, dort kein nachlauf
         nl = NACHLAUF_S if s["an_s"] >= b - a else 0
         mit = set()
@@ -124,8 +133,28 @@ def schritte(sek, plan, var):
     return zeilen, union
 
 
+def minuten(sek, plan, var, praefix="f"):
+    """je UTC-Minute im Plan: Summe aller Familien, je s, langsamste Familie
+    (je s) unter den Familien des Schritts, der die Minute beginnt."""
+    aus = {}
+    for s in plan:
+        if s["variante"] not in ("beide", var):
+            continue
+        fams = ["%s%d" % (praefix, i) for i in range(1, s["familien"] + 1)]
+        for m in range(s["von"] // 60000, -(-s["bis"] // 60000)):
+            if m in aus:
+                continue
+            je = {f: sum(sek.get((x, f), 0) for x in range(m * 60, m * 60 + 60)) for f in fams}
+            ges = sum(n for (x, f), n in sek.items() if m * 60 <= x < m * 60 + 60)
+            aus[m] = {"schritt": s["name"], "familien": len(fams), "summe": ges, "summe_je_s": round(ges / 60, 3),
+                      "langsamste_je_s": round(min(je.values()) / 60, 3) if je else "",
+                      "langsamste": min(je, key=lambda f: (je[f], f)) if je else ""}
+    return aus
+
+
 def auswerten(ordner, plan_text, out):
     plan = plan_lesen(plan_text)
+    praefix = praefix_lesen(plan_text)
     tx = listen_lesen(ordner)
     sek = {k: je_sekunde(v) for k, v in tx.items()}
     var = variante(sek.get("k1") or sek.get("k2") or {}, plan)
@@ -141,7 +170,7 @@ def auswerten(ordner, plan_text, out):
     sp = ["schritt", "von", "bis", "familie", "an_s"]
     je = {}
     for k in ("k1", "k2"):
-        z, u = schritte(sek.get(k, {}), plan, var)
+        z, u = schritte(sek.get(k, {}), plan, var, praefix)
         erg["union_" + k] = u
         for r in z:
             je.setdefault((r["schritt"], r["familie"]), {c: r[c] for c in sp}).update(
@@ -151,6 +180,17 @@ def auswerten(ordner, plan_text, out):
         w = csv.DictWriter(fh, fieldnames=kopf, lineterminator="\n")
         w.writeheader()
         w.writerows(je.values())
+    mk = {k: minuten(sek.get(k, {}), plan, var, praefix) for k in ("k1", "k2")}
+    with open(os.path.join(out, "minuten.csv"), "w", encoding="utf-8", newline="") as fh:
+        w = csv.writer(fh, lineterminator="\n")
+        w.writerow(["minute_utc", "schritt", "familien", "k1_summe", "k1_summe_je_s", "k1_langsamste", "k1_langsamste_je_s",
+                    "k2_summe", "k2_summe_je_s", "k2_langsamste", "k2_langsamste_je_s", "gleich"])
+        for m in sorted(mk["k1"]):
+            a, b = mk["k1"][m], mk["k2"][m]
+            w.writerow([iso_s(m * 60)[:16] + "Z", a["schritt"], a["familien"], a["summe"], a["summe_je_s"], a["langsamste"],
+                        a["langsamste_je_s"], b["summe"], b["summe_je_s"], b["langsamste"], b["langsamste_je_s"],
+                        int(a["summe"] == b["summe"] and a["langsamste_je_s"] == b["langsamste_je_s"])])
+    erg["praefix"] = praefix
     erg["sekunden_ungleich"] = sum(1 for s, f in alle if sek.get("k1", {}).get((s, f), 0) != sek.get("k2", {}).get((s, f), 0))
     with open(os.path.join(out, "schritte.json"), "w", encoding="utf-8") as fh:
         json.dump(erg, fh, indent=1)
@@ -193,6 +233,18 @@ def selbsttest():
            and r[("r1", "f1")]["k1_nachlauf"] == "0")
         ok("union-landung der rampe 10 von 60", e["union_k1"]["r1"]["mit_hop"] == 10)
         ok("doppelte tx zaehlt einmal, k1 gleich k2", e["sekunden_ungleich"] == 0)
+        mz = {x["minute_utc"]: x for x in csv.DictReader(open(os.path.join(out, "minuten.csv")))}
+        ok("minute 19:00: summe 30, langsamste f1 0.5 je s", mz["2026-11-07T19:00Z"]["k1_summe"] == "30"
+           and mz["2026-11-07T19:00Z"]["k1_langsamste_je_s"] == "0.5")
+        ok("rampe: langsamste familie f2 mit 2 hops", mz["2026-11-07T19:02Z"]["k1_langsamste"] in ("f2", "f3", "f4")
+           and mz["2026-11-07T19:02Z"]["k1_summe"] == "10")
+        # praefix g fuer die zweite last
+        with open(os.path.join(d, "s1", "s1-k1-covenant.csv"), "a", encoding="utf-8", newline="") as fh:
+            csv.writer(fh).writerow(["g001", "g2", t0 + 3000, 1, 1, t0 + 3500])
+        e3 = auswerten(d, "praefix=g\nbeide load32 2026-11-07T19:00:00Z 2026-11-07T19:01:00Z 32\n", os.path.join(d, "aus3"))
+        r3 = list(csv.DictReader(open(os.path.join(d, "aus3", "schritte.csv"))))
+        ok("praefix g: 32 familien, g2 mit einem hop", e3["praefix"] == "g" and len(r3) == 32
+           and [x["k1_angenommen"] for x in r3 if x["familie"] == "g2"] == ["1"])
         txt = "".join(open(os.path.join(out, n)).read() for n in os.listdir(out))
         e2 = auswerten(d, plan + "beide ruhe 2026-11-07T19:01:00Z 2026-11-07T19:02:00Z 0\n", os.path.join(d, "aus2"))
         ok("luecke: ein hop im nachlauf, keiner danach", e2["union_k1"]["ruhe"]["hops"] == 1
