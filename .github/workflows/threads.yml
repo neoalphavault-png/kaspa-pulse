@@ -71,7 +71,8 @@ jobs:
         env:
           PNG: ${{ steps.a.outputs.png }}
         run: python3 scripts/instagram.py jpeg --png "$PNG" --ziel ig
-      - name: jpeg auf kaspapulse.com
+      - name: jpeg committen, bild bereitstellen
+        id: b
         if: steps.a.outputs.faellig == '1' && steps.a.outputs.gefunden == '1'
         env:
           JPEG: ${{ steps.j.outputs.jpeg }}
@@ -86,17 +87,10 @@ jobs:
             git pull --rebase --autostash origin "$GITHUB_REF_NAME"
             git push
           fi
-          # threads holt das bild ueber die oeffentliche adresse, also warten,
-          # bis kaspapulse.com genau diese datei ausliefert. 1500 s statt 600,
-          # ein haengendes pages-deploy dauerte am 4.11. 14 minuten (Ben, 6.11.2026)
-          python3 - "$JPEG" <<'PY'
-          import sys, pathlib
-          sys.path.insert(0, "scripts")
-          import instagram, threads
-          p = pathlib.Path(sys.argv[1])
-          instagram.url_warten(instagram.SEITE + "/ig/" + p.name, p.stat().st_size, frist=threads.BILD_FRIST)
-          print("oeffentlich, " + instagram.SEITE + "/ig/" + p.name)
-          PY
+          # threads holt das bild ueber die raw-adresse des bild-commits
+          # (Ben, 6.11.2026), 120 s. kaspapulse.com ist nur der rueckfall mit
+          # 1500 s, am 4.11. und 6.11. hing dort das pages-deploy.
+          python3 scripts/threads.py bild --jpeg "$JPEG"
       - name: container, status, veroeffentlichen nur wenn scharf
         id: p
         if: steps.a.outputs.faellig == '1' && steps.a.outputs.gefunden == '1'
@@ -105,12 +99,24 @@ jobs:
           THREADS_USER_ID: ${{ vars.THREADS_USER_ID }}
           THREADS_LIVE: ${{ vars.THREADS_LIVE }}
           MODUS: ${{ inputs.modus }}
-          JPEG: ${{ steps.j.outputs.jpeg }}
+          BILD: ${{ steps.b.outputs.bild }}
           TEXT: ${{ steps.a.outputs.text }}
         run: |
-          BILD="https://kaspapulse.com/ig/$(basename "$JPEG")"
           HAND=""; [ "$TH_START" = "--hand" ] && HAND="--hand"
           python3 scripts/threads.py posten --bild "$BILD" --text-datei "$TEXT" --modus "$MODUS" $HAND
+      - name: probe, nimmt instagram dieselbe adresse
+        # nur im handlauf und nur mit der raw-adresse (Ben, 6.11.2026): ein
+        # instagram-container mit demselben bild, ohne caption, NIE
+        # veroeffentlicht. FINISHED heisst, meta nimmt die raw-adresse auch
+        # fuer instagram, dann kann instagram.IG_RAW umgestellt werden.
+        if: inputs.modus == 'trocken' && steps.b.outputs.quelle == 'raw'
+        continue-on-error: true
+        env:
+          INSTAGRAM_PAGE_TOKEN: ${{ secrets.INSTAGRAM_PAGE_TOKEN }}
+          IG_USER_ID: ${{ vars.IG_USER_ID }}
+          IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
+          BILD: ${{ steps.b.outputs.bild }}
+        run: python3 scripts/instagram.py quelle-probe --bild "$BILD"
       - name: log sichern
         # pull --rebase vor jedem push, bis zu drei wiederholungen nach 10, 20
         # und 40 s (Ben, 5.11.2026). Scheitert der push nach einem post, bleibt
