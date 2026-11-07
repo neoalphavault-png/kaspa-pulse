@@ -1,3 +1,2 @@
-nu7-karte "expected against counted" im finalen pulsehawk-stil, nicht gepostet
-falke tuerkis oben mittig 56 px, fuss "Data from PulseHawk · pulsehawk.io" unten. dazu die vorschau 390 px
-stil-pruefung bestanden. bericht berichte/2026-11-07-ph-stil-umstellung.md
+nu7-karte "expected against counted", falke jetzt oben rechts auf hoehe der ersten zeile, 48 px, tuerkis, rechter rand 96 px wie der text. nicht gepostet
+dazu die vorschau 390 px. gilt fuer alle vorlagen (ph_stil.py). zur pruefung durch ben so 20:05
