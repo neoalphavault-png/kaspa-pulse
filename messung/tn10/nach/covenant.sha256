@@ -1,6 +1,11 @@
-# stp-lauf 29.10.2026, je familie sha256 der covenant-id (nie die id), geschrieben mit tn10_contention.py --hash.
-# gleich wie stps covenant-id-sha256.csv, geprueft 29.10.
-f1 d3cabfa4976a797d5cdd01b3ef4545c0b4fdf4c35a7820c72db51652f2875992
-f2 3516fd0b55c78ceec317249d5dab1a48b4f6f3de35a5b02dffd2d1bd5f2ba426
-f3 f05f1e6033301edac31141a9eb51d99a8bdddfd8054f33e5832553924cf41b69
-f4 ea5c60840de1a811a09da5c0ab76ab43e9296bbe018ea1dd22e9f1042cbe363f
+# stp-lauf 7.11.2026, datei 1, je familie sha256 der lowercase-hex covenant-id (nie die id), 1:1 aus stps repo
+# quelle stp hashes/SATURDAY.md commit 0e99ff1a10ee16058bd73d7c0bb23ad24b09309b 2026-11-07T18:37:46Z (frist 18:40 utc)
+# gelesen 2026-11-07T18:45:42Z, hashes/README.md und hashes/LOAD.md ohne hashes, kein widerspruch
+f1 eada53cf8a7caa7da711e6286acbf3ccfb2f50a2c2b4fb9aadca899db4e6e316
+f2 257e1dccd04a826e27ea486d4d9d9126ec5abdce909850a260728bdd31405cdf
+f3 20752a83350d1ef9538da17546a0a8b4c93ff67b8e655978952be510c9bf9782
+f4 d099a56532d9302f45716f75eb2cf8cd53e6ecaf0d9c7f0a4f94561601142dd1
+f5 639dda8b084bc30a4a67e82f394deb668dbc5b4f593a93c1a0b4468b14c0fcf1
+f6 adf9c649d725dccfa05a929ae240bbc8870601016fd1c9b90cead8e3410897a1
+f7 0b53e32649067bc8f8a58a076b0904d070a42175c2690abb3d250b8a86de01e5
+f8 a8a2b75a8c302b73fa6b43b4ed7b29352d808a9c6eadb9a18f28e7a5fab5a7ab
