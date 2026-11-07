@@ -487,6 +487,8 @@ class Lauscher:
         except Exception as e:                       # noqa: BLE001, nur der Typ, nie die Meldung
             z["getrennt_grund"] = "fehler: " + type(e).__name__
         finally:
+            if time.time() >= self.ende - 1:          # wir haben am Ende selbst getrennt
+                z["getrennt_grund"] = None
             z["getrennt_utc"] = utc(time.time())
             if s:
                 s.close()
