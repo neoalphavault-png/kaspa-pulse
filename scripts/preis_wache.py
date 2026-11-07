@@ -15,7 +15,8 @@ ZWEI REGELN
 
 WO GEPRUEFT WIRD
   - jede oeffentliche Seite (dieselbe Liste wie seo_pruefung.py) und jede
-    Newsletter-Ausgabe ab 2026-11-08 (aeltere bleiben, wie sie sind)
+    Newsletter-Ausgabe, seit 6.11.2026 auch das Archiv ab 2026-09-14 (Ben,
+    die alten Wenn-dann-Saetze sind durch Linienwerte ersetzt)
   - seo_pruefung.py ruft pruefe_seiten() auf, jeder PR mit Seitentext
   - startseite.py ruft verstoesse() fuer jeden sichtbaren Satz auf, bevor
     index.html geschrieben wird
@@ -34,7 +35,7 @@ import urllib.request
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-NEWSLETTER_AB = "2026-11-08"
+NEWSLETTER_AB = "2026-09-14"
 UA = "kaspa-pulse-preis-wache (+https://kaspapulse.com)"
 
 # ein betrag mit waehrung, vorne oder hinten
@@ -180,8 +181,10 @@ def selbsttest():
         "project before it goes to a professional audit")) == 1)
     ok("preis im script zaehlt nicht als sichtbar", not verstoesse(sichtbarer_text(
         "<script>var p='from 150 € per round'</script><p>ask for a quote</p>")))
-    ok("newsletter erst ab 8.11.", all(x >= "newsletter/2026-11-08" for x in newsletter_dateien())
-       and "newsletter/2026-11-02.html" not in newsletter_dateien())
+    ok("newsletter mit archiv ab 14.9.", "newsletter/2026-09-14.html" in newsletter_dateien()
+       and "newsletter/2026-11-02.html" in newsletter_dateien())
+    ok("linienwert als daten ist nicht rot", not verstoesse(
+        "the 50 week line sits at $0.035296 and the 21 week line at $0.034790, source kraken, week to 31 october."))
     print("%d fehler" % len(f))
     return 1 if f else 0
 

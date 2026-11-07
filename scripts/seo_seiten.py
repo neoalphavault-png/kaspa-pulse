@@ -68,6 +68,9 @@ BILDER = {
 # mit einer Datenreihe, die wir fuehren, tragen zusaetzlich ein Dataset mit
 # Methode und, wo es die Datei gibt, dem Link auf die Rohdaten im Repo.
 # FAQPage steht weiter direkt in der Seite (seo_faq.py).
+# Search Console verlangt license im Dataset (Ben, 6.11.2026). CC BY 4.0, creator ist
+# Kaspa Pulse als Organization mit url.
+LIZENZ = "https://creativecommons.org/licenses/by/4.0/"
 DATASETS = {
     "kaspa-hashrate.html": {
         "name": "Kaspa network hashrate, daily means",
@@ -249,6 +252,7 @@ def schema(t, d, u, iso, datei, bild, zeiten=None):
     if ds:
         x = {"@type": "Dataset", "name": ds["name"], "description": ds["description"], "url": u,
              "datePublished": erst, "dateModified": zuletzt, "creator": org, "publisher": org,
+             "license": LIZENZ,
              "measurementTechnique": ds["measurementTechnique"], "variableMeasured": ds["variableMeasured"]}
         for k in ("temporalCoverage", "isBasedOn"):
             if ds.get(k):
@@ -607,6 +611,9 @@ def selbsttest():
     ok("dataset mit methode, zeitraum und json-link", dsx["distribution"][0]["contentUrl"]
        == BASIS + "data/address-thresholds-log.json" and dsx["temporalCoverage"] == "2023-08-27/.."
        and len(dsx["description"]) >= 50)
+    ok("dataset mit license cc by 4.0 und creator als organization mit url",
+       dsx["license"] == "https://creativecommons.org/licenses/by/4.0/"
+       and dsx["creator"] == {"@type": "Organization", "name": "Kaspa Pulse", "url": BASIS})
     ok("article mit dateModified und bild", kd["@graph"][1]["dateModified"] == "2026-10-27T00:00:00+00:00"
        and kd["@graph"][1]["image"].endswith("og-card.png"))
     # rich results test (Ben, 02.11.2026): datePublished und dateModified mit uhrzeit und zeitzone
