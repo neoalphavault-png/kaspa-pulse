@@ -1,6 +1,6 @@
 # STP count plan, our alignment, TN10 storm Sat 7 Nov 2026
 
-Kaspa Pulse confirmation of STP's `plan/COUNT.md` in `tn10-storm-2026-11-07`. Read on Sat 7 Nov 2026 at 16:25 UTC, last change to the file in commit be786fc at 12:25:42 UTC (13:25:42 CET). Only that file was read. STP accepted our plan review (`berichte/2026-11-07-stp-plan-durchsicht.md`) on 7 Nov around 16:30 CET.
+Kaspa Pulse confirmation of STP's `plan/COUNT.md` in `tn10-storm-2026-11-07`. Read on Sat 7 Nov 2026 at 16:25 UTC, last change to the file in commit be786fc at 12:25:42 UTC (13:25:42 CET). Only that file was read. STP accepted our plan review (`berichte/2026-11-07-stp-plan-durchsicht.md`) on 7 Nov, around 16:30.
 
 ## Two rules changed from our review, now in our counter
 
