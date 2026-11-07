@@ -1,0 +1,73 @@
+{
+ "erstellt_utc": "2026-11-07 18:15:53",
+ "ziel_s": 120,
+ "computed": {
+  "median_s": 83.2,
+  "p90_s": 276.3,
+  "p99_s": 552.6,
+  "anteil_ueber_600s_pct": 0.674
+ },
+ "kette": {
+  "bloecke": 872,
+  "hoehen": [
+   3125743,
+   3126614
+  ],
+  "von_utc": "2026-11-06 19:24:20",
+  "bis_utc": "2026-11-07 18:15:26",
+  "luecken_in_der_kette": 0
+ },
+ "abseits_der_kette": 0,
+ "tage": [
+  {
+   "tag_utc": "2026-11-06",
+   "hoehen": [
+    3125743,
+    3126075
+   ],
+   "bloecke": 333,
+   "abstaende": 332,
+   "median_s": 36.0,
+   "p90_s": 111.9,
+   "p99_s": 247.7,
+   "mittel_s": 49.1,
+   "anteil_ueber_600s_pct": 0.0,
+   "negative": 0,
+   "laengste_luecke_s": 437.0,
+   "laengste_luecke_vor_block": 3126070,
+   "tx_in_bloecken": 0,
+   "abdeckung_pct": 0.0,
+   "peers_je_block_median": null,
+   "spread_ms_median": null,
+   "spread_ms_p90": null,
+   "bloecke_mit_spread": 0,
+   "erste_sicht_minus_kopfzeit_s_median": null
+  },
+  {
+   "tag_utc": "2026-11-07",
+   "hoehen": [
+    3126076,
+    3126614
+   ],
+   "bloecke": 539,
+   "abstaende": 539,
+   "median_s": 80.0,
+   "p90_s": 301.2,
+   "p99_s": 590.6,
+   "mittel_s": 122.4,
+   "anteil_ueber_600s_pct": 1.11,
+   "negative": 0,
+   "laengste_luecke_s": 1016.0,
+   "laengste_luecke_vor_block": 3126378,
+   "tx_in_bloecken": 2,
+   "abdeckung_pct": 28.8,
+   "peers_je_block_median": 12.0,
+   "spread_ms_median": 309.0,
+   "spread_ms_p90": 1061.8,
+   "bloecke_mit_spread": 155,
+   "erste_sicht_minus_kopfzeit_s_median": 12.9
+  }
+ ],
+ "art": "counted aus eigenen Koepfen und eigener Ersten Sicht, computed fuer exponentielle Abstaende mit Mittel 120 s",
+ "grenzen": "ein Zuhoerer an einem Ort; Arbeitsnachweis nicht geprueft, Hash selbst nachgerechnet und durch den Nachfolger bestaetigt"
+}
