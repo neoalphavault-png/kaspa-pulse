@@ -3,10 +3,38 @@
   "raster/instagram": [
    {
     "datum": "2026-11-07",
+    "look": "A-papier",
+    "motiv": "blockstrom",
+    "schritt": 0,
+    "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-11-07",
     "look": "hell",
     "motiv": "knotennetz",
     "schritt": 1,
     "serie": "karussell"
+   }
+  ],
+  "tagesgrafik/discord": [
+   {
+    "datum": "2026-11-07",
+    "look": "A-papier",
+    "schritt": 0
+   }
+  ],
+  "tagesgrafik/threads": [
+   {
+    "datum": "2026-11-07",
+    "look": "A-papier",
+    "schritt": 0
+   }
+  ],
+  "tagesgrafik/x": [
+   {
+    "datum": "2026-11-07",
+    "look": "A-papier",
+    "schritt": 0
    }
   ]
  }
