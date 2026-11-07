@@ -2,9 +2,10 @@
 """ph_stil.py - gemeinsamer Stil fuer alle PulseHawk-Grafiken (Ben, 06.11.2026).
 
 Ben: "zu fett, filigraner und dezenter, apple style". Alle Vorlagen
-(ph_entwurf bch und zcash, nu7_zitat, report-karten) nehmen ihre Werte von
-hier, damit eine Aenderung an einer Stelle reicht. Umgestellt werden die
-Vorlagen erst nach Bens Freigabe des Musters.
+(ph_entwurf bch und zcash, nu7_karte, report_karte) nehmen ihre Werte von
+hier, damit eine Aenderung an einer Stelle reicht. Freigegeben von Ben am
+07.11.2026. Dieselbe Datei liegt in kaspa-pulse und pulsehawk-site
+(scripts/ph/), wie ph_entwurf.py. Wer eine aendert, aendert beide.
 
 Vorgaben
   1. Schrift Inter (OFL, assets/fonts/inter). Grosse Zahl light 300,
@@ -35,6 +36,7 @@ Bild bei etwa 390 px, aus 30 werden 11 px (grafik_check.py, 19.08.2026).
 import base64
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -167,6 +169,23 @@ def messen(html_pfad, breite, hoehe):
     return json.loads(out)
 
 
+# Textregeln wie zeichen_pruefen in grafik_check.py von kaspa-pulse. Hier
+# abgeschrieben, damit ph_stil.py in kaspa-pulse und pulsehawk-site gleich ist.
+VERBOTEN = ["\u2014", "\u2013", " - ", ":", "\u2192"]
+AUSNAHME = re.compile(r"\d:\d|https?://|\w+\.(com|io|org|app|stream|fyi)")
+
+
+def zeichen_pruefen(text):
+    fehler = []
+    for zeile in text.splitlines():
+        if AUSNAHME.search(zeile):
+            continue
+        for v in VERBOTEN:
+            if v in zeile:
+                fehler.append("verbotenes zeichen %r in %r" % (v, zeile[:50]))
+    return fehler
+
+
 def pruefen_daten(d, breite, hoehe):
     """Liste der Klagen gegen die Vorgaben, leer heisst bestanden."""
     k = []
@@ -207,10 +226,7 @@ def pruefen_daten(d, breite, hoehe):
         k.append("fuss %r fehlt" % FUSS)
     if any(c.isupper() for c in d["sicht"].replace(FUSS, "")):
         k.append("grossbuchstaben ausserhalb des fusses")
-    # Textregeln aus grafik_check.py (kaspa-pulse)
-    sys.path.insert(0, os.path.join(REPO, "scripts"))
-    import grafik_check as G  # noqa: E402
-    k += G.zeichen_pruefen(d["sicht"].replace(FUSS, ""))
+    k += zeichen_pruefen(d["sicht"].replace(FUSS, ""))
     for w in ("now", "live"):
         if (" %s " % w) in (" " + d["sicht"].lower().replace("\n", " ") + " "):
             k.append("wort %r" % w)
