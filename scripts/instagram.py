@@ -382,11 +382,12 @@ def url_warten(url, laenge, frist=600, takt=15):
 # raw-Adresse eines Commits steht sofort nach dem Push und aendert sich nie:
 # raw.githubusercontent.com/<repo>/<commit-sha>/ig/<datei>, image/jpeg mit
 # genau der Laenge der Datei. Pages bleibt der Rueckfall.
-# Instagram bleibt bei Pages (IG_RAW), bis die Probe zeigt, dass Meta die
-# raw-Adresse fuer Instagram annimmt (threads.yml, Handlauf, quelle-probe).
+# Instagram nimmt die raw-Adresse seit dem 7.11.2026 auch (IG_RAW). Die Probe
+# im Threads-Handlauf 42354928059 legte mit derselben raw-Adresse einen
+# Instagram-Container an, Status FINISHED, nie veroeffentlicht.
 RAW_BASIS = "https://raw.githubusercontent.com"
 RAW_FRIST = 120
-IG_RAW = False
+IG_RAW = True
 
 
 def repo_name():
@@ -1222,7 +1223,7 @@ def selbsttest():
            and url == SEITE + "/ig/x-threads.jpg")
         os.chdir(alt_cwd)
     ok("absoluter pfad im repo wird ig/<datei>", repo_pfad(REPO / "ig" / "y.jpg") == "ig/y.jpg")
-    ok("instagram bleibt bis zur probe bei pages", IG_RAW is False)
+    ok("instagram nimmt seit der probe vom 7.11. die raw-adresse", IG_RAW is True)
     # jpeg
     try:
         from PIL import Image
