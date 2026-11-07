@@ -29,6 +29,14 @@ faellig. Keine Zwei-Satz-Notiz faellig, keine Skip-Rate ueber 80 Prozent.
 Haengende Laeufe: keiner ausser dem bekannten Lauf 166. Kanal Pulse Hawk
 unveraendert, juengster Short weiter vom 14.09.2026.
 
+Roter Lauf, nicht von mir angefasst: pulse-studio `instagram reel`, Lauf 40,
+Run-ID 42234460314, 06.11.2026 14:30 utc. Fehlerzeile vollstaendig:
+`Error: Ton und Caption nennen verschiedene Monate bei fr: die Caption sagt
+may, october, september, die Aufnahme sagt march. Entweder ist die Kennzahl
+nachgezogen und die Aufnahme nicht, oder umgekehrt.` Die Wache hat den Reel
+vor dem Posten gestoppt, Exit 1. Ben entscheidet; nichts korrigiert, nichts
+neu gestartet.
+
 Ablage: claude/ablage-automatik-pruefung, Head <dieser Commit>
 
 ## Unsicherheiten
