@@ -7,6 +7,34 @@
     "motiv": "knotennetz",
     "schritt": 1,
     "serie": "karussell"
+   },
+   {
+    "datum": "2026-11-08",
+    "look": "A-teal",
+    "motiv": "punktraster",
+    "schritt": 2,
+    "serie": "tagesgrafik"
+   }
+  ],
+  "tagesgrafik/discord": [
+   {
+    "datum": "2026-11-08",
+    "look": "A-papier",
+    "schritt": 0
+   }
+  ],
+  "tagesgrafik/threads": [
+   {
+    "datum": "2026-11-08",
+    "look": "A-papier",
+    "schritt": 0
+   }
+  ],
+  "tagesgrafik/x": [
+   {
+    "datum": "2026-11-08",
+    "look": "A-papier",
+    "schritt": 0
    }
   ]
  }

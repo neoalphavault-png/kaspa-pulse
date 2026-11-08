@@ -646,6 +646,31 @@
      "verhaeltnis": 624.19
     }
    }
+  },
+  {
+   "datum": "2026-11-08",
+   "form": 4,
+   "grund": "rotation, 3 laeufe in 30 tagen, zahl des tages mined_left (vorab gerechnet), uebersprungen [7, 10]",
+   "messzeit_utc": "2026-11-08T06:30:43+00:00",
+   "looks": {
+    "instagram": "A-teal",
+    "threads": "A-papier",
+    "x": "A-papier",
+    "discord": "A-papier"
+   },
+   "messwerte": {
+    "bps": 10.050157232206168,
+    "blockrate_sek": 600,
+    "daa": 586996797,
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-09",
+     "bis": "2026-11-07",
+     "fees": 84069.73078486,
+     "emission": 53057338.97460097,
+     "verhaeltnis": 631.11
+    }
+   }
   }
  ]
 }
