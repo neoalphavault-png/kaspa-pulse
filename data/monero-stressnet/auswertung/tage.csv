@@ -1,4 +1,4 @@
 hoehe_von,hoehe_bis,tag_utc,bloecke,abstaende,median_s,p90_s,p99_s,mittel_s,anteil_ueber_600s_pct,negative,laengste_luecke_s,laengste_luecke_vor_block,tx_in_bloecken,abdeckung_pct,peers_je_block_median,spread_ms_median,spread_ms_p90,bloecke_mit_spread,erste_sicht_minus_kopfzeit_s_median
 3125743,3126075,2026-11-06,333,332,36.0,111.9,247.7,49.1,0.0,0,437.0,3126070,0,0.0,,,,0,
 3126076,3126790,2026-11-07,715,715,79.0,301.6,561.5,121.1,0.84,0,1016.0,3126378,3,46.3,12.0,331.0,1347.0,331,9.9
-3126791,3126958,2026-11-08,168,168,74.5,282.6,605.1,109.4,1.19,0,698.0,3126881,1,100.0,12.0,372.0,1654.9,168,9.5
+3126791,3127158,2026-11-08,368,368,72.0,248.1,475.9,103.0,0.54,0,698.0,3126881,1,100.0,12.0,149.0,1083.6,368,9.8
