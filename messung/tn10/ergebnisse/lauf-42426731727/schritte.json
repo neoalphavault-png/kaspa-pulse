@@ -1,0 +1,184 @@
+{
+ "variante": "ohne_f8",
+ "nachlauf_s": 10,
+ "tx_k1": 0,
+ "tx_k2": 0,
+ "union_k1": {
+  "f1": {
+   "sekunden": 900,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "gap1": {
+   "sekunden": 300,
+   "hops": 0,
+   "hops_nach_nachlauf": 0
+  },
+  "f2": {
+   "sekunden": 900,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "gap2": {
+   "sekunden": 300,
+   "hops": 0,
+   "hops_nach_nachlauf": 0
+  },
+  "f4": {
+   "sekunden": 900,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "gap3": {
+   "sekunden": 300,
+   "hops": 0,
+   "hops_nach_nachlauf": 0
+  },
+  "r1": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r2": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r3": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r4": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r5": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r6": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r7": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r8": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r9": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r10": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "ruhe": {
+   "sekunden": 3000,
+   "hops": 0,
+   "hops_nach_nachlauf": 0
+  }
+ },
+ "nah_an_linie_k1": [],
+ "union_k2": {
+  "f1": {
+   "sekunden": 900,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "gap1": {
+   "sekunden": 300,
+   "hops": 0,
+   "hops_nach_nachlauf": 0
+  },
+  "f2": {
+   "sekunden": 900,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "gap2": {
+   "sekunden": 300,
+   "hops": 0,
+   "hops_nach_nachlauf": 0
+  },
+  "f4": {
+   "sekunden": 900,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "gap3": {
+   "sekunden": 300,
+   "hops": 0,
+   "hops_nach_nachlauf": 0
+  },
+  "r1": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r2": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r3": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r4": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r5": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r6": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r7": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r8": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r9": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r10": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "ruhe": {
+   "sekunden": 3000,
+   "hops": 0,
+   "hops_nach_nachlauf": 0
+  }
+ },
+ "nah_an_linie_k2": [],
+ "praefix": "f",
+ "sekunden_ungleich": 0
+}
