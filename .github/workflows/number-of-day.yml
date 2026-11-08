@@ -19,6 +19,13 @@ on:
     - cron: "42 9 * * *"
 permissions:
   contents: write
+env:
+  # GOKU-X AUS (Ben, 7.11.2026, dauerhaft): auf @gokugalax geht kein post
+  # mehr raus, den ein workflow oder skript per api absetzt. discord,
+  # telegram, instagram, threads, newsletter und pulsehawk laufen weiter.
+  # x_post.py sperrt jeden POST ohne X_GOKU_AN=true. wieder an: diese zeile
+  # auf "true". bericht berichte/2026-11-08-goku-x-pause.md
+  X_GOKU_AN: "false"
 jobs:
   x-test:
     if: github.event_name == 'workflow_dispatch' && inputs.x_test != ''
@@ -110,8 +117,11 @@ jobs:
       # sperre: data/x-post-log.json (key nod-<datum>), nie doppelt.
       # faellt x aus, wird der lauf rot, aber archiv und log werden unten
       # trotzdem committet (always), sonst rechnet die sperrfrist nicht weiter.
+      - name: x pausiert
+        if: steps.guard.outputs.done != '1' && steps.pick.outputs.picked == '1' && env.X_GOKU_AN != 'true'
+        run: echo "x-post von @gokugalax pausiert (X_GOKU_AN=$X_GOKU_AN), discord und telegram sind raus"
       - name: post to x
-        if: steps.guard.outputs.done != '1' && steps.pick.outputs.picked == '1'
+        if: steps.guard.outputs.done != '1' && steps.pick.outputs.picked == '1' && env.X_GOKU_AN == 'true'
         env:
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
