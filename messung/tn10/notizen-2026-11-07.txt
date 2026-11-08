@@ -6,3 +6,5 @@ liegt eine familie in einer stufe bis 10 hops um die linie (1,026 bzw. 3,078): i
   schritte.json nah_an_linie_k1/k2). nicht entscheiden, nur zeigen
 stp: in den zwei bisherigen 32-familien-laeufen blieb die langsamste familie unter der linie (source stp),
   die last laeuft trotzdem volle 45 min
+8.11.: stp bestaetigt, der lauf vom 7.11. startete nicht (keine genesis, keine sends). wiederholung di 10.11. mit gleicher
+  form, gleichen zeiten und regeln (lauf-2026-11-10.txt, lauf-2026-11-10-load32.txt). alles oben gilt fuer den 10.11. weiter

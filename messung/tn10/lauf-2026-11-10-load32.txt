@@ -1,0 +1,8 @@
+# stp-lauf di 10.11.2026, datei 2: last mit 32 familien g1 bis g32, wiederholung des 7.11. mit gleichen zeiten (stp und ben, 8.11.).
+# je zeile: variante name von bis familien. vor und ruhe ohne familien: dort zaehlen nur hops, die nicht da sein sollten.
+# rate nur aus hops in 21:15 bis 22:00 (2,700 s), linie 3,078 je familie. spaet: die 15 min danach, spaete landungen, reine liste (stp count.md, ben 7.11.).
+praefix=g
+beide vor 2026-11-10T21:10:00Z 2026-11-10T21:15:00Z 0
+beide load32 2026-11-10T21:15:00Z 2026-11-10T22:00:00Z 32
+beide spaet 2026-11-10T22:00:00Z 2026-11-10T22:15:00Z 32
+beide ruhe 2026-11-10T22:15:00Z 2026-11-10T22:25:00Z 0
