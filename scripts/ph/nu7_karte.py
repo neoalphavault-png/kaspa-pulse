@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""nu7_karte.py - NU7-Karte "how close our estimates came" (Ben, 08.11.2026).
+"""nu7_karte.py - NU7-Karte "when would nu7 activate?" (Ben, 08.11.2026).
+
+Fassung vom 08.11. abends: Die Karte soll die Messung verkaufen. Grosse Zahl
+"4 of 4" (Schaetzungen im 90-%-Band), Tabelle aus Sicht des Blocks ("the block
+came 12 min 10 s later"). Davor am selben Tag: "how close our estimates came".
 
 Neu gebaut, weil die Fassung mit Zeitachse schwer zu lesen war (Ben 08.11.):
 keine Achse, sondern eine Tabelle mit den vier Schaetzungen, "too late" und
@@ -83,12 +87,28 @@ def gemacht_text(tag):
     return f"{d.day} {d.strftime('%b').lower()}"
 
 
+def block_kam(differenz_s):
+    """Aus Sicht des Blocks (Ben 08.11. abends): Schaetzung vor dem Block heisst, der Block kam spaeter."""
+    if differenz_s < 0:
+        return f"{S.dauer(differenz_s)} later"
+    if differenz_s > 0:
+        return f"{S.dauer(differenz_s)} earlier"
+    return "on time"
+
+
+def vorlauf_tage(gemacht, kopf):
+    """Ganze Tage zwischen dem Tag der Schaetzung und dem UTC-Tag des Blocks."""
+    d0 = datetime.strptime(gemacht, "%Y-%m-%d").date()
+    return (datetime.fromtimestamp(kopf, timezone.utc).date() - d0).days
+
+
 def html(sch, kopf, skala=1.0):
     F, T = S.FARBE, S.SCHRIFT
-    letzte = sch[-1]
+    im_band = sum(1 for s in sch if s["im_band"])
+    tage = [vorlauf_tage(s["gemacht"], kopf) for s in sch]
     reihen = "".join(
         f'<tr><td class="l">{gemacht_text(s["gemacht"])}</td><td>{utc(s["median"])}</td>'
-        f'<td class="o">{S.dauer(s["differenz_s"])} {s["richtung"]}</td>'
+        f'<td class="o">{block_kam(s["differenz_s"])}</td>'
         f'<td class="b">{"inside" if s["im_band"] else "outside"}</td></tr>' for s in sch)
     fenster = sorted({s["fenster_tage"] for s in sch})
     if fenster == [14]:
@@ -99,10 +119,10 @@ def html(sch, kopf, skala=1.0):
                  + " and ".join(f'{gemacht_text(s["gemacht"])} one from {s["fenster_tage"]} days' for s in abweich) + ".")
     css = f"""
 .zahl {{ color:{F["tuerkis"]}; }}
-table {{ width:100%; border-collapse:collapse; margin-top:72px; font-feature-settings:'tnum' 1; table-layout:fixed; }}
-col.c1 {{ width:236px; }} col.c2 {{ width:164px; }} col.c4 {{ width:150px; }}
+table {{ width:100%; border-collapse:collapse; margin-top:52px; font-feature-settings:'tnum' 1; table-layout:fixed; }}
+col.c1 {{ width:226px; }} col.c2 {{ width:206px; }} col.c4 {{ width:150px; }}
 th {{ font-size:{T["klein"][0]}px; font-weight:400; color:{F["neben"]}; text-align:left; padding:0 0 16px; white-space:nowrap; }}
-td {{ font-size:32px; font-weight:400; color:{F["text"]}; padding:20px 0;
+td {{ font-size:32px; font-weight:400; color:{F["text"]}; padding:16px 0;
       border-top:{S.LINIE_PX}px solid {F["linie"]}; white-space:nowrap; }}
 td.l {{ color:{F["neben"]}; }}
 td.o {{ font-weight:{T["label"][1]}; }}
@@ -110,12 +130,13 @@ td.b, th.b {{ text-align:right; }}
 td.b {{ color:{F["neben"]}; }}
 """
     inhalt = f"""
-<div class="klein kicker">zcash nu7, 6 nov 2026</div>
-<div class="titel" style="margin-top:10px">how close our estimates came</div>
-<div class="zahl" data-rolle="gezaehlt" style="margin-top:64px">{S.dauer(letzte["differenz_s"])}</div>
-<div class="unter" style="margin-top:14px">our last estimate was {S.dauer(letzte["differenz_s"])} {letzte["richtung"]}</div>
-<table><colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"></colgroup><tr><th>estimate made</th><th>we said</th><th>off by</th><th class="b">90% band</th></tr>{reihen}</table>
-<div class="klein" style="margin-top:56px">block {HOEHE:,} at {utc(kopf)} utc, header time counted on our own header client.</div>
+<div class="klein kicker">zcash nu7 upgrade, 6 nov 2026</div>
+<div class="titel" style="margin-top:10px">when would nu7 activate?</div>
+<div class="zahl" data-rolle="gezaehlt" style="margin-top:44px">{im_band} of {len(sch)}</div>
+<div class="unter" style="margin-top:14px">estimates landed inside their 90% band</div>
+<div class="klein" style="margin-top:10px">published {max(tage)} to {min(tage)} days ahead, checked against the block</div>
+<table><colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"></colgroup><tr><th>estimate made</th><th>we said (utc)</th><th>the block came</th><th class="b">90% band</th></tr>{reihen}</table>
+<div class="klein" style="margin-top:40px">block {HOEHE:,} at {utc(kopf)} utc, header time counted on our own header client.</div>
 <div class="klein" style="margin-top:6px">{H.escape(fuss2)}</div>
 """
     return S.seite(inhalt, B, BH, skala, extra_css=css)
@@ -137,7 +158,7 @@ def main():
     S.vorschau(png, os.path.join(a.aus, "nu7-390.png"))
     rechnung = {"kopfzeit_utc": utc(kopf, True), "kopfzeit_unix": kopf,
                 "schaetzungen": [{"gemacht": s["gemacht"], "quelle": s["quelle"], "median_utc": utc(s["median"], True),
-                                  "differenz_s": s["differenz_s"], "off_by": f'{S.dauer(s["differenz_s"])} {s["richtung"]}',
+                                  "differenz_s": s["differenz_s"], "the_block_came": block_kam(s["differenz_s"]),
                                   "band_utc": [utc(s["band"][0], True), utc(s["band"][1], True)],
                                   "im_band": s["im_band"], "fenster_tage": s["fenster_tage"]} for s in sch]}
     json.dump(rechnung, open(os.path.join(a.aus, "rechnung.json"), "w"), indent=1)
