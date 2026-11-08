@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""nu7_karte.py - NU7-Karte "when would nu7 activate?" (Ben, 08.11.2026).
+"""nu7_karte.py - NU7-Karte "4 of 4 forecasts" (Ben, 08.11.2026, Nachtrag 2: "forecast" statt "estimate").
 
 Fassung vom 08.11. abends: Die Karte soll die Messung verkaufen. Grosse Zahl
 "4 of 4" (Schaetzungen im 90-%-Band), Tabelle aus Sicht des Blocks ("the block
@@ -112,17 +112,19 @@ def html(sch, kopf, skala=1.0):
         f'<td class="b">{"inside" if s["im_band"] else "outside"}</td></tr>' for s in sch)
     fenster = sorted({s["fenster_tage"] for s in sch})
     if fenster == [14]:
-        fuss2 = "each estimate computed from the block pace of the 14 days before it."
+        fuss2 = "forecasts from the block pace of the 14 days before each date. method PH-M-006."
     else:
         abweich = [s for s in sch if s["fenster_tage"] != 14]
-        fuss2 = ("each estimate computed from the block pace of the 14 days before it, the "
-                 + " and ".join(f'{gemacht_text(s["gemacht"])} one from {s["fenster_tage"]} days' for s in abweich) + ".")
+        fuss2 = ("forecasts from the block pace of the 14 days before each date, the "
+                 + " and ".join(f'{gemacht_text(s["gemacht"])} one from {s["fenster_tage"]} days' for s in abweich)
+                 + ". method PH-M-006.")
     css = f"""
 .zahl {{ color:{F["tuerkis"]}; }}
-table {{ width:100%; border-collapse:collapse; margin-top:52px; font-feature-settings:'tnum' 1; table-layout:fixed; }}
+.fn {{ font-feature-settings:normal; }}
+table {{ width:100%; border-collapse:collapse; margin-top:32px; font-feature-settings:'tnum' 1; table-layout:fixed; }}
 col.c1 {{ width:226px; }} col.c2 {{ width:206px; }} col.c4 {{ width:150px; }}
 th {{ font-size:{T["klein"][0]}px; font-weight:400; color:{F["neben"]}; text-align:left; padding:0 0 16px; white-space:nowrap; }}
-td {{ font-size:32px; font-weight:400; color:{F["text"]}; padding:16px 0;
+td {{ font-size:32px; font-weight:400; color:{F["text"]}; padding:12px 0;
       border-top:{S.LINIE_PX}px solid {F["linie"]}; white-space:nowrap; }}
 td.l {{ color:{F["neben"]}; }}
 td.o {{ font-weight:{T["label"][1]}; }}
@@ -131,13 +133,15 @@ td.b {{ color:{F["neben"]}; }}
 """
     inhalt = f"""
 <div class="klein kicker">zcash nu7 upgrade, 6 nov 2026</div>
-<div class="titel" style="margin-top:10px">when would nu7 activate?</div>
-<div class="zahl" data-rolle="gezaehlt" style="margin-top:44px">{im_band} of {len(sch)}</div>
-<div class="unter" style="margin-top:14px">estimates landed inside their 90% band</div>
-<div class="klein" style="margin-top:10px">published {max(tage)} to {min(tage)} days ahead, checked against the block</div>
-<table><colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"></colgroup><tr><th>estimate made</th><th>we said (utc)</th><th>the block came</th><th class="b">90% band</th></tr>{reihen}</table>
-<div class="klein" style="margin-top:40px">block {HOEHE:,} at {utc(kopf)} utc, header time counted on our own header client.</div>
-<div class="klein" style="margin-top:6px">{H.escape(fuss2)}</div>
+<div class="klein" style="margin-top:14px; color:{F["text"]}">nu7 starts at a block height, not a set time.</div>
+<div class="klein" style="color:{F["text"]}">we forecast the time, and published every forecast in advance.</div>
+<div class="zahl" data-rolle="gezaehlt" style="margin-top:24px">{im_band} of {len(sch)}</div>
+<div class="unter" style="margin-top:22px">forecasts landed inside their 90% band</div>
+<div class="klein fn" style="margin-top:8px">published {max(tage)} to {min(tage)} days ahead, scored against the counted block</div>
+<table><colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"></colgroup><tr><th>forecast made</th><th>we said (utc)</th><th>the block came</th><th class="b">90% band</th></tr>{reihen}</table>
+<div class="klein fn" style="margin-top:32px">block {HOEHE:,} at {utc(kopf)} utc, header time counted on our own header client.</div>
+<div class="klein fn" style="margin-top:6px">{H.escape(fuss2)}</div>
+<div class="klein fn" style="margin-top:6px">every forecast, hits and misses, on pulsehawk.io/track-record</div>
 """
     return S.seite(inhalt, B, BH, skala, extra_css=css)
 
