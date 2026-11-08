@@ -1,5 +1,9 @@
 # TN10 storm Sat 7 Nov 2026, file 1, what we counted
 
+## Addendum, 8 Nov 2026
+
+STP confirmed on 8 Nov that the window did not run. Our counter counted an empty window correctly as empty.
+
 Kaspa Pulse count of the Saturday window on Testnet-10, 19:00 to 21:00 UTC, one to eight families. The rules are the ones in STP's `plan/COUNT.md` and in our confirmation `berichte/2026-11-07-stp-count-abgleich.md`. Numbers from our two nodes are marked counted. We publish hashes and counts only, no ids.
 
 ## Accepted hops
