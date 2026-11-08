@@ -1,5 +1,5 @@
 {
- "erstellt_utc": "2026-11-07 23:41:06",
+ "erstellt_utc": "2026-11-08 05:06:50",
  "ziel_s": 120,
  "computed": {
   "median_s": 83.2,
@@ -8,13 +8,13 @@
   "anteil_ueber_600s_pct": 0.674
  },
  "kette": {
-  "bloecke": 1037,
+  "bloecke": 1216,
   "hoehen": [
    3125743,
-   3126779
+   3126958
   ],
   "von_utc": "2026-11-06 19:24:20",
-  "bis_utc": "2026-11-07 23:39:20",
+  "bis_utc": "2026-11-08 05:06:25",
   "luecken_in_der_kette": 0
  },
  "abseits_der_kette": 0,
@@ -47,25 +47,49 @@
    "tag_utc": "2026-11-07",
    "hoehen": [
     3126076,
-    3126779
+    3126790
    ],
-   "bloecke": 704,
-   "abstaende": 704,
+   "bloecke": 715,
+   "abstaende": 715,
    "median_s": 79.0,
-   "p90_s": 303.4,
-   "p99_s": 562.7,
-   "mittel_s": 121.3,
-   "anteil_ueber_600s_pct": 0.85,
+   "p90_s": 301.6,
+   "p99_s": 561.5,
+   "mittel_s": 121.1,
+   "anteil_ueber_600s_pct": 0.84,
    "negative": 0,
    "laengste_luecke_s": 1016.0,
    "laengste_luecke_vor_block": 3126378,
-   "tx_in_bloecken": 2,
-   "abdeckung_pct": 45.5,
+   "tx_in_bloecken": 3,
+   "abdeckung_pct": 46.3,
    "peers_je_block_median": 12.0,
-   "spread_ms_median": 342.0,
-   "spread_ms_p90": 1349.6,
-   "bloecke_mit_spread": 320,
-   "erste_sicht_minus_kopfzeit_s_median": 9.8
+   "spread_ms_median": 331.0,
+   "spread_ms_p90": 1347.0,
+   "bloecke_mit_spread": 331,
+   "erste_sicht_minus_kopfzeit_s_median": 9.9
+  },
+  {
+   "tag_utc": "2026-11-08",
+   "hoehen": [
+    3126791,
+    3126958
+   ],
+   "bloecke": 168,
+   "abstaende": 168,
+   "median_s": 74.5,
+   "p90_s": 282.6,
+   "p99_s": 605.1,
+   "mittel_s": 109.4,
+   "anteil_ueber_600s_pct": 1.19,
+   "negative": 0,
+   "laengste_luecke_s": 698.0,
+   "laengste_luecke_vor_block": 3126881,
+   "tx_in_bloecken": 1,
+   "abdeckung_pct": 100.0,
+   "peers_je_block_median": 12.0,
+   "spread_ms_median": 372.0,
+   "spread_ms_p90": 1654.9,
+   "bloecke_mit_spread": 168,
+   "erste_sicht_minus_kopfzeit_s_median": 9.5
   }
  ],
  "art": "counted aus eigenen Koepfen und eigener Ersten Sicht, computed fuer exponentielle Abstaende mit Mittel 120 s",
