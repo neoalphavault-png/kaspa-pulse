@@ -1,0 +1,4 @@
+# sicherung stp-lauf 7.11. (Ben, 08.11.2026): ganzes fenster, je covenant-id zaehlungen je sekunde,
+# im repo nur id_sha (sha256 der id, lowercase hex) und genesis_sha (sha256 der genesis-tx-id, lowercase hex).
+von=2026-11-07T18:45:00Z
+bis=2026-11-07T22:25:00Z

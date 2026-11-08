@@ -419,10 +419,11 @@ async def verbinden(rolle, partner):
     raise Abbruch("kein knoten")
 
 
-async def zaehle(rpc, takt, von_ms, bis_ms, rand_ms=RAND_MS, ziel_sha="", kette=True, cov_sha=""):
+async def zaehle(rpc, takt, von_ms, bis_ms, rand_ms=RAND_MS, ziel_sha="", kette=True, cov_sha="", cv=None):
     """Ergebnis fuer einen Knoten: zeilen je minute und meta. kette False
     liest nur die Bloecke (Miner-Anteil), angenommen bleibt dann leer."""
-    les, z, mi, cv = Leser(rpc, takt), Zaehler(), Miner(ziel_sha), Covenant(cov_sha)
+    les, z, mi = Leser(rpc, takt), Zaehler(), Miner(ziel_sha)
+    cv = cv if cv is not None else Covenant(cov_sha)     # sicherung 8.11.: eigener sammler
     phasen = {}
 
     def phase(name, a0, t0):

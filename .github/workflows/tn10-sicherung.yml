@@ -1,0 +1,167 @@
+# Kaspa Pulse - covenant-zaehlungen je id und sekunde sichern (Ben, 08.11.2026)
+#
+# Liegt bewusst NUR auf dem Branch messung/tn10-zaehler. Nicht gemergt.
+# Ausloeser: messung/tn10/sicherung/start.txt mit "von=" und "bis=" (UTC).
+# 1. punkt: pruning-punkt beider knoten, sofort auf den branch.
+# 2. stueck: das fenster in stuecken zu 20 min, je zwei knoten, bloecke und kette.
+#    Die covenant-id wird im runner gehasht und verlaesst ihn nie. Tx-IDs bleiben
+#    in den artefakten (30 tage), nie im repo.
+# 3. zusammen: je id nur id_sha, genesis_sha und zahlen auf den branch.
+# Keine Wallet, keine Schluessel, keine Secrets.
+
+name: tn10 sicherung
+
+on:
+  push:
+    branches:
+      - messung/tn10-zaehler
+    paths:
+      - messung/tn10/sicherung/start.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tn10-sicherung
+  cancel-in-progress: false
+
+jobs:
+  punkt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: sdk, version und pruefsumme fest
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+      - name: pruning-punkt beider knoten
+        run: |
+          set -euo pipefail
+          Z=messung/tn10/sicherung
+          T=$(date -u +%Y%m%dT%H%M%SZ)
+          P="$RUNNER_TEMP/partner.json"
+          python3 scripts/tn10_sicherung.py --punkt --rolle k1 --partner "$P" --out "$Z/pruning-punkt-$T-k1.json"
+          python3 scripts/tn10_sicherung.py --punkt --rolle k2 --partner "$P" --out "$Z/pruning-punkt-$T-k2.json"
+          if grep -rqE '[0-9a-f]{64}|kaspa(test)?:[a-z0-9]{20,}|([0-9]{1,3}\.){3}[0-9]{1,3}' $Z/pruning-punkt-$T-*.json; then echo "hash, adresse oder ip gefunden, nichts gesichert"; exit 1; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898309+github-actions[bot]@users.noreply.github.com"
+          git add $Z/pruning-punkt-$T-*.json
+          git commit -q -m "messung: pruning-punkt beider knoten $T"
+          for v in 1 2 3; do
+            git pull -q --rebase origin "$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && exit 0
+            sleep $((v * 3))
+          done
+          exit 1
+
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      stuecke: ${{ steps.p.outputs.stuecke }}
+      von: ${{ steps.p.outputs.von }}
+      bis: ${{ steps.p.outputs.bis }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        run: |
+          python3 - <<'PY' | tee -a "$GITHUB_OUTPUT"
+          import datetime as dt, json
+          w = dict(l.strip().split("=", 1) for l in open("messung/tn10/sicherung/start.txt") if "=" in l and not l.startswith("#"))
+          f = lambda s: dt.datetime.strptime(s, "%Y-%m-%dT%H:%M:%SZ")
+          a, b, st = f(w["von"]), f(w["bis"]), []
+          while a < b:
+              e = min(a + dt.timedelta(minutes=20), b)
+              st.append({"n": len(st) + 1, "von": a.strftime("%Y-%m-%dT%H:%M:%SZ"), "bis": e.strftime("%Y-%m-%dT%H:%M:%SZ")})
+              a = e
+          print("stuecke=" + json.dumps(st))
+          print("von=" + w["von"])
+          print("bis=" + w["bis"])
+          PY
+
+  stueck:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        s: ${{ fromJSON(needs.plan.outputs.stuecke) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: sdk, version und pruefsumme fest
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+      - name: selbsttest
+        run: |
+          python3 scripts/tn10_nachzaehlung.py --selbsttest | tail -n 1
+          python3 scripts/tn10_sicherung.py --selbsttest | tail -n 1
+      - name: zwei knoten, bloecke und kette
+        env:
+          VON: ${{ matrix.s.von }}
+          BIS: ${{ matrix.s.bis }}
+          N: ${{ matrix.s.n }}
+        run: |
+          mkdir -p out/einzeln
+          P="$RUNNER_TEMP/partner.json"
+          python3 scripts/tn10_sicherung.py --von "$VON" --bis "$BIS" --rolle k1 --partner "$P" --out "out/s$N/s$N-k1" > out/einzeln/k1.log 2>&1 &
+          P1=$!
+          sleep 20
+          python3 scripts/tn10_sicherung.py --von "$VON" --bis "$BIS" --rolle k2 --partner "$P" --out "out/s$N/s$N-k2" > out/einzeln/k2.log 2>&1 &
+          P2=$!
+          S=0
+          wait $P1 || S=1
+          wait $P2 || S=1
+          tail -n 2 out/einzeln/k1.log out/einzeln/k2.log
+          rm -rf out/einzeln
+          exit $S
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tn10-sich-s${{ matrix.s.n }}
+          path: out/
+          if-no-files-found: ignore
+          retention-days: 30
+
+  zusammen:
+    needs: [plan, stueck]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: tn10-sich-s*
+          path: ${{ runner.temp }}/stuecke
+      - name: je id und sekunde, nur hashes und zahlen auf den branch
+        env:
+          VON: ${{ needs.plan.outputs.von }}
+          BIS: ${{ needs.plan.outputs.bis }}
+          STUECKE: ${{ needs.stueck.result }}
+        run: |
+          set -euo pipefail
+          Z="messung/tn10/sicherung/fenster-$(echo "$VON" | tr -d ':-')"
+          python3 scripts/tn10_sicherung.py --zusammen "$RUNNER_TEMP/stuecke" --von "$VON" --bis "$BIS" --out "$Z"
+          echo "stuecke: $STUECKE" > "$Z/stuecke-ergebnis.txt"
+          if grep -rqE 'kaspa(test)?:[a-z0-9]{20,}|([0-9]{1,3}\.){3}[0-9]{1,3}' "$Z"; then echo "adresse oder ip gefunden, nichts gesichert"; exit 1; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898309+github-actions[bot]@users.noreply.github.com"
+          git add "$Z"
+          git commit -q -m "messung: covenant-zaehlungen je id und sekunde gesichert, $VON bis $BIS, nur hashes und zahlen"
+          for v in 1 2 3; do
+            git pull -q --rebase origin "$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && { echo "gesichert in $Z"; exit 0; }
+            sleep $((v * 3))
+          done
+          exit 1
