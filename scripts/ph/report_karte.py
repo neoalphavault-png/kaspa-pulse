@@ -47,17 +47,23 @@ def datum(utc):
     return f"{d.day} {d.strftime('%b').lower()} {d.strftime('%H:%M')} utc"
 
 
+def zeit(v):
+    """Zeitabstand nach der Regel vom 08.11.2026: ab 60 s als min und s, darunter Sekunden mit einer Stelle."""
+    x = float(v)
+    if abs(x) >= 60:
+        return S.dauer(x)
+    return f"{x:.0f} s" if x == int(x) else f"{x:.1f} s"
+
+
 def zeilen(z):
     """(label, counted, computed) fuer die Tabelle."""
     t = wert(z, "target_after")["value"]
     return [
-        ("p90 of intervals", zahl(wert(z, "p90_after")["value"]) + " s",
-         zahl(wert(z, "p90_after_model")["value"]) + " s"),
-        ("p99 of intervals", zahl(wert(z, "p99_after")["value"]) + " s",
-         zahl(wert(z, "p99_after_model")["value"]) + " s"),
-        (f"gaps above {zahl(float(t) * 5, 0)} s", zahl(wert(z, "gaps_above_5x_target_after")["value"], 0),
+        ("90% of gaps within", zeit(wert(z, "p90_after")["value"]), zeit(wert(z, "p90_after_model")["value"])),
+        ("99% of gaps within", zeit(wert(z, "p99_after")["value"]), zeit(wert(z, "p99_after_model")["value"])),
+        (f"gaps longer than {zeit(float(t) * 5)}", zahl(wert(z, "gaps_above_5x_target_after")["value"], 0),
          zahl(wert(z, "gaps_above_5x_target_after_model")["value"])),
-        ("longest gap", zahl(wert(z, "longest_gap_after")["value"], 0) + " s", ""),
+        ("longest gap", zeit(wert(z, "longest_gap_after")["value"]), ""),
     ]
 
 
@@ -70,6 +76,7 @@ def html(z, titel, skala=1.0):
         f'<tr><td class="l">{H.escape(a)}</td><td class="c">{H.escape(b)}</td><td class="m">{H.escape(c)}</td></tr>'
         for a, b, c in zeilen(z))
     css = f"""
+.zahl {{ color:{F["tuerkis"]}; }}
 table {{ width:100%; border-collapse:collapse; margin-top:64px; }}
 th {{ font-size:{T["klein"][0]}px; font-weight:400; color:{F["neben"]}; text-align:right; padding:0 0 18px; }}
 th.l {{ text-align:left; }}
@@ -81,10 +88,10 @@ td.m {{ text-align:right; color:{F["neben"]}; width:220px; }}
     inhalt = f"""
 <div class="klein kicker">{H.escape(titel)}</div>
 <div class="titel" style="margin-top:10px">block intervals after activation</div>
-<div class="zahl" style="margin-top:44px">{zahl(p50["value"])} s</div>
-<div class="unter" style="margin-top:14px">counted median, {zahl(modell)} s computed</div>
+<div class="zahl" data-rolle="gezaehlt" style="margin-top:64px">{zeit(p50["value"])}</div>
+<div class="unter" style="margin-top:14px">half of all blocks came within {zeit(p50["value"])} of the one before, the model says {zeit(modell)}</div>
 <table><tr><th class="l"></th><th>counted</th><th>computed</th></tr>{reihen}</table>
-<div class="klein" style="margin-top:44px">target {zahl(ziel, 0)} s, {int(p50["n"]):,} intervals from {datum(p50["window_from_utc"])} to {datum(p50["window_to_utc"])}, header times from our own header client.</div>
+<div class="klein" style="margin-top:44px">target {zeit(ziel)}, {int(p50["n"]):,} intervals from {datum(p50["window_from_utc"])} to {datum(p50["window_to_utc"])}, header times from our own header client.</div>
 """
     return S.seite(inhalt, B, BH, skala, extra_css=css)
 
