@@ -1,48 +1,37 @@
-# Automatik-Pruefung, letzter Stand
+# Automatik-Pruefung, Stand
 
-Stand: **07.11.2026, 09:48 Berlin** (08:48 utc), Samstag. Kein Montag, also
-ohne Uhrwerk-Bericht.
+Stand: **08.11.2026, 09:45 Berlin-Zeit** (08:45 utc). Sonntag, kein
+Uhrwerk-Bericht (der kommt montags).
 
-## Meldung
+## Meldung an Ben
 
-NOD: bis 08:41 utc kein Lauf heute, von der Pruefung genau einmal gestartet
-(Lauf 298, Run-ID 42356563585), gruen durchgelaufen, alle Schritte success.
+Neuer haengender Lauf: `monero stressnet dauer`, Lauf 1, Run-ID 42374283536,
+seit 07.11. 12:51 utc auf `queued`, rund 20 Stunden, nie angelaufen
+(`updated_at` gleich `created_at`), Branch `messung/monero-stressnet`. Nicht
+angefasst, Ben entscheidet. (Lauf 166 ist der bekannte Fall und nicht gemeint.)
 
-X-Post: ja, `nod-2026-11-07`, Post-ID 2118987449472782716, 08:42:31 utc.
-Zum 05. und 06.11. kam kein Post, beide Male Sperrfrist aller Kandidaten
-("heute wurde schon entschieden, kein post") - Bauart, kein Ausfall.
+NOD: heute bis 08:41 utc kein Lauf, deshalb genau einmal gestartet
+(`number-of-day.yml`, `workflow_dispatch` auf `main`, 08:43 utc, Antwort 204
+queued). Von der Pruefung gestartet, kein zweiter Start, nicht gewartet.
 
-Datenstaende: ok. `kas-candles.json` 07.11. 06:30 utc; Multibagger
-`last_run` 06.11. (letzter Handelstag Freitag), Pick ECPG.
+X-Post: nein, fuer heute noch offen. Letzter Eintrag in `data/x-post-log.json`
+ist `nod-2026-11-07`, Post-ID 2118987449472782716, gepostet 08:42:31 utc.
 
-Wachstumslog: Erklaerer MyGZT1BIBsc eingetragen (98 Aufrufe, 7 Likes,
-1 Kommentar); Ø Wiedergabe, Impressionen, Klickrate und neue Abos "offen",
-weil YouTube Analytics fuer Videos ab dem 05.11. noch keine Zeile
-herausgibt. Short TXxUHra5l34 wird am 08.11. faellig, RmTyDOI_Ni8 am 09.11.
-Diff: 96 Einfuegungen, 0 Loeschungen. Branch claude/wachstumslog-2026-11-07,
-Commit 164c837.
+Datenstaende: ok. `data/kas-candles.json` steht auf 2026-11-08 06:37 utc, also
+auf heute. Letzter Handelstag war Freitag der 06.11.; `multibagger-pick.json`
+traegt `date` 2026-11-07 mit den Schlusskursen vom 06.11. (Pick MRNA),
+`multibagger-state.json` meldet `last_run` 07.11. Nichts repariert.
 
-Reels: 0 eingetragen, keines im Fenster 48 bis 72 Stunden. Das juengste Reel
-DfW5XXKFAgl (05.11. 11:12 utc) ist erst 45,6 h alt und wird am 08.11.
-faellig. Keine Zwei-Satz-Notiz faellig, keine Skip-Rate ueber 80 Prozent.
+Wachstumslog: eingetragen Short TXxUHra5l34 (248 Aufrufe, 22 s Ø Wiedergabe,
+66,7 % gesehener Anteil, 4 Likes, 0 Kommentare, 0 neue Abos; Impressionen und
+Klickrate offen, die gibt die Schnittstelle nicht heraus). Kein langes Video
+faellig, Short RmTyDOI_Ni8 wird am 09.11. faellig. Diff: 89 Einfuegungen,
+0 Loeschungen. Branch `claude/wachstumslog-2026-11-08`, Commit f25f9ec.
 
-Haengende Laeufe: keiner ausser dem bekannten Lauf 166. Kanal Pulse Hawk
-unveraendert, juengster Short weiter vom 14.09.2026.
+Reels: 1 eingetragen, DfW5XXKFAgl vom 05.11. (2.576 Aufrufe, Skip-Rate 71,4 %,
+geschauter Anteil 16,6 %, 5,5 s, 30 Likes, 0 Kommentare, 1 Teilen,
+3 Speichern, Trial nein). Keine Zwei-Satz-Notiz faellig, Skip-Rate unter 80 %.
 
-Roter Lauf, nicht von mir angefasst: pulse-studio `instagram reel`, Lauf 40,
-Run-ID 42234460314, 06.11.2026 14:30 utc. Fehlerzeile vollstaendig:
-`Error: Ton und Caption nennen verschiedene Monate bei fr: die Caption sagt
-may, october, september, die Aufnahme sagt march. Entweder ist die Kennzahl
-nachgezogen und die Aufnahme nicht, oder umgekehrt.` Die Wache hat den Reel
-vor dem Posten gestoppt, Exit 1. Ben entscheidet; nichts korrigiert, nichts
-neu gestartet.
-
-Ablage: claude/ablage-automatik-pruefung, Head <dieser Commit>
-
-## Unsicherheiten
-
-Keine offene Unsicherheit. Festgehalten, ohne Handlungsbedarf: YouTube
-Analytics hat fuer die drei jungen Videos (MyGZT1BIBsc, TXxUHra5l34,
-RmTyDOI_Ni8) noch keine Zeile; `ImyB-3dS_ns` vom 03.11. ist enthalten. Das
-sieht nach einem Nachlauf von zwei bis drei Tagen aus und wurde nicht
-geschaetzt, sondern als "offen" eingetragen.
+Offene Unsicherheit: der haengende Lauf 42374283536 oben. Sonst nichts.
+Die Ablage-Zeile mit dem Head-Commit steht in der Meldung an Ben; sie
+kann hier nicht stehen, weil sie auf diesen Commit selbst zeigt.
