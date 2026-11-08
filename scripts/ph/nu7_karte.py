@@ -1,119 +1,148 @@
 #!/usr/bin/env python3
-"""nu7_karte.py - NU7-Karte "expected against counted" im neuen PulseHawk-Stil (Ben, 06.11.2026).
+"""nu7_karte.py - NU7-Karte "how close our estimates came" (Ben, 08.11.2026).
 
-Muster fuer ph_stil.py: dieselben Zahlen wie die Karte vom 6.11.
-(berichte/2026-11-06-zcash-nu7-mainnet.md), jetzt filigran: Inter, grosse
-Zahl light 160 px, Raender 96 px, Tuerkis nur fuer die gezaehlte Linie,
-Band als Flaeche mit 6 % ohne Kasten, Falke tuerkis oben mittig.
+Neu gebaut, weil die Fassung mit Zeitachse schwer zu lesen war (Ben 08.11.):
+keine Achse, sondern eine Tabelle mit den vier Schaetzungen, "too late" und
+"too early" aus einer Richtung, Zeitabstaende in Minuten und Sekunden.
 
-    python3 scripts/ph/nu7_karte.py --aus <ordner>
-    -> nu7-neu-1080x1350.png, nu7-neu-390.png, nu7-neu-1080x1350.html
+Alle Werte kommen aus den Daten, nichts ist eingetippt:
+  - Kopfzeit des Blocks 3.543.405 aus unseren eigenen Koepfen (koepfe.csv.gz,
+    messung/zcash-mainnet), counted
+  - Schaetzungen 23.10., 28.10., 04.11. aus stand-JJJJ-MM-TT.json
+    (vorhersage.median_utc, band_5_utc, band_95_utc, tempo_fenster_tage)
+  - Schaetzung 02.11. aus der Konfiguration der Upgrade-Wache dieses Tages
+    (scripts/wache/ketten/zcash-mainnet.json in Commit 77672e28, erwartet_utc
+    und band_utc); gerechnet aus den 7 Tagen davor
+    (berichte/2026-11-02-nu7-hoehe-pruefung.md), daher --fenster-2nov 7
+Abstand = Schaetzung minus Kopfzeit; positiv heisst "too late" (die Schaetzung
+lag nach dem Block), negativ "too early".
+
+    python3 scripts/ph/nu7_karte.py --stand stand-2026-10-23.json stand-2026-10-28.json stand-2026-11-04.json \
+        --wache-2nov wache-2026-11-02.json --koepfe koepfe.csv.gz --aus <ordner>
+    -> nu7-1080x1350.png, nu7-390.png, nu7-1080x1350.html, rechnung.json
 """
 import argparse
+import csv
+import gzip
+import html as H
+import json
 import os
+import re
 import sys
+from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ph_stil as S  # noqa: E402
 
-B, H = S.FORMAT["hoch"]
-W = B - 2 * S.RAND                       # 888 px Zeichenbreite
+B, BH = S.FORMAT["hoch"]
+HOEHE = 3543405
 
 
-def m(hh, mm, ss=0):
-    """Minuten ab 00:30 utc am 6.11.2026."""
-    return hh * 60 + mm + ss / 60.0 - 30
+def ts(text):
+    t = text.strip().replace("T", " ").replace("Z", "")
+    return datetime.strptime(t, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc).timestamp()
 
 
-BAND = (m(1, 14, 45), m(4, 7, 28))       # 90-%-Band, computed 4.11.
-MEDIAN = m(2, 40, 58)                     # Median, computed 4.11.
-GEZAEHLT = m(2, 34, 2)                    # Kopfzeit Block 3.543.405, counted
-FRUEHER = [("23 oct", "+12.2 min", m(2, 21, 52), "links"),
-           ("28 oct", "+7.8 min", m(2, 26, 16), "links"),
-           ("2 nov", "5.8 min early", m(2, 39, 52), "rechts")]
-PX = W / 240.0                            # 00:30 bis 04:30
+def utc(t, mit_datum=False):
+    d = datetime.fromtimestamp(t, timezone.utc)
+    return d.strftime("%-d %b %H:%M:%S").lower() if mit_datum else d.strftime("%H:%M:%S")
 
 
-def x(t):
-    return round(t * PX, 1)
+def kopfzeit(pfad, hoehe=HOEHE):
+    with gzip.open(pfad, "rt") as f:
+        for z in csv.DictReader(f):
+            if int(z["hoehe"]) == hoehe:
+                return int(z["zeit"])
+    raise SystemExit(f"hoehe {hoehe} nicht in {pfad}")
 
 
-def svg():
+def schaetzungen(stand_pfade, wache_pfad, fenster_2nov):
+    out = []
+    for p in stand_pfade:
+        v = json.load(open(p))["vorhersage"]
+        tag = re.search(r"(\d{4}-\d{2}-\d{2})", os.path.basename(p)).group(1)
+        out.append({"gemacht": tag, "quelle": os.path.basename(p), "median": ts(v["median_utc"]),
+                    "band": (ts(v["band_5_utc"]), ts(v["band_95_utc"])), "fenster_tage": v["tempo_fenster_tage"]})
+    if wache_pfad:
+        a = json.load(open(wache_pfad))["aktivierung"]
+        out.append({"gemacht": "2026-11-02", "quelle": "wache-konfiguration 77672e28", "median": ts(a["erwartet_utc"]),
+                    "band": (ts(a["band_utc"][0]), ts(a["band_utc"][1])), "fenster_tage": fenster_2nov})
+    return sorted(out, key=lambda x: x["gemacht"])
+
+
+def rechnen(sch, kopf):
+    for s in sch:
+        s["differenz_s"] = int(s["median"] - kopf)
+        s["richtung"] = "too late" if s["differenz_s"] > 0 else ("too early" if s["differenz_s"] < 0 else "exact")
+        s["im_band"] = s["band"][0] <= kopf <= s["band"][1]
+    return sch
+
+
+def gemacht_text(tag):
+    d = datetime.strptime(tag, "%Y-%m-%d")
+    return f"{d.day} {d.strftime('%b').lower()}"
+
+
+def html(sch, kopf, skala=1.0):
     F, T = S.FARBE, S.SCHRIFT
-    lw = S.DIAGRAMM_LINIE_PX
-    r = S.PUNKT_PX / 2
-    ach = 300
-    a = []
-    a.append(f'<svg width="{W}" height="400" viewBox="0 0 {W} 400" xmlns="http://www.w3.org/2000/svg">')
-    # Band, Flaeche ohne Kasten
-    a.append(f'<rect x="{x(BAND[0])}" y="96" width="{x(BAND[1]) - x(BAND[0])}" height="{ach - 96}" '
-             f'fill="{F["text"]}" fill-opacity="{S.BAND_DECKKRAFT}" stroke="none"/>')
-    a.append(f'<text x="{x(BAND[1]) - 14}" y="138" text-anchor="end" font-size="{T["klein"][0]}" '
-             f'font-weight="{T["klein"][1]}" fill="{F["neben"]}">90% band</text>')
-    # fruehere Staende, klein und blass
-    a.append(f'<text x="{x(BAND[0]) + 14}" y="138" font-size="{T["klein"][0]}" font-weight="400" '
-             f'fill="{F["neben"]}" fill-opacity="0.7">earlier estimates</text>')
-    for i, (datum, abw, tm, seite) in enumerate(FRUEHER):
-        y = 182 + i * 40
-        a.append(f'<circle cx="{x(tm)}" cy="{y - 10}" r="{r}" fill="{F["neben"]}" fill-opacity="0.7"/>')
-        if seite == "links":
-            a.append(f'<text x="{x(tm) - 14}" y="{y}" text-anchor="end" font-size="{T["klein"][0]}" '
-                     f'font-weight="400" fill="{F["neben"]}" fill-opacity="0.7">{datum} {abw}</text>')
-        else:
-            a.append(f'<text x="{x(tm) + 14}" y="{y}" font-size="{T["klein"][0]}" '
-                     f'font-weight="400" fill="{F["neben"]}" fill-opacity="0.7">{datum} {abw}</text>')
-    # Median 4.11., gestrichelt, Nebentext
-    a.append(f'<line x1="{x(MEDIAN)}" y1="84" x2="{x(MEDIAN)}" y2="{ach}" stroke="{F["neben"]}" '
-             f'stroke-width="{lw}" stroke-dasharray="6 6"/>')
-    a.append(f'<text x="{x(MEDIAN) + 16}" y="36" font-size="{T["label_leise"][0]}" '
-             f'font-weight="{T["label_leise"][1]}" fill="{F["neben"]}">computed 4 nov</text>')
-    a.append(f'<text x="{x(MEDIAN) + 16}" y="74" font-size="{T["klein"][0]}" font-weight="400" '
-             f'fill="{F["neben"]}">median 02:40:58</text>')
-    # gezaehlte Kopfzeit, das eine tuerkise Element
-    a.append(f'<g data-rolle="gezaehlt">'
-             f'<line x1="{x(GEZAEHLT)}" y1="84" x2="{x(GEZAEHLT)}" y2="{ach}" stroke="{F["tuerkis"]}" stroke-width="{lw}"/>'
-             f'<circle cx="{x(GEZAEHLT)}" cy="{ach}" r="{r}" fill="{F["tuerkis"]}"/>'
-             f'<text x="{x(GEZAEHLT) - 16}" y="36" text-anchor="end" font-size="{T["label"][0]}" '
-             f'font-weight="{T["label"][1]}" fill="{F["tuerkis"]}">counted</text></g>')
-    a.append(f'<text x="{x(GEZAEHLT) - 16}" y="74" text-anchor="end" font-size="{T["klein"][0]}" '
-             f'font-weight="400" fill="{F["text"]}">02:34:02</text>')
-    # Achse 1 px
-    a.append(f'<line x1="0" y1="{ach}" x2="{W}" y2="{ach}" stroke="{F["linie"]}" stroke-width="{S.LINIE_PX}"/>')
-    for i, lab in enumerate(["00:30", "01:30", "02:30", "03:30", "04:30"]):
-        xx = i * 60 * PX
-        anker = "start" if i == 0 else ("end" if i == 4 else "middle")
-        a.append(f'<line x1="{xx:.1f}" y1="{ach}" x2="{xx:.1f}" y2="{ach + 10}" stroke="{F["linie"]}" '
-                 f'stroke-width="{S.LINIE_PX}"/>')
-        a.append(f'<text x="{xx:.1f}" y="{ach + 50}" text-anchor="{anker}" font-size="{T["klein"][0]}" '
-                 f'font-weight="400" fill="{F["neben"]}">{lab}</text>')
-    a.append(f'<text x="0" y="{ach + 96}" font-size="{T["klein"][0]}" font-weight="400" fill="{F["neben"]}">'
-             f'6 nov 2026, utc, block 3,543,405</text>')
-    a.append('</svg>')
-    return "\n".join(a)
-
-
-def html(skala=1.0):
-    inhalt = f"""
-<div class="klein kicker">zcash nu7 activation</div>
-<div class="titel" style="margin-top:10px">expected against counted</div>
-<div class="zahl" style="margin-top:72px">6.9 min</div>
-<div class="unter" style="margin-top:14px">early, inside the 90% band</div>
-<div style="margin-top:104px">{svg()}</div>
-<div class="klein" style="margin-top:40px">header time counted on our own header client. band computed from the block pace of the 14 days before 4 nov.</div>
+    letzte = sch[-1]
+    reihen = "".join(
+        f'<tr><td class="l">{gemacht_text(s["gemacht"])}</td><td>{utc(s["median"])}</td>'
+        f'<td class="o">{S.dauer(s["differenz_s"])} {s["richtung"]}</td>'
+        f'<td class="b">{"inside" if s["im_band"] else "outside"}</td></tr>' for s in sch)
+    fenster = sorted({s["fenster_tage"] for s in sch})
+    if fenster == [14]:
+        fuss2 = "each estimate computed from the block pace of the 14 days before it."
+    else:
+        abweich = [s for s in sch if s["fenster_tage"] != 14]
+        fuss2 = ("each estimate computed from the block pace of the 14 days before it, the "
+                 + " and ".join(f'{gemacht_text(s["gemacht"])} one from {s["fenster_tage"]} days' for s in abweich) + ".")
+    css = f"""
+.zahl {{ color:{F["tuerkis"]}; }}
+table {{ width:100%; border-collapse:collapse; margin-top:72px; font-feature-settings:'tnum' 1; table-layout:fixed; }}
+col.c1 {{ width:236px; }} col.c2 {{ width:164px; }} col.c4 {{ width:150px; }}
+th {{ font-size:{T["klein"][0]}px; font-weight:400; color:{F["neben"]}; text-align:left; padding:0 0 16px; white-space:nowrap; }}
+td {{ font-size:32px; font-weight:400; color:{F["text"]}; padding:20px 0;
+      border-top:{S.LINIE_PX}px solid {F["linie"]}; white-space:nowrap; }}
+td.l {{ color:{F["neben"]}; }}
+td.o {{ font-weight:{T["label"][1]}; }}
+td.b, th.b {{ text-align:right; }}
+td.b {{ color:{F["neben"]}; }}
 """
-    return S.seite(inhalt, B, H, skala)
+    inhalt = f"""
+<div class="klein kicker">zcash nu7, 6 nov 2026</div>
+<div class="titel" style="margin-top:10px">how close our estimates came</div>
+<div class="zahl" data-rolle="gezaehlt" style="margin-top:64px">{S.dauer(letzte["differenz_s"])}</div>
+<div class="unter" style="margin-top:14px">our last estimate was {S.dauer(letzte["differenz_s"])} {letzte["richtung"]}</div>
+<table><colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"></colgroup><tr><th>estimate made</th><th>we said</th><th>off by</th><th class="b">90% band</th></tr>{reihen}</table>
+<div class="klein" style="margin-top:56px">block {HOEHE:,} at {utc(kopf)} utc, header time counted on our own header client.</div>
+<div class="klein" style="margin-top:6px">{H.escape(fuss2)}</div>
+"""
+    return S.seite(inhalt, B, BH, skala, extra_css=css)
 
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--stand", nargs="+", required=True)
+    ap.add_argument("--wache-2nov")
+    ap.add_argument("--fenster-2nov", type=int, default=7)
+    ap.add_argument("--koepfe", required=True)
     ap.add_argument("--aus", required=True)
     a = ap.parse_args()
     os.makedirs(a.aus, exist_ok=True)
-    png = os.path.join(a.aus, "nu7-neu-1080x1350.png")
-    q = S.rendern(html(), png, B, H)
-    S.vorschau(png, os.path.join(a.aus, "nu7-neu-390.png"))
-    klagen = S.pruefen_daten(S.messen(q, B, H), B, H)
-    print(png)
+    kopf = kopfzeit(a.koepfe)
+    sch = rechnen(schaetzungen(a.stand, a.wache_2nov, a.fenster_2nov), kopf)
+    png = os.path.join(a.aus, "nu7-1080x1350.png")
+    q = S.rendern(html(sch, kopf), png, B, BH)
+    S.vorschau(png, os.path.join(a.aus, "nu7-390.png"))
+    rechnung = {"kopfzeit_utc": utc(kopf, True), "kopfzeit_unix": kopf,
+                "schaetzungen": [{"gemacht": s["gemacht"], "quelle": s["quelle"], "median_utc": utc(s["median"], True),
+                                  "differenz_s": s["differenz_s"], "off_by": f'{S.dauer(s["differenz_s"])} {s["richtung"]}',
+                                  "band_utc": [utc(s["band"][0], True), utc(s["band"][1], True)],
+                                  "im_band": s["im_band"], "fenster_tage": s["fenster_tage"]} for s in sch]}
+    json.dump(rechnung, open(os.path.join(a.aus, "rechnung.json"), "w"), indent=1)
+    klagen = S.pruefen_daten(S.messen(q, B, BH), B, BH)
+    print(json.dumps(rechnung, indent=1))
     print("\n".join("FEHLER  " + k for k in klagen) or "ok      stil-pruefung bestanden")
     return 1 if klagen else 0
 
