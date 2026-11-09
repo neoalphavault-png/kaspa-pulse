@@ -128,6 +128,27 @@
     "true",
     "false"
    ]
+  },
+  {
+   "datum": "2026-11-09",
+   "tag": "mo",
+   "art": "quiz",
+   "frage": "how many more kaspa addresses hold 100 KAS or more?",
+   "richtig": 3,
+   "aufloesung": {
+    "frage": "how many more kaspa addresses hold 100 KAS or more?",
+    "zahl": "-93",
+    "einheit": "",
+    "satz": "295,633 addresses with at least 100 KAS, -93 in a week",
+    "datum": "week to 31 oct 2026 · source kaspalytics address counts"
+   },
+   "quelle_vorlage": "weekly 2026-11-02",
+   "antworten": [
+    "-393",
+    "+307",
+    "+707",
+    "-93"
+   ]
   }
  ]
 }
