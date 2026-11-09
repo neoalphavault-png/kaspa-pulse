@@ -17,6 +17,8 @@
 #   sudo ./setup.sh pruefen           Gegenprobe, zeigt keine Werte
 #   sudo ./setup.sh wache [KETTE]     Upgrade-Wache einrichten und starten (Standard zcash-mainnet)
 #   sudo ./setup.sh wache-aus [KETTE] Upgrade-Wache nach dem Fenster anhalten
+#   sudo ./setup.sh bch-lauscher      zweiten BCH-Tempnet-Zuhoerer einrichten und starten
+#   sudo ./setup.sh bch-lauscher-aus  ihn vor dem Tempnet-Ende anhalten
 #
 # Reihenfolge: grundlage, Deploy Key auf GitHub eintragen, klonen,
 # runner, hostkey, haerten, dann die Secrets (server-secrets.yml und
@@ -457,6 +459,35 @@ wache_aus() {
   systemctl start "upgrade-wache-sync@$KETTE.service" || true
 }
 
+# Zweiter BCH-Tempnet-Zuhoerer (Ben, 09.11.2026, deploy/c2/bch-lauscher/README.md).
+# Eigener Schritt wie die Wache, ohne Credential. Wiederholbar.
+bch_lauscher() {
+  root_sein
+  B="$ZIEL/deploy/c2/bch-lauscher"
+  meldung "Stand holen"
+  sudo -u "$DIENSTNUTZER" git -C "$ZIEL" pull --ff-only
+  hinweis "$(sudo -u "$DIENSTNUTZER" git -C "$ZIEL" log --oneline -1)"
+  meldung "Units verlinken"
+  for u in bch-lauscher.service bch-lauscher-sync.service bch-lauscher-sync.timer; do
+    if bekannt "$u"; then hinweis "$u schon bekannt"; else systemctl link "$B/$u"; fi
+  done
+  systemctl daemon-reload
+  meldung "Starten"
+  systemctl enable --now bch-lauscher-sync.timer
+  systemctl restart bch-lauscher.service
+  sleep 5
+  systemctl is-active bch-lauscher.service bch-lauscher-sync.timer || true
+  hinweis "journalctl -u bch-lauscher -n 20  zeigt den laufenden Lauf"
+}
+
+bch_lauscher_aus() {
+  root_sein
+  meldung "BCH-Tempnet-Zuhoerer anhalten"
+  systemctl disable --now bch-lauscher.service bch-lauscher-sync.timer || true
+  hinweis "fertige Laeufe ins Repo:"
+  systemctl start bch-lauscher-sync.service || true
+}
+
 BEFEHL="${1:-}"
 # shift ist ein special builtin: ohne Argumente beendet es die Shell
 # sofort, auch mit "|| true". Darum die Abfrage.
@@ -472,5 +503,7 @@ case "$BEFEHL" in
   pruefen)   pruefen ;;
   wache)     wache "${1:-}" ;;
   wache-aus) wache_aus "${1:-}" ;;
-  *) sed -n '2,24p' "$0"; exit 1 ;;
+  bch-lauscher)     bch_lauscher ;;
+  bch-lauscher-aus) bch_lauscher_aus ;;
+  *) sed -n '2,26p' "$0"; exit 1 ;;
 esac
