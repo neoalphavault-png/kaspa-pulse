@@ -14,6 +14,13 @@
     "motiv": "punktraster",
     "schritt": 2,
     "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-11-09",
+    "look": "D-hell",
+    "motiv": "hoehenlinien",
+    "schritt": 3,
+    "serie": "tagesgrafik"
    }
   ],
   "tagesgrafik/discord": [
@@ -21,6 +28,11 @@
     "datum": "2026-11-08",
     "look": "A-papier",
     "schritt": 0
+   },
+   {
+    "datum": "2026-11-09",
+    "look": "D-dunkel",
+    "schritt": 1
    }
   ],
   "tagesgrafik/threads": [
@@ -28,6 +40,11 @@
     "datum": "2026-11-08",
     "look": "A-papier",
     "schritt": 0
+   },
+   {
+    "datum": "2026-11-09",
+    "look": "D-dunkel",
+    "schritt": 1
    }
   ],
   "tagesgrafik/x": [
@@ -35,6 +52,11 @@
     "datum": "2026-11-08",
     "look": "A-papier",
     "schritt": 0
+   },
+   {
+    "datum": "2026-11-09",
+    "look": "D-dunkel",
+    "schritt": 1
    }
   ]
  }
