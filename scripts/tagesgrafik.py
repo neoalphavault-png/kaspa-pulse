@@ -371,6 +371,11 @@ def emission_am_tag(datum):
 # gezeigte Zahl selbst aus Kettendaten oder dem Emissionsplan gerechnet
 # haben. Steckt eine Kaspalytics-Zahl darin, steht allein die Quelle.
 SELBST = "counted by kaspa pulse"
+# Werte aus festen Protokollregeln (Ben, 9.11.2026): der Reward-Cut-Countdown
+# kommt aus dem Emissionsplan, gezaehlt wird dort nichts.
+RECHNUNG = "computed by kaspa pulse from the emission schedule"
+# x-termin und aufforderung zum teilen im discord-text (Ben, 9.11.2026)
+DISCORD_KOEDER = re.compile(r"\bit\s+goes\s+on\s+x\b|\bshare\s+it\s+first\b", re.I)
 # Die Datumszeile darf zwei Zeilen fuellen, nicht mehr. 140 Zeichen sind bei
 # 30 px gut zwei Zeilen auf 952 px Breite (Form 9 im Selbsttest hat 133).
 DATUMSZEILE_MAX = 140
@@ -740,9 +745,9 @@ def vorlage_3(w, now):
     return {"kopf": "NEXT REWARD CUT", "zahl": zahl, "zahl_im_objekt": True,
             "bedeutung": "KAS per block, one step a month. the next step, %s, %s" % (tag(t.date()), uhr(t)),
             "zusatz": "from zero",
-            "herkunft": SELBST, "objekt": objekt,
+            "herkunft": RECHNUNG, "objekt": objekt,
             "x1": "kaspa cuts its block reward again in %s." % zahl,
-            "x2": "next step %s, %s, from the emission schedule" % (tag(t.date()), uhr(t)),
+            "x2": "next step %s, %s, %s" % (tag(t.date()), uhr(t), RECHNUNG),
             "x3": "how often does that happen?",
             "einordnung": "the reward steps down once a month, and 12 steps halve it",
             "pointe": "no vote needed, the schedule sets the date",
@@ -1338,12 +1343,16 @@ def textpruefung(s, form):
     if not DATUMSZEILE.match(s["datumszeile"]):
         fehler.append("datumszeile beginnt nicht mit '<tag> <mon> <jahr>, <hh:mm> utc \u00b7'")
     her = s["datumszeile"].split(" \u00b7 ")[-1]
-    if not (her == SELBST or her.startswith("source ")):
-        fehler.append("datumszeile endet weder auf %r noch auf 'source ...'" % SELBST)
+    if not (her in (SELBST, RECHNUNG) or her.startswith("source ")):
+        fehler.append("datumszeile endet weder auf %r, %r noch auf 'source ...'" % (SELBST, RECHNUNG))
+    if form == 3 and her != RECHNUNG:
+        fehler.append("form 3 kommt aus dem emissionsplan, die herkunft ist %r" % RECHNUNG)
     if "kaspalytics" in s["datumszeile"] and SELBST in s["datumszeile"]:
         fehler.append("counted by kaspa pulse neben einer kaspalytics-zahl")
-    if "it goes on x at %s" % X_ZEIT not in s["discord"].lower():
-        fehler.append("discord-text ohne 'it goes on x at %s'" % X_ZEIT)
+    # der x-termin und die aufforderung zum teilen gehoeren nicht mehr in den
+    # discord-text (Ben, 9.11.2026)
+    if DISCORD_KOEDER.search(s["discord"]):
+        fehler.append("discord-text nennt den x-termin oder fordert zum teilen auf")
     if not re.match(r"(ja|nein|offen), ", s.get("pruefung", "")):
         fehler.append("selbstpruefung beginnt nicht mit ja oder nein")
     # "worth watching" aus dem mail-satz ist kein wert
@@ -1496,7 +1505,7 @@ def ig_stichtag(s, messzeit):
     sonst den Messtag statt des Stichtags der Quelle). Findet sich keiner,
     wird nicht geraten."""
     heute = messzeit.date()
-    if s["herkunft"] == SELBST:
+    if s["herkunft"] in (SELBST, RECHNUNG):
         return heute
     text = " ".join(s.get(k, "") or "" for k in ("herkunft", "x2", "x1", "zusatz"))
     tage = []
@@ -1648,7 +1657,9 @@ def texte(s, form, messzeit, stand=None, tag_iso=None):
         z = saetze(b)
         if not z:
             return ""
-        return stimme.schreibung("%s\n\nshare it first, it goes on x at %s.\n%s" % ("\n".join(z), X_ZEIT, MAIL_SATZ))
+        # ohne den x-termin und die aufforderung zum teilen (Ben, 9.11.2026):
+        # engagement-koeder sind verboten, @gokugalax postet seit #285 nicht mehr
+        return stimme.schreibung("%s\n\n%s" % ("\n".join(z), MAIL_SATZ))
 
     def ig_text(b):
         if b == "vergleich" and not s["vergleich"]:
@@ -2596,7 +2607,6 @@ def selbsttest():
     ok("instagram faengt link, kaufwort, x-termin und zu viele tags", all(ig_pruefung(t, 2) for t in (
         s["instagram"].replace(IG_ZEILE_BIO, "see https://kaspapulse.com"),
         s["instagram"] + "\nthe wallet bought more",
-        s["instagram"] + "\nit goes on x at 17:00",
         s["instagram"] + " #a #b #c")))
     # Messwerte im Tageslog (Ben, 10.10.2026)
     _BLOCKRATE.clear()
@@ -2777,8 +2787,8 @@ def selbsttest():
            and not content_wache.LINK_ODER_DOMAIN.search(sf["antwort"]))
         ok("form %d, antwort wiederholt keine zahl aus bild oder post" % f,
            not (content_wache.kennzahlen(sf["antwort"]) & content_wache.kennzahlen(" ".join(bild_texte(sf)))))
-        ok("form %d, discord mit 17:00 und mail-satz ohne link" % f,
-           "it goes on X at %s." % X_ZEIT in sf["discord"]
+        ok("form %d, discord ohne x-termin und ohne aufforderung zum teilen, mail-satz am ende" % f,
+           not DISCORD_KOEDER.search(sf["discord"])
            and sf["discord"].endswith(__import__("stimme").schreibung(MAIL_SATZ)))
         ok("form %d, drei kanaele, drei bauplaene (%s)" % (f, sf["bauplaene"]),
            len(set(sf["bauplaene"].values())) == 3 and set(sf["bauplaene"]) == set(KANAL_FOLGE))
@@ -2906,8 +2916,17 @@ def selbsttest():
     st3 = FAKE[3]["stufen"]
     ok("form 3, helle stufe und die davor beschriftet",
        (">%.2f</text>" % st3[-1]) in o3 and (">%.2f</text>" % st3[-2]) in o3)
-    ok("form 3, datumszeile ohne die werte, hoechstens eine zeile lang",
-       len(s3["datumszeile"]) <= 70 and "after" not in s3["datumszeile"])
+    # seit 9.11.2026 (Ben) "computed by kaspa pulse from the emission schedule",
+    # die zeile bricht damit auf zwei zeilen um, gerendert ohne ueberlappung
+    ok("form 3, datumszeile ohne die werte, hoechstens zwei zeilen lang, computed aus dem emissionsplan",
+       len(s3["datumszeile"]) <= 95 and "after" not in s3["datumszeile"]
+       and s3["datumszeile"].endswith(RECHNUNG))
+    ok("form 3 mit counted statt computed faellt auf",
+       any("form 3 kommt aus dem emissionsplan" in f for f in textpruefung(
+           dict(s3, datumszeile=s3["datumszeile"].replace(RECHNUNG, SELBST)), 3)))
+    ok("form 3, caption, threads und discord nennen computed aus dem emissionsplan",
+       all(RECHNUNG in s3[k].lower() for k in ("instagram", "threads", "discord") if s3.get(k))
+       and all("counted" not in s3[k].lower() for k in ("instagram", "threads", "discord") if s3.get(k)))
     ok("datumszeile ueber %d zeichen wird abgelehnt" % DATUMSZEILE_MAX,
        any("hoechstens %d" % DATUMSZEILE_MAX in f for f in
            textpruefung(dict(s3, datumszeile=s3["datumszeile"] + " ·" + " x" * 80), 3)))

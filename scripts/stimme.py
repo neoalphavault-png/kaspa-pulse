@@ -63,7 +63,9 @@ FRAGE_TAKT = 4
 HALTEN_TAGE = 30
 
 FLOSKELN = ("one thing we keep in mind", "useful view", "good work by", "the part worth watching",
-            "method on pulsehawk.io")
+            "method on pulsehawk.io",
+            # engagement-koeder (Ben, 9.11.2026)
+            "share it first")
 ALTE_FRAGEN = ("what number would you put next to this one?", "how many kas is that?",
                "what was that work paid?")
 METHODE = re.compile(r"\b(counted|computed|source)\b", re.I)
@@ -377,7 +379,8 @@ def selbsttest():
     s = schreibung("all the weekly numbers in one mail, every monday. https://kaspapulse.com/x")
     ok("links bleiben, wochentag gross", s == "All the weekly numbers in one mail, every Monday. "
        "https://kaspapulse.com/x", s)
-    ok("it goes on X at 17:00", "it goes on X at 17:00" in schreibung("share it first, it goes on x at 17:00."))
+    ok("share it first ist ein koeder und gesperrt (Ben, 9.11.2026)",
+       any("share it first" in v.lower() for v in regel_verstoesse("Share it first, 3 days to the cut on 9 Nov 2026.")))
     ok("KAS, PH/s, UTC, DAA", schreibung("1.23M kas at 12:05 utc, 350 ph/s, the daa score") ==
        "1.23M KAS at 12:05 UTC, 350 PH/s, the DAA score")
     ok("gemischte schreibung bleibt (KAsPa)", "spell KAsPa" in schreibung("together they spell KAsPa"))
