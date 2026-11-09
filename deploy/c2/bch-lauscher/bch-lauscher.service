@@ -1,0 +1,27 @@
+# Kaspa Pulse, zweiter Messpunkt BCH Tempnet auf c2 (Ben, 09.11.2026).
+# Laeuft bis zum Tempnet-Ende (BIS in start.sh) und endet dann von selbst.
+# Keine Werte in dieser Datei, kein Credential noetig.
+[Unit]
+Description=Kaspa Pulse BCH-Tempnet-Zuhoerer c2
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=kpbot
+Group=kpbot
+WorkingDirectory=/opt/kaspa-pulse
+ExecStart=/opt/kaspa-pulse/deploy/c2/bch-lauscher/start.sh
+Restart=on-failure
+RestartSec=30
+StateDirectory=kaspa-pulse
+Environment=PYTHONUNBUFFERED=1
+# Hoechstens 512 MB, damit Wache, Alarm und Takte genug Speicher behalten
+MemoryMax=512M
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/kaspa-pulse
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
