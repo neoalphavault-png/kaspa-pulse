@@ -1,0 +1,52 @@
+metric,key,value,unit,kind,method,window_from_utc,window_to_utc,n,source,note
+M1,target_before,75,s,source,PH-M-001,2026-11-05 02:34:58,2026-11-06 02:33:21,,"ZIP 208 (75 s since Blossom), ZIP 218 (25 s from NU7)",target block interval
+M1,p50_before,51.0,s,counted,PH-M-001,2026-11-05 02:34:58,2026-11-06 02:33:21,1150,heads.csv.gz,heights 3542255 to 3543404; time base header times
+M1,p50_before_model,52.0,s,computed,PH-M-001,2026-11-05 02:34:58,2026-11-06 02:33:21,,,exponential intervals with mean = target
+M1,p90_before,169.1,s,counted,PH-M-001,2026-11-05 02:34:58,2026-11-06 02:33:21,1150,heads.csv.gz,heights 3542255 to 3543404; time base header times
+M1,p90_before_model,172.7,s,computed,PH-M-001,2026-11-05 02:34:58,2026-11-06 02:33:21,,,exponential intervals with mean = target
+M1,p99_before,388.7,s,counted,PH-M-001,2026-11-05 02:34:58,2026-11-06 02:33:21,1150,heads.csv.gz,heights 3542255 to 3543404; time base header times
+M1,p99_before_model,345.4,s,computed,PH-M-001,2026-11-05 02:34:58,2026-11-06 02:33:21,,,exponential intervals with mean = target
+M1,mean_before,75.12,s,counted,PH-M-001,2026-11-05 02:34:58,2026-11-06 02:33:21,1150,heads.csv.gz,heights 3542255 to 3543404; time base header times
+M1,negative_before,0,intervals,counted,PH-M-001,2026-11-05 02:34:58,2026-11-06 02:33:21,1150,heads.csv.gz,header time earlier than the parent's
+M2,longest_gap_before,605,s,counted,PH-M-001,2026-11-05 02:34:58,2026-11-06 02:33:21,1150,heads.csv.gz,"before block 3543368, header time 2026-11-06 01:53:36 UTC; time base header times"
+M2,gaps_above_5x_target_before,13,intervals,counted,PH-M-001,2026-11-05 02:34:58,2026-11-06 02:33:21,1150,heads.csv.gz,interval above 375 s; time base header times
+M2,gaps_above_5x_target_before_model,7.7,intervals,computed,PH-M-001,2026-11-05 02:34:58,2026-11-06 02:33:21,1150,,n x e^-5 for exponential intervals
+M1,target_after,25,s,source,PH-M-001,2026-11-06 02:34:02,2026-11-09 02:33:51,,"ZIP 208 (75 s since Blossom), ZIP 218 (25 s from NU7)",target block interval
+M1,p50_after,17.0,s,counted,PH-M-001,2026-11-06 02:34:02,2026-11-09 02:33:51,10195,heads.csv.gz,heights 3543405 to 3553599; time base header times
+M1,p50_after_model,17.3,s,computed,PH-M-001,2026-11-06 02:34:02,2026-11-09 02:33:51,,,exponential intervals with mean = target
+M1,p90_after,59.0,s,counted,PH-M-001,2026-11-06 02:34:02,2026-11-09 02:33:51,10195,heads.csv.gz,heights 3543405 to 3553599; time base header times
+M1,p90_after_model,57.6,s,computed,PH-M-001,2026-11-06 02:34:02,2026-11-09 02:33:51,,,exponential intervals with mean = target
+M1,p99_after,118.0,s,counted,PH-M-001,2026-11-06 02:34:02,2026-11-09 02:33:51,10195,heads.csv.gz,heights 3543405 to 3553599; time base header times
+M1,p99_after_model,115.1,s,computed,PH-M-001,2026-11-06 02:34:02,2026-11-09 02:33:51,,,exponential intervals with mean = target
+M1,mean_after,25.43,s,counted,PH-M-001,2026-11-06 02:34:02,2026-11-09 02:33:51,10195,heads.csv.gz,heights 3543405 to 3553599; time base header times
+M1,negative_after,0,intervals,counted,PH-M-001,2026-11-06 02:34:02,2026-11-09 02:33:51,10195,heads.csv.gz,header time earlier than the parent's
+M2,longest_gap_after,249,s,counted,PH-M-001,2026-11-06 02:34:02,2026-11-09 02:33:51,10195,heads.csv.gz,"before block 3543445, header time 2026-11-06 03:11:24 UTC; time base header times"
+M2,gaps_above_5x_target_after,81,intervals,counted,PH-M-001,2026-11-06 02:34:02,2026-11-09 02:33:51,10195,heads.csv.gz,interval above 125 s; time base header times
+M2,gaps_above_5x_target_after_model,68.7,intervals,computed,PH-M-001,2026-11-06 02:34:02,2026-11-09 02:33:51,10195,,n x e^-5 for exponential intervals
+M3,tip_switches_depth_2_plus_before,0,switches,counted,PH-M-002,2026-11-05 02:34:58,2026-11-06 02:33:21,1150,wache-log.csv (our watch),headline: switches of our tip with depth 2 or more (as the alarm); n = blocks in the window; time base arrival at our watch
+M3,tip_switches_depth_1_before,0,switches,counted,PH-M-002,2026-11-05 02:34:58,2026-11-06 02:33:21,0,wache-log.csv (our watch),distribution of all switches; n = all switches; time base arrival at our watch
+M3,tip_switches_depth_2_before,0,switches,counted,PH-M-002,2026-11-05 02:34:58,2026-11-06 02:33:21,0,wache-log.csv (our watch),distribution of all switches; n = all switches; time base arrival at our watch
+M3,tip_switches_depth_3_plus_before,0,switches,counted,PH-M-002,2026-11-05 02:34:58,2026-11-06 02:33:21,0,wache-log.csv (our watch),distribution of all switches; n = all switches; time base arrival at our watch
+M3,tip_switch_max_depth_before,0,blocks,counted,PH-M-002,2026-11-05 02:34:58,2026-11-06 02:33:21,0,wache-log.csv (our watch),time base arrival at our watch
+M4,chain_split_duration_before,0,s,counted,PH-M-002,2026-11-05 02:34:58,2026-11-06 02:33:21,0,wache-log.csv (our watch),"two branches from the activation height, each announced by at least 2 peers, both deeper than 2 blocks; n = episodes; time base arrival at our watch"
+M4,chain_split_longest_before,0,s,counted,PH-M-002,2026-11-05 02:34:58,2026-11-06 02:33:21,0,wache-log.csv (our watch),time base arrival at our watch
+M3,tip_switches_depth_2_plus_after,0,switches,counted,PH-M-002,2026-11-06 02:34:02,2026-11-09 02:33:51,10195,wache-log.csv (our watch),headline: switches of our tip with depth 2 or more (as the alarm); n = blocks in the window; time base arrival at our watch
+M3,tip_switches_depth_1_after,19,switches,counted,PH-M-002,2026-11-06 02:34:02,2026-11-09 02:33:51,19,wache-log.csv (our watch),distribution of all switches; n = all switches; time base arrival at our watch
+M3,tip_switches_depth_2_after,0,switches,counted,PH-M-002,2026-11-06 02:34:02,2026-11-09 02:33:51,19,wache-log.csv (our watch),distribution of all switches; n = all switches; time base arrival at our watch
+M3,tip_switches_depth_3_plus_after,0,switches,counted,PH-M-002,2026-11-06 02:34:02,2026-11-09 02:33:51,19,wache-log.csv (our watch),distribution of all switches; n = all switches; time base arrival at our watch
+M3,tip_switch_max_depth_after,1,blocks,counted,PH-M-002,2026-11-06 02:34:02,2026-11-09 02:33:51,19,wache-log.csv (our watch),time base arrival at our watch
+M4,chain_split_duration_after,0,s,counted,PH-M-002,2026-11-06 02:34:02,2026-11-09 02:33:51,0,wache-log.csv (our watch),"two branches from the activation height, each announced by at least 2 peers, both deeper than 2 blocks; n = episodes; time base arrival at our watch"
+M4,chain_split_longest_after,0,s,counted,PH-M-002,2026-11-06 02:34:02,2026-11-09 02:33:51,0,wache-log.csv (our watch),time base arrival at our watch
+M5,peers_below_min_protocol_activation,7.1,%,counted,PH-M-003,2026-11-06 02:34:52,2026-11-06 02:34:52,28,"zustand.json (our probe, version handshake)","2 of 28 below 170190; versions {'170140': 1, '170150': 1, '170190': 26}"
+M5,peers_below_min_protocol_activation_plus_6h,16.7,%,counted,PH-M-003,2026-11-06 08:34:32,2026-11-06 08:34:32,12,"zustand.json (our probe, version handshake)","2 of 12 below 170190; versions {'170150': 2, '170190': 10}"
+M5,peers_below_min_protocol_activation_plus_24h,33.3,%,counted,PH-M-003,2026-11-07 02:34:40,2026-11-07 02:34:40,6,"zustand.json (our probe, version handshake)","2 of 6 below 170190; versions {'170140': 1, '170150': 1, '170190': 4}"
+M5,peers_below_min_protocol_activation_plus_72h,25.0,%,counted,PH-M-003,2026-11-09 02:34:41,2026-11-09 02:34:41,8,"zustand.json (our probe, version handshake)","2 of 8 below 170190; versions {'170140': 1, '170150': 1, '170190': 6}"
+M6,time_to_stable,13016,s,counted,PH-M-001,2026-11-06 02:34:02,2026-11-09 02:33:51,10128,heads.csv.gz,"rolling mean of the intervals of the last 60 min within 20.0 to 30.0 s (target 25 s +-20 %); stable = first time from which it stays in the band for 60 min without a break, at the earliest 60 min after activation; those 60 min must lie fully inside the data; seconds after the activation block's header time; n = time points from then on; time base header times; stable from 2026-11-06 06:10:58 UTC"
+M6,share_in_band,96.7,%,counted,PH-M-001,2026-11-06 02:34:02,2026-11-09 02:33:51,10128,heads.csv.gz,share of time points at which the rolling mean lies in the band
+M7,activation_height,3543405,height,source,PH-M-001,,,,ZIP 259; Zebra v7.0.0 zebra-chain/src/parameters/constants.rs line 106; zcash_protocol 0.11.0 src/consensus.rs line 567,nu7
+M7,first_block_header_time,2026-11-06 02:34:02,UTC,counted,PH-M-001,2026-11-06 02:34:02,2026-11-06 02:34:02,1,heads.csv.gz,hash 0000000000246a2b1fecb3f465770894d146f6b7044e46b13ffb65e57e4ccd4a
+M7,first_block_first_seen,2026-11-06 02:34:10,UTC,counted,PH-M-004,2026-11-06 02:34:10,2026-11-06 02:34:10,1,our listener,first announcement to us
+M7,first_seen_minus_header_time,9.0,s,counted,PH-M-004,,,1,,
+M7,estimate,2026-11-06 02:40:58,UTC,computed,PH-M-006,,,,our forecast,90 % band 2026-11-06T01:14:45Z to 2026-11-06T04:07:28Z
+M7,header_time_minus_estimate,-416,s,computed,PH-M-006,,,1,,positive means later than estimated
+M7,in_band,yes,,computed,PH-M-006,2026-11-06T01:14:45Z,2026-11-06T04:07:28Z,1,,

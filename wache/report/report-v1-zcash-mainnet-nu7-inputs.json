@@ -1,0 +1,20 @@
+{
+ "script": "upgrade_report/report_v1.py",
+ "version": "1.0.0",
+ "outputs_sha256": {
+  "report-v1-zcash-mainnet-nu7.csv": "0f1e19697430244708ba0729be5fd3c93f645ee5c5deea4d530f67c6dd748b8e",
+  "report-v1-zcash-mainnet-nu7-uncertainty.csv": "89204abadc31558a199ac3c2c72fc3a5a78da04024bcf257f496085498eb45cf"
+ },
+ "inputs_sha256": {
+  "zcash-mainnet-nu7.json": "96b09319b88411453bc4ec1d98b93bc67dbf95a9248d1335a0918d718395bd2a",
+  "heads.csv.gz": "0792a4de5065f77bf0480ffbf906e1134dd2144c561444615ee08e032451b376",
+  "raw/SHA256SUMS": "f607705044fffc0e5bc23b8d138fa934cc1d4e75786d3d4681d859612dbcc11c",
+  "raw/ereignisse.jsonl.gz": "0c58a601046c66f018b3f32f3d3ea1d69472e5f2bc10cb230fdb4a834026f55f",
+  "raw/koepfe.jsonl.gz": "e69db91b020be07517c9be0ddd3ebecdb7d5786e27ef778fb9696ee2b724dfbd",
+  "raw/peers.json": "bb2662666227d64ac60e59754d02ed328833d25a3ff52b54161ad957254c9937",
+  "raw/wache-log.csv": "98f37a561f3409cfec4dddec44acf726208c4b8d4900ee05dfd8d142bc995b61",
+  "raw/zustand.json": "ce56fbc1515919314b97ff0076203d0ed717f12ad92a97fe451b4926a5f12749"
+ },
+ "upgrade": "nu7",
+ "chain": "zcash-mainnet"
+}
