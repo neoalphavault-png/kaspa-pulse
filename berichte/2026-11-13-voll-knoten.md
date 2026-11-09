@@ -83,4 +83,31 @@ Wartet auf deine Wahl. Vorab zwei Punkte zur Gegenprobe:
 
 ## Teil C, BCH-Tempnet-Abschluss
 
-Läuft. Stand und Plan folgen hier bis Freitag.
+**Stand 9.11. mittags.** Der Abschlussbericht für das Forum kommt am Fr 13.11. vormittags mit den Daten bis dahin. Am Sa 14.11. trage ich die Zahlen bis dahin nach, also vor dem Sonntag. Die letzten Stunden bis zum Tempnet-Ende am 15.11. um 12:00 UTC fehlen dann offen benannt.
+
+**8. Stale nach Last.** Das neue `scripts/bch/tempnet_abschluss.py` (PR #299) zählt nach zwei Regeln, beide werden im Forum genannt. Zwischenstand mit den Daten bis 9.11. 08:25 UTC, 340 abgedeckte Stunden:
+
+| Regel | Hochlast | ruhig |
+|---|---|---|
+| Blocklast, Stunden ab 2 × Median (116 Kettenblöcke je Stunde) | 770 stale bei 2.845 Kettenblöcken, 21,3 %, 8 Stunden | 141 bei 17.819, 0,79 %, 332 Stunden |
+| Transaktionslast, Stunden ab dem 90. Perzentil (1.633 Transaktionen) | 20 bei 1.901, 1,04 %, 34 Stunden | 891 bei 18.763, 4,53 %, 306 Stunden |
+
+Die Stale-Blöcke häufen sich in Stunden mit sehr vielen Blöcken, nicht in Stunden mit vielen Transaktionen. Welche Regel rufitnes meinte, weiß ich nicht. Deshalb zeigen wir beide.
+
+**9. Uhr.** Seit dem 7.11. um 15:02 UTC schreibt jeder Lauf den Versatz aus `chronyc tracking` mit. Das sind bisher 8 von 66 Läufen, der größte Betrag war 14,7 µs. Die 58 Läufe davor haben keinen Wert, das steht offen im Bericht. Ist die Uhr beim Start noch nicht synchron, ist der erste Wert wenig aussagekräftig. Das zeigt `synchron_beim_start`.
+
+**Lücken.** 25.10. 7 min beim Start, 26.10. 1,6 min, 3.11. 13:59 bis 4.11. 10:08 UTC (20 h, ein Lauf ohne gesicherte Daten).
+
+**10. Zweiter Messpunkt.** Machbar bis zum 15.11., wenn du PR #298 bald mergst und auf c2 `sudo ./setup.sh bch-lauscher` ausführst. Dann misst derselbe Zuhörer von c2 aus, also über einen anderen Netzwerkpfad als die GitHub-Runner, bis zum Tempnet-Ende. Gerechnet ab Mittwoch wären das gut drei Tage. Ohne Merge steht im Bericht, dass der zweite Messpunkt fehlt und erst bei einer nächsten Messung kommt.
+
+## Was Ben tun muss
+
+1. **Variante wählen** (Teil A, Punkt 3). Ohne deine Wahl fange ich mit Teil B nicht an.
+2. **c2 messen** mit den drei Befehlen aus Teil A, die Ausgabe an mich.
+3. **PR #298 mergen** und auf c2 `sudo ./setup.sh bch-lauscher` ausführen, für den zweiten Messpunkt.
+4. **Upgrade-Wache anhalten:** Das NU7-Fenster ist zu. Auf c2 `sudo /opt/kaspa-pulse/deploy/c2/setup.sh wache-aus zcash-mainnet`.
+
+## Offene Fragen an Ben
+
+1. Welche Variante?
+2. Darf der Zebra-Knoten eingehende Verbindungen annehmen (Port 8233), oder nur ausgehend? Ein Knoten, der eingehend erreichbar ist, hilft dem Netz, braucht aber eine Freigabe in der Firewall.
