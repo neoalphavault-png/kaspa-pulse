@@ -92,8 +92,18 @@ def token():
 
 # --------------------------------------------------------------------- api
 
-def graph(weg, felder=None, post=False, tok=None, oeffner=None):
-    """GET oder POST auf die Threads-API. Das Token geht in den Header."""
+class ApiFehler(Exception):
+    """Eine Antwort der Threads-API mit Fehler, Text schon geblendet."""
+
+    def __init__(self, text, http=0, code=None, subcode=None):
+        super().__init__(text)
+        self.http, self.code, self.subcode = http, code, subcode
+
+
+def graph(weg, felder=None, post=False, tok=None, oeffner=None, werfen=False):
+    """GET oder POST auf die Threads-API. Das Token geht in den Header.
+    werfen=True: ein HTTP-Fehler kommt als ApiFehler zurueck statt den Lauf
+    zu beenden, damit veroeffentlichen() nachfassen kann."""
     tok = tok or token()
     url = "%s/%s" % (API, weg.lstrip("/"))
     daten = None
@@ -113,7 +123,15 @@ def graph(weg, felder=None, post=False, tok=None, oeffner=None):
             leib = e.read().decode("utf-8", "replace")[:600]
         except Exception:
             pass
-        sys.exit(blind("threads-api http %s auf %s\n%s" % (e.code, weg, leib), tok))
+        text = blind("threads-api http %s auf %s\n%s" % (e.code, weg, leib), tok)
+        if werfen:
+            fehler = {}
+            try:
+                fehler = json.loads(leib).get("error", {}) or {}
+            except ValueError:
+                pass
+            raise ApiFehler(text, e.code, fehler.get("code"), fehler.get("error_subcode"))
+        sys.exit(text)
     except (urllib.error.URLError, OSError) as e:
         sys.exit(blind("threads-api nicht erreichbar auf %s: %s" % (weg, e), tok))
 
@@ -301,6 +319,48 @@ def scharf(modus, hand=False):
             and not look_takt.trockenlauf())
 
 
+# threads_publish direkt nach FINISHED (Ben, 8.11.2026). Am 8.11. antwortete
+# Threads auf threads_publish mit http 400, code 24, error_subcode 4279009
+# "Media Not Found", obwohl der Container eine Sekunde vorher FINISHED meldete
+# (Lauf 42498492140). Dasselbe Muster wie bei Instagram am 5.11. (code 9007,
+# instagram.veroeffentlichen). Darum erst warten und bei genau diesen Fehlern
+# nachfassen. Vor jedem neuen Versuch wird der Container abgefragt: steht er
+# schon auf PUBLISHED, ist der Post draussen und geht nicht ein zweites Mal raus.
+PAUSE_NACH_FINISHED = 10
+NACHFASSEN = (15, 30, 45, 60)
+NOCH_NICHT = {(24, 4279009), (9007, None), (9007, 2207027)}
+_schlafen = time.sleep
+
+
+def noch_nicht_bereit(exc):
+    return (exc.code, exc.subcode) in NOCH_NICHT or (exc.code == 9007)
+
+
+def veroeffentlichen(nutzer, cid, tok=None, oeffner=None):
+    """threads_publish fuer einen FINISHED-Container, mit Nachfassen. Gibt die
+    media-id zurueck, auch wenn der Container zwischendurch schon draussen ist."""
+    _schlafen(PAUSE_NACH_FINISHED)
+    for n in range(len(NACHFASSEN) + 1):
+        if n:
+            _schlafen(NACHFASSEN[n - 1])
+            status = graph(cid, {"fields": "status"}, tok=tok, oeffner=oeffner).get("status", "")
+            print("container %s vor versuch %d, status %s" % (cid, n + 1, status or "-"))
+            if status == "PUBLISHED":
+                d = graph("%s/threads" % nutzer, {"fields": "id", "limit": "1"}, tok=tok, oeffner=oeffner)
+                media = str(((d.get("data") or [{}])[0]).get("id", ""))
+                print("container %s ist schon veroeffentlicht, media %s, kein zweiter post" % (cid, media or "-"))
+                return {"id": media}
+        try:
+            return graph("%s/threads_publish" % nutzer, {"creation_id": cid}, post=True, tok=tok,
+                         oeffner=oeffner, werfen=True)
+        except ApiFehler as exc:
+            if not noch_nicht_bereit(exc) or n == len(NACHFASSEN):
+                sys.exit(str(exc))
+            print("threads_publish versuch %d, noch nicht bereit (code %s, subcode %s), neuer versuch in %d s"
+                  % (n + 1, exc.code, exc.subcode, NACHFASSEN[n]))
+    sys.exit("threads_publish ohne ergebnis")
+
+
 def posten(text, bild, modus, tag, log_pfad=None, hand=False, tok=None, oeffner=None,
            warte_takt=10, warte_max=300):
     """Container anlegen, auf FINISHED warten, nur scharf veroeffentlichen.
@@ -330,7 +390,7 @@ def posten(text, bild, modus, tag, log_pfad=None, hand=False, tok=None, oeffner=
         print("trocken, container %s bleibt unveroeffentlicht (modus %s, %s=%s, ziel %s)" % (
             cid, modus, ENV_LIVE, os.environ.get(ENV_LIVE, "") or "-", os.environ.get("ZIEL", "") or "-"))
         return {"container": cid, "status": status, "modus": "trocken"}
-    m = graph("%s/threads_publish" % nutzer, {"creation_id": cid}, post=True, tok=tok, oeffner=oeffner)
+    m = veroeffentlichen(nutzer, cid, tok=tok, oeffner=oeffner)
     erg = {"tag": tag, "container": cid, "media": str(m.get("id", "")), "modus": "scharf",
            "bild": bild, "text": text}
     # sofort melden, dass der post draussen ist, noch vor dem log: scheitert
@@ -642,6 +702,9 @@ def selbsttest():
         return dt.datetime(2026, 10, 20, h, m, tzinfo=dt.timezone.utc)     # mesz, +2
     lg = {"laeufe": [{"datum": "2026-10-20", "form": 4, "messzeit_utc": "2026-10-20T05:30:00+00:00"}]}
     alt = {k: os.environ.pop(k, None) for k in ("ZIEL", ENV_LIVE, "GITHUB_OUTPUT")}
+    global _schlafen
+    alt_schlafen, pausen = _schlafen, []
+    _schlafen = pausen.append
     pruefe("faellig um 17:10 berlin", faellig(zeit(15, 10), lg, {"posts": []})[0] is not None, True)
     pruefe("nicht faellig um 16:30 berlin", faellig(zeit(14, 30), lg, {"posts": []})[0] is None, True)
     pruefe("nicht doppelt am tag",
@@ -685,6 +748,59 @@ def selbsttest():
         pruefe("ohne THREADS_LIVE kein threads_publish",
                any(w[1].endswith("threads_publish") for w in wege) or e["modus"] != "trocken", False)
         pruefe("trocken nicht im log", len(json.loads(lp.read_text())["posts"]), 1)
+    # threads_publish direkt nach FINISHED (Ben, 8.11.2026, Lauf 42498492140)
+    import io
+    import urllib.error as _ue
+
+    def nicht_da(url):
+        leib = json.dumps({"error": {"message": "The requested resource does not exist", "code": 24,
+                                     "error_subcode": 4279009}}).encode()
+        return _ue.HTTPError(url, 400, "Bad Request", {}, io.BytesIO(leib))
+
+    def api_folge(antworten):
+        rest = list(antworten)
+        gesehen = []
+
+        def oeffne(req, timeout=0):
+            weg = req.full_url.split("v1.0/")[1].split("?")[0]
+            gesehen.append((req.get_method(), weg))
+            a = rest.pop(0)
+            if a == "nicht_da":
+                raise nicht_da(req.full_url)
+            return Antwort(a)
+        return oeffne, gesehen
+
+    pausen.clear()
+    oeffne, gesehen = api_folge(["nicht_da", {"status": "FINISHED"}, {"id": "778"}])
+    m = veroeffentlichen("99", "555", tok=tok, oeffner=oeffne)
+    pruefe("media not found, nachfassen bringt den post", m.get("id"), "778")
+    pruefe("erst 10 s pause, dann 15 s vor dem zweiten versuch", pausen, [10, 15])
+    pruefe("vor dem zweiten versuch wird der container abgefragt",
+           [g for g in gesehen if g[1] == "555"], [("GET", "555")])
+    pausen.clear()
+    oeffne, gesehen = api_folge(["nicht_da", {"status": "PUBLISHED"}, {"data": [{"id": "779"}]}])
+    m = veroeffentlichen("99", "555", tok=tok, oeffner=oeffne)
+    pruefe("schon published, kein zweiter post, media aus der liste",
+           (m.get("id"), sum(1 for g in gesehen if g[1].endswith("threads_publish"))), ("779", 1))
+
+    def anderer(url):
+        leib = json.dumps({"error": {"message": "x", "code": 100}}).encode()
+        return _ue.HTTPError(url, 400, "Bad Request", {}, io.BytesIO(leib))
+    try:
+        veroeffentlichen("99", "555", tok=tok, oeffner=lambda req, timeout=0: (_ for _ in ()).throw(
+            anderer(req.full_url)))
+        pruefe("anderer fehler bricht sofort ab", False, True)
+    except SystemExit as exc:
+        pruefe("anderer fehler bricht sofort ab, token geblendet",
+               ("http 400" in str(exc), tok in str(exc)), (True, False))
+    pausen.clear()
+    oeffne, gesehen = api_folge(["nicht_da"] + [{"status": "FINISHED"}, "nicht_da"] * 4)
+    try:
+        veroeffentlichen("99", "555", tok=tok, oeffner=oeffne)
+        pruefe("nach 5 versuchen rot", False, True)
+    except SystemExit:
+        pruefe("nach 5 versuchen rot, pausen 10 15 30 45 60", pausen, [10, 15, 30, 45, 60])
+    _schlafen = alt_schlafen
     # push abgelehnt (Ben, 5.11.2026): nach der veroeffentlichung gruen mit
     # meldung, ohne veroeffentlichung rot und ohne "gepostet"
     def git_nein(*args):
