@@ -89,6 +89,7 @@ jobs:
         run: |
           python3 scripts/karussell.py --selbsttest
           python3 scripts/meme_wahr.py --selbsttest
+          python3 scripts/stimme.py --selbsttest
           python3 scripts/karussell_post.py --selbsttest
       - name: entwurf
         id: w
@@ -114,6 +115,8 @@ jobs:
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
           git add data/look-takt.json 2>/dev/null || true
+          # bauplan der caption nach der stimm-regel (Ben, 07.11.2026)
+          git add data/stimme-stand.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "look-takt unveraendert, kein commit"
           else

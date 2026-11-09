@@ -159,15 +159,37 @@ def seite_html(s, look):
             "<body data-look='%s'>%s%s</body></html>" % (css, look, innen, sig))
 
 
-def caption(ss):
-    """Fuenf Bloecke nach den Content-Regeln (karussell.caption)."""
-    import karussell
-    haken = ("K is potassium 19, As is arsenic 33, Pa is protactinium 91, together they spell %s, "
-             "source IUPAC periodic table" % WORT)
+def bausteine(ss):
+    """Die Bausteine der Caption je Bauplan (Stimm-Regel, Ben, 07.11.2026).
+    Hoechstens ein Methoden-Wort: traegt der Satz schon "counted", nennt der
+    Haken das Periodensystem ohne "source"."""
+    import stimme
     zw = [x for x in ss if x["art"] == "zahl"]
     satz = ("the chemistry checks out, and so does the speed, " + zw[0]["caption"].rstrip(".")) if zw else \
         "the chemistry checks out, %s" % tag(ss[0]["datum_iso"])
-    return karussell.caption(haken, satz, FRAGE)
+    quelle = "from the IUPAC periodic table" if stimme.METHODE.search(satz) else "source IUPAC periodic table"
+    beob = "K is potassium 19, As is arsenic 33, Pa is protactinium 91, together they spell %s, %s" % (WORT, quelle)
+    return {"beobachtung": beob, "haken": beob,
+            "zahl_zuerst": "19, 33 and 91 are the atomic numbers of K, As and Pa, together they spell %s, %s" % (
+                WORT, quelle),
+            "satz": satz,
+            "datum_voran": ("on %s, %s" % (tag(ss[0]["datum_iso"]), beob), satz),
+            "einordnung": "each tile shows the atomic number above the symbol",
+            "pointe": "meme, but true",
+            "frage": FRAGE}
+
+
+def caption(ss, fuer=None, stand=None, mit_plan=False):
+    """Die Caption nach den Content-Regeln (karussell.caption). Ohne fuer der
+    Bauplan beobachtung, mit fuer die Wahl nach der Stimm-Regel gegen den
+    Tagesstand."""
+    import karussell
+    b = bausteine(ss)
+    if fuer is None:
+        erg = ("beobachtung", karussell.caption(b["beobachtung"], b["satz"]))
+    else:
+        erg = karussell.caption_nach_bauplan("meme", fuer, b, stand)
+    return erg if mit_plan else erg[1]
 
 
 def pruefen(ss, cap):
@@ -183,12 +205,17 @@ def pruefen(ss, cap):
     return fehler
 
 
-def bauen(fuer, out, zahl="", looks=("dunkel",), motiv=None):
+def bauen(fuer, out, zahl="", looks=("dunkel",), motiv=None, stand=None):
     import hintergrund
+    import stimme
     import tagesgrafik as tg
     from playwright.sync_api import sync_playwright
     ss = seiten(fuer, zahl_seite2(zahl, fuer) if zahl else None)
-    cap = caption(ss)
+    # stimm-regel (Ben, 07.11.2026): der bauplan gegen den tagesstand,
+    # geschrieben wird der stand vom entwurf in karussell_post
+    stand = stimme.lesen() if stand is None else stand
+    bauen.stimm_stand = stand
+    bauen.bauplan, cap = caption(ss, fuer=fuer, stand=stand, mit_plan=True)
     fehler = pruefen(ss, cap)
     if fehler:
         raise SystemExit("ABBRUCH %s" % "; ".join(fehler))
@@ -226,8 +253,26 @@ def selbsttest():
        and all("2026" in x["datum"] or "2025" in x["datum"] for x in ss[:2]))
     ok("symbole ergeben KAsPa, ordnungszahlen nach IUPAC", not [f for f in pruefen(ss, cap) if "ordnung" in f or "symbol" in f])
     ok("texte und caption halten die wachen (%s)" % "; ".join(pruefen(ss, cap)), not pruefen(ss, cap))
-    ok("caption nach den content-regeln, frage an dritter stelle",
-       cap.split("\n\n")[2] == FRAGE and "http" not in cap)
+    # stimm-regel (Ben, 07.11.2026): keine pflichtfrage, gross, ein methoden-wort
+    import stimme
+    ok("caption ohne pflichtfrage, gross geschrieben, ohne link",
+       "?" not in cap and "http" not in cap and not stimme.klein_verstoesse(cap))
+    ok("die schreibung laesst %s stehen" % WORT, "spell %s" % WORT in cap)
+    g0 = zahl_seite2("messung", "2026-10-25", messen=lambda: (9.87, 1))
+    cm = caption(seiten("2026-10-25", g0))
+    ok("mit gemessener zahl hoechstens ein methoden-wort (%d)" % len(stimme.METHODE.findall(cm)),
+       len(stimme.METHODE.findall(cm)) == 1 and not pruefen(seiten("2026-10-25", g0), cm))
+    gesehen = set()
+    for plan in stimme.BAUPLAENE:
+        st = {"tage": {"2026-10-24": {"k%d" % i: p for i, p in enumerate(stimme.BAUPLAENE) if p != plan}}}
+        try:
+            pl, c2 = caption(ss, fuer="2026-10-24", stand=st, mit_plan=True)
+        except stimme.StimmeStopp:
+            continue
+        gesehen.add(pl)
+        ok("bauplan %s haelt die wachen, frage nur beim bauplan frage" % pl, not pruefen(ss, c2)
+           and c2.count("?") == (1 if pl == "frage" else 0))
+    ok("mindestens 5 bauplaene moeglich (%s)" % ", ".join(sorted(gesehen)), len(gesehen) >= 5)
     c1 = caption(seiten("2026-10-31"))
     ok("caption ohne seite 2 haelt die regeln (%s)" % "; ".join(pruefen(seiten("2026-10-31"), c1)),
        not pruefen(seiten("2026-10-31"), c1))

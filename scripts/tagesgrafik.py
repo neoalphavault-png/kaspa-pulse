@@ -584,6 +584,8 @@ def vorlage_1(w, now):
             "gained" if n >= 0 else "lost", ganz(abs(n)))
         x2 = "%s against %s, source kaspalytics address counts" % (tag_kurz(t[-1]), tag(t[0]))
         x3 = "how many is that a day?"
+        einord = "that is about %s %s a day over those 7 days" % (ganz(abs(n) / 7), "more" if n >= 0 else "fewer")
+        pointe = "the count went up, not down" if n > 0 else "the count went down in those 7 days"
         aufl = ("%s in 7 days is about %s a day. source kaspalytics, %s on %s and %s on %s." % (
             ganz(abs(n)), ganz(abs(n) / 7), ganz(r[-1]), tag_kurz(t[-1]), ganz(r[0]), tag_kurz(t[0])))
     else:
@@ -591,12 +593,18 @@ def vorlage_1(w, now):
               else "kaspa hashrate held within 1% of the week before.")
         x2 = "daily average, %s against %s, source kaspa rest api" % (tag_kurz(t[-1]), tag(t[0]))
         x3 = "how many hashes is that?"
+        einord = "on %s the network averaged %.1f PH/s, on %s it was %.1f PH/s" % (
+            tag_kurz(t[-1]), r[-1], tag_kurz(t[0]), r[0])
+        pointe = ("more work behind the same 10 blocks a second" if k["pct"] > 0
+                  else "the same 10 blocks a second, with %s work behind them" % (
+                      "less" if k["pct"] < 0 else "as much"))
         aufl = ("on %s the network averaged %.1f PH/s, that is %s quadrillion hashes every second. "
                 "on %s the average was %.1f PH/s." % (tag_kurz(t[-1]), r[-1], ganz(r[-1]),
                                                       tag_kurz(t[0]), r[0]))
     return {"kopf": "THIS WEEK", "zahl": "%+.1f%%" % k["pct"], "bedeutung": bed,
             "zusatz": zus.replace("one column per day", "first and last day"), "herkunft": her,
             "objekt": objekt, "x1": x1, "x2": x2, "x3": x3, "aufloesung": aufl,
+            "einordnung": einord, "pointe": pointe,
             "pruefung": ("ja, %s steigt gegen die Vorwoche, und die Saeulen zeigen es ab null"
                          % k["was"]) if k["pct"] > 0 else
                         "nein, %s ist gegen die Vorwoche gefallen" % k["was"]}
@@ -677,6 +685,10 @@ def vorlage_2(w, now):
             "streifen": streifen, "herkunft": SELBST, "objekt": objekt,
             "x1": "one wallet holds about 1 in %d of all KAS in circulation." % round(w["circ"] / w["bal"]),
             "x2": x2, "x3": "how many KAS is that?",
+            # die stimm-texte fragen anders, die alte schlussfrage bleibt nur im x-text
+            "frage": "would you have guessed 1 in %d?" % round(w["circ"] / w["bal"]),
+            "einordnung": "the address is public, so anyone can check its balance on the chain",
+            "pointe": "one address, out in the open",
             "aufloesung": "%s KAS sit in that one wallet on %s, %.2f%% of the %s KAS in circulation. "
                           "its address is public, and we check it several times a day." % (
                               ganz(w["bal"]), tag_kurz(now.date()), anteil, kurz(w["circ"])),
@@ -732,6 +744,8 @@ def vorlage_3(w, now):
             "x1": "kaspa cuts its block reward again in %s." % zahl,
             "x2": "next step %s, %s, from the emission schedule" % (tag(t.date()), uhr(t)),
             "x3": "how often does that happen?",
+            "einordnung": "the reward steps down once a month, and 12 steps halve it",
+            "pointe": "no vote needed, the schedule sets the date",
             "aufloesung": "once a month, and 12 steps halve the reward. on %s it goes from %.2f "
                           "to %.2f KAS per block." % (tag_kurz(t.date()), w["cur"], w["nxt"]),
             "pruefung": "ja, knappe Terminzahl mit Datum, Halter teilen Countdowns gern"}
@@ -767,6 +781,9 @@ def vorlage_4(w, now):
             "x2": "%d hours at the block rate we measured over %d minutes, %s, %s" % (
                 SCHLAF_H, w.get("sek", BLOCKRATE_SEK) // 60, tag(now.date()), uhr(now)),
             "x3": "how many did you sleep through?",
+            "einordnung": "at a resting pulse of %d that is about %.0f blocks for every heartbeat" % (
+                RUHEPULS, je_schlag),
+            "pointe": "the chain did not take the night off",
             "aufloesung": "about %.0f for every heartbeat, at a resting pulse of %d that is %s beats "
                           "in %d hours. we measured %.2f blocks per second over %d minutes." % (
                               je_schlag, RUHEPULS, ganz(schlaege), SCHLAF_H, w["bps"],
@@ -802,6 +819,8 @@ def vorlage_5(w, now):
             "x2": "%d days to %s, source kaspalytics fees and the emission schedule" % (
                 w["tage"], tag(w["bis"])),
             "x3": "so what pays the miners?",
+            "einordnung": "fees paid %s KAS in the same %d days" % (ganz(w["fees"]), w["tage"]),
+            "pointe": "new coins still carry the miners",
             "aufloesung": "mostly new coins, %s KAS in those %d days. fees paid %s KAS in the same days." % (
                 kurz(w["emission"]), w["tage"], ganz(w["fees"])),
             "pruefung": "nein, stark, aber fuer Halter erklaerungsbeduerftig. Nerds teilen sie, "
@@ -868,6 +887,8 @@ def vorlage_6(w, now):
             "x1": "the kaspa chain has passed %d million blocks since nov 2021." % (daa // 1000000),
             "x2": "counted by the network's daa score, %s, %s" % (tag(now.date()), uhr(now)),
             "x3": "who keeps that count?",
+            "einordnung": "every kaspa node keeps the same count, the daa score",
+            "pointe": "one counter, running since nov 2021",
             "aufloesung": "every kaspa node does, it is the daa score, %s on %s, %s. the same counter "
                           "has run since the first blocks in nov 2021." % (
                               ganz(daa), tag_kurz(now.date()), uhr(now)),
@@ -921,8 +942,13 @@ def vorlage_7(w, now):
             "x1": "%s %s." % (e["zahl"], e["antwort"]),
             "x2": "asked by %s in our discord, %s" % (e["name"], tag(e["stand"])),
             "x3": "what should we count next?",
-            "aufloesung": "%s asked, and we counted %s on %s, %s. ask the next one in #data-requests." % (
-                e["name"], e["zahl"], tag_kurz(e["stand"]), e.get("quelle") or SELBST),
+            "einordnung": "%s asked in #data-requests, and the answer is in the picture" % e["name"],
+            "pointe": "one question, one number",
+            # hoechstens ein methoden-wort je text (Ben, 07.11.2026)
+            "aufloesung": ("%s asked, and we counted %s on %s. ask the next one in #data-requests." % (
+                e["name"], e["zahl"], tag_kurz(e["stand"])) if not e.get("quelle") else
+                "%s asked, and the answer is %s on %s, %s. ask the next one in #data-requests." % (
+                e["name"], e["zahl"], tag_kurz(e["stand"]), e["quelle"])),
             "pruefung": "ja, wer gefragt hat, teilt die Antwort mit seinem Namen darauf"}
 
 
@@ -953,6 +979,10 @@ def vorlage_8(w, now):
             "x1": "kaspa miners ran %s quadrillion hashes every second." % ganz(w["ph"]),
             "x2": "daily average %s, source kaspa rest api" % tag(t),
             "x3": "what was that work paid?",
+            "frage": "did you expect that much work behind every block?",
+            "einordnung": "%s new KAS were issued on %s, from the emission schedule" % (
+                kurz(w["neu"]), tag_kurz(w["neu_tag"])),
+            "pointe": "that is the work behind every block",
             "aufloesung": "%s new KAS on %s, from the emission schedule. the hashrate that day "
                           "averaged %.1f PH/s." % (kurz(w["neu"]), tag_kurz(w["neu_tag"]), w["ph"]),
             "pruefung": "ja, Quadrillion pro Sekunde ist ein Angeber-Kontrast ohne Kursbezug"}
@@ -1032,6 +1062,8 @@ def vorlage_9(w, now):
             "x1": "%s kaspa addresses hold at least 100 KAS." % ganz(j),
             "x2": "%s, source kaspalytics address thresholds" % tag(w["d1"]),
             "x3": "how many joined this week?",
+            "einordnung": "on the days it grew, %s came in" % ganz(sum(v for v in neu if v > 0)),
+            "pointe": "one dot per address in the picture",
             "aufloesung": "%+d net in the 7 days to %s. %s came in on the days it grew%s." % (
                 plus, tag_kurz(w["d1"]), ganz(sum(v for v in neu if v > 0)),
                 "".join(", and it fell by %s on %s" % (ganz(-v), tag_kurz(d))
@@ -1057,6 +1089,8 @@ def vorlage_10(w, now):
             "x1": "%d%% of all KAS that will ever exist is already mined, with 0 premine." % round(pct),
             "x2": "%s, coin supply against max supply" % tag(now.date()),
             "x3": "how much is left?",
+            "einordnung": "%s KAS are left to mine, %.2f%% of the maximum" % (kurz(w["max"] - w["circ"]), 100 - pct),
+            "pointe": "0 premine, every coin so far came from work",
             "aufloesung": "%s KAS, %.2f%% of the %s maximum. every coin so far came from proof of "
                           "work since the first blocks in nov 2021." % (
                               kurz(w["max"] - w["circ"]), 100 - pct, kurz(w["max"])),
@@ -1121,6 +1155,8 @@ def vorlage_11(w, now):
             "x1": (bed if halb else "%d%% of all KAS in circulation has not moved in a year" % round(p1)) + ".",
             "x2": "%s, source kaspalytics, age estimated by daa score" % tag(d),
             "x3": "how much has not moved in 2 years?",
+            "einordnung": "%.2f%% has not moved in 2 years" % p2,
+            "pointe": "the other %.2f%% moved within the year" % (100 - p1),
             "aufloesung": "%.2f%% has not moved in 2 years, and %.2f%% in 1 year, as of %s. kaspalytics "
                           "estimates the age of each coin from the daa score of its last move." % (
                               p2, p1, tag_kurz(d)),
@@ -1190,13 +1226,18 @@ ZEITRAUM = re.compile(r"since \d{1,2} [a-z]{3}|since (19|20)\d\d|since the first
                       r"since [a-z]{3} (19|20)\d\d|in the \d+ (days|weeks|months)|"
                       r"in \d+ (days|weeks|months)|\d+ days to|where our series starts|"
                       r"in our (log|series) since", re.I)
-DATUM = re.compile(r"\b\d{1,2} (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b")
+# seit der stimm-regel (Ben, 07.11.2026) stehen die monate in den posttexten
+# gross ("6 Nov 2026"), die wache nimmt beide schreibungen
+DATUM = re.compile(r"\b\d{1,2} (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b", re.I)
 DATUMSZEILE = re.compile(r"^\d{1,2} (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec) \d{4}, "
                          r"\d\d:\d\d utc \u00b7 ")
 ERLAUBTE_DOMAIN = {"gate.io"}
 
 
-def pruefe_eine(t, form=None, feld=""):
+def pruefe_eine(t, form=None, feld="", massstab=False):
+    """massstab True heisst Bauplan vergleich der Stimm-Regel (Ben,
+    07.11.2026): Bitcoin darf als Massstab stehen, keine andere Chain, und
+    die Werturteile faengt stimme.regel_verstoesse."""
     fehler = []
     ohne = re.sub(r"\b\d{1,2}:\d{2}\b", "", t)
     for z, name in ((":", "doppelpunkt"), ("\u2014", "gedankenstrich"), ("\u2013", "gedankenstrich"),
@@ -1213,6 +1254,8 @@ def pruefe_eine(t, form=None, feld=""):
     for liste, name in ((WORTLISTE, "wortliste"), (ECHTZEIT, "echtzeit-wort"),
                         (FREMDE_CHAINS, "andere chain")):
         for w in liste:
+            if massstab and name == "andere chain" and w in ("bitcoin", "btc"):
+                continue
             if " %s " % w in klein:
                 fehler.append("%s %r in %s" % (name, w, feld))
     if "percent" in klein:
@@ -1236,13 +1279,44 @@ def pruefe_eine(t, form=None, feld=""):
     return fehler
 
 
+def x_zeilen(x):
+    """Die Form des X-Texts: drei Zeilen, Zeile 1 ohne Dezimalstelle, Zeile 3
+    eine Frage, ein Datum, unter 240 Zeichen. Der X-Text faellt nicht unter
+    die Stimm-Regel (Ben, 07.11.2026, der automatische X-Post ist
+    abgeschaltet) und bleibt, wie er war."""
+    fehler = []
+    zeilen = x.split("\n")
+    if len(zeilen) != 3:
+        fehler.append("x-text hat %d zeilen, verlangt sind 3" % len(zeilen))
+    if re.search(r"\d\.\d", zeilen[0]):
+        fehler.append("x-zeile 1 hat eine dezimalstelle")
+    if len(zeilen) == 3 and not zeilen[2].endswith("?"):
+        fehler.append("x-zeile 3 endet nicht mit fragezeichen")
+    if not DATUM.search(x):
+        fehler.append("x-text ohne datum")
+    if len(x) >= 240:
+        fehler.append("x-text hat %d zeichen, erlaubt sind unter 240" % len(x))
+    return fehler
+
+
 def textpruefung(s, form):
     """Alle Regeln. Leere Liste heisst gruen; nur dann wird gerendert."""
+    import stimme
     fehler = []
+    plaene = s.get("bauplaene") or {}
     felder = {"kopf": s["kopf"], "zahl": s["zahl"], "bedeutung": s["bedeutung"],
               "datumszeile": s["datumszeile"], "x": s["x"], "discord": s["discord"]}
+    if "threads" in s:
+        felder["threads"] = s["threads"]
     for k, v in felder.items():
-        fehler += pruefe_eine(v, form, k)
+        fehler += pruefe_eine(v, form, k, massstab=plaene.get(k) == "vergleich")
+    # die stimm-regel (Ben, 07.11.2026): schreibung, bauplan, methoden-wort,
+    # floskeln, je text; dazu kein bauplan zweimal am tag. x und die antwort
+    # darunter fallen nicht darunter (der automatische x-post ist abgeschaltet)
+    for k in KANAL_FOLGE:
+        if k in s:
+            fehler += ["%s, %s" % (k, f) for f in stimme.regel_verstoesse(s[k], plaene.get(k))]
+    fehler += stimme.tag_verstoesse(plaene)
     # das feld antwort ist der einzige ort mit link (Ben, 30.09.2026, v4). der
     # link selbst ist von den satzregeln ausgenommen, der rest nicht.
     import content_wache
@@ -1256,15 +1330,8 @@ def textpruefung(s, form):
     lang = len(s.get("antwort", "").replace(lk, "x" * 23))
     if lang > 280:
         fehler.append("antwort hat %d zeichen nach x-zaehlung, erlaubt sind 280" % lang)
-    zeilen = s["x"].split("\n")
-    if len(zeilen) != 3:
-        fehler.append("x-text hat %d zeilen, verlangt sind 3" % len(zeilen))
-    else:
-        if re.search(r"\d\.\d", zeilen[0]):
-            fehler.append("x-zeile 1 hat eine dezimalstelle")
-        if not zeilen[2].endswith("?"):
-            fehler.append("x-zeile 3 endet nicht mit fragezeichen")
-    if MAIL_SATZ not in s["discord"] or MAIL_SATZ not in s.get("antwort", ""):
+    fehler += x_zeilen(s["x"])
+    if MAIL_SATZ not in s["discord"].lower() or MAIL_SATZ not in s.get("antwort", "").lower():
         fehler.append("sonntagsmail-satz fehlt in discord oder antwort")
     if len(s["datumszeile"]) > DATUMSZEILE_MAX:
         fehler.append("datumszeile %d zeichen, hoechstens %d" % (len(s["datumszeile"]), DATUMSZEILE_MAX))
@@ -1275,11 +1342,7 @@ def textpruefung(s, form):
         fehler.append("datumszeile endet weder auf %r noch auf 'source ...'" % SELBST)
     if "kaspalytics" in s["datumszeile"] and SELBST in s["datumszeile"]:
         fehler.append("counted by kaspa pulse neben einer kaspalytics-zahl")
-    if not DATUM.search(s["x"]):
-        fehler.append("x-text ohne datum")
-    if len(s["x"]) >= 240:
-        fehler.append("x-text hat %d zeichen, erlaubt sind unter 240" % len(s["x"]))
-    if "it goes on x at %s" % X_ZEIT not in s["discord"]:
+    if "it goes on x at %s" % X_ZEIT not in s["discord"].lower():
         fehler.append("discord-text ohne 'it goes on x at %s'" % X_ZEIT)
     if not re.match(r"(ja|nein|offen), ", s.get("pruefung", "")):
         fehler.append("selbstpruefung beginnt nicht mit ja oder nein")
@@ -1304,10 +1367,12 @@ MAIL_SATZ = "all the weekly numbers in one mail, every monday."
 # 17:00-Satz, die Zahl mit Datum, eine Frage zum Mitmachen, die Credit-Zeile,
 # "link in bio" und hoechstens fuenf passende Hashtags. Kein Link, dieselbe
 # Wortwache wie Discord und X (pruefe_eine).
+# Seit der Stimm-Regel (Ben, 07.11.2026) steht eine Frage nur noch beim
+# Bauplan frage, und "what number would you put next to this one?" faellt
+# ganz weg.
 IG_FRAGEN = ("what should we count next on kaspa?",
              "which kaspa number do you want us to track next?",
-             "did you expect this number?",
-             "what number would you put next to this one?")
+             "did you expect this number?")
 IG_TAGS = ("#kaspa", "#kas", "#blockdag")
 IG_TAGS_FORM = {4: ("#proofofwork",), 5: ("#proofofwork",), 8: ("#proofofwork",)}
 IG_MIN_TAGS = 3
@@ -1351,20 +1416,9 @@ def ig_veraenderung(s):
     return m.group(0).strip() if m else ""
 
 
-def ig_caption(s, form, messzeit):
-    """Fuenf Bloecke, jede Angabe genau einmal (Ben, 09.10.2026).
-
-        Zahl mit Einheit, dazu die Veraenderung, wenn die Form eine hat
-        die Frage
-        Stichtag und Quelle
-        die Newsletter-Zeile
-        drei bis fuenf Hashtags
-
-    Vorher standen Zahl und Quelle doppelt drin: einmal in den beiden
-    Zeilen des X-Texts, einmal in der eigenen Zeile darunter."""
-    frage = IG_FRAGEN[messzeit.date().toordinal() % len(IG_FRAGEN)]
-    tags = (IG_TAGS + IG_TAGS_FORM.get(form, ()))[:IG_MAX_TAGS]
-    stand = s.get("ig_stand") or tag(ig_stichtag(s, messzeit))
+def ig_kopf(s):
+    """Die erste Zeile der Caption, Zahl mit Einheit und, wenn die Form eine
+    hat, die Veraenderung."""
     # ig_zahl traegt Zahl UND Einheit. Fehlt sie der Form, traegt die
     # erste Zeile des X-Texts dieselbe Aussage - geraten wird nichts.
     kopf = (s.get("ig_zahl") or s["x1"]).rstrip(" .")
@@ -1375,8 +1429,41 @@ def ig_caption(s, form, messzeit):
         delta = ""
     if delta and delta.lower() not in kopf.lower():
         kopf = "%s, %s" % (kopf, delta)
-    return "%s.\n\n%s\n\nas of %s, %s.\n\n%s\n\n%s" % (
-        kopf, frage, stand, s["herkunft"].rstrip(" ."), IG_ZEILE_BIO, " ".join(tags))
+    return kopf
+
+
+def ig_caption(s, form, messzeit, bauplan="zahl_zuerst"):
+    """Bloecke nach Bauplan, jede Angabe genau einmal (Ben, 09.10.2026, seit
+    07.11.2026 mit der Stimm-Regel).
+
+        Zahl mit Einheit, dazu die Veraenderung, wenn die Form eine hat
+        je nach Bauplan ein Satz (einordnung, pointe, vergleich) oder die
+        Frage (nur beim Bauplan frage); bei zahl_zuerst nichts
+        Stichtag und Quelle
+        die Newsletter-Zeile
+        drei bis fuenf Hashtags
+
+    datum_voran zieht den Stichtag nach vorn ("On 6 Nov 2026, ...") und
+    laesst im Quellenblock nur die Quelle. beobachtung gibt es auf Instagram
+    nicht, die Caption fuehrt immer mit der Zahl. Gibt "" fuer einen
+    Bauplan, der hier nicht geht. Ohne Schreibung, die setzt texte()."""
+    tags = (IG_TAGS + IG_TAGS_FORM.get(form, ()))[:IG_MAX_TAGS]
+    stand = s.get("ig_stand") or tag(ig_stichtag(s, messzeit))
+    kopf = ig_kopf(s)
+    her = s["herkunft"].rstrip(" .")
+    mitte = {"einordnung": s.get("einordnung"), "pointe": s.get("pointe"),
+             "vergleich": s.get("vergleich"),
+             "frage": IG_FRAGEN[messzeit.date().toordinal() % len(IG_FRAGEN)]}
+    if bauplan == "datum_voran":
+        bloecke = ["on %s, %s." % (stand, kopf), "%s." % her]
+    elif bauplan == "zahl_zuerst":
+        bloecke = ["%s." % kopf, "as of %s, %s." % (stand, her)]
+    elif mitte.get(bauplan):
+        m = mitte[bauplan].strip()
+        bloecke = ["%s." % kopf, m if m.endswith("?") else m.rstrip(" .") + ".", "as of %s, %s." % (stand, her)]
+    else:
+        return ""
+    return "\n\n".join(bloecke + [IG_ZEILE_BIO, " ".join(tags)])
 
 
 def ig_zahl(s, form):
@@ -1396,7 +1483,7 @@ def ig_zahl(s, form):
               5: "%s more KAS for miners from new coins than from fees",
               8: "%s of hashrate",
               9: "%s addresses holding at least 100 KAS",
-              10: "%s of all KAS that will ever exist already mined",
+              10: "%s of all KAS that will ever exist is already mined",
               11: "%s of all KAS in circulation not moved in a year",
               13: "%s reachable nodes"}
     return muster[form] % z if form in muster else ""
@@ -1428,15 +1515,17 @@ def ig_stichtag(s, messzeit):
     return max(tage)
 
 
-def ig_pruefung(t, form, s=None):
+def ig_pruefung(t, form, s=None, bauplan=None):
     """Regeln nur fuer die Caption, zusaetzlich zu pruefe_eine.
 
-    Die Bloecke stehen seit dem 09.10.2026 so: Zahl, Frage, Stichtag und
-    Quelle, Newsletter-Zeile, Hashtags. Wird s uebergeben, prueft die
+    Die Bloecke stehen seit dem 09.10.2026 so: Zahl, (Satz oder Frage nach
+    Bauplan), Stichtag und Quelle, Newsletter-Zeile, Hashtags. Eine Frage
+    zum Mitmachen ist seit der Stimm-Regel (Ben, 07.11.2026) keine Pflicht
+    mehr, sie steht nur beim Bauplan frage. Wird s uebergeben, prueft die
     Wache zusaetzlich, dass Zahl und Quelle GENAU EINMAL dastehen - genau
     das stand vorher doppelt drin."""
-    fehler = pruefe_eine(t, form, "instagram")
-    if "it goes on x" in t:
+    fehler = pruefe_eine(t, form, "instagram", massstab=bauplan == "vergleich")
+    if "it goes on x" in t.lower():
         fehler.append("instagram nennt den x-termin")
     if IG_ZEILE_BIO not in t:
         fehler.append("instagram ohne die newsletter-zeile")
@@ -1447,8 +1536,10 @@ def ig_pruefung(t, form, s=None):
     if not DATUM.search(t):
         fehler.append("instagram ohne datum")
     absaetze = t.split("\n\n")
-    if len(absaetze) < 5 or not absaetze[1].endswith("?"):
-        fehler.append("instagram ohne frage zum mitmachen an ihrem platz")
+    if len(absaetze) < 4:
+        fehler.append("instagram hat %d bloecke, mindestens 4" % len(absaetze))
+    if t.count("?") > 1:
+        fehler.append("instagram hat mehr als eine frage")
     if len(t) > IG_MAX_ZEICHEN:
         fehler.append("instagram hat %d zeichen, erlaubt %d" % (len(t), IG_MAX_ZEICHEN))
     if s:
@@ -1456,10 +1547,10 @@ def ig_pruefung(t, form, s=None):
         if muster and len(muster.findall(t)) != 1:
             fehler.append("instagram nennt %s %d mal, genau einmal ist richtig"
                           % (s["zahl"], len(muster.findall(t))))
-        quelle = (s.get("herkunft") or "").strip().rstrip(".")
-        if quelle and t.count(quelle) != 1:
+        quelle = (s.get("herkunft") or "").strip().rstrip(".").lower()
+        if quelle and t.lower().count(quelle) != 1:
             fehler.append("instagram nennt die quelle %d mal, genau einmal ist richtig"
-                          % t.count(quelle))
+                          % t.lower().count(quelle))
         datumszeilen = [z for z in absaetze if DATUM.search(z)]
         if len(datumszeilen) != 1:
             fehler.append("instagram traegt das datum in %d bloecken, genau einem ist richtig"
@@ -1496,12 +1587,34 @@ def bild_texte(s):
     return [t for t in aus if t]
 
 
-def texte(s, form, messzeit):
+# Welche Bitcoin-Zahl einer Form als Massstab daneben stehen darf, Schluessel
+# in data/bitcoin-massstab.json (stimme.bitcoin_zahl). Die Datei fehlt noch
+# (Stand 07.11.2026), bis dahin faellt der Bauplan vergleich aus.
+BITCOIN_KENNZAHL = {3: "reward_cut", 4: "blocks_8h", 5: "fee_share", 8: "hashrate", 10: "mined_pct"}
+
+# Die Kanaele der Tagesgrafik unter der Stimm-Regel, in der Reihenfolge der
+# Bauplan-Wahl: Instagram zuerst, weil es die engste Form hat (Ben,
+# 07.11.2026). X nicht, der automatische X-Post ist abgeschaltet.
+KANAL_FOLGE = ("instagram", "threads", "discord")
+
+
+def texte(s, form, messzeit, stand=None, tag_iso=None):
     """X in drei Zeilen (Ben, 30.09.2026, v4): der Satz zum Nachsprechen, das
     Fenster oder die Quelle, der Haken als Frage. Die Aufloesung steht im
-    Feld antwort, dem einzigen Ort mit Link. Discord bekommt Zeile 1 und 2,
-    den 17:00-Satz und den Mail-Satz ohne Link."""
+    Feld antwort, dem einzigen Ort mit Link. X und Antwort bleiben, wie sie
+    waren: der automatische X-Post ist abgeschaltet und faellt nicht unter
+    die Stimm-Regel (Ben, 07.11.2026).
+
+    Instagram, Threads und Discord folgen der Stimm-Regel: je Kanal ein
+    Bauplan aus stimme.py, keiner zweimal am selben Tag; stand ist der
+    Tagesstand aus data/stimme-stand.json (ohne: ein leerer Tag). Threads
+    bekommt einen eigenen Text statt des X-Texts, Discord die Saetze, den
+    17:00-Satz und den Mail-Satz ohne Link. Die Vorlagen schreiben klein,
+    die Schreibung kommt am fertigen Text dazu."""
+    import stimme
     s = dict(s)
+    stand = {"tage": {}} if stand is None else stand
+    tag_iso = tag_iso or messzeit.date().isoformat()
     teile = [tag(messzeit.date()) + ", " + uhr(messzeit)]
     if s.get("zusatz"):
         teile.append(s["zusatz"])
@@ -1515,12 +1628,44 @@ def texte(s, form, messzeit):
     import content_wache
     aufl = content_wache.ohne_wiederholung(s["aufloesung"], bild_texte(s))
     s["antwort"] = " ".join(t for t in (aufl, MAIL_SATZ, "" if x_label() else antwort_link(form)) if t)
-    s["discord"] = "%s\n%s\n\nshare it first, it goes on x at %s.\n%s" % (x1, x2, X_ZEIT, MAIL_SATZ)
     # Zahl mit Einheit und Datum der Zahl zuerst, die Caption fuehrt mit
     # beidem (Ben, 09.10.2026) und die Kommentar-Entwuerfe nutzen sie auch.
     s["ig_zahl"] = ig_zahl(s, form)
     s["ig_stand"] = tag(ig_stichtag(s, messzeit))
-    s["instagram"] = ig_caption(s, form, messzeit)
+    s["vergleich"] = (stimme.bitcoin_zahl(BITCOIN_KENNZAHL[form], tag_iso) or "") if form in BITCOIN_KENNZAHL else ""
+
+    def saetze(b):
+        return stimme.saetze(b, s["x1"], s["x2"], herkunft=s["herkunft"], stand=s["ig_stand"],
+                             einordnung=s.get("einordnung", ""), pointe=s.get("pointe", ""),
+                             frage=s.get("frage") or s.get("x3", ""), vergleich=s["vergleich"],
+                             zahl_kern=s.get("ig_zahl", ""))
+
+    def threads_text(b):
+        z = saetze(b)
+        return stimme.schreibung("\n".join(z)) if z else ""
+
+    def discord_text(b):
+        z = saetze(b)
+        if not z:
+            return ""
+        return stimme.schreibung("%s\n\nshare it first, it goes on x at %s.\n%s" % ("\n".join(z), X_ZEIT, MAIL_SATZ))
+
+    def ig_text(b):
+        if b == "vergleich" and not s["vergleich"]:
+            return ""
+        c = ig_caption(s, form, messzeit, b)
+        return stimme.schreibung(c) if c else ""
+
+    import threads
+    bauen = {"instagram": ig_text, "threads": threads_text, "discord": discord_text}
+    pruefen = {"instagram": lambda t, b: ig_pruefung(t, form, s, b),
+               "threads": lambda t, b: threads.wache(t, bauplan=b),
+               "discord": lambda t, b: pruefe_eine(t, form, "discord", massstab=b == "vergleich")}
+    s["bauplaene"] = {}
+    for k in KANAL_FOLGE:
+        b, t = stimme.waehlen(tag_iso, k, bauen[k], stand, pruefen[k])
+        s["bauplaene"][k] = b
+        s[k] = t
     return s
 
 
@@ -1975,10 +2120,10 @@ def heute_iso(s):
 
 # ------------------------------------------------------------ ablauf
 
-def seite_bauen(form, werte, messzeit, log=None):
+def seite_bauen(form, werte, messzeit, log=None, stand=None, tag_iso=None):
     _, _, vorlage = FORMEN[form]
     s = vorlage(werte, messzeit)
-    s = texte(s, form, messzeit)
+    s = texte(s, form, messzeit, stand, tag_iso)
     s["datum"] = tag(messzeit.date())
     fehler = textpruefung(s, form)
     if fehler:
@@ -2264,30 +2409,38 @@ def main(argv=None):
             print(json.dumps(m, ensure_ascii=False))
             return 0
 
-    s = seite_bauen(form, m["werte"], messzeit, log)
+    # stimm-regel (Ben, 07.11.2026): der tagesstand der bauplaene, gemerkt
+    # wird nur mit --log-schreiben, eine probe aendert ihn nicht
+    import stimme
+    stimm_stand = stimme.lesen()
+    s = seite_bauen(form, m["werte"], messzeit, log, stimm_stand, heute.isoformat())
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     png, vpng, kanalbilder, looks = kanaele_rendern(
         s, out / ("tagesgrafik-%s-form%02d.png" % (messzeit.date().isoformat(), form)),
         heute)
     (out / (png.stem + ".txt")).write_text(
-        "DISCORD\n%s\n\nX (%d zeichen)\n%s\n\nANTWORT unter dem X-Post\n%s\n\nSELBSTPRUEFUNG\n"
-        "wuerde ein halter das reposten, um anzugeben? %s\n" % (
-            s["discord"], len(s["x"]), s["x"], s["antwort"], s["pruefung"]), encoding="utf-8")
+        "BAUPLAENE %s\n\nDISCORD\n%s\n\nX (%d zeichen)\n%s\n\nANTWORT unter dem X-Post\n%s\n\n"
+        "THREADS\n%s\n\nSELBSTPRUEFUNG\nwuerde ein halter das reposten, um anzugeben? %s\n" % (
+            ", ".join("%s %s" % kv for kv in sorted(s["bauplaene"].items())),
+            s["discord"], len(s["x"]), s["x"], s["antwort"], s["threads"], s["pruefung"]), encoding="utf-8")
     (out / (png.stem + ".json")).write_text(json.dumps(m, ensure_ascii=False, indent=1),
                                             encoding="utf-8")
     # fuer den instagram-job um 09:00, der die datei aus dem artefakt holt
     (out / (png.stem + "-instagram.json")).write_text(json.dumps({
         "datum": heute.isoformat(), "form": form, "messzeit_utc": m["messzeit_utc"],
-        "caption": s["instagram"], "zahl": s["zahl"], "zahl_text": s["ig_zahl"], "tag": s["ig_stand"],
+        "caption": s["instagram"], "bauplan": s["bauplaene"]["instagram"],
+        "zahl": s["zahl"], "zahl_text": s["ig_zahl"], "tag": s["ig_stand"],
         "herkunft": s["datumszeile"].split(" \u00b7 ")[-1]}, ensure_ascii=False, indent=1), encoding="utf-8")
     with open(out / (png.stem + ".txt"), "a", encoding="utf-8") as fh:
         fh.write("\nINSTAGRAM, %d zeichen\n%s\n" % (len(s["instagram"]), s["instagram"]))
-    # fuer den threads-job um 17:10 (Ben, 17.10.2026): der x-text, drei
-    # zeilen mit frage am ende, und das bild im threads-look
+    # fuer den threads-job um 17:10 (Ben, 17.10.2026): seit der stimm-regel
+    # (Ben, 07.11.2026) ein eigener text im eigenen bauplan, nicht mehr der
+    # x-text, und das bild im threads-look
     (out / (png.stem + "-threads.json")).write_text(json.dumps({
         "datum": heute.isoformat(), "form": form, "messzeit_utc": m["messzeit_utc"],
-        "text": s["x"], "bild": Path(kanalbilder["threads"]).name}, ensure_ascii=False, indent=1),
+        "text": s["threads"], "bauplan": s["bauplaene"]["threads"],
+        "bild": Path(kanalbilder["threads"]).name}, ensure_ascii=False, indent=1),
         encoding="utf-8")
     print("form %d (%s), %s\n%s\n%s" % (form, grund, png, vpng, (out / (png.stem + ".txt")).read_text()))
     # die gebuehrenreihe nur, wenn dieser lauf auch etwas damit tut. eine
@@ -2320,6 +2473,7 @@ def main(argv=None):
                 look_takt.merken(sp, "tagesgrafik", k, heute)
         look_takt.raster_merken(sp, "tagesgrafik", heute)
         look_takt.schreiben(sp)
+        stimme.schreiben(stimm_stand, heute=heute)
         mw = messwerte_fuer_log(form, m["werte"], geb)
         if mw:
             eintrag["messwerte"] = mw
@@ -2363,6 +2517,17 @@ FAKE = {
 }
 
 
+def _asof(c):
+    """Der Block der Caption mit dem Stichtag, beim Bauplan datum_voran
+    ("On 6 Nov 2026, ...") umgeschrieben auf "As of 6 Nov 2026, ..."."""
+    for b in c.split("\n\n"):
+        if b.lower().startswith("as of "):
+            return b
+        if b.startswith("On "):
+            return "As of " + b[3:]
+    return ""
+
+
 def selbsttest():
     fehler = 0
 
@@ -2387,15 +2552,18 @@ def selbsttest():
         s = seite_bauen(f, FAKE[f], FAKE_NOW, log)
         c = s["instagram"]
         ok("form %d instagram gruen, %d zeichen, ohne x-termin, mit datum" % (f, len(c)),
-           not ig_pruefung(c, f, s) and "it goes on x" not in c and DATUM.search(c.split("\n\n")[2]))
-        ok("form %d instagram in fuenf bloecken, frage an platz zwei" % f,
-           len(c.split("\n\n")) == 5 and c.split("\n\n")[1].endswith("?"))
+           not ig_pruefung(c, f, s, s["bauplaene"]["instagram"]) and "it goes on x" not in c.lower()
+           and DATUM.search(_asof(c)))
+        # stimm-regel (Ben, 07.11.2026): keine pflichtfrage, eine frage nur beim bauplan frage
+        ok("form %d instagram in 4 oder 5 bloecken, frage nur beim bauplan frage (%s)" % (
+            f, s["bauplaene"]["instagram"]), len(c.split("\n\n")) in (4, 5)
+           and c.count("?") == (1 if s["bauplaene"]["instagram"] == "frage" else 0))
     for f in (1, 5, 7, 8, 9, 11):
-        c = seite_bauen(f, FAKE[f], FAKE_NOW, log)["instagram"].split("\n\n")[2]
-        ok("instagram form %d mit dem stichtag der quelle, %s" % (f, c), c.startswith("as of 28 sep 2026, "))
+        c = _asof(seite_bauen(f, FAKE[f], FAKE_NOW, log)["instagram"])
+        ok("instagram form %d mit dem stichtag der quelle, %s" % (f, c), c.startswith("As of 28 Sep 2026, "))
     for f in (2, 3, 4, 6, 10):
-        c = seite_bauen(f, FAKE[f], FAKE_NOW, log)["instagram"].split("\n\n")[2]
-        ok("instagram form %d eigene zaehlung mit dem messtag" % f, c.startswith("as of 29 sep 2026, "))
+        c = _asof(seite_bauen(f, FAKE[f], FAKE_NOW, log)["instagram"])
+        ok("instagram form %d eigene zaehlung mit dem messtag" % f, c.startswith("As of 29 Sep 2026, "))
     # zahl mit einheit und datum fuer kommentar-entwuerfe (Ben, 09.10.2026)
     for f in sorted(FAKE):
         s = seite_bauen(f, FAKE[f], FAKE_NOW, log)
@@ -2404,11 +2572,11 @@ def selbsttest():
         ok("form %d zahl mit einheit haelt die regeln" % f, z and not pruefe_eine(z, f, "ig_zahl")
            and z.strip() != s["zahl"].strip())
         ok("form %d datum der zahl wie in der caption, %s" % (f, s["ig_stand"]),
-           s["instagram"].split("\n\n")[2].startswith("as of %s, " % s["ig_stand"]))
+           _asof(s["instagram"]).lower().startswith("as of %s, " % s["ig_stand"]))
         ok("form %d caption nennt die zahl genau einmal" % f,
            len(_ig_zahlmuster(s["zahl"]).findall(s["instagram"])) == 1)
         ok("form %d caption nennt die quelle genau einmal" % f,
-           s["instagram"].count(s["herkunft"].rstrip(" .")) == 1)
+           s["instagram"].lower().count(s["herkunft"].rstrip(" .")) == 1)
     try:
         ig_stichtag({"herkunft": "source x", "x1": "a", "x2": "b"}, FAKE_NOW)
         ok("fremde quelle ohne datum wird nicht geraten", False)
@@ -2417,10 +2585,12 @@ def selbsttest():
     ok("stichtag ueber den jahreswechsel", ig_stichtag({"herkunft": "source x", "x2": "30 dec, source x"},
                                                       dt.datetime(2027, 1, 2, tzinfo=dt.timezone.utc))
        == dt.date(2026, 12, 30))
-    s = seite_bauen(2, FAKE[2], FAKE_NOW, log)
-    ok("instagram fuehrt mit der zahl samt einheit", s["instagram"].startswith(s["ig_zahl"].rstrip(" .")))
+    # instagram im bauplan zahl_zuerst, datum_voran ist am tag schon vergeben
+    s = seite_bauen(2, FAKE[2], FAKE_NOW, log, {"tage": {"2026-09-29": {"meme": "datum_voran"}}})
+    ok("instagram fuehrt mit der zahl samt einheit (%s)" % s["bauplaene"]["instagram"],
+       s["instagram"].lower().startswith(s["ig_zahl"].rstrip(" .").lower()))
     ok("instagram mit quelle, newsletter-zeile, 3 hashtags",
-       "counted by kaspa pulse.\n\n%s\n\n#kaspa #kas #blockdag" % IG_ZEILE_BIO in s["instagram"])
+       "counted by Kaspa Pulse.\n\n%s\n\n#kaspa #kas #blockdag" % IG_ZEILE_BIO in s["instagram"])
     ok("instagram form 8 mit 4 hashtags", seite_bauen(8, FAKE[8], FAKE_NOW, log)["instagram"].endswith(
         "#kaspa #kas #blockdag #proofofwork"))
     ok("instagram faengt link, kaufwort, x-termin und zu viele tags", all(ig_pruefung(t, 2) for t in (
@@ -2522,8 +2692,10 @@ def selbsttest():
         s["instagram"] + "\n\nmeasured 29 sep 2026", 2, s)))
     ok("instagram faengt die fehlende newsletter-zeile", any("newsletter" in f for f in ig_pruefung(
         s["instagram"].replace(IG_ZEILE_BIO, "link in bio"), 2)))
-    ok("instagram faengt die verschobene frage", any("frage" in f for f in ig_pruefung(
-        "\n\n".join(s["instagram"].split("\n\n")[1:] + ["x"]), 2)))
+    ok("instagram faengt zwei fragen", any("frage" in f for f in ig_pruefung(
+        s["instagram"].replace(IG_ZEILE_BIO, "what? why? " + IG_ZEILE_BIO), 2)))
+    ok("instagram faengt zu wenige bloecke", any("bloecke" in f for f in ig_pruefung(
+        "\n\n".join(s["instagram"].split("\n\n")[1:]), 2)))
     ok("zahlmuster trennt 553 von 15530", len(_ig_zahlmuster("553M").findall("553 million, 15530")) == 1)
     ok("stopp-datum aus der seite", heute_iso({"datum": "9 oct 2026"}) == "2026-10-09")
     # die regeln selbst
@@ -2596,6 +2768,9 @@ def selbsttest():
         z = sf["x"].split("\n")
         ok("form %d, x in drei zeilen, zeile 1 ohne dezimalstelle, zeile 3 eine frage" % f,
            len(z) == 3 and not re.search(r"\d\.\d", z[0]) and z[2].endswith("?"))
+        bp = sf["bauplaene"]["threads"]
+        ok("form %d, threads mit eigenem text, frage nur beim bauplan frage (%s)" % (f, bp),
+           sf["threads"] != sf["x"] and sf["threads"].count("?") == (1 if bp == "frage" else 0))
         ok("form %d, kein link und keine domain, auch nicht in der antwort (x-label)" % f,
            all("kaspapulse" not in sf[k] and "http" not in sf[k]
                for k in ("x", "discord", "bedeutung", "datumszeile", "kopf", "zahl", "antwort"))
@@ -2603,12 +2778,75 @@ def selbsttest():
         ok("form %d, antwort wiederholt keine zahl aus bild oder post" % f,
            not (content_wache.kennzahlen(sf["antwort"]) & content_wache.kennzahlen(" ".join(bild_texte(sf)))))
         ok("form %d, discord mit 17:00 und mail-satz ohne link" % f,
-           sf["discord"].split("\n")[:2] == z[:2] and sf["discord"].endswith(MAIL_SATZ))
+           "it goes on X at %s." % X_ZEIT in sf["discord"]
+           and sf["discord"].endswith(__import__("stimme").schreibung(MAIL_SATZ)))
+        ok("form %d, drei kanaele, drei bauplaene (%s)" % (f, sf["bauplaene"]),
+           len(set(sf["bauplaene"].values())) == 3 and set(sf["bauplaene"]) == set(KANAL_FOLGE))
     kaputt = dict(seite_bauen(4, FAKE[4], FAKE_NOW, log))
     kaputt["x"] = "kaspa added 281,000.5 blocks.\n8 hours, 29 sep.\nhow many."
     fk = textpruefung(kaputt, 4)
     ok("dezimalstelle in zeile 1 faellt", any("dezimalstelle" in f for f in fk))
     ok("zeile 3 ohne fragezeichen faellt", any("fragezeichen" in f for f in fk))
+    # stimm-regel (Ben, 07.11.2026): eine frage ohne den bauplan frage faellt
+    kaputt = dict(seite_bauen(4, FAKE[4], FAKE_NOW, log))
+    kaputt["threads"] += "\nHow many?"
+    kaputt["bauplaene"] = dict(kaputt["bauplaene"], threads="pointe")
+    ok("frage ohne bauplan frage faellt", any("frage ohne bauplan" in f for f in textpruefung(kaputt, 4)))
+    kaputt = dict(seite_bauen(4, FAKE[4], FAKE_NOW, log))
+    kaputt["discord"] = kaputt["discord"].lower()
+    ok("kleingeschriebener discord-text faellt", any("klein" in f for f in textpruefung(kaputt, 4)))
+    kaputt = dict(seite_bauen(4, FAKE[4], FAKE_NOW, log))
+    kaputt["bauplaene"] = dict(kaputt["bauplaene"], discord=kaputt["bauplaene"]["threads"])
+    ok("derselbe bauplan zweimal am tag faellt", any("selben tag" in f for f in textpruefung(kaputt, 4)))
+    # stimm-regel ueber 14 tage und alle formen (Ben, 07.11.2026): je tag drei
+    # verschiedene bauplaene, keine alte schlussfrage, hoechstens ein
+    # methoden-wort, normale schreibung, und mit karussell und meme danach
+    # bleibt fuer beide ein bauplan frei
+    import stimme
+    gesehen, fehlt = set(), []
+    for i in range(14):
+        jetzt = FAKE_NOW + dt.timedelta(days=i)
+        for f in sorted(FAKE):
+            st = {"tage": {}}
+            try:
+                sf = seite_bauen(f, FAKE[f], jetzt, log, st, jetzt.date().isoformat())
+                for k in ("karussell", "meme"):
+                    stimme.waehlen(jetzt.date(), k, lambda b: "Kaspa on %s." % tag(jetzt.date()) if b not in (
+                        "frage", "vergleich", "beobachtung") or k == "meme" and b == "beobachtung" else
+                        ("Who? On %s" % tag(jetzt.date()) if b == "frage" else None), st)
+            except (Stop, stimme.StimmeStopp) as exc:
+                fehlt.append("form %d am %s, %s" % (f, jetzt.date(), exc))
+                continue
+            gesehen |= set(sf["bauplaene"].values())
+            alle = " ".join(sf[k] for k in KANAL_FOLGE).lower()
+            for q in stimme.ALTE_FRAGEN:
+                if q in alle:
+                    fehlt.append("form %d am %s, alte frage %r" % (f, jetzt.date(), q))
+            if stimme.tag_verstoesse(st["tage"][jetzt.date().isoformat()]):
+                fehlt.append("form %d am %s, bauplan doppelt" % (f, jetzt.date()))
+    ok("14 tage, alle formen, fuenf kanaele ohne doppelten bauplan%s" % (
+        "" if not fehlt else ", " + "; ".join(fehlt[:3])), not fehlt)
+    ok("die tagesgrafik nutzt ueber 14 tage mindestens 5 bauplaene (%s)" % ", ".join(sorted(gesehen)),
+       len(gesehen) >= 5)
+    ok("ohne bitcoin-zahl nie der bauplan vergleich", "vergleich" not in gesehen)
+    # bauplan vergleich mit einer datierten bitcoin-zahl (nur probe, die datei gibt es noch nicht)
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        bpfad = Path(td) / "b.json"
+        bpfad.write_text(json.dumps({"zahlen": [{"kennzahl": "blocks_8h", "datum": "2026-09-29",
+                                                  "satz": "bitcoin targets 48 blocks in 8 hours, "
+                                                          "protocol rule, as of 29 sep 2026"}]}))
+        alt_b, stimme.BITCOIN = stimme.BITCOIN, bpfad
+        try:
+            # x hat vergleich schon am selben tag (zweiter lauf), der bauplan bleibt
+            st = {"tage": {"2026-09-29": {"karussell": "zahl_zuerst", "meme": "datum_voran",
+                                          "threads": "vergleich"}}}
+            sv = seite_bauen(4, FAKE[4], FAKE_NOW, log, st, "2026-09-29")
+            ok("bauplan vergleich mit datierter bitcoin-zahl haelt alle wachen (%s)" % sv["bauplaene"]["threads"],
+               sv["bauplaene"]["threads"] == "vergleich" and "Bitcoin targets 48 blocks" in sv["threads"]
+               and not textpruefung(sv, 4))
+        finally:
+            stimme.BITCOIN = alt_b
     kaputt = dict(seite_bauen(4, FAKE[4], FAKE_NOW, log))
     kaputt["discord"] += " " + antwort_link(4)
     ok("link im discord-text faellt", bool(textpruefung(kaputt, 4)))
@@ -2953,7 +3191,8 @@ def selbsttest():
             ok("oeffentlich haengt genau das discord-bild dran", namen == [bild.name])
             ok("oeffentlich pingt niemanden", nutz["allowed_mentions"] == {"parse": []})
             fremd = [w for w in ("selbstpruefung", "kontrolle", "ANTWORT", "INSTAGRAM",
-                                 "#daily-graphic", sd["antwort"].replace(MAIL_SATZ, "").strip(),
+                                 "#daily-graphic",
+                                 sd["antwort"].replace(__import__("stimme").schreibung(MAIL_SATZ), "").strip(),
                                  sd["instagram"], sd["pruefung"])
                      if w and w in nutz["content"]]
             ok("nichts aus der kontrolle im oeffentlichen post", not fremd)
