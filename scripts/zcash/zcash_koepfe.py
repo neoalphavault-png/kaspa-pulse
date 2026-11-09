@@ -434,7 +434,10 @@ def main():
             break
         benutzt.add(a2)
         software = {g["agent"].split(":")[0] for g in proben}
-        if len(proben) >= args.gegenproben and p2.agent.split(":")[0] in software | {peer.agent.split(":")[0]}:
+        # Lauf 21 (09.11.2026): peer kann None sein, wenn der Hauptpeer beim
+        # Abruf wegfiel; dann zaehlt nur die Software der Proben.
+        haupt = {peer.agent.split(":")[0]} if peer is not None else set()
+        if len(proben) >= args.gegenproben and p2.agent.split(":")[0] in software | haupt:
             p2.zu()
             continue  # genug Proben dieser Software, wir suchen nur noch eine andere
         try:
