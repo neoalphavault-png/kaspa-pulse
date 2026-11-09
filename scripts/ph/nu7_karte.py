@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """nu7_karte.py - NU7-Karte "4 of 4 forecasts" (Ben, 08.11.2026, Nachtrag 2: "forecast" statt "estimate").
 
+Fassung vom 09.11. vormittags (Ben, Aufraeumrunde): eine Botschaft, viel Luft.
+Nur Kicker, "4 of 4", eine Unterzeile, je Prognose Datum und "the block came"
+mit dem Streifen in voller Breite darunter, eine Achsenzeile, eine Fussnote.
+Der Streifen steht unter der Zeile statt in einer dritten Spalte, weil die
+drei Achsenwoerter bei 30 px auf einer Hoehe etwa 540 px Streifen brauchen.
+
 Fassung vom 09.11. (Ben, letzte Runde vor dem Post): Spalte "90% band" ersetzt
 durch einen Streifen je Zeile ("forecast and block"), alle mit demselben
 Massstab 15 min vor bis 15 min nach unserer Prognose. Strich in der Mitte ist
@@ -48,8 +54,11 @@ import ph_stil as S  # noqa: E402
 
 B, BH = S.FORMAT["hoch"]
 HOEHE = 3543405
-STREIFEN_PX = 36
-PUNKT_STREIFEN_PX = 22
+STREIFEN_PX = 40
+PUNKT_STREIFEN_PX = 30
+TABELLE_PX = 40
+SPALTE_DATUM_PX = 260
+ABSTAND_BLOCK_PX = 22
 BAND_DECKKRAFT = 0.10  # blass tuerkis, ph_stil laesst bis 0.10 zu (Ben 09.11.)
 
 
@@ -128,23 +137,19 @@ def pct(rel):
 
 
 def streifen(s, kopf):
-    """Ein Streifen je Zeile, Prognose in der Mitte, Block als tuerkiser Punkt.
-    Rechts heisst, der Block kam spaeter. Bandgrenzen aus der Rechnung, nicht geschaetzt."""
+    """Ein Streifen je Prognose, Prognose als Strich in der Mitte, Block als tuerkiser Punkt.
+    Rechts heisst, der Block kam spaeter. Bandgrenzen aus der Rechnung, nicht geschaetzt.
+    Fassung vom 09.11. (ruhig): keine Pfeile an den Enden."""
     lo, hi = s["band"][0] - s["median"], s["band"][1] - s["median"]
     blk = kopf - s["median"]
     if abs(blk) > FENSTER_S:
         raise SystemExit(f'block ausserhalb des streifens fuer {s["gemacht"]}')
+    teile = []
     if lo < FENSTER_S and hi > -FENSTER_S:
-        teile = [f'<div class="band" style="left:{pct(lo):.3f}%; right:{100 - pct(hi):.3f}%"></div>']
-    else:
-        teile = []
+        teile.append(f'<div class="band" style="left:{pct(lo):.3f}%; right:{100 - pct(hi):.3f}%"></div>')
     for rel in (lo, hi):
         if -FENSTER_S < rel < FENSTER_S:
             teile.append(f'<div class="kante" style="left:{pct(rel):.3f}%"></div>')
-    if lo < -FENSTER_S:
-        teile.append('<div class="pfeil links"></div>')
-    if hi > FENSTER_S:
-        teile.append('<div class="pfeil rechts"></div>')
     teile.append('<div class="mitte"></div>')
     teile.append(f'<div class="punkt" data-rolle="gezaehlt" style="left:{pct(blk):.3f}%"></div>')
     return '<div class="streifen">' + "".join(teile) + "</div>"
@@ -155,61 +160,39 @@ def html(sch, kopf, skala=1.0):
     im_band = sum(1 for s in sch if s["im_band"])
     tage = [vorlauf_tage(s["gemacht"], kopf) for s in sch]
     breiten = [s["band"][1] - s["band"][0] for s in sch]
-    reihen = "".join(
-        f'<tr><td class="l">{gemacht_text(s["gemacht"])}</td><td>{utc(s["median"])}</td>'
-        f'<td class="o">{block_kam(s["differenz_s"])}</td>'
-        f'<td class="s">{streifen(s, kopf)}</td></tr>' for s in sch)
-    fenster = sorted({s["fenster_tage"] for s in sch})
-    if fenster == [14]:
-        fuss2 = "forecasts from the block pace of the 14 days before each date. method PH-M-006."
-    else:
-        abweich = [s for s in sch if s["fenster_tage"] != 14]
-        fuss2 = ("forecasts from the block pace of the 14 days before each date, the "
-                 + " and ".join(f'{gemacht_text(s["gemacht"])} one from {s["fenster_tage"]} days' for s in abweich)
-                 + ". method PH-M-006.")
-    fuss3 = f"the 90% bands spanned {stunden_min(min(breiten))} to {stunden_min(max(breiten))}."
+    zeilen = "".join(
+        f'<div class="zeile"><span class="d">{gemacht_text(s["gemacht"])}</span>'
+        f'<span class="o">{block_kam(s["differenz_s"])}</span></div>{streifen(s, kopf)}' for s in sch)
+    fuss = (f"* 90% bands were {stunden_min(min(breiten))} to {stunden_min(max(breiten))} wide. "
+            "method and every result at pulsehawk.io/track-record")
     tk = F["tuerkis"].lstrip("#")
     blass = f"rgba({int(tk[0:2], 16)}, {int(tk[2:4], 16)}, {int(tk[4:6], 16)}, {BAND_DECKKRAFT})"
     css = f"""
 .zahl {{ color:{F["tuerkis"]}; }}
-.fn {{ font-feature-settings:normal; line-height:1.25; flex-shrink:0; }}
-table {{ width:100%; border-collapse:collapse; margin-top:18px; font-feature-settings:'tnum' 1; table-layout:fixed; }}
-col.c1 {{ width:128px; }} col.c2 {{ width:158px; }} col.c3 {{ width:272px; }}
-th {{ font-size:{T["klein"][0]}px; font-weight:400; color:{F["neben"]}; text-align:left; padding:0 0 10px;
-      vertical-align:bottom; line-height:1.15; }}
-td {{ font-size:32px; font-weight:400; color:{F["text"]}; padding:8px 0;
-      border-top:{S.LINIE_PX}px solid {F["linie"]}; white-space:nowrap; }}
-td.l {{ color:{F["neben"]}; }}
-td.o {{ font-weight:{T["label"][1]}; }}
-.streifen {{ position:relative; height:{STREIFEN_PX}px; }}
+.fn {{ font-feature-settings:normal; line-height:1.3; flex-shrink:0; }}
+.kopf, .zeile {{ display:flex; flex-shrink:0; }}
+.kopf span {{ font-size:{T["klein"][0]}px; color:{F["neben"]}; }}
+.d {{ width:{SPALTE_DATUM_PX}px; flex-shrink:0; }}
+.zeile {{ margin-top:{ABSTAND_BLOCK_PX}px; font-size:{TABELLE_PX}px; font-feature-settings:'tnum' 1; line-height:1.2; }}
+.zeile .d {{ color:{F["neben"]}; }}
+.zeile .o {{ color:{F["text"]}; font-weight:{T["label"][1]}; }}
+.streifen {{ position:relative; height:{STREIFEN_PX}px; margin-top:10px; flex-shrink:0; }}
 .band {{ position:absolute; top:0; bottom:0; background:{blass}; }}
 .mitte {{ position:absolute; left:50%; top:-6px; bottom:-6px; width:2px; margin-left:-1px; background:{F["text"]}; }}
 .kante {{ position:absolute; top:0; bottom:0; width:2px; margin-left:-1px; background:{F["neben"]}; }}
 .punkt {{ position:absolute; top:50%; width:{PUNKT_STREIFEN_PX}px; height:{PUNKT_STREIFEN_PX}px;
           margin:-{PUNKT_STREIFEN_PX // 2}px 0 0 -{PUNKT_STREIFEN_PX // 2}px; border-radius:50%; background:{F["tuerkis"]}; }}
-.pfeil {{ position:absolute; top:50%; margin-top:-7px; width:0; height:0; border-top:7px solid transparent;
-          border-bottom:7px solid transparent; }}
-.pfeil.links {{ left:4px; border-right:9px solid {F["neben"]}; }}
-.pfeil.rechts {{ right:4px; border-left:9px solid {F["neben"]}; }}
-.achse {{ position:relative; margin-left:{128 + 158 + 272}px; height:72px; flex-shrink:0; border-top:{S.LINIE_PX}px solid {F["linie"]}; }}
-.achse .t {{ position:absolute; top:0; width:1px; height:10px; background:{F["neben"]}; }}
-.achse .a {{ position:absolute; top:8px; line-height:1.2; font-size:{T["klein"][0]}px; color:{F["neben"]}; white-space:nowrap; }}
+.achse {{ display:flex; justify-content:space-between; margin-top:14px; flex-shrink:0;
+          font-size:{T["klein"][0]}px; color:{F["neben"]}; }}
 """
     inhalt = f"""
 <div class="klein kicker">zcash nu7 upgrade, 6 nov 2026</div>
-<div class="klein" style="margin-top:14px; color:{F["text"]}">nu7 starts at a block height, not a set time.</div>
-<div class="klein" style="color:{F["text"]}">we forecast the time, and published every forecast in advance.</div>
-<div class="zahl" data-rolle="gezaehlt" style="margin-top:16px; font-size:140px">{im_band} of {len(sch)}</div>
-<div class="unter" style="margin-top:12px">forecasts landed inside their 90% band*</div>
-<div class="klein fn" style="margin-top:8px">published {max(tage)} to {min(tage)} days ahead, scored against the block</div>
-<table><colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"></colgroup><tr><th>forecast<br>made</th><th>we said<br>(utc)</th><th>the block came</th><th>forecast<br>and block</th></tr>{reihen}</table>
-<div class="achse"><div class="t" style="left:0"></div><div class="t" style="left:50%"></div><div class="t" style="right:0"></div>
-<div class="a" style="right:calc(100% - 60px)">15 min earlier</div><div class="a" style="right:0">15 min later</div>
-<div class="a" style="top:40px; left:50%; transform:translateX(-50%)">our forecast</div></div>
-<div class="klein fn" style="margin-top:6px">block {HOEHE:,} at {utc(kopf)} utc, header time counted on our own header client.</div>
-<div class="klein fn" style="margin-top:4px">{H.escape(fuss2)} {H.escape(fuss3)}</div>
-<div class="klein fn" style="margin-top:4px">every forecast, hits and misses, on pulsehawk.io/track-record</div>
-<div class="klein fn" style="margin-top:4px">* how we forecast, step by step, pulsehawk.io/method</div>
+<div class="zahl" data-rolle="gezaehlt" style="margin-top:40px">{im_band} of {len(sch)}</div>
+<div class="unter" style="margin-top:20px">forecasts landed inside their 90% band*, published {max(tage)} to {min(tage)} days ahead</div>
+<div class="kopf" style="margin-top:44px"><span class="d">forecast made</span><span>the block came</span></div>
+{zeilen}
+<div class="achse"><span>15 min earlier</span><span>our forecast</span><span>15 min later</span></div>
+<div class="klein fn" style="margin-top:30px">{H.escape(fuss)}</div>
 """
     return S.seite(inhalt, B, BH, skala, extra_css=css)
 
