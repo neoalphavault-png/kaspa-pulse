@@ -38,3 +38,7 @@ NU7-Karte ruhig liegt mit der Vorschau mit 390 px in #ph-entwuerfe, vor der Fris
 ## Was Ben tun muss
 
 - **Heute 11:00 Berlin:** Karte aus #ph-entwuerfe freigeben und selbst posten. Diese Aufgabe geht auch als „📤 VON HAND 11:00“ raus.
+
+## Selbst-Merge
+
+- PR #295, Merge-Commit `46c8ad9`, squash. Live ist das Skript `scripts/ph/nu7_karte.py` in der ruhigen Fassung und dieser Bericht. Die Karte selbst geht nicht automatisch raus, Ben postet.
