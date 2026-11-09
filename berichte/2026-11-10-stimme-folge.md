@@ -59,4 +59,4 @@ Der Bauplan bleibt aus. `data/bitcoin-massstab.json` gibt es nicht, also wählt 
 - **Nicht geändert:** Der X-Entwurf für den Post von Hand geht weiter nach #moderator-only („x um 17:00 von hand“). Das ist eine Ops-Meldung und kein öffentlicher Text. Ob er bleibt, hat Ben noch nicht entschieden.
 
 ## Kopf
-Siehe den Commit nach diesem Bericht im selben PR.
+Die Änderung steht in `8f4db41`. Dieser Eintrag liegt als eigener Commit darauf.
