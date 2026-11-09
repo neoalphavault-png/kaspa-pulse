@@ -1,5 +1,5 @@
 {
- "erstellt_utc": "2026-11-08 21:23:04",
+ "erstellt_utc": "2026-11-09 02:48:52",
  "ziel_s": 120,
  "computed": {
   "median_s": 83.2,
@@ -8,13 +8,13 @@
   "anteil_ueber_600s_pct": 0.674
  },
  "kette": {
-  "bloecke": 1770,
+  "bloecke": 1943,
   "hoehen": [
    3125743,
-   3127512
+   3127685
   ],
   "von_utc": "2026-11-06 19:24:20",
-  "bis_utc": "2026-11-08 21:21:32",
+  "bis_utc": "2026-11-09 02:47:43",
   "luecken_in_der_kette": 0
  },
  "abseits_der_kette": 1,
@@ -71,25 +71,49 @@
    "tag_utc": "2026-11-08",
    "hoehen": [
     3126791,
-    3127512
+    3127603
    ],
-   "bloecke": 722,
-   "abstaende": 722,
-   "median_s": 69.0,
-   "p90_s": 267.9,
-   "p99_s": 504.7,
-   "mittel_s": 106.5,
-   "anteil_ueber_600s_pct": 0.55,
+   "bloecke": 813,
+   "abstaende": 813,
+   "median_s": 67.0,
+   "p90_s": 266.0,
+   "p99_s": 552.6,
+   "mittel_s": 105.9,
+   "anteil_ueber_600s_pct": 0.74,
    "negative": 0,
-   "laengste_luecke_s": 700.0,
-   "laengste_luecke_vor_block": 3127430,
+   "laengste_luecke_s": 946.0,
+   "laengste_luecke_vor_block": 3127555,
    "tx_in_bloecken": 5,
    "abdeckung_pct": 99.9,
    "peers_je_block_median": 12.0,
-   "spread_ms_median": 161.0,
-   "spread_ms_p90": 860.0,
-   "bloecke_mit_spread": 721,
-   "erste_sicht_minus_kopfzeit_s_median": 9.5
+   "spread_ms_median": 166.0,
+   "spread_ms_p90": 871.7,
+   "bloecke_mit_spread": 812,
+   "erste_sicht_minus_kopfzeit_s_median": 10.2
+  },
+  {
+   "tag_utc": "2026-11-09",
+   "hoehen": [
+    3127604,
+    3127685
+   ],
+   "bloecke": 82,
+   "abstaende": 82,
+   "median_s": 92.5,
+   "p90_s": 283.0,
+   "p99_s": 523.4,
+   "mittel_s": 126.0,
+   "anteil_ueber_600s_pct": 1.22,
+   "negative": 0,
+   "laengste_luecke_s": 606.0,
+   "laengste_luecke_vor_block": 3127646,
+   "tx_in_bloecken": 0,
+   "abdeckung_pct": 100.0,
+   "peers_je_block_median": 12.0,
+   "spread_ms_median": 307.0,
+   "spread_ms_p90": 980.5,
+   "bloecke_mit_spread": 82,
+   "erste_sicht_minus_kopfzeit_s_median": 6.8
   }
  ],
  "art": "counted aus eigenen Koepfen und eigener Ersten Sicht, computed fuer exponentielle Abstaende mit Mittel 120 s",
