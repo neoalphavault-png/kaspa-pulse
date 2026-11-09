@@ -1,5 +1,5 @@
-Quelle: eigene Header ueber P2P, Abruf 2026-11-08T12:02:40Z UTC. Peer-Software: /Zebra:7.0.0-modified/, /Zebra:7.0.0/, /Zakura:1.8.5/, /Zakura:1.8.4/, /Zakura:1.8.0/. Gegenproben: /Zebra:7.0.0/ 500/500, /Zebra:7.0.0/ 500/500.
-Bereich 3,489,717 bis 3,551,512 (2026-09-20 06:59:07 bis 2026-11-08 12:01:23 UTC).
+Quelle: eigene Header ueber P2P, Abruf 2026-11-09T10:18:13Z UTC. Peer-Software: /Zebra:7.0.0/, /Zakura:1.8.5/. Gegenproben: /Zebra:7.0.0/ 500/500.
+Bereich 3,489,717 bis 3,554,698 (2026-09-20 06:59:07 bis 2026-11-09 10:17:49 UTC).
 
 ### Vor NU7, gegen 75 s (53,687 Abstaende, Bloecke 3,489,718 bis 3,543,404)
 
@@ -25,24 +25,24 @@ Bereich 3,489,717 bis 3,551,512 (2026-09-20 06:59:07 bis 2026-11-08 12:01:23 UTC
 | 2026-W44 | 8,028 | 75.33 s | 53.0 s |
 | 2026-W45 | 4,711 | 75.32 s | 51 s |
 
-### Ab NU7, gegen 25 s (8,107 Abstaende, Bloecke 3,543,406 bis 3,551,512)
+### Ab NU7, gegen 25 s (11,293 Abstaende, Bloecke 3,543,406 bis 3,554,698)
 
 | Kennzahl | gezaehlt | berechnet |
 |---|---:|---:|
-| Mittel | 25.51 s | 25 s |
+| Mittel | 25.42 s | 25 s |
 | Median | 17 s | 17.3 s |
-| p90 | 60.0 s | 57.6 s |
-| p99 | 120.0 s | 115.1 s |
-| Anteil ueber 75 s | 5.09 % | 4.98 % |
-| Anteil ueber 173 s | 0.148 % | 0.1 % |
-| Laengste Luecke | 249 s (vor Block 3,543,445, 2026-11-06 03:11:24 UTC) | 239 s |
+| p90 | 59.0 s | 57.6 s |
+| p99 | 117.1 s | 115.1 s |
+| Anteil ueber 75 s | 5.06 % | 4.98 % |
+| Anteil ueber 173 s | 0.133 % | 0.1 % |
+| Laengste Luecke | 249 s (vor Block 3,543,445, 2026-11-06 03:11:24 UTC) | 248 s |
 | Negative Abstaende | 0 | 0 |
 
 ### Einpendeln nach NU7
 
 ```
 {
-  "bloecke_nach_nu7": 8107,
+  "bloecke_nach_nu7": 11293,
   "fenster": 100,
   "toleranz_prozent": 20,
   "halten_bloecke": 1000,
@@ -57,7 +57,7 @@ Bereich 3,489,717 bis 3,551,512 (2026-09-20 06:59:07 bis 2026-11-08 12:01:23 UTC
     "block_nu7_plus_1000": 0.321,
     "block_nu7_plus_5000": 0.326
   },
-  "schwierigkeit_spitze_relativ": 0.334,
+  "schwierigkeit_spitze_relativ": 0.315,
   "berechnet_bei_gleicher_hashrate": 0.333
 }
 ```

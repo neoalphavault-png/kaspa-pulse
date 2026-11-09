@@ -1,20 +1,12 @@
 {
   "netz": "zcash mainnet",
   "quelle": "eigene header ueber p2p",
-  "abruf_utc": "2026-11-08T12:02:40Z",
+  "abruf_utc": "2026-11-09T10:18:13Z",
   "peer_software": [
-    "/Zebra:7.0.0-modified/",
     "/Zebra:7.0.0/",
-    "/Zakura:1.8.5/",
-    "/Zakura:1.8.4/",
-    "/Zakura:1.8.0/"
+    "/Zakura:1.8.5/"
   ],
   "gegenproben": [
-    {
-      "agent": "/Zebra:7.0.0/",
-      "verglichen": 500,
-      "gleich": 500
-    },
     {
       "agent": "/Zebra:7.0.0/",
       "verglichen": 500,
@@ -31,10 +23,10 @@
   "nu7_hoehe": 3543405,
   "bereich": {
     "von_hoehe": 3489717,
-    "bis_hoehe": 3551512,
+    "bis_hoehe": 3554698,
     "von_utc": "2026-09-20 06:59:07",
-    "bis_utc": "2026-11-08 12:01:23",
-    "bloecke": 61796
+    "bis_utc": "2026-11-09 10:17:49",
+    "bloecke": 64982
   },
   "vor_nu7": {
     "abstaende": 53687,
@@ -117,17 +109,17 @@
   },
   "vorhersage": null,
   "nach_nu7": {
-    "abstaende": 8107,
+    "abstaende": 11293,
     "gezaehlt": {
-      "mittel_s": 25.51,
+      "mittel_s": 25.42,
       "median_s": 17,
-      "p90_s": 60.0,
-      "p99_s": 120.0,
+      "p90_s": 59.0,
+      "p99_s": 117.1,
       "laengste_luecke_s": 249,
       "laengste_luecke_vor_block": 3543445,
       "laengste_luecke_utc": "2026-11-06 03:11:24",
-      "anteil_ueber_3T_prozent": 5.09,
-      "anteil_ueber_T_ln1000_prozent": 0.148,
+      "anteil_ueber_3T_prozent": 5.06,
+      "anteil_ueber_T_ln1000_prozent": 0.133,
       "negativ": 0
     },
     "berechnet": {
@@ -136,18 +128,18 @@
       "median_s": 17.3,
       "p90_s": 57.6,
       "p99_s": 115.1,
-      "laengste_luecke_s": 239,
+      "laengste_luecke_s": 248,
       "anteil_ueber_3T_prozent": 4.98,
       "anteil_ueber_T_ln1000_prozent": 0.1
     },
     "bereich": {
       "von_hoehe": 3543406,
-      "bis_hoehe": 3551512
+      "bis_hoehe": 3554698
     },
     "erster_nu7_block_utc": "2026-11-06 02:34:02"
   },
   "einpendeln": {
-    "bloecke_nach_nu7": 8107,
+    "bloecke_nach_nu7": 11293,
     "fenster": 100,
     "toleranz_prozent": 20,
     "halten_bloecke": 1000,
@@ -162,7 +154,7 @@
       "block_nu7_plus_1000": 0.321,
       "block_nu7_plus_5000": 0.326
     },
-    "schwierigkeit_spitze_relativ": 0.334,
+    "schwierigkeit_spitze_relativ": 0.315,
     "berechnet_bei_gleicher_hashrate": 0.333
   }
 }
