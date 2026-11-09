@@ -4,6 +4,8 @@ Ben am 9.11. morgens: Die Karte wirkt überladen. Ziel ist eine Botschaft mit vi
 
 <!-- discord -->
 NU7-Karte ruhig liegt mit der Vorschau mit 390 px in #ph-entwuerfe, vor der Frist. Nur noch Kicker, 4 of 4, eine Unterzeile, vier Zeilen mit Streifen, eine Achse und eine Fußnote. Der Streifen steht unter jeder Zeile statt in einer dritten Spalte, sonst passt die Achse nicht auf eine Höhe. Der Track Record verlinkt auf die Methode. Bericht berichte/2026-11-09-nu7-karte-ruhig.md
+<!-- teil -->
+📤 VON HAND 11:00, fällig 11:00 Berlin: Post der NU7-Karte „4 of 4“ (ruhige Fassung aus #ph-entwuerfe von heute), Text schreibst du selbst. Vorher kurz prüfen, ob der Track Record den 23.10. führt. Bericht berichte/2026-11-09-nu7-karte-ruhig.md
 <!-- /discord -->
 
 ## Was gemacht wurde
@@ -35,4 +37,4 @@ NU7-Karte ruhig liegt mit der Vorschau mit 390 px in #ph-entwuerfe, vor der Fris
 
 ## Was Ben tun muss
 
-- Karte in #ph-entwuerfe bis 11:00 freigeben und selbst posten.
+- **Heute 11:00 Berlin:** Karte aus #ph-entwuerfe freigeben und selbst posten. Diese Aufgabe geht auch als „📤 VON HAND 11:00“ raus.
