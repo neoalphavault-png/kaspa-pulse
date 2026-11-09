@@ -8,3 +8,7 @@ stp: in den zwei bisherigen 32-familien-laeufen blieb die langsamste familie unt
   die last laeuft trotzdem volle 45 min
 8.11.: stp bestaetigt, der lauf vom 7.11. startete nicht (keine genesis, keine sends). wiederholung di 10.11. mit gleicher
   form, gleichen zeiten und regeln (lauf-2026-11-10.txt, lauf-2026-11-10-load32.txt). alles oben gilt fuer den 10.11. weiter
+9.11. (stp, ueber ben): eine hash-datei gilt erst als bewiesen, wenn ihre "on origin"-zeile auf dem repo steht, ein neuer
+  versuch erlaubt, datei 1 bis 18:40, datei 2 bis 21:10 utc. nur hashes aus einer datei, deren on-origin-zeile vor der frist
+  committet ist. minis "armed"-zeile nur notieren, kein hash. in den hash-dateien "# on origin <zeit utc>". fehlt die zeile
+  zur frist: nichts raten, ben melden, im bericht vermerken. im bericht je datei: commit, commit-zeit, on origin, armed.
