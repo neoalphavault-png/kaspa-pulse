@@ -1,6 +1,6 @@
 # Voller Knoten je Netz und BCH-Tempnet-Abschluss (Ben 9.11.2026, Frist Fr 13.11. 15:00 Berlin)
 
-**Stand 9.11. mittags: Teil A ist fertig, Teil B wartet auf deine Wahl der Variante, Teil C läuft.** Diese Datei wird bis Freitag ergänzt.
+**Stand 9.11. abends.** Teil A ist fertig. Du hast entschieden: kein Server jetzt, Zebra erst nach Bewilligung durch ZCG, BCHN geprunt auf c2 nach dem Tempnet-Ende (PR #300). Teil C läuft. Diese Datei wird bis Freitag ergänzt.
 
 <!-- discord -->
 Voller Knoten, Teil A fertig: Heute läuft kein eigener Zebra-, Zakura- oder BCHN-Knoten, weder auf c2 noch woanders. c2 (CX23, 2 vCPU, 4 GB, 40 GB) ist dafür zu klein. Empfehlung ist Variante 2, ein eigener dedizierter Server mit 1 TB NVMe für Zebra und BCHN, rund 46 EUR im Monat laut Drittquellen. Du entscheidest. Für die Messwerte von c2 bitte die drei Befehle aus dem Bericht ausführen. Bericht berichte/2026-11-13-voll-knoten.md
@@ -24,13 +24,12 @@ Voller Knoten, Teil A fertig: Heute läuft kein eigener Zebra-, Zakura- oder BCH
 - Header-Clients, Zuhörer und Wache verbinden sich mit fremden Knoten und prüfen Köpfe selbst, nämlich Verkettung, Arbeit und Checkpoints, dazu Gegenproben bei zwei Peers.
 - Transaktionen und Blockinhalte prüft niemand bei uns. Genau das ist der Einwand aus der Ablehnung von Antrag #444.
 
-**Was ich nicht messen kann:** CPU-Last, belegten RAM und freien Speicher auf c2. Ich habe keinen Zugang zu c2, und das gehört nicht in die Cloud-Sitzung. Bitte auf c2 ausführen und mir die Ausgabe geben. Sie enthält weder IP noch Hostnamen.
-
-```
-nproc; free -h; df -h /
-uptime
-systemctl list-units --type=service --state=running --no-legend | awk '{print $1}' | grep -E 'wache|entity|takt'
-```
+**Messung auf c2 (Ben, 9.11.):**
+- 2 vCPU, 3,7 GiB RAM, davon 3,3 GiB frei, kein Swap
+- Platte 38 GB, davon 34 GB frei
+- Last 0,15
+- laufend nur `entity-x-alarm`
+- Seit etwa 17:30 läuft zusätzlich der `bch-lauscher` (PR #298). `wache-aus zcash-mainnet` ist erledigt.
 
 ### 2. Bedarf je Knoten
 
@@ -75,11 +74,36 @@ Die Preise kommen aus Drittquellen (Preisvergleiche, Stand Juni bis September 20
 
 **Wenn es billiger sein soll:** Variante 1 mit BCHN geprunt. Zebra auf einem Netz-Volume braucht für die Erstsynchronisation deutlich länger. Den Faktor kann ich nicht belegen.
 
-## Teil B
+## Deine Entscheidung (9.11.)
 
-Wartet auf deine Wahl. Vorab zwei Punkte zur Gegenprobe:
-- **Wo die Prüfung läuft.** Die Header-Clients laufen auf GitHub-Runnern, die Knoten auf unserem Server. Eine Freigabe der RPC-Schnittstelle nach außen schlage ich nicht vor. Mein Vorschlag ist ein Timer auf dem Knotenserver. Er liest die gezählten Köpfe aus dem Repo, fragt je Höhe den Hash beim eigenen Knoten ab und schreibt die Abweichungen als CSV zurück auf den Datenbranch, wie heute `sync.sh` der Wache.
-- **Ab wann es gilt.** Der Satz „every header checked against our own fully validating node“ kommt erst in pulsehawk/methods, wenn die Knoten synchron sind und der erste Prüflauf ohne Abweichung durch ist. Das Datum steht dann dabei.
+Keine neuen Fixkosten, bevor ein Auftrag da ist.
+
+### Kostenposten für den ZCG-Antrag, Zebra-Vollknoten
+
+| | |
+|---|---|
+| Server-Klasse | dedizierter Server, 8 Kerne, 64 GB RAM, 1 TB NVMe (Hetzner AX42 oder gleichwertig aus der Serverbörse) |
+| Monatspreis netto | 57,30 EUR zum Listenpreis, etwa 46 EUR aus der Serverbörse. Für den Antrag rechne ich mit dem Listenpreis, also 687,60 EUR für 12 Monate. |
+| Einrichtung | einmalige Einrichtungsgebühr, Höhe auf hetzner.com prüfen (aus der Sitzung nicht erreichbar) |
+| Erstsynchronisation | „takes days“ laut Zebra-Buch, von der Genesis an, ohne fremden Snapshot. Im Plan 7 Tage. |
+| Betrieb | nur ausgehende Verbindungen. Port 8233 eingehend erst mit einer Firewall-Regel. |
+| Start | nach der Bewilligung |
+
+Die Preise stammen aus Drittquellen, Stand Juni bis September 2026: AX42 nach der Erhöhung im April 2026 von 47,30 auf 57,30 EUR, Serverbörse 37 bis 46 EUR. Vor dem Einreichen bitte auf hetzner.com prüfen.
+
+Auf demselben Server kann später auch ein ungeprunter BCHN laufen. Für den ZCG-Antrag zählt nur Zebra.
+
+### BCHN geprunt auf c2
+
+Vorbereitet als PR #300 (c2-Dateien, du mergst):
+- `bitcoin.conf` mit `prune=4000`, `dbcache=300`, `listen=0`, RPC nur lokal und `logips=0`
+- `bchn.service` mit `MemoryMax=1200M`, `CPUQuota=100%`, Nice 10 und IO im Leerlauf. Die Unit verweigert den Start vor dem 15.11. um 12:00 UTC.
+- `setup.sh bchn`, `bchn-stand` und `bchn-aus`
+- Installiert wird aus dem signierten PPA von Bitcoin Cash Node, mit geprüftem Fingerabdruck.
+
+Erwartet: etwa 4 GB Blockdateien und einige GB UTXO-Bestand, die Erstsynchronisation dauert einige Tage bis zwei Wochen. Den Namen des Binärpakets (`bitcoind`) konnte ich nicht nachlesen. `setup.sh` bricht ab, wenn das installierte Programm nicht BCHN ist.
+
+**Gegenprobe gegen BCHN und Methodensatz (Punkte 5 und 6):** Sobald BCHN synchron ist, prüft ein Timer auf c2 jede gezählte BCH-Höhe gegen `getblockhash`. Danach kommt der Satz in pulsehawk/methods, mit Datum, und nur für BCH. Für Zcash gilt er erst mit dem Zebra-Knoten.
 
 ## Teil C, BCH-Tempnet-Abschluss
 
@@ -102,12 +126,9 @@ Die Stale-Blöcke häufen sich in Stunden mit sehr vielen Blöcken, nicht in Stu
 
 ## Was Ben tun muss
 
-1. **Variante wählen** (Teil A, Punkt 3). Ohne deine Wahl fange ich mit Teil B nicht an.
-2. **c2 messen** mit den drei Befehlen aus Teil A, die Ausgabe an mich.
-3. **PR #298 mergen** und auf c2 `sudo ./setup.sh bch-lauscher` ausführen, für den zweiten Messpunkt.
-4. **Upgrade-Wache anhalten:** Das NU7-Fenster ist zu. Auf c2 `sudo /opt/kaspa-pulse/deploy/c2/setup.sh wache-aus zcash-mainnet`.
+1. **PR #300 mergen**, dann auf c2 `sudo ./setup.sh bchn`. Nach dem 15.11. um 12:00 UTC kommt `sudo systemctl start bchn`.
+2. **Preise** für den ZCG-Antrag auf hetzner.com prüfen.
 
 ## Offene Fragen an Ben
 
-1. Welche Variante?
-2. Darf der Zebra-Knoten eingehende Verbindungen annehmen (Port 8233), oder nur ausgehend? Ein Knoten, der eingehend erreichbar ist, hilft dem Netz, braucht aber eine Freigabe in der Firewall.
+Keine.
