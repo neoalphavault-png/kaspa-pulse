@@ -18,7 +18,7 @@ Zcash-Zuhörer nach NU7, Endstand: Ab NU7 sind 52 von 8.609 Kettenblöcken abgeh
 
 **Der eigentliche Fehler** lag darin, dass das Ende am Netz hing. Nach Plan wäre um 48 h Schluss gewesen (8.11. 02:34 UTC). Weil der Kopfabruf zweimal scheiterte, lief die Kette bis 61 h. Hätte er auch in Lauf 13 versagt, wäre sie bis zur harten Grenze am 10.11. 00:00 UTC gelaufen. Genau das hatte ich am 8.11. in `berichte/2026-11-08-zcash-lauscher.md` (PR #289) angenommen. **Diese Annahme war falsch,** denn ich habe nicht damit gerechnet, dass ein späterer Abruf gelingt.
 
-**Umstellung, PR `zcash/lauscher-endzeit`** (Workflow, du merged nach deiner Prüfung):
+**Umstellung, PR #303 (`zcash/lauscher-endzeit`)** (Workflow, du merged nach deiner Prüfung):
 - **Ein Eingang:** Statt `stunden_nach_nu7` und `spaetestens_utc` gibt es nur `ende_utc`, die feste Endzeit der Kette. Er ist Pflicht beim Start von Hand.
 - **Kein Kopfabruf mehr:** Die Entscheidung trifft `scripts/zcash/lauscher_weiter.py` allein aus der Uhrzeit.
   - Der nächste Lauf startet 8 min vor dem Ende des laufenden.
@@ -108,5 +108,5 @@ Alle Zahlen sind counted und kommen je einmal vor. Kein Doppelpunkt im Fließtex
 
 ## Was Ben tun muss
 
-1. Den PR `zcash/lauscher-endzeit` prüfen und mergen. Er ändert eine Workflow-Datei, deshalb mergst du.
+1. PR #303 (`zcash/lauscher-endzeit`) prüfen und mergen. Er ändert eine Workflow-Datei, deshalb mergst du.
 2. Am Mi 11.11. um 10:00 den Forumsbeitrag mit dem Satz oben posten.
