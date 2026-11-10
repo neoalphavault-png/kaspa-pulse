@@ -1,0 +1,179 @@
+{
+ "koepfe": {
+  "von": 327989,
+  "bis": 364603,
+  "anzahl": 36615
+ },
+ "regel": "arbeitsrate ueber 10 bloecke mindestens 5.0 difficulty je sekunde oder 10 bloecke in hoechstens 60 s, laeufe mit weniger als 30 min abstand zusammengelegt",
+ "gegenprobe_bitcoincashautist": {
+  "quelle": "source bitcoincashautist, Forum #41, Gist tempnet_d.csv",
+  "hoehen_dort": [
+   327900,
+   363089
+  ],
+  "gemeinsame_hoehen": 35101,
+  "abweichungen": 0,
+  "erste_abweichungen": [],
+  "nur_dort": 89
+ },
+ "hash_fenster": [
+  {
+   "einstieg_utc": "2026-10-29T21:33:24Z",
+   "ausstieg_utc": "2026-10-30T16:28:35Z",
+   "hoehen": [
+    347756,
+    349820
+   ],
+   "bloecke": 2065,
+   "difficulty_max": 101572.7,
+   "zuhoerer_abdeckung_prozent": 100.0,
+   "kettenbloecke": 2065,
+   "stale": 236,
+   "anteil_prozent": 10.256
+  },
+  {
+   "einstieg_utc": "2026-11-02T22:51:45Z",
+   "ausstieg_utc": "2026-11-03T01:59:58Z",
+   "hoehen": [
+    353742,
+    354619
+   ],
+   "bloecke": 878,
+   "difficulty_max": 29643.3,
+   "zuhoerer_abdeckung_prozent": 100.0,
+   "kettenbloecke": 878,
+   "stale": 118,
+   "anteil_prozent": 11.847
+  },
+  {
+   "einstieg_utc": "2026-11-03T08:22:35Z",
+   "ausstieg_utc": "2026-11-03T10:39:07Z",
+   "hoehen": [
+    354727,
+    355142
+   ],
+   "bloecke": 416,
+   "difficulty_max": 31214.3,
+   "zuhoerer_abdeckung_prozent": 100.0,
+   "kettenbloecke": 416,
+   "stale": 32,
+   "anteil_prozent": 7.143
+  },
+  {
+   "einstieg_utc": "2026-11-03T17:26:41Z",
+   "ausstieg_utc": "2026-11-03T21:10:47Z",
+   "hoehen": [
+    355214,
+    355842
+   ],
+   "bloecke": 629,
+   "difficulty_max": 69678.3,
+   "zuhoerer_abdeckung_prozent": 0.0,
+   "kettenbloecke": 0,
+   "stale": 0,
+   "anteil_prozent": null
+  },
+  {
+   "einstieg_utc": "2026-11-05T17:00:15Z",
+   "ausstieg_utc": "2026-11-05T18:20:12Z",
+   "hoehen": [
+    357758,
+    358442
+   ],
+   "bloecke": 685,
+   "difficulty_max": 19273.1,
+   "zuhoerer_abdeckung_prozent": 100.0,
+   "kettenbloecke": 685,
+   "stale": 405,
+   "anteil_prozent": 37.156
+  },
+  {
+   "einstieg_utc": "2026-11-09T17:35:01Z",
+   "ausstieg_utc": "2026-11-09T19:38:15Z",
+   "hoehen": [
+    363417,
+    364358
+   ],
+   "bloecke": 942,
+   "difficulty_max": 46966.0,
+   "zuhoerer_abdeckung_prozent": 100.0,
+   "kettenbloecke": 942,
+   "stale": 536,
+   "anteil_prozent": 36.265
+  }
+ ],
+ "drin_und_draussen": {
+  "in_hash_fenstern": {
+   "kettenbloecke": 4986,
+   "stale": 1327,
+   "anteil_prozent": 21.02
+  },
+  "ausserhalb": {
+   "kettenbloecke": 17332,
+   "stale": 122,
+   "anteil_prozent": 0.699
+  },
+  "stale_ohne_hoehe": 0
+ },
+ "rufitnes_stunden": {
+  "quelle": "source rufitnes, Forum #37",
+  "fenster": [
+   {
+    "von_utc": "2026-10-29T21:00:00Z",
+    "bis_utc": "2026-10-29T23:00:00Z",
+    "zuhoerer_abdeckung_prozent": 100.0,
+    "kettenbloecke": 976,
+    "stale": 216,
+    "anteil_prozent": 18.121
+   },
+   {
+    "von_utc": "2026-11-02T22:00:00Z",
+    "bis_utc": "2026-11-03T00:00:00Z",
+    "zuhoerer_abdeckung_prozent": 100.0,
+    "kettenbloecke": 738,
+    "stale": 112,
+    "anteil_prozent": 13.176
+   },
+   {
+    "von_utc": "2026-11-03T08:00:00Z",
+    "bis_utc": "2026-11-03T09:00:00Z",
+    "zuhoerer_abdeckung_prozent": 100.0,
+    "kettenbloecke": 254,
+    "stale": 28,
+    "anteil_prozent": 9.929
+   },
+   {
+    "von_utc": "2026-11-03T17:00:00Z",
+    "bis_utc": "2026-11-03T18:00:00Z",
+    "zuhoerer_abdeckung_prozent": 0.0,
+    "kettenbloecke": 0,
+    "stale": 0,
+    "anteil_prozent": null
+   },
+   {
+    "von_utc": "2026-11-05T17:00:00Z",
+    "bis_utc": "2026-11-05T18:00:00Z",
+    "zuhoerer_abdeckung_prozent": 100.0,
+    "kettenbloecke": 641,
+    "stale": 405,
+    "anteil_prozent": 38.719
+   }
+  ],
+  "zusammen": {
+   "kettenbloecke": 2609,
+   "stale": 761,
+   "anteil_prozent": 22.582
+  },
+  "rest": {
+   "kettenbloecke": 19709,
+   "stale": 688,
+   "anteil_prozent": 3.373
+  }
+ },
+ "eingaenge": {
+  "koepfe": "data/bch/tempnet-koepfe.csv.gz, abruf 2026-11-10T09:47:44Z, hoehe 327989 bis 364603",
+  "zuhoerer": "data/bch/lauscher/bloecke.csv und zusammenfassung.json, 70 laeufe 2026-10-25T09:15:47Z bis 2026-11-10T05:55:22Z",
+  "vergleich": "source bitcoincashautist, https://gist.github.com/A60AB5450353F40E/d069f34f5051a638a38325b2caed7a50 tempnet_d.csv, sha256 e7ce24e0b5f4be0913a9648f3b5e25dad819ddbf2508b640cdfdc9e62751294e, nur als daten gelesen",
+  "skript": "scripts/bch/tempnet_fenster.py (PR #304)"
+ }
+}
