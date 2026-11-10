@@ -1,0 +1,54 @@
+{
+ "variante": "ohne_f8",
+ "nachlauf_s": 10,
+ "tx_k1": 89737,
+ "tx_k2": 89737,
+ "union_k1": {
+  "vor": {
+   "sekunden": 300,
+   "hops": 0,
+   "hops_nach_nachlauf": 0
+  },
+  "load32": {
+   "sekunden": 2700,
+   "mit_hop": 2681,
+   "landung_union_pct": 99.3
+  },
+  "spaet": {
+   "sekunden": 900,
+   "mit_hop": 2,
+   "landung_union_pct": 0.22
+  },
+  "ruhe": {
+   "sekunden": 600,
+   "hops": 0,
+   "hops_nach_nachlauf": 0
+  }
+ },
+ "nah_an_linie_k1": [],
+ "union_k2": {
+  "vor": {
+   "sekunden": 300,
+   "hops": 0,
+   "hops_nach_nachlauf": 0
+  },
+  "load32": {
+   "sekunden": 2700,
+   "mit_hop": 2681,
+   "landung_union_pct": 99.3
+  },
+  "spaet": {
+   "sekunden": 900,
+   "mit_hop": 2,
+   "landung_union_pct": 0.22
+  },
+  "ruhe": {
+   "sekunden": 600,
+   "hops": 0,
+   "hops_nach_nachlauf": 0
+  }
+ },
+ "nah_an_linie_k2": [],
+ "praefix": "g",
+ "sekunden_ungleich": 0
+}
