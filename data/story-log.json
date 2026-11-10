@@ -149,6 +149,23 @@
     "+707",
     "-93"
    ]
+  },
+  {
+   "datum": "2026-11-10",
+   "tag": "di",
+   "art": "slider",
+   "frage": "how many KAS are mined during one night of 8 hours sleep?",
+   "richtig": null,
+   "aufloesung": {
+    "frage": "how many KAS are mined during one night of 8 hours sleep?",
+    "zahl": "593k",
+    "einheit": "KAS",
+    "satz": "1,779,989 KAS a day, so 593,330 KAS in one night of 8 hours sleep",
+    "datum": "as of 2 nov 2026 · source kaspa emission schedule"
+   },
+   "quelle_vorlage": "emission 2026-11-02",
+   "antwort": "593k KAS",
+   "emoji": "😴"
   }
  ]
 }
