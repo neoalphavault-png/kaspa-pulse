@@ -10,11 +10,11 @@
   },
   "quelle": {
     "quelle": "BCH-Tempnet P2P (getheaders), Peers aus der oeffentlichen Tempnet-Konfiguration",
-    "abruf_utc": "2026-11-04T10:07:51Z",
+    "abruf_utc": "2026-11-10T09:47:44Z",
     "start_checkpoint": 327988,
     "erste_hoehe": 327989,
-    "spitze_hoehe": 356042,
-    "spitze_hash": "00000000ebc44723938c94136a414eaaec7a1f05144b8070ac5becfa9c4b3745",
+    "spitze_hoehe": 364603,
+    "spitze_hash": "00000000032728cfa2b6174eef2d4eb1b30b03b3277dba22e159f2e0bdde8212",
     "fixpunkte": {
       "letzter_gemeinsamer": 327988,
       "erster_tempnet": 327989
@@ -25,22 +25,22 @@
       "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/"
     ],
     "peer_fehler": 0,
-    "zielhoehe_gemeldet": 356042,
+    "zielhoehe_gemeldet": 364603,
     "zielhoehe_aus_peers_mit_abzweig": 4,
-    "proben_ohne_abzweig": 3,
+    "proben_ohne_abzweig": 7,
     "abzweige_verworfen": [],
     "gegenproben": [
-      {
-        "agent": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
-        "verglichen": 500,
-        "gleich": 500,
-        "spitze_peer": 356042
-      },
       {
         "agent": "/Bitcoin Cash Node:29.2.1/",
         "verglichen": 500,
         "gleich": 500,
-        "spitze_peer": 356042
+        "spitze_peer": 364603
+      },
+      {
+        "agent": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+        "verglichen": 500,
+        "gleich": 500,
+        "spitze_peer": 364603
       }
     ],
     "gegenproben_ohne_antwort": [],
@@ -86,9 +86,9 @@
       "max": 27799
     },
     "verzug_block_min": 4,
-    "abruf_minus_mtp": 1010,
-    "abruf_minus_spitze": 196,
-    "spitze_beim_abruf": 356042,
+    "abruf_minus_mtp": 469,
+    "abruf_minus_spitze": 120,
+    "spitze_beim_abruf": 364603,
     "erwartung": {
       "verzug_block": {
         "anzahl": 200000,
@@ -590,9 +590,9 @@
   "gegenprobe_chaingraph": {
     "quelle": "source chaingraph",
     "endpunkt": "https://tempnet.chaingraph.cash/v1/graphql",
-    "proben": 59,
+    "proben": 76,
     "verglichen": 0,
     "gleich": 0,
-    "fehler": "HTTPError: HTTP Error 503: Service Unavailable"
+    "fehler": "HTTPError: HTTP Error 403: Forbidden"
   }
 }

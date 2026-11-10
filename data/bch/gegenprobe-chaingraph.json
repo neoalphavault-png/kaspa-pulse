@@ -1,8 +1,8 @@
 {
   "quelle": "source chaingraph",
   "endpunkt": "https://tempnet.chaingraph.cash/v1/graphql",
-  "proben": 59,
+  "proben": 76,
   "verglichen": 0,
   "gleich": 0,
-  "fehler": "HTTPError: HTTP Error 503: Service Unavailable"
+  "fehler": "HTTPError: HTTP Error 403: Forbidden"
 }
