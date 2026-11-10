@@ -21,6 +21,13 @@
     "motiv": "hoehenlinien",
     "schritt": 3,
     "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-11-10",
+    "look": "A-papier",
+    "motiv": "partikel-puls",
+    "schritt": 0,
+    "serie": "tagesgrafik"
    }
   ],
   "story/instagram": [
@@ -40,6 +47,11 @@
     "datum": "2026-11-09",
     "look": "D-dunkel",
     "schritt": 1
+   },
+   {
+    "datum": "2026-11-10",
+    "look": "A-teal",
+    "schritt": 2
    }
   ],
   "tagesgrafik/threads": [
@@ -52,6 +64,11 @@
     "datum": "2026-11-09",
     "look": "D-dunkel",
     "schritt": 1
+   },
+   {
+    "datum": "2026-11-10",
+    "look": "A-teal",
+    "schritt": 2
    }
   ],
   "tagesgrafik/x": [
@@ -64,6 +81,11 @@
     "datum": "2026-11-09",
     "look": "D-dunkel",
     "schritt": 1
+   },
+   {
+    "datum": "2026-11-10",
+    "look": "A-teal",
+    "schritt": 2
    }
   ]
  }
