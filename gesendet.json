@@ -254,6 +254,12 @@
    "datei": "berichte/2026-11-13-voll-knoten.md",
    "sha256": "d4eb314bd94ec94208d8f7ddf918e6c417c64e327a4e5f1f78cb1e270910adca",
    "utc": "2026-11-09T11:35:49Z"
+  },
+  {
+   "branch": "bericht/miner-nach-cut",
+   "datei": "berichte/2026-11-10-miner-nach-cut.md",
+   "sha256": "a9edc45f8befdaa88b82c949f11a0a74a7a52970c785b7b4f502d615f2b2f7ac",
+   "utc": "2026-11-10T06:06:15Z"
   }
  ]
 }
