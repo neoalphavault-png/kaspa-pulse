@@ -1,4 +1,9 @@
-# pruefung 8.11.: die nachzaehlung datei 1 (lauf 42421412329, acht stuecke 18:45 bis 21:30 utc) fand 0 covenant-tx.
-# ein kurzes stueck mit kette, zaehlt dazu alle covenant-ausgaenge und andere schreibweisen der id, nur zahlen.
-# zweiter pruefdurchgang 8.11.: dazu die verteilung der tx je covenant-id (nur zahlen).
-2026-11-07T20:00:00Z 2026-11-07T20:10:00Z kette
+# nachzaehlung stp-lauf di 10.11. (datei 1, 18:45 bis 21:30 utc), acht stuecke mit kette, familien f1 bis f8 aus covenant.sha256.
+2026-11-10T18:45:00Z 2026-11-10T19:05:00Z kette
+2026-11-10T19:05:00Z 2026-11-10T19:25:00Z kette
+2026-11-10T19:25:00Z 2026-11-10T19:45:00Z kette
+2026-11-10T19:45:00Z 2026-11-10T20:05:00Z kette
+2026-11-10T20:05:00Z 2026-11-10T20:25:00Z kette
+2026-11-10T20:25:00Z 2026-11-10T20:45:00Z kette
+2026-11-10T20:45:00Z 2026-11-10T21:05:00Z kette
+2026-11-10T21:05:00Z 2026-11-10T21:30:00Z kette
