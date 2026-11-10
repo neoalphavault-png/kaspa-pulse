@@ -1,0 +1,204 @@
+{
+ "variante": "mit_f8",
+ "nachlauf_s": 10,
+ "tx_k1": 18520,
+ "tx_k2": 18520,
+ "union_k1": {
+  "f1": {
+   "sekunden": 900,
+   "mit_hop": 855,
+   "landung_union_pct": 95.0
+  },
+  "gap1": {
+   "sekunden": 300,
+   "hops": 1,
+   "hops_nach_nachlauf": 0
+  },
+  "f2": {
+   "sekunden": 900,
+   "mit_hop": 859,
+   "landung_union_pct": 95.44
+  },
+  "gap2": {
+   "sekunden": 300,
+   "hops": 2,
+   "hops_nach_nachlauf": 0
+  },
+  "f4": {
+   "sekunden": 900,
+   "mit_hop": 857,
+   "landung_union_pct": 95.22
+  },
+  "gap3": {
+   "sekunden": 300,
+   "hops": 4,
+   "hops_nach_nachlauf": 0
+  },
+  "f8": {
+   "sekunden": 900,
+   "mit_hop": 864,
+   "landung_union_pct": 96.0
+  },
+  "gap4": {
+   "sekunden": 300,
+   "hops": 8,
+   "hops_nach_nachlauf": 0
+  },
+  "r1": {
+   "sekunden": 50,
+   "mit_hop": 46,
+   "landung_union_pct": 92.0
+  },
+  "r2": {
+   "sekunden": 50,
+   "mit_hop": 48,
+   "landung_union_pct": 96.0
+  },
+  "r3": {
+   "sekunden": 50,
+   "mit_hop": 48,
+   "landung_union_pct": 96.0
+  },
+  "r4": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r5": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r6": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r7": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r8": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r9": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r10": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "ruhe": {
+   "sekunden": 1800,
+   "hops": 0,
+   "hops_nach_nachlauf": 0
+  }
+ },
+ "nah_an_linie_k1": [],
+ "union_k2": {
+  "f1": {
+   "sekunden": 900,
+   "mit_hop": 855,
+   "landung_union_pct": 95.0
+  },
+  "gap1": {
+   "sekunden": 300,
+   "hops": 1,
+   "hops_nach_nachlauf": 0
+  },
+  "f2": {
+   "sekunden": 900,
+   "mit_hop": 859,
+   "landung_union_pct": 95.44
+  },
+  "gap2": {
+   "sekunden": 300,
+   "hops": 2,
+   "hops_nach_nachlauf": 0
+  },
+  "f4": {
+   "sekunden": 900,
+   "mit_hop": 857,
+   "landung_union_pct": 95.22
+  },
+  "gap3": {
+   "sekunden": 300,
+   "hops": 4,
+   "hops_nach_nachlauf": 0
+  },
+  "f8": {
+   "sekunden": 900,
+   "mit_hop": 864,
+   "landung_union_pct": 96.0
+  },
+  "gap4": {
+   "sekunden": 300,
+   "hops": 8,
+   "hops_nach_nachlauf": 0
+  },
+  "r1": {
+   "sekunden": 50,
+   "mit_hop": 46,
+   "landung_union_pct": 92.0
+  },
+  "r2": {
+   "sekunden": 50,
+   "mit_hop": 48,
+   "landung_union_pct": 96.0
+  },
+  "r3": {
+   "sekunden": 50,
+   "mit_hop": 48,
+   "landung_union_pct": 96.0
+  },
+  "r4": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r5": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r6": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r7": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r8": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r9": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "r10": {
+   "sekunden": 50,
+   "mit_hop": 0,
+   "landung_union_pct": 0.0
+  },
+  "ruhe": {
+   "sekunden": 1800,
+   "hops": 0,
+   "hops_nach_nachlauf": 0
+  }
+ },
+ "nah_an_linie_k2": [],
+ "praefix": "f",
+ "sekunden_ungleich": 0
+}
