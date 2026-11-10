@@ -110,3 +110,5 @@ Alle Zahlen sind counted und kommen je einmal vor. Kein Doppelpunkt im Fließtex
 
 1. PR #303 (`zcash/lauscher-endzeit`) prüfen und mergen. Er ändert eine Workflow-Datei, deshalb mergst du.
 2. Am Mi 11.11. um 10:00 den Forumsbeitrag mit dem Satz oben posten.
+
+Stand des Berichts 10.11.2026, 09:15 UTC.
