@@ -12,3 +12,8 @@ stp: in den zwei bisherigen 32-familien-laeufen blieb die langsamste familie unt
   versuch erlaubt, datei 1 bis 18:40, datei 2 bis 21:10 utc. nur hashes aus einer datei, deren on-origin-zeile vor der frist
   committet ist. minis "armed"-zeile nur notieren, kein hash. in den hash-dateien "# on origin <zeit utc>". fehlt die zeile
   zur frist: nichts raten, ben melden, im bericht vermerken. im bericht je datei: commit, commit-zeit, on origin, armed.
+10.11. nachzaehlung: datei 1 lauf 42916097131 (stuecke 6 und 7 im zweiten versuch, im ersten endete k1 mit "fehler, Exception"
+  ohne text, k2 las voll). der lauf traegt die artefakte tn10-miner-s6 und -s7 doppelt (erster und zweiter versuch). in
+  ergebnisse/lauf-42916097131/covenant-pruefung.json steht fuer s7-k1 der status des ersten versuchs. s7 (20:45 bis 21:05)
+  liegt in der ruhe, k2 zaehlt dort 0 hops der familien. im bericht vermerken. datei 2 lauf 42916097044, alle vier stuecke
+  im ersten versuch gruen. live-zaehler lauf 42774809590, 215 von 215 minuten.
