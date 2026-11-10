@@ -1,11 +1,13 @@
-# stp-lauf 7.11.2026, datei 1, je familie sha256 der lowercase-hex covenant-id (nie die id), 1:1 aus stps repo
-# quelle stp hashes/SATURDAY.md commit 0e99ff1a10ee16058bd73d7c0bb23ad24b09309b 2026-11-07T18:37:46Z (frist 18:40 utc)
-# gelesen 2026-11-07T18:45:42Z, hashes/README.md und hashes/LOAD.md ohne hashes, kein widerspruch
-f1 eada53cf8a7caa7da711e6286acbf3ccfb2f50a2c2b4fb9aadca899db4e6e316
-f2 257e1dccd04a826e27ea486d4d9d9126ec5abdce909850a260728bdd31405cdf
-f3 20752a83350d1ef9538da17546a0a8b4c93ff67b8e655978952be510c9bf9782
-f4 d099a56532d9302f45716f75eb2cf8cd53e6ecaf0d9c7f0a4f94561601142dd1
-f5 639dda8b084bc30a4a67e82f394deb668dbc5b4f593a93c1a0b4468b14c0fcf1
-f6 adf9c649d725dccfa05a929ae240bbc8870601016fd1c9b90cead8e3410897a1
-f7 0b53e32649067bc8f8a58a076b0904d070a42175c2690abb3d250b8a86de01e5
-f8 a8a2b75a8c302b73fa6b43b4ed7b29352d808a9c6eadb9a18f28e7a5fab5a7ab
+# stp-lauf di 10.11.2026, datei 1, je familie sha256 der lowercase-hex covenant-id (nie die id), 1:1 aus stps repo tn10-storm-2026-11-10
+# quelle stp hashes/EIGHT.md commit f746514bb1deb5f8349466ad074f5c78a46b9760 2026-11-10T18:25:08Z (frist 18:40 utc)
+# on origin 2026-11-10T18:25:08Z, zeile in commit 81063952d9de8663b178100eea02030a5a427906 2026-11-10T18:25:12Z, nennt commit f746514
+# armed keine zeile in hashes/
+# gelesen 2026-11-10T18:46:23Z, hashes/README.md ohne hashes, keine zweite hash-datei, kein widerspruch
+f1 03dc97ac68fd30390b0dc10e4b7e441bf8351a1e869b0acaf9f57252bbee2ae8
+f2 e95a7dab53b6078c1ba242c278e4e28952c9bd942288b33f6da0cc03668a68c5
+f3 08d6d3c44641c7a733621c6a73c4dbd98636a4cfd903f125fc819f1ebee054aa
+f4 ce489209036bc1e57f4877e998418d563bfee8802b43b9d873eff16230d743d8
+f5 8bd14b27fc72cbcb34a1bf01aa2c65496155bcb18e58952021e91587d52ea790
+f6 9c55800c19380a83900482971df938cc96603ec05bace84ce4b61e98b78dafb9
+f7 39fe6e61dec03a0d8c8fae49f52e491a83525375db8da47c38524ac1646f6648
+f8 bda7db4c6a10bbc4ab4d1f1d1446afdd2d14b46ee80589f165b8f3d6cb77be49
