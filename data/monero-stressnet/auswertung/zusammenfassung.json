@@ -1,5 +1,5 @@
 {
- "erstellt_utc": "2026-11-09 19:05:35",
+ "erstellt_utc": "2026-11-10 00:31:13",
  "ziel_s": 120,
  "computed": {
   "median_s": 83.2,
@@ -8,13 +8,13 @@
   "anteil_ueber_600s_pct": 0.674
  },
  "kette": {
-  "bloecke": 2414,
+  "bloecke": 2553,
   "hoehen": [
    3125743,
-   3128156
+   3128295
   ],
   "von_utc": "2026-11-06 19:24:20",
-  "bis_utc": "2026-11-09 19:05:15",
+  "bis_utc": "2026-11-10 00:28:05",
   "luecken_in_der_kette": 0
  },
  "abseits_der_kette": 1,
@@ -95,25 +95,49 @@
    "tag_utc": "2026-11-09",
    "hoehen": [
     3127604,
-    3128156
+    3128284
    ],
-   "bloecke": 553,
-   "abstaende": 553,
+   "bloecke": 681,
+   "abstaende": 681,
    "median_s": 79.0,
-   "p90_s": 307.8,
-   "p99_s": 574.3,
-   "mittel_s": 124.8,
-   "anteil_ueber_600s_pct": 1.08,
+   "p90_s": 308.0,
+   "p99_s": 573.2,
+   "mittel_s": 127.0,
+   "anteil_ueber_600s_pct": 1.03,
    "negative": 0,
    "laengste_luecke_s": 987.0,
    "laengste_luecke_vor_block": 3127741,
-   "tx_in_bloecken": 0,
-   "abdeckung_pct": 99.8,
+   "tx_in_bloecken": 15,
+   "abdeckung_pct": 99.9,
    "peers_je_block_median": 12.0,
-   "spread_ms_median": 168.5,
-   "spread_ms_p90": 732.4,
-   "bloecke_mit_spread": 552,
+   "spread_ms_median": 226.0,
+   "spread_ms_p90": 924.9,
+   "bloecke_mit_spread": 680,
    "erste_sicht_minus_kopfzeit_s_median": 8.0
+  },
+  {
+   "tag_utc": "2026-11-10",
+   "hoehen": [
+    3128285,
+    3128295
+   ],
+   "bloecke": 11,
+   "abstaende": 11,
+   "median_s": 168.0,
+   "p90_s": 338.0,
+   "p99_s": 466.7,
+   "mittel_s": 168.0,
+   "anteil_ueber_600s_pct": 0.0,
+   "negative": 0,
+   "laengste_luecke_s": 481.0,
+   "laengste_luecke_vor_block": 3128291,
+   "tx_in_bloecken": 0,
+   "abdeckung_pct": 100.0,
+   "peers_je_block_median": 12.0,
+   "spread_ms_median": 569.0,
+   "spread_ms_p90": 5235.0,
+   "bloecke_mit_spread": 11,
+   "erste_sicht_minus_kopfzeit_s_median": 6.4
   }
  ],
  "art": "counted aus eigenen Koepfen und eigener Ersten Sicht, computed fuer exponentielle Abstaende mit Mittel 120 s",
