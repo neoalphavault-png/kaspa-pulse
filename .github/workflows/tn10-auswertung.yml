@@ -37,12 +37,24 @@ jobs:
           L=$(grep -v '^#' messung/tn10/nach/auswertung.txt | grep -oE '^[0-9]{6,15}$' | head -n 1)
           test -n "$L"
           echo "lauf=$L" >> "$GITHUB_OUTPUT"
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: tn10-miner-s*
-          path: out/stuecke
-          run-id: ${{ steps.lauf.outputs.lauf }}
-          github-token: ${{ github.token }}
+      - name: artefakte holen, je name nur der juengste versuch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LAUF: ${{ steps.lauf.outputs.lauf }}
+          ZIEL: out/stuecke
+        run: |
+          # neu 11.11.: nach einem neulauf einzelner stuecke traegt der lauf zwei artefakte gleichen namens;
+          # download-artifact legt beide in einen ordner. hier zaehlt je name nur das juengste.
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$LAUF/artifacts?per_page=100" \
+            --jq '.artifacts[] | select(.name | startswith("tn10-miner-s")) | [.name, .created_at, (.id | tostring)] | @tsv' \
+            | sort -t $'\t' -k1,1 -k2,2 | awk -F '\t' '{l[$1]=$3} END {for (n in l) print n "\t" l[n]}' | sort \
+            | while IFS=$'\t' read -r n id; do
+                mkdir -p "$ZIEL/$n"
+                gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$id/zip" > "$RUNNER_TEMP/a.zip"
+                unzip -q -o "$RUNNER_TEMP/a.zip" -d "$ZIEL/$n"
+                echo "$n artefakt $id"
+              done
       - name: nur zahlen
         run: |
           python3 - <<'PY'
@@ -92,13 +104,25 @@ jobs:
           P=$(sed -n 's/^plan=//p' messung/tn10/nach/auswertung.txt | head -n 1)
           echo "lauf=$L" >> "$GITHUB_OUTPUT"
           echo "plan=$P" >> "$GITHUB_OUTPUT"
-      - uses: actions/download-artifact@v4
+      - name: artefakte holen, je name nur der juengste versuch
         if: steps.lauf.outputs.plan != ''
-        with:
-          pattern: tn10-miner-s*
-          path: ${{ runner.temp }}/stuecke
-          run-id: ${{ steps.lauf.outputs.lauf }}
-          github-token: ${{ github.token }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LAUF: ${{ steps.lauf.outputs.lauf }}
+          ZIEL: ${{ runner.temp }}/stuecke
+        run: |
+          # neu 11.11.: nach einem neulauf einzelner stuecke traegt der lauf zwei artefakte gleichen namens;
+          # download-artifact legt beide in einen ordner. hier zaehlt je name nur das juengste.
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$LAUF/artifacts?per_page=100" \
+            --jq '.artifacts[] | select(.name | startswith("tn10-miner-s")) | [.name, .created_at, (.id | tostring)] | @tsv' \
+            | sort -t $'\t' -k1,1 -k2,2 | awk -F '\t' '{l[$1]=$3} END {for (n in l) print n "\t" l[n]}' | sort \
+            | while IFS=$'\t' read -r n id; do
+                mkdir -p "$ZIEL/$n"
+                gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$id/zip" > "$RUNNER_TEMP/a.zip"
+                unzip -q -o "$RUNNER_TEMP/a.zip" -d "$ZIEL/$n"
+                echo "$n artefakt $id"
+              done
       - name: je sekunde und schritt, nur zahlen auf den branch
         if: steps.lauf.outputs.plan != ''
         env:
