@@ -1,0 +1,63 @@
+{
+ "koepfe": [
+  327989,
+  365759
+ ],
+ "stuecke": 314,
+ "voll_abgedeckt": 194,
+ "stale_in_vollen_stuecken": 1452,
+ "stale_ereignisse_in_vollen_stuecken": 1195,
+ "letztes_stueck_endet": 365668,
+ "ausbreitung_c2_minus_github": {
+  "n": 2402,
+  "c2_bloecke": 2402,
+  "median_s": -0.039,
+  "p10_s": -0.051,
+  "p90_s": 0.042,
+  "min_s": -0.101,
+  "max_s": 0.217,
+  "c2_zuerst": 1574,
+  "github_zuerst": 822
+ },
+ "eingaenge": {
+  "koepfe": "data/bch/tempnet-koepfe.csv.gz, abruf 2026-11-11T10:07:23Z, bis 365759",
+  "zuhoerer_github": "data/bch/lauscher/zusammenfassung.json und bloecke.csv, 77 laeufe bis 2026-11-11T19:31:53Z",
+  "zuhoerer_c2": "data/bch/lauscher-c2/, 9 laeufe 2026-11-09T16:30:43Z bis 2026-11-11T18:01:01Z, ausgewertet mit scripts/bch/lauscher_auswertung.py gegen dieselben koepfe",
+  "skript": "scripts/bch/tempnet_stuecke.py (PR #309)"
+ },
+ "gegenrechnung_ben_11_11": {
+  "basis": "tempnet-fenster-2026-11-10.json, koepfe bis 364603, zuhoerer bis 2026-11-10T05:55:22Z",
+  "fenster_abstaende": 5609,
+  "fenster_mittel_s": 20.19,
+  "fenster_median_s": 5,
+  "je_fenster_mittel_s": [
+   33.0,
+   12.88,
+   19.74,
+   21.41,
+   7.01,
+   7.86
+  ],
+  "je_fenster_median_s": [
+   10,
+   5,
+   10,
+   7,
+   2,
+   1
+  ],
+  "ausserhalb_mit_koepfen_bis_364603": {
+   "abstaende": 30999,
+   "mittel_s": 68.44,
+   "median_s": 49
+  },
+  "ausserhalb_mit_koepfen_bis_365759": {
+   "abstaende": 32155,
+   "mittel_s": 68.71,
+   "median_s": 50
+  },
+  "stale_in_fenstern": 1327,
+  "stale_hoehen_in_fenstern": 1071,
+  "hoechstens_je_hoehe": 5
+ }
+}
