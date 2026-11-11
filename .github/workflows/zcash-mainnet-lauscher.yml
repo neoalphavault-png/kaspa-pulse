@@ -11,10 +11,13 @@
 #
 # Kette von Laeufen: ein Job darf hoechstens 6 h laufen. Jeder Lauf hoert bis
 # zu dauer_min Minuten zu und startet 8 Minuten vor seinem Ende den naechsten
-# (workflow_dispatch mit segment+1), damit keine Luecke entsteht. Schluss ist,
-# wenn das Ende des Laufs mehr als stunden_nach_nu7 nach dem NU7-Block liegt
-# oder spaetestens_utc erreicht ist. Start des ersten Laufs von Hand, einige
-# Stunden vor der Aktivierung (so gibt es auch ein Stueck 75 s zum Vergleich).
+# (workflow_dispatch mit segment+1), damit keine Luecke entsteht. Schluss ist
+# allein die feste Endzeit ende_utc (scripts/zcash/lauscher_weiter.py, Ben
+# 10.11.2026): der letzte Lauf wird bis dahin gekuerzt, danach startet keiner
+# mehr. Frueher hing das Ende an einem kurzen Kopfabruf ("48 h nach NU7"); die
+# NU7-Kette endete deshalb nach Lauf 13 am 8.11. 15:30 UTC statt zu einer
+# festen Zeit. Start des ersten Laufs von Hand, einige Stunden vor dem
+# Ereignis (so gibt es auch ein Stueck davor zum Vergleich).
 #
 # Rohdaten je Lauf gehen sofort auf messung/zcash-mainnet unter
 # data/zcash-mainnet/lauscher-<name>/, danach die Auswertung ueber alle
@@ -27,6 +30,7 @@ on:
     paths:
       - "scripts/zcash/zcash_lauscher.py"
       - "scripts/zcash/lauscher_auswertung.py"
+      - "scripts/zcash/lauscher_weiter.py"
       - ".github/workflows/zcash-mainnet-lauscher.yml"
   workflow_dispatch:
     inputs:
@@ -39,12 +43,9 @@ on:
       dauer_min:
         description: "Minuten zuhoeren je Lauf, hoechstens 330"
         default: "330"
-      stunden_nach_nu7:
-        description: "So lange nach dem ersten NU7-Block weiter zuhoeren"
-        default: "48"
-      spaetestens_utc:
-        description: "Harte Grenze, danach kein neuer Lauf"
-        default: "2026-11-10T00:00:00Z"
+      ende_utc:
+        description: "Feste Endzeit der Kette (UTC, JJJJ-MM-TTTHH:MM:SSZ), der letzte Lauf endet dort"
+        required: true
 
 permissions:
   contents: write
@@ -76,25 +77,25 @@ jobs:
           NAME: ${{ inputs.name }}
           SEGMENT: ${{ inputs.segment }}
           DAUER: ${{ inputs.dauer_min }}
-          STUNDEN: ${{ inputs.stunden_nach_nu7 }}
-          SPAETESTENS: ${{ inputs.spaetestens_utc }}
+          ENDE: ${{ inputs.ende_utc }}
         run: |
           set -eu
           if [ "$EREIGNIS" = "push" ]; then
             # Testlauf auf dem PR-Branch: kurz, ohne Kette
-            NAME=test; SEGMENT=1; DAUER=8; STUNDEN=0; SPAETESTENS=2000-01-01T00:00:00Z
+            NAME=test; SEGMENT=1; DAUER=8; ENDE=2000-01-01T00:00:00Z
           fi
           case "$NAME" in ''|*[!a-z0-9-]*) echo "name unklar"; exit 1;; esac
-          case "$SEGMENT$DAUER$STUNDEN" in *[!0-9]*) echo "zahl unklar"; exit 1;; esac
+          case "$SEGMENT$DAUER" in *[!0-9]*) echo "zahl unklar"; exit 1;; esac
           [ "$DAUER" -le 330 ] || { echo "dauer_min ueber 330"; exit 1; }
-          case "$SPAETESTENS" in [0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z) ;; *) echo "spaetestens_utc unklar"; exit 1;; esac
+          case "$ENDE" in [0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z) ;; *) echo "ende_utc unklar"; exit 1;; esac
+          python3 scripts/zcash/lauscher_weiter.py --selbsttest
           {
             echo "name=$NAME"; echo "segment=$(printf %02d "$SEGMENT")"; echo "nummer=$SEGMENT"
-            echo "dauer=$DAUER"; echo "stunden=$STUNDEN"; echo "spaetestens=$SPAETESTENS"
+            echo "dauer=$DAUER"; echo "ende=$ENDE"
             # Kette fuer die Auswertung ab hier; der Testlauf liegt vor 3.540.000
             if [ "$NAME" = "test" ]; then echo "kette_ab=3527000"; else echo "kette_ab=3540000"; fi
           } >> "$GITHUB_OUTPUT"
-          echo "messreihe $NAME, lauf $SEGMENT, $DAUER min"
+          echo "messreihe $NAME, lauf $SEGMENT, $DAUER min, kette bis $ENDE"
 
       - name: zuhoeren und naechsten lauf starten
         env:
@@ -103,8 +104,7 @@ jobs:
           NAME: ${{ steps.ein.outputs.name }}
           NUMMER: ${{ steps.ein.outputs.nummer }}
           DAUER: ${{ steps.ein.outputs.dauer }}
-          STUNDEN: ${{ steps.ein.outputs.stunden }}
-          SPAETESTENS: ${{ steps.ein.outputs.spaetestens }}
+          ENDE: ${{ steps.ein.outputs.ende }}
           EINGABE_DAUER: ${{ inputs.dauer_min }}
         run: |
           set -eu
@@ -114,30 +114,13 @@ jobs:
           PID=$!
           if [ "$EREIGNIS" = "workflow_dispatch" ] && [ "$DAUER" -gt 15 ]; then
             sleep $(( (DAUER - 8) * 60 ))
-            # Ist NU7 schon da, und wann? Kurzer Kopfabruf ab kurz vor der Aktivierung.
-            timeout 240 python3 scripts/zcash/zcash_koepfe.py --netz mainnet --ab $((NU7 - 50)) --vorlauf 0 \
-              --gegenproben 0 --aus "$T/kurz.csv.gz" --meta "$T/kurz.json" > /dev/null 2>&1 || true
-            WEITER=$(python3 - "$T/kurz.csv.gz" "$NU7" "$STUNDEN" "$SPAETESTENS" <<'PY'
-          import csv, gzip, os, sys, time
-          from datetime import datetime
-          pfad, nu7, stunden, spaet = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]
-          ende_dieses_laufs = time.time() + 8 * 60
-          if ende_dieses_laufs >= datetime.fromisoformat(spaet.replace("Z", "+00:00")).timestamp():
-              print("nein, spaetestens erreicht"); sys.exit()
-          t_nu7 = None
-          if os.path.exists(pfad):
-              with gzip.open(pfad, "rt") as f:
-                  t_nu7 = next((int(z["zeit"]) for z in csv.DictReader(f) if int(z["hoehe"]) == nu7), None)
-          if t_nu7 and ende_dieses_laufs >= t_nu7 + stunden * 3600:
-              print(f"nein, {stunden} h nach nu7 erreicht"); sys.exit()
-          print("ja" + (", nu7 noch nicht erreicht" if t_nu7 is None else ""))
-          PY
-            )
+            # Nur die feste Endzeit entscheidet, kein Abruf aus dem Netz
+            WEITER=$(python3 scripts/zcash/lauscher_weiter.py --ende-utc "$ENDE" --dauer-min "$EINGABE_DAUER") || WEITER="nein, entscheidung fehlgeschlagen"
             echo "naechster lauf: $WEITER"
             case "$WEITER" in
-              ja*) gh workflow run zcash-mainnet-lauscher.yml --ref "$GITHUB_REF_NAME" \
-                     -f name="$NAME" -f segment=$((NUMMER + 1)) -f dauer_min="$EINGABE_DAUER" \
-                     -f stunden_nach_nu7="$STUNDEN" -f spaetestens_utc="$SPAETESTENS" ;;
+              "ja "*) gh workflow run zcash-mainnet-lauscher.yml --ref "$GITHUB_REF_NAME" \
+                       -f name="$NAME" -f segment=$((NUMMER + 1)) -f dauer_min="${WEITER#ja }" \
+                       -f ende_utc="$ENDE" ;;
             esac
           fi
           wait $PID
