@@ -166,6 +166,25 @@
    "quelle_vorlage": "emission 2026-11-02",
    "antwort": "593k KAS",
    "emoji": "😴"
+  },
+  {
+   "datum": "2026-11-11",
+   "tag": "mi",
+   "art": "poll",
+   "frage": "more KAS asleep or awake this week?",
+   "richtig": 0,
+   "aufloesung": {
+    "frage": "more KAS asleep or awake this week?",
+    "zahl": "52.2%",
+    "einheit": "",
+    "satz": "more fell asleep, of all KAS has not moved in a year, 51.17% the week before",
+    "datum": "week to 31 oct 2026 · source kaspalytics"
+   },
+   "quelle_vorlage": "weekly 2026-11-02",
+   "optionen": [
+    "more fell asleep",
+    "more woke up"
+   ]
   }
  ]
 }
