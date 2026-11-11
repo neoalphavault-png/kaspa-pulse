@@ -1,0 +1,966 @@
+{
+  "art": "ein Zuhoerer (kein eigener Knoten), Verbindungen zu Tempnet-Knoten aus der oeffentlichen Konfiguration",
+  "start_utc": "2026-11-11T14:01:53Z",
+  "ende_utc": "2026-11-11T19:31:53Z",
+  "geplantes_ende_utc": "2026-11-11T19:31:53Z",
+  "dauer_min": 330.0,
+  "protokoll": 70016,
+  "peers": [
+    {
+      "peer": "peer_1",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366062,
+      "verbunden_utc": "2026-11-11T14:01:54Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 335,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_2",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366062,
+      "verbunden_utc": "2026-11-11T14:01:58Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 335,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_3",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366062,
+      "verbunden_utc": "2026-11-11T14:01:58Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 335,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_4",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366062,
+      "verbunden_utc": "2026-11-11T14:02:00Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 335,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_5",
+      "software": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+      "version": 70016,
+      "gemeldete_hoehe": 366062,
+      "verbunden_utc": "2026-11-11T14:02:02Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 335,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_6",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366062,
+      "verbunden_utc": "2026-11-11T14:02:03Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 335,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_7",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366062,
+      "verbunden_utc": "2026-11-11T14:02:03Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 335,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_8",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366083,
+      "verbunden_utc": "2026-11-11T14:32:05Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 314,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_9",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366083,
+      "verbunden_utc": "2026-11-11T14:32:07Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 314,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_10",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366083,
+      "verbunden_utc": "2026-11-11T14:32:08Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 314,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_11",
+      "software": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+      "version": 70016,
+      "gemeldete_hoehe": 366083,
+      "verbunden_utc": "2026-11-11T14:32:08Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 314,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_12",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366083,
+      "verbunden_utc": "2026-11-11T14:32:10Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 314,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_13",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366083,
+      "verbunden_utc": "2026-11-11T14:32:11Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 314,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_14",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366083,
+      "verbunden_utc": "2026-11-11T14:32:12Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 314,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_15",
+      "software": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+      "version": 70016,
+      "gemeldete_hoehe": 366105,
+      "verbunden_utc": "2026-11-11T15:02:17Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 292,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_16",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366105,
+      "verbunden_utc": "2026-11-11T15:02:18Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 292,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_17",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366105,
+      "verbunden_utc": "2026-11-11T15:02:19Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 292,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_18",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366105,
+      "verbunden_utc": "2026-11-11T15:02:20Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 292,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_19",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366105,
+      "verbunden_utc": "2026-11-11T15:02:21Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 292,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_20",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366105,
+      "verbunden_utc": "2026-11-11T15:02:23Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 292,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_21",
+      "software": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+      "version": 70016,
+      "gemeldete_hoehe": 366136,
+      "verbunden_utc": "2026-11-11T15:32:23Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 261,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_22",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366136,
+      "verbunden_utc": "2026-11-11T15:32:24Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 261,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_23",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366136,
+      "verbunden_utc": "2026-11-11T15:32:27Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 261,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_24",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366136,
+      "verbunden_utc": "2026-11-11T15:32:29Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 261,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_25",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366136,
+      "verbunden_utc": "2026-11-11T15:32:31Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 261,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_26",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366136,
+      "verbunden_utc": "2026-11-11T15:32:32Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 261,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_27",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366136,
+      "verbunden_utc": "2026-11-11T15:32:34Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 261,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_28",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366176,
+      "verbunden_utc": "2026-11-11T16:02:34Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 221,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_29",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366176,
+      "verbunden_utc": "2026-11-11T16:02:36Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 221,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_30",
+      "software": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+      "version": 70016,
+      "gemeldete_hoehe": 366176,
+      "verbunden_utc": "2026-11-11T16:02:36Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 221,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_31",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366176,
+      "verbunden_utc": "2026-11-11T16:02:40Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 221,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_32",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366176,
+      "verbunden_utc": "2026-11-11T16:02:41Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 221,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_33",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366176,
+      "verbunden_utc": "2026-11-11T16:02:45Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 221,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_34",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366176,
+      "verbunden_utc": "2026-11-11T16:02:46Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 221,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_35",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366207,
+      "verbunden_utc": "2026-11-11T16:32:49Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 190,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_36",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366207,
+      "verbunden_utc": "2026-11-11T16:32:50Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 190,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_37",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366207,
+      "verbunden_utc": "2026-11-11T16:32:52Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 190,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_38",
+      "software": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+      "version": 70016,
+      "gemeldete_hoehe": 366207,
+      "verbunden_utc": "2026-11-11T16:32:52Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 190,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_39",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366207,
+      "verbunden_utc": "2026-11-11T16:32:55Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 190,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_40",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366207,
+      "verbunden_utc": "2026-11-11T16:32:56Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 190,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_41",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366207,
+      "verbunden_utc": "2026-11-11T16:32:57Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 190,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_42",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366207,
+      "verbunden_utc": "2026-11-11T16:32:57Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 190,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_43",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366250,
+      "verbunden_utc": "2026-11-11T17:02:58Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 147,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_44",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366250,
+      "verbunden_utc": "2026-11-11T17:03:00Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 147,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_45",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366250,
+      "verbunden_utc": "2026-11-11T17:03:02Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 147,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_46",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366250,
+      "verbunden_utc": "2026-11-11T17:03:02Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 147,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_47",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366250,
+      "verbunden_utc": "2026-11-11T17:03:03Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 147,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_48",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366250,
+      "verbunden_utc": "2026-11-11T17:03:08Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 147,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_49",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366250,
+      "verbunden_utc": "2026-11-11T17:03:10Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 147,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_50",
+      "software": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+      "version": 70016,
+      "gemeldete_hoehe": 366250,
+      "verbunden_utc": "2026-11-11T17:03:10Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 147,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_51",
+      "software": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+      "version": 70016,
+      "gemeldete_hoehe": 366283,
+      "verbunden_utc": "2026-11-11T17:33:11Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 114,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_52",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366283,
+      "verbunden_utc": "2026-11-11T17:33:13Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 114,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_53",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366283,
+      "verbunden_utc": "2026-11-11T17:33:17Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 114,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_54",
+      "software": "/Bitcoin Cash Node:29.2.1(9500-tempnet)/",
+      "version": 70016,
+      "gemeldete_hoehe": 366283,
+      "verbunden_utc": "2026-11-11T17:33:18Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 114,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_55",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366308,
+      "verbunden_utc": "2026-11-11T18:03:21Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 89,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_56",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366308,
+      "verbunden_utc": "2026-11-11T18:03:22Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 89,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_57",
+      "software": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+      "version": 70016,
+      "gemeldete_hoehe": 366308,
+      "verbunden_utc": "2026-11-11T18:03:25Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 89,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_58",
+      "software": "/Bitcoin Cash Node:29.2.1(9500-tempnet)/",
+      "version": 70016,
+      "gemeldete_hoehe": 366308,
+      "verbunden_utc": "2026-11-11T18:03:27Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 89,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_59",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366308,
+      "verbunden_utc": "2026-11-11T18:03:28Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 89,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_60",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366338,
+      "verbunden_utc": "2026-11-11T18:33:30Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 59,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_61",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366338,
+      "verbunden_utc": "2026-11-11T18:33:30Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 59,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_62",
+      "software": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+      "version": 70016,
+      "gemeldete_hoehe": 366338,
+      "verbunden_utc": "2026-11-11T18:33:30Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 59,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_63",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366338,
+      "verbunden_utc": "2026-11-11T18:33:32Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 59,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_64",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366338,
+      "verbunden_utc": "2026-11-11T18:33:33Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 59,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_65",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366338,
+      "verbunden_utc": "2026-11-11T18:33:34Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 59,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_66",
+      "software": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+      "version": 70016,
+      "gemeldete_hoehe": 366367,
+      "verbunden_utc": "2026-11-11T19:03:36Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 30,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_67",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366367,
+      "verbunden_utc": "2026-11-11T19:03:39Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 30,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_68",
+      "software": "/Bitcoin Cash Node:29.2.1(9500-tempnet)/",
+      "version": 70016,
+      "gemeldete_hoehe": 366367,
+      "verbunden_utc": "2026-11-11T19:03:40Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 30,
+      "getrennt_utc": "2026-11-11T19:31:54Z"
+    },
+    {
+      "peer": "peer_69",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366367,
+      "verbunden_utc": "2026-11-11T19:03:41Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 30,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_70",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366367,
+      "verbunden_utc": "2026-11-11T19:03:42Z",
+      "erbeten": [
+        "cmpctblock",
+        "headers"
+      ],
+      "ankuendigungen": 30,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    },
+    {
+      "peer": "peer_71",
+      "software": "/Bitcoin Cash Node:29.2.1/",
+      "version": 70016,
+      "gemeldete_hoehe": 366367,
+      "verbunden_utc": "2026-11-11T19:03:43Z",
+      "erbeten": [
+        "cmpctblock",
+        "inv"
+      ],
+      "ankuendigungen": 30,
+      "getrennt_utc": "2026-11-11T19:31:55Z"
+    }
+  ],
+  "peers_ohne_abzweig_abgelehnt": 118,
+  "block_hashes_gesehen": 335,
+  "koepfe_geholt": 335,
+  "zeitquelle": "Uhr des Runners (NTP), Millisekunden",
+  "labels": "peer_N je Lauf neu vergeben, nicht lauf-uebergreifend",
+  "uhr": {
+    "anfang": {
+      "zeit_utc": "2026-11-11T14:01:53Z",
+      "quelle": "chronyc tracking",
+      "werte": {
+        "System time": "0.000043676 seconds fast of NTP time",
+        "Last offset": "+0.000072919 seconds",
+        "RMS offset": "0.000072919 seconds",
+        "Leap status": "Normal"
+      }
+    },
+    "ende": {
+      "zeit_utc": "2026-11-11T19:31:55Z",
+      "quelle": "chronyc tracking",
+      "werte": {
+        "System time": "0.000001250 seconds slow of NTP time",
+        "Last offset": "-0.000003762 seconds",
+        "RMS offset": "0.000002334 seconds",
+        "Leap status": "Normal"
+      }
+    },
+    "synchron_beim_start": "ja",
+    "warten": {
+      "gewartet_s": 20,
+      "hoechstens_s": 120,
+      "quelle": "chronyc waitsync"
+    }
+  }
+}
