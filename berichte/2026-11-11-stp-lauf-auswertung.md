@@ -52,7 +52,7 @@ Four families, steps of 50 s on and 10 s off from 20:20 UTC. Accepted hops came 
 | r3, 20:22:00 to 20:22:50 | 70 | 68 | 65 | 64 | 5.34 | 0 |
 | r4 to r10, 20:23:00 to 20:29:50 | 0 | 0 | 0 | 0 | 0 | 0 |
 
-From r1 to r2 the four families lost 1 hop together, from r2 to r3 they gained 7. Why the ramp ends after r3 is not something our count can tell. In the quiet half hour from 20:30 to 21:00 UTC no hop of any family was accepted.
+From r1 to r2 the four families lost 1 hop together, from r2 to r3 they gained 7. Why the ramp ends after r3 is not something our count can tell. STP's answer of 11 Nov is in the section added at the end, marked source STP. In the quiet half hour from 20:30 to 21:00 UTC no hop of any family was accepted.
 
 ## Kept apart
 
@@ -82,3 +82,11 @@ From r1 to r2 the four families lost 1 hop together, from r2 to r3 they gained 7
 - **Two pieces read twice:** in pieces 6 (20:25 to 20:45 UTC) and 7 (20:45 to 21:05 UTC) the first node stopped with an error and no message, while the second read the piece in full. Both pieces were read again in the same run and came back complete on both nodes. The run keeps the files of both attempts, so our evaluation takes the newest file of each piece (commit f9afc4ed on our branch). Every count in this report comes from that evaluation.
 - **Minute counter:** our counter ran on two nodes from 18:45 to 22:20 UTC, 215 of 215 minutes full, nodes equal in all 206 minutes both read. All transactions accepted per second rise from about 54 before T0 to about 64 in the f8 step and fall back to about 54 in the quiet half hour.
 - **Files:** `messung/tn10/ergebnisse/lauf-42916097131/` holds the counts per second, per step and per minute. The minute table is data only.
+
+## Added 11 Nov 2026 after STP's reply
+
+STP answered on 11 Nov. Nothing above is changed except one added sentence in the ramp section.
+
+- **Our total and the desk count:** our 18,520 accepted family transactions include the eight genesis transactions. The desk hop count does not include them (source STP). Without them both sides have 18,512.
+- **Why the ramp ends:** STP's plan stops the ramp when two gains in a row are below 3 % (source STP). Our counts per ramp step across the four families are 261, 260 and 267, so the gains are minus 1 hop (minus 0.38 %) and then plus 7 hops (plus 2.69 %). Both are below 3 %, and the ramp stopped after r3 as planned (source STP).
+- **Mini:** the factor STP gives for Mini is 2.308 in the first window and 2.325 in the load (source STP). The total rate of all families was about three times higher in the load, 33.213 accepted hops per second against 10.367 in the f8 step (counted). The cause of the factor is open, and we do not offer one.
