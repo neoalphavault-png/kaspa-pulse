@@ -1,0 +1,166 @@
+{
+  "netz": "zcash mainnet",
+  "quelle": "eigene header ueber p2p",
+  "abruf_utc": "2026-11-11T08:21:23Z",
+  "peer_software": [
+    "/Zakura:1.8.6/",
+    "/Zakura:1.8.5/",
+    "/Zebra:7.0.0/"
+  ],
+  "gegenproben": [
+    {
+      "agent": "/Zebra:7.0.0/",
+      "verglichen": 500,
+      "gleich": 500
+    },
+    {
+      "agent": "/Zebra:7.0.0/",
+      "verglichen": 500,
+      "gleich": 500
+    }
+  ],
+  "pruefungen": [
+    "prev-hash-kette",
+    "hash <= ziel aus nbits",
+    "zebra-checkpoints"
+  ],
+  "checkpoints_geprueft": 89,
+  "abzweige_verworfen": 0,
+  "nu7_hoehe": 3543405,
+  "bereich": {
+    "von_hoehe": 3489717,
+    "bis_hoehe": 3561317,
+    "von_utc": "2026-09-20 06:59:07",
+    "bis_utc": "2026-11-11 08:19:54",
+    "bloecke": 71601
+  },
+  "vor_nu7": {
+    "abstaende": 53687,
+    "gezaehlt": {
+      "mittel_s": 75.34,
+      "median_s": 53,
+      "p90_s": 172.0,
+      "p99_s": 350.0,
+      "laengste_luecke_s": 930,
+      "laengste_luecke_vor_block": 3524451,
+      "laengste_luecke_utc": "2026-10-20 14:01:05",
+      "anteil_ueber_3T_prozent": 5.03,
+      "anteil_ueber_T_ln1000_prozent": 0.136,
+      "negativ": 0
+    },
+    "berechnet": {
+      "zielzeit_s": 75.0,
+      "mittel_s": 75.0,
+      "median_s": 52.0,
+      "p90_s": 172.7,
+      "p99_s": 345.4,
+      "laengste_luecke_s": 860,
+      "anteil_ueber_3T_prozent": 4.98,
+      "anteil_ueber_T_ln1000_prozent": 0.1
+    },
+    "bereich": {
+      "von_hoehe": 3489718,
+      "bis_hoehe": 3543404
+    },
+    "je_woche": [
+      {
+        "woche": "2026-W38",
+        "abstaende": 811,
+        "mittel_s": 75.16,
+        "median_s": 52
+      },
+      {
+        "woche": "2026-W39",
+        "abstaende": 8031,
+        "mittel_s": 75.33,
+        "median_s": 53
+      },
+      {
+        "woche": "2026-W40",
+        "abstaende": 8016,
+        "mittel_s": 75.38,
+        "median_s": 53.0
+      },
+      {
+        "woche": "2026-W41",
+        "abstaende": 8029,
+        "mittel_s": 75.41,
+        "median_s": 54
+      },
+      {
+        "woche": "2026-W42",
+        "abstaende": 8031,
+        "mittel_s": 75.31,
+        "median_s": 53
+      },
+      {
+        "woche": "2026-W43",
+        "abstaende": 8030,
+        "mittel_s": 75.33,
+        "median_s": 53.0
+      },
+      {
+        "woche": "2026-W44",
+        "abstaende": 8028,
+        "mittel_s": 75.33,
+        "median_s": 53.0
+      },
+      {
+        "woche": "2026-W45",
+        "abstaende": 4711,
+        "mittel_s": 75.32,
+        "median_s": 51
+      }
+    ]
+  },
+  "vorhersage": null,
+  "nach_nu7": {
+    "abstaende": 17912,
+    "gezaehlt": {
+      "mittel_s": 25.28,
+      "median_s": 17.0,
+      "p90_s": 58.0,
+      "p99_s": 116.0,
+      "laengste_luecke_s": 249,
+      "laengste_luecke_vor_block": 3543445,
+      "laengste_luecke_utc": "2026-11-06 03:11:24",
+      "anteil_ueber_3T_prozent": 4.99,
+      "anteil_ueber_T_ln1000_prozent": 0.112,
+      "negativ": 0
+    },
+    "berechnet": {
+      "zielzeit_s": 25.0,
+      "mittel_s": 25.0,
+      "median_s": 17.3,
+      "p90_s": 57.6,
+      "p99_s": 115.1,
+      "laengste_luecke_s": 259,
+      "anteil_ueber_3T_prozent": 4.98,
+      "anteil_ueber_T_ln1000_prozent": 0.1
+    },
+    "bereich": {
+      "von_hoehe": 3543406,
+      "bis_hoehe": 3561317
+    },
+    "erster_nu7_block_utc": "2026-11-06 02:34:02"
+  },
+  "einpendeln": {
+    "bloecke_nach_nu7": 17912,
+    "fenster": 100,
+    "toleranz_prozent": 20,
+    "halten_bloecke": 1000,
+    "eingependelt_ab_block": 3544439,
+    "bloecke_bis_eingependelt": 1034,
+    "stunden_bis_eingependelt": 8.4,
+    "vorlaeufig": false,
+    "schwierigkeit_relativ_zu_vor_nu7": {
+      "block_nu7_plus_1": 0.794,
+      "block_nu7_plus_10": 0.767,
+      "block_nu7_plus_100": 0.504,
+      "block_nu7_plus_1000": 0.321,
+      "block_nu7_plus_5000": 0.326
+    },
+    "schwierigkeit_spitze_relativ": 0.304,
+    "berechnet_bei_gleicher_hashrate": 0.333
+  }
+}
