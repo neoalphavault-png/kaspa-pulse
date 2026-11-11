@@ -7,7 +7,7 @@
   - Die Zielhöhe kam nur aus 4 Peers mit bestätigtem Abzweig 327.989. 2 Peers ohne Abzweig zählten nicht, verworfene Abzweige gab es keine.
   - Gegenprobe: 2 Peers, je 500 von 500 Hashes gleich.
   - Bereich ab 327.989 bis 365.753. Der Stand liegt in `data/bch/tempnet-2026-11-11.json` und `docs/bch-tempnet-2026-11-11.md`.
-- **Gegenprobe gegen chaingraph:** wieder HTTP 403, wie am 21.10. und 28.10. Ich habe das nicht umgangen.
+- **Gegenprobe gegen chaingraph:** HTTP 403. Ich habe das nicht umgangen.
 - **Zwischenstand-Dateien:** Es gab keine.
 - **PH-Entwurf:** `ph-entwurf-bch.yml` lief grün ([43001021431](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/43001021431)). Die Aufforderung an #moderator-only kam mit HTTP 204 an.
 - **Adressen:**
@@ -46,7 +46,7 @@ Alle Werte sind counted, die Spalte für 60 s ist computed. Die Werte gelten jew
 
 ## Offene Fragen an Ben
 
-1. Die Gegenprobe gegen chaingraph gibt seit drei Wochen 403. Soll sie bis zum Tempnet-Ende so bleiben? Ich schlage ja vor, und im Abschlussbericht steht sie als nicht verfügbar.
+1. Die Gegenprobe gegen chaingraph ist seit Wochen nicht verfügbar (403, am 4.11. laut Bericht 503). Soll sie bis zum Tempnet-Ende so bleiben? Ich schlage ja vor, und im Abschlussbericht steht sie als nicht verfügbar.
 
 ## Was Ben tun muss
 
