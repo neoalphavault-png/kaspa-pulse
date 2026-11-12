@@ -284,6 +284,18 @@
    "datei": "berichte/2026-11-11-bch-tempnet-stuecke.md",
    "sha256": "b8cd58f121f6988297def09239c7bf6fb0de9c90fd9479bd6730f40be01b83a2",
    "utc": "2026-11-11T20:16:02Z"
+  },
+  {
+   "branch": "bericht/2026-11-11-bch-tempnet-stuecke",
+   "datei": "berichte/2026-11-08-bch-uhr-waitsync.md",
+   "sha256": "57f4820e943bc63cca0e8d2f26e2ddecc62b4ac50888e7a5370d0769ec9329d7",
+   "utc": "2026-11-12T08:25:56Z"
+  },
+  {
+   "branch": "bericht/2026-11-11-bch-tempnet-stuecke",
+   "datei": "berichte/2026-11-08-nu7-karte-4von4.md",
+   "sha256": "e8e6947db90dbb72ac8aa391cb342335f57aeff39a053c0bb37b48dd16a73448",
+   "utc": "2026-11-12T08:25:59Z"
   }
  ]
 }
