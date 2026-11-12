@@ -35,6 +35,13 @@
     "motiv": "zahnraeder",
     "schritt": 1,
     "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-11-12",
+    "look": "A-teal",
+    "motiv": "sternenfeld",
+    "schritt": 2,
+    "serie": "tagesgrafik"
    }
   ],
   "story/instagram": [
@@ -74,6 +81,11 @@
     "datum": "2026-11-11",
     "look": "D-hell",
     "schritt": 3
+   },
+   {
+    "datum": "2026-11-12",
+    "look": "A-papier",
+    "schritt": 0
    }
   ],
   "tagesgrafik/threads": [
@@ -96,6 +108,11 @@
     "datum": "2026-11-11",
     "look": "D-hell",
     "schritt": 3
+   },
+   {
+    "datum": "2026-11-12",
+    "look": "A-papier",
+    "schritt": 0
    }
   ],
   "tagesgrafik/x": [
@@ -118,6 +135,11 @@
     "datum": "2026-11-11",
     "look": "D-hell",
     "schritt": 3
+   },
+   {
+    "datum": "2026-11-12",
+    "look": "A-papier",
+    "schritt": 0
    }
   ]
  }
