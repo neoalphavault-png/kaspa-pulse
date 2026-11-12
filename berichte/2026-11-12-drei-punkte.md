@@ -26,7 +26,14 @@ Auftrag von Ben vom 12.11.2026, Frist So 15.11. 18:00 Berlin. Begonnen nach dem 
   - Ein Template-String ist rot.
   - „would“ ohne Dollar ist grün, ein Kommentar zählt nicht, JSON-LD und externe Skripte zählen nicht.
 - **Prüfung im Browser:** `weekly_pruefung.py --selbsttest` und `--live` sind grün, Karte und Absatz sagen dasselbe.
-- **Abnahme auf kaspapulse.com/kaspa-weekly.html:** folgt nach dem Merge, sobald Pages ausgeliefert hat.
+- **Abnahme auf kaspapulse.com/kaspa-weekly.html:** am 12.11.2026 nach dem Merge (`95edfb3`), im Browser mit den ausgelieferten Daten.
+  - Überschrift „Where the two lines sit“.
+  - Satz: „The 21 week line sits at $0.03432, source kraken. The 50 week line sits at $0.03513, source kraken. Week ending 7 november 2026.“
+  - Der Wenn-dann-Satz kommt im ausgelieferten HTML nicht mehr vor. „weekly close above“ steht dort nur noch im Rückblick „The last weekly close above it was …“, das ist ein vergangener Schluss mit Datum und keine Bedingung.
+- **Live mitgeprüft:**
+  - kaspa-halving.html: Kurzfakt „Next reward step around 5 December 2026, an estimate, because the step is set by DAA score. …“. Der Browser baut „next step around 5 December 2026, an estimate, because the step is set by DAA score.“ und „around 5 dec, estimate“.
+  - Startseite: „daily emission steps down to 1,585,790 KAS around 5 dec, estimate“.
+  - /whales: „around 4 nov / next block reward cut, estimate“.
 
 ## b) „by kaspa pulse“ ohne „computed“
 - `scripts/whales_seite.py:97` lautet jetzt „source kaspa rest api, 7 day mean by kaspa pulse“.
@@ -101,4 +108,4 @@ Auftrag von Ben vom 12.11.2026, Frist So 15.11. 18:00 Berlin. Begonnen nach dem 
 - **Newsletter-Versand:** `brevo_send.py` ruft `preis_wache` nicht auf. Soll der Versand anhalten, wenn eine Ausgabe gegen die Regeln verstößt?
 
 ## Kopf
-Die Änderung steht in `1f9fdaf`. Dieser Bericht und der Live-Nachtrag zu Cloudflare liegen als eigener Commit darauf.
+Die Änderung steht in `1f9fdaf`. Dieser Bericht und der Live-Nachtrag zu Cloudflare liegen als eigener Commit darauf (`2ce9b4c`), beides gemergt als `95edfb3`. Die Abnahme auf kaspapulse.com ist ein eigener Nachtrag auf `95edfb3`.
