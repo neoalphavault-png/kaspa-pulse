@@ -31,6 +31,7 @@ on:
       - "scripts/zcash/zcash_lauscher.py"
       - "scripts/zcash/lauscher_auswertung.py"
       - "scripts/zcash/lauscher_weiter.py"
+      - "scripts/zcash/lauscher_woche.py"
       - ".github/workflows/zcash-mainnet-lauscher.yml"
   workflow_dispatch:
     inputs:
@@ -178,6 +179,9 @@ jobs:
           done
           python3 scripts/zcash/lauscher_auswertung.py --ereignisse "${E[@]}" --koepfe "${K[@]}" --meta "${M[@]}" \
             --kette "$RUNNER_TEMP/kette.csv.gz" --nu7 "$NU7" --aus "$O/zusammenfassung.json"
+          # je Kalenderwoche Mo 00:00 bis Mo 00:00 UTC (Ben 12.11.2026, Dauerlauf)
+          python3 scripts/zcash/lauscher_woche.py --ereignisse "${E[@]}" --koepfe "${K[@]}" --meta "${M[@]}" \
+            --kette "$RUNNER_TEMP/kette.csv.gz" --csv "$O/wochen.csv" --aus "$O/wochen.json" > /dev/null
           {
             echo "## Zcash Mainnet Zuhoerer, $NAME, ${#M[@]} laeufe"
             echo '```'

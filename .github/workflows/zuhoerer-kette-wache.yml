@@ -1,0 +1,59 @@
+# zuhoerer-kette-wache.yml - Meldung nach #ops-log, wenn die Kette des
+# Zcash-Zuhoerers abreisst (Ben, 12.11.2026, Dauerlauf "dauer" bis 6.12.2026).
+#
+# Stuendlich: Laeuft oder wartet kein Lauf von zcash-mainnet-lauscher.yml,
+# obwohl die Endzeit noch nicht erreicht ist, und endete der letzte Lauf in
+# der letzten Stunde (oder ist er rot), geht eine Meldung nach #ops-log mit den
+# Eingaben fuer den Start von Hand. Eine Meldung je Abriss: spaeter meldet die
+# Wache denselben Abriss nicht noch einmal.
+#
+# Keine Werte in dieser Datei. Der Webhook kommt aus den Secrets.
+name: zuhoerer kette wache
+
+on:
+  schedule:
+    - cron: "41 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  WORKFLOW: zcash-mainnet-lauscher.yml
+  NAME: dauer
+  ENDE_UTC: "2026-12-06T00:00:00Z"
+  DAUER_MIN: "330"
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: kette pruefen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
+        run: |
+          set -eu
+          JETZT=$(date -u +%s)
+          ENDE=$(date -u -d "$ENDE_UTC" +%s)
+          if [ "$JETZT" -ge $((ENDE - 900)) ]; then echo "endzeit erreicht, nichts zu pruefen"; exit 0; fi
+          AKTIV=$(gh run list --workflow "$WORKFLOW" --limit 20 --json status \
+                  --jq '[.[] | select(.status=="queued" or .status=="in_progress" or .status=="waiting")] | length')
+          if [ "$AKTIV" != "0" ]; then echo "kette laeuft ($AKTIV aktiv)"; exit 0; fi
+          LETZT=$(gh run list --workflow "$WORKFLOW" --limit 1 --json databaseId,conclusion,updatedAt \
+                  --jq '.[0] | "\(.databaseId) \(.conclusion) \(.updatedAt)"')
+          set -- $LETZT
+          ID="$1"; ERG="$2"; ZEIT="$3"
+          SEIT=$(( JETZT - $(date -u -d "$ZEIT" +%s) ))
+          echo "kein aktiver lauf, letzter $ID ($ERG) endete vor $((SEIT / 60)) min"
+          if [ "$SEIT" -gt 4500 ]; then echo "abriss schon gemeldet oder alt, keine neue meldung"; exit 0; fi
+          N=$(gh api "repos/$GITHUB_REPOSITORY/contents/data/zcash-mainnet/lauscher-$NAME?ref=messung/zcash-mainnet" \
+                --jq '[.[] | select(.name | endswith("-meta.json"))] | length' 2>/dev/null || echo "?")
+          if [ "$N" = "?" ]; then SEG="Zahl der Laeufe plus 1"; else SEG=$((N + 1)); fi
+          TEXT="zcash zuhoerer, kette $NAME abgerissen: letzter lauf $ID ($ERG), kein neuer lauf, endzeit $ENDE_UTC. Start von Hand: Actions, zcash mainnet lauscher, Run workflow auf main mit name=$NAME, segment=$SEG, dauer_min=$DAUER_MIN, ende_utc=$ENDE_UTC."
+          echo "$TEXT"
+          python3 scripts/ops_melden.py --art log --text "$TEXT"
