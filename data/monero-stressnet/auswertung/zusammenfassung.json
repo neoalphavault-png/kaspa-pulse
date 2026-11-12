@@ -1,5 +1,5 @@
 {
- "erstellt_utc": "2026-11-12 06:47:31",
+ "erstellt_utc": "2026-11-12 12:13:27",
  "ziel_s": 120,
  "computed": {
   "median_s": 83.2,
@@ -8,13 +8,13 @@
   "anteil_ueber_600s_pct": 0.674
  },
  "kette": {
-  "bloecke": 4100,
+  "bloecke": 4283,
   "hoehen": [
    3125743,
-   3129842
+   3130025
   ],
   "von_utc": "2026-11-06 19:24:20",
-  "bis_utc": "2026-11-12 06:47:24",
+  "bis_utc": "2026-11-12 12:11:01",
   "luecken_in_der_kette": 0
  },
  "abseits_der_kette": 3,
@@ -167,24 +167,24 @@
    "tag_utc": "2026-11-12",
    "hoehen": [
     3129622,
-    3129842
+    3130025
    ],
-   "bloecke": 221,
-   "abstaende": 221,
-   "median_s": 75.0,
-   "p90_s": 239.0,
-   "p99_s": 527.6,
-   "mittel_s": 110.8,
-   "anteil_ueber_600s_pct": 0.9,
+   "bloecke": 404,
+   "abstaende": 404,
+   "median_s": 71.5,
+   "p90_s": 259.3,
+   "p99_s": 534.8,
+   "mittel_s": 108.7,
+   "anteil_ueber_600s_pct": 0.99,
    "negative": 0,
-   "laengste_luecke_s": 633.0,
-   "laengste_luecke_vor_block": 3129836,
+   "laengste_luecke_s": 677.0,
+   "laengste_luecke_vor_block": 3129964,
    "tx_in_bloecken": 0,
-   "abdeckung_pct": 98.6,
+   "abdeckung_pct": 99.3,
    "peers_je_block_median": 12.0,
-   "spread_ms_median": 448.0,
-   "spread_ms_p90": 1841.2,
-   "bloecke_mit_spread": 218,
+   "spread_ms_median": 446.0,
+   "spread_ms_p90": 1572.0,
+   "bloecke_mit_spread": 401,
    "erste_sicht_minus_kopfzeit_s_median": 8.4
   }
  ],
