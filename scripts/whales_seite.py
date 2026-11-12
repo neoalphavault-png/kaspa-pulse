@@ -94,7 +94,7 @@ def herkunft(p):
         4: "source kaspalytics",
         5: "computed from the emission schedule",
         6: "fees source kaspalytics, new coins computed from the emission schedule",
-        7: "source kaspa rest api, 7 day mean computed by kaspa pulse",
+        7: "source kaspa rest api, 7 day mean by kaspa pulse",
         8: "source kaspalytics",
     }
 
@@ -115,15 +115,21 @@ def ziffern(t):
 
 
 def einheit(k):
-    """Beim Reward Cut nur das Datum, ohne Uhrzeit, wie im Newsletter (Ben, 26.10.2026)."""
+    """Beim Reward Cut nur das Datum, ohne Uhrzeit, wie im Newsletter (Ben, 26.10.2026),
+    und nur als Schaetzung (Ben, 12.11.2026), "around 4 nov" gross, darunter
+    "next block reward cut, estimate"."""
     if k["n"] == 5:
-        return re.sub(r",\s*\d{1,2}:\d{2} utc$", "", k["unit"])
+        return re.sub(r",\s*\d{1,2}:\d{2} utc$", "", k["unit"]) + ", estimate"
     return ziffern(k["unit"])
+
+
+def gross(k):
+    return "around " + k["big"] if k["n"] == 5 else k["big"]
 
 
 def karten(p):
     h = herkunft(p)
-    return [dict(n=k["n"], q=k["q"], big=k["big"], unit=einheit(k), date=k["date"], src=h[k["n"]])
+    return [dict(n=k["n"], q=k["q"], big=gross(k), unit=einheit(k), date=k["date"], src=h[k["n"]])
             for k in cheat_sheet.karten(p)]
 
 
@@ -535,7 +541,8 @@ def selbsttest():
     ok("e-mail-feld nach den guidelines", 'autocomplete="email" spellcheck="false"' in s)
     ok("noindex", 'content="noindex, follow"' in s)
     ok("kein falke", "falke" not in s.lower() and "falcon" not in s.lower() and "hawk" not in s.lower())
-    ok("reward cut ohne uhrzeit", ks[4]["big"] == "4 nov" and ks[4]["unit"] == "next block reward cut"
+    ok("reward cut ohne uhrzeit, als schaetzung", ks[4]["big"] == "around 4 nov"
+       and ks[4]["unit"] == "next block reward cut, estimate"
        and "13:45" not in s, ks[4]["unit"])
     ok("1 in 7 in ziffern", ks[1]["unit"] == "of all KAS, about 1 in 7", ks[1]["unit"])
     ok("whales nur im versprechen erlaubt",

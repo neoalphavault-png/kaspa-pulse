@@ -33,7 +33,7 @@
    "url": "https://kaspapulse.com/kaspa-weekly.html",
    "inLanguage": "en",
    "datePublished": "2026-09-07T12:09:26+00:00",
-   "dateModified": "2026-10-26T20:02:27+00:00",
+   "dateModified": "2026-11-12T21:58:08+00:00",
    "isPartOf": {
     "@type": "WebSite",
     "name": "Kaspa Pulse",
@@ -53,7 +53,7 @@
    "url": "https://kaspapulse.com/kaspa-weekly.html",
    "inLanguage": "en",
    "datePublished": "2026-09-07T12:09:26+00:00",
-   "dateModified": "2026-10-26T20:02:27+00:00",
+   "dateModified": "2026-11-12T21:58:08+00:00",
    "image": "https://kaspapulse.com/og-card.png",
    "author": {
     "@type": "Organization",
@@ -89,7 +89,7 @@
    "description": "The weekly Kaspa numbers of the Kaspa Pulse newsletter, hashrate, block reward, emission, share mined, layer 2 TVL, fees, holders and exchange balances, one row per week since August 2026.",
    "url": "https://kaspapulse.com/kaspa-weekly.html",
    "datePublished": "2026-09-07T12:09:26+00:00",
-   "dateModified": "2026-10-26T20:02:27+00:00",
+   "dateModified": "2026-11-12T21:58:08+00:00",
    "creator": {
     "@type": "Organization",
     "name": "Kaspa Pulse",
@@ -309,7 +309,7 @@
 
   <div class="answer">
     <div class="lbl">what this format is</div>
-    <p>A weekly chart breakdown for Kaspa that never tells you where the price is going. We show where the close sits against two mechanical lines, what one KAS buys in bitcoin, and the price bands where trading actually happened. Then one sentence on what would change our read. Published every Monday at 16:00 Berlin time, the same hour as the dashboard and the newsletter.</p>
+    <p>A weekly chart breakdown for Kaspa that never tells you where the price is going. We show where the close sits against two mechanical lines, what one KAS buys in bitcoin, and the price bands where trading actually happened. Then where both lines sit, as plain values with their source. Published every Monday at 16:00 Berlin time, the same hour as the dashboard and the newsletter.</p>
   </div>
 
   <h2>The two lines</h2>
@@ -346,12 +346,12 @@
   <p id="shelfNote">—</p>
   <p class="note">A band is not a floor. Heavy volume tells you where positions were built, not where the price has to stop. We report the count, never a prediction from it.</p>
 
-  <h2>What would change our read</h2>
+  <h2>Where the two lines sit</h2>
   <div class="answer">
-    <div class="lbl">the one number</div>
+    <div class="lbl">the line values</div>
     <p id="changeRead">—</p>
   </div>
-  <p>This is the part that makes the format checkable. Instead of a forecast, we name in advance the single observation that would force us to say something different next Monday. If it happens, we say so. If it does not, we say that too.</p>
+  <p>Both lines come from the same weekly closes as the chart. The 21 week line is an exponential average, the 50 week line a plain average. We report the values, never a level the close has to reach.</p>
 
   <h2>The episodes</h2>
   <div class="eps">
@@ -437,7 +437,7 @@
 </section>
 <!--/AUTO:rahmen-kanaele-->
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 26 October 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 12 November 2026<!--/AUTO:seitenstand--></div>
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
@@ -580,10 +580,10 @@
       ? "The close sits in the <b>$"+(cur*0.005).toFixed(3)+" to $"+((cur+1)*0.005).toFixed(3)+"</b> band, which carries <b>"+mineRow[1].toFixed(1)+"%</b> of all volume in the window and ranks <b>"+rank+"</b> of "+list.length+" bands. Counted across "+W.length+" weeks."
       : "The close sits outside every band that carries meaningful volume.";
 
-    var trigger = e21[i];
-    $("changeRead").textContent = below
-      ? "A weekly close above " + fmtP(trigger) + ". That would be the first close above the 21 week average in " + (streak+1) + " weeks, and it would end the longest stretch below the line in our window."
-      : "A weekly close back below " + fmtP(trigger) + ". That would end the run above the 21 week average after " + streak + " weeks and put the close back under the line.";
+    // reine linienwerte mit quelle statt eines wenn-dann-satzes (Ben, 12.11.2026),
+    // wie linienwert_satz in scripts/weekly_numbers.py
+    $("changeRead").textContent = "The 21 week line sits at " + fmtP(e21[i]) + ", source kraken. The 50 week line sits at "
+      + fmtP(s50[i]) + ", source kraken. Week ending " + nice(satDay(i)) + ".";
 
     $("winStart").textContent = nice(d.history_from);
     draw(W, e21, s50);

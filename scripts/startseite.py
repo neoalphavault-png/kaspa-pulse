@@ -101,6 +101,13 @@ def d_kurz(d, jahr=True):
     return "%d %s %d" % (d.day, MON[d.month - 1], d.year) if jahr else "%d %s" % (d.day, MON[d.month - 1])
 
 
+def stufe_kurz(d):
+    """Die naechste Reward-Stufe nur als Schaetzung, 'around 5 dec, estimate'
+    (Ben, 12.11.2026). Die Form kommt aus stufe_schaetzung.py."""
+    import stufe_schaetzung
+    return stufe_schaetzung.kurz(d if isinstance(d, dt.date) else dt.date.fromisoformat(str(d)[:10]))
+
+
 def ganz(n):
     return "{:,}".format(int(round(n)))
 
@@ -531,11 +538,12 @@ def schritte(D):
         vm, q3 = e["vormonat"], e["q3"]
         aus.append({
             "id": "emission", "kopf": "emission",
-            "h2": "daily emission steps down to <em>%s KAS</em> on %s" % (ganz(e["neu"]), d_kurz(e["datum"], False)),
+            # die stufe nur als schaetzung (Ben, 12.11.2026), stufe_schaetzung.kurz
+            "h2": "daily emission steps down to <em>%s KAS</em> %s" % (ganz(e["neu"]), stufe_kurz(e["datum"])),
             "satz": ("it steps down every month by the same factor and halves once a year. at flat fees, "
                      "each step is close to a %s cut in miner income in KAS." % pct(e["schritt_pct"], 1)),
-            "ftitel": "%s KAS a day on %s, after %s on %s" % (
-                ganz(e["neu"]), d_kurz(e["datum"], False), ganz(vm["wert"]), d_kurz(vm["datum"], False)),
+            "ftitel": "%s KAS a day from %s, after %s on %s" % (
+                ganz(e["neu"]), stufe_kurz(e["datum"]), ganz(vm["wert"]), d_kurz(vm["datum"], False)),
             "grafik": treppe(e),
             "fcap": "computed from the emission schedule, factor 2^(1/12) down per month · KAS per day",
             "chips": chips([chip((e["neu"] / vm["wert"] - 1) * 100, "%", vm["datum"], 1),
@@ -886,6 +894,11 @@ def selbsttest():
        if z["abstand"] < z["vorwoche"]["abstand"] else ('class="up">%s' % abstand_text(z["vorwoche"]["abstand"])) in zc)
     ok("abstand_text", abstand_text(-40.68) == "40.68% below" and abstand_text(12.59) == "12.59% above")
     ok("emission chips vs 5 oct und 5 aug", "vs 5 oct" in inhalt and "vs 5 aug" in inhalt)
+    import stufe_schaetzung
+    ok("naechste stufe nur als schaetzung, around 4 nov, estimate (Ben, 12.11.2026)",
+       "around 4 nov, estimate" in inhalt and "</em> on 4 nov" not in inhalt
+       and not stufe_schaetzung.seite_verstoesse(inhalt, dt.date(2026, 10, 27)),
+       stufe_schaetzung.seite_verstoesse(inhalt, dt.date(2026, 10, 27)))
     ok("feste groessen ohne chips", '<ul class="cmp"' not in inhalt.split('id="chain"')[1].split("</section>")[0])
     D2 = dict(D, kette=None, gebuehren=None)
     ss2 = schritte(D2)

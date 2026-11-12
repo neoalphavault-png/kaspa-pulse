@@ -33,7 +33,7 @@
    "url": "https://kaspapulse.com/kaspa-halving.html",
    "inLanguage": "en",
    "datePublished": "2026-07-30T07:08:26+00:00",
-   "dateModified": "2026-11-04T14:33:47+00:00",
+   "dateModified": "2026-11-12T21:58:08+00:00",
    "isPartOf": {
     "@type": "WebSite",
     "name": "Kaspa Pulse",
@@ -53,7 +53,7 @@
    "url": "https://kaspapulse.com/kaspa-halving.html",
    "inLanguage": "en",
    "datePublished": "2026-07-30T07:08:26+00:00",
-   "dateModified": "2026-11-04T14:33:47+00:00",
+   "dateModified": "2026-11-12T21:58:08+00:00",
    "image": "https://kaspapulse.com/og-card.png",
    "author": {
     "@type": "Organization",
@@ -257,7 +257,7 @@
 <div class="wrap">
 
   <h1>Kaspa halving countdown. <b>The next reduction is ticking below, because it happens every month, not every four years.</b></h1>
-  <p class="kurzfakt"><!--AUTO:kurzfakt-->Next reward step on <b>5 December 2026 around 00:15 UTC</b>, block reward from <b>1.9445</b> to <b>1.8354 KAS</b> per block, computed from the emission schedule<!--/AUTO:kurzfakt--></p>
+  <p class="kurzfakt"><!--AUTO:kurzfakt-->Next reward step <b>around 5 December 2026</b>, an estimate, because the step is set by DAA score. Block reward from <b>1.9445</b> to <b>1.8354 KAS</b> per block, computed from the emission schedule<!--/AUTO:kurzfakt--></p>
   <div class="sub">If you're waiting for Kaspa's big halving day, you can stop. There isn't one. Kaspa cut its emission into twelve small steps a year instead of one cliff every four. Here's the countdown to the next reduction date, the current numbers, and what the monthly cut actually does.</div>
 
   <div class="answer">
@@ -356,9 +356,9 @@
   <div class="faq">
   <h2>Questions people ask</h2>
   <h3>Does Kaspa have a halving?</h3>
-  <p>Yes, as a smooth schedule instead of one event. The block reward falls by about 5.6% every 30.44 days and halves every 12 months, computed from the emission schedule. The next step is on 5 December 2026, from 1.9445 to 1.8354 KAS per block.</p>
+  <p>Yes, as a smooth schedule instead of one event. The block reward falls by about 5.6% every 30.44 days and halves every 12 months, computed from the emission schedule. The next step is around 5 December 2026, an estimate, because the step is set by DAA score, from 1.9445 to 1.8354 KAS per block.</p>
   <h3>When is the next Kaspa halving?</h3>
-  <p>Kaspa has no single halving day. The next monthly reward step is on 5 December 2026 around 00:15 UTC, when the block reward falls from 1.9445 to 1.8354 KAS per block, computed from the emission schedule.</p>
+  <p>Kaspa has no single halving day. The next monthly reward step is around 5 December 2026, an estimate, because the step is set by DAA score. The block reward then falls from 1.9445 to 1.8354 KAS per block, computed from the emission schedule.</p>
   <h3>How much does the Kaspa block reward decrease?</h3>
   <p>About 5.6% per month. Twelve consecutive monthly steps multiply to exactly one half, so emission falls 50% over any 12-month window. That is the same yearly rate as Bitcoin's four-year halving, delivered smoothly instead of as a cliff.</p>
   <h3>Is the Kaspa halving bullish for the price?</h3>
@@ -406,7 +406,7 @@
 </section>
 <!--/AUTO:rahmen-kanaele-->
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 4 November 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 12 November 2026<!--/AUTO:seitenstand--></div>
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
@@ -425,7 +425,7 @@
       "name": "Does Kaspa have a halving?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes, as a smooth schedule instead of one event. The block reward falls by about 5.6% every 30.44 days and halves every 12 months, computed from the emission schedule. The next step is on 5 December 2026, from 1.9445 to 1.8354 KAS per block."
+        "text": "Yes, as a smooth schedule instead of one event. The block reward falls by about 5.6% every 30.44 days and halves every 12 months, computed from the emission schedule. The next step is around 5 December 2026, an estimate, because the step is set by DAA score, from 1.9445 to 1.8354 KAS per block."
       }
     },
     {
@@ -433,7 +433,7 @@
       "name": "When is the next Kaspa halving?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Kaspa has no single halving day. The next monthly reward step is on 5 December 2026 around 00:15 UTC, when the block reward falls from 1.9445 to 1.8354 KAS per block, computed from the emission schedule."
+        "text": "Kaspa has no single halving day. The next monthly reward step is around 5 December 2026, an estimate, because the step is set by DAA score. The block reward then falls from 1.9445 to 1.8354 KAS per block, computed from the emission schedule."
       }
     },
     {
@@ -480,10 +480,11 @@
     while (ts <= Date.now()) { ts += STEP; amt *= R; }
     const current = amt / R;
 
-    const fmtD = d => new Date(d).toLocaleDateString("en-US",{month:"short", day:"numeric", year:"numeric"}).toLowerCase();
+    // die naechste stufe nur als schaetzung, ohne uhrzeit (Ben, 12.11.2026),
+    // dieselben formen wie scripts/stufe_schaetzung.py
     document.getElementById("rwBig").textContent = current.toFixed(2)+" KAS";
     document.getElementById("rwCap").textContent = "per block, at 10 blocks per second · derived from the fixed schedule, anchored to api.kaspa.org";
-    document.getElementById("nxDate").textContent = "≈ "+fmtD(ts);
+    document.getElementById("nxDate").textContent = stufeKurz(ts);
     document.getElementById("nxAmt").textContent = amt.toFixed(2)+" KAS";
     startCountdown(ts, amt);
     drawCurve(ts, amt);
@@ -492,9 +493,12 @@
   // the countdown itself. steps trigger on the chain's own score, so the last
   // minutes can drift — the caption says so instead of pretending otherwise.
   let cdTimer = null;
+  const MON_K = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+  const MON_L = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  function stufeKurz(t){ const d = new Date(t); return "around "+d.getUTCDate()+" "+MON_K[d.getUTCMonth()]+", estimate"; }
+  function stufeLang(t){ const d = new Date(t);
+    return "around "+d.getUTCDate()+" "+MON_L[d.getUTCMonth()]+" "+d.getUTCFullYear()+", an estimate, because the step is set by DAA score"; }
   function startCountdown(targetTs, nextAmt){
-    const fmtDT = d => new Date(d).toLocaleString("en-US",{month:"short", day:"numeric",
-      year:"numeric", hour:"2-digit", minute:"2-digit", hour12:false, timeZoneName:"short"}).toLowerCase();
     const pad = n => String(n).padStart(2,"0");
     if (cdTimer) clearInterval(cdTimer);
     function tick(){
@@ -502,8 +506,7 @@
       if (left <= 0){
         // step reached: roll the schedule forward one month
         targetTs += STEP; nextAmt *= R; left = targetTs - Date.now();
-        document.getElementById("nxDate").textContent = "≈ "+new Date(targetTs)
-          .toLocaleDateString("en-US",{month:"short", day:"numeric", year:"numeric"}).toLowerCase();
+        document.getElementById("nxDate").textContent = stufeKurz(targetTs);
         document.getElementById("nxAmt").textContent = nextAmt.toFixed(2)+" KAS";
       }
       const s = Math.floor(left/1000);
@@ -513,7 +516,7 @@
       document.getElementById("cdS").textContent = pad(s%60);
     }
     document.getElementById("cdCap").textContent =
-      "expected around "+fmtDT(targetTs)+", shown in your local time · the trigger is a chain score, not a clock, so the final minutes can drift slightly";
+      "next step "+stufeLang(targetTs)+".";
     tick();
     cdTimer = setInterval(tick, 1000);
   }

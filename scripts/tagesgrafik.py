@@ -191,6 +191,13 @@ def tag_kurz(d):
     return "%d %s" % (d.day, MONATE[d.month - 1])
 
 
+def stufe_kurz(t):
+    """'around 5 dec, estimate', die naechste Reward-Stufe nur als Schaetzung
+    (Ben, 12.11.2026). Die Form kommt aus stufe_schaetzung.py."""
+    import stufe_schaetzung
+    return stufe_schaetzung.kurz(t)
+
+
 def uhr(t):
     return t.strftime("%H:%M") + " utc"
 
@@ -743,16 +750,17 @@ def vorlage_3(w, now):
                                                        y + hh - hh * v / max(w["stufen"]) - 14, schrift(farbe), v))
         return s
     return {"kopf": "NEXT REWARD CUT", "zahl": zahl, "zahl_im_objekt": True,
-            "bedeutung": "KAS per block, one step a month. the next step, %s, %s" % (tag(t.date()), uhr(t)),
+            # die naechste stufe nur als schaetzung, ohne uhrzeit (Ben, 12.11.2026)
+            "bedeutung": "KAS per block, one step a month. the next step %s" % stufe_kurz(t),
             "zusatz": "from zero",
             "herkunft": RECHNUNG, "objekt": objekt,
             "x1": "kaspa cuts its block reward again in %s." % zahl,
-            "x2": "next step %s, %s, %s" % (tag(t.date()), uhr(t), RECHNUNG),
+            "x2": "next step %s, %s" % (stufe_kurz(t), RECHNUNG),
             "x3": "how often does that happen?",
             "einordnung": "the reward steps down once a month, and 12 steps halve it",
             "pointe": "no vote needed, the schedule sets the date",
-            "aufloesung": "once a month, and 12 steps halve the reward. on %s it goes from %.2f "
-                          "to %.2f KAS per block." % (tag_kurz(t.date()), w["cur"], w["nxt"]),
+            "aufloesung": "once a month, and 12 steps halve the reward. the next step, %s, takes it from "
+                          "%.2f to %.2f KAS per block." % (stufe_kurz(t), w["cur"], w["nxt"]),
             "pruefung": "ja, knappe Terminzahl mit Datum, Halter teilen Countdowns gern"}
 
 
@@ -2927,6 +2935,15 @@ def selbsttest():
     ok("form 3, caption, threads und discord nennen computed aus dem emissionsplan",
        all(RECHNUNG in s3[k].lower() for k in ("instagram", "threads", "discord") if s3.get(k))
        and all("counted" not in s3[k].lower() for k in ("instagram", "threads", "discord") if s3.get(k)))
+    # die naechste stufe nur als schaetzung, ohne uhrzeit (Ben, 12.11.2026)
+    import stufe_schaetzung
+    k3 = ("bedeutung", "x", "threads", "discord", "instagram", "antwort")
+    ok("form 3, naechste stufe nur mit around und estimate, ohne uhrzeit",
+       all(not stufe_schaetzung.verstoesse(s3[k], FAKE_NOW.date()) for k in k3 if s3.get(k))
+       and "around 5 oct, estimate" in s3["x"].lower() and "03:15" not in " ".join(s3.get(k, "") for k in k3))
+    for k in k3:
+        if s3.get(k) and stufe_schaetzung.verstoesse(s3[k], FAKE_NOW.date()):
+            print("     %s, %s" % (k, stufe_schaetzung.verstoesse(s3[k], FAKE_NOW.date())))
     ok("datumszeile ueber %d zeichen wird abgelehnt" % DATUMSZEILE_MAX,
        any("hoechstens %d" % DATUMSZEILE_MAX in f for f in
            textpruefung(dict(s3, datumszeile=s3["datumszeile"] + " ·" + " x" * 80), 3)))
