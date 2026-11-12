@@ -58,4 +58,4 @@ Folgt als Nachtrag nach dem Merge, sobald GitHub Pages ausgeliefert hat. Geprüf
 Cloudflare wertet keine UTM-Parameter und keine eigenen Ereignisse aus. Die Zuordnung von Anmeldungen zu Kampagnen läuft ab jetzt nur über die versteckten UTM-Felder in Brevo.
 
 ## Kopf
-Siehe den Commit nach diesem Bericht.
+Der Stand vor dem Live-Nachtrag ist `500fe89`. Dieser Eintrag liegt als eigener Commit darauf.
