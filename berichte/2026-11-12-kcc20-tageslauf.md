@@ -1,0 +1,33 @@
+# KCC-20 Tageslauf, Ausfall am 11.11. und Nachholung
+
+Bericht für Ben zum Auftrag vom 12.11. Die öffentliche Wochenzahl ist am Di 17.11. um 14:00 fällig. Bis dahin soll der Tageslauf wieder täglich in `claude/ablage-kcc20` ankommen. Nur Summen, keine Adressen.
+
+## Grund in einem Satz
+
+Der Planlauf vom 11.11. ([Lauf 43087815921](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/43087815921)) hat vollständig gezählt, aber der Upload des Ergebnisses scheiterte, weil GitHubs Artefakt-Dienst fünfmal hintereinander eine HTML-Fehlerseite statt einer Antwort lieferte, und deshalb fand der Ablage-Job nichts zum Ablegen.
+
+## Was sonst auffällt
+
+- **7.11. fehlt auch:** Der Planlauf vom 7.11. ([Lauf 42397644495](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/42397644495)) brach ab, weil der Knoten in 290 Minuten nicht synchron wurde. Am 11.11. brauchte er dafür 34 Minuten.
+- **Der Plan startet spät:** Angesetzt ist 12:05 UTC. Die Läufe vom 7. bis 12.11. starteten aber zwischen 17:42 und 22:14 UTC. Startet ein Lauf erst nach Mitternacht UTC, nimmt der Workflow bisher den neuen Tag als Stichzeit. Er wartet dann auf eine Stichzeit in der Zukunft und scheitert.
+- **Ablage seit dem 6.11.:** 6.11., 8.11., 9.11., 10.11. und 12.11. sind da, es fehlen der 7.11. und der 11.11.
+
+## Nachholung des 11.11.
+
+- **Lauf:** [Lauf 43314446329](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/43314446329), gestartet am 12.11. um 21:52 UTC.
+- **Parameter:** Stichzeit 11.11. 12:00 UTC und Vergleich ab 10.11. 12:00 UTC. Als Vorläufe dienen die drei Saatläufe und die Ablageläufe bis zum 10.11., wie es der Plan täte.
+- **Weg:** über `kcc20/start.txt` auf `fix/kcc20-zaehlung`. Vorher habe ich main in den Branch gemergt, damit der Lauf denselben Workflow wie der Plan nutzt.
+- **Grenze:** Die Stichzeit liegt beim Start 33.9 h zurück. Ob der Pruning-Punkt des frisch synchronisierten Knotens noch davor liegt, zeigt erst der Lauf. Liegt er danach, bricht der Lauf mit dieser Meldung ab, und der 11.11. bleibt ohne eigene Zählung.
+
+## Änderung am Workflow, als PR für Ben
+
+`kcc20-zaehlung.yml`, zwei kleine Änderungen.
+
+1. **Zweiter Upload-Versuch:** Scheitert der Upload, folgt nach 5 Minuten ein zweiter Versuch mit denselben Dateien. Erst wenn auch der scheitert, ist der Lauf rot.
+2. **Tag der Stichzeit:** Der Tag ist der des letzten 12:05 UTC, also `date -u -d '-12 hours -5 minutes'`. Ein Start am 13.11. um 02:00 UTC zählt damit noch zum 12.11.
+
+Keine Änderung an Zählung, Ablage oder Rechten. Gegen den 7.11. hilft beides nicht, ein Knoten, der nicht synchron wird, bleibt ein Ausfall.
+
+## Was Ben tun muss
+
+- Den PR prüfen und mergen. Die Änderung greift ab dem nächsten Planlauf.
