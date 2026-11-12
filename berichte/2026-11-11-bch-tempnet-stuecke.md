@@ -44,7 +44,7 @@ Beide Werte gelten für alle Abstände, deren Block nicht in einem Fenster liegt
     - 227 bis 234, die Lücke vom 3.11. 13:59 bis 4.11. 10:08 UTC
 - **Stale in den vollen Stücken:** 1.452 Blöcke in 1.195 Ereignissen. In 96 der 194 vollen Stücke gibt es kein Stale-Ereignis, der Median liegt bei 1.
 
-**Die 12 vollen Stücke mit den meisten Stale-Ereignissen:**
+**Die vollen Stücke mit den meisten Stale-Ereignissen.** Gezeigt sind die 12 mit den meisten Ereignissen. Bei Gleichstand an der Grenze stehen alle gleichen Stücke dabei (Ben, 12.11.). Stück 170 hat wie Stück 169 genau 33 Ereignisse, deshalb sind es 13 Zeilen.
 
 | Stück | Höhen | Beginn (UTC) | mittlere Difficulty | Blockzeit Mittel / Median | stale Blöcke | stale Ereignisse |
 |---:|---|---|---:|---|---:|---:|
@@ -52,6 +52,7 @@ Beide Werte gelten für alle Abstände, deren Block nicht in einem Fenster liegt
 | 167 | 347.909 bis 348.028 | 29.10. 21:39 | 21,1 | 2,40 / 2 s | 40 | 40 |
 | 168 | 348.029 bis 348.148 | 29.10. 21:44 | 80,1 | 2,52 / 2 s | 36 | 36 |
 | 169 | 348.149 bis 348.268 | 29.10. 21:49 | 302,2 | 2,41 / 2 s | 33 | 33 |
+| 170 | 348.269 bis 348.388 | 29.10. 21:54 | 1.144,5 | 2,33 / 2 s | 34 | 33 |
 | 249 | 357.749 bis 357.868 | 5.11. 16:54 | 33,4 | 4,58 / 1 s | 113 | 71 |
 | 250 | 357.869 bis 357.988 | 5.11. 17:03 | 131,0 | 0,94 / 1 s | 151 | 94 |
 | 251 | 357.989 bis 358.108 | 5.11. 17:05 | 510,7 | 1,43 / 1 s | 97 | 68 |
@@ -61,7 +62,7 @@ Beide Werte gelten für alle Abstände, deren Block nicht in einem Fenster liegt
 | 299 | 363.749 bis 363.868 | 9.11. 17:39 | 346,2 | 0,85 / 1 s | 111 | 79 |
 | 300 | 363.869 bis 363.988 | 9.11. 17:41 | 1.348,8 | 1,55 / 1 s | 75 | 59 |
 
-Alle zwölf liegen am Anfang eines Hash-Einstiegs oder in den Minuten davor, während die Difficulty noch steigt. Die Stücke 249 und 296 beginnen kurz vor dem Einstieg aus der Fenster-Datei.
+Alle 13 liegen am Anfang eines Hash-Einstiegs oder in den Minuten davor, während die Difficulty noch steigt. Die Stücke 249 und 296 beginnen kurz vor dem Einstieg aus der Fenster-Datei.
 
 ## 3. Was wir nicht liefern, und Ausbreitung
 
@@ -82,7 +83,7 @@ Alle zwölf liegen am Anfang eines Hash-Einstiegs oder in den Minuten davor, wä
 
 **Chunks of 120 blocks.** We start at block 327,989 and end with the last full chunk at block 365,668, which gives 314 chunks. Block time is header time minus the header time of the parent. A stale event is one height with one or more stale candidates. A chunk counts as covered when our listener ran for the whole time from its first to its last block. Of the 314 chunks, 194 are covered. Chunks 1 to 110 lie before our listener started on 25 Oct, and chunks 227 to 234 fall into our gap from 3 Nov 13:59 utc to 4 Nov 10:08 utc. Those chunks stay in the csv with empty stale columns.
 
-Across the 194 covered chunks we counted 1,452 stale blocks in 1,195 stale events. In 96 of them there is no stale event at all. These are the twelve with the most stale events.
+Across the 194 covered chunks we counted 1,452 stale blocks in 1,195 stale events. In 96 of them there is no stale event at all. These are the chunks with the most stale events, the top twelve and every chunk tied with the last of them, thirteen in all.
 
 | chunk | heights | start utc | mean difficulty | mean / median block time | stale blocks | stale events |
 |---:|---|---|---:|---|---:|---:|
@@ -90,6 +91,7 @@ Across the 194 covered chunks we counted 1,452 stale blocks in 1,195 stale event
 | 167 | 347,909 to 348,028 | 29 Oct 21:39 | 21.1 | 2.40 / 2 s | 40 | 40 |
 | 168 | 348,029 to 348,148 | 29 Oct 21:44 | 80.1 | 2.52 / 2 s | 36 | 36 |
 | 169 | 348,149 to 348,268 | 29 Oct 21:49 | 302.2 | 2.41 / 2 s | 33 | 33 |
+| 170 | 348,269 to 348,388 | 29 Oct 21:54 | 1,144.5 | 2.33 / 2 s | 34 | 33 |
 | 249 | 357,749 to 357,868 | 5 Nov 16:54 | 33.4 | 4.58 / 1 s | 113 | 71 |
 | 250 | 357,869 to 357,988 | 5 Nov 17:03 | 131.0 | 0.94 / 1 s | 151 | 94 |
 | 251 | 357,989 to 358,108 | 5 Nov 17:05 | 510.7 | 1.43 / 1 s | 97 | 68 |
@@ -99,7 +101,7 @@ Across the 194 covered chunks we counted 1,452 stale blocks in 1,195 stale event
 | 299 | 363,749 to 363,868 | 9 Nov 17:39 | 346.2 | 0.85 / 1 s | 111 | 79 |
 | 300 | 363,869 to 363,988 | 9 Nov 17:41 | 1,348.8 | 1.55 / 1 s | 75 | 59 |
 
-All twelve sit at the start of a hash entry or in the minutes just before it, while difficulty is still climbing.
+All thirteen sit at the start of a hash entry or in the minutes just before it, while difficulty is still climbing.
 
 **What the table does not have.** Block size and transaction count are not in it. Our header client keeps headers only, and our listener has no mempool, so it cannot give a full count.
 
@@ -115,11 +117,16 @@ The csv is data/bch/tempnet-stuecke-120-2026-11-11.csv on messung/bch-tempnet in
 - PR #305, Abschlussbericht, wird am Fr 13.11. aufgefrischt
 - dieser Bericht
 
+## Entscheidungen Ben (12.11.)
+
+1. Außerhalb der Fenster nennt der Beitrag beide Zahlen mit ihrem Stand, wie im Entwurf.
+2. Wir bleiben beim Satz, dass wir keine Transaktionen zählen. Aus den Kurz-IDs wird nichts geschätzt.
+3. Bei Gleichstand an der Grenze der Tabelle stehen alle gleichen Stücke dabei. Das gilt auch beim Update am 14.11.
+
 ## Offene Fragen an Ben
 
-1. Bleibt im Forum die Zahl außerhalb mit Stand 11.11. stehen, oder korrigierst du sie auf 68,44 s und 49 s vom 10.11.? Der Entwurf nennt beide mit Stand.
-2. Der Zuhörer sieht für die meisten Blöcke die Kurz-IDs der Compact Blocks, also eine Zahl, die der Zahl der Transaktionen nahe kommt. Soll das als source „our listener, estimate“ dazu, oder bleibt es beim Satz, dass wir keine Transaktionen zählen? Mein Vorschlag ist, beim Satz zu bleiben.
+Keine.
 
 ## Was Ben tun muss
 
-- Den Forumsentwurf posten, nach dem Update am Fr 13.11. oder wie er ist.
+- Den Beitrag posten (Ben am 12.11.: heute).
