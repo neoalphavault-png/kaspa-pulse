@@ -10,7 +10,7 @@ Der Planlauf vom 11.11. ([Lauf 43087815921](https://github.com/neoalphavault-png
 
 - **7.11. fehlt auch:** Der Planlauf vom 7.11. ([Lauf 42397644495](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/42397644495)) brach ab, weil der Knoten in 290 Minuten nicht synchron wurde. Am 11.11. brauchte er dafür 34 Minuten.
 - **Der Plan startet spät:** Angesetzt ist 12:05 UTC. Die Läufe vom 7. bis 12.11. starteten aber zwischen 17:42 und 22:14 UTC. Startet ein Lauf erst nach Mitternacht UTC, nimmt der Workflow bisher den neuen Tag als Stichzeit. Er wartet dann auf eine Stichzeit in der Zukunft und scheitert.
-- **Ablage seit dem 6.11.:** 6.11., 8.11., 9.11., 10.11. und 12.11. sind da, es fehlen der 7.11. und der 11.11.
+- **Ablage seit dem 6.11.:** 6.11., 8.11., 9.11., 10.11. und 12.11. sind da. Der 11.11. ist nachgeholt (unten), der 7.11. fehlt weiter.
 
 ## Nachholung des 11.11.
 
