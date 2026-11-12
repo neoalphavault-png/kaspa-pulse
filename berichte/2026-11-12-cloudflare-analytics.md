@@ -42,7 +42,14 @@ Neu heißt der Abschnitt „Cookies and web analytics (Cloudflare Web Analytics)
 Es ist keine gesetzt. Im Repo gibt es weder einen `Content-Security-Policy`-Meta-Tag noch eine `_headers`-Datei. kaspapulse.com wird von GitHub Pages ausgeliefert (`server: GitHub.com`), ohne CSP-Header. Damit gibt es nichts zu ergänzen.
 
 ## 5. Prüfung auf dem Betriebspfad
-Folgt als Nachtrag nach dem Merge, sobald GitHub Pages ausgeliefert hat. Geprüft wird auf kaspapulse.com und kaspapulse.com/whales/: eine Anfrage an cloudflareinsights.com mit 2xx, keine Anfrage an plausible.io. Die Anmeldung testet Ben selbst. Ich melde mich nicht an.
+Nachtrag vom 12.11.2026, nach dem Merge von #314 (`f527df4`). Geprüft mit Chromium (Playwright), je Seite ein frischer Browser ohne Cache, alle Anfragen mitgeschnitten:
+
+| Seite | Beacon im HTML | Anfragen an Cloudflare | plausible.io |
+| --- | --- | --- | --- |
+| https://kaspapulse.com/ | ja | `GET static.cloudflareinsights.com/beacon.min.js` 200, `POST cloudflareinsights.com/cdn-cgi/rum` 204 | keine Anfrage, nicht im HTML |
+| https://kaspapulse.com/whales/ | ja | `GET static.cloudflareinsights.com/beacon.min.js` 200, `POST cloudflareinsights.com/cdn-cgi/rum` 204 | keine Anfrage, nicht im HTML |
+
+Damit ist Punkt 5 erfüllt. Die Anmeldung auf /whales testet Ben mit seiner Testadresse. Ich habe mich nicht angemeldet. Ob die Besuche ankommen, zeigt das Dashboard von Cloudflare, das kann nur Ben sehen.
 
 ## Prüfung
 - **Selbsttests mit 0 Fehlern:** web_analytics, whales_seite, weekly_numbers, meme_wahr, seo_pruefung, seo_seiten, preis_wache, rahmen, archiv und startseite.
@@ -58,4 +65,4 @@ Folgt als Nachtrag nach dem Merge, sobald GitHub Pages ausgeliefert hat. Geprüf
 Cloudflare wertet keine UTM-Parameter und keine eigenen Ereignisse aus. Die Zuordnung von Anmeldungen zu Kampagnen läuft ab jetzt nur über die versteckten UTM-Felder in Brevo.
 
 ## Kopf
-Der Stand vor dem Live-Nachtrag ist `500fe89`. Dieser Eintrag liegt als eigener Commit darauf.
+Der Stand vor dem Live-Nachtrag ist `500fe89`, gemergt als `f527df4`. Der Live-Nachtrag in Abschnitt 5 liegt im Folge-PR mit den drei Punkten vom 12.11. (`berichte/2026-11-12-drei-punkte.md`).

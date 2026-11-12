@@ -252,6 +252,14 @@ def modell_str(ts):
     return time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime(ts))
 
 
+def stufe_lang(ts):
+    """'around 5 December 2026, an estimate, because the step is set by DAA
+    score', die naechste Stufe nur als Schaetzung (Ben, 12.11.2026). Die Form
+    kommt aus stufe_schaetzung.py."""
+    import stufe_schaetzung
+    return stufe_schaetzung.lang(dt.datetime.fromtimestamp(ts, dt.timezone.utc))
+
+
 def date_str(ts):
     """Nur das Datum. Das ist die belastbare Aussage, siehe modell_str."""
     d = dt.datetime.fromtimestamp(ts, dt.timezone.utc)
@@ -294,7 +302,7 @@ def build_cut(before, after, ts, price):
         "no cliff, no shock. one step down a staircase that takes twelve steps "
         "to reach the half.\n\n"
         f"{context_lines(before, after, price)}\n\n"
-        f"the next step is estimated for {date_str(schedule(ts + 60)[0])}.",
+        f"the next step is {stufe_lang(schedule(ts + 60)[0])}.",
         PURPLE,
     )
 
@@ -311,9 +319,7 @@ def build_prewarn(before, after, ts, price):
         "bitcoin does the same thing once every four years, all at once. kaspa "
         "spreads it across the year, so no miner wakes up to half the revenue.\n\n"
         f"{context_lines(before, after, price)}\n\n"
-        f"the estimate right now is {date_str(ts)}. the day can still shift a "
-        "little, because the step lands on a block score and not on a clock. "
-        "the number does not shift at all.",
+        f"the step is {stufe_lang(ts)}. the number does not shift at all.",
         BLUE,
     )
 
@@ -384,8 +390,8 @@ def selbsttest():
     ok("text nennt NICHT 105,844", "105,844" not in text)
     ok("kein doppelpunkt-zeitstempel im text",
        not re.search(MONAT_RE, text), re.findall(MONAT_RE, text))
-    ok("naechster schritt steht als 4 november 2026 im text",
-       "4 november 2026" in text, text[-120:])
+    ok("naechster schritt steht als around 4 November 2026, an estimate, im text",
+       "around 4 November 2026, an estimate, because the step is set by DAA score" in text, text[-120:])
 
     print("\ntexte der vorwarnung auf den 04.11.2026")
     vor_ts = ANCHOR_TS + STEP * 4
@@ -396,8 +402,14 @@ def selbsttest():
     titel2, text2, _ = build_prewarn(b2, a2, nts, None)
     ok("kein doppelpunkt-zeitstempel in der vorwarnung",
        not re.search(MONAT_RE, text2), re.findall(MONAT_RE, text2))
-    ok("vorwarnung nennt das datum 4 november 2026",
-       "4 november 2026" in text2)
+    ok("vorwarnung nennt das datum around 4 November 2026, an estimate",
+       "around 4 November 2026, an estimate" in text2)
+    import stufe_schaetzung
+    ok("kuenftige stufe nur mit around und estimate, ohne uhrzeit (Ben, 12.11.2026)",
+       not stufe_schaetzung.verstoesse(text, dt.date(2026, 10, 5))
+       and not stufe_schaetzung.verstoesse(text2, dt.date(2026, 11, 3)),
+       str(stufe_schaetzung.verstoesse(text, dt.date(2026, 10, 5))
+           + stufe_schaetzung.verstoesse(text2, dt.date(2026, 11, 3))))
     ok("vorwarnung spricht nicht mehr von der minute",
        "that minute" not in text2)
     f2 = wf.fenster(daily(b2), daily(a2))

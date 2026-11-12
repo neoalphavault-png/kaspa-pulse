@@ -195,25 +195,38 @@ def halving_daten(jetzt=None):
             "pct": (1 - wf.RATIO) * 100}
 
 
+# die naechste stufe nur als schaetzung, ohne uhrzeit (Ben, 12.11.2026),
+# die formen kommen aus stufe_schaetzung.py
 def halving_wann(h):
-    return "%s around %s UTC" % (datum(h["stufe"].isoformat()), h["stufe"].strftime("%H:%M"))
+    """'around 5 dec, estimate'"""
+    import stufe_schaetzung
+    return stufe_schaetzung.kurz(h["stufe"])
+
+
+def halving_wann_lang(h):
+    """'around 5 December 2026, an estimate, because the step is set by DAA score'"""
+    import stufe_schaetzung
+    return stufe_schaetzung.lang(h["stufe"])
 
 
 def halving_fakt(h):
-    return ("Next reward step on <b>%s</b>, block reward from <b>%.4f</b> to <b>%.4f KAS</b> per block, "
-            "computed from the emission schedule" % (halving_wann(h), h["vorher"], h["nachher"]))
+    import stufe_schaetzung
+    lang = stufe_schaetzung.lang(h["stufe"])
+    tag, rest = lang.split(", ", 1)
+    return ("Next reward step <b>%s</b>, %s. Block reward from <b>%.4f</b> to <b>%.4f KAS</b> per block, "
+            "computed from the emission schedule" % (tag, rest, h["vorher"], h["nachher"]))
 
 
 def halving_faq(h):
     return {
         "When is the next Kaspa halving?":
-            "Kaspa has no single halving day. The next monthly reward step is on %s, when the block reward "
+            "Kaspa has no single halving day. The next monthly reward step is %s. The block reward then "
             "falls from %.4f to %.4f KAS per block, computed from the emission schedule." % (
-                halving_wann(h), h["vorher"], h["nachher"]),
+                halving_wann_lang(h), h["vorher"], h["nachher"]),
         "Does Kaspa have a halving?":
             "Yes, as a smooth schedule instead of one event. The block reward falls by about %.1f%% every "
-            "30.44 days and halves every 12 months, computed from the emission schedule. The next step is on "
-            "%s, from %.4f to %.4f KAS per block." % (h["pct"], datum(h["stufe"].isoformat()), h["vorher"],
+            "30.44 days and halves every 12 months, computed from the emission schedule. The next step is "
+            "%s, from %.4f to %.4f KAS per block." % (h["pct"], halving_wann_lang(h), h["vorher"],
                                                      h["nachher"]),
     }
 
@@ -232,7 +245,7 @@ def mining_daten(ph, wann_dt, h):
                ("block reward", "%.4f KAS" % h["vorher"], "computed from the emission schedule, until %s"
                 % halving_wann(h)),
                ("new KAS per day, network wide", "%s KAS" % ganz(je_tag), "computed, 10 blocks a second"),
-               ("next reward step", "%.4f KAS per block" % h["nachher"], "computed, on %s" % halving_wann(h)),
+               ("next reward step", "%.4f KAS per block" % h["nachher"], "computed, %s" % halving_wann(h)),
                ("network hashrate", "%.1f PH/s" % ph, "source the Kaspa REST API, %s" % wann),
                ("KAS per day for 1 TH/s", "%.2f KAS" % pro_th,
                 "computed from the two rows above, before pool fees and electricity"))))
@@ -241,8 +254,8 @@ def mining_daten(ph, wann_dt, h):
     faq = {"How much does a Kaspa miner earn per day?":
            "On %s, 1 TH/s of kHeavyHash earned about %.2f KAS a day before pool fees and electricity, computed "
            "from the block reward of %.4f KAS and a network hashrate of %.1f PH/s, source the Kaspa REST API. "
-           "The reward falls about 5.6%% every month, the next step is on %s." % (
-               wann, pro_th, h["vorher"], ph, datum(h["stufe"].isoformat()))}
+           "The reward falls about 5.6%% every month, the next step is %s." % (
+               wann, pro_th, h["vorher"], ph, halving_wann_lang(h))}
     return {"mining-zahlen": tab, "kurzfakt": fakt, "faq": faq}
 
 
@@ -648,9 +661,9 @@ def selbsttest():
        not any(content_wache.ungenau(t) for t in [halter_fakt(hl), ht] + list(hf.values())))
     ok("covenant satz2", covenant_satz2(log).startswith("<b>13,760 covenant outputs</b> were unspent"))
     hv = halving_daten(dt.datetime(2026, 10, 27, 20, tzinfo=dt.timezone.utc))
-    ok("halving vor der stufe am 4 november", halving_fakt(hv) == (
-        "Next reward step on <b>4 November 2026 around 13:45 UTC</b>, block reward from <b>2.0602</b> to "
-        "<b>1.9445 KAS</b> per block, computed from the emission schedule"))
+    ok("halving vor der stufe am 4 november, nur als schaetzung", halving_fakt(hv) == (
+        "Next reward step <b>around 4 November 2026</b>, an estimate, because the step is set by DAA score. "
+        "Block reward from <b>2.0602</b> to <b>1.9445 KAS</b> per block, computed from the emission schedule"))
     hn = halving_daten(dt.datetime(2026, 11, 4, 14, tzinfo=dt.timezone.utc))
     ok("halving springt nach der stufe auf die naechste", "5 December 2026" in halving_fakt(hn)
        and "from <b>1.9445</b>" in halving_fakt(hn))
@@ -661,6 +674,15 @@ def selbsttest():
     mz = mining_daten(372.5, dt.datetime(2026, 10, 27, 19, 42, tzinfo=dt.timezone.utc), hv)
     ok("mining, 1 TH/s am tag aus emission und hashrate", "<b>4.78 KAS</b> a day for 1 TH/s" in mz["kurzfakt"]
        and "<b>1,779,989 KAS</b>" in mz["mining-zahlen"] and "1.9445 KAS per block" in mz["mining-zahlen"])
+    import stufe_schaetzung
+    heute_t = dt.date(2026, 10, 27)
+    texte_t = ([halving_fakt(hv)] + list(hf2.values()) + [mz["mining-zahlen"], mz["kurzfakt"]]
+               + list(mz["faq"].values()))
+    ok("kuenftige stufe nur mit around und estimate, ohne uhrzeit (Ben, 12.11.2026)",
+       not any(stufe_schaetzung.seite_verstoesse("<p>%s</p>" % t, heute_t) for t in texte_t)
+       and not any(re.search(r"\b\d\d:\d\d\b", t) for t in [halving_fakt(hv)] + list(hf2.values())))
+    ok("mining tabelle mit kurzform", "until around 4 nov, estimate" in mz["mining-zahlen"]
+       and "computed, around 4 nov, estimate" in mz["mining-zahlen"])
     ok("mining faq mit datum, computed und source", all(x in mz["faq"]["How much does a Kaspa miner earn per day?"]
                                                         for x in ("27 October 2026", "computed", "source")))
     ok("halter ohne daten bleibt leer", halter_fakt({"tage": []}) is None and halter_faq(None) is None)

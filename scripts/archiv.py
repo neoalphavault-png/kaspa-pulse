@@ -59,7 +59,7 @@ EINTRAEGE = [
     ("week", "number of the week",
      "how far kaspa's weekly close sits above or below the plain average of its last 50 weekly closes. "
      "a week closes on saturday at 24:00 utc.",
-     "source kraken daily candles, the average computed by kaspa pulse",
+     "source kraken daily candles, the average by kaspa pulse",
      "source kraken, average computed"),
     ("chain", "blocks per second",
      "how many blocks the network adds each second, read as the rise of the virtual DAA score over 600 seconds.",

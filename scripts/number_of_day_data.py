@@ -438,7 +438,9 @@ def cand_cut_today(ctx):
     if today == prev_day:
         landed, when = True, "on %s" % stichtag(prev_day)
     elif today == cut_day:
-        landed, when = False, "on %s" % stichtag(cut_day)
+        # die stufe, die noch kommt, nur als schaetzung (Ben, 12.11.2026)
+        import stufe_schaetzung
+        landed, when = False, stufe_schaetzung.kurz(cut_day)
     else:
         return None
     if landed:
@@ -455,7 +457,7 @@ def cand_cut_today(ctx):
     if landed:
         tail = "*%s fewer KAS* minted every day from this cut on." % fmt_int(gone)
     else:
-        tail = "*%s KAS* per day stop being minted from %s on." % (fmt_int(gone), stichtag(cut_day))
+        tail = "*%s KAS* per day stop being minted from this step on." % fmt_int(gone)
     return {
         "score": 1000.0,
         "payload": {
@@ -1463,6 +1465,16 @@ def run_selftest():
         ok("wert ist die schnittgroesse", res["payload"]["value"] == "5.61%",
            res["payload"]["value"])
         ok("schnitttag schlaegt alles", res["score"] >= 1000)
+        # die stufe, die noch kommt, nur als schaetzung (Ben, 12.11.2026)
+        import json as _json
+        import stufe_schaetzung
+        texte = _json.dumps(res["payload"], ensure_ascii=False)
+        vortag = ctx["today"] - dt.timedelta(days=1)
+        if "falls" in res["payload"]["value_label"]:
+            ok("schnitttag vor der stufe sagt around und estimate",
+               "around" in res["payload"]["value_label"] and "estimate" in res["payload"]["value_label"]
+               and not stufe_schaetzung.verstoesse(texte.replace("\\n", " "), vortag),
+               res["payload"]["value_label"])
     print("kandidat countdown")
     ctx = build_context(now_ts=ANCHOR_TS + STEP - 5 * DAY,
                         live=FAKE_LIVE, history=FAKE_HISTORY)
