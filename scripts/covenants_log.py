@@ -455,7 +455,7 @@ def run_selftest():
     check("tote quelle, rest steht", roh_t[dt.date(2026, 9, 21)]["tx"], 620)
     check("tote quelle, ein problem", len(probleme_t), 1)
 
-    # ein unplausibler wert wird verworfen, nicht eingetragen
+    # ein unstimmiger wert wird verworfen, nicht eingetragen
     def kaputt(pfad):
         d = json.loads(json.dumps(_stub(pfad)))
         if pfad == "covenants/transactions":

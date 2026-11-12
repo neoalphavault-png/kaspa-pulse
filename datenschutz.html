@@ -53,14 +53,6 @@
   :root[data-theme="dark"] footer .brand span { color:#49EACB; }
   /* ende wortmarke.py */
 </style>
-<!--AUTO:plausible-->
-<!-- Privacy-friendly analytics by Plausible -->
-<script async src="https://plausible.io/js/pa-o1R2wMI1l5uanq2mIzp0P.js"></script>
-<script>
-  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
-  plausible.init()
-</script>
-<!--/AUTO:plausible-->
 </head>
 <body>
 <!--AUTO:rahmen-kopf-->
@@ -114,10 +106,10 @@
   <h2>5. SSL encryption</h2>
   <p>This website uses SSL/TLS encryption ("https://" in the address bar). Data you submit to us — such as your email address when subscribing to the newsletter — cannot be read by third parties in transit.</p>
 
-  <h2>6. Cookies and web analytics (Plausible)</h2>
-  <p>This website sets <b>no cookies</b>. Since 26 October 2026 we count visits with Plausible Analytics, a service of Plausible Insights OÜ, Västriku tn 2, 50403 Tartu, Estonia. Plausible works without cookies and stores no personal data. Your IP address and browser identifier are only used to tell visitors apart within one day, as a hash with a salt that is replaced every 24 hours, and are never stored. The data is processed on servers in the EU.</p>
-  <p>What we see are totals per day, such as the pages viewed, the referring website or campaign, the country, the device type and the browser. When a newsletter signup succeeds, the page also sends a <b>signup event</b> with the page path and the campaign name of the link you came from. Your email address is never part of it.</p>
-  <p>The purpose is to learn which pages and campaigns are useful to readers and lead to newsletter signups. No profiles are built and nothing is shared with other third parties. The legal basis is Art. 6 (1)(f) GDPR, our legitimate interest in measuring the reach of our site without tracking individuals. More information is in the <a href="https://plausible.io/data-policy" target="_blank" rel="noopener">Plausible data policy</a>.</p>
+  <h2>6. Cookies and web analytics (Cloudflare Web Analytics)</h2>
+  <p>This website sets <b>no cookies</b>. Since 12 November 2026 we count visits with Cloudflare Web Analytics, a service of Cloudflare, Inc., 101 Townsend St, San Francisco, CA 94107, USA. A small script from Cloudflare is loaded at the end of each page and reports the page view to Cloudflare. In the words of Cloudflare, Web Analytics “does not use any client-side state, such as cookies or localStorage, to collect usage metrics”, does not “fingerprint” individuals via their IP address, User Agent string or any other data for the purpose of displaying analytics, and “does not collect or use your visitors’ personal data”.</p>
+  <p>What we see are totals, such as page views, visits, the referring websites and how fast the pages load in the browser. The signup form sends no event to Cloudflare. Your email address only goes to our newsletter service, see section 4.</p>
+  <p>The purpose is to measure the reach of our site, which pages are read and where readers come from. No profiles are built and nothing is shared with other third parties. The legal basis is Art. 6 (1)(f) GDPR, our legitimate interest in measuring the reach of our site without tracking individuals. Cloudflare is certified under the EU-U.S. Data Privacy Framework. More information is in the <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare privacy policy</a> and on the <a href="https://www.cloudflare.com/web-analytics/" target="_blank" rel="noopener">Cloudflare Web Analytics page</a>.</p>
 
   <h2>7. Your rights</h2>
   <p>Regarding your personal data, you have the right to:</p>
@@ -160,5 +152,8 @@
 </div>
 <script src="/utm.js" defer></script>
 <script src="/rahmen.js" defer></script>
+<!--AUTO:analytics-->
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "c995d86f86b541f7bfab7cb07d362bde"}'></script><!-- End Cloudflare Web Analytics -->
+<!--/AUTO:analytics-->
 </body>
 </html>

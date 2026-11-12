@@ -287,7 +287,7 @@ def selbsttest():
     ok("gescheiterte messung faellt auf crescendo zurueck, ohne counted",
        r[0] == "10 blocks a second" and not any("counted" in t for t in r)
        and r[3] == "10 blocks a second, the block rate since the crescendo upgrade on 5 may 2025.")
-    ok("unplausible messung faellt auch zurueck", zahl_seite2("messung", "2026-10-25", messen=lambda: (99.0, 1))[0]
+    ok("unstimmige messung faellt auch zurueck", zahl_seite2("messung", "2026-10-25", messen=lambda: (99.0, 1))[0]
        == "10 blocks a second")
     ss2 = seiten("2026-10-25", r)
     ok("rueckfall haelt die wachen", not pruefen(ss2, caption(ss2)))

@@ -362,7 +362,7 @@ def run_selftest():
           roh_t[dt.date(2026, 9, 20)]["holders_1kas"], 551100)
     check("tote reihe, ein problem", len(probleme_t), 1)
 
-    # ein unplausibler wert faellt raus statt eingetragen zu werden
+    # ein unstimmiger wert faellt raus statt eingetragen zu werden
     def kaputt(pfad):
         d = json.loads(json.dumps(_stub(pfad)))
         if pfad.startswith("address/count/non-zero"):

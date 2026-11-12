@@ -136,7 +136,7 @@ def fetch_price_usd():
             if PRICE_MIN < p < PRICE_MAX:
                 print(f"preis {p} von {name}")
                 return p
-            print(f"WARN {name} lieferte unplausible {p}", file=sys.stderr)
+            print(f"WARN {name} lieferte einen unstimmigen wert {p}", file=sys.stderr)
         except Exception as e:
             print(f"WARN preisquelle {name} fehlgeschlagen: {e}", file=sys.stderr)
     print("WARN keine preisquelle erreichbar, nachricht geht ohne dollarwert raus",
