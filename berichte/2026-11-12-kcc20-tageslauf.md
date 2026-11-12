@@ -17,7 +17,20 @@ Der Planlauf vom 11.11. ([Lauf 43087815921](https://github.com/neoalphavault-png
 - **Lauf:** [Lauf 43314446329](https://github.com/neoalphavault-png/kaspa-pulse/actions/runs/43314446329), gestartet am 12.11. um 21:52 UTC.
 - **Parameter:** Stichzeit 11.11. 12:00 UTC und Vergleich ab 10.11. 12:00 UTC. Als Vorläufe dienen die drei Saatläufe und die Ablageläufe bis zum 10.11., wie es der Plan täte.
 - **Weg:** über `kcc20/start.txt` auf `fix/kcc20-zaehlung`. Vorher habe ich main in den Branch gemergt, damit der Lauf denselben Workflow wie der Plan nutzt.
-- **Grenze:** Die Stichzeit liegt beim Start 33.9 h zurück. Ob der Pruning-Punkt des frisch synchronisierten Knotens noch davor liegt, zeigt erst der Lauf. Liegt er danach, bricht der Lauf mit dieser Meldung ab, und der 11.11. bleibt ohne eigene Zählung.
+- **Grenze:** Die Stichzeit lag beim Start 33.9 h zurück. Der Lauf konnte nur zählen, weil der Pruning-Punkt noch davor lag.
+
+## Ergebnis der Nachholung
+
+- **Angekommen:** Lauf 43314446329 ist grün und liegt in `claude/ablage-kcc20` unter `kcc20/laeufe/2026-11-11-43314446329`, abgelegt am 12.11. um 23:07 UTC. Der Pruning-Punkt des Knotens lag bei 11.11. 07:39:27 UTC, also noch vor der Stichzeit.
+- **Summen zur Stichzeit 11.11. 12:00 UTC (counted):**
+  - 425 Tokens mit lebenden Outputs.
+  - 6,140 Halter-Outputs und 1,861 eindeutige Halter.
+  - 13,697 Transfers seit 21.10. Davon sind 35 counted, die übrigen 13,662 stammen aus der Zeit vor unserem eigenen Fenster.
+- **Bestand:** Zwischen dem 10.11. und dem 12.11. passt der Nachholauf in die Reihe. Am 10.11. waren es 422 Tokens und 1,829 Halter, am 12.11. 429 Tokens und 1,896 Halter.
+
+## Was der Ausfall kostet
+
+Der Bestand je Stichzeit wird in jedem Lauf neu bewiesen, er ist nicht betroffen. Betroffen ist die lückenlose eigene Kette der Transfers. Der Lauf vom 10.11. las die Tx bis 10.11. 20:19:44 UTC, der Nachholauf und der Lauf vom 12.11. lesen erst ab 11.11. 07:39:27 UTC. Die 11 h 20 min dazwischen hätte nur der verlorene Upload vom 11.11. gehabt, und kein Knoten hat sie noch. Unser counted Fenster für Transfers beginnt deshalb neu am 11.11. um 07:39:27 UTC. Am 10.11. begann es noch am 7.11. um 07:27:47 UTC. Transfers vor dem 11.11. 07:39 UTC stehen ab jetzt nur noch als Zahl von api.kaspa.org, also source api.kaspa.org, nicht counted. Für die Wochenzahl am 17.11. heißt das: Bei den Transfers ist nur das Fenster ab 11.11. 07:39 UTC counted.
 
 ## Änderung am Workflow, als PR für Ben
 
