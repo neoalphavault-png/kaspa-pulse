@@ -18,6 +18,20 @@
 #
 # Rohdaten je Lauf sofort auf messung/bch-tempnet unter data/bch/lauscher/<lauf>/,
 # danach Kette abrufen und alle Laeufe auswerten (bloecke.csv, zusammenfassung.json).
+#
+# Uhr (Ben, 07.11.2026, Forum rufitnes und bitcoincashautist): am Anfang und am
+# Ende jedes Laufs Versatz und Status der Uhr des Runners ins meta.json, unter
+# "uhr" (scripts/bch/uhr_versatz.py: chronyc tracking, sonst timedatectl
+# timesync-status). Nur System time, Last offset, RMS offset, Leap status bzw.
+# Offset, Jitter, Leap; keine Referenz-ID, kein Server. Liefert keine Quelle
+# einen Versatz, steht "versatz": "nicht verfügbar" im meta.json und der Lauf
+# laeuft weiter.
+#
+# Vor dem Zuhoeren (Ben, 07.11.2026): chronyc waitsync, hoechstens 120 s. Im
+# Handlauf vom 07.11. war chrony beim Start des Runners noch nicht synchron.
+# Danach startet der Lauf auf jeden Fall; ins meta.json kommt unter
+# uhr.synchron_beim_start, ob die Uhr synchron war, und wie lange gewartet
+# wurde. Die Ausgabe von waitsync (mit Referenz-ID) wird verworfen.
 name: bch tempnet lauscher
 
 on:
@@ -73,6 +87,28 @@ jobs:
           { echo "dauer=$DAUER"; echo "bis=$BIS"; echo "lauf=$LAUF"; } >> "$GITHUB_OUTPUT"
           echo "lauf $LAUF, $DAUER min, bis $BIS"
 
+      - name: uhr synchron abwarten
+        continue-on-error: true
+        run: |
+          START=$(date +%s)
+          if command -v chronyc >/dev/null 2>&1; then
+            # 13 Versuche im Abstand von 10 s, also hoechstens 120 s; Ausgabe verwerfen (Referenz-ID)
+            if timeout 125 chronyc waitsync 13 0 0 10 >/dev/null 2>&1; then OK='"ja"'; else OK='"nein"'; fi
+            Q="chronyc waitsync"
+          else
+            OK='"unbekannt"'; Q="kein chronyc"
+          fi
+          W=$(( $(date +%s) - START ))
+          echo "{\"synchron_beim_start\": $OK, \"gewartet_s\": $W, \"hoechstens_s\": 120, \"quelle\": \"$Q\"}" > "$RUNNER_TEMP/uhr-sync.json"
+          cat "$RUNNER_TEMP/uhr-sync.json"
+
+      - name: uhr am anfang
+        continue-on-error: true
+        run: |
+          python3 scripts/bch/uhr_versatz.py > "$RUNNER_TEMP/uhr-anfang.json" \
+            || echo '{"versatz": "nicht verfügbar"}' > "$RUNNER_TEMP/uhr-anfang.json"
+          cat "$RUNNER_TEMP/uhr-anfang.json"
+
       - name: zuhoeren und naechsten lauf starten
         env:
           GH_TOKEN: ${{ github.token }}
@@ -98,6 +134,13 @@ jobs:
           fi
           wait $PID
 
+      - name: uhr am ende
+        continue-on-error: true
+        run: |
+          python3 scripts/bch/uhr_versatz.py > "$RUNNER_TEMP/uhr-ende.json" \
+            || echo '{"versatz": "nicht verfügbar"}' > "$RUNNER_TEMP/uhr-ende.json"
+          cat "$RUNNER_TEMP/uhr-ende.json"
+
       # Rohdaten sofort sichern (Lehre aus dem Zcash-Testnet, 17.10.2026)
       - name: rohdaten committen
         env:
@@ -108,6 +151,26 @@ jobs:
           mkdir -p "$O"
           for n in ereignisse koepfe compact; do gzip -n -c "$RUNNER_TEMP/lauf/$n.jsonl" > "$O/$n.jsonl.gz"; done
           cp "$RUNNER_TEMP/lauf/meta.json" "$O/meta.json"
+          python3 - "$O/meta.json" "$RUNNER_TEMP/uhr-anfang.json" "$RUNNER_TEMP/uhr-ende.json" "$RUNNER_TEMP/uhr-sync.json" <<'PY' || echo "::warning::uhr nicht ins meta.json geschrieben"
+          import json, sys
+          pfad, *uhr = sys.argv[1:]
+          def lesen(p):
+              try:
+                  return json.load(open(p))
+              except (OSError, ValueError):
+                  return {"versatz": "nicht verfügbar"}
+          meta = json.load(open(pfad))
+          meta["uhr"] = {"anfang": lesen(uhr[0]), "ende": lesen(uhr[1])}
+          if not any("quelle" in v for v in meta["uhr"].values()):
+              meta["versatz"] = "nicht verfügbar"
+          try:
+              warten = json.load(open(uhr[2]))
+          except (OSError, ValueError):
+              warten = {"synchron_beim_start": "unbekannt"}
+          meta["uhr"]["synchron_beim_start"] = warten.pop("synchron_beim_start", "unbekannt")
+          meta["uhr"]["warten"] = warten
+          json.dump(meta, open(pfad, "w"), indent=2, ensure_ascii=False)
+          PY
           scripts/bch/daten_committen.sh "bch tempnet: zuhoerer lauf $LAUF [bot]"
 
       - name: kette danach abrufen

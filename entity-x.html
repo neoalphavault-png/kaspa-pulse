@@ -33,7 +33,7 @@
    "url": "https://kaspapulse.com/entity-x.html",
    "inLanguage": "en",
    "datePublished": "2026-07-28T07:26:29+00:00",
-   "dateModified": "2026-11-02T10:34:47+00:00",
+   "dateModified": "2026-11-07T08:28:54+00:00",
    "isPartOf": {
     "@type": "WebSite",
     "name": "Kaspa Pulse",
@@ -53,7 +53,7 @@
    "url": "https://kaspapulse.com/entity-x.html",
    "inLanguage": "en",
    "datePublished": "2026-07-28T07:26:29+00:00",
-   "dateModified": "2026-11-02T10:34:47+00:00",
+   "dateModified": "2026-11-07T08:28:54+00:00",
    "image": "https://kaspapulse.com/og-card.png",
    "author": {
     "@type": "Organization",
@@ -218,14 +218,6 @@
   :root[data-theme="dark"] footer .brand span { color:#49EACB; }
   /* ende wortmarke.py */
 </style>
-<!--AUTO:plausible-->
-<!-- Privacy-friendly analytics by Plausible -->
-<script async src="https://plausible.io/js/pa-o1R2wMI1l5uanq2mIzp0P.js"></script>
-<script>
-  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
-  plausible.init()
-</script>
-<!--/AUTO:plausible-->
 </head>
 <body>
 <!--AUTO:rahmen-kopf-->
@@ -283,7 +275,7 @@
   <p>Everyone quotes this wallet's balance. Almost nobody has worked out what the KAS was worth on the days it came in. So we did it ourselves, from the raw chain data, and we publish the method along with the number.</p>
   <p>We pull <b>every transaction</b> this address has ever been part of, keep only the true net inflows, and value each one at the <b>volume weighted average price of the day it landed</b>, not the daily close. Deposits arrive throughout the day, not at midnight. That single choice is why our number will differ slightly from anyone using closing prices, and it is the more honest of the two.</p>
   <div class="cb" id="cbBox">
-    <div class="cbt">Average entry price</div>
+    <div class="cbt">Average price on deposit days</div>
     <div class="cbv" id="cbAvg">$0.0856</div>
     <div class="cbs" id="cbSub">across 339 deposits between 6 Mar 2024 and 30 Oct 2026</div>
     <div class="cbrow">
@@ -423,7 +415,7 @@
 </section>
 <!--/AUTO:rahmen-kanaele-->
   <footer>
-    <div class="stand"><!--AUTO:seitenstand-->page last updated 2 November 2026<!--/AUTO:seitenstand--></div>
+    <div class="stand"><!--AUTO:seitenstand-->page last updated 7 November 2026<!--/AUTO:seitenstand--></div>
     <!--AUTO:rahmen-marke-->
 <div class="brand">KASPA <span>PULSE</span></div>
 <!--/AUTO:rahmen-marke-->
@@ -545,7 +537,7 @@ fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).t
     try {
       const res = await fetch(form.action, { method:"POST", body:new FormData(form) });
       const j = await res.json();
-      if (j.success) { try { if (window.plausible) plausible("Signup", { props: { page: location.pathname, utm_campaign: ((form.querySelector('[name="UTM_CAMPAIGN"]') || document.getElementById("utmCampaign") || {}).value || "none") } }); } catch (kpE) {} msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
+      if (j.success) { msg.innerHTML = "✓ almost there — check your inbox and click the confirmation link. your cheat sheet will land right after."; msg.className = "msg ok"; form.reset(); }
       else { msg.textContent = j.message || "something went wrong — please try again"; msg.className = "msg err"; }
     } catch(_) { form.submit(); }
     btn.disabled = false; btn.textContent = old;
@@ -617,5 +609,8 @@ fetch("https://api.kaspa.org/addresses/"+EX_ADDR+"/balance").then(r=>r.json()).t
 <script src="/rahmen.js" defer></script>
 <script src="/capture.js" defer></script>
 <script src="/utm.js" defer></script>
+<!--AUTO:analytics-->
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "c995d86f86b541f7bfab7cb07d362bde"}'></script><!-- End Cloudflare Web Analytics -->
+<!--/AUTO:analytics-->
 </body>
 </html>

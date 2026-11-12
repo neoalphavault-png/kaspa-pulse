@@ -570,7 +570,7 @@ def schalter_seiten(z):
              "zahl": ganz(round(z["nach"])),
              "label": "PH/s on %s, the first full day after the cut, %s" % (tag(SCHALTER_NACH[0]), vergleich),
              "paar": ((vor_txt, _hr(z["vor"])), (nach_txt, _hr(z["nach"]))),
-             "quelle": "source kaspa rest api, daily means computed by kaspa pulse, %s" % tag(SCHALTER_NACH[-1]),
+             "quelle": "source kaspa rest api, daily means by kaspa pulse, %s" % tag(SCHALTER_NACH[-1]),
              "paar_d": True}
     return [
         {"art": "haken", "id": "reward", "kopf": "BLOCK REWARD", "zahl": titel["zahl"], "satz": titel["label"],
@@ -580,14 +580,31 @@ def schalter_seiten(z):
     ]
 
 
-def schalter_caption(z, ss):
+def schalter_caption(z, ss, fuer=None, stand=None, mit_plan=False):
+    """Die Caption des Schalter-Karussells. Seit der Stimm-Regel (Ben,
+    07.11.2026) ein Methoden-Wort (vorher source und computed), normale
+    Schreibung und der Bauplan aus stimme.py; ohne fuer der Bauplan
+    zahl_zuerst."""
     import karussell
-    return karussell.caption(
-        "%s KAS per block from %s, down from %s" % (z["neu"], tag(SCHALTER_CUT), z["alt"]),
-        "network hashrate %s on %s against %s on 2 and 3 nov 2026, source kaspa rest api, "
-        "the reward computed from the emission schedule" % (_hr(z["nach"]), tag_kurz(SCHALTER_NACH[0]),
-                                                            _hr(z["vor"])),
-        "which number do you watch after a reward cut?")
+    a = z["aenderung"]
+    richtung = ("%.1f%% higher" % a) if a > 0.05 else (("%.1f%% lower" % -a) if a < -0.05 else "about the same")
+    b = {"zahl_zuerst": "%s KAS per block from %s, down from %s" % (z["neu"], tag(SCHALTER_CUT), z["alt"]),
+         "beobachtung": "the kaspa block reward stepped down on %s, from %s to %s KAS per block" % (
+             tag(SCHALTER_CUT), z["alt"], z["neu"]),
+         "satz": "network hashrate %s on %s against %s on 2 and 3 nov 2026, source kaspa rest api "
+                 "and the emission schedule" % (_hr(z["nach"]), tag_kurz(SCHALTER_NACH[0]), _hr(z["vor"])),
+         "einordnung": ("the hashrate on %s was %s than on 2 and 3 nov" % (tag_kurz(SCHALTER_NACH[0]), richtung)
+                        if richtung != "about the same" else
+                        "the hashrate on %s was about the same as on 2 and 3 nov" % tag_kurz(SCHALTER_NACH[0])),
+         "pointe": "a smaller reward, the same 10 blocks a second",
+         "frage": "which number do you watch after a reward cut?"}
+    b["datum_voran"] = ("on %s, %s" % (tag(SCHALTER_CUT), b["zahl_zuerst"].replace(" from %s" % tag(SCHALTER_CUT), "")),
+                        b["satz"])
+    if fuer is None:
+        erg = ("zahl_zuerst", karussell.caption(b["zahl_zuerst"], b["satz"]))
+    else:
+        erg = karussell.caption_nach_bauplan("karussell", fuer, b, stand)
+    return erg if mit_plan else erg[1]
 
 
 def plan_schalter(fuer, ss, speicher, merken=True):
@@ -754,8 +771,28 @@ def selbsttest():
     tx = karussell.seiten_texte(sss) + texte([(None, x["inhalt"], None) for x in sss])
     ok("schalter, texte bestehen die wachen", karussell.text_pruefen(tx) == [], karussell.text_pruefen(tx))
     ok("schalter, caption besteht die wachen", karussell.caption_pruefen(cap) == [], karussell.caption_pruefen(cap))
+    # stimm-regel (Ben, 07.11.2026): ein methoden-wort, gross, bauplan frei
+    import stimme
+    ok("schalter, caption mit hoechstens einem methoden-wort", len(stimme.METHODE.findall(cap)) <= 1, cap)
+    ok("schalter, caption ohne frage beim bauplan zahl_zuerst", "?" not in cap)
+    gesehen = set()
+    for plan in stimme.BAUPLAENE:
+        st = {"tage": {SCHALTER_TAG: {"k%d" % i: p for i, p in enumerate(stimme.BAUPLAENE) if p != plan}}}
+        try:
+            pl, c2 = schalter_caption(z, sss, fuer=SCHALTER_TAG, stand=st, mit_plan=True)
+        except stimme.StimmeStopp:
+            continue
+        gesehen.add(pl)
+        ok("schalter, bauplan %s haelt die wachen" % pl, not karussell.caption_pruefen(c2)
+           and not stimme.regel_verstoesse(c2, pl), karussell.caption_pruefen(c2) + stimme.regel_verstoesse(c2, pl))
+    ok("schalter, mindestens 5 bauplaene moeglich (%s)" % ", ".join(sorted(gesehen)), len(gesehen) >= 5)
     ok("schalter, kein kausalsatz", not any(w in " ".join(tx + [cap]).lower()
                                              for w in ("because", "caused", "due to", "miners left")))
+    # "computed" nur fuer werte aus festen protokollregeln, ein tagesmittel aus
+    # fremddaten gehoert nicht dazu (Ben, 5.11.2026)
+    ok("schalter, quelle bild 2 ohne computed", sss[1]["quelle"]
+       == "source kaspa rest api, daily means by kaspa pulse, 5 nov 2026" and "computed" not in sss[1]["quelle"],
+       sss[1]["quelle"])
     ok("schalter, seite 2 nennt 2 and 3 nov und 5 nov", "2 and 3 nov" in " ".join(tx) and "5 nov" in " ".join(tx))
     for lt, erwartet in (("A", ["A-papier", "D-dunkel", "A-papier"]), ("D", ["D-dunkel", "A-papier", "D-hell"])):
         spp = {"kanaele": {"richtung/karussell": [{"datum": "2026-10-31", "serie": "woche",

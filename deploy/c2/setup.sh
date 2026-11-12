@@ -17,6 +17,11 @@
 #   sudo ./setup.sh pruefen           Gegenprobe, zeigt keine Werte
 #   sudo ./setup.sh wache [KETTE]     Upgrade-Wache einrichten und starten (Standard zcash-mainnet)
 #   sudo ./setup.sh wache-aus [KETTE] Upgrade-Wache nach dem Fenster anhalten
+#   sudo ./setup.sh bch-lauscher      zweiten BCH-Tempnet-Zuhoerer einrichten und starten
+#   sudo ./setup.sh bch-lauscher-aus  ihn vor dem Tempnet-Ende anhalten
+#   sudo ./setup.sh bchn              BCHN geprunt einrichten (Start erst nach dem 15.11. 12:00 UTC)
+#   sudo ./setup.sh bchn-stand        Hoehe und Fortschritt des Knotens
+#   sudo ./setup.sh bchn-aus          Knoten anhalten
 #
 # Reihenfolge: grundlage, Deploy Key auf GitHub eintragen, klonen,
 # runner, hostkey, haerten, dann die Secrets (server-secrets.yml und
@@ -357,8 +362,8 @@ nachziehen() {
   echo
   hinweis "list-timers schreibt in der Zeitzone des Servers. Zum Vergleich"
   hinweis "in Ortszeit, so wie die Timer es jetzt rechnen:"
-  for e in "*-*-* 07:30:00" "*-*-* 09:30:00" "*-*-* 10:12:00" \
-           "*-*-* 11:42:00" "Tue..Sun *-*-* 12:00:00" "Mon *-*-* 17:00:00" \
+  for e in "*-*-* 07:30:00" "*-*-* 12:30:00" "*-*-* 10:12:00" \
+           "*-*-* 11:42:00" "Tue..Sun *-*-* 15:30:00" "Mon *-*-* 17:00:00" \
            "Mon *-*-* 18:40:00" "*-*-01 09:00:00"; do
     printf '   %-28s -> ' "$e"
     systemd-analyze calendar "$e Europe/Berlin" | awk -F': +' '/Next elapse/ {print $2}'
@@ -457,6 +462,104 @@ wache_aus() {
   systemctl start "upgrade-wache-sync@$KETTE.service" || true
 }
 
+# Zweiter BCH-Tempnet-Zuhoerer (Ben, 09.11.2026, deploy/c2/bch-lauscher/README.md).
+# Eigener Schritt wie die Wache, ohne Credential. Wiederholbar.
+bch_lauscher() {
+  root_sein
+  B="$ZIEL/deploy/c2/bch-lauscher"
+  meldung "Stand holen"
+  sudo -u "$DIENSTNUTZER" git -C "$ZIEL" pull --ff-only
+  hinweis "$(sudo -u "$DIENSTNUTZER" git -C "$ZIEL" log --oneline -1)"
+  meldung "Units verlinken"
+  for u in bch-lauscher.service bch-lauscher-sync.service bch-lauscher-sync.timer; do
+    if bekannt "$u"; then hinweis "$u schon bekannt"; else systemctl link "$B/$u"; fi
+  done
+  systemctl daemon-reload
+  meldung "Starten"
+  systemctl enable --now bch-lauscher-sync.timer
+  systemctl restart bch-lauscher.service
+  sleep 5
+  systemctl is-active bch-lauscher.service bch-lauscher-sync.timer || true
+  hinweis "journalctl -u bch-lauscher -n 20  zeigt den laufenden Lauf"
+}
+
+bch_lauscher_aus() {
+  root_sein
+  meldung "BCH-Tempnet-Zuhoerer anhalten"
+  systemctl disable --now bch-lauscher.service bch-lauscher-sync.timer || true
+  hinweis "fertige Laeufe ins Repo:"
+  systemctl start bch-lauscher-sync.service || true
+}
+
+# BCHN geprunt (Ben, 09.11.2026, deploy/c2/bchn/README.md). Paket aus dem
+# signierten PPA von Bitcoin Cash Node; der Fingerabdruck des Schluessels
+# steht hier und wird vor dem Eintragen geprueft. Start erst nach dem Ende
+# des BCH Tempnet (15.11.2026 12:00 UTC), das prueft auch die Unit selbst.
+BCHN_FPR=535B997250F23C9CD17B00ECF21A055668D26A91
+BCHN_START=1794744000
+bchn() {
+  root_sein
+  B="$ZIEL/deploy/c2/bchn"
+  meldung "Stand holen"
+  sudo -u "$DIENSTNUTZER" git -C "$ZIEL" pull --ff-only
+  hinweis "$(sudo -u "$DIENSTNUTZER" git -C "$ZIEL" log --oneline -1)"
+
+  meldung "Platz pruefen"
+  FREI=$(df --output=avail -BG /var/lib | tail -1 | tr -dc 0-9)
+  hinweis "frei unter /var/lib: ${FREI} GB"
+  [ "$FREI" -ge 20 ] || { echo "weniger als 20 GB frei, abgebrochen" >&2; exit 1; }
+
+  meldung "Paketquelle mit geprueftem Schluessel"
+  install -d -m 0755 /etc/apt/keyrings
+  K=/etc/apt/keyrings/bitcoin-cash-node.gpg
+  if [ ! -s "$K" ]; then
+    T=$(mktemp)
+    curl -fsS "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0x$BCHN_FPR" | gpg --dearmor > "$T"
+    GEFUNDEN=$(gpg --show-keys --with-colons "$T" | awk -F: '$1=="fpr"{print $10; exit}')
+    if [ "$GEFUNDEN" != "$BCHN_FPR" ]; then
+      rm -f "$T"; echo "fingerabdruck stimmt nicht, abgebrochen" >&2; exit 1
+    fi
+    install -m 0644 "$T" "$K"; rm -f "$T"
+  fi
+  hinweis "schluessel $BCHN_FPR geprueft"
+  . /etc/os-release
+  printf 'Types: deb\nURIs: https://ppa.launchpadcontent.net/bitcoin-cash-node/ppa/ubuntu\nSuites: %s\nComponents: main\nSigned-By: %s\n' \
+    "$VERSION_CODENAME" "$K" > /etc/apt/sources.list.d/bitcoin-cash-node.sources
+  apt-get update -qq
+  apt-get install -y -qq bitcoind
+  if ! /usr/bin/bitcoind -version | head -1 | grep -q "Bitcoin Cash Node"; then
+    echo "installiertes bitcoind ist nicht Bitcoin Cash Node, abgebrochen" >&2; exit 1
+  fi
+  hinweis "$(/usr/bin/bitcoind -version | head -1)"
+
+  meldung "Nutzer und Unit"
+  id bchn >/dev/null 2>&1 || useradd --system --home /var/lib/bchn --shell /usr/sbin/nologin bchn
+  if bekannt bchn.service; then hinweis "bchn.service schon bekannt"; else systemctl link "$B/bchn.service"; fi
+  systemctl daemon-reload
+  systemctl enable bchn.service
+  if [ "$(date +%s)" -ge "$BCHN_START" ]; then
+    systemctl restart bchn.service
+    sleep 5
+    systemctl is-active bchn.service || true
+    hinweis "sudo ./setup.sh bchn-stand  zeigt Hoehe und Fortschritt"
+  else
+    hinweis "eingerichtet, nicht gestartet: Start erst ab 15.11.2026 12:00 UTC (sudo systemctl start bchn)"
+  fi
+}
+
+bchn_stand() {
+  root_sein
+  sudo -u bchn /usr/bin/bitcoin-cli -conf="$ZIEL/deploy/c2/bchn/bitcoin.conf" -datadir=/var/lib/bchn getblockchaininfo \
+    | python3 -c 'import json,sys;d=json.load(sys.stdin);print("hoehe", d["blocks"], "koepfe", d["headers"], "fortschritt", round(100*d["verificationprogress"],2), "%", "geprunt", d.get("pruned"))'
+  du -sh /var/lib/bchn 2>/dev/null | awk '{print "platz", $1}'
+}
+
+bchn_aus() {
+  root_sein
+  meldung "BCHN anhalten"
+  systemctl disable --now bchn.service || true
+}
+
 BEFEHL="${1:-}"
 # shift ist ein special builtin: ohne Argumente beendet es die Shell
 # sofort, auch mit "|| true". Darum die Abfrage.
@@ -472,5 +575,10 @@ case "$BEFEHL" in
   pruefen)   pruefen ;;
   wache)     wache "${1:-}" ;;
   wache-aus) wache_aus "${1:-}" ;;
-  *) sed -n '2,24p' "$0"; exit 1 ;;
+  bch-lauscher)     bch_lauscher ;;
+  bch-lauscher-aus) bch_lauscher_aus ;;
+  bchn)       bchn ;;
+  bchn-stand) bchn_stand ;;
+  bchn-aus)   bchn_aus ;;
+  *) sed -n '2,29p' "$0"; exit 1 ;;
 esac

@@ -9,10 +9,10 @@ ausgegeben, nie geschrieben und steht in keiner Fehlermeldung: jede Antwort
 der API laeuft durch sauber(), bevor sie irgendwo erscheint. IG_USER_ID und
 FB_PAGE_ID sind Variablen, keine Geheimnisse.
 
-ABLAUF UM 09:30 BERLIN, NACH DISCORD (Job "instagram" in tagesgrafik.yml)
+ABLAUF UM 12:30 BERLIN, NACH DISCORD (Job "instagram" in tagesgrafik.yml)
     faellig     liefert die Grafik von heute, wenn 07:30 sie mit "senden"
                 ausgeliefert hat (Eintrag in data/tagesgrafik-log.json), wenn es
-                zwischen 09:25 und 11:30 Berlin ist, wenn heute noch nichts in
+                zwischen 12:25 und 14:30 Berlin ist, wenn heute noch nichts in
                 data/instagram-log.json steht und wenn IG_STOPP nicht auf heute
                 oder "immer" steht
     artefakt    holt PNG und Caption aus dem Artefakt genau des Laufs, der die
@@ -21,7 +21,9 @@ ABLAUF UM 09:30 BERLIN, NACH DISCORD (Job "instagram" in tagesgrafik.yml)
     jpeg        PNG nach JPEG, Instagram nimmt kein PNG. Ablage in ig/, der
                 Workflow committet sie, kaspapulse.com liefert sie aus
     posten      wartet, bis die URL das JPEG liefert, legt den Container an,
-                prueft seinen Status und veroeffentlicht nur mit --modus scharf.
+                prueft seinen Status und veroeffentlicht nur mit --modus scharf,
+                5 s nach FINISHED; bei code 9007 bis zu vier weitere Versuche,
+                nie doppelt (veroeffentlichen(), Ben 5.11.2026).
                 Trocken (Vorgabe) bleibt der Container unveroeffentlicht,
                 Caption und Status stehen im Log
 
@@ -72,7 +74,10 @@ INSIGHTS = REPO / "data" / "instagram-insights.json"
 KOMMENTARE = REPO / "data" / "instagram-kommentare.json"
 ANTWORTEN = REPO / "data" / "instagram-antworten.json"
 METRIKEN = ("reach", "likes", "comments", "saved", "shares")
-FENSTER_BERLIN = ((9, 25), (11, 30))   # Ben, 08.10.2026: Discord kommt immer zuerst
+# Ben, 08.10.2026: Discord kommt immer zuerst. Ben, 5.11.2026: 12:30 statt
+# 09:30, nach den Insights sind die Follower Mo bis Sa 12 bis 18 Uhr und So
+# 15 bis 18 Uhr aktiv. Um 09:30 war noch niemand da.
+FENSTER_BERLIN = ((12, 25), (14, 30))
 INSIGHT_TAGE = 7
 KOMMENTAR_TAGE = 14
 JPEG_QUALITAET = 92
@@ -80,6 +85,15 @@ JPEG_QUALITAET = 92
 
 class Fehler(Exception):
     pass
+
+
+class GraphFehler(Fehler):
+    """Fehler aus graph() mit http-status, code und error_subcode der Graph API,
+    damit veroeffentlichen() den Fall "media id is not available" erkennt."""
+
+    def __init__(self, text, http=0, code=None, subcode=None):
+        super().__init__(text)
+        self.http, self.code, self.subcode = http, code, subcode
 
 
 class KeinArtefakt(Fehler):
@@ -160,8 +174,11 @@ def graph(methode, pfad, params=None, versuche=3):
             d = {"roh": roh[:300].decode("utf-8", "replace")}
         if status >= 400 or "error" in d:
             fehler = d.get("error", d) if isinstance(d, dict) else d
-            raise Fehler(sauber("graph %s %s, http %s, %s" % (
-                methode, pfad.split("?")[0], status, json.dumps(fehler, ensure_ascii=False)[:500])))
+            code = fehler.get("code") if isinstance(fehler, dict) else None
+            subcode = fehler.get("error_subcode") if isinstance(fehler, dict) else None
+            raise GraphFehler(sauber("graph %s %s, http %s, %s" % (
+                methode, pfad.split("?")[0], status, json.dumps(fehler, ensure_ascii=False)[:500])),
+                status, code, subcode)
         return d
     raise Fehler("graph %s %s, keine antwort" % (methode, pfad))
 
@@ -357,12 +374,164 @@ def url_warten(url, laenge, frist=600, takt=15):
     raise Fehler("bild nach %d s nicht oeffentlich, zuletzt %s" % (frist, letzter))
 
 
+# ---------------------------------------------------------------- bildquelle
+
+# BILD UEBER DIE RAW-ADRESSE DES BILD-COMMITS (Ben, 6.11.2026). Am 4.11. und
+# 6.11. hing das Pages-Deploy, kaspapulse.com lieferte das Bild nicht aus,
+# und Threads blieb ohne Post (Lauf 42249808757, 1500 s, http 404). Die
+# raw-Adresse eines Commits steht sofort nach dem Push und aendert sich nie:
+# raw.githubusercontent.com/<repo>/<commit-sha>/ig/<datei>, image/jpeg mit
+# genau der Laenge der Datei. Pages bleibt der Rueckfall.
+# Instagram nimmt die raw-Adresse seit dem 7.11.2026 auch (IG_RAW). Die Probe
+# im Threads-Handlauf 42354928059 legte mit derselben raw-Adresse einen
+# Instagram-Container an, Status FINISHED, nie veroeffentlicht.
+RAW_BASIS = "https://raw.githubusercontent.com"
+RAW_FRIST = 120
+IG_RAW = True
+
+
+def repo_name():
+    return os.environ.get("GITHUB_REPOSITORY", "").strip() or "neoalphavault-png/kaspa-pulse"
+
+
+def _git_log(pfad):
+    import subprocess
+    return subprocess.run(["git", "log", "-1", "--format=%H", "--", str(pfad)],
+                          capture_output=True, text=True).stdout
+
+
+def bild_commit(pfad, git_log=None):
+    """Der Commit, der die Datei zuletzt geschrieben hat, oder "" ohne Commit."""
+    sha = (git_log or _git_log)(pfad).strip()
+    return sha if re.fullmatch(r"[0-9a-f]{40}", sha) else ""
+
+
+def repo_pfad(pfad):
+    """Der Pfad im Repo, wie er in der Adresse steht (ig/<datei>)."""
+    pfad = Path(pfad)
+    if pfad.is_absolute():
+        try:
+            pfad = pfad.resolve().relative_to(REPO.resolve())
+        except ValueError:
+            raise Fehler("%s liegt nicht im repo" % pfad)
+    return pfad.as_posix()
+
+
+def raw_url(pfad, sha, repo=None):
+    return "%s/%s/%s/%s" % (RAW_BASIS, repo or repo_name(), sha, repo_pfad(pfad))
+
+
+def bild_bereit(pfad, raw=True, raw_frist=RAW_FRIST, pages_frist=600, warten=None, sha=None, ziel=None):
+    """(url, quelle). Zuerst die raw-Adresse des Bild-Commits, wenn raw, dann
+    kaspapulse.com als Rueckfall. Beide muessen image/jpeg mit genau der
+    Laenge der Datei liefern (url_warten). ziel ist der Pfad im Repo, wenn
+    die lokale Datei anders heisst (Karussell, ig/karussell/<name>)."""
+    warten = warten or url_warten
+    pfad = Path(pfad)
+    laenge = pfad.stat().st_size
+    im_repo = ziel or repo_pfad(pfad)
+    if raw:
+        sha = bild_commit(pfad) if sha is None else sha
+        if sha:
+            url = raw_url(im_repo, sha)
+            try:
+                warten(url, laenge, frist=raw_frist, takt=10)
+                ausgabe("bild ueber die raw-adresse, %s" % url)
+                return url, "raw"
+            except Fehler as exc:
+                ausgabe("raw-adresse nicht bereit, %s. rueckfall auf kaspapulse.com" % exc)
+        else:
+            ausgabe("kein commit fuer %s, rueckfall auf kaspapulse.com" % pfad.as_posix())
+    url = "%s/%s" % (SEITE, im_repo)
+    warten(url, laenge, frist=pages_frist)
+    ausgabe("bild ueber kaspapulse.com, %s" % url)
+    return url, "pages"
+
+
+def quelle_probe(bild_url, warte_takt=10, warte_max=300):
+    """Nur ein Container mit diesem Bild, ohne Caption, NIE veroeffentlicht.
+    Zeigt, ob Meta die Adresse fuer Instagram annimmt."""
+    u = ig_user()
+    c = graph("POST", "%s/media" % u, {"image_url": bild_url})
+    cid = str(c.get("id", ""))
+    if not re.fullmatch(r"\d+", cid):
+        raise Fehler("container ohne id")
+    status, ende = "", time.time() + warte_max
+    while time.time() < ende:
+        status = graph("GET", cid, {"fields": "status_code,status"}).get("status_code", "")
+        if status in ("FINISHED", "ERROR", "EXPIRED", "PUBLISHED"):
+            break
+        time.sleep(warte_takt)
+    ausgabe("quelle-probe, container %s, status %s, nicht veroeffentlicht, %s" % (cid, status or "-", bild_url))
+    return cid, status
+
+
+# ---------------------------------------------------------------- veroeffentlichen
+
+# media_publish direkt nach FINISHED (Ben, 5.11.2026). Am 5.11. kam die Antwort
+# http 400, code 9007, error_subcode 2207027 "media id is not available"
+# (Lauf 41994939458): Meta meldet FINISHED, bevor der Container wirklich
+# veroeffentlicht werden kann. Darum erst kurz warten und bei genau diesem
+# Fehler nachfassen. Vor jedem neuen Versuch fragt der Lauf den Container ab:
+# steht er schon auf PUBLISHED, ist der Post draussen und darf nicht ein
+# zweites Mal raus. Jeder andere Fehler bricht sofort ab, wie bisher.
+PAUSE_NACH_FINISHED = 5
+NACHFASSEN = (15, 30, 45, 60)            # vier weitere versuche
+NOCH_NICHT_CODE, NOCH_NICHT_SUBCODE = 9007, 2207027
+_schlafen = time.sleep                   # im selbsttest ersetzt
+
+
+def noch_nicht_bereit(exc):
+    return isinstance(exc, GraphFehler) and (exc.code == NOCH_NICHT_CODE or exc.subcode == NOCH_NICHT_SUBCODE)
+
+
+def media_zur_caption(u, caption):
+    """Die media-id eines schon veroeffentlichten Containers: die letzten fuenf
+    Posts, abgeglichen ueber die Caption. Ohne Caption (Story) bleibt sie leer."""
+    if not caption:
+        return ""
+    d = graph("GET", "%s/media" % u, {"fields": "id,caption,timestamp", "limit": 5})
+    for m in d.get("data", []):
+        if (m.get("caption") or "").strip() == caption.strip():
+            return str(m.get("id", ""))
+    raise Fehler("container steht auf PUBLISHED, aber keiner der letzten 5 posts traegt die caption")
+
+
+def veroeffentlichen(u, cid, caption=None):
+    """media_publish fuer einen FINISHED-Container. Gibt die media-id zurueck,
+    auch wenn der Container zwischendurch schon veroeffentlicht wurde."""
+    _schlafen(PAUSE_NACH_FINISHED)
+    for n in range(len(NACHFASSEN) + 1):
+        if n:
+            _schlafen(NACHFASSEN[n - 1])
+            status = graph("GET", cid, {"fields": "status_code"}).get("status_code", "")
+            ausgabe("container %s vor versuch %d, status %s" % (cid, n + 1, status or "-"))
+            if status == "PUBLISHED":
+                media = media_zur_caption(u, caption)
+                ausgabe("container %s ist schon veroeffentlicht, media %s, kein zweiter post" % (cid, media or "-"))
+                return media
+        try:
+            return str(graph("POST", "%s/media_publish" % u, {"creation_id": cid}).get("id", ""))
+        except GraphFehler as exc:
+            if not noch_nicht_bereit(exc) or n == len(NACHFASSEN):
+                raise
+            ausgabe("media_publish versuch %d, noch nicht bereit (code %s, subcode %s), neuer versuch in %d s" % (
+                n + 1, exc.code, exc.subcode, NACHFASSEN[n]))
+    raise Fehler("media_publish ohne ergebnis")     # nicht erreichbar
+
+
 # ---------------------------------------------------------------- posten
 
-def posten(bild_url, caption, modus, warte_takt=10, warte_max=300):
-    """Container anlegen, Status pruefen, nur mit modus scharf veroeffentlichen."""
+def posten(bild_url, caption, modus, warte_takt=10, warte_max=300, bauplan=None):
+    """Container anlegen, Status pruefen, nur mit modus scharf veroeffentlichen.
+    bauplan kommt aus dem -instagram.json der Tagesgrafik (Stimm-Regel, Ben,
+    07.11.2026); mit ihm prueft die Wache auch Frage, Schreibung und
+    Methoden-Wort."""
     from tagesgrafik import ig_pruefung
-    fehler = ig_pruefung(caption, None)
+    fehler = ig_pruefung(caption, None, bauplan=bauplan)
+    if bauplan:
+        import stimme
+        fehler += stimme.regel_verstoesse(caption, bauplan)
     if fehler:
         raise Fehler("caption nicht gruen, %s" % "; ".join(fehler))
     u = ig_user()
@@ -386,8 +555,7 @@ def posten(bild_url, caption, modus, warte_takt=10, warte_max=300):
     if modus != "scharf" or look_takt.trockenlauf():
         ausgabe("trocken, container %s bleibt unveroeffentlicht" % cid)
         return erg
-    m = graph("POST", "%s/media_publish" % u, {"creation_id": cid})
-    erg["media"] = str(m.get("id", ""))
+    erg["media"] = veroeffentlichen(u, cid, caption)
     try:
         erg["permalink"] = graph("GET", erg["media"], {"fields": "permalink"}).get("permalink", "")
     except Fehler as exc:
@@ -771,6 +939,11 @@ def selbsttest():
                                            "timestamp": "2026-10-08T07:00:00+0000", "username": "olduser"}]})
         if "/replies" in url:
             return Antwort(200, {"id": "777"})
+        if "/nichtbereit" in url:
+            raise urllib.error.HTTPError(url, 400, "bad", {}, io.BytesIO(json.dumps(
+                {"error": {"message": "The media is not ready for publishing, please wait for a moment",
+                           "type": "OAuthException", "code": 9007, "error_subcode": 2207027,
+                           "error_user_msg": "media id is not available"}}).encode()))
         if "/fehler" in url:
             raise urllib.error.HTTPError(url, 400, "bad", {}, io.BytesIO(json.dumps(
                 {"error": {"message": "Invalid OAuth access token %s" % geheim,
@@ -778,6 +951,8 @@ def selbsttest():
         return Antwort(404, {"error": {"message": "unbekannt"}})
 
     _oeffnen = fake
+    pausen = []
+    globals()["_schlafen"] = pausen.append
     with tempfile.TemporaryDirectory() as tmp:
         LOG_IG, INSIGHTS = Path(tmp, "ig-log.json"), Path(tmp, "ins.json")
         KOMMENTARE, ANTWORTEN = Path(tmp, "kom.json"), Path(tmp, "ant.json")
@@ -791,6 +966,11 @@ def selbsttest():
             n_trocken = len(aufrufe)
             zustand["status"] = ["FINISHED"]
             erg_s = posten("https://kaspapulse.com/ig/x.jpg", cap, "scharf", warte_takt=0)
+            try:
+                graph("POST", "17841400000000000/nichtbereit", {"creation_id": "800"})
+                nicht_bereit = None
+            except Fehler as exc:
+                nicht_bereit = exc
             try:
                 graph("GET", "fehler")
                 fehlertext = ""
@@ -821,6 +1001,9 @@ def selbsttest():
         ok("token nie in der url, nur im kopf", all(geheim not in a[1] and geheim not in a[2] for a in aufrufe)
            and all(a[3].get("Authorization") == "Bearer " + geheim for a in aufrufe if GRAPH in a[1]))
         ok("token nicht in der ausgabe", geheim not in log)
+        ok("graph liefert http 400, code 9007 und subcode 2207027 aus der antwort",
+           isinstance(nicht_bereit, GraphFehler) and (nicht_bereit.http, nicht_bereit.code, nicht_bereit.subcode)
+           == (400, 9007, 2207027) and noch_nicht_bereit(nicht_bereit))
         ok("fehlermeldung ohne token", fehlertext and geheim not in fehlertext and "***" in fehlertext)
         ok("caption geht als formularfeld, nicht in der url", any("caption=" in a[2] for a in aufrufe)
            and not any("caption=" in a[1] for a in aufrufe))
@@ -897,6 +1080,57 @@ def selbsttest():
                                                                    for _ in range(5)}) == 5)
         ok("antwort geht raus und steht im log", ant == "777" and "777" in ANTWORTEN.read_text())
         ok("antwort mit kaufwort wird gestoppt", schlecht)
+    ok("scharf wartet nach FINISHED 5 s vor media_publish", pausen == [PAUSE_NACH_FINISHED] == [5])
+    # media_publish nachfassen (Ben, 5.11.2026, lauf 41994939458)
+    echt_graph = graph
+    rufe = []
+
+    def nachfass_lauf(antworten, status="FINISHED", medien=()):
+        """antworten: je media_publish ein fehlercode (code, subcode) oder eine media-id."""
+        rufe.clear()
+        pausen.clear()
+        folge = list(antworten)
+
+        def g(methode, pfad, params=None, versuche=3):
+            params = dict(params or {})
+            rufe.append((methode, pfad, params))
+            if pfad.endswith("/media_publish"):
+                a = folge.pop(0)
+                if isinstance(a, tuple):
+                    raise GraphFehler("graph POST x/media_publish, http 400, media id is not available",
+                                      400, a[0], a[1])
+                return {"id": a}
+            if params.get("fields") == "status_code":
+                return {"status_code": status}
+            if pfad.endswith("/media") and methode == "GET":
+                return {"data": list(medien)}
+            return {}
+        globals()["graph"] = g
+        try:
+            return veroeffentlichen("17841400000000000", "800", "the caption"), None
+        except Fehler as exc:
+            return None, exc
+        finally:
+            globals()["graph"] = echt_graph
+
+    def publishes():
+        return sum(1 for r in rufe if r[1].endswith("/media_publish"))
+    m, exc = nachfass_lauf([(9007, 2207027), "901"])
+    ok("einmal 9007, nach 15 s und status-abfrage erfolg", m == "901" and exc is None and publishes() == 2
+       and pausen == [5, 15] and sum(1 for r in rufe if r[2].get("fields") == "status_code") == 1)
+    m, exc = nachfass_lauf([(9007, 2207027)], status="PUBLISHED",
+                           medien=[{"id": "950", "caption": "anderer post"}, {"id": "902", "caption": "the caption"}])
+    ok("container schon PUBLISHED, kein zweiter post, media-id ueber die caption", m == "902" and exc is None
+       and publishes() == 1 and any(r[1].endswith("/media") and r[2].get("limit") == 5 for r in rufe))
+    m, exc = nachfass_lauf([(9007, None)], status="PUBLISHED", medien=[{"id": "950", "caption": "anderer post"}])
+    ok("PUBLISHED ohne passende caption stoppt, kein zweiter post", m is None and exc is not None
+       and publishes() == 1)
+    m, exc = nachfass_lauf([(None, 2207027)] * 5)
+    ok("hoechstens vier weitere versuche mit 15, 30, 45, 60 s", m is None and noch_nicht_bereit(exc)
+       and publishes() == 5 and pausen == [5, 15, 30, 45, 60])
+    m, exc = nachfass_lauf([(100, 33)])
+    ok("anderer fehler bricht sofort ab", m is None and isinstance(exc, GraphFehler) and exc.code == 100
+       and publishes() == 1 and pausen == [5])
     # bereinigung
     os.environ["INSTAGRAM_PAGE_TOKEN"] = geheim
     ok("sauber, wert, parameter, json, bearer, webhook", all(geheim not in sauber(t) for t in (
@@ -911,15 +1145,17 @@ def selbsttest():
     # faellig
     lg = {"laeufe": [{"datum": "2026-10-09", "form": 4, "messzeit_utc": "2026-10-09T05:31:00+00:00"}]}
     t = lambda h, m: dt.datetime(2026, 10, 9, h, m, tzinfo=dt.timezone.utc)   # noqa: E731
-    ok("faellig um 09:35 berlin (07:35 utc, sommerzeit)", faellig(t(7, 35), lg, {"posts": []})[0] is not None)
-    ok("nicht faellig um 09:05 berlin, vor discord", faellig(t(7, 5), lg, {"posts": []})[0] is None)
-    ok("nicht faellig ab 11:30 berlin", faellig(t(9, 30), lg, {"posts": []})[0] is None)
-    ok("nicht faellig ohne gesendete grafik", faellig(t(7, 35), {"laeufe": []}, {"posts": []})[0] is None)
-    ok("nicht doppelt am tag", faellig(t(7, 35), lg, {"posts": [{"datum": "2026-10-09"}]})[0] is None)
-    ok("IG_STOPP fuer heute und immer", faellig(t(7, 35), lg, {"posts": []}, "2026-10-09")[0] is None
-       and faellig(t(7, 35), lg, {"posts": []}, "immer")[0] is None
-       and faellig(t(7, 35), lg, {"posts": []}, "2026-10-08")[0] is not None)
-    ok("von hand ohne fenster und tagessperre", faellig(t(12, 0), lg, {"posts": [{"datum": "2026-10-09"}]},
+    ok("faellig um 12:35 berlin (10:35 utc, sommerzeit)", faellig(t(10, 35), lg, {"posts": []})[0] is not None)
+    ok("nicht faellig um 12:05 berlin, vor dem fenster", faellig(t(10, 5), lg, {"posts": []})[0] is None)
+    ok("nicht faellig ab 14:30 berlin", faellig(t(12, 30), lg, {"posts": []})[0] is None
+       and faellig(t(12, 29), lg, {"posts": []})[0] is not None)
+    ok("nicht mehr faellig um 09:35 berlin, der alte termin", faellig(t(7, 35), lg, {"posts": []})[0] is None)
+    ok("nicht faellig ohne gesendete grafik", faellig(t(10, 35), {"laeufe": []}, {"posts": []})[0] is None)
+    ok("nicht doppelt am tag", faellig(t(10, 35), lg, {"posts": [{"datum": "2026-10-09"}]})[0] is None)
+    ok("IG_STOPP fuer heute und immer", faellig(t(10, 35), lg, {"posts": []}, "2026-10-09")[0] is None
+       and faellig(t(10, 35), lg, {"posts": []}, "immer")[0] is None
+       and faellig(t(10, 35), lg, {"posts": []}, "2026-10-08")[0] is not None)
+    ok("von hand ohne fenster und tagessperre", faellig(t(16, 0), lg, {"posts": [{"datum": "2026-10-09"}]},
                                                          hand=True)[0] is not None)
     ok("von hand nie scharf", main(["posten", "--hand", "--modus", "scharf", "--bild", "x", "--caption", "x"]) == 1)
     # die drei wege
@@ -936,9 +1172,9 @@ def selbsttest():
     ok("takt darf scharf", scharf_erlaubt("takt", "scharf") is True)
     ok("geplant darf scharf", scharf_erlaubt("geplant", "scharf") is True)
     # der takt behaelt fenster und tagessperre, anders als der handstart
-    ok("takt ohne fenster nicht faellig", faellig(t(12, 0), lg, {"posts": []})[0] is None)
+    ok("takt ohne fenster nicht faellig", faellig(t(16, 0), lg, {"posts": []})[0] is None)
     ok("takt nicht zweimal am tag",
-       faellig(t(7, 35), lg, {"posts": [{"datum": "2026-10-09"}]})[0] is None)
+       faellig(t(10, 35), lg, {"posts": [{"datum": "2026-10-09"}]})[0] is None)
     import tempfile as _tf
     with _tf.TemporaryDirectory() as tmp:
         Path(tmp, "eintrag.json").write_text(json.dumps({"form": 2, "messzeit_utc": "2026-10-08T06:44:02+00:00"}))
@@ -954,9 +1190,48 @@ def selbsttest():
         finally:
             artefakt = echt
         ok("fehlt das artefakt, gruen mit gefunden=0", rc == 0 and "gefunden=0" in ausgang.read_text())
-    ok("winterzeit, 08:30 utc ist 09:30 berlin", faellig(dt.datetime(2026, 11, 2, 8, 30, tzinfo=dt.timezone.utc),
+    ok("winterzeit, 11:30 utc ist 12:30 berlin", faellig(dt.datetime(2026, 11, 2, 11, 30, tzinfo=dt.timezone.utc),
                                                           {"laeufe": [{"datum": "2026-11-02", "form": 1,
                                                                        "messzeit_utc": "x"}]}, {"posts": []})[0])
+    # bildquelle (Ben, 6.11.2026)
+    import tempfile as _tq
+    with _tq.TemporaryDirectory() as tq:
+        alt_cwd = os.getcwd()
+        os.chdir(tq)                      # relative pfade wie im workflow (ig/<datei>)
+        jp = Path("ig", "x-threads.jpg")
+        jp.parent.mkdir()
+        jp.write_bytes(b"\xff\xd8" + b"0" * 98)
+        sha = "5ac323ab001cc193e608361cee243cc936d328cc"
+        ok("raw-adresse des commits", raw_url("ig/x.jpg", sha, "o/r")
+           == "https://raw.githubusercontent.com/o/r/%s/ig/x.jpg" % sha)
+        ok("bild_commit nimmt nur einen sha", bild_commit(jp, lambda p: sha + "\n") == sha
+           and bild_commit(jp, lambda p: "") == "" and bild_commit(jp, lambda p: "fatal") == "")
+        gefragt = []
+        def warten_ok(url, laenge, frist=600, takt=15):
+            gefragt.append((url, laenge, frist))
+            return True
+        url, q = bild_bereit(jp, raw=True, warten=warten_ok, sha=sha)
+        ok("raw zuerst, 120 s, laenge der datei", q == "raw" and url.startswith(RAW_BASIS)
+           and url.endswith("/%s/%s" % (sha, jp.as_posix())) and gefragt == [(url, 100, 120)])
+        gefragt.clear()
+        def warten_raw_nein(url, laenge, frist=600, takt=15):
+            gefragt.append((url, laenge, frist))
+            if url.startswith(RAW_BASIS):
+                raise Fehler("bild nach 120 s nicht oeffentlich")
+            return True
+        url, q = bild_bereit(jp, raw=True, pages_frist=1500, warten=warten_raw_nein, sha=sha)
+        ok("raw nicht bereit, rueckfall auf pages mit eigener frist",
+           q == "pages" and url.startswith(SEITE) and [g[2] for g in gefragt] == [120, 1500])
+        gefragt.clear()
+        url, q = bild_bereit(jp, raw=True, warten=warten_ok, sha="")
+        ok("ohne commit gleich pages", q == "pages" and len(gefragt) == 1)
+        gefragt.clear()
+        url, q = bild_bereit(jp, raw=False, warten=warten_ok, sha=sha)
+        ok("instagram ohne IG_RAW bei pages, 600 s", q == "pages" and gefragt[0][2] == 600
+           and url == SEITE + "/ig/x-threads.jpg")
+        os.chdir(alt_cwd)
+    ok("absoluter pfad im repo wird ig/<datei>", repo_pfad(REPO / "ig" / "y.jpg") == "ig/y.jpg")
+    ok("instagram nimmt seit der probe vom 7.11. die raw-adresse", IG_RAW is True)
     # jpeg
     try:
         from PIL import Image
@@ -983,7 +1258,7 @@ def selbsttest():
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("befehl", nargs="?", choices=["faellig", "artefakt", "jpeg", "posten", "insights",
-                                                  "kommentare", "antworten"])
+                                                  "kommentare", "antworten", "quelle-probe"])
     ap.add_argument("--ziel", default="out/ig")
     ap.add_argument("--png")
     ap.add_argument("--bild")
@@ -1042,16 +1317,15 @@ def main(argv=None):
                 raise Fehler("von hand nur trocken")
             ig = json.loads(Path(a.caption).read_text(encoding="utf-8"))
             bild = Path(a.bild)
-            url = "%s/%s" % (SEITE, bild.as_posix())
-            url_warten(url, bild.stat().st_size)
+            url, quelle = bild_bereit(bild, raw=IG_RAW)
             ausgabe("caption\n%s" % ig["caption"])
-            erg = posten(url, ig["caption"], a.modus)
+            erg = posten(url, ig["caption"], a.modus, bauplan=ig.get("bauplan"))
             log = json_laden(LOG_IG, {"posts": []})
             log["posts"].append({"datum": ig["datum"], "form": ig["form"], "modus": a.modus,
                                  "start": start,
                                  "container": erg["container"], "status": erg["status"],
                                  "media": erg.get("media", ""), "permalink": erg.get("permalink", ""),
-                                 "bild": url, "zahl": ig.get("zahl"), "zahl_text": ig.get("zahl_text"),
+                                 "bild": url, "quelle": quelle, "zahl": ig.get("zahl"), "zahl_text": ig.get("zahl_text"),
                                  "tag": ig.get("tag"),
                                  "herkunft": ig.get("herkunft"), "caption": ig["caption"],
                                  "caption_sha": hashlib.sha256(ig["caption"].encode()).hexdigest()[:12],
@@ -1069,6 +1343,9 @@ def main(argv=None):
             ops("instagram %s (%s), form %s, container %s, status %s%s" % (
                 a.modus, start, ig["form"], erg["container"], erg["status"],
                 (", " + erg.get("permalink", "")) if erg.get("media") else ", nicht veroeffentlicht"))
+        elif a.befehl == "quelle-probe":
+            cid, status = quelle_probe(a.bild)
+            return 0 if status == "FINISHED" else 1
         elif a.befehl == "insights":
             insights(now)
         elif a.befehl == "kommentare":

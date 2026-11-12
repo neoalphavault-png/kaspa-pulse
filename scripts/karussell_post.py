@@ -20,7 +20,7 @@ gepostet hat sie niemand. Ab jetzt laeuft jeder Termin in zwei Schritten:
   probe     beides in einem Lauf, nie veroeffentlicht, nichts gemerkt. Der
             Vorschau-Lauf, nach dem Ben KARUSSELL_LIVE setzt.
 
-TERMINE (karussell.POSTZEIT): woche Sa 11:00, story Mi 18:00, meme Sa 15:00,
+TERMINE (karussell.POSTZEIT): woche Sa 13:00 (bis 5.11.2026 11:00), story Mi 18:00, meme Sa 15:00,
 einmalig schalter Fr 6.11.2026 11:00 (Reward Cut), Entwurf jeweils 2 Stunden vorher. Der Takt kommt von c2.
 
 SCHARF nur, wenn alles zusammenkommt:
@@ -163,6 +163,20 @@ def schon_gepostet(log, art, fuer=None, motiv=None):
     return None
 
 
+def meme_sperre(log, fuer=None):
+    """Ein Meme-Motiv geht nur einmal raus. Ist das Motiv aus meme_wahr schon
+    an einem anderen Tag gepostet, ist das Meme nicht dran (NichtFaellig, kein
+    Fehler). Am 7.11.2026 lief dieser Fall rot, weil main() NichtFaellig nach
+    dem allgemeinen except abfing (Ben, 7.11.2026)."""
+    import karussell
+    import meme_wahr
+    alt = schon_gepostet(log, "meme", motiv=meme_wahr.MOTIV)
+    if alt and alt.get("fuer") != fuer:
+        raise NichtFaellig("meme, but true: das motiv %s ging am %s raus, ein neues fehlt. "
+                           "sa %s bleibt ohne meme." % (meme_wahr.MOTIV, alt.get("fuer"),
+                                                        karussell.POSTZEIT["meme"][1]))
+
+
 def faellig(art, fuer, start, log, now=None):
     """None, wenn dran, sonst der Grund. Von Hand gibt es kein Fenster."""
     if stopp_gesetzt(fuer):
@@ -216,7 +230,12 @@ def bauen(art, fuer, out, look, motiv=None, speicher=None, merken=False):
     return ss, cap, bilder, motiv
 
 
-def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, senden=True):
+def meme_wahr_bauen():
+    import meme_wahr
+    return meme_wahr.bauen
+
+
+def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, senden=True, stimme_pfad=None):
     """Baut den Entwurf, legt das Manifest ab und schickt ihn nach ops.
     Gibt das Manifest zurueck, oder None, wenn nichts dran ist."""
     import karussell
@@ -224,12 +243,7 @@ def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, send
     termin_pruefen(art, fuer)
     log = log_lesen(log_pfad)
     if art == "meme":
-        import meme_wahr
-        alt = schon_gepostet(log, "meme", motiv=meme_wahr.MOTIV)
-        if alt:
-            raise NichtFaellig("meme, but true: das motiv %s ging am %s raus, ein neues fehlt. "
-                               "sa %s bleibt ohne meme." % (meme_wahr.MOTIV, alt.get("fuer"),
-                                                            karussell.POSTZEIT["meme"][1]))
+        meme_sperre(log, fuer)
     sp = look_takt.lesen(speicher_pfad)
     serie = "meme" if art == "meme" else "karussell"
     look = look_takt.raster_faellig(sp, serie, fuer)[1]
@@ -244,7 +258,8 @@ def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, send
         info = getattr(karussell.rendern, "info", {}) or {}
         look = "v2 " + "/".join(x["look"] for x in info.get("seiten", []))
     m = {"art": art, "fuer": fuer, "postzeit": postzeit(art, fuer).isoformat(), "look": look,
-         "caption": cap, "motiv": motiv_meme, "hintergrund": motiv, "probe": probe,
+         "caption": cap, "bauplan": getattr(meme_wahr_bauen() if art == "meme" else karussell.vorbereiten,
+                                             "bauplan", ""), "motiv": motiv_meme, "hintergrund": motiv, "probe": probe,
          "bilder": [{"datei": Path(b).name, "sha256": sha(b)} for b in bilder],
          "zahlen": zahlen_aus(ss)}
     (out / "manifest.json").write_text(json.dumps(m, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
@@ -260,6 +275,13 @@ def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, send
     if not probe:
         look_takt.raster_merken(sp, serie, fuer)
         look_takt.schreiben(sp, speicher_pfad)
+        # stimm-regel (Ben, 07.11.2026): der bauplan der caption gilt ab jetzt
+        # fuer den tag, die naechsten kanaele sehen ihn in data/stimme-stand.json
+        stimm_stand = getattr(meme_wahr_bauen(), "stimm_stand", None) if art == "meme" else \
+            getattr(karussell.vorbereiten, "stimm_stand", None)
+        if stimm_stand is not None:
+            import stimme
+            stimme.schreiben(stimm_stand, stimme_pfad, heute=fuer)
     return m
 
 
@@ -366,7 +388,11 @@ def hochladen(jpeg, rid):
 
 def seiten_ablage(jpegs, frist=600, takt=15):
     """Committet die JPEGs ueber die GitHub-API nach ig/karussell/ auf main und
-    wartet, bis kaspapulse.com jedes mit genau seiner Laenge ausliefert."""
+    gibt je Seite die Adresse zurueck, unter der das Bild mit genau seiner
+    Laenge ausgeliefert wird. Seit dem 7.11.2026 (Ben) zuerst die raw-Adresse
+    des Commits, den die API fuer jede Seite zurueckgibt, 120 s, wie bei
+    Threads (#273) und der Tagesgrafik (#275). kaspapulse.com ist nur der
+    Rueckfall mit frist. seiten_ablage.quelle nennt danach raw oder pages."""
     import base64
     repo = os.environ.get("GITHUB_REPOSITORY", "")
     gt = os.environ.get("GITHUB_TOKEN", "")
@@ -377,22 +403,30 @@ def seiten_ablage(jpegs, frist=600, takt=15):
         raise Stopp("ablage unter ig/ nur vom branch main, nicht von %s" % zweig)
     kopf = {"Authorization": "Bearer " + gt, "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28", "User-Agent": UA, "Content-Type": "application/json"}
-    urls = []
+    abgelegt = []
     for j in jpegs:
         name = "%s-%s.jpg" % (Path(j).stem, uuid.uuid4().hex[:8])
         pfad = "%s/%s" % (SEITEN_ORDNER, name)
         body = json.dumps({"message": "karussell ablage %s [bot]" % name, "branch": "main",
                            "content": base64.b64encode(Path(j).read_bytes()).decode()}).encode()
-        status, _, _ = _roh("PUT", "https://api.github.com/repos/%s/contents/%s" % (repo, pfad), body, kopf)
+        status, roh, _ = _roh("PUT", "https://api.github.com/repos/%s/contents/%s" % (repo, pfad), body, kopf)
         if status not in (200, 201):
             raise Stopp(sauber("ablage %s, github http %s" % (pfad, status)))
-        sag("abgelegt", pfad)
-        urls.append((SEITE + "/" + pfad, Path(j).stat().st_size))
-    for url, laenge in urls:
         try:
-            ig().url_warten(url, laenge, frist=frist, takt=takt)
+            sha = str((json.loads(roh.decode("utf-8") or "{}").get("commit") or {}).get("sha", ""))
+        except ValueError:
+            sha = ""
+        sag("abgelegt", pfad, sha[:7] or "ohne commit")
+        abgelegt.append((j, pfad, sha if re.fullmatch(r"[0-9a-f]{40}", sha) else ""))
+    urls, quellen = [], []
+    for j, pfad, sha in abgelegt:
+        try:
+            url, quelle = ig().bild_bereit(j, raw=True, pages_frist=frist, sha=sha, ziel=pfad)
         except Exception as exc:                      # noqa: BLE001
             raise Stopp(sauber(str(exc)))
+        urls.append((url, Path(j).stat().st_size))
+        quellen.append(quelle)
+    seiten_ablage.quelle = "raw" if quellen and all(q == "raw" for q in quellen) else "pages"
     return [u for u, _ in urls]
 
 
@@ -454,9 +488,11 @@ def container(urls, caption, takt=5):
     return cid
 
 
-def veroeffentlichen(cid):
+def veroeffentlichen(cid, caption):
+    """media_publish mit Pause und Nachfassen bei code 9007 aus instagram.py
+    (Ben, 5.11.2026), ein schon veroeffentlichter Container geht nicht doppelt raus."""
     u = ig().ig_user()
-    media = str(ig().graph("POST", "%s/media_publish" % u, {"creation_id": cid}).get("id", ""))
+    media = ig().veroeffentlichen(u, cid, caption)
     try:
         link = ig().graph("GET", media, {"fields": "permalink"}).get("permalink", "")
     except Exception as exc:                          # noqa: BLE001
@@ -574,6 +610,8 @@ def posten(art, fuer, quelle=None, start="hand", probe=False, log_pfad=None, now
     grund = faellig(art, fuer, start, log, now)
     if grund:
         raise NichtFaellig(grund)
+    if art == "meme":
+        meme_sperre(log, fuer)
     if quelle is None:
         quelle = artefakt_holen(art, fuer, tempfile.mkdtemp(prefix="karussell-"))
     m, bilder = manifest_lesen(quelle, art, fuer)
@@ -596,10 +634,11 @@ def posten(art, fuer, quelle=None, start="hand", probe=False, log_pfad=None, now
         else:
             urls = seiten_ablage(jpegs)
             eintrag["ablage"] = "ig"
+            eintrag["quelle"] = getattr(seiten_ablage, "quelle", "pages")
         cid = container(urls, m["caption"], takt)
         eintrag.update(container=cid, status="FINISHED")
         if scharf:
-            media, link = veroeffentlichen(cid)
+            media, link = veroeffentlichen(cid, m["caption"])
             eintrag.update(media=media, permalink=link)
             sag("veroeffentlicht", media, link)
         else:
@@ -630,9 +669,9 @@ def selbsttest():
     os.environ.pop("KARUSSELL_STOPP", None)
     os.environ.pop("KARUSSELL_LIVE", None)
     utc = dt.timezone.utc
-    sa_1100 = dt.datetime(2026, 10, 31, 10, 0, tzinfo=utc)       # 11:00 berlin, winterzeit
-    ok("postzeiten woche sa 11:00, story mi 18:00, meme sa 15:00, schalter fr 11:00",
-       karussell.POSTZEIT == {"woche": (5, "11:00"), "story": (2, "18:00"), "meme": (5, "15:00"),
+    sa_1300 = dt.datetime(2026, 10, 31, 12, 0, tzinfo=utc)       # 13:00 berlin, winterzeit
+    ok("postzeiten woche sa 13:00, story mi 18:00, meme sa 15:00, schalter fr 11:00",
+       karussell.POSTZEIT == {"woche": (5, "13:00"), "story": (2, "18:00"), "meme": (5, "15:00"),
                               "schalter": (4, "11:00")})
     ok("schalter fr 6.11. 11:00 berlin ist 10:00 utc",
        postzeit("schalter", "2026-11-06").astimezone(utc) == dt.datetime(2026, 11, 6, 10, 0, tzinfo=utc))
@@ -643,30 +682,36 @@ def selbsttest():
         ok("schalter nur am 6.11.", True)
     ok("schalter ohne datum ist der naechste freitag",
        fuer_aufloesen("schalter", "", dt.datetime(2026, 11, 5, 17, 0, tzinfo=utc)) == "2026-11-06")
-    ok("woche sa 31.10. 11:00 berlin ist 10:00 utc", postzeit("woche", "2026-10-31").astimezone(utc) == sa_1100)
+    ok("woche sa 31.10. 13:00 berlin ist 12:00 utc", postzeit("woche", "2026-10-31").astimezone(utc) == sa_1300)
+    ok("woche: 11:00 berlin, der alte termin, ist nicht mehr im fenster",
+       "fenster" in (faellig("woche", "2026-10-31", "takt", {"posts": []},
+                             dt.datetime(2026, 10, 31, 10, 0, tzinfo=utc)) or ""))
+    ok("woche: 12:30 berlin, die zeit der tagesgrafik, ist nicht im fenster",
+       "fenster" in (faellig("woche", "2026-10-31", "takt", {"posts": []},
+                             dt.datetime(2026, 10, 31, 11, 30, tzinfo=utc)) or ""))
     ok("entwurf 2 stunden vorher", VORLAUF == dt.timedelta(hours=2))
     leer = {"posts": []}
-    ok("im fenster faellig", faellig("woche", "2026-10-31", "takt", leer, sa_1100) is None)
+    ok("im fenster faellig", faellig("woche", "2026-10-31", "takt", leer, sa_1300) is None)
     ok("zu frueh nicht faellig", "fenster" in (faellig("woche", "2026-10-31", "takt", leer,
-                                                     sa_1100 - dt.timedelta(minutes=30)) or ""))
+                                                     sa_1300 - dt.timedelta(minutes=30)) or ""))
     ok("zwei stunden zu spaet nicht faellig", "fenster" in (faellig("woche", "2026-10-31", "takt", leer,
-                                                                  sa_1100 + dt.timedelta(hours=2)) or ""))
+                                                                  sa_1300 + dt.timedelta(hours=2)) or ""))
     ok("anderer tag nicht faellig", "nicht heute" in (faellig("woche", "2026-10-31", "takt", leer,
-                                                            sa_1100 - dt.timedelta(days=1)) or ""))
-    ok("von hand ohne fenster", faellig("woche", "2026-10-31", "hand", leer, sa_1100 - dt.timedelta(days=3)) is None)
+                                                            sa_1300 - dt.timedelta(days=1)) or ""))
+    ok("von hand ohne fenster", faellig("woche", "2026-10-31", "hand", leer, sa_1300 - dt.timedelta(days=3)) is None)
     os.environ["KARUSSELL_STOPP"] = "2026-10-31"
-    ok("stopp mit datum greift", "STOPP" in (faellig("woche", "2026-10-31", "takt", leer, sa_1100) or ""))
+    ok("stopp mit datum greift", "STOPP" in (faellig("woche", "2026-10-31", "takt", leer, sa_1300) or ""))
     os.environ["KARUSSELL_STOPP"] = "immer"
-    ok("stopp immer greift, auch von hand", bool(faellig("woche", "2026-10-31", "hand", leer, sa_1100)))
+    ok("stopp immer greift, auch von hand", bool(faellig("woche", "2026-10-31", "hand", leer, sa_1300)))
     os.environ["KARUSSELL_STOPP"] = "2026-10-24"
-    ok("stopp fuer einen anderen tag greift nicht", faellig("woche", "2026-10-31", "takt", leer, sa_1100) is None)
+    ok("stopp fuer einen anderen tag greift nicht", faellig("woche", "2026-10-31", "takt", leer, sa_1300) is None)
     os.environ.pop("KARUSSELL_STOPP")
     gepostet = {"posts": [{"art": "woche", "fuer": "2026-10-31", "modus": "scharf", "media": "1", "permalink": "p"},
                           {"art": "meme", "fuer": "2026-10-31", "modus": "scharf", "media": "2",
                            "motiv": "kaspa-chemie"},
                           {"art": "story", "fuer": "2026-11-04", "modus": "trocken"}]}
     ok("schon gepostet nicht noch einmal", "schon gepostet" in (faellig("woche", "2026-10-31", "takt",
-                                                                       gepostet, sa_1100) or ""))
+                                                                       gepostet, sa_1300) or ""))
     ok("ein trockener eintrag sperrt nicht", schon_gepostet(gepostet, "story", fuer="2026-11-04") is None)
     ok("ein meme-motiv nur einmal", schon_gepostet(gepostet, "meme", motiv="kaspa-chemie") is not None)
     for wert, soll in (("true", True), ("JA", True), ("1", True), ("false", False), ("", False), ("scharf", False)):
@@ -680,7 +725,7 @@ def selbsttest():
         ok("woche an einem freitag stoppt", True)
     ok("ohne datum der naechste samstag", fuer_aufloesen("meme", "", dt.datetime(2026, 10, 25, 12, tzinfo=utc))
        == "2026-10-31")
-    ok("am posttag selbst heute", fuer_aufloesen("woche", "", sa_1100) == "2026-10-31")
+    ok("am posttag selbst heute", fuer_aufloesen("woche", "", sa_1300) == "2026-10-31")
     os.environ["MEDIA_REPO_TOKEN"] = "ghp_" + "x" * 30
     ok("sauber verbirgt den media-token", "ghp_" not in sauber("fehler bei " + os.environ["MEDIA_REPO_TOKEN"]))
 
@@ -728,9 +773,9 @@ def selbsttest():
             return {"permalink": "https://www.instagram.com/p/x/"}
         return {"status_code": "FINISHED"}
 
-    alt = (globals()["gh_media"], globals()["abholbar"], instagram.graph)
+    alt = (globals()["gh_media"], globals()["abholbar"], instagram.graph, instagram._schlafen)
     globals()["gh_media"], globals()["abholbar"] = gh_falsch, lambda url, soll: True
-    instagram.graph = graph_falsch
+    instagram.graph, instagram._schlafen = graph_falsch, lambda s: None
     os.environ["IG_USER_ID"] = "17841400000000000"
     try:
         logp = tmp / "log.json"
@@ -749,18 +794,18 @@ def selbsttest():
         # vom takt, live, im fenster: veroeffentlicht
         os.environ["KARUSSELL_LIVE"] = "true"
         aufrufe.clear()
-        e = posten("woche", "2026-10-31", quelle=quelle, start="takt", log_pfad=logp, now=sa_1100, takt=0)
+        e = posten("woche", "2026-10-31", quelle=quelle, start="takt", log_pfad=logp, now=sa_1300, takt=0)
         ok("takt plus KARUSSELL_LIVE veroeffentlicht", e["modus"] == "scharf" and e["media"] == "999"
            and any(a[0] == "graph" and a[2].endswith("media_publish") for a in aufrufe))
         try:
-            posten("woche", "2026-10-31", quelle=quelle, start="takt", log_pfad=logp, now=sa_1100, takt=0)
+            posten("woche", "2026-10-31", quelle=quelle, start="takt", log_pfad=logp, now=sa_1300, takt=0)
             ok("zweiter lauf am selben termin postet nicht", False)
         except NichtFaellig:
             ok("zweiter lauf am selben termin postet nicht", True)
         # probe: nie scharf, nichts im log
         logp2 = tmp / "log2.json"
         e = posten("woche", "2026-10-31", quelle=quelle, start="takt", probe=True, log_pfad=logp2,
-                   now=sa_1100, takt=0)
+                   now=sa_1300, takt=0)
         ok("probe ist nie scharf und schreibt kein log", e["modus"] == "trocken" and not logp2.exists())
         os.environ.pop("KARUSSELL_LIVE")
         # eine seite: einzelbild
@@ -800,7 +845,7 @@ def selbsttest():
         except Stopp:
             ok("ein entwurf fuer eine andere art stoppt", True)
     finally:
-        globals()["gh_media"], globals()["abholbar"], instagram.graph = alt
+        globals()["gh_media"], globals()["abholbar"], instagram.graph, instagram._schlafen = alt
         os.environ.pop("MEDIA_REPO_TOKEN", None)
 
     # ohne MEDIA_REPO_TOKEN: ablage unter ig/karussell/ auf main
@@ -833,6 +878,26 @@ def selbsttest():
            len(gewartet) == 3 and bilder_urls == [u for u, _ in gewartet]
            and all(u.startswith("https://kaspapulse.com/ig/karussell/") for u in bilder_urls))
         ok("probe mit ablage unter ig bleibt trocken", e["modus"] == "trocken" and e.get("ablage") == "ig")
+        ok("ohne commit in der antwort rueckfall auf kaspapulse.com", e.get("quelle") == "pages")
+        # raw-adresse des ablage-commits (Ben, 7.11.2026)
+        sha_neu = "b1e22f68b65e258ee1bb78d11dd327fcf7765587"
+        gesetzt.clear()
+        gewartet.clear()
+        globals()["_roh"] = lambda m, u, body, k: (gesetzt.append((m, u)) or
+                                                   (201, json.dumps({"commit": {"sha": sha_neu}}).encode(), {}))
+        fristen = []
+        instagram.url_warten = lambda url, laenge, frist=600, takt=15: (gewartet.append((url, laenge))
+                                                                        or fristen.append(frist) or True)
+        aufrufe.clear()
+        e = posten("woche", "2026-10-31", quelle=quelle, start="hand", probe=True, log_pfad=tmp / "log7.json",
+                   takt=0)
+        bilder_urls = [a[3].get("image_url") for a in aufrufe if a[0] == "graph" and a[3].get("image_url")]
+        ok("instagram holt die seiten ueber die raw-adresse des ablage-commits, 120 s",
+           e.get("quelle") == "raw" and len(bilder_urls) == 3 and fristen == [120, 120, 120]
+           and all(u.startswith("https://raw.githubusercontent.com/neoalphavault-png/kaspa-pulse/%s/ig/karussell/"
+                                % sha_neu) for u in bilder_urls)
+           and [u for u, _ in gewartet] == bilder_urls)
+        globals()["_roh"] = roh_falsch
         os.environ["GITHUB_REF_NAME"] = "fix/x"
         try:
             posten("woche", "2026-10-31", quelle=quelle, start="hand", probe=True, log_pfad=tmp / "log6.json",
@@ -853,6 +918,31 @@ def selbsttest():
         ok("dasselbe meme-motiv kommt kein zweites mal", False)
     except NichtFaellig as exc:
         ok("dasselbe meme-motiv kommt kein zweites mal", "neues fehlt" in str(exc))
+    import meme_wahr
+    log_meme = {"posts": [{"art": "meme", "fuer": "2026-10-31", "modus": "scharf", "media": "2",
+                           "motiv": meme_wahr.MOTIV}]}
+    try:
+        meme_sperre(log_meme, "2026-11-07")
+        ok("meme-sperre am 7.11. fuer das motiv vom 31.10.", False)
+    except NichtFaellig as exc:
+        ok("meme-sperre am 7.11. fuer das motiv vom 31.10.", "neues fehlt" in str(exc))
+    ok("meme-sperre nicht am tag des posts selbst", meme_sperre(log_meme, "2026-10-31") is None)
+    alt_entwurf, alt_ops = globals()["entwurf"], ig().ops
+    gemeldet = []
+
+    def entwurf_nicht_dran(*a, **k):
+        raise NichtFaellig("meme, but true: das motiv x ging am 2026-10-31 raus, ein neues fehlt.")
+    globals()["entwurf"] = entwurf_nicht_dran
+    ig().ops = lambda text, *a, **k: gemeldet.append(text)
+    alt_out = os.environ.pop("GITHUB_OUTPUT", None)
+    try:
+        rc = main(["entwurf", "--art", "meme", "--fuer", "2026-11-07"])
+    finally:
+        globals()["entwurf"], ig().ops = alt_entwurf, alt_ops
+        if alt_out is not None:
+            os.environ["GITHUB_OUTPUT"] = alt_out
+    ok("nicht dran ist gruen (exit 0) mit meldung, nicht rot", rc == 0 and len(gemeldet) == 1
+       and "nicht dran" in gemeldet[0] and "neues fehlt" in gemeldet[0])
 
     # kaspa community (Ben, 28.10.2026), ohne netz, _post ist eine attrappe
     import io
@@ -891,7 +981,7 @@ def selbsttest():
            and [g[0] for g in gesendet] == ["hand"])
         t = gesendet[-1][1]
         ok("nennt zeit, plattform, permalink und satz",
-           t.startswith("📤 VON HAND Sa ab 11:15, Instagram-App, Kanal Kaspa Community.")
+           t.startswith("📤 VON HAND Sa ab 13:15, Instagram-App, Kanal Kaspa Community.")
            and "https://www.instagram.com/p/abc/" in t and satz in t)
         ok("hoechstens eine aufforderung je woche", lauf(eintrag=ep, manifest=mk) is None and len(gesendet) == 1)
         (tmp / "logc.json").unlink()
@@ -973,6 +1063,13 @@ def main(argv=None):
         if a.schritt == "posten" and a.art == "woche" and a.start == "takt" and not a.probe:
             community_melden(fuer, grund_kein="der posten-lauf stoppte, %s" % sauber(exc))
         return 1
+    except NichtFaellig as exc:
+        # VOR dem allgemeinen except: NichtFaellig ist eine Exception und lief
+        # sonst als Fehler durch (7.11.2026, meme entwurf und posten rot)
+        sag("nicht dran, %s" % exc)
+        ig().ops("karussell %s fuer %s nicht dran, %s" % (a.art, fuer, exc))
+        ausgabe_datei(gebaut="0")
+        return 0
     except Exception as exc:                               # noqa: BLE001
         if a.schritt == "posten" and a.art == "woche" and a.start == "takt" and not a.probe:
             try:
@@ -980,11 +1077,6 @@ def main(argv=None):
             except Exception:                              # noqa: BLE001
                 pass
         raise
-    except NichtFaellig as exc:
-        sag("nicht dran, %s" % exc)
-        ig().ops("karussell %s fuer %s nicht dran, %s" % (a.art, fuer, exc))
-        ausgabe_datei(gebaut="0")
-        return 0
     ausgabe_datei(gebaut="1")
     return 0
 

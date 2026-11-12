@@ -108,9 +108,25 @@ def creds_from_env():
 
 # ---------------------------------------------------------------- HTTP
 
+# GOKU-X AUS (Ben, 7.11.2026, dauerhaft). Auf @gokugalax erscheint kein Post
+# mehr, den ein Workflow oder Skript per API absetzt. Der Schalter ist die
+# Umgebungsvariable X_GOKU_AN: nur "true" erlaubt einen schreibenden Aufruf
+# (POST), fehlt sie oder steht sie auf etwas anderem, ist X aus. Lesen (GET,
+# Uhrwerk-Metriken) und Loeschen bleiben erlaubt. Wieder an: X_GOKU_AN: "true"
+# im Workflow. Bericht berichte/2026-11-08-goku-x-pause.md
+ENV_GOKU = "X_GOKU_AN"
+
+
+def goku_an():
+    return os.environ.get(ENV_GOKU, "").strip().lower() == "true"
+
+
 def call(method, url, creds, json_body=None, multipart=None, query=None):
     """Ein signierter Aufruf. Gibt das JSON der Antwort zurueck oder bricht laut ab.
-    Antworttexte werden gekuerzt gedruckt, Secrets nie."""
+    Antworttexte werden gekuerzt gedruckt, Secrets nie. Ein POST geht nur mit
+    X_GOKU_AN=true raus (Ben, 7.11.2026)."""
+    if method.upper() == "POST" and not goku_an():
+        raise RuntimeError("x ist aus (%s ist nicht true), kein post auf x" % ENV_GOKU)
     full = url + ("?" + urllib.parse.urlencode(query) if query else "")
     headers = {"Authorization": oauth_header(method, url, creds, query),
                "User-Agent": "kaspa-pulse x_post/1.0"}
@@ -662,11 +678,29 @@ def selftest():
         assert manifest_look(nod) == "number-of-day", "ohne eintrag fuer heute der standard"
         assert manifest_look(None) == "number-of-day"
 
+    # goku-x aus (Ben, 7.11.2026): ohne X_GOKU_AN=true kein POST, auch nicht ueber call()
+    alt_an = os.environ.pop(ENV_GOKU, None)
+    try:
+        assert not goku_an(), "ohne variable ist x aus"
+        os.environ[ENV_GOKU] = "false"
+        assert not goku_an(), "false ist aus"
+        try:
+            call("POST", URL_TWEETS, creds, json_body={"text": "x"})
+            raise AssertionError("POST ohne X_GOKU_AN=true darf nicht rausgehen")
+        except RuntimeError as exc:
+            assert "x ist aus" in str(exc), exc
+        os.environ[ENV_GOKU] = "true"
+        assert goku_an(), "nur true schaltet an"
+    finally:
+        if alt_an is None:
+            os.environ.pop(ENV_GOKU, None)
+        else:
+            os.environ[ENV_GOKU] = alt_an
     assert berlin_offset(dt.datetime(2026, 9, 14, 14, 0, tzinfo=dt.timezone.utc)) == dt.timedelta(hours=2)
     assert berlin_offset(dt.datetime(2026, 11, 2, 14, 0, tzinfo=dt.timezone.utc)) == dt.timedelta(hours=1)
     print("selftest ok: Signatur stimmt mit dem erfundenen Testvektor ueberein, Link-Erkennung ok, "
           "Montagsfaden prueft Videolink und Kosten, X_LINKANTWORT steht ohne Variable auf aus, "
-          "Manifest-Zeile traegt Kanal, Format, Look, Haken und Hashtags")
+          "Manifest-Zeile traegt Kanal, Format, Look, Haken und Hashtags, X_GOKU_AN fehlt oder false heisst kein POST")
 
 
 def main():
@@ -688,6 +722,10 @@ def main():
     a = ap.parse_args()
     if a.selftest:
         return selftest()
+    if not a.dry_run and not a.delete and not goku_an():
+        # gruen, kein fehler: x ist bewusst aus (Ben, 7.11.2026)
+        print("x ist aus (%s ist nicht true), auf @gokugalax geht nichts raus" % ENV_GOKU)
+        return 0
     if a.delete:
         delete(a.delete, creds_from_env())
         return 0

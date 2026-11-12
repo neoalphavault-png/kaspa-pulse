@@ -1,0 +1,34 @@
+# Kaspa Pulse, BCHN geprunt auf c2 (Ben, 09.11.2026). Eigener Nutzer bchn,
+# Daten unter /var/lib/bchn. Startet erst nach dem Ende des BCH Tempnet am
+# 15.11.2026 um 12:00 UTC (1794744000), damit der Tempnet-Zuhoerer auf c2
+# Speicher und CPU fuer sich hat. Keine Werte in dieser Datei.
+[Unit]
+Description=Kaspa Pulse BCHN geprunt
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bchn
+Group=bchn
+ExecStartPre=/bin/sh -c 'test "$(date +%%s)" -ge 1794744000 || { echo "start erst ab 15.11.2026 12:00 UTC"; exit 1; }'
+ExecStart=/usr/bin/bitcoind -conf=/opt/kaspa-pulse/deploy/c2/bchn/bitcoin.conf -datadir=/var/lib/bchn -printtoconsole=0
+ExecStop=/usr/bin/bitcoin-cli -conf=/opt/kaspa-pulse/deploy/c2/bchn/bitcoin.conf -datadir=/var/lib/bchn stop
+TimeoutStopSec=600
+Restart=on-failure
+RestartSec=60
+StateDirectory=bchn
+StateDirectoryMode=0750
+# Grenzen, damit Wache, Alarm und Takte nicht leiden
+MemoryMax=1200M
+CPUQuota=100%
+Nice=10
+IOSchedulingClass=idle
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/bchn
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

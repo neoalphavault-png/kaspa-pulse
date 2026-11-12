@@ -81,7 +81,81 @@ Ben hat am 2.11. entschieden, dass die NU7-Messung der erste „PulseHawk Upgrad
    - Nach der Zeile `fenster_zu` kommen Log und Rohdaten.
    - Der dritte Lauf meldet „log unveraendert“.
    - Der Secret-Scan ist jedes Mal sauber.
+   - **Dieser Test war fehlerhaft**, siehe den Abschnitt „Nachtrag 3.11.“: Die Zeile `fenster_zu` hatte ich mit `echo` angehängt, also mit `\n`. Die Wache selbst schreibt `\r\n`.
 4. **Simulation der Wache:** Alle 6 Szenarien sind weiter ok.
+
+## Nachtrag 3.11.: Fensterende in `sync.sh` (PR #242)
+
+**Fehler, gefunden von Ben:** `wache_kern.log` schreibt mit `csv.writer` und `newline=""`, also mit `\r\n` am Zeilenende. `grep -q ',fenster_zu$'` trifft `fenster_zu\r` nicht. Damit wären die Rohdaten nie ins Repo gekommen, auch nicht bei `setup.sh wache-aus`. Mein erster Test hat das nicht gezeigt, weil ich die Zeile von Hand mit `\n` angehängt hatte.
+
+**Geändert in `deploy/c2/upgrade-wache/sync.sh`:**
+1. Die Erkennung entfernt vorher die `\r`: `tr -d '\r' < "$LOG" | grep -q ',fenster_zu$'`.
+2. Bricht `roh_export.py` ab, etwa bei einem Adressfund oder einem anderen Fehler, geht das Log trotzdem ins Repo. Danach endet das Skript mit `exit 1` und schreibt „fehler: rohdaten nicht exportiert“ nach stderr. So zeigen `systemctl status upgrade-wache-sync@zcash-mainnet` und `journalctl` den Fehler. Das gilt auch, wenn das Log unverändert ist.
+
+**Neuer Test mit einem Log, das die Wache selbst schreibt:**
+- Alle Logzeilen kommen aus `Kern.log`: `start`, `aktivierung_gesehen` und nach dem Fenster `fenster_zu`, wie in `wache.py`. Nur Lauf 4 hängt zusätzlich eine `lauf`-Zeile mit `printf` an, ebenfalls mit `\r\n`.
+- Die Rohdaten stammen aus der Testnet-Aufzeichnung vom 17.10.
+- Gepusht wird in ein lokales Test-Repo, ohne Netz.
+
+So endet die letzte Logzeile (`od -c`):
+
+```
+   e   n   s   t   e   r   _   z   u  \r  \n
+```
+
+**Mit dem alten `sync.sh` (`b191618`):** Lauf 2 nach `fenster_zu` meldet nur „log gepusht, 4 zeilen“, ohne Rohdaten. Der Fehler ist damit nachgestellt.
+
+**Mit dem neuen `sync.sh`:**
+
+```
+== lauf 1, fenster offen
+secret-scan: alle dateien im checkout, nichts gefunden
+log gepusht, 3 zeilen
+exit 0
+== lauf 2, nach fenster_zu
+secret-scan: alle dateien im checkout, nichts gefunden
+log gepusht, 4 zeilen, rohdaten in wache/roh
+exit 0
+== lauf 3, unveraendert
+log unveraendert
+exit 0
+== adresse in peers.json eingeschleust
+abbruch: adresse in peers.json, nichts geschrieben
+rohdaten nicht exportiert, nur das log
+secret-scan: alle dateien im checkout, nichts gefunden
+log gepusht, 5 zeilen
+fehler: rohdaten nicht exportiert
+exit 1
+== lauf 5, log unveraendert, export weiter fehlerhaft
+abbruch: adresse in peers.json, nichts geschrieben
+rohdaten nicht exportiert, nur das log
+log unveraendert
+fehler: rohdaten nicht exportiert
+exit 1
+== commits im test-repo
+upgrade-wache testkette: log [bot]
+upgrade-wache testkette: log und rohdaten [bot]
+upgrade-wache testkette: log [bot]
+init
+== dateien
+README
+wache/roh/SHA256SUMS
+wache/roh/ereignisse.jsonl.gz
+wache/roh/koepfe.jsonl.gz
+wache/roh/peers.json
+wache/roh/wache-log.csv
+wache/roh/zustand.json
+wache/wache-log.csv
+```
+
+**Was der Test zeigt:**
+- Mit Adressfund kommt das Log ins Repo, die Rohdaten nicht. Eingeschleust war im Test eine Adresse aus dem Bereich, der für Dokumentation reserviert ist; der Wert steht hier bewusst nicht.
+- Was zuvor sauber exportiert wurde, bleibt im Repo stehen.
+
+**Commits auf `wache/report-v1-c2`:**
+- `8311f2f`: die Änderung an `sync.sh`.
+- Danach habe ich `main` hineingemergt (`c1f7057`), weil dieser Bericht erst auf `main` liegt.
+- Den neuen Kopf nenne ich in der Meldung an Ben, weil ein Commit seinen eigenen Hash nicht enthalten kann.
 
 ## M6: Die Definition trifft eine gesunde Kette fast nie
 
@@ -111,6 +185,9 @@ Im Testnet nach NU7 ergab das 1.541 min, 913 min und 800 min.
 
 ## Offene Fragen an Ben
 
+Alle drei sind am 3.11. beantwortet, siehe den Abschnitt „Antworten Ben 3.11. und Umsetzung“.
+
+
 1. **M6:** Welche Definition geht in die Spezifikation v1 (pulsehawk.io/standard)? Die Seite wird bis Do 5.11. gebaut, die Frage sollte vorher geklärt sein. Mein Vorschlag steht oben. Die CSV enthält alle drei Varianten. Was nicht in die Spezifikation kommt, kann im Report als Anmerkung stehen oder entfallen.
 2. **M3:** Gezählt wird jeder Wechsel unserer Spitze, auch Tiefe 1. Das passiert bei einem gesunden Netz ab und zu, wenn zwei Blöcke gleichzeitig gefunden werden. Soll der Report alle Wechsel nennen oder erst ab Tiefe 2? Die CSV hat Zahl und größte Tiefe; die Zahl ab Tiefe 2 lässt sich aus dem Log ergänzen.
 3. **Grenzen der Zeitbasis:** M3 und M4 nehmen die Zeit unserer Wache (Ankunft), M1, M2 und M6 die Kopfzeiten. Die Fenstergrenzen weichen dadurch um Sekunden voneinander ab. Für v1 reicht das aus meiner Sicht; bitte bestätigen.
@@ -130,7 +207,75 @@ Im Testnet nach NU7 ergab das 1.541 min, 913 min und 800 min.
    ```
    Dabei kommen Log und Rohdaten ins Repo.
 
+## Antworten Ben 3.11. und Umsetzung
+
+Die drei offenen Fragen hat Ben am 3.11. beantwortet. Umgesetzt ist das in `scripts/wache/report_v1.py`, auf dem Branch `wache/report-v1-spec`.
+
+1. **M6, Spezifikation v1.0:**
+   - Gemessen wird das gleitende Mittel der Abstände der letzten 60 min, innerhalb ± 20 % des Ziels (bei 25 s also 20 bis 30 s).
+   - „Stabil“ ist der erste Zeitpunkt, ab dem dieses Mittel 60 min ohne Unterbrechung im Band bleibt. Der früheste mögliche Wert ist 60 min nach der Aktivierung, weil vorher keine volle Stunde vorliegt.
+   - Die CSV hat jetzt nur noch `zeit_bis_stabil` und `anteil_im_band`. Die beiden p50-Varianten sind entfallen.
+   - Die PulseHawk-Seite übernimmt genau diese Definition in pulsehawk.io/standard.
+2. **M3:**
+   - Jeder Wechsel unserer Spitze zählt, als Verteilung nach Tiefe: `reorgs_tiefe_1`, `reorgs_tiefe_2` und `reorgs_tiefe_3_plus`.
+   - Die Kopfzahl `reorgs_ab_tiefe_2` zählt erst ab Tiefe 2, wie der Alarm der Wache. Die Wache meldet Reorgs schon heute erst ab Tiefe 2 (`reorg.min_tiefe` 2).
+   - Dazu kommt weiter die größte Tiefe.
+3. **Zeitbasis:**
+   - M3 und M4 nehmen die Ankunftszeit bei der Wache, M1, M2 und M6 die Kopfzeiten der Blöcke.
+   - Das steht in der Anmerkung jeder dieser Zeilen und kommt im Report unter „Grenzen“.
+
+**Tests:**
+
+| Daten | zeit_bis_stabil | anteil_im_band |
+|---|---:|---:|
+| Testnet-Aktivierung 4.465.026, 72 h danach | 60,6 min | 82,9 % |
+| Testnet-Aufzeichnung vom 17.10. mit dem Log aus der Simulation | 60,2 min | 97,6 % |
+| Mainnet mit 75 s als Ziel, als Gegenprobe (gesunde Kette, weniger Blöcke je Stunde, also mehr Rauschen) | 263,6 min | 88,5 % |
+
+- Die Simulation mit 25 s ergab vorher 97,5 % im Band.
+- M3 mit dem Log aus der Simulation: Tiefe 1 einmal, Tiefe 2 einmal, Kopfzahl ab Tiefe 2 gleich 1.
+- `sha256sum -c` ist OK.
+
+## Nachtrag 3.11.: M6 an Spezifikation v1.0 angeglichen
+
+Kleiner Auftrag von Ben am 3.11., Frist Fr 6.11. 18:00. Nur `scripts/wache/report_v1.py` ändert sich, auf c2 nichts. Die Wache läuft unverändert weiter.
+
+**Was sich ändert:**
+1. **„Stabil“ zählt nur mit vollen 60 min:** Ein Zeitpunkt t gilt nur dann als stabil, wenn die 60 min danach ganz in den Daten liegen, also t + 3.600 s höchstens bis zur letzten Kopfzeit im Fenster reicht. Vorher zählte auch ein Band, das nur bis zum Datenende hielt. Die Prüfung steckt jetzt in einer eigenen Funktion `stabil_ab()`.
+2. **`zeit_bis_stabil` in Sekunden:** Ganzzahlig, Einheit `s`, gezählt ab der Kopfzeit des Aktivierungsblocks. Vorher stand der Wert in Minuten mit einer Nachkommastelle.
+3. **Selbsttest:** `python3 scripts/wache/report_v1.py --selbsttest`, gebaut wie der in `scripts/archiv.py`. Er gibt 0 zurück, wenn alles besteht, sonst 1.
+
+**Selbsttest, Ausgabe:**
+
+```
+ok   durchgehend im band: stabil ab dem ersten zeitpunkt
+ok   erst ab 600 s im band: stabil ab 600
+ok   band haelt 50 min bis datenende: nicht stabil
+ok   band haelt genau 60 min bis datenende: stabil
+ok   unterbrechung bei 1200 und 4800: stabil ab 4860
+ok   randwerte 20 und 30 zaehlen ins band
+ok   leerer verlauf
+ok   nie im band
+
+alle testfaelle bestanden
+```
+
+**Der alte Fehler ist damit abgedeckt:** Für den Fall „Band hält 50 min bis Datenende“ liefert die bisherige Logik t = 3.000 s. Die neue liefert „nie“.
+
+**Gegen echte Daten:**
+
+| Daten | zeit_bis_stabil | anteil_im_band |
+|---|---:|---:|
+| Testnet-Aktivierung 4.465.026, 72 h danach | 3.635 s (vorher 60,6 min) | 82,9 % |
+| Testnet-Aufzeichnung vom 17.10. mit Rohdaten | 3.612 s (vorher 60,2 min) | 97,6 % |
+
+Die Werte sind gleich geblieben, weil „stabil“ dort weit vor dem Datenende liegt. `sha256sum -c` ist OK.
+
+**Grenze:** Der Selbsttest läuft nicht in CI, weil das eine Änderung an einem Workflow wäre. Ich rufe ihn vor dem Report am 9.11. von Hand auf.
+
 ## Merge-Zeilen
 
 - [PR #241](https://github.com/neoalphavault-png/kaspa-pulse/pull/241) (`wache/report-v1`), Squash-Merge `7a1508f` am 2.11.2026. Ab jetzt sind auf `main` live: die Blockpause ab NU7 mit 300 und 600 s, die Proben bei 0, 6, 24 und 72 h, die Software der Peers in den Rohdaten, `roh_export.py` und `report_v1.py`. Auf c2 greift das erst nach `setup.sh wache zcash-mainnet`.
-- [PR #242](https://github.com/neoalphavault-png/kaspa-pulse/pull/242) (`wache/report-v1-c2`) ist offen. Ben prüft und merged.
+- [PR #242](https://github.com/neoalphavault-png/kaspa-pulse/pull/242) (`wache/report-v1-c2`), von Ben gemergt am 3.11.2026 (Merge-Commit `806cc5d`). Ab jetzt ist auf `main` live: `sync.sh` bringt nach `fenster_zu` die Rohdaten mit, erkennt die Zeile auch mit `\r\n` und endet nach dem Log-Push mit `exit 1`, wenn der Export abbricht. Auf c2 greift das nach `setup.sh wache zcash-mainnet`.
+- [PR #245](https://github.com/neoalphavault-png/kaspa-pulse/pull/245) (`wache/report-v1-spec`), Squash-Merge `f254ce7` am 3.11.2026. Ab jetzt ist auf `main` live: `report_v1.py` mit M6 nach Spezifikation v1.0 (1-h-Mittel ± 20 %, 60 min), M3 als Verteilung nach Tiefe mit Kopfzahl ab Tiefe 2 und der Zeitbasis in jeder Zeile.
+- [PR #248](https://github.com/neoalphavault-png/kaspa-pulse/pull/248) (`wache/report-v1-m6`), Squash-Merge `2f61e7c` am 3.11.2026. Ab jetzt ist auf `main` live: In M6 zählt „stabil“ nur mit vollen 60 min in den Daten, `zeit_bis_stabil` steht ganzzahlig in Sekunden, dazu `--selbsttest`.

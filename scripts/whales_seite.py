@@ -22,7 +22,9 @@ Startseite, unten stehen nur Impressum und Datenschutz (Pflicht). noindex: die
 Seite ist fuer die Anzeige da, nicht fuer die Suche.
 
 Formular, UTM-Felder und utm.js wie auf der Startseite (startseite.anmeldung,
-Brevo-Liste #16). Plausible-Block und Signup-Ereignis aus plausible.py.
+Brevo-Liste #16). Besuchszaehlung von Cloudflare Web Analytics vor </body>
+(web_analytics.py, seit 12.11.2026). Ein Anmelde-Ereignis gibt es nicht mehr,
+die Zuordnung zur Kampagne laeuft ueber die versteckten UTM-Felder fuer Brevo.
 
 AB EDITION 2 (Ben, 29.10.2026)
 54 Besucher aus der Anzeige, 0 Anmeldungen: die ganze Edition stand offen da.
@@ -57,7 +59,7 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "scripts"))
 
 import cheat_sheet  # noqa: E402
-import plausible  # noqa: E402
+import web_analytics  # noqa: E402
 import startseite  # noqa: E402
 
 ZIEL = REPO / "whales" / "index.html"
@@ -212,7 +214,6 @@ SKRIPT = """<script>
         .then(function (r) { return r.json(); })
         .then(function (j) {
           if (j && j.success) {
-            %s
             msg.textContent = "\\u2713 almost there. check your inbox and click the confirmation link.";
             msg.className = "msg ok"; form.reset();
           } else {
@@ -225,7 +226,7 @@ SKRIPT = """<script>
     });
   });
 })();
-</script>""" % plausible.SIGNUP.replace("FORM", "form")
+</script>"""
 
 
 def monat_name(p):
@@ -268,8 +269,7 @@ def seite_teaser(p):
     zu = "\n".join(karte_zu(k) for k in ks if k["n"] not in OFFEN)
     monat = monat_name(p)
     form = formular(FORM_TITEL % monat, FORM_TEXT)
-    return SEITE_KOPF % dict(titel=esc(TITEL), beschr=esc(BESCHREIBUNG), url=URL, stil=STIL,
-                             plausible=plausible.BLOCK) + """<section class="kopf v2">
+    return SEITE_KOPF % dict(titel=esc(TITEL), beschr=esc(BESCHREIBUNG), url=URL, stil=STIL) + """<section class="kopf v2">
   <h1>%(versprechen)s</h1>
   <p class="lead">the %(monat)s edition, numbers as of %(stand)s. 2 of the 8 are open here, each with its date and where it comes from.</p>
 </section>
@@ -283,7 +283,7 @@ def seite_teaser(p):
 %(form)s
 </section>
 """ % dict(versprechen=VERSPRECHEN, monat=monat, stand=startseite.d_kurz(stand), offen=offen, zu=zu,
-           form=form) + SEITE_FUSS % dict(skript=SKRIPT)
+           form=form) + SEITE_FUSS % dict(skript=SKRIPT, analytics=web_analytics.BLOCK)
 
 
 SEITE_KOPF = """<!DOCTYPE html>
@@ -299,7 +299,6 @@ SEITE_KOPF = """<!DOCTYPE html>
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="preload" href="/graphics/fonts/archivo-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>%(stil)s</style>
-%(plausible)s
 </head>
 <body>
 <!-- gebaut von scripts/whales_seite.py, nicht von hand aendern -->
@@ -313,6 +312,7 @@ SEITE_FUSS = """</main>
 </div>
 %(skript)s
 <script src="/utm.js" defer></script>
+%(analytics)s
 </body>
 </html>
 """
@@ -343,7 +343,6 @@ def seite_voll(p):
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="preload" href="/graphics/fonts/archivo-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>%(stil)s</style>
-%(plausible)s
 </head>
 <body>
 <!-- gebaut von scripts/whales_seite.py, nicht von hand aendern -->
@@ -363,9 +362,10 @@ def seite_voll(p):
 </div>
 %(skript)s
 <script src="/utm.js" defer></script>
+%(analytics)s
 </body>
 </html>
-""" % dict(versprechen=VERSPRECHEN, titel=esc(TITEL), beschr=esc(BESCHREIBUNG), url=URL, stil=STIL, plausible=plausible.BLOCK,
+""" % dict(versprechen=VERSPRECHEN, titel=esc(TITEL), beschr=esc(BESCHREIBUNG), url=URL, stil=STIL, analytics=web_analytics.BLOCK,
            stand=startseite.d_kurz(stand), form=formular(), lis=lis, skript=SKRIPT)
 
 
@@ -528,8 +528,9 @@ def selbsttest():
     ok("utm-felder mit id fuer utm.js", all('id="%s"' % i in s for i in
                                             ("utmSource", "utmMedium", "utmCampaign", "utmMediumRaw")))
     ok("utm.js eingebunden, capture.js nicht", '<script src="/utm.js" defer>' in s and "capture.js" not in s)
-    ok("plausible im kopf, signup im handler", plausible.BLOCK in s.split("</head>")[0]
-       and plausible.MARKE_SIGNUP in s and plausible.kopf_setzen(s) == s and plausible.signup_setzen(s) == s)
+    ok("cloudflare web analytics vor </body>, keine alte zaehlung, kein ereignis",
+       web_analytics.BLOCK in s.split("<body>")[1] and web_analytics.setzen(s) == s
+       and ("pl" + "ausible") not in s.lower() and "Signup" not in s)
     ok("logo fuehrt zur startseite", '<a class="logo" href="/"' in s)
     ok("e-mail-feld nach den guidelines", 'autocomplete="email" spellcheck="false"' in s)
     ok("noindex", 'content="noindex, follow"' in s)

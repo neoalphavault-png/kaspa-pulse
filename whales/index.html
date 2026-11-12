@@ -69,14 +69,6 @@ footer{padding:8px 0 40px;font:400 13px/1.7 "IBM Plex Mono",monospace;color:var(
 footer a{color:var(--muted);display:inline-block;padding:6px 0}
 footer a:hover{color:var(--ink)}
 </style>
-<!--AUTO:plausible-->
-<!-- Privacy-friendly analytics by Plausible -->
-<script async src="https://plausible.io/js/pa-o1R2wMI1l5uanq2mIzp0P.js"></script>
-<script>
-  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
-  plausible.init()
-</script>
-<!--/AUTO:plausible-->
 </head>
 <body>
 <!-- gebaut von scripts/whales_seite.py, nicht von hand aendern -->
@@ -169,7 +161,6 @@ footer a:hover{color:var(--ink)}
         .then(function (r) { return r.json(); })
         .then(function (j) {
           if (j && j.success) {
-            try { if (window.plausible) plausible("Signup", { props: { page: location.pathname, utm_campaign: ((form.querySelector('[name="UTM_CAMPAIGN"]') || document.getElementById("utmCampaign") || {}).value || "none") } }); } catch (kpE) {}
             msg.textContent = "\u2713 almost there. check your inbox and click the confirmation link.";
             msg.className = "msg ok"; form.reset();
           } else {
@@ -184,5 +175,8 @@ footer a:hover{color:var(--ink)}
 })();
 </script>
 <script src="/utm.js" defer></script>
+<!--AUTO:analytics-->
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "c995d86f86b541f7bfab7cb07d362bde"}'></script><!-- End Cloudflare Web Analytics -->
+<!--/AUTO:analytics-->
 </body>
 </html>

@@ -481,7 +481,7 @@ def run_selftest():
     check("luecke faellt auf den vortag", w2["covenant_tx"], 1200)
     check("und nennt den richtigen tag", t2["covenant_tx"], "2026-08-15")
 
-    # unplausibler wert wird verworfen, nicht gemeldet
+    # unstimmiger wert wird verworfen, nicht gemeldet
     def kaputt(pfad):
         d = _stub(pfad)
         if pfad.startswith("supply/inactive"):

@@ -702,19 +702,21 @@ def selbsttest():
        and "&mdash;" in tvl_block(tv2) and "1 November 2026" in tvl_block(tv2))
     # kcc-20.html (Ben, 02.11.2026)
     kd = kcc20_daten()
-    ok("kcc-20 stand und csv lesbar, 240 tokens", kd is not None and len(kd["tokens"]) == kd["stand"]["tokens"] == 240)
+    ok("kcc-20 stand und csv lesbar, tokens wie im stand", kd is not None and len(kd["tokens"]) == kd["stand"]["tokens"] > 0)
     if kd:
         teile = [kcc20_fakt(kd), kcc20_zahlen(kd), kcc20_tabelle(kd), kcc20_migration(kd)] + list(kcc20_faq(kd).values())
         alles = " ".join(re.sub(r"<[^>]+>", " ", t) for t in teile)
         ok("kcc-20 texte halten die textregeln", not [v for t in teile for v in
                                                     content_wache.text_verstoesse(re.sub(r"<[^>]+>", " ", t))])
         ok("kcc-20 eigene zaehlung heisst counted, mit stichzeit", "counted by Kaspa Pulse" in alles
-           and "26 October 2026, 12:00 UTC" in alles)
+           and kcc20_zeit(kd["stand"]["stichzeit_utc"]) in alles)
         ok("kcc-20 ohne preis und ohne mengen", not re.search(r"(?i)\$|\busd\b|\bprice[sd]?\b|basiseinheit", alles))
-        ok("kcc-20 tabelle nach haltern, groesster zuerst", [t["ticker"] for t in kd["tokens"][:2]] == ["THEN", "GUZA"]
-           and kcc20_tabelle(kd).count("<tr><td>") == 10)
+        h = [int(t["halter"]) for t in kd["tokens"]]
+        ok("kcc-20 tabelle nach haltern, groesster zuerst", h == sorted(h, reverse=True)
+           and kcc20_tabelle(kd).count("<tr><td>") == min(10, len(h)))
         ok("kcc-20 migration ehrlich, nichts zaehlbar am 29.10.", "no migration from KRC-20 to KCC-20 can be counted"
-           in kcc20_migration(kd) and "62 of the 240" in kcc20_migration(kd))
+           in kcc20_migration(kd) and "%s of the %s" % (ganz(kd["stand"]["krc20_gleicher_ticker"]), ganz(kd["stand"]["tokens"]))
+           in kcc20_migration(kd))
     print("%d fehler" % len(f))
     return 1 if f else 0
 

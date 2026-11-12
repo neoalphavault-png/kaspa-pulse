@@ -8,7 +8,9 @@ Variable KARUSSELL_LIVE=true (Ben, 25.10.2026). Karussells gehen ohne Musik raus
 Graph API kann keine anhaengen; bei Handposts darf Ben Pixabay-Musik dazulegen.
 
 ZWEI FORMATE
-  woche   Sa 11:00 "The week in numbers", 4 Seiten, Entwurf Sa 09:00.
+  woche   Sa 13:00 "The week in numbers", 4 Seiten, Entwurf Sa 11:00
+          (bis 5.11.2026 Sa 11:00, Ben: nach den Instagram-Insights, 13:00
+          statt 12:30, damit die Tagesgrafik um 12:30 immer zuerst kommt).
           Seite 1 ein Haken-Satz und die staerkste Zahl der Woche, die stolz
           macht. Seite 2 und 3 je eine weitere Wochenzahl mit einem Satz und
           zwei Balken, Vorwoche gegen Woche, ab null, jeder Wert am Balken.
@@ -82,7 +84,7 @@ BALKEN_UNTEN = 1100
 # #moderator-only, zum Termin postet scripts/karussell_post.py. Wochentag
 # 0 = montag.
 # schalter: einmalig Fr 6.11.2026 zum Reward Cut (Ben, 29.10.2026), look_motor.SCHALTER_TAG
-POSTZEIT = {"woche": (5, "11:00"), "story": (2, "18:00"), "meme": (5, "15:00"), "schalter": (4, "11:00")}
+POSTZEIT = {"woche": (5, "13:00"), "story": (2, "18:00"), "meme": (5, "15:00"), "schalter": (4, "11:00")}
 UHRZEIT = {a: "%s %s" % (("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")[t], hm) for a, (t, hm) in POSTZEIT.items()}
 # Die Caption nach den Content-Regeln (Ben, 25.10.2026): fuenf Bloecke,
 # Haken mit Zahl, ein Satz, eine Frage, die Newsletter-Zeile, hoechstens
@@ -367,40 +369,113 @@ FRAGEN = ("which of these numbers would you have guessed?",
           "did any of these surprise you?")
 
 
-def caption(haken, satz, frage, tags=TAGS):
-    """Die fuenf Bloecke in Bens Reihenfolge."""
-    return "\n\n".join([haken.rstrip(" .") + ".", satz.rstrip(" .") + ".", frage, ZEILE_BIO, tags])
+def caption(haken, satz, dritter="", tags=TAGS):
+    """Die Bloecke in Bens Reihenfolge: Haken, Satz, je nach Bauplan ein
+    dritter Satz oder die Frage, Newsletter-Zeile, Hashtags. Seit der
+    Stimm-Regel (Ben, 07.11.2026) ohne Pflichtfrage und mit normaler
+    Schreibung."""
+    import stimme
+    bloecke = [haken.rstrip(" .") + ".", satz.rstrip(" .") + "."]
+    d = (dritter or "").strip()
+    if d:
+        bloecke.append(d if d.endswith("?") else d.rstrip(" .") + ".")
+    return stimme.schreibung("\n\n".join(bloecke + [ZEILE_BIO, tags]))
 
 
-def caption_woche(ss, nummer=0):
-    zeilen = [x for x in ss if x["art"] in ("haken", "zahl")]
+def caption_nach_bauplan(plattform, fuer, b, stand=None):
+    """Waehlt den Bauplan der Caption nach der Stimm-Regel und baut sie.
+
+    b sind die Bausteine: "zahl_zuerst" (Haken mit der Zahl vorn; "haken"
+    ersetzt ihn vor einem dritten Satz, wenn gesetzt),
+    "beobachtung" (Haken mit dem Satz vorn), "satz" (Datum und Quelle),
+    "datum_voran" ((Haken, Satz) mit dem Datum vorn), "einordnung",
+    "pointe", "frage". Was fehlt, geht fuer diese Caption nicht. stand ist
+    der Tagesstand aus data/stimme-stand.json; er wird hier nur ergaenzt,
+    geschrieben wird beim Entwurf. Gibt (bauplan, caption)."""
+    import stimme
+
+    def bauen(plan):
+        if plan in ("beobachtung", "zahl_zuerst"):
+            return caption(b[plan], b["satz"]) if b.get(plan) else ""
+        if plan == "datum_voran":
+            return caption(*b[plan]) if b.get(plan) else ""
+        if plan in ("einordnung", "pointe", "frage"):
+            return caption(b.get("haken") or b["zahl_zuerst"], b["satz"], b[plan]) if b.get(plan) else ""
+        return ""
+    stand = stimme.lesen() if stand is None else stand
+    return stimme.waehlen(fuer, plattform, bauen, stand, lambda t, plan: caption_pruefen(t))
+
+
+def _quellen(zeilen):
     quellen = []
     for x in zeilen:
         q = "kaspalytics" if "kaspalytics" in x["quelle"] else x["quelle"].replace("source ", "")
         if q not in quellen:
             quellen.append(q)
+    return quellen
+
+
+def bausteine_woche(ss, nummer=0):
+    zeilen = [x for x in ss if x["art"] in ("haken", "zahl")]
+    quellen = _quellen(zeilen)
     erste = zeilen[0]
     weitere = " and ".join(x["kopf"].lower() for x in zeilen[1:])
-    return caption("%s %s" % (erste["zahl"], erste["satz"]),
-                   "the week in numbers%s, week to %s, source %s"
-                   % (", with %s inside" % weitere if weitere else "", tag(erste["woche"]),
-                      " and ".join(quellen)),
-                   FRAGEN[nummer % len(FRAGEN)])
+    innen = ", with %s inside" % weitere if weitere else ""
+    vorher = erste["fmt"](erste["werte"][0]) if erste.get("fmt") and erste.get("werte") else ""
+    return {"zahl_zuerst": "%s %s" % (erste["zahl"], erste["satz"]),
+            "beobachtung": "%s, %s" % (haken(erste), erste["zahl"]),
+            "satz": "the week in numbers%s, week to %s, source %s" % (innen, tag(erste["woche"]),
+                                                                     " and ".join(quellen)),
+            "datum_voran": ("in the week to %s, %s %s" % (tag(erste["woche"]), erste["zahl"], erste["satz"]),
+                            "the week in numbers%s, source %s" % (innen, " and ".join(quellen))),
+            "einordnung": ("in the week to %s it was %s" % (tag(erste["woche_vorher"]), vorher)
+                           if vorher and erste.get("woche_vorher") else ""),
+            "pointe": "week against week, every bar from zero",
+            "frage": FRAGEN[nummer % len(FRAGEN)]}
 
 
-def caption_story(st, ss):
+def caption_woche(ss, nummer=0, fuer=None, stand=None, mit_plan=False):
+    """Die Caption des Wochen-Karussells. Ohne fuer der Bauplan
+    zahl_zuerst (Probe und Selbsttest), mit fuer die Wahl nach der Stimm-Regel."""
+    b = bausteine_woche(ss, nummer)
+    if fuer is None:
+        erg = ("zahl_zuerst", caption(b["zahl_zuerst"], b["satz"]))
+    else:
+        erg = caption_nach_bauplan("karussell", fuer, b, stand)
+    return erg if mit_plan else erg[1]
+
+
+def bausteine_story(st, ss):
     # der haken traegt die erste zahl der story mit ihrer quelle
     gedanken = [x for x in ss if x["art"] == "gedanke"]
     mit_zahl = [x for x in gedanken if x.get("zahl")]
+    ohne_zahl = [x for x in gedanken if not x.get("zahl")]
     titel = st["titel"][len("the story of"):].strip()
+    b = {"frage": st.get("frage") or "what would you add to this story?",
+         "pointe": st.get("pointe") or "the whole story in %d pages" % len(gedanken),
+         "einordnung": ohne_zahl[0]["satz"] if ohne_zahl else ""}
     if mit_zahl:
         x = mit_zahl[0]
-        haken = "%s, %s" % (x["zahl"], x["satz"])
-        satz = "the story of %s, %s, full explainer on YouTube" % (titel, x["datum"].replace(" \u00b7 ", ", "))
+        datum, _, quelle = x["datum"].partition(" \u00b7 ")
+        b["zahl_zuerst"] = "%s, %s" % (x["zahl"], x["satz"])
+        b["beobachtung"] = "%s, %s" % (x["satz"], x["zahl"])
+        b["satz"] = "the story of %s, %s, full explainer on YouTube" % (titel, x["datum"].replace(" \u00b7 ", ", "))
+        if quelle:
+            b["datum_voran"] = ("on %s, %s, %s" % (datum, x["zahl"], x["satz"]),
+                                "the story of %s, %s, full explainer on YouTube" % (titel, quelle))
     else:
-        haken = st["titel"]
-        satz = "%s, full explainer on YouTube" % ss[0]["datum"].split(" \u00b7 ")[0]
-    return caption(haken, satz, st.get("frage") or "what would you add to this story?")
+        b["zahl_zuerst"] = st["titel"]
+        b["satz"] = "%s, full explainer on YouTube" % ss[0]["datum"].split(" \u00b7 ")[0]
+    return b
+
+
+def caption_story(st, ss, fuer=None, stand=None, mit_plan=False):
+    b = bausteine_story(st, ss)
+    if fuer is None:
+        erg = ("frage", caption(b["zahl_zuerst"], b["satz"], b["frage"]))
+    else:
+        erg = caption_nach_bauplan("karussell", fuer, b, stand)
+    return erg if mit_plan else erg[1]
 
 
 def text_pruefen(texte):
@@ -415,7 +490,7 @@ def text_pruefen(texte):
             fehler.append("%s in %r" % (f, t[:50]))
         for f in content_wache.text_verstoesse(t):
             fehler.append("%s in %r" % (f, t[:50]))
-        if re.search(r"\bcounted\b", t, re.I) and "source " in t:
+        if re.search(r"\bcounted\b", t, re.I) and re.search(r"\bsource ", t, re.I):
             fehler.append("counted bei einer fremden quelle in %r" % t[:50])
         if re.search(r"\b(?:than ever|ever before|all.time|record|people)\b", t, re.I):
             fehler.append("versprechen ueber die zahl hinaus in %r" % t[:50])
@@ -433,27 +508,34 @@ def caption_pruefen(c):
         fehler += text_pruefen([b])
     if re.search(r"https?://|www\.|\.com\b|\.org\b|youtu\.be|youtube\.com", c, re.I):
         fehler.append("link in der caption")
-    if len(bloecke) != 5:
-        return fehler + ["caption hat %d bloecke, richtig sind 5 (haken, satz, frage, newsletter, hashtags)"
-                         % len(bloecke)]
-    haken, satz, frage, bio, tags = bloecke
+    # stimm-regel (Ben, 07.11.2026): der dritte block (satz oder frage) haengt
+    # am bauplan, eine pflichtfrage gibt es nicht mehr
+    if len(bloecke) not in (4, 5):
+        return fehler + ["caption hat %d bloecke, richtig sind 4 oder 5 (haken, satz, [dritter satz "
+                         "oder frage], newsletter, hashtags)" % len(bloecke)]
+    haken, satz, bio, tags = bloecke[0], bloecke[1], bloecke[-2], bloecke[-1]
     if not re.search(r"\d", haken):
         fehler.append("haken ohne zahl")
     if haken.count(". ") or satz.count(". "):
         fehler.append("haken und satz sind je ein satz")
-    if not frage.endswith("?") or frage.count("?") != 1:
-        fehler.append("block 3 ist nicht genau eine frage")
+    if c.count("?") > 1:
+        fehler.append("mehr als eine frage in der caption")
+    if len(bloecke) == 5 and "?" in bloecke[2] and not bloecke[2].endswith("?"):
+        fehler.append("block 3 ist keine saubere frage")
     if bio != ZEILE_BIO:
         fehler.append("block 4 ist nicht die newsletter-zeile")
     t = tags.split()
     if not 1 <= len(t) <= MAX_TAGS or not all(re.fullmatch(r"#[a-z0-9]+", x) for x in t):
         fehler.append("block 5 hat %d hashtags oder anderes, erlaubt 1 bis %d" % (len(t), MAX_TAGS))
-    if "#" in " ".join(bloecke[:4]):
+    if "#" in " ".join(bloecke[:-1]):
         fehler.append("hashtag ausserhalb des letzten blocks")
     if not content_wache.DATUM.search(haken + " " + satz):
         fehler.append("caption ohne datum")
     if not re.search(r"\bsource\b|counted by kaspa pulse", haken + " " + satz, re.I):
         fehler.append("caption ohne quelle")
+    import stimme
+    if len(stimme.METHODE.findall(c)) > 1:
+        fehler.append("mehr als ein methoden-wort (counted, computed, source)")
     if len(c) > 2200:
         fehler.append("caption hat %d zeichen, erlaubt 2200" % len(c))
     return fehler
@@ -474,7 +556,15 @@ def naechster(wochentag, heute=None):
     return d.isoformat()
 
 
-def vorbereiten(art, fuer, history=None, story=None, teiltag=False):
+def vorbereiten(art, fuer, history=None, story=None, teiltag=False, stand=None):
+    """Seiten und Caption. Die Caption waehlt ihren Bauplan nach der
+    Stimm-Regel (Ben, 07.11.2026) gegen den Tagesstand; stand ist der aus
+    data/stimme-stand.json (ohne: die Datei). Der gewaehlte Bauplan steht
+    danach in vorbereiten.bauplan, der ergaenzte Stand in
+    vorbereiten.stimm_stand, geschrieben wird er erst beim Entwurf."""
+    import stimme
+    stand = stimme.lesen() if stand is None else stand
+    vorbereiten.stimm_stand = stand
     if art == "schalter":
         import look_motor
         try:
@@ -482,7 +572,7 @@ def vorbereiten(art, fuer, history=None, story=None, teiltag=False):
         except look_motor.Stopp as exc:
             raise Stopp("schalter, %s" % exc)
         ss = look_motor.schalter_seiten(z)
-        cap = look_motor.schalter_caption(z, ss)
+        vorbereiten.bauplan, cap = look_motor.schalter_caption(z, ss, fuer=fuer, stand=stand, mit_plan=True)
         fehler = text_pruefen(seiten_texte(ss) + look_motor.texte([(None, x["inhalt"], None) for x in ss]))
         fehler += caption_pruefen(cap)
         if fehler:
@@ -501,11 +591,11 @@ def vorbereiten(art, fuer, history=None, story=None, teiltag=False):
             rest = [x for x in ss if x["art"] not in ("haken", "zahl") or x.get("id") not in schon]
             if any(x["art"] in ("haken", "zahl") for x in rest):
                 ss = rest
-        cap = caption_woche(ss)
+        vorbereiten.bauplan, cap = caption_woche(ss, fuer=fuer, stand=stand, mit_plan=True)
     else:
         st = json.loads(Path(story or STORY).read_text(encoding="utf-8"))
         ss = seiten_story(st, fuer)
-        cap = caption_story(st, ss)
+        vorbereiten.bauplan, cap = caption_story(st, ss, fuer=fuer, stand=stand, mit_plan=True)
     fehler = text_pruefen(seiten_texte(ss)) + caption_pruefen(cap) + deckblatt_pruefen(ss)
     if fehler:
         raise Stopp("textpruefung, %s" % "; ".join(fehler))
@@ -605,6 +695,8 @@ def entwurf(art, fuer, out, senden=False, alle_looks=False, look="", speicher_pf
         ops_senden(art, fuer, lk, [b for b in bilder if b.stem.endswith("-" + lk)], cap)
         look_takt.raster_merken(sp, "karussell", fuer)
         look_takt.schreiben(sp, speicher_pfad)
+        import stimme
+        stimme.schreiben(vorbereiten.stimm_stand, heute=fuer)
     return ss, cap, bilder, lk
 
 
@@ -662,14 +754,36 @@ def selbsttest():
     c = caption_woche(ss)
     ok("caption nach den content-regeln (%s)" % "; ".join(caption_pruefen(c)), not caption_pruefen(c))
     bl = c.split("\n\n")
-    ok("fuenf bloecke, haken mit zahl, frage an dritter stelle, newsletter, hashtags",
-       len(bl) == 5 and re.search(r"\d", bl[0]) and bl[2].endswith("?") and bl[3] == ZEILE_BIO
-       and bl[4].startswith("#"))
+    ok("vier bloecke ohne frage, haken mit zahl, newsletter, hashtags",
+       len(bl) == 4 and re.search(r"\d", bl[0]) and "?" not in c and bl[2] == ZEILE_BIO
+       and bl[3].startswith("#"))
+    # stimm-regel (Ben, 07.11.2026): bauplan je tag, keiner zweimal, frage nur beim bauplan frage
+    import stimme
+    belegt = {"instagram": "zahl_zuerst", "x": "einordnung", "threads": "beobachtung", "discord": "pointe"}
+    for fuer in ("2026-11-07", "2026-11-14", "2026-11-21", "2026-11-28"):
+        st = {"tage": {fuer: dict(belegt)}}
+        plan, cw = caption_woche(ss, fuer=fuer, stand=st, mit_plan=True)
+        ok("woche %s, bauplan %s frei und gruen (%s)" % (fuer, plan, "; ".join(caption_pruefen(cw) +
+                                                                      stimme.regel_verstoesse(cw, plan))),
+           plan not in belegt.values() and not caption_pruefen(cw) and not stimme.regel_verstoesse(cw, plan)
+           and cw.count("?") == (1 if plan == "frage" else 0))
+    alle = set()
+    for plan in stimme.BAUPLAENE:
+        # alle anderen bauplaene sind am tag schon vergeben, nur plan ist frei
+        st = {"tage": {"2026-11-07": {"k%d" % i: p for i, p in enumerate(stimme.BAUPLAENE) if p != plan}}}
+        try:
+            alle.add(caption_woche(ss, fuer="2026-11-07", stand=st, mit_plan=True)[0])
+        except stimme.StimmeStopp:
+            pass
+    ok("die woche kann mindestens 5 bauplaene (%s)" % ", ".join(sorted(alle)), len(alle) >= 5)
+    ok("caption mit zwei methoden-woertern faellt auf",
+       bool(caption_pruefen(c.replace(ZEILE_BIO, "Counted by Kaspa Pulse. " + ZEILE_BIO))))
+    ok("caption ist gross geschrieben", not stimme.klein_verstoesse(c))
     ok("sechs hashtags fallen auf", bool(caption_pruefen(c.replace(TAGS, TAGS + " #a #b #c"))))
     ok("caption ohne quelle faellt auf", bool(caption_pruefen(c.replace("source ", "from "))))
     ok("deckblatt ohne diagramm", not deckblatt_pruefen(ss) and bool(deckblatt_pruefen(ss[1:])))
     ok("entwurf nennt postzeit und veto", veto_satz("woche", "2026-10-31")
-       .startswith("geht um 11:00 raus, Veto: karussell-stopp"))
+       .startswith("geht um 13:00 raus, Veto: karussell-stopp"))
     ok("caption mit link faellt auf", bool(caption_pruefen(c + " kaspapulse.com/ig")))
     ok("echtzeit faellt auf", bool(text_pruefen(["hashrate right now at 360 PH/s on 10 oct"])))
     ok("counted bei fremder quelle faellt auf", bool(text_pruefen(["week to 10 oct, counted · source defillama"])))

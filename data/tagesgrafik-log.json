@@ -536,6 +536,230 @@
      "verhaeltnis": 655.6
     }
    }
+  },
+  {
+   "datum": "2026-11-03",
+   "form": 5,
+   "grund": "rotation, 2 laeufe in 30 tagen, form 3 fuer die senkung am 2026-11-04 schon am 2026-11-02, gesperrt, form 10 fuer den 2026-11-04 reserviert, zahl des tages cut_countdown (vorab gerechnet), uebersprungen [3, 7]",
+   "messzeit_utc": "2026-11-03T06:30:48+00:00",
+   "looks": {
+    "instagram": "D-dunkel",
+    "threads": "A-teal",
+    "x": "A-teal",
+    "discord": "A-teal"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-04",
+     "bis": "2026-11-02",
+     "fees": 83271.14134151,
+     "emission": 53519894.869108774,
+     "verhaeltnis": 642.72
+    }
+   }
+  },
+  {
+   "datum": "2026-11-04",
+   "form": 10,
+   "grund": "tag der reward-senkung, zahl des tages cut_today (vorab gerechnet), uebersprungen [3]",
+   "messzeit_utc": "2026-11-04T06:30:52+00:00",
+   "looks": {
+    "instagram": "A-teal",
+    "threads": "D-hell",
+    "x": "D-hell",
+    "discord": "D-hell"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-05",
+     "bis": "2026-11-03",
+     "fees": 85530.42408921,
+     "emission": 53414051.22647911,
+     "verhaeltnis": 624.5
+    }
+   }
+  },
+  {
+   "datum": "2026-11-05",
+   "form": 2,
+   "grund": "entity-x-bewegung ab 500,000 KAS in 24 h",
+   "messzeit_utc": "2026-11-05T06:30:45+00:00",
+   "looks": {
+    "instagram": "D-hell",
+    "threads": "A-papier",
+    "x": "A-papier",
+    "discord": "A-papier"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-06",
+     "bis": "2026-11-04",
+     "fees": 86519.70503386,
+     "emission": 53357048.260917366,
+     "verhaeltnis": 616.7
+    }
+   }
+  },
+  {
+   "datum": "2026-11-06",
+   "form": 11,
+   "grund": "rotation, 3 laeufe in 30 tagen",
+   "messzeit_utc": "2026-11-06T06:30:53+00:00",
+   "looks": {
+    "instagram": "A-papier",
+    "threads": "D-dunkel",
+    "x": "D-dunkel",
+    "discord": "D-dunkel"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-07",
+     "bis": "2026-11-05",
+     "fees": 87930.2223021,
+     "emission": 53257145.165478565,
+     "verhaeltnis": 605.68
+    }
+   }
+  },
+  {
+   "datum": "2026-11-07",
+   "form": 8,
+   "grund": "rotation, 2 laeufe in 30 tagen, zahl des tages whale_weight (vorab gerechnet), uebersprungen [2, 7]",
+   "messzeit_utc": "2026-11-07T06:30:46+00:00",
+   "looks": {
+    "instagram": "A-papier",
+    "threads": "A-papier",
+    "x": "A-papier",
+    "discord": "A-papier"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-08",
+     "bis": "2026-11-06",
+     "fees": 85161.84027199,
+     "emission": 53157242.070039764,
+     "verhaeltnis": 624.19
+    }
+   }
+  },
+  {
+   "datum": "2026-11-08",
+   "form": 4,
+   "grund": "rotation, 3 laeufe in 30 tagen, zahl des tages mined_left (vorab gerechnet), uebersprungen [7, 10]",
+   "messzeit_utc": "2026-11-08T06:30:43+00:00",
+   "looks": {
+    "instagram": "A-teal",
+    "threads": "A-papier",
+    "x": "A-papier",
+    "discord": "A-papier"
+   },
+   "messwerte": {
+    "bps": 10.050157232206168,
+    "blockrate_sek": 600,
+    "daa": 586996797,
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-09",
+     "bis": "2026-11-07",
+     "fees": 84069.73078486,
+     "emission": 53057338.97460097,
+     "verhaeltnis": 631.11
+    }
+   }
+  },
+  {
+   "datum": "2026-11-09",
+   "form": 2,
+   "grund": "entity-x-bewegung ab 500,000 KAS in 24 h, zahl des tages hashrate_move (vorab gerechnet), uebersprungen [8]",
+   "messzeit_utc": "2026-11-09T06:30:44+00:00",
+   "looks": {
+    "instagram": "D-hell",
+    "threads": "D-dunkel",
+    "x": "D-dunkel",
+    "discord": "D-dunkel"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-10",
+     "bis": "2026-11-08",
+     "fees": 83754.11080583,
+     "emission": 52957435.87916217,
+     "verhaeltnis": 632.3
+    }
+   }
+  },
+  {
+   "datum": "2026-11-10",
+   "form": 9,
+   "grund": "rotation, 2 laeufe in 30 tagen, zahl des tages hashrate_move (vorab gerechnet), uebersprungen [7, 8]",
+   "messzeit_utc": "2026-11-10T06:30:48+00:00",
+   "looks": {
+    "instagram": "A-papier",
+    "threads": "A-teal",
+    "x": "A-teal",
+    "discord": "A-teal"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-11",
+     "bis": "2026-11-09",
+     "fees": 83926.49685411,
+     "emission": 52857532.78372338,
+     "verhaeltnis": 629.81
+    }
+   }
+  },
+  {
+   "datum": "2026-11-11",
+   "form": 3,
+   "grund": "rotation, 2 laeufe in 30 tagen, zahl des tages hashrate_move (vorab gerechnet), uebersprungen [7, 8]",
+   "messzeit_utc": "2026-11-11T06:30:46+00:00",
+   "looks": {
+    "instagram": "D-dunkel",
+    "threads": "D-hell",
+    "x": "D-hell",
+    "discord": "D-hell"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-12",
+     "bis": "2026-11-10",
+     "fees": 84670.40730575,
+     "emission": 52757629.688284576,
+     "verhaeltnis": 623.09
+    }
+   }
+  },
+  {
+   "datum": "2026-11-12",
+   "form": 6,
+   "grund": "rotation, 3 laeufe in 30 tagen, zahl des tages hashrate_move (vorab gerechnet), uebersprungen [7, 8]",
+   "messzeit_utc": "2026-11-12T06:30:40+00:00",
+   "looks": {
+    "instagram": "A-teal",
+    "threads": "A-papier",
+    "x": "A-papier",
+    "discord": "A-papier"
+   },
+   "messwerte": {
+    "daa": 590446407,
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-13",
+     "bis": "2026-11-11",
+     "fees": 84519.6228549,
+     "emission": 52657726.592845775,
+     "verhaeltnis": 623.02
+    }
+   }
   }
  ]
 }

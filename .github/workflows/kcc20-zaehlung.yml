@@ -8,7 +8,10 @@
 # Blake2b-Hash. Knoten-Logs nur in eine Datei, nie ausgegeben, nie hochgeladen.
 # Bestand und Tx mit Skripten bleiben im Runner; hochgeladen werden Summen je
 # Token und Tx-Listen ohne Skripte. Keine Wallet, keine Schluessel, keine Secrets.
-# Gestartet ueber kcc20/start.txt (push) oder von Hand.
+# Gestartet ueber kcc20/start.txt (push) oder von Hand, dazu taeglich um 12:05
+# UTC mit der Stichzeit 12:00 UTC des Tages (Ben, 03.11.2026). Veroeffentlicht
+# wird nur woechentlich; die taeglichen Laeufe legen nur Summen ab, auf dem
+# Branch in ABLAGE (nicht main).
 
 name: kcc20 zaehlung
 
@@ -19,6 +22,8 @@ on:
     paths:
       - kcc20/start.txt
   workflow_dispatch:
+  schedule:
+    - cron: "5 12 * * *"
 
 permissions:
   contents: read
@@ -28,6 +33,12 @@ concurrency:
   group: kcc20-zaehlung
   cancel-in-progress: false
 
+env:
+  # Ablage der Summen aller Laeufe (Ben, 03.11.2026), nie main.
+  ABLAGE: claude/ablage-kcc20
+  # Laeufe vor der Ablage, deren Tx-Listen das eigene Fenster lueckenlos machen.
+  SAAT_LAEUFE: "40308051997,41506728241,41595802303"
+
 jobs:
   zaehlen:
     runs-on: ubuntu-24.04
@@ -35,8 +46,40 @@ jobs:
     env:
       KASPA_TAG: v2.1.0
       APP: /mnt/kp/app
+    outputs:
+      stichzeit: ${{ steps.p.outputs.stichzeit }}
+      vergleich_ab: ${{ steps.p.outputs.vergleich_ab }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: parameter (taeglich automatisch, sonst kcc20/start.txt)
+        id: p
+        run: |
+          set -euo pipefail
+          lies() { sed -n "s/^$1=//p" kcc20/start.txt; }
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            tag=$(date -u +%Y-%m-%d)
+            stichzeit="${tag}T12:00:00Z"
+            ms=$(( $(date -u -d "$stichzeit" +%s) * 1000 ))
+            zeiten=$ms; spaeteste=$ms
+            vergleich_ab="$(date -u -d "$tag -1 day" +%Y-%m-%d)T12:00:00Z"
+            ablage=""
+            if git fetch -q origin "$ABLAGE" 2>/dev/null; then
+              ablage=$(git ls-tree --name-only FETCH_HEAD kcc20/laeufe/ 2>/dev/null | sed -n 's#.*-\([0-9]\{8,\}\)$#\1#p' | sort -n | tail -n 10 | paste -sd, -)
+            fi
+            vorlaeufe=$(echo "$SAAT_LAEUFE,$ablage" | tr ',' '\n' | grep -E '^[0-9]+$' | sort -un | paste -sd, -)
+          else
+            stichzeit=$(lies stichzeit); zeiten=$(lies stichzeiten_ms); spaeteste=$(lies spaeteste_ms)
+            vorlaeufe=$(lies vorlaeufe); vergleich_ab=$(lies vergleich_ab)
+          fi
+          seit=$(lies seit)
+          {
+            echo "KP_STICHZEIT=$stichzeit"; echo "KP_ZEITEN=$zeiten"; echo "KP_SPAETESTE=$spaeteste"
+            echo "KP_SEIT=$seit"; echo "KP_VORLAEUFE=$vorlaeufe"
+          } >> "$GITHUB_ENV"
+          echo "stichzeit=$stichzeit" >> "$GITHUB_OUTPUT"
+          echo "vergleich_ab=$vergleich_ab" >> "$GITHUB_OUTPUT"
+          echo "stichzeit $stichzeit, seit $seit, vergleich ab $vergleich_ab, vorlaeufe $vorlaeufe"
 
       - uses: actions/setup-python@v5
         with:
@@ -115,7 +158,7 @@ jobs:
 
       - name: warten bis synchron
         run: |
-          python3 scripts/kp_stichzeit_warten.py --stichzeit-ms "$(sed -n 's/^spaeteste_ms=//p' kcc20/start.txt)" --max-min 290 --vorlauf-min 15
+          python3 scripts/kp_stichzeit_warten.py --stichzeit-ms "$KP_SPAETESTE" --max-min 290 --vorlauf-min 15
           df -h /mnt | tail -n 1
           du -sh "$APP" | cut -f1
 
@@ -133,16 +176,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p /mnt/kp/vorher
-          for r in $(sed -n 's/^vorlaeufe=//p' kcc20/start.txt | tr ',' ' '); do
+          for r in $(echo "$KP_VORLAEUFE" | tr ',' ' '); do
             gh run download "$r" -n kcc20-zaehlung -D "/mnt/kp/vorher/$r" -R "$GITHUB_REPOSITORY" && echo "lauf $r geholt" || echo "lauf $r nicht geholt"
           done
 
       - name: bestand, tx und kcc20-zaehlung
         run: |
           set -uo pipefail
-          zeiten=$(sed -n 's/^stichzeiten_ms=//p' kcc20/start.txt)
-          stichzeit=$(sed -n 's/^stichzeit=//p' kcc20/start.txt)
-          seit=$(sed -n 's/^seit=//p' kcc20/start.txt)
+          zeiten="$KP_ZEITEN"
+          stichzeit="$KP_STICHZEIT"
+          seit="$KP_SEIT"
           mkdir -p /mnt/kp/aus
           versuch() {
             for d in $(ls -d "$APP"/kaspa-mainnet/datadir/consensus/consensus-* | sort -r); do
@@ -232,10 +275,22 @@ jobs:
           name: kcc20-zaehlung
           path: ${{ runner.temp }}/aus
       - name: summen und csv auf den branch
+        env:
+          KP_STICHZEIT: ${{ needs.zaehlen.outputs.stichzeit }}
+          KP_VERGLEICH_AB: ${{ needs.zaehlen.outputs.vergleich_ab }}
         run: |
           set -euo pipefail
           A="$RUNNER_TEMP/aus"
-          tag=$(sed -n 's/^stichzeit=//p' kcc20/start.txt | cut -c1-10)
+          tag=$(echo "$KP_STICHZEIT" | cut -c1-10)
+          # ablage als eigener arbeitsbaum, ohne die dateien von main
+          if git fetch -q origin "$ABLAGE" 2>/dev/null; then
+            git worktree add -q "$RUNNER_TEMP/ablage" FETCH_HEAD
+          else
+            git worktree add -q --detach "$RUNNER_TEMP/ablage" HEAD
+            git -C "$RUNNER_TEMP/ablage" checkout -q --orphan ablage-neu
+            git -C "$RUNNER_TEMP/ablage" rm -rq --cached . && find "$RUNNER_TEMP/ablage" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          fi
+          cd "$RUNNER_TEMP/ablage"
           Z="kcc20/laeufe/$tag-$GITHUB_RUN_ID"
           mkdir -p "$Z"
           for f in stand.json tx-stand.json kcc20-tokens.csv kcc20-zaehlung.json; do
@@ -245,16 +300,32 @@ jobs:
           if [ -f "$A/kcc20-namen.csv" ]; then
             python3 -c "import csv,sys; r=list(csv.DictReader(open(sys.argv[1]))); f=[k for k in (r[0].keys() if r else []) if k!='genesis_tx']; w=csv.DictWriter(open(sys.argv[2],'w',newline=''),fieldnames=f,extrasaction='ignore'); w.writeheader(); w.writerows(r)" "$A/kcc20-namen.csv" "$Z/kcc20-namen.csv"
           fi
-          if grep -rlE '\b[0-9a-f]{64}\b' "$Z" --include=vergleich.json; then echo "tx-id im vergleich"; exit 1; fi
-          # vergleich ab einem zeitpunkt aus der tx-liste, nur zahlen, keine tx-ids
-          python3 scripts/kcc20_vergleich.py "$A/kcc20-tx-liste.jsonl" "$(sed -n 's/^vergleich_ab=//p' kcc20/start.txt)" "$Z/vergleich.json"
+          # vergleich ab einem zeitpunkt aus der tx-liste: je art und quelle eine zahl, keine tx-id
+          python3 - "$A/kcc20-tx-liste.jsonl" "$KP_VERGLEICH_AB" "$Z/vergleich.json" <<'PY2'
+          import collections, datetime as dt, json, os, sys
+          liste, ab_text, out = sys.argv[1:4]
+          ab = int(dt.datetime.fromisoformat(ab_text.replace("Z", "+00:00")).timestamp() * 1000) if ab_text else 0
+          z = collections.Counter()
+          if os.path.exists(liste):
+              for zeile in open(liste, encoding="utf-8"):
+                  t = json.loads(zeile)
+                  if (t.get("t") or 0) >= ab:
+                      z["%s|%s" % (t.get("art"), t.get("quelle"))] += 1
+          erg = {"ab_utc": ab_text or None, "liste_gelesen": os.path.exists(liste), "je_art_und_quelle": dict(sorted(z.items()))}
+          json.dump(erg, open(out, "w", encoding="utf-8"), indent=1)
+          print(json.dumps(erg))
+          PY2
+          for f in vergleich.json tx-stand.json kcc20-zaehlung.json; do
+            if [ -f "$Z/$f" ] && grep -qE "[0-9a-f]{64}" "$Z/$f"; then echo "tx-id in $f gefunden, nichts gesichert"; exit 1; fi
+          done
           if grep -rlE 'kaspa:[a-z0-9]{40,}|([0-9]{1,3}\.){3}[0-9]{1,3}' "$Z"; then echo "adresse oder ip gefunden, nichts gesichert"; exit 1; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898309+github-actions[bot]@users.noreply.github.com"
           git add "$Z"
           git commit -q -m "kcc20: ergebnis lauf $GITHUB_RUN_ID ($tag), summen ohne adressen"
           for v in 1 2 3; do
-            git pull -q --rebase origin "$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && { echo "gesichert in $Z"; exit 0; }
+            if git fetch -q origin "$ABLAGE" 2>/dev/null; then git rebase -q FETCH_HEAD || { git rebase --abort; exit 1; }; fi
+            git push -q origin "HEAD:refs/heads/$ABLAGE" && { echo "gesichert in $ABLAGE:$Z"; exit 0; }
             sleep $((v * 3))
           done
           exit 1

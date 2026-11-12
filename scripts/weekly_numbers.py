@@ -134,7 +134,7 @@ SHOW_DELTA = {
 }
 
 # Bot-Regel 10: um jeden Wert ein Fenster. Lieber kein Post als ein falscher.
-PLAUSIBLE = {
+WERTEBEREICH = {
     "hashrate": (10.0, 10000.0),        # PH/s
     "block_reward": (0.0001, 500.0),    # KAS
     "mined_pct": (90.0, 100.0),
@@ -296,7 +296,7 @@ def fetch_price():
     for url, pick in chain:
         try:
             v = pick(http_json(url, tries=1))
-            lo, hi = PLAUSIBLE["price"]
+            lo, hi = WERTEBEREICH["price"]
             if lo <= v <= hi:
                 return v
         except Exception:  # noqa: BLE001
@@ -585,11 +585,11 @@ def assert_punctuation(text):
 
 # ------------------------------------------------------------------ pruefen --
 
-def check_plausible(values):
+def bereich_pruefen(values):
     for key, val in values.items():
-        if key not in PLAUSIBLE or val is None:
+        if key not in WERTEBEREICH or val is None:
             continue
-        lo, hi = PLAUSIBLE[key]
+        lo, hi = WERTEBEREICH[key]
         if not (lo <= float(val) <= hi):
             raise Stop("wert ausserhalb des fensters, %s = %s erlaubt %s bis %s"
                        % (key, val, lo, hi))
@@ -646,6 +646,43 @@ def load_json(path, default=None):
 SERIE_ALT = re.compile(r"\b19\s+nov(?:ember)?\s+2024\b", re.I)
 SERIE_RICHTIG = "24 november 2024"
 
+# KEINE KURSNAHEN WENN-DANN-SAETZE (Ben, 5.11.2026). Bis zur Ausgabe vom
+# 2.11. stand im read und im newsletter "a close above $0.035239 next week
+# would put it back above both lines". Das ist ein Kursziel in anderen
+# Worten. Ab der Ausgabe 8.11. steht dort nur noch der Wert der Linie, mit
+# Quelle: "the 50 week line sits at $0.035239, source kraken"
+# (linienwert_satz). Alte Ausgaben unter newsletter/ bleiben, wie sie sind.
+KURS_REGEL_AB = dt.date(2026, 11, 8)
+KURS_WENN_DANN = (
+    # "a close above $0.035", "a weekly close back above the line"
+    re.compile(r"\b(?:a|any|the next|another)\s+(?:weekly\s+|daily\s+)?close\s+(?:back\s+)?"
+               r"(?:above|below|under|over|beyond)\b", re.I),
+    # "if kaspa closes above ...", "if it holds $0.03"
+    re.compile(r"\bif\s+(?:kaspa|kas|it|the\s+(?:price|close))\s+(?:closes|holds|breaks|reclaims|clears)\b",
+               re.I),
+    # ein dollarbetrag und "would" im selben satz
+    re.compile(r"\$\s?\d[\d.,]*[^.!?]*\bwould\b|\bwould\b[^.!?]*\$\s?\d", re.I),
+)
+
+
+def kurs_wenn_dann(text):
+    """Die Saetze im text, die einen Kurs an eine Bedingung haengen."""
+    treffer = []
+    for satz in re.split(r"(?<=[.?!])\s+", text or ""):
+        if any(rx.search(satz) for rx in KURS_WENN_DANN):
+            treffer.append(satz.strip())
+    return treffer
+
+
+def linienwert_satz(wochen=50, labels=None, closes=None):
+    """Der reine Linienwert statt eines Wenn-dann-Satzes (Ben, 5.11.2026).
+    50 Wochen ist das einfache Mittel, 21 Wochen das exponentielle, dieselbe
+    Rechnung wie weekly_facts.py und kaspa-weekly.html. Wochenschluesse aus
+    data/kas-candles.json (kraken)."""
+    import weekly_facts
+    r = weekly_facts.linie(wochen, labels, closes)
+    return "the %d week line sits at $%.6f, source kraken" % (wochen, r["linie"])
+
 
 def read_input(path=None):
     data = load_json(path or INPUT_PATH)
@@ -664,6 +701,15 @@ def read_input(path=None):
     if len(read) < 40:
         raise Stop("the read fehlt oder ist zu kurz. das ist der teil der uns "
                    "von einem datenfeed unterscheidet, den schreibt kein bot")
+    wenn_dann = kurs_wenn_dann(read) if wd >= KURS_REGEL_AB else []
+    if wenn_dann:
+        try:
+            ersatz = "%s. %s." % (linienwert_satz(50), linienwert_satz(21))
+        except Exception as exc:                       # noqa: BLE001
+            ersatz = "the 50 week line sits at $x, source kraken (linie nicht berechnet, %s)" % exc
+        raise Stop("the read haengt den kurs an eine bedingung, das gibt es ab der ausgabe "
+                   "8.11.2026 nicht mehr (Ben, 5.11.2026). gefunden in: %r. statt dessen den "
+                   "reinen linienwert, zum beispiel: %s" % (wenn_dann[0][:120], ersatz))
     for satz in re.split(r"(?<=[.?!])\s+", read):
         if SERIE_ALT.search(satz) and "week" in satz.lower():
             raise Stop(
@@ -1166,7 +1212,7 @@ def main():
     v.update(inp["manual"])
     prev = previous_entry(history, inp["week"])
 
-    check_plausible({k: v.get(k) for k in PLAUSIBLE if k in v})
+    bereich_pruefen({k: v.get(k) for k in WERTEBEREICH if k in v})
     check_jumps(v, prev, force=force)
 
     price = fetch_price() if show_usd else None  # Regel 8, nur bei bedarf
@@ -1420,10 +1466,10 @@ def run_selftest():
 
     # 8 plausibilitaetsfenster
     raises("absurde hashrate stoppt",
-           lambda: check_plausible({"hashrate": 999999.0}))
+           lambda: bereich_pruefen({"hashrate": 999999.0}))
     raises("dormant ueber 100 stoppt",
-           lambda: check_plausible({"dormant_pct": 140.0}))
-    check_plausible({k: GOLD_NOW[k] for k in GOLD_NOW if k in PLAUSIBLE})
+           lambda: bereich_pruefen({"dormant_pct": 140.0}))
+    bereich_pruefen({k: GOLD_NOW[k] for k in GOLD_NOW if k in WERTEBEREICH})
     print("  ok   echte werte liegen im fenster")
 
     # 9 sprungbremse
@@ -1647,6 +1693,37 @@ def run_selftest():
     print("  ok   die tagesreihe darf weiter am 19. anfangen")
     bad2["read"] = "kurz"
     raises("fehlender read stoppt", lambda: read_input(write_input(bad2)))
+
+    # 12b keine kursnahen wenn-dann-saetze ab der ausgabe 8.11. (Ben, 5.11.2026)
+    alt_satz = ("the close sits 7.72% below the 50 week average. a close above $0.035239 "
+                "next week would put it back above both lines, 8.19% over this close.")
+    wd_alt = dict(good, week="2026-11-09", read=alt_satz)
+    raises("fall 1, wenn-dann-satz zum kurs ab 9.11. stoppt", lambda: read_input(write_input(wd_alt)))
+    try:
+        read_input(write_input(wd_alt))
+    except Stop as exc:
+        ok("fall 1, die meldung nennt den ersatz mit linienwert und quelle",
+           "the 50 week line sits at $" in str(exc) and "source kraken" in str(exc), str(exc)[:300])
+    ok("fall 1, vor der regel (ausgabe 2.11.) unveraendert lesbar",
+       read_input(write_input(dict(good, week="2026-11-02", read=alt_satz)))["read"] == alt_satz)
+    neu_satz = ("the close sits 7.72% below the 50 week average. the 50 week line sits at "
+                "$0.035239, source kraken. the 21 week line sits at $0.033950, source kraken.")
+    ok("fall 2, reiner linienwert geht durch",
+       read_input(write_input(dict(good, week="2026-11-09", read=neu_satz)))["read"] == neu_satz)
+    ok("wenn-dann erkennt auch if it closes, weekly close back above und would mit betrag", all(
+        kurs_wenn_dann(t) for t in ("if kaspa closes above the line it ends the run.",
+                                    "a weekly close back above the line ends 9 weeks.",
+                                    "at $0.04 the close would be 12% higher.")))
+    ok("wenn-dann laesst reine beschreibungen stehen", not kurs_wenn_dann(
+        "the close fell 9.65% and sits 7.72% below the 50 week average. it closed above the "
+        "21 week line for 3 weeks. hashrate read 368.09 PH/s."))
+    lab = ["w%02d" % i for i in range(60)]
+    cl = [0.03 + i * 0.0001 for i in range(60)]
+    ok("linienwert satz, 50 wochen einfaches mittel mit quelle",
+       linienwert_satz(50, lab, cl) == "the 50 week line sits at $%.6f, source kraken" % (sum(cl[10:]) / 50),
+       linienwert_satz(50, lab, cl))
+    ok("linienwert satz besteht die schreibregel", (assert_punctuation(linienwert_satz(21, lab, cl)) or True)
+       and not kurs_wenn_dann(linienwert_satz(21, lab, cl)))
     bad3 = json.loads(json.dumps(good))
     bad3["week"] = "10.08.2026"
     raises("falsches datumsformat stoppt", lambda: read_input(write_input(bad3)))

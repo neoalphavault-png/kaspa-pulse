@@ -87,6 +87,55 @@
    "modus": "scharf",
    "bild": "https://kaspapulse.com/ig/tagesgrafik-2026-11-02-form03-threads.jpg",
    "text": "kaspa cuts its block reward again in 3 days.\nnext step 4 nov 2026, 13:45 utc, from the emission schedule.\nhow often does that happen?"
+  },
+  {
+   "tag": "2026-11-03",
+   "container": "17893568010502428",
+   "media": "18495089998111624",
+   "modus": "scharf",
+   "bild": "https://kaspapulse.com/ig/tagesgrafik-2026-11-03-form05-threads.jpg",
+   "text": "kaspa miners earned 643 times more in new coins than in fees.\n30 days to 2 nov 2026, source kaspalytics fees and the emission schedule.\nso what pays the miners?"
+  },
+  {
+   "tag": "2026-11-05",
+   "container": "17894169666502428",
+   "media": "17975335962157821",
+   "modus": "scharf",
+   "bild": "https://kaspapulse.com/ig/tagesgrafik-2026-11-05-form02-threads.jpg",
+   "text": "one wallet holds about 1 in 18 of all KAS in circulation.\n1.23M KAS came into it on 4 nov 2026, 12:05 utc, counted on chain.\nhow many KAS is that?",
+   "nachgetragen": "2026-11-05, aus lauf 42061797050, text holt threads.py nachholen"
+  },
+  {
+   "tag": "2026-11-07",
+   "container": "17894794470502428",
+   "media": "17915858658546267",
+   "modus": "scharf",
+   "bild": "https://raw.githubusercontent.com/neoalphavault-png/kaspa-pulse/e93ab8602f2cec71053fa0bf81c8c36251cdfb34/ig/tagesgrafik-2026-11-07-form08-threads.jpg",
+   "text": "kaspa miners ran 350 quadrillion hashes every second.\ndaily average 6 nov 2026, source kaspa rest api.\nwhat was that work paid?"
+  },
+  {
+   "tag": "2026-11-09",
+   "container": "17895474435502428",
+   "media": "18134025113498850",
+   "modus": "scharf",
+   "bild": "https://raw.githubusercontent.com/neoalphavault-png/kaspa-pulse/2b78fac53333408d37bf0bb058170d9637b7ca65/ig/tagesgrafik-2026-11-09-form02-threads.jpg",
+   "text": "one wallet holds about 1 in 18 of all KAS in circulation.\n4.91M KAS came into it on 8 nov 2026, 07:27 utc, counted on chain.\nhow many KAS is that?"
+  },
+  {
+   "tag": "2026-11-11",
+   "container": "17896188801502428",
+   "media": "18113427566228346",
+   "modus": "scharf",
+   "bild": "https://raw.githubusercontent.com/neoalphavault-png/kaspa-pulse/723eb6ff9f096277a7355859c62869a3aa66bb7e/ig/tagesgrafik-2026-11-11-form03-threads.jpg",
+   "text": "Kaspa cuts its block reward again in 24 days.\nNext step 5 Dec 2026, 00:15 UTC, computed by Kaspa Pulse from the emission schedule."
+  },
+  {
+   "tag": "2026-11-12",
+   "container": "17896533606502428",
+   "media": "18043578644640804",
+   "modus": "scharf",
+   "bild": "https://raw.githubusercontent.com/neoalphavault-png/kaspa-pulse/298f16fb96a8e104650dd3e4a04afe3f50410731/ig/tagesgrafik-2026-11-12-form06-threads.jpg",
+   "text": "The Kaspa chain has passed 590 million blocks since Nov 2021.\nCounted by the network's DAA score, 12 Nov 2026, 06:30 UTC.\nOne counter, running since Nov 2021."
   }
  ]
 }

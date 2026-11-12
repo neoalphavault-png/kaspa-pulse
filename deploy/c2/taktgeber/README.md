@@ -22,7 +22,8 @@ sieben Stunden zu spät**. Gemessen am 09.10.2026 über vier Workflows:
 
 Alles mit einem Zeitfenster läuft damit ins Leere: die Tagesgrafik
 liefert nur zwischen 07:00 und 12:00 Berlin, der Instagram-Job nur
-zwischen 09:25 und 11:30, der Reel nur ±20 Minuten um die Short-Zeit.
+zwischen 12:25 und 14:30 (bis 5.11.2026 09:25 bis 11:30), der Reel nur
+±20 Minuten um seinen Termin.
 Die Grafiken der letzten Woche kamen deshalb alle aus Handläufen, und im
 Log steht es am 01.10. wörtlich: *„kein cron im fenster"*.
 
@@ -31,15 +32,15 @@ Log steht es am 01.10. wörtlich: *„kein cron im fenster"*.
 | Takt | wann (Berlin) | löst aus |
 | --- | --- | --- |
 | `takt-tagesgrafik` | täglich 07:30 | `tagesgrafik.yml` in kaspa-pulse |
-| `takt-instagram-bild` | täglich 09:30 | `tagesgrafik.yml`, Eingabe `instagram=trocken` |
-| `takt-reel` | Di–So 12:00, Mo 17:00 | `instagram-reel.yml` in pulse-studio |
+| `takt-instagram-bild` | täglich 12:30 (bis 5.11.2026 09:30) | `tagesgrafik.yml`, Eingabe `instagram=trocken` |
+| `takt-reel` | Di–So 15:30, Mo 17:00 (bis 5.11.2026 Di–So 12:00) | `instagram-reel.yml` in pulse-studio |
 | `takt-weeklynumbers` | Mo 18:40 | `weeklynumbers.yml` in kaspa-pulse |
 | `takt-cheat-sheet` | am 1. im Monat 09:00 | `cheat-sheet.yml` in kaspa-pulse |
 | `takt-number-of-day` | täglich 10:12 und 11:42 | `number-of-day.yml` in kaspa-pulse |
 | `takt-story-vorlage` | Mo–Sa 07:45 | `story-vorlage.yml` in kaspa-pulse, `senden=true`, nur nach #moderator-only |
 | `takt-ig-story-auto` | Di und Do 17:30 | `ig-story-auto.yml` in kaspa-pulse, `modus=takt`, scharf nur mit `IG_STORY_AUTO_LIVE=true` |
-| `takt-karussell-woche-entwurf` | Sa 09:00 | `karussell.yml`, `art=woche schritt=entwurf start=takt` |
-| `takt-karussell-woche` | Sa 11:00 | `karussell.yml`, `art=woche schritt=posten start=takt` |
+| `takt-karussell-woche-entwurf` | Sa 11:00 (bis 5.11.2026 09:00) | `karussell.yml`, `art=woche schritt=entwurf start=takt` |
+| `takt-karussell-woche` | Sa 13:00 (bis 5.11.2026 11:00) | `karussell.yml`, `art=woche schritt=posten start=takt` |
 | `takt-karussell-story-entwurf` | Mi 16:00 | `karussell.yml`, `art=story schritt=entwurf start=takt` |
 | `takt-karussell-story` | Mi 18:00 | `karussell.yml`, `art=story schritt=posten start=takt` |
 | `takt-karussell-meme-entwurf` | Sa 13:00 | `karussell.yml`, `art=meme schritt=entwurf start=takt` |
@@ -88,9 +89,8 @@ des Zielworkflows und schickt jede Eingabe mit, die der Lauf braucht.
 `ausloesen.sh` ist die eine Stelle dafür.
 
 **`Persistent=true`** holt einen verpassten Takt nach — außer bei zwei:
-beim Reel, weil ein Reel zwei Stunden nach dem Short kein Reel zur
-Short-Zeit ist und das Fälligkeitsfenster im Skript es ohnehin abweisen
-würde, und beim Mittwochs-Nachtrag, weil ein Bild nach 12:00 niemand mehr
+beim Reel, weil ein Reel zwei Stunden nach seinem Termin zu spät ist und
+das Fälligkeitsfenster im Skript es ohnehin abweisen würde, und beim Mittwochs-Nachtrag, weil ein Bild nach 12:00 niemand mehr
 abholt. Der Nachtrag hat dafür zwei Termine, 10:30 und 11:00.
 
 **Die cron-Einträge auf GitHub bleiben stehen**, mit einer Ausnahme. Sie
@@ -105,6 +105,26 @@ Ops-Meldung, ohne je zu veröffentlichen. Die vier `cron`-Zeilen kommen
 deshalb in einem eigenen PR in `pulse-studio` heraus. Der Reel hängt
 danach allein am Takt von c2.
 
+## Instagram-Zeiten nach den Insights (Ben, 5.11.2026)
+
+Die Follower sind Mo bis Sa 12 bis 18 Uhr und So 15 bis 18 Uhr aktiv. Die
+Feed-Bilder liefen um 09:30, bevor jemand da war. Seit dem 5.11.2026 gilt:
+
+| Takt | vorher | jetzt |
+| --- | --- | --- |
+| `takt-instagram-bild` | täglich 09:30 | täglich 12:30, Fenster in `instagram.py` 12:25 bis 14:30 |
+| `takt-reel` | Di–So 12:00, Mo 17:00 | Di–So 15:30, Mo 17:00 |
+| `takt-karussell-woche-entwurf` | Sa 09:00 | Sa 11:00 |
+| `takt-karussell-woche` | Sa 11:00 | Sa 13:00 (`karussell.POSTZEIT`), nicht gleichzeitig mit der Tagesgrafik 12:30 |
+
+Der Discord-Post der Tagesgrafik bleibt 07:30. Der YouTube-Short bleibt
+Di–So 12:00: **der Reel ist ab jetzt von der Short-Zeit entkoppelt.** Sein
+Fälligkeitsfenster steht in `pulse-studio`. Die passende Änderung macht dort
+die Sitzung „shorts builder“. Der neue Reel-Timer darf auf c2 erst nach
+deren Merge aktiv werden. Reihenfolge und Befehle stehen in
+`berichte/2026-11-05-instagram-zeiten.md`. Das Schalter-Karussell Fr 6.11.
+bleibt bei 09:00 und 11:00.
+
 ## Drei Schalter, die scharf stellen
 
 Jeder wird einzeln umgelegt:
@@ -112,7 +132,7 @@ Jeder wird einzeln umgelegt:
 | Schalter | wo | Wirkung |
 | --- | --- | --- |
 | `REEL_LIVE` | `takt.conf` auf c2 | **steht seit 13.10.2026 auf `true`.** `false` schickt den Reel-Lauf wieder trocken los. Zusätzlich muss die Repository-Variable `REELS_LIVE` gesetzt sein — zwei Schalter, wie abgesprochen. Erkannt werden dort `ja`, `yes`, `true` und `1` (`instagram_reel.py`, `lauf()`) |
-| `IG_LIVE` | `takt.conf` auf c2 | **steht seit 14.10.2026 auf `scharf`.** Schickt `instagram=scharf` an `tagesgrafik.yml`, der Lauf gilt dann als Takt und nicht als Handstart: Zeitfenster 09:25 bis 11:30 Berlin und Tagessperre gelten weiter. Zusätzlich muss die Repository-Variable `IG_MODUS` auf `scharf` stehen |
+| `IG_LIVE` | `takt.conf` auf c2 | **steht seit 14.10.2026 auf `scharf`.** Schickt `instagram=scharf` an `tagesgrafik.yml`, der Lauf gilt dann als Takt und nicht als Handstart: Zeitfenster 12:25 bis 14:30 Berlin und Tagessperre gelten weiter. Zusätzlich muss die Repository-Variable `IG_MODUS` auf `scharf` stehen |
 | `WN_DRY_RUN` | `takt.conf` auf c2 | `true` lässt Weekly Numbers nur rechnen. Auf GitHub ist `dry_run` ebenfalls auf `true` vorbelegt, ein Takt ohne dieses Feld postet also nie |
 
 ## Einrichtung
@@ -228,7 +248,7 @@ systemctl list-timers 'takt-karussell*' --no-pager
 ```
 
 Erwartet: sechs Zeilen. Die nächsten Termine stehen in UTC, im Winter eine
-Stunde vor Berlin (Sa 11:00 Berlin = 10:00 UTC).
+Stunde vor Berlin (Sa 13:00 Berlin = 12:00 UTC).
 
 Probe von Hand, ohne Takt (immer trocken, nichts wird veröffentlicht):
 Actions, `karussell`, Run workflow, `schritt=probe`.

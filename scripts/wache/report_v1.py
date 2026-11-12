@@ -4,16 +4,24 @@
 Spezifikation v1 (pulsehawk.io/standard), je Upgrade:
   M1  Blockabstaende p50, p90, p99 gegen das Ziel
   M2  laengste Luecke, Zahl der Luecken ueber 5 x Ziel
-  M3  Reorgs: Zahl und groesste Tiefe
+  M3  Reorgs: jeder Wechsel unserer Spitze mit Tiefe, als Verteilung
+      (Tiefe 1, 2, 3+); Kopfzahl ab Tiefe 2 (Ben 03.11.2026)
   M4  Kettenspaltung: Dauer
   M5  Peer-Probe bei Aktivierung, +24 h, +72 h (dazu +6 h), jeweils mit n
-  M6  Zeit bis stabil: gleitender 1-h-p50 innerhalb 10 % des Ziels
+  M6  Zeit bis stabil: gleitendes 1-h-Mittel der Abstaende innerhalb +-20 %
+      des Ziels, 60 min ohne Unterbrechung, die ganz in den Daten liegen;
+      zeit_bis_stabil in s, ganzzahlig (Spezifikation v1.0, Ben 03.11.2026;
+      der woertliche 1-h-p50 +-10 % traf eine gesunde Kette fast nie, siehe
+      berichte/2026-11-02-wache-report-v1.md)
   M7  erster Block ab der Aktivierungshoehe: Zeit und Abstand zu unserer Schaetzung
 
 Jede Zeile traegt ihre Art: counted (selbst gezaehlt), source (fremde Angabe,
 Quelle genannt), computed (gerechnet: Modell, Schaetzung, Differenz zu einer
 Schaetzung). Dazu Fenster in UTC und n. Die CSV bekommt eine Datei .sha256 im
 Format von sha256sum.
+
+Zeitbasis (Ben 03.11.2026, im Report unter Grenzen): M3 und M4 nach der
+Ankunftszeit bei der Wache, M1, M2 und M6 nach den Kopfzeiten der Bloecke.
 
 Fenster: t_akt ist die Kopfzeit des Blocks auf der Aktivierungshoehe.
   vor   Bloecke unter der Aktivierungshoehe ab t_akt - 24 h
@@ -49,7 +57,8 @@ from wache_kern import ts, utc  # noqa: E402
 SPALTEN = ["metrik", "kennzahl", "wert", "einheit", "art", "fenster_von_utc", "fenster_bis_utc", "n", "quelle",
            "anmerkung"]
 VOR_H, NACH_H = 24, 72
-STABIL_FENSTER_S, STABIL_HALTEN_S, STABIL_TOLERANZ = 3600, 3600, 0.10
+STABIL_FENSTER_S, STABIL_HALTEN_S, STABIL_TOLERANZ = 3600, 3600, 0.20
+KOPF_TIEFE = 2   # Kopfzahl und Alarm fuer M3 ab dieser Tiefe
 
 
 def quantil(s, q):
@@ -88,18 +97,71 @@ def abstaende(kette, hoehen):
     return [(h, kette[h][1] - kette[h - 1][1]) for h in hoehen if h - 1 in kette]
 
 
+def stabil_ab(verlauf, lo, hi, halten_s=STABIL_HALTEN_S):
+    """Erster Zeitpunkt t, ab dem jeder Wert in [t, t + halten_s] im Band [lo, hi] liegt.
+
+    verlauf: [(zeit, wert)] aufsteigend. Gezaehlt wird t nur, wenn die ganzen
+    halten_s danach in den Daten liegen (t + halten_s <= letzte Zeit); ein
+    Band, das nur bis zum Datenende haelt, zaehlt nicht (Spezifikation v1.0).
+    """
+    if not verlauf:
+        return None
+    ende = verlauf[-1][0]
+    drin = [lo <= w <= hi for _, w in verlauf]
+    for i, (t, _) in enumerate(verlauf):
+        if not drin[i] or t + halten_s > ende:
+            continue
+        j = i
+        while j < len(verlauf) and verlauf[j][0] <= t + halten_s and drin[j]:
+            j += 1
+        if j == len(verlauf) or verlauf[j][0] > t + halten_s:
+            return t
+    return None
+
+
+def selbsttest():
+    f = []
+
+    def ok(name, bed, info=""):
+        print("%-4s %s%s" % ("ok" if bed else "FEHL", name, ("  " + str(info)) if not bed and info else ""))
+        if not bed:
+            f.append(name)
+
+    v = [(t, 25.0) for t in range(0, 7201, 60)]
+    ok("durchgehend im band: stabil ab dem ersten zeitpunkt", stabil_ab(v, 20, 30) == 0)
+    v = [(t, 40.0 if t < 600 else 25.0) for t in range(0, 7201, 60)]
+    ok("erst ab 600 s im band: stabil ab 600", stabil_ab(v, 20, 30) == 600)
+    v = [(t, 40.0 if t < 3000 else 25.0) for t in range(0, 6001, 60)]
+    ok("band haelt 50 min bis datenende: nicht stabil", stabil_ab(v, 20, 30) is None, stabil_ab(v, 20, 30))
+    v = [(t, 40.0 if t < 2400 else 25.0) for t in range(0, 6001, 60)]
+    ok("band haelt genau 60 min bis datenende: stabil", stabil_ab(v, 20, 30) == 2400, stabil_ab(v, 20, 30))
+    v = [(t, 40.0 if t in (1200, 4800) else 25.0) for t in range(0, 9001, 60)]
+    ok("unterbrechung bei 1200 und 4800: stabil ab 4860", stabil_ab(v, 20, 30) == 4860, stabil_ab(v, 20, 30))
+    ok("randwerte 20 und 30 zaehlen ins band", stabil_ab([(0, 20.0), (1800, 30.0), (3600, 25.0)], 20, 30) == 0)
+    ok("leerer verlauf", stabil_ab([], 20, 30) is None)
+    ok("nie im band", stabil_ab([(t, 50.0) for t in range(0, 7201, 60)], 20, 30) is None)
+    print("")
+    print("%d fehler" % len(f) if f else "alle testfaelle bestanden")
+    return 1 if f else 0
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--kette", required=True)
-    ap.add_argument("--koepfe", required=True)
+    ap.add_argument("--selbsttest", action="store_true")
+    ap.add_argument("--kette")
+    ap.add_argument("--koepfe")
     ap.add_argument("--roh")
-    ap.add_argument("--aus", required=True)
+    ap.add_argument("--aus")
     ap.add_argument("--hoehe", type=int, help="Aktivierungshoehe statt der aus der Konfiguration (Test)")
     ap.add_argument("--schaetzung", help="Schaetzung UTC statt erwartet_utc (Test)")
     ap.add_argument("--band", nargs=2, help="90-%%-Band UTC statt band_utc (Test)")
     ap.add_argument("--quelle-hoehe", default="ZIP 259; Zebra 7.0.0 zebra-chain/src/parameters/constants.rs",
                     help="Beleg der Aktivierungshoehe")
     args = ap.parse_args()
+    if args.selbsttest:
+        return selbsttest()
+    if not (args.kette and args.koepfe and args.aus):
+        ap.error("--kette, --koepfe und --aus sind noetig")
 
     cfg = json.load(open(args.kette))
     akt = args.hoehe or cfg["aktivierung"]["hoehe"]
@@ -130,7 +192,7 @@ def main():
         von, bis = kette[hoehen[0]][1], kette[hoehen[-1]][1]
         fenster[teil] = (von, bis, ab, ziel)
         n = len(w)
-        hb = f"hoehen {hoehen[0]} bis {hoehen[-1]}"
+        hb = f"hoehen {hoehen[0]} bis {hoehen[-1]}; Zeitbasis: Kopfzeiten"
         zeile("M1", f"ziel_{teil}", ziel, "s", "source", von, bis, "", cfg.get("_ziel_quelle", "ZIP 208, ZIP 218"),
               "Zielabstand")
         for q, nm, faktor in ((0.5, "p50", math.log(2)), (0.9, "p90", math.log(10)), (0.99, "p99", math.log(100))):
@@ -142,10 +204,10 @@ def main():
               "Kopfzeit kleiner als beim Vorgaenger")
         h_max, l_max = max(ab, key=lambda z: z[1])
         zeile("M2", f"laengste_luecke_{teil}", l_max, "s", "counted", von, bis, n, quelle_k,
-              f"vor Block {h_max}, Kopfzeit {utc(kette[h_max][1])} UTC")
+              f"vor Block {h_max}, Kopfzeit {utc(kette[h_max][1])} UTC; Zeitbasis: Kopfzeiten")
         ueber = sum(1 for x in w if x > 5 * ziel)
         zeile("M2", f"luecken_ueber_5x_ziel_{teil}", ueber, "abstaende", "counted", von, bis, n, quelle_k,
-              f"Abstand ueber {5 * ziel} s")
+              f"Abstand ueber {5 * ziel} s; Zeitbasis: Kopfzeiten")
         zeile("M2", f"luecken_ueber_5x_ziel_{teil}_modell", r(n * math.exp(-5), 1), "abstaende", "computed",
               von, bis, n, "", "n x e^-5 bei exponentiellen Abstaenden")
 
@@ -179,10 +241,15 @@ def main():
             continue
         ro = [z for z in log if z["signal"] == "reorg_gesehen" and im(z["utc"], von, bis_log)]
         tiefen = [int(float(z["wert"])) for z in ro]
-        zeile("M3", f"reorgs_{teil}", len(tiefen), "reorgs", "counted", von, bis, len(ab), quelle_w,
-              "jeder Wechsel unserer Spitze auf einen anderen Zweig, auch Tiefe 1; n = Bloecke im Fenster")
+        zb = "Zeitbasis: Ankunft bei der Wache"
+        zeile("M3", f"reorgs_ab_tiefe_{KOPF_TIEFE}_{teil}", sum(1 for x in tiefen if x >= KOPF_TIEFE), "reorgs",
+              "counted", von, bis, len(ab), quelle_w,
+              f"Kopfzahl: Wechsel unserer Spitze mit Tiefe ab {KOPF_TIEFE} (wie der Alarm); n = Bloecke im Fenster; {zb}")
+        for name_t, pruef in (("1", lambda x: x == 1), ("2", lambda x: x == 2), ("3_plus", lambda x: x >= 3)):
+            zeile("M3", f"reorgs_tiefe_{name_t}_{teil}", sum(1 for x in tiefen if pruef(x)), "reorgs", "counted",
+                  von, bis, len(tiefen), quelle_w, f"Verteilung aller Wechsel unserer Spitze; n = alle Wechsel; {zb}")
         zeile("M3", f"reorg_max_tiefe_{teil}", max(tiefen) if tiefen else 0, "bloecke", "counted", von, bis,
-              len(tiefen), quelle_w, "")
+              len(tiefen), quelle_w, zb)
         # M4: Episoden des Signals kettenspaltung (Alarm bis Entwarnung)
         eps, start = [], None
         for z in log:
@@ -201,9 +268,9 @@ def main():
         defi = (f"Signal kettenspaltung: zwei Zweige ab der Aktivierungshoehe, je mindestens {k['min_peers']} Peers, "
                 f"beide tiefer als {k['min_tiefe']} Bloecke")
         zeile("M4", f"kettenspaltung_dauer_{teil}", round(sum(b - a for a, b in eps)), "s", "counted", von, bis,
-              len(eps), quelle_w, defi + "; n = Episoden")
+              len(eps), quelle_w, defi + "; n = Episoden; " + zb)
         zeile("M4", f"kettenspaltung_laengste_{teil}", round(max((b - a for a, b in eps), default=0)), "s",
-              "counted", von, bis, len(eps), quelle_w, "")
+              "counted", von, bis, len(eps), quelle_w, zb)
 
     # M5 Peer-Proben
     proben = zustand.get("proben", {})
@@ -223,40 +290,25 @@ def main():
         von, bis, ab, ziel = fenster["nach"]
         punkte = sorted((kette[h][1], x) for h, x in ab)
         zeiten = [t for t, _ in punkte]
-        p50, mittel = [], []
+        verlauf = []
         for i, (t, _) in enumerate(punkte):
             if t < von + STABIL_FENSTER_S:
                 continue
             a = bisect.bisect_right(zeiten, t - STABIL_FENSTER_S)
             w60 = [x for _, x in punkte[a:i + 1]]
-            p50.append((t, quantil(w60, 0.5)))
-            mittel.append((t, sum(w60) / len(w60)))
-        # "ziel" ist die Spezifikation woertlich. Bei exponentiellen Abstaenden
-        # liegt der Median aber bei ln2 x Ziel (25 s: 17,3 s); deshalb zum
-        # Vergleich "modell" und das 60-min-Mittel gegen das Ziel (Frage an Ben).
-        for bez, verlauf, ref, art_ref in (("ziel", p50, ziel, "p50 gegen Ziel"),
-                                           ("modell", p50, math.log(2) * ziel, "p50 gegen ln2 x Ziel"),
-                                           ("mittel", mittel, ziel, "Mittel gegen Ziel")):
-            lo, hi = ref * (1 - STABIL_TOLERANZ), ref * (1 + STABIL_TOLERANZ)
-            drin = [lo <= p <= hi for _, p in verlauf]
-            stabil = None
-            for i, (t, _) in enumerate(verlauf):
-                if not drin[i]:
-                    continue
-                j = i
-                while j < len(verlauf) and verlauf[j][0] <= t + STABIL_HALTEN_S and drin[j]:
-                    j += 1
-                if j == len(verlauf) or verlauf[j][0] > t + STABIL_HALTEN_S:
-                    stabil = t
-                    break
-            anm = (f"gleitend ueber die Abstaende der letzten 60 min, {art_ref} = {round(ref, 2)} s "
-                   f"+-10 %; stabil = erster Zeitpunkt, ab dem er 60 min ohne Unterbrechung im Band bleibt")
-            zeile("M6", f"zeit_bis_stabil_{bez}", round((stabil - von) / 60, 1) if stabil else "nie", "min",
-                  "counted", von, bis, len(verlauf), quelle_k, anm + (f"; stabil ab {utc(stabil)} UTC" if stabil else ""))
-            zeile("M6", f"anteil_im_band_{bez}", r(100 * sum(drin) / len(drin) if drin else None), "%", "counted",
-                  von, bis, len(verlauf), quelle_k, "Anteil der Zeitpunkte, an denen der gleitende p50 im Band liegt")
-        zeile("M6", "p50_modell", r(math.log(2) * ziel, 2), "s", "computed", von, bis, "", "",
-              "Median exponentieller Abstaende mit Mittel = Ziel")
+            verlauf.append((t, sum(w60) / len(w60)))
+        lo, hi = ziel * (1 - STABIL_TOLERANZ), ziel * (1 + STABIL_TOLERANZ)
+        drin = [lo <= m <= hi for _, m in verlauf]
+        stabil = stabil_ab(verlauf, lo, hi)
+        anm = (f"Spezifikation v1.0: gleitendes Mittel der Abstaende der letzten 60 min innerhalb {round(lo, 1)} "
+               f"bis {round(hi, 1)} s (Ziel {ziel} s +-20 %); stabil = erster Zeitpunkt, ab dem es 60 min ohne "
+               f"Unterbrechung im Band bleibt, fruehestens 60 min nach der Aktivierung; die 60 min danach muessen "
+               f"ganz in den Daten liegen; Sekunden ab der Kopfzeit des Aktivierungsblocks; n = Zeitpunkte ab dann; "
+               f"Zeitbasis: Kopfzeiten")
+        zeile("M6", "zeit_bis_stabil", int(round(stabil - von)) if stabil is not None else "nie", "s", "counted",
+              von, bis, len(verlauf), quelle_k, anm + (f"; stabil ab {utc(stabil)} UTC" if stabil is not None else ""))
+        zeile("M6", "anteil_im_band", r(100 * sum(drin) / len(drin) if drin else None), "%", "counted",
+              von, bis, len(verlauf), quelle_k, "Anteil der Zeitpunkte, an denen das gleitende Mittel im Band liegt")
 
     # M7 erster Block ab der Aktivierungshoehe
     h_akt, t_kopf = kette[akt]
@@ -304,4 +356,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

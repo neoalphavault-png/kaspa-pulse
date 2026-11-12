@@ -1,95 +1,5 @@
 [
   {
-    "date": "2026-09-04",
-    "candidate": "cut_today",
-    "hashrate": 312.696015,
-    "tvl_total": 1390193.831876,
-    "mined_pct": 96.435839,
-    "price_kas": 0.029548,
-    "whale_kas": 1520413796.44481
-  },
-  {
-    "date": "2026-09-05",
-    "candidate": "mined_left",
-    "hashrate": 330.707196,
-    "tvl_total": 1423630.556431,
-    "mined_pct": 96.44224,
-    "price_kas": 0.029981,
-    "whale_kas": 1520413796.44481
-  },
-  {
-    "date": "2026-09-06",
-    "candidate": "blocks_per_day",
-    "hashrate": 327.48046,
-    "tvl_total": 1385403.666574,
-    "mined_pct": 96.448894,
-    "price_kas": 0.03034,
-    "whale_kas": 1520413796.44481
-  },
-  {
-    "date": "2026-09-07",
-    "candidate": "tvl_move",
-    "hashrate": 329.79262,
-    "tvl_total": 1385403.666574,
-    "mined_pct": 96.456039,
-    "price_kas": 0.036791,
-    "whale_kas": 1520413796.44481
-  },
-  {
-    "date": "2026-09-08",
-    "candidate": "emission_vs_btc",
-    "hashrate": 321.934901,
-    "tvl_total": 1583661.0259,
-    "mined_pct": 96.46223,
-    "price_kas": 0.034853,
-    "whale_kas": 1520413796.44481
-  },
-  {
-    "date": "2026-09-09",
-    "candidate": "weekly_line",
-    "hashrate": 328.4896,
-    "tvl_total": 1677585.281475,
-    "mined_pct": 96.468217,
-    "price_kas": 0.035554,
-    "whale_kas": 1520413796.44481
-  },
-  {
-    "date": "2026-09-10",
-    "candidate": "sats_divergence",
-    "hashrate": 332.261517,
-    "tvl_total": 1783587.479822,
-    "mined_pct": 96.475386,
-    "price_kas": 0.037681,
-    "whale_kas": 1520413796.44481
-  },
-  {
-    "date": "2026-09-11",
-    "candidate": "whale_weight",
-    "hashrate": 337.997544,
-    "tvl_total": 1644860.422081,
-    "mined_pct": 96.48082,
-    "price_kas": 0.035144,
-    "whale_kas": 1520413797.44481
-  },
-  {
-    "date": "2026-09-12",
-    "candidate": "hashrate_consequence",
-    "hashrate": 339.084821,
-    "tvl_total": 1602000.167044,
-    "mined_pct": 96.487374,
-    "price_kas": 0.035478,
-    "whale_kas": 1520413797.44481
-  },
-  {
-    "date": "2026-09-13",
-    "candidate": "mined_left",
-    "hashrate": 339.7166,
-    "tvl_total": 1593066.36326,
-    "mined_pct": 96.493945,
-    "price_kas": 0.034425,
-    "whale_kas": 1520413797.44481
-  },
-  {
     "date": "2026-09-14",
     "candidate": "hashrate_move",
     "hashrate": 328.195101,
@@ -556,5 +466,105 @@
     "price_kas": 0.032617,
     "whale_kas": 1542974287.835693,
     "circ": 27788962742.698578
+  },
+  {
+    "date": "2026-11-03",
+    "candidate": "cut_countdown",
+    "hashrate": 348.964824,
+    "tvl_total": 799075.726212,
+    "mined_pct": 96.818234,
+    "price_kas": 0.031195,
+    "whale_kas": 1542974291.035693,
+    "circ": 27790740360.24706
+  },
+  {
+    "date": "2026-11-04",
+    "candidate": "cut_today",
+    "hashrate": 359.473429,
+    "tvl_total": 778473.771713,
+    "mined_pct": 96.824438,
+    "price_kas": 0.032081,
+    "whale_kas": 1546142060.724447,
+    "circ": 27792521150.458454
+  },
+  {
+    "date": "2026-11-05",
+    "candidate": "none",
+    "hashrate": 351.811554,
+    "tvl_total": 806023.461559,
+    "mined_pct": 96.830363,
+    "price_kas": 0.03217,
+    "whale_kas": 1547368322.458918,
+    "circ": 27794221996.44347
+  },
+  {
+    "date": "2026-11-06",
+    "candidate": "none",
+    "hashrate": 348.05434,
+    "tvl_total": 752913.125396,
+    "mined_pct": 96.836251,
+    "price_kas": 0.030397,
+    "whale_kas": 1547368322.458918,
+    "circ": 27795911927.376083
+  },
+  {
+    "date": "2026-11-07",
+    "candidate": "whale_weight",
+    "hashrate": 355.091848,
+    "tvl_total": 753082.90571,
+    "mined_pct": 96.842069,
+    "price_kas": 0.029946,
+    "whale_kas": 1547368323.458918,
+    "circ": 27797581934.52291
+  },
+  {
+    "date": "2026-11-08",
+    "candidate": "mined_left",
+    "hashrate": 345.798782,
+    "tvl_total": 647704.977817,
+    "mined_pct": 96.847918,
+    "price_kas": 0.029563,
+    "whale_kas": 1552275723.339897,
+    "circ": 27799260972.13
+  },
+  {
+    "date": "2026-11-09",
+    "candidate": "hashrate_move",
+    "hashrate": 320.549445,
+    "tvl_total": 640189.651082,
+    "mined_pct": 96.85377,
+    "price_kas": 0.028689,
+    "whale_kas": 1556530013.867897,
+    "circ": 27800940490.036858
+  },
+  {
+    "date": "2026-11-10",
+    "candidate": "hashrate_move",
+    "hashrate": 335.423934,
+    "tvl_total": 698595.06761,
+    "mined_pct": 96.859627,
+    "price_kas": 0.030205,
+    "whale_kas": 1566051025.302408,
+    "circ": 27802621892.20651
+  },
+  {
+    "date": "2026-11-11",
+    "candidate": "hashrate_move",
+    "hashrate": 325.260973,
+    "tvl_total": 633465.906123,
+    "mined_pct": 96.865483,
+    "price_kas": 0.029556,
+    "whale_kas": 1566051025.302408,
+    "circ": 27804302637.120403
+  },
+  {
+    "date": "2026-11-12",
+    "candidate": "hashrate_move",
+    "hashrate": 327.848771,
+    "tvl_total": 603155.628346,
+    "mined_pct": 96.871326,
+    "price_kas": 0.029039,
+    "whale_kas": 1566051025.302408,
+    "circ": 27805980010.195614
   }
 ]

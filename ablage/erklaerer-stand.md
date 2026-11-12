@@ -1,86 +1,104 @@
 # Stand Donnerstags-Erklärer
 
-**Lauf vom 28.10.2026, 18:45 Berliner Zeit.** Diese Datei wird bei jedem Lauf
+**Lauf vom 11.11.2026, 18:47 Berliner Zeit.** Diese Datei wird bei jedem Lauf
 vollständig ersetzt. Sie trägt nur den Kopfteil der Meldung an Ben, keine
 Skripte, keine Titel, keine Uploadfelder, weil dieses Repo öffentlich ist.
 
 ## Thema
 
-Wann ist eine Münze wirklich verloren. Der Erklärer für Do 29.10.2026
-beantwortet die häufigste Zuschauerfrage aus dem Uhrwerk-Bericht vom
-26.10.2026 und zeigt an unserer eigenen Wochenreihe, dass der ruhende Haufen
-in beide Richtungen wandert.
+Niemand zählt die Maschinen, die Kaspa minen. Der Erklärer für Do 12.11.2026
+zeigt, dass die Hashrate keine Zählung ist, sondern eine Schätzung aus
+Schwierigkeit und Blocktakt, und was unser eigenes Tagesprotokoll aus 88
+Lesungen über ihre Schwankung sagt. Der Reward-Schnitt vom 04.11.2026 ist der
+Testfall: die Woche danach liegt niedriger als die Woche davor, und eine
+einzelne Nacht im selben Fenster bewegt sich stärker als der ganze
+Wochenabstand.
+
+**Warum dieses Thema.** `vidiq_outliers` für „kaspa", letzte 30 Tage, Kanäle
+unter 5.000 Abos, liefert von 25 Treffern nur drei echte Kaspa-Videos, und
+alle drei sind Meinungs- oder Nachrichtenstücke, die sich mit unserer
+Textregel nicht bauen lassen. Zuschauerfragen gibt es laut Uhrwerk-Bericht vom
+09.11.2026 keine (null Zuschauerkommentare auf beiden letzten Langvideos). Die
+drei Kaspa-Punkte in `format-radar.md` sind erschöpft: einer ist als Short
+beschrieben und bis zum 14.12.2026 gesperrt, einer war der Erklärer vom
+05.11., einer braucht die leere Rechner-Seite. Damit greift die gleichrangige
+Stufe aus Schritt 0, die Ausreißer-Form 1 des Uhrwerk-Berichts: der Irrtum in
+Sekunde 0, dann die Mechanik.
+
+**Experiment dieser Folge:** genau diese Form. Block 1 nennt zuerst, was die
+Zahl nicht ist, erst Block 2 sagt, wie sie entsteht. Bisher stand in Sekunde 0
+immer eine Zahl. Messgröße: Aufrufe nach 48 h gegen die Kanal-Messlatte 174
+(Stand 12.10.2026) und Kommentare je Video.
 
 ## Prüfzeilen
 
 - Short-Skripte enthalten: **4 von 4, Manifest: ja**
-- Telegram-Grafik: **ja, bei 390 px geprüft**
-- **Differenzen gegengerechnet: ok** (12 Rechnungen, beide Endpunkte je Zeile)
-- **Quellen geprüft: ok**, vier Angaben im Lauf ergänzt
-- `pruefung.py`: **BESTANDEN** für die sechs Blöcke und für die vier Shorts
-- `text_wache.py`: Erklärer 73 Stellen, 2 zum Ansehen, 3 Hinweise, alle
-  angesehen und richtig. Shorts 70 Stellen, **0 zum Ansehen**, 3 Hinweise,
-  alle drei die eigene Zählung des Freitags. Echtzeit-, Demut- und
-  Kursziel-Wache leer
-- Grafiknorm: **sauber**, gemessen mit einer node-Fassung derselben Prüfungen,
-  weil `scripts/grafik_check.py` in diesem Container kein python-playwright
-  findet und sein fest verdrahteter Browserpfad auf eine ältere
-  Container-Generation zeigt
+- Telegram-Grafik: **ja, bei 390 px geprüft**, jede Zeile lesbar
+- **Differenzen gegengerechnet: ok** (14 Rechnungen, beide Endpunkte je Zeile)
+- **Quellen geprüft: ok**, drei Angaben im Lauf ergänzt
+- `pruefung.py`: **BESTANDEN** für die sechs Blöcke, die vier Shorts, die
+  geposteten Texte und alle Rechnungen gegen die Rohdaten
+- Grafiknorm: **sauber**, gemessen mit der node-Fassung der Prüfung, weil
+  `scripts/grafik_check.py` in diesem Container kein python-playwright findet
 - `secret_scan.py --staged`: sauber
 
 ## Zahlen, die auf „offen" stehen
 
 | Zahl | letzte echte Messung |
 | --- | --- |
-| Tagesgebühren der Kette | **26.10.2026**, und zwei Dateien widersprechen sich: `weekly-history.json` trägt für diese Woche einen Wert, `weekly.json` hat das Feld in allen 16 Wochenzeilen leer |
-| Anteil der 100 größten Adressen (`kohorte.json`) | **04.10.2026**, also 24 Tage alt |
-| `holder_baselines` m3 und y1, `entityx_baselines` y1 in `weekly.json` | nie gefüllt |
+| Tagesgebühren der Kette | nie gefüllt, `fees_day` steht in allen **18** Wochenzeilen auf `null` |
+| `holder_baselines` m3 und y1, `entityx_baselines` y1 | nie gefüllt |
+| die drei Thumbnail-Scores | **nicht messbar**, nicht wegen Guthaben (vidIQ hat 1.334 Credits und alle Titel sind frisch gemessen), sondern weil diese Sitzung keine Bilder zu vidIQ hochladen darf: die Netzrichtlinie lehnt die Verbindung ab |
 
 Alle Zahlen, die im Erklärer oder in einem der vier Shorts gesprochen werden,
-sind geprüft und tragen Stand und Quelle.
+sind geprüft und tragen Stand und Quelle. Die jüngste Lesung ist vom
+11.11.2026 und am Erscheinungstag einen Tag alt; alle älteren Punkte derselben
+Reihe stehen mit ihrem Datum im Satz.
 
 ## Datenausfall
 
-- **Gebührenreihe.** In `weekly.json` steht `fees_day` in allen 16
-  Wochenzeilen auf `null`, `fees_7d` ebenfalls. In `weekly-history.json` stehen
-  die Wochen vom 24.08., 28.09., 05.10., 12.10. und 19.10.2026 auf `null`.
-  Keine Gebührenzahl steht in dieser Lieferung.
-- **`data/kohorte.json`** hat nur zwei Messpunkte, der jüngste vom 04.10.2026.
-  Die Reihe steht über sieben Tage still und ist nicht verwendet.
+- **Gebührenreihe, weiter leer.** `fees_day` und `fees_7d` in `data/weekly.json`
+  stehen in allen 18 Wochenzeilen auf `null`. Keine Gebührenzahl in dieser
+  Lieferung.
+- **Drei fehlende Tage in der Hashrate-Reihe**, 29. bis 31.08.2026. Alte Lücke
+  am Anfang der Reihe, seit dem 01.09.2026 lückenlos. Steht im Skript und in
+  der Beschreibung.
+- **`kp/shorts/hashrate-lesungen.json` steht auf dem 07.11.2026**, das Tageslog
+  auf dem 11.11. Kein Ausfall, sondern ein Nachtrag, der seit dem 08.11. nicht
+  gelaufen ist. Diese Lieferung liest beide Dateien zusammen und ändert keine
+  von beiden.
 
 ## Ausreißer
 
-- **`covenant_tx` springt am 26.10.2026 von 141 auf 747**, also auf mehr als
-  das Fünffache der Vorwoche. Ein Rückfall ist noch nicht messbar, die Reihe
-  endet mit dieser Lesung. Die Zahl steht in keinem Satz des Erklärers und in
-  keinem der vier Shorts.
-- **`active_addr` 22.125 (31.08.) und 21.170 (07.09.2026)** bleiben der
-  bekannte Ausreißer der Reihe, drei- bis viermal über dem Rest, danach
-  Rückfall auf 6.394. Bereits in Woche 44 vermerkt, nicht verwendet.
-- Der Sprung von `active_addr` 5.672 (19.10.) auf 7.150 (26.10.2026) ist mit
-  plus 26 Prozent **kein** Ausreißer nach unserer Regel.
+- **Die Hashrate-Reihe hat keinen Ausreißer nach unserer Regel.** Die Regel
+  verlangt einen Einzeltag auf mehr als das Doppelte mit Rückfall; die größte
+  Nachtbewegung der Reihe liegt weit darunter. Genau das ist der Inhalt der
+  Folge: die Reihe ist nicht sprunghaft im Sinne der Regel, sie ist
+  durchgehend unruhig.
+- **`tvl_total` am 21.09.2026** und **`dex_vol` am 19.10.2026** bleiben die
+  bekannten Ausreißer der Wochenreihe. Keiner von beiden wird verwendet.
+- **`active_addr` am 31.08. und 07.09.2026** bleibt der bekannte Ausreißer
+  dieser Reihe. Nicht verwendet.
 
-## Was Ben entscheiden muss
+## Eine Unstimmigkeit, gemeldet, nicht repariert
 
-1. **Kein von dir freigegebener Test.** Der Uhrwerk-Bericht vom 26.10.
-   schlägt zwei vor, für die langen Videos den Einstieg in Sekunde 0 und für
-   die Shorts Zahl gegen Frage. Eine Freigabe steht in keiner Datei des Repos.
-   `test` steht deshalb bei allen vier Shorts auf `keiner`, und Punkt 13b des
-   Auftrags greift nicht.
-2. **Zwei Video-IDs sind zu prüfen**, bevor ein Link gesetzt wird. Eine steht
-   in zwei Dateien unterschiedlich, die andere fehlt in der
-   Veröffentlichungsliste.
-3. **Das vidIQ-Guthaben ist aufgebraucht.** Nach elf Messungen stand es auf 4,
-   ein Aufruf kostet 5, Nachfüllung laut Dienst am 03.11.2026. Deshalb fehlen
-   die drei Thumbnail-Bewertungen und ein Titel-Score.
-4. **Der angeheftete Kommentar des Erklärers ist länger als 180 Zeichen**,
-   weil die Datumszeile für zwei ältere Endpunkte dazugehört. Soll er kürzer
-   werden, fällt das Datum weg.
-5. **Ob die Telegram-Grafik gepostet wird**, entscheidest du.
+`data/weekly.json` trägt für die Zeile 09.11.2026 eine Hashrate, die im
+Tageslog unter dem 10.11.2026 steht. Dieser Lauf nimmt durchgehend das
+Tageslog mit dessen eigenen Datumsangaben, damit Zähler und Nenner jeder
+Aussage aus demselben Lauf stammen. In keinem Satz der Lieferung steht ein
+Wert aus `weekly.json`.
 
-## Branch
+## Offener Punkt für Ben, Mittwochs-Short der Folgewoche
 
-**Branch `review/erklaerer-2026-10-29` in `pulse-studio`, Head `0dd9ef6`,
-bereit zum Merge.**
+Alle vier Kennzahlen, die `kennzahl_heute()` in
+`scripts/number_of_day_data.py` kennt, liegen innerhalb der 60-Tage-Sperre für
+Kernzahlen. Genommen ist die mit dem größten Abstand (42 Tage) und einem
+anderen Stand; der gesprochene Text nennt ohnehin keinen Wert. Die
+Alternativen wären ein Mittwoch ohne Short oder eine fünfte Zeile in
+`KENNZAHLEN`. Beides ist Bens Entscheidung, nicht die dieses Laufs.
 
-Diese Ablage liegt auf `claude/ablage-erklaerer` in `kaspa-pulse`.
+## Branch und Head
+
+- Lieferung: `pulse-studio`, Branch **`review/erklaerer-2026-11-12`**, Head
+  **`319f01b`**, ein Commit, bereit zum Merge.
+- Diese Datei: `kaspa-pulse`, Branch `claude/ablage-erklaerer`.

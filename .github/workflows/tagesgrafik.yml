@@ -21,9 +21,14 @@ name: tagesgrafik
 # 06:30 Berlin, im Sommer steht der Tag um 06:30 UTC schon im Log. Faellt
 # der erste Termin aus, liefert der zweite.
 #
-# INSTAGRAM (Ben, 08.10.2026). Job "instagram" um 09:30 Berlin, nach Discord,
-# wieder zwei Termine: 07:30 UTC im Sommer, 08:30 UTC im Winter.
-# scripts/instagram.py faellig laesst nur zwischen 09:25 und 11:30 Berlin durch, nur wenn die
+# INSTAGRAM (Ben, 08.10.2026). Job "instagram" seit 5.11.2026 um 12:30 Berlin
+# (vorher 09:30), nach Discord. Nach den Insights sind die Follower Mo bis Sa
+# 12 bis 18 Uhr und So 15 bis 18 Uhr aktiv. Der Discord-Post bleibt 07:30.
+# Die zwei cron-Termine unten (07:30 und 08:30 UTC) sind nur noch der
+# Rueckfall aus der alten Zeit; ihr Verzug von sechs bis sieben Stunden
+# endet fast immer ausserhalb des Fensters, und die Tagessperre verhindert
+# einen zweiten Post.
+# scripts/instagram.py faellig laesst nur zwischen 12:25 und 14:30 Berlin durch, nur wenn die
 # Grafik um 07:30 mit "senden" ausgeliefert wurde, nur einmal am Tag und nie,
 # wenn die Variable IG_STOPP auf heute (JJJJ-MM-TT) oder "immer" steht. Er
 # nimmt PNG und Caption aus dem Artefakt genau dieses Laufs, legt das JPEG
@@ -34,8 +39,8 @@ name: tagesgrafik
 #
 # DER TAKT VON C2 (Ben, 14.10.2026). GitHubs geplante Laeufe kommen in diesem
 # Konto sechs bis sieben Stunden zu spaet, und instagram.py laesst nur zwischen
-# 09:25 und 11:30 Berlin durch - der geplante Weg liefert also meist nichts.
-# Der Takt kommt deshalb von c2 (takt-instagram-bild.timer, 09:30 Berlin) und
+# 12:25 und 14:30 Berlin durch - der geplante Weg liefert also meist nichts.
+# Der Takt kommt deshalb von c2 (takt-instagram-bild.timer, 12:30 Berlin) und
 # schickt instagram=scharf mit, gesteuert von IG_LIVE in takt.conf.
 #
 # Ein Dispatch mit instagram=scharf laeuft als --takt: Zeitfenster und
@@ -80,7 +85,7 @@ jobs:
   grafik:
     # nicht zu den instagram-terminen und nicht bei einem start nur fuer
     # instagram (Ben, 08.10.2026). "!= trocken" liess den scharfen Takt vom
-    # 14.10. durch und haette die Grafik um 09:30 neu gebaut - der
+    # 14.10. durch und haette die Grafik um 09:30 (seit 5.11. 12:30) neu gebaut - der
     # Instagram-Job nimmt sie aber aus dem Artefakt des 07:30-Laufs.
     if: >-
       (github.event_name == 'schedule' && github.event.schedule != '30 7 * * *' && github.event.schedule != '30 8 * * *')
@@ -143,6 +148,8 @@ jobs:
           # vorgemerkt. look-takt.json ist der Speicher des Look-Takts.
           git add data/tagesgrafik-log.json 2>/dev/null || true
           git add data/look-takt.json 2>/dev/null || true
+          # bauplaene des tages nach der stimm-regel (Ben, 07.11.2026)
+          git add data/stimme-stand.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "log unveraendert, kein commit"
           else

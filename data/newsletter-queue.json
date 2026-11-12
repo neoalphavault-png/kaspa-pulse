@@ -1,12 +1,12 @@
 {
- "campaign_id": 46,
- "subject": "7.72% below the 50 week line",
- "html_path": "newsletter/2026-11-02.html",
+ "campaign_id": 47,
+ "subject": "15.54% below the 50 week line",
+ "html_path": "newsletter/2026-11-09.html",
  "list_id": 16,
  "sender": "hello@kaspapulse.com",
  "status": "queued",
- "scheduled_at": "2026-11-02T18:00:00.000+01:00",
- "created_at": "2026-11-02T11:08:43Z",
+ "scheduled_at": "2026-11-09T18:00:00.000+01:00",
+ "created_at": "2026-11-09T13:27:53Z",
  "history": [
   {
    "at": "2026-09-14T06:45:38Z",
@@ -160,6 +160,20 @@
    "step": "schedule",
    "campaign_id": 46,
    "scheduled_at": "2026-11-02T18:00:00.000+01:00",
+   "list_id": 16,
+   "result": "geplant"
+  },
+  {
+   "at": "2026-11-09T13:27:53Z",
+   "step": "test",
+   "campaign_id": 47,
+   "test_to": "benni.alkanli@gmail.com"
+  },
+  {
+   "at": "2026-11-09T14:02:54Z",
+   "step": "schedule",
+   "campaign_id": 47,
+   "scheduled_at": "2026-11-09T18:00:00.000+01:00",
    "list_id": 16,
    "result": "geplant"
   }

@@ -780,6 +780,10 @@ def pruefen(inhalt, ss):
     # und "share on x" ist der Name des Knopfs
     texte = [t.replace("2^(1/12)", "") for t in sichtbare_texte(inhalt)]
     fehler = karussell.text_pruefen(texte)
+    # keine preise, keine kursnahen saetze (Ben, 5.11.2026, scripts/preis_wache.py)
+    import preis_wache
+    for t in texte:
+        fehler += preis_wache.verstoesse(t)
     for s in ss:
         if not DATUM_RE.search(s["satz"] + " " + s["fcap"] + " " + h2_text(s["h2"])):
             fehler.append("schritt %s ohne datum" % s["id"])
@@ -891,6 +895,10 @@ def selbsttest():
        and pruefen(in2, ss2) == [])
     ok("echtzeit-wort faellt auf", pruefen(inhalt.replace("blocks keep landing", "blocks currently land"), ss) != [])
     ok("percent faellt auf", pruefen(inhalt.replace("fees paid", "fees paid 1 percent"), ss) != [])
+    ok("preis faellt auf (Ben, 5.11.2026)", any("preis im text" in x for x in pruefen(
+        inhalt.replace("blocks keep landing", "reviews go from 150 € per round and blocks keep landing", 1), ss)))
+    ok("a close above faellt auf", any("kursnaher satz" in x for x in pruefen(
+        inhalt.replace("fees paid", "a close above the line would help, fees paid", 1), ss)))
     ok("counted mit source faellt auf",
        pruefen(inhalt.replace("source kaspalytics.</p>", "counted, source kaspalytics.</p>", 1), ss) != [])
     ok("schritt ohne datum faellt auf",

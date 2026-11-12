@@ -40,6 +40,12 @@ concurrency:
   group: weekly-monday
   cancel-in-progress: false
 
+env:
+  # GOKU-X AUS (Ben, 7.11.2026, dauerhaft): der montagsfaden geht nicht mehr
+  # auf @gokugalax. x_post.py sperrt jeden POST ohne X_GOKU_AN=true, der
+  # trockenlauf und der selbsttest laufen weiter. wieder an: diese zeile auf
+  # "true". bericht berichte/2026-11-08-goku-x-pause.md
+  X_GOKU_AN: "false"
 jobs:
   # Trockenlauf. Postet genau einen Post mit der 4:5-Grafik und loescht ihn
   # sofort wieder; die beiden Selbstantworten werden nur gedruckt, nicht

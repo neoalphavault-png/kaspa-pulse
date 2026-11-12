@@ -2,75 +2,149 @@
  "kanaele": {
   "raster/instagram": [
    {
-    "datum": "2026-10-31",
+    "datum": "2026-11-07",
     "look": "hell",
     "motiv": "knotennetz",
     "schritt": 1,
     "serie": "karussell"
    },
    {
-    "datum": "2026-10-31",
-    "look": "teal",
+    "datum": "2026-11-08",
+    "look": "A-teal",
     "motiv": "punktraster",
     "schritt": 2,
-    "serie": "meme"
+    "serie": "tagesgrafik"
    },
    {
-    "datum": "2026-11-01",
-    "look": "hell",
+    "datum": "2026-11-09",
+    "look": "D-hell",
     "motiv": "hoehenlinien",
     "schritt": 3,
     "serie": "tagesgrafik"
    },
    {
-    "datum": "2026-11-02",
-    "look": "dunkel",
+    "datum": "2026-11-10",
+    "look": "A-papier",
     "motiv": "partikel-puls",
     "schritt": 0,
+    "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-11-11",
+    "look": "D-dunkel",
+    "motiv": "zahnraeder",
+    "schritt": 1,
+    "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-11-12",
+    "look": "A-teal",
+    "motiv": "sternenfeld",
+    "schritt": 2,
     "serie": "tagesgrafik"
    }
   ],
   "story/instagram": [
    {
-    "datum": "2026-11-02",
-    "look": "dunkel",
+    "datum": "2026-11-09",
+    "look": "A-papier",
     "schritt": 0
+   },
+   {
+    "datum": "2026-11-10",
+    "look": "D-dunkel",
+    "schritt": 1
+   },
+   {
+    "datum": "2026-11-11",
+    "look": "A-teal",
+    "schritt": 2
+   },
+   {
+    "datum": "2026-11-12",
+    "look": "D-hell",
+    "schritt": 3
    }
   ],
   "tagesgrafik/discord": [
    {
-    "datum": "2026-11-01",
-    "look": "dunkel",
+    "datum": "2026-11-08",
+    "look": "A-papier",
     "schritt": 0
    },
    {
-    "datum": "2026-11-02",
-    "look": "hell",
+    "datum": "2026-11-09",
+    "look": "D-dunkel",
     "schritt": 1
+   },
+   {
+    "datum": "2026-11-10",
+    "look": "A-teal",
+    "schritt": 2
+   },
+   {
+    "datum": "2026-11-11",
+    "look": "D-hell",
+    "schritt": 3
+   },
+   {
+    "datum": "2026-11-12",
+    "look": "A-papier",
+    "schritt": 0
    }
   ],
   "tagesgrafik/threads": [
    {
-    "datum": "2026-11-01",
-    "look": "dunkel",
+    "datum": "2026-11-08",
+    "look": "A-papier",
     "schritt": 0
    },
    {
-    "datum": "2026-11-02",
-    "look": "hell",
+    "datum": "2026-11-09",
+    "look": "D-dunkel",
     "schritt": 1
+   },
+   {
+    "datum": "2026-11-10",
+    "look": "A-teal",
+    "schritt": 2
+   },
+   {
+    "datum": "2026-11-11",
+    "look": "D-hell",
+    "schritt": 3
+   },
+   {
+    "datum": "2026-11-12",
+    "look": "A-papier",
+    "schritt": 0
    }
   ],
   "tagesgrafik/x": [
    {
-    "datum": "2026-11-01",
-    "look": "dunkel",
+    "datum": "2026-11-08",
+    "look": "A-papier",
     "schritt": 0
    },
    {
-    "datum": "2026-11-02",
-    "look": "hell",
+    "datum": "2026-11-09",
+    "look": "D-dunkel",
     "schritt": 1
+   },
+   {
+    "datum": "2026-11-10",
+    "look": "A-teal",
+    "schritt": 2
+   },
+   {
+    "datum": "2026-11-11",
+    "look": "D-hell",
+    "schritt": 3
+   },
+   {
+    "datum": "2026-11-12",
+    "look": "A-papier",
+    "schritt": 0
    }
   ]
  }

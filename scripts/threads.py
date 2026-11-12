@@ -27,6 +27,9 @@ Token steht in keiner URL, sondern im Authorization-Header.
     python3 scripts/threads.py posten --bild URL --text-datei t.json --modus trocken|scharf
     python3 scripts/threads.py container --text "..." [--bild URL] [--thema Crypto]
     python3 scripts/threads.py wache --text "..."
+    python3 scripts/threads.py nachholen
+    python3 scripts/threads.py bild --jpeg ig/<datei>.jpg
+    python3 scripts/threads.py log-sichern --veroeffentlicht 0|1 --lauf URL
     python3 scripts/threads.py --selbsttest
 
 Was dieses Skript NICHT tut: es loescht nicht und es antwortet nicht. Und es erfindet keinen Text: der Text kommt aus der
@@ -89,8 +92,18 @@ def token():
 
 # --------------------------------------------------------------------- api
 
-def graph(weg, felder=None, post=False, tok=None, oeffner=None):
-    """GET oder POST auf die Threads-API. Das Token geht in den Header."""
+class ApiFehler(Exception):
+    """Eine Antwort der Threads-API mit Fehler, Text schon geblendet."""
+
+    def __init__(self, text, http=0, code=None, subcode=None):
+        super().__init__(text)
+        self.http, self.code, self.subcode = http, code, subcode
+
+
+def graph(weg, felder=None, post=False, tok=None, oeffner=None, werfen=False):
+    """GET oder POST auf die Threads-API. Das Token geht in den Header.
+    werfen=True: ein HTTP-Fehler kommt als ApiFehler zurueck statt den Lauf
+    zu beenden, damit veroeffentlichen() nachfassen kann."""
     tok = tok or token()
     url = "%s/%s" % (API, weg.lstrip("/"))
     daten = None
@@ -110,27 +123,42 @@ def graph(weg, felder=None, post=False, tok=None, oeffner=None):
             leib = e.read().decode("utf-8", "replace")[:600]
         except Exception:
             pass
-        sys.exit(blind("threads-api http %s auf %s\n%s" % (e.code, weg, leib), tok))
+        text = blind("threads-api http %s auf %s\n%s" % (e.code, weg, leib), tok)
+        if werfen:
+            fehler = {}
+            try:
+                fehler = json.loads(leib).get("error", {}) or {}
+            except ValueError:
+                pass
+            raise ApiFehler(text, e.code, fehler.get("code"), fehler.get("error_subcode"))
+        sys.exit(text)
     except (urllib.error.URLError, OSError) as e:
         sys.exit(blind("threads-api nicht erreichbar auf %s: %s" % (weg, e), tok))
 
 
 # ------------------------------------------------------------------ wache
 
-def wache(text, heute=None):
+def wache(text, heute=None, bauplan=None):
     """Befunde als Liste, leer heisst sauber.
 
     Geprueft wird mit der Hauswache aus tagesgrafik.pruefe_eine - dieselbe,
     die die Tagesgrafik und die Instagram-Entwuerfe durchlaufen: kein
     Doppelpunkt, kein Gedankenstrich, kein Pfeil, kein Link, keine fremde
     Chain, keine Kaufwoerter, '%' statt 'percent', keine Kursangabe. Dazu
-    kommen die drei Regeln, die nur fuer Threads gelten."""
+    kommen die Regeln, die nur fuer Threads gelten.
+
+    Die Pflichtfrage am Ende ist seit der Stimm-Regel (Ben, 07.11.2026)
+    weg: kommt der Text aus der Tagesgrafik, traegt das -threads.json den
+    Bauplan, und dann steht eine Frage genau beim Bauplan frage
+    (stimme.regel_verstoesse). Ein Text von Hand aus der Warteschlange hat
+    keinen Bauplan, fuer ihn gilt nur die Hauswache."""
     from tagesgrafik import pruefe_eine, DATUM
-    befunde = list(pruefe_eine(text, None, "threads-text"))
+    befunde = list(pruefe_eine(text, None, "threads-text", massstab=bauplan == "vergleich"))
     if len(text) > TEXT_MAX:
         befunde.append("text ist %d zeichen lang, erlaubt sind %d" % (len(text), TEXT_MAX))
-    if not text.strip().endswith("?"):
-        befunde.append("der text endet nicht mit einer frage")
+    if bauplan:
+        import stimme
+        befunde += stimme.regel_verstoesse(text, bauplan)
     # Jede Zahl mit ihrem Datum. Geprueft wird am Text, nicht am Versprechen:
     # steht eine Ziffer drin, muss auch ein Datum drin stehen.
     ohne_datum = DATUM.sub(" ", text.lower())
@@ -298,11 +326,53 @@ def scharf(modus, hand=False):
             and not look_takt.trockenlauf())
 
 
+# threads_publish direkt nach FINISHED (Ben, 8.11.2026). Am 8.11. antwortete
+# Threads auf threads_publish mit http 400, code 24, error_subcode 4279009
+# "Media Not Found", obwohl der Container eine Sekunde vorher FINISHED meldete
+# (Lauf 42498492140). Dasselbe Muster wie bei Instagram am 5.11. (code 9007,
+# instagram.veroeffentlichen). Darum erst warten und bei genau diesen Fehlern
+# nachfassen. Vor jedem neuen Versuch wird der Container abgefragt: steht er
+# schon auf PUBLISHED, ist der Post draussen und geht nicht ein zweites Mal raus.
+PAUSE_NACH_FINISHED = 10
+NACHFASSEN = (15, 30, 45, 60)
+NOCH_NICHT = {(24, 4279009), (9007, None), (9007, 2207027)}
+_schlafen = time.sleep
+
+
+def noch_nicht_bereit(exc):
+    return (exc.code, exc.subcode) in NOCH_NICHT or (exc.code == 9007)
+
+
+def veroeffentlichen(nutzer, cid, tok=None, oeffner=None):
+    """threads_publish fuer einen FINISHED-Container, mit Nachfassen. Gibt die
+    media-id zurueck, auch wenn der Container zwischendurch schon draussen ist."""
+    _schlafen(PAUSE_NACH_FINISHED)
+    for n in range(len(NACHFASSEN) + 1):
+        if n:
+            _schlafen(NACHFASSEN[n - 1])
+            status = graph(cid, {"fields": "status"}, tok=tok, oeffner=oeffner).get("status", "")
+            print("container %s vor versuch %d, status %s" % (cid, n + 1, status or "-"))
+            if status == "PUBLISHED":
+                d = graph("%s/threads" % nutzer, {"fields": "id", "limit": "1"}, tok=tok, oeffner=oeffner)
+                media = str(((d.get("data") or [{}])[0]).get("id", ""))
+                print("container %s ist schon veroeffentlicht, media %s, kein zweiter post" % (cid, media or "-"))
+                return {"id": media}
+        try:
+            return graph("%s/threads_publish" % nutzer, {"creation_id": cid}, post=True, tok=tok,
+                         oeffner=oeffner, werfen=True)
+        except ApiFehler as exc:
+            if not noch_nicht_bereit(exc) or n == len(NACHFASSEN):
+                sys.exit(str(exc))
+            print("threads_publish versuch %d, noch nicht bereit (code %s, subcode %s), neuer versuch in %d s"
+                  % (n + 1, exc.code, exc.subcode, NACHFASSEN[n]))
+    sys.exit("threads_publish ohne ergebnis")
+
+
 def posten(text, bild, modus, tag, log_pfad=None, hand=False, tok=None, oeffner=None,
-           warte_takt=10, warte_max=300):
+           warte_takt=10, warte_max=300, bauplan=None):
     """Container anlegen, auf FINISHED warten, nur scharf veroeffentlichen.
     Scharf steht der Post danach im Log, trocken nicht."""
-    befunde = wache(text)
+    befunde = wache(text, bauplan=bauplan)
     if befunde:
         sys.exit("der text haelt die wachen nicht ein, kein container: %s" % "; ".join(befunde))
     tok = tok or token()
@@ -327,15 +397,155 @@ def posten(text, bild, modus, tag, log_pfad=None, hand=False, tok=None, oeffner=
         print("trocken, container %s bleibt unveroeffentlicht (modus %s, %s=%s, ziel %s)" % (
             cid, modus, ENV_LIVE, os.environ.get(ENV_LIVE, "") or "-", os.environ.get("ZIEL", "") or "-"))
         return {"container": cid, "status": status, "modus": "trocken"}
-    m = graph("%s/threads_publish" % nutzer, {"creation_id": cid}, post=True, tok=tok, oeffner=oeffner)
+    m = veroeffentlichen(nutzer, cid, tok=tok, oeffner=oeffner)
     erg = {"tag": tag, "container": cid, "media": str(m.get("id", "")), "modus": "scharf",
            "bild": bild, "text": text}
+    # sofort melden, dass der post draussen ist, noch vor dem log: scheitert
+    # danach etwas, darf der lauf nicht "kein post" sagen (Ben, 5.11.2026)
+    ausgabe(veroeffentlicht="1", media=erg["media"])
     log = json_laden(log_pfad or LOG, {"posts": []})
     log.setdefault("posts", []).append(erg)
     Path(log_pfad or LOG).write_text(json.dumps(log, ensure_ascii=False, indent=1) + "\n",
                                      encoding="utf-8")
     print("veroeffentlicht, media %s" % erg["media"])
     return erg
+
+
+# ------------------------------------------- log sichern und nachholen
+
+# Ben, 5.11.2026. Am 5.11. war der Post draussen, aber der Push des Logs kam
+# mit "fatal error in commit_refs_rules" zurueck, und der Lauf meldete
+# "heute kein post". Jetzt: pull --rebase vor jedem Push, bis zu drei
+# Wiederholungen nach 10, 20 und 40 s. Scheitert auch das, bleibt der Lauf
+# gruen, wenn veroeffentlicht wurde, und der Eintrag kommt beim naechsten
+# Lauf ueber die Threads-API zurueck ins Log (nachholen).
+PUSH_PAUSEN = (10, 20, 40)
+NACHHOLEN_TAGE = 7
+# Wartezeit auf das Bild auf kaspapulse.com, nur fuer Threads (Ben, 6.11.2026).
+# Am 4.11. hing ein Pages-Deploy 14 Minuten, 600 s reichten nicht. Der Job in
+# threads.yml hat dafuer timeout-minutes 45, das Fenster reicht bis 19:30.
+# Seit dem 6.11. ist das nur der Rueckfall: Threads holt das Bild zuerst ueber
+# die raw-Adresse des Bild-Commits, mit 120 s (instagram.RAW_FRIST). Am 6.11.
+# lieferte Pages auch nach 1500 s nichts (Lauf 42249808757).
+BILD_FRIST = 1500
+
+
+def bild(jpeg, warten=None, sha=None):
+    """(url, quelle) fuer den Container: raw zuerst, kaspapulse.com als Rueckfall."""
+    import instagram
+    url, quelle = instagram.bild_bereit(jpeg, raw=True, raw_frist=instagram.RAW_FRIST,
+                                        pages_frist=BILD_FRIST, warten=warten, sha=sha)
+    ausgabe(bild=url, quelle=quelle)
+    return url, quelle
+LOG_REL = "data/threads-post-log.json"
+
+
+def ausgabe(**werte):
+    """Schritt-Ausgaben fuer GitHub Actions, ausserhalb von Actions nichts."""
+    ziel = os.environ.get("GITHUB_OUTPUT", "")
+    if ziel:
+        with open(ziel, "a", encoding="utf-8") as fh:
+            for k, v in werte.items():
+                fh.write("%s=%s\n" % (k, v))
+
+
+def _git(*args):
+    import subprocess
+    return subprocess.run(("git",) + args).returncode
+
+
+def _ops_log(text):
+    import ops_melden
+    ops_melden.log(text, was="threads log")
+
+
+def log_sichern(veroeffentlicht, lauf="", pfad=LOG_REL, zweig="main", git=None,
+                schlafen=time.sleep, melden=None):
+    """Committet das Log und pusht es, mit pull --rebase vor jedem Versuch.
+    Gibt "unveraendert", "gesichert", "nicht gesichert" (gepostet, Push
+    gescheitert, gruen mit Meldung) oder "rot" (nicht gepostet) zurueck."""
+    git = git or _git
+    git("add", pfad)
+    if git("diff", "--staged", "--quiet") == 0:
+        print("log unveraendert, kein commit")
+        return "unveraendert"
+    if git("commit", "-m", "threads log [bot]") != 0:
+        print("commit gescheitert")
+        return "nicht gesichert" if veroeffentlicht else "rot"
+    for i, pause in enumerate((0,) + PUSH_PAUSEN):
+        if pause:
+            print("push abgelehnt, neuer versuch in %d s" % pause)
+            schlafen(pause)
+        if git("pull", "--rebase", "--autostash", "origin", zweig) != 0:
+            git("rebase", "--abort")
+            continue
+        if git("push", "origin", "HEAD:%s" % zweig) == 0:
+            print("log gesichert, versuch %d" % (i + 1))
+            return "gesichert"
+    print("push nach %d versuchen abgelehnt" % (len(PUSH_PAUSEN) + 1))
+    if veroeffentlicht:
+        (melden or _ops_log)("threads gepostet, log nicht gesichert. der eintrag wird beim "
+                             "naechsten lauf ueber die threads-api nachgeholt.\n" + lauf)
+        return "nicht gesichert"
+    return "rot"
+
+
+def _zeit(wert):
+    try:
+        return dt.datetime.strptime(str(wert), "%Y-%m-%dT%H:%M:%S%z")
+    except ValueError:
+        return None
+
+
+def nachtragen(log, posts, heute):
+    """Posts aus der Threads-API, die im Log fehlen, kommen als Eintrag dazu,
+    ein Eintrag ohne Text bekommt ihn. Gibt die geaenderten Eintraege zurueck.
+    Der Tag ist der Berliner Tag des Zeitstempels, wie beim Posten."""
+    import instagram
+    eintraege = log.setdefault("posts", [])
+    bekannt = {str(e.get("media", "")): e for e in eintraege if e.get("media")}
+    geaendert = []
+    for p in posts:
+        mid = str(p.get("id", ""))
+        if not re.fullmatch(r"\d+", mid):
+            continue
+        if mid in bekannt:
+            e = bekannt[mid]
+            if not e.get("text") and p.get("text"):
+                e["text"] = p["text"]
+                geaendert.append(e)
+            continue
+        ts = _zeit(p.get("timestamp"))
+        if ts is None:
+            continue
+        e = {"tag": instagram.berlin(ts).date().isoformat(), "container": "", "media": mid,
+             "modus": "scharf", "bild": "", "text": p.get("text", ""), "nachgeholt": heute}
+        eintraege.append(e)
+        bekannt[mid] = e
+        geaendert.append(e)
+    eintraege.sort(key=lambda e: e.get("tag", ""))
+    return geaendert
+
+
+def nachholen(log_pfad=None, tok=None, oeffner=None, now=None):
+    """Fragt die eigenen Posts der letzten Tage ab und traegt fehlende ins Log."""
+    import instagram
+    now = now or dt.datetime.now(dt.timezone.utc)
+    tok = tok or token()
+    nutzer = nutzer_id(tok=tok, oeffner=oeffner)
+    seit = int((now - dt.timedelta(days=NACHHOLEN_TAGE)).timestamp())
+    d = graph("%s/threads" % nutzer, {"fields": "id,text,timestamp", "since": str(seit), "limit": "25"},
+              tok=tok, oeffner=oeffner)
+    log = json_laden(log_pfad or LOG, {"posts": []})
+    neu = nachtragen(log, d.get("data", []), instagram.berlin(now).date().isoformat())
+    if neu:
+        Path(log_pfad or LOG).write_text(json.dumps(log, ensure_ascii=False, indent=1) + "\n",
+                                         encoding="utf-8")
+    for e in neu:
+        print("nachgeholt, %s media %s" % (e["tag"], e["media"]))
+    if not neu:
+        print("log vollstaendig, nichts nachzuholen")
+    return neu
 
 
 # -------------------------------------------------------------- selbsttest
@@ -381,8 +591,26 @@ def selbsttest():
            any("echtzeit" in b for b in wache("the heap went nowhere on 14 oct, ok?")), False)
     pruefe("link faellt auf",
            any("link" in b for b in wache("more on kaspapulse.com on 14 oct, ok?")), True)
-    pruefe("fehlende frage faellt auf",
-           any("frage" in b for b in wache("the hashrate on 14 oct is 338 PH.")), True)
+    # stimm-regel (Ben, 07.11.2026): keine pflichtfrage mehr, eine frage nur beim bauplan frage
+    pruefe("ohne frage ist ein text ohne bauplan sauber",
+           wache("The hashrate on 14 Oct is 338 PH, source Kaspa REST API."), [])
+    pruefe("bauplan frage ohne frage faellt auf",
+           any("frage" in b for b in wache("The hashrate on 14 Oct is 338 PH.", bauplan="frage")), True)
+    pruefe("frage beim bauplan pointe faellt auf",
+           any("frage" in b for b in wache("The hashrate on 14 Oct is 338 PH. Who checks it?",
+                                           bauplan="pointe")), True)
+    pruefe("bauplan frage mit frage ist sauber",
+           wache("The hashrate on 14 Oct is 338 PH. Who checks it?", bauplan="frage"), [])
+    pruefe("kleinschreibung faellt beim bauplan auf",
+           any("klein" in b for b in wache("the hashrate on 14 oct is 338 PH.", bauplan="beobachtung")), True)
+    pruefe("alte schlussfrage faellt auf",
+           any("alte" in b for b in wache("Kaspa miners ran 350 PH/s on 6 Nov 2026. What was that work paid?",
+                                          bauplan="frage")), True)
+    pruefe("bitcoin als massstab im bauplan vergleich ist sauber",
+           wache("Kaspa added 2,000 blocks in 8 hours on 6 Nov 2026. Bitcoin added 48 blocks in 8 hours "
+                 "on 6 Nov 2026.", bauplan="vergleich"), [])
+    pruefe("bitcoin mit werturteil faellt auch im vergleich auf",
+           bool(wache("Kaspa is faster than Bitcoin on 6 Nov 2026.", bauplan="vergleich")), True)
     pruefe("zahl ohne datum faellt auf",
            any("ohne datum" in b for b in wache("the hashrate is 338 PH, what next?")), True)
     pruefe("zu langer text faellt auf",
@@ -498,7 +726,10 @@ def selbsttest():
     def zeit(h, m):
         return dt.datetime(2026, 10, 20, h, m, tzinfo=dt.timezone.utc)     # mesz, +2
     lg = {"laeufe": [{"datum": "2026-10-20", "form": 4, "messzeit_utc": "2026-10-20T05:30:00+00:00"}]}
-    alt = {k: os.environ.pop(k, None) for k in ("ZIEL", ENV_LIVE)}
+    alt = {k: os.environ.pop(k, None) for k in ("ZIEL", ENV_LIVE, "GITHUB_OUTPUT")}
+    global _schlafen
+    alt_schlafen, pausen = _schlafen, []
+    _schlafen = pausen.append
     pruefe("faellig um 17:10 berlin", faellig(zeit(15, 10), lg, {"posts": []})[0] is not None, True)
     pruefe("nicht faellig um 16:30 berlin", faellig(zeit(14, 30), lg, {"posts": []})[0] is None, True)
     pruefe("nicht doppelt am tag",
@@ -542,6 +773,128 @@ def selbsttest():
         pruefe("ohne THREADS_LIVE kein threads_publish",
                any(w[1].endswith("threads_publish") for w in wege) or e["modus"] != "trocken", False)
         pruefe("trocken nicht im log", len(json.loads(lp.read_text())["posts"]), 1)
+    # threads_publish direkt nach FINISHED (Ben, 8.11.2026, Lauf 42498492140)
+    import io
+    import urllib.error as _ue
+
+    def nicht_da(url):
+        leib = json.dumps({"error": {"message": "The requested resource does not exist", "code": 24,
+                                     "error_subcode": 4279009}}).encode()
+        return _ue.HTTPError(url, 400, "Bad Request", {}, io.BytesIO(leib))
+
+    def api_folge(antworten):
+        rest = list(antworten)
+        gesehen = []
+
+        def oeffne(req, timeout=0):
+            weg = req.full_url.split("v1.0/")[1].split("?")[0]
+            gesehen.append((req.get_method(), weg))
+            a = rest.pop(0)
+            if a == "nicht_da":
+                raise nicht_da(req.full_url)
+            return Antwort(a)
+        return oeffne, gesehen
+
+    pausen.clear()
+    oeffne, gesehen = api_folge(["nicht_da", {"status": "FINISHED"}, {"id": "778"}])
+    m = veroeffentlichen("99", "555", tok=tok, oeffner=oeffne)
+    pruefe("media not found, nachfassen bringt den post", m.get("id"), "778")
+    pruefe("erst 10 s pause, dann 15 s vor dem zweiten versuch", pausen, [10, 15])
+    pruefe("vor dem zweiten versuch wird der container abgefragt",
+           [g for g in gesehen if g[1] == "555"], [("GET", "555")])
+    pausen.clear()
+    oeffne, gesehen = api_folge(["nicht_da", {"status": "PUBLISHED"}, {"data": [{"id": "779"}]}])
+    m = veroeffentlichen("99", "555", tok=tok, oeffner=oeffne)
+    pruefe("schon published, kein zweiter post, media aus der liste",
+           (m.get("id"), sum(1 for g in gesehen if g[1].endswith("threads_publish"))), ("779", 1))
+
+    def anderer(url):
+        leib = json.dumps({"error": {"message": "x", "code": 100}}).encode()
+        return _ue.HTTPError(url, 400, "Bad Request", {}, io.BytesIO(leib))
+    try:
+        veroeffentlichen("99", "555", tok=tok, oeffner=lambda req, timeout=0: (_ for _ in ()).throw(
+            anderer(req.full_url)))
+        pruefe("anderer fehler bricht sofort ab", False, True)
+    except SystemExit as exc:
+        pruefe("anderer fehler bricht sofort ab, token geblendet",
+               ("http 400" in str(exc), tok in str(exc)), (True, False))
+    pausen.clear()
+    oeffne, gesehen = api_folge(["nicht_da"] + [{"status": "FINISHED"}, "nicht_da"] * 4)
+    try:
+        veroeffentlichen("99", "555", tok=tok, oeffner=oeffne)
+        pruefe("nach 5 versuchen rot", False, True)
+    except SystemExit:
+        pruefe("nach 5 versuchen rot, pausen 10 15 30 45 60", pausen, [10, 15, 30, 45, 60])
+    _schlafen = alt_schlafen
+    # push abgelehnt (Ben, 5.11.2026): nach der veroeffentlichung gruen mit
+    # meldung, ohne veroeffentlichung rot und ohne "gepostet"
+    def git_nein(*args):
+        aufrufe.append(args)
+        if args[0] == "diff":
+            return 1
+        return 1 if args[0] == "push" else 0
+    for gepostet, soll in ((True, "nicht gesichert"), (False, "rot")):
+        aufrufe, pausen, meldungen = [], [], []
+        erg = log_sichern(gepostet, "LAUF", git=git_nein, schlafen=pausen.append, melden=meldungen.append)
+        was = "nach" if gepostet else "ohne"
+        pruefe("push abgelehnt %s veroeffentlichung, ergebnis" % was, erg, soll)
+        pruefe("push abgelehnt %s veroeffentlichung, pausen 10 20 40" % was, pausen, [10, 20, 40])
+        pruefe("push abgelehnt %s veroeffentlichung, 4 pushes" % was,
+               sum(1 for a in aufrufe if a[0] == "push"), 4)
+        pruefe("push abgelehnt %s veroeffentlichung, pull --rebase vor jedem push" % was,
+               sum(1 for a in aufrufe if a[:2] == ("pull", "--rebase")), 4)
+        pruefe("push abgelehnt %s veroeffentlichung, meldung" % was,
+               [m.split(".")[0] for m in meldungen],
+               ["threads gepostet, log nicht gesichert"] if gepostet else [])
+    aufrufe, pausen = [], []
+    zweiter = iter((1, 0))
+    erg = log_sichern(True, git=lambda *a: (aufrufe.append(a) or (next(zweiter) if a[0] == "push"
+                                                               else (1 if a[0] == "diff" else 0))),
+                      schlafen=pausen.append, melden=lambda m: None)
+    pruefe("zweiter push geht durch, gesichert", (erg, pausen), ("gesichert", [10]))
+    pruefe("unveraendertes log ohne commit",
+           log_sichern(True, git=lambda *a: 0, schlafen=pausen.append), "unveraendert")
+    pruefe("wartezeit auf das bild 1500 s", BILD_FRIST, 1500)
+    wf = (ROOT / ".github" / "workflows" / "threads.yml").read_text(encoding="utf-8")
+    mt = re.search(r"timeout-minutes:\s*(\d+)", wf)
+    pruefe("job-zeit reicht fuer die wartezeit plus 15 min",
+           bool(mt) and int(mt.group(1)) * 60 >= BILD_FRIST + 15 * 60, True)
+    pruefe("workflow holt das bild mit threads.py bild", "scripts/threads.py bild --jpeg" in wf, True)
+    pruefe("container nimmt die adresse aus dem bild-schritt", "steps.b.outputs.bild" in wf, True)
+    import instagram
+    pruefe("raw-frist 120 s", instagram.RAW_FRIST, 120)
+    gefragt = []
+    def warten_raw_nein(url, laenge, frist=600, takt=15):
+        gefragt.append((url.split("/")[2], frist))
+        if "raw.githubusercontent.com" in url:
+            raise instagram.Fehler("bild nach 120 s nicht oeffentlich")
+        return True
+    with tempfile.TemporaryDirectory() as tmp:
+        jp = Path(tmp, "x-threads.jpg")
+        jp.write_bytes(b"0" * 10)
+        alt_cwd = os.getcwd()
+        os.chdir(tmp)
+        try:
+            u1, q1 = bild("x-threads.jpg", warten=lambda *a, **k: True, sha="a" * 40)
+            u2, q2 = bild("x-threads.jpg", warten=warten_raw_nein, sha="a" * 40)
+        finally:
+            os.chdir(alt_cwd)
+    pruefe("threads nimmt die raw-adresse des commits", (q1, u1.split("/")[2], "/" + "a" * 40 + "/" in u1),
+           ("raw", "raw.githubusercontent.com", True))
+    pruefe("rueckfall auf kaspapulse.com mit 1500 s", (q2, gefragt),
+           ("pages", [("raw.githubusercontent.com", 120), ("kaspapulse.com", 1500)]))
+    lg = {"posts": [{"tag": "2026-11-05", "media": "175", "text": ""}]}
+    neu = nachtragen(lg, [{"id": "175", "text": "t5", "timestamp": "2026-11-05T16:11:45+0000"},
+                          {"id": "176", "text": "t6", "timestamp": "2026-11-06T16:11:45+0000"},
+                          {"id": "x", "text": "kaputt"}], "2026-11-06")
+    pruefe("nachtragen fuellt den fehlenden text", lg["posts"][0]["text"], "t5")
+    pruefe("nachtragen holt den fehlenden post, berliner tag", (lg["posts"][1]["tag"], lg["posts"][1]["media"]),
+           ("2026-11-06", "176"))
+    pruefe("nachtragen zweimal aendert nichts", nachtragen(lg, [{"id": "176", "text": "t6",
+                                                                  "timestamp": "2026-11-06T16:11:45+0000"}],
+                                                            "2026-11-06"), [])
+    pruefe("nachgeholter post sperrt den tag", darf_posten(lg, "2026-11-06", 1), False)
+
     for k, v in alt.items():
         if v is None:
             os.environ.pop(k, None)
@@ -558,7 +911,8 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("befehl", nargs="?",
-                    choices=["me", "container", "wache", "faellig", "artefakt", "posten"])
+                    choices=["me", "container", "wache", "faellig", "artefakt", "posten",
+                             "nachholen", "log-sichern", "bild"])
     ap.add_argument("--text", default="")
     ap.add_argument("--text-datei", default="", help="-threads.json aus dem artefakt")
     ap.add_argument("--ziel", default="out/th")
@@ -567,6 +921,9 @@ def main(argv=None):
     ap.add_argument("--takt", action="store_true", help="vom takt auf c2, fenster und sperre gelten")
     ap.add_argument("--bild", default="")
     ap.add_argument("--thema", default=THEMA)
+    ap.add_argument("--jpeg", default="", help="bild, das jpeg unter ig/")
+    ap.add_argument("--veroeffentlicht", default="", help="log-sichern, 1 wenn der post draussen ist")
+    ap.add_argument("--lauf", default="", help="log-sichern, link auf den lauf fuer die meldung")
     ap.add_argument("--selbsttest", action="store_true")
     a = ap.parse_args(argv)
     if a.selbsttest:
@@ -605,10 +962,22 @@ def main(argv=None):
     elif a.befehl == "posten":
         import instagram
         tag = instagram.berlin(dt.datetime.now(dt.timezone.utc)).date().isoformat()
-        text = warteschlange(tag) or (json_laden(a.text_datei, {}).get("text", "") if a.text_datei else a.text)
+        hand_text = warteschlange(tag)
+        aus_grafik = json_laden(a.text_datei, {}) if a.text_datei and not hand_text else {}
+        text = hand_text or aus_grafik.get("text", "") or ("" if a.text_datei else a.text)
         if not text:
             sys.exit("kein text, weder warteschlange noch tagesgrafik")
-        posten(text, a.bild, a.modus, tag, hand=a.hand)
+        # der bauplan kommt mit dem text aus der tagesgrafik (stimm-regel, Ben, 07.11.2026)
+        posten(text, a.bild, a.modus, tag, hand=a.hand, bauplan=aus_grafik.get("bauplan"))
+    elif a.befehl == "nachholen":
+        nachholen()
+    elif a.befehl == "bild":
+        bild(a.jpeg)
+    elif a.befehl == "log-sichern":
+        erg = log_sichern(a.veroeffentlicht == "1", a.lauf,
+                          zweig=os.environ.get("GITHUB_REF_NAME", "") or "main")
+        ausgabe(gesichert="0" if erg in ("nicht gesichert", "rot") else "1")
+        return 1 if erg == "rot" else 0
     else:
         ap.print_help()
         return 2

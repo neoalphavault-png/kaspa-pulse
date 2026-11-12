@@ -1,43 +1,44 @@
 {
-  "issue": "NOV 2 2026",
+  "issue": "NOV 12 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "864,000",
-  "value_label": "blocks the kaspa network produces every single day",
-  "headline": "bitcoin finds *144 blocks*.\nkaspa finds 864,000.",
+  "value": "328 PH",
+  "value_label": "petahash per second securing the network on 12 nov",
+  "headline": "hashrate is *down 14%*\nagainst 3 weeks ago.",
   "panes": [
     {
       "kind": "compare",
-      "title": "BLOCKS IN TWENTY FOUR HOURS",
-      "sub": "protocol target, not an average of a good day",
+      "title": "NETWORK HASHRATE",
+      "sub": "same measurement, two dates",
       "rows": [
         {
-          "label": "kaspa",
-          "sub": "ten per second",
-          "value": "864,000",
-          "pct": 100.0,
-          "tone": "teal"
+          "label": "12 nov",
+          "sub": "",
+          "value": "328 PH",
+          "pct": 85.59796638085312,
+          "tone": "red"
         },
         {
-          "label": "bitcoin",
-          "sub": "one per ten minutes",
-          "value": "144",
-          "pct": 2.0,
+          "label": "3 weeks ago",
+          "sub": "",
+          "value": "383 PH",
+          "pct": 100.0,
           "tone": "grey"
         }
       ]
     },
     {
       "kind": "anchor",
-      "title": "WHY IT DOES NOT COLLAPSE",
+      "title": "WHAT THE NUMBER IS",
       "lines": [
-        "parallel blocks are not thrown away. they are *ordered and kept*."
+        "the difference is *55 PH*.",
+        "*read* from api.kaspa.org, both days."
       ]
     }
   ],
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "kaspa produces 864,000 blocks a day. bitcoin produces about 144. ten every second against one every ten minutes. blocks found at the same moment are not discarded, they are ordered and kept, and that is the part most comparisons leave out.",
-    "reply": "how that ordering works is explained on kaspapulse.com. the coins per block shrink, the number of blocks does not."
+    "x": "hashrate on kaspa is down 14% against 3 weeks ago. 328 PH on 12 nov, 383 PH then, both read from the kaspa rest api 24 days apart.",
+    "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
   }
 }

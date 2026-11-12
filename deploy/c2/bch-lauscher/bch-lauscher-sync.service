@@ -1,0 +1,17 @@
+# Bringt fertige Laeufe des c2-Zuhoerers auf messung/bch-tempnet (sync.sh),
+# als kpbot mit dem Deploy Key. Keine Werte in dieser Datei.
+[Unit]
+Description=Kaspa Pulse BCH-Tempnet-Zuhoerer c2, Laeufe ins Repo
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=kpbot
+Group=kpbot
+WorkingDirectory=/opt/kaspa-pulse
+ExecStart=/opt/kaspa-pulse/deploy/c2/bch-lauscher/sync.sh
+StateDirectory=kaspa-pulse
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/kaspa-pulse
+PrivateTmp=true
