@@ -134,7 +134,7 @@ SHOW_DELTA = {
 }
 
 # Bot-Regel 10: um jeden Wert ein Fenster. Lieber kein Post als ein falscher.
-PLAUSIBLE = {
+WERTEBEREICH = {
     "hashrate": (10.0, 10000.0),        # PH/s
     "block_reward": (0.0001, 500.0),    # KAS
     "mined_pct": (90.0, 100.0),
@@ -296,7 +296,7 @@ def fetch_price():
     for url, pick in chain:
         try:
             v = pick(http_json(url, tries=1))
-            lo, hi = PLAUSIBLE["price"]
+            lo, hi = WERTEBEREICH["price"]
             if lo <= v <= hi:
                 return v
         except Exception:  # noqa: BLE001
@@ -585,11 +585,11 @@ def assert_punctuation(text):
 
 # ------------------------------------------------------------------ pruefen --
 
-def check_plausible(values):
+def bereich_pruefen(values):
     for key, val in values.items():
-        if key not in PLAUSIBLE or val is None:
+        if key not in WERTEBEREICH or val is None:
             continue
-        lo, hi = PLAUSIBLE[key]
+        lo, hi = WERTEBEREICH[key]
         if not (lo <= float(val) <= hi):
             raise Stop("wert ausserhalb des fensters, %s = %s erlaubt %s bis %s"
                        % (key, val, lo, hi))
@@ -1212,7 +1212,7 @@ def main():
     v.update(inp["manual"])
     prev = previous_entry(history, inp["week"])
 
-    check_plausible({k: v.get(k) for k in PLAUSIBLE if k in v})
+    bereich_pruefen({k: v.get(k) for k in WERTEBEREICH if k in v})
     check_jumps(v, prev, force=force)
 
     price = fetch_price() if show_usd else None  # Regel 8, nur bei bedarf
@@ -1466,10 +1466,10 @@ def run_selftest():
 
     # 8 plausibilitaetsfenster
     raises("absurde hashrate stoppt",
-           lambda: check_plausible({"hashrate": 999999.0}))
+           lambda: bereich_pruefen({"hashrate": 999999.0}))
     raises("dormant ueber 100 stoppt",
-           lambda: check_plausible({"dormant_pct": 140.0}))
-    check_plausible({k: GOLD_NOW[k] for k in GOLD_NOW if k in PLAUSIBLE})
+           lambda: bereich_pruefen({"dormant_pct": 140.0}))
+    bereich_pruefen({k: GOLD_NOW[k] for k in GOLD_NOW if k in WERTEBEREICH})
     print("  ok   echte werte liegen im fenster")
 
     # 9 sprungbremse
