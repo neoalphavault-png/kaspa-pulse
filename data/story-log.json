@@ -185,6 +185,21 @@
     "more fell asleep",
     "more woke up"
    ]
+  },
+  {
+   "datum": "2026-11-12",
+   "tag": "do",
+   "art": "zitat",
+   "frage": "what should we count next?",
+   "richtig": null,
+   "aufloesung": {
+    "frage": "yesterday's number",
+    "zahl": "325 PH",
+    "einheit": "",
+    "satz": "petahash per second securing the network on 11 nov",
+    "datum": "11 nov 2026 · source kaspa rest api"
+   },
+   "quelle_vorlage": "zahl des tages 2026-11-11, kein erklaerer gefunden"
   }
  ]
 }
