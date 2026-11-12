@@ -61,7 +61,7 @@ Die Preise kommen aus Drittquellen (Preisvergleiche, Stand Juni bis September 20
 |---|---|---|---|
 | Maschine | c2 von CX23 auf CX43 (8 vCPU geteilt, 16 GB, 160 GB) | dedizierter Server aus der Serverbörse, Klasse AX42 (8 Kerne, 64 GB, 1 TB NVMe) | CPX42 (8 vCPU, 16 GB, 320 GB) |
 | Zusatzspeicher | Volume 350 GB für Zebra und BCHN geprunt | keiner | Volume 300 GB |
-| Kosten laut Drittquellen | etwa 16 + 20 = 36, also rund 30 mehr als heute | etwa 46, dazu einmalige Einrichtungsgebühr | etwa 69 + 17 = 86 |
+| Kosten | etwa 16 + 20 = 36 laut Drittquellen, also rund 30 mehr als heute | AX42 99,00 laut Bestellseite (12.11.), dazu 49,00 Einrichtung; aus der Serverbörse laut Drittquellen etwa 46 | etwa 69 + 17 = 86 laut Drittquellen |
 | BCHN | nur geprunt | voll | geprunt oder knapp voll |
 | Plattenzugriff | Volume über das Netz, langsam für RocksDB und LevelDB | lokale NVMe, schnell | Volume über das Netz |
 | Risiko | Knoten teilen sich c2 mit Wache und Taktgeber. Eine volle Platte oder Speicherdruck trifft die Posts. Verkleinern geht nicht mehr. | eine Maschine mehr zu pflegen, keine Hetzner-Cloud-Firewall, die Firewall läuft auf dem Server | teuer seit der Preiserhöhung im Juni |
@@ -83,13 +83,13 @@ Keine neuen Fixkosten, bevor ein Auftrag da ist.
 | | |
 |---|---|
 | Server-Klasse | dedizierter Server, 8 Kerne, 64 GB RAM, 1 TB NVMe (Hetzner AX42 oder gleichwertig aus der Serverbörse) |
-| Monatspreis netto | 57,30 EUR zum Listenpreis, etwa 46 EUR aus der Serverbörse. Für den Antrag rechne ich mit dem Listenpreis, also 687,60 EUR für 12 Monate. |
-| Einrichtung | einmalige Einrichtungsgebühr, Höhe auf hetzner.com prüfen (aus der Sitzung nicht erreichbar) |
+| Monatspreis netto | 99,00 EUR laut Hetzner-Bestellseite am 12.11.2026 (Ben). Für 12 Monate sind das 1.188,00 EUR. Die Serverbörse lag laut Drittquellen bei etwa 46 EUR, ist aber nicht bestellbar zugesichert. |
+| Einrichtung | 49,00 EUR netto, einmalig, laut Bestellseite am 12.11.2026. Für den Antrag zusammen 1.237,00 EUR im ersten Jahr. |
 | Erstsynchronisation | „takes days“ laut Zebra-Buch, von der Genesis an, ohne fremden Snapshot. Im Plan 7 Tage. |
 | Betrieb | nur ausgehende Verbindungen. Port 8233 eingehend erst mit einer Firewall-Regel. |
 | Start | nach der Bewilligung |
 
-Die Preise stammen aus Drittquellen, Stand Juni bis September 2026: AX42 nach der Erhöhung im April 2026 von 47,30 auf 57,30 EUR, Serverbörse 37 bis 46 EUR. Vor dem Einreichen bitte auf hetzner.com prüfen.
+**Berichtigt am 12.11.:** Hier stand vorher 57,30 EUR im Monat aus Drittquellen. Laut Hetzner-Bestellseite am 12.11.2026 kostet der AX42 99,00 EUR im Monat plus 49,00 EUR Einrichtung, netto (Ben). Die Drittquellen waren veraltet. Die Zahlen für die Serverbörse (37 bis 46 EUR) stammen weiter aus Drittquellen und sind nicht geprüft.
 
 Auf demselben Server kann später auch ein ungeprunter BCHN laufen. Für den ZCG-Antrag zählt nur Zebra.
 
