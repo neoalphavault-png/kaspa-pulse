@@ -1,5 +1,5 @@
 {
- "erstellt_utc": "2026-11-12 12:13:27",
+ "erstellt_utc": "2026-11-12 17:38:46",
  "ziel_s": 120,
  "computed": {
   "median_s": 83.2,
@@ -8,13 +8,13 @@
   "anteil_ueber_600s_pct": 0.674
  },
  "kette": {
-  "bloecke": 4283,
+  "bloecke": 4462,
   "hoehen": [
    3125743,
-   3130025
+   3130204
   ],
   "von_utc": "2026-11-06 19:24:20",
-  "bis_utc": "2026-11-12 12:11:01",
+  "bis_utc": "2026-11-12 17:37:01",
   "luecken_in_der_kette": 0
  },
  "abseits_der_kette": 3,
@@ -167,25 +167,25 @@
    "tag_utc": "2026-11-12",
    "hoehen": [
     3129622,
-    3130025
+    3130204
    ],
-   "bloecke": 404,
-   "abstaende": 404,
-   "median_s": 71.5,
-   "p90_s": 259.3,
-   "p99_s": 534.8,
-   "mittel_s": 108.7,
-   "anteil_ueber_600s_pct": 0.99,
+   "bloecke": 583,
+   "abstaende": 583,
+   "median_s": 71.0,
+   "p90_s": 260.4,
+   "p99_s": 535.5,
+   "mittel_s": 108.9,
+   "anteil_ueber_600s_pct": 0.86,
    "negative": 0,
-   "laengste_luecke_s": 677.0,
-   "laengste_luecke_vor_block": 3129964,
-   "tx_in_bloecken": 0,
-   "abdeckung_pct": 99.3,
+   "laengste_luecke_s": 806.0,
+   "laengste_luecke_vor_block": 3130149,
+   "tx_in_bloecken": 1,
+   "abdeckung_pct": 99.5,
    "peers_je_block_median": 12.0,
-   "spread_ms_median": 446.0,
-   "spread_ms_p90": 1572.0,
-   "bloecke_mit_spread": 401,
-   "erste_sicht_minus_kopfzeit_s_median": 8.4
+   "spread_ms_median": 444.0,
+   "spread_ms_p90": 1530.1,
+   "bloecke_mit_spread": 580,
+   "erste_sicht_minus_kopfzeit_s_median": 8.5
   }
  ],
  "art": "counted aus eigenen Koepfen und eigener Ersten Sicht, computed fuer exponentielle Abstaende mit Mittel 120 s",
