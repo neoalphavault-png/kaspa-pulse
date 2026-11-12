@@ -11,6 +11,9 @@ Je Stueck aus unseren eigenen Koepfen (nBits, Kopfzeiten) und dem Zuhoerer:
   letzten Blocks. Ohne volle Abdeckung (unter 99,9 %) ist das Stueck markiert
   und die Stale-Werte bleiben leer, nicht null.
 
+Mit --ohne-diff1-csv eine zweite CSV mit denselben Stuecken ohne Bloecke mit
+Difficulty 1, Spalten wie die erste plus block_count (siehe stuecke()).
+
 Dazu, wenn --c2-bloecke kommt: Ausbreitung als Differenz der ersten
 Ankuendigung bei c2 minus GitHub fuer Bloecke, die beide gesehen haben.
 
@@ -62,8 +65,20 @@ def abdeckung(fenster, von, bis):
     return 100.0 * summe / (bis - von)
 
 
-def stuecke(koepfe, stale_hoehen, fenster):
-    """koepfe: Liste (hoehe, zeit, difficulty) nach Hoehe, lueckenlos."""
+def diff1(d):
+    return abs(d - 1.0) < 1e-9
+
+
+def stuecke(koepfe, stale_hoehen, fenster, ohne_diff1=False):
+    """koepfe: Liste (hoehe, zeit, difficulty) nach Hoehe, lueckenlos.
+
+    ohne_diff1 (bitcoincashautist, Forum 2173 Beitrag 47, Ben 12.11.2026):
+    die Stuecke bleiben dieselben 120 Hoehen mit demselben chunk_n, aber
+    Bloecke mit Difficulty 1 (nBits 1d00ffff) zaehlen nicht. block_count ist
+    die Zahl der uebrigen Bloecke. Mittlere Difficulty und Blockzeiten gelten
+    nur fuer sie (Blockzeit weiter Kopfzeit minus Kopfzeit des Vorgaengers,
+    auch wenn der Vorgaenger Difficulty 1 hat). Stale-Bloecke und -Ereignisse
+    zaehlen nur auf Hoehen, deren Kettenblock bleibt."""
     nach_h = {h: (t, d) for h, t, d in koepfe}
     stale = Counter(stale_hoehen)
     zeilen = []
@@ -72,17 +87,22 @@ def stuecke(koepfe, stale_hoehen, fenster):
         if len(teil) < STUECK:
             break  # das letzte, unvollstaendige Stueck faellt weg
         h1, h2 = teil[0][0], teil[-1][0]
-        iv = [t - nach_h[h - 1][0] for h, t, _ in teil if h - 1 in nach_h]
+        bleibt = [k for k in teil if not (ohne_diff1 and diff1(k[2]))]
+        hoehen = [h for h, _, _ in bleibt]
+        iv = [t - nach_h[h - 1][0] for h, t, _ in bleibt if h - 1 in nach_h]
         abd = abdeckung(fenster, teil[0][1], teil[-1][1])
         voll = abd >= VOLL
-        s_bl = sum(stale[h] for h in range(h1, h2 + 1))
-        s_er = sum(1 for h in range(h1, h2 + 1) if stale[h])
-        zeilen.append({"chunk_n": n, "first_height": h1, "last_height": h2, "start_utc": iso(teil[0][1]),
-                       "mean_difficulty": round(sum(d for _, _, d in teil) / len(teil), 3),
+        s_bl = sum(stale[h] for h in hoehen)
+        s_er = sum(1 for h in hoehen if stale[h])
+        zeile = {"chunk_n": n, "first_height": h1, "last_height": h2, "start_utc": iso(teil[0][1]),
+                       "mean_difficulty": round(sum(d for _, _, d in bleibt) / len(bleibt), 3) if bleibt else "",
                        "mean_block_time_s": round(sum(iv) / len(iv), 2) if iv else "",
                        "median_block_time_s": statistics.median(iv) if iv else "",
                        "stale_blocks": s_bl if voll else "", "stale_events": s_er if voll else "",
-                       "listener_coverage_pct": round(abd, 1), "full_coverage": "yes" if voll else "no"})
+                       "listener_coverage_pct": round(abd, 1), "full_coverage": "yes" if voll else "no"}
+        if ohne_diff1:
+            zeile["block_count"] = len(bleibt)
+        zeilen.append(zeile)
     return zeilen
 
 
@@ -115,6 +135,15 @@ def selbsttest():
     z2 = stuecke(k, [1005], [(0, 60000 + 60 * 50)])
     ok("teilweise abdeckung markiert und leer", z2[0]["full_coverage"] == "no" and z2[0]["stale_blocks"] == "")
     ok("ohne abdeckung null prozent", z2[1]["listener_coverage_pct"] == 0.0)
+    # ohne Difficulty 1: im ersten Stueck jeder dritte Block mit Difficulty 1, Stale auf 1005 (bleibt) und 1006 (faellt)
+    k3 = [(1000 + i, 60000 + 60 * i, 1.0 if i % 3 == 0 and i < 120 else 2.0) for i in range(250)]
+    z3 = stuecke(k3, [1005, 1006, 1006, 1007], [(0, 70000)], ohne_diff1=True)
+    ok("block_count ohne difficulty 1", z3[0]["block_count"] == 80 and z3[1]["block_count"] == 120)
+    ok("difficulty nur der uebrigen", z3[0]["mean_difficulty"] == 2.0)
+    ok("stale nur auf uebrigen hoehen", z3[0]["stale_blocks"] == 2 and z3[0]["stale_events"] == 2)
+    ok("gleiches chunk_n und gleiche hoehen", z3[0]["first_height"] == 1000 and z3[0]["last_height"] == 1119)
+    z4 = stuecke(k3, [1005, 1006, 1006, 1007], [(0, 70000)])
+    ok("ohne schalter unveraendert", "block_count" not in z4[0] and z4[0]["stale_blocks"] == 4)
     print("alle testfaelle bestanden" if not fehler else f"{len(fehler)} fehler")
     return 1 if fehler else 0
 
@@ -128,6 +157,7 @@ def main():
     ap.add_argument("--c2-bloecke")
     ap.add_argument("--gh-bloecke")
     ap.add_argument("--csv")
+    ap.add_argument("--ohne-diff1-csv", help="zweite CSV ohne Bloecke mit Difficulty 1, Spalten wie --csv plus block_count")
     ap.add_argument("--aus")
     a = ap.parse_args()
     if a.selbsttest:
@@ -151,6 +181,12 @@ def main():
         w = csv.DictWriter(f, fieldnames=SPALTEN, lineterminator="\n")
         w.writeheader()
         w.writerows(zeilen)
+    if a.ohne_diff1_csv:
+        z1 = stuecke(koepfe, stale_h, fenster, ohne_diff1=True)
+        with open(a.ohne_diff1_csv, "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=SPALTEN + ["block_count"], lineterminator="\n")
+            w.writeheader()
+            w.writerows(z1)
     voll = [z for z in zeilen if z["full_coverage"] == "yes"]
     out = {"koepfe": [koepfe[0][0], koepfe[-1][0]], "stuecke": len(zeilen), "voll_abgedeckt": len(voll),
            "stale_in_vollen_stuecken": sum(z["stale_blocks"] for z in voll),
