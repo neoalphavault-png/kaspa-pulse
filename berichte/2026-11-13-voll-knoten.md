@@ -1,9 +1,12 @@
 # Voller Knoten je Netz und BCH-Tempnet-Abschluss (Ben 9.11.2026, Frist Fr 13.11. 15:00 Berlin)
 
-**Stand 9.11. abends.** Teil A ist fertig. Du hast entschieden: kein Server jetzt, Zebra erst nach Bewilligung durch ZCG, BCHN geprunt auf c2 nach dem Tempnet-Ende (PR #300). Teil C läuft. Diese Datei wird bis Freitag ergänzt.
+**Stand 13.11. morgens, fertig.**
+- **Teil A:** fertig.
+- **Teil B:** Du hast entschieden, kein Server jetzt, Zebra erst nach Bewilligung durch ZCG. BCHN geprunt auf c2 ist vorbereitet (PR #300, gemergt am 11.11.).
+- **Teil C:** fertig, Abschlussbericht und Stücke-Tabelle liegen vor.
 
 <!-- discord -->
-Voller Knoten, Teil A fertig: Heute läuft kein eigener Zebra-, Zakura- oder BCHN-Knoten, weder auf c2 noch woanders. c2 (CX23, 2 vCPU, 4 GB, 40 GB) ist dafür zu klein. Empfehlung ist Variante 2, ein eigener dedizierter Server mit 1 TB NVMe für Zebra und BCHN, rund 46 EUR im Monat laut Drittquellen. Du entscheidest. Für die Messwerte von c2 bitte die drei Befehle aus dem Bericht ausführen. Bericht berichte/2026-11-13-voll-knoten.md
+Voller Knoten, Bericht fertig. Teil A: Bestand und Varianten, der ZCG-Kostenposten für Zebra ist berichtigt (AX42 99,00 EUR im Monat plus 49,00 EUR Einrichtung laut Bestellseite). Teil B: kein Server vor der Bewilligung, BCHN geprunt auf c2 ist vorbereitet (PR #300, Start nach dem 15.11. 12:00 UTC). Teil C: Abschlussbericht mit Stand 13.11. und Stücke-Tabelle liegen vor, der zweite Messpunkt auf c2 läuft seit 9.11. ohne Lücke. Bericht berichte/2026-11-13-voll-knoten.md
 <!-- /discord -->
 
 ## Teil A, Bestandsaufnahme
@@ -107,27 +110,38 @@ Erwartet: etwa 4 GB Blockdateien und einige GB UTXO-Bestand, die Erstsynchronisa
 
 ## Teil C, BCH-Tempnet-Abschluss
 
-**Stand 9.11. mittags.** Der Abschlussbericht für das Forum kommt am Fr 13.11. vormittags mit den Daten bis dahin. Am Sa 14.11. trage ich die Zahlen bis dahin nach, also vor dem Sonntag. Die letzten Stunden bis zum Tempnet-Ende am 15.11. um 12:00 UTC fehlen dann offen benannt.
+**Abschlussbericht:** `berichte/2026-11-13-bch-tempnet-abschluss.md` (PR #305), Stand 13.11. 06:02 UTC, mit englischem Forumsentwurf.
+- **Hash-Fenster:** sechs Fenster aus unseren eigenen Köpfen. In den Fenstern sind 21,0 % stale (1.327 bei 4.986 Kettenblöcken), außerhalb 0,70 % (148 bei 21.151).
+- **Gegenprobe gegen bitcoincashautist:** 0 Abweichungen in 35.101 gemeinsamen Höhen.
+- **Nachtrag:** Am Sa 14.11. kommen die Zahlen bis dahin, die letzten Stunden bis 15.11. 12:00 UTC sind offen benannt.
 
-**8. Stale nach Last.** Das neue `scripts/bch/tempnet_abschluss.py` (PR #299) zählt nach zwei Regeln, beide werden im Forum genannt. Zwischenstand mit den Daten bis 9.11. 08:25 UTC, 340 abgedeckte Stunden:
+**Ergänzung für bitcoincashautist (Beitrag 44 und 47):** `berichte/2026-11-11-bch-tempnet-stuecke.md` (PR #310).
+- Tabelle in Stücken von 120 Blöcken.
+- Gegenrechnung deiner Forumszahlen.
+- Ausbreitung zwischen den zwei Messpunkten.
+- Am 14.11. kommt die zweite CSV ohne Blöcke mit Difficulty 1 dazu.
 
-| Regel | Hochlast | ruhig |
-|---|---|---|
-| Blocklast, Stunden ab 2 × Median (116 Kettenblöcke je Stunde) | 770 stale bei 2.845 Kettenblöcken, 21,3 %, 8 Stunden | 141 bei 17.819, 0,79 %, 332 Stunden |
-| Transaktionslast, Stunden ab dem 90. Perzentil (1.633 Transaktionen) | 20 bei 1.901, 1,04 %, 34 Stunden | 891 bei 18.763, 4,53 %, 306 Stunden |
+**8. Stale nach Last.** Die erste Fassung mit zwei Regeln (Blocklast und Transaktionslast, `tempnet_abschluss.py`, PR #299) wurde durch die Hash-Fenster aus der Difficulty ersetzt. Das war der Wunsch aus dem Forum. Die Zwischenstände vom 9.11. dazu stehen im Verlauf dieser Datei auf GitHub.
 
-Die Stale-Blöcke häufen sich in Stunden mit sehr vielen Blöcken, nicht in Stunden mit vielen Transaktionen. Welche Regel rufitnes meinte, weiß ich nicht. Deshalb zeigen wir beide.
+**9. Uhr.**
+- **GitHub-Zuhörer:** Seit dem 7.11. um 15:02 UTC schreibt jeder Lauf den Versatz aus `chronyc tracking` mit, der größte Betrag lag im Bereich von Mikrosekunden. Die Läufe davor haben keinen Wert, das steht offen in den Berichten.
+- **c2-Zuhörer:** Er misst mit `timedatectl` und lag zuletzt zwischen −2,0 ms und +0,9 ms.
 
-**9. Uhr.** Seit dem 7.11. um 15:02 UTC schreibt jeder Lauf den Versatz aus `chronyc tracking` mit. Das sind bisher 8 von 66 Läufen, der größte Betrag war 14,7 µs. Die 58 Läufe davor haben keinen Wert, das steht offen im Bericht. Ist die Uhr beim Start noch nicht synchron, ist der erste Wert wenig aussagekräftig. Das zeigt `synchron_beim_start`.
+**Lücken.** 25.10. 7 min beim Start, 26.10. 1,6 min, 3.11. 13:59 bis 4.11. 10:08 UTC. Die letzte ist 20 h lang, ein Lauf hat dort keine Daten gesichert.
 
-**Lücken.** 25.10. 7 min beim Start, 26.10. 1,6 min, 3.11. 13:59 bis 4.11. 10:08 UTC (20 h, ein Lauf ohne gesicherte Daten).
+**10. Zweiter Messpunkt.**
+- **Stand:** Der Zuhörer auf c2 (PR #298) läuft seit dem 9.11. um 16:30 UTC. Bis zum 13.11. 03:01 UTC sind das 15 Läufe ohne Lücke zwischen den Läufen, Daten unter `data/bch/lauscher-c2/` auf `messung/bch-tempnet`.
+- **Ergebnis:** Erste Ankündigung c2 minus GitHub bis 11.11., Median −0,039 s bei n 2.402. Er läuft bis zum Tempnet-Ende am 15.11. um 12:00 UTC und endet dann von selbst.
 
-**10. Zweiter Messpunkt.** Machbar bis zum 15.11., wenn du PR #298 bald mergst und auf c2 `sudo ./setup.sh bch-lauscher` ausführst. Dann misst derselbe Zuhörer von c2 aus, also über einen anderen Netzwerkpfad als die GitHub-Runner, bis zum Tempnet-Ende. Gerechnet ab Mittwoch wären das gut drei Tage. Ohne Merge steht im Bericht, dass der zweite Messpunkt fehlt und erst bei einer nächsten Messung kommt.
+**BCHN geprunt auf c2 (PR #300).**
+- Gemergt am 11.11.
+- Die Unit startet erst ab 15.11. 12:00 UTC.
+- Ob `sudo ./setup.sh bchn` auf c2 schon lief, weiß ich nicht.
 
 ## Was Ben tun muss
 
-1. **PR #300 mergen**, dann auf c2 `sudo ./setup.sh bchn`. Nach dem 15.11. um 12:00 UTC kommt `sudo systemctl start bchn`.
-2. **Preise** für den ZCG-Antrag auf hetzner.com prüfen.
+1. **BCHN auf c2:** `sudo ./setup.sh bchn` (falls noch nicht geschehen), nach dem 15.11. um 12:00 UTC dann `sudo systemctl start bchn` und `sudo ./setup.sh bchn-stand`.
+2. **Forum:** den Abschlussbericht (PR #305) posten.
 
 ## Offene Fragen an Ben
 
