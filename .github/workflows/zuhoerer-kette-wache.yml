@@ -37,20 +37,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Schritt 1 prueft ohne Secret und gibt die Meldetexte als Ausgabe weiter,
+      # eine Meldung je Zeile (Ben 13.11.2026: ein Secret bekommt nur der Sendeschritt).
       - name: kette pruefen
+        id: pruefen
         env:
           GH_TOKEN: ${{ github.token }}
-          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
         run: |
           set -eu
+          T="$RUNNER_TEMP/meldungen.txt"
+          : > "$T"
+          ausgabe() {
+            { echo "texte<<MELDUNGEN_ENDE"; cat "$T"; echo "MELDUNGEN_ENDE"; } >> "$GITHUB_OUTPUT"
+          }
+          trap ausgabe EXIT
           ENDE_UTC=$(python3 -c 'import json,sys;print(json.load(open("scripts/zcash/lauscher_ketten.json"))[sys.argv[1]]["ende_utc"])' "$NAME")
           JETZT=$(date -u +%s)
           ENDE=$(date -u -d "$ENDE_UTC" +%s)
           REST=$((ENDE - JETZT))
           # Vorwarnung, je einmal im Stundenfenster 7 Tage und 1 Tag vor dem Ende
-          for T in 604800 86400; do
-            if [ "$REST" -le "$T" ] && [ "$REST" -gt $((T - 3600)) ]; then
-              python3 scripts/ops_melden.py --art log --text "zcash zuhoerer, kette $NAME endet $ENDE_UTC, in $((T / 86400)) tag(en). Verlaengern: ende_utc in scripts/zcash/lauscher_ketten.json auf main spaeter setzen, der naechste Lauf uebernimmt sie."
+          for W in 604800 86400; do
+            if [ "$REST" -le "$W" ] && [ "$REST" -gt $((W - 3600)) ]; then
+              echo "zcash zuhoerer, kette $NAME endet $ENDE_UTC, in $((W / 86400)) tag(en). Verlaengern: ende_utc in scripts/zcash/lauscher_ketten.json auf main spaeter setzen, der naechste Lauf uebernimmt sie." >> "$T"
             fi
           done
           if [ "$JETZT" -ge $((ENDE - 900)) ]; then echo "endzeit erreicht, nichts zu pruefen"; exit 0; fi
@@ -67,6 +75,18 @@ jobs:
           N=$(gh api "repos/$GITHUB_REPOSITORY/contents/data/zcash-mainnet/lauscher-$NAME?ref=messung/zcash-mainnet" \
                 --jq '[.[] | select(.name | endswith("-meta.json"))] | length' 2>/dev/null || echo "?")
           if [ "$N" = "?" ]; then SEG="Zahl der Laeufe plus 1"; else SEG=$((N + 1)); fi
-          TEXT="zcash zuhoerer, kette $NAME abgerissen: letzter lauf $ID ($ERG), kein neuer lauf, endzeit $ENDE_UTC. Start von Hand: Actions, zcash mainnet lauscher, Run workflow auf main mit name=$NAME, segment=$SEG, dauer_min=$DAUER_MIN, ende_utc=$ENDE_UTC."
-          echo "$TEXT"
-          python3 scripts/ops_melden.py --art log --text "$TEXT"
+          echo "zcash zuhoerer, kette $NAME abgerissen: letzter lauf $ID ($ERG), kein neuer lauf, endzeit $ENDE_UTC. Start von Hand: Actions, zcash mainnet lauscher, Run workflow auf main mit name=$NAME, segment=$SEG, dauer_min=$DAUER_MIN, ende_utc=$ENDE_UTC." >> "$T"
+          cat "$T"
+
+      # Schritt 2 sendet nur, wenn Schritt 1 einen Text geliefert hat. Nur er hat den Webhook.
+      - name: melden
+        if: steps.pruefen.outputs.texte != ''
+        env:
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
+          TEXTE: ${{ steps.pruefen.outputs.texte }}
+        run: |
+          set -eu
+          printf '%s\n' "$TEXTE" | while IFS= read -r ZEILE; do
+            [ -n "$ZEILE" ] || continue
+            python3 scripts/ops_melden.py --art log --text "$ZEILE"
+          done
