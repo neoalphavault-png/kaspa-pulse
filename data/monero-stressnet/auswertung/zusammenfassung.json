@@ -1,5 +1,5 @@
 {
- "erstellt_utc": "2026-11-12 23:04:58",
+ "erstellt_utc": "2026-11-13 04:30:46",
  "ziel_s": 120,
  "computed": {
   "median_s": 83.2,
@@ -8,13 +8,13 @@
   "anteil_ueber_600s_pct": 0.674
  },
  "kette": {
-  "bloecke": 4615,
+  "bloecke": 4778,
   "hoehen": [
    3125743,
-   3130357
+   3130520
   ],
   "von_utc": "2026-11-06 19:24:20",
-  "bis_utc": "2026-11-12 23:04:21",
+  "bis_utc": "2026-11-13 04:27:47",
   "luecken_in_der_kette": 0
  },
  "abseits_der_kette": 3,
@@ -167,25 +167,49 @@
    "tag_utc": "2026-11-12",
    "hoehen": [
     3129622,
-    3130357
+    3130378
    ],
-   "bloecke": 736,
-   "abstaende": 736,
+   "bloecke": 757,
+   "abstaende": 757,
    "median_s": 70.0,
-   "p90_s": 270.5,
-   "p99_s": 590.1,
-   "mittel_s": 112.9,
-   "anteil_ueber_600s_pct": 1.09,
+   "p90_s": 270.0,
+   "p99_s": 603.2,
+   "mittel_s": 113.9,
+   "anteil_ueber_600s_pct": 1.19,
    "negative": 0,
-   "laengste_luecke_s": 1044.0,
-   "laengste_luecke_vor_block": 3130308,
-   "tx_in_bloecken": 1,
+   "laengste_luecke_s": 1445.0,
+   "laengste_luecke_vor_block": 3130375,
+   "tx_in_bloecken": 2,
    "abdeckung_pct": 99.6,
    "peers_je_block_median": 12.0,
-   "spread_ms_median": 441.0,
-   "spread_ms_p90": 1518.8,
-   "bloecke_mit_spread": 733,
-   "erste_sicht_minus_kopfzeit_s_median": 8.4
+   "spread_ms_median": 435.5,
+   "spread_ms_p90": 1504.5,
+   "bloecke_mit_spread": 754,
+   "erste_sicht_minus_kopfzeit_s_median": 8.3
+  },
+  {
+   "tag_utc": "2026-11-13",
+   "hoehen": [
+    3130379,
+    3130520
+   ],
+   "bloecke": 142,
+   "abstaende": 142,
+   "median_s": 76.0,
+   "p90_s": 306.2,
+   "p99_s": 488.8,
+   "mittel_s": 114.6,
+   "anteil_ueber_600s_pct": 0.0,
+   "negative": 0,
+   "laengste_luecke_s": 522.0,
+   "laengste_luecke_vor_block": 3130513,
+   "tx_in_bloecken": 0,
+   "abdeckung_pct": 100.0,
+   "peers_je_block_median": 12.0,
+   "spread_ms_median": 556.0,
+   "spread_ms_p90": 1307.6,
+   "bloecke_mit_spread": 142,
+   "erste_sicht_minus_kopfzeit_s_median": 9.8
   }
  ],
  "art": "counted aus eigenen Koepfen und eigener Ersten Sicht, computed fuer exponentielle Abstaende mit Mittel 120 s",
