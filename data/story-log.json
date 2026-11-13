@@ -200,6 +200,25 @@
     "datum": "11 nov 2026 · source kaspa rest api"
    },
    "quelle_vorlage": "zahl des tages 2026-11-11, kein erklaerer gefunden"
+  },
+  {
+   "datum": "2026-11-13",
+   "tag": "fr",
+   "art": "wahr",
+   "frage": "true or false?",
+   "richtig": 1,
+   "aufloesung": {
+    "frage": "most KAS sent to entity x came from fresh wallets",
+    "zahl": "FALSE",
+    "einheit": "",
+    "satz": "9% of all KAS sent to entity x came from fresh wallets",
+    "datum": "as of 21 sep 2026 · counted by kaspa pulse"
+   },
+   "quelle_vorlage": "entity x, eigene zaehlung",
+   "optionen": [
+    "true",
+    "false"
+   ]
   }
  ]
 }
