@@ -308,6 +308,12 @@
    "datei": "berichte/2026-11-13-bch-tempnet-abschluss.md",
    "sha256": "fc7eb4d2af9c8a604800870ffddf26b172705859d0e68089ed8d459127fd487d",
    "utc": "2026-11-13T06:04:21Z"
+  },
+  {
+   "branch": "bericht/2026-11-13-voll-knoten",
+   "datei": "berichte/2026-11-13-voll-knoten.md",
+   "sha256": "d5dea14b27481089dd91d0bdcaee47ea180d795a6cb4e148f14e668bf698c86b",
+   "utc": "2026-11-13T06:05:24Z"
   }
  ]
 }
