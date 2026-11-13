@@ -58,7 +58,9 @@ jobs:
           set -euo pipefail
           lies() { sed -n "s/^$1=//p" kcc20/start.txt; }
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            tag=$(date -u +%Y-%m-%d)
+            # der plan startet oft stunden spaeter als 12:05 utc (11.11.: 19:30). der tag ist der des
+            # letzten 12:05, auch wenn der start nach mitternacht liegt (12.11.2026)
+            tag=$(date -u -d '-12 hours -5 minutes' +%Y-%m-%d)
             stichzeit="${tag}T12:00:00Z"
             ms=$(( $(date -u -d "$stichzeit" +%s) * 1000 ))
             zeiten=$ms; spaeteste=$ms
@@ -244,7 +246,30 @@ jobs:
             --tx /mnt/kp/aus/tx.jsonl --tx /mnt/kp/aus/api-tx.jsonl --out /mnt/kp/aus
 
       - name: ergebnis hochladen (summen und tx-listen, keine skripte, keine adressen)
+        id: hoch
         if: always()
+        # 11.11.: der artefakt-dienst gab fuenfmal html statt json, die ablage bekam nichts.
+        # scheitert der upload, folgt nach 5 minuten ein zweiter versuch (12.11.2026).
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: kcc20-zaehlung
+          path: |
+            /mnt/kp/aus/stand.json
+            /mnt/kp/aus/tx-stand.json
+            /mnt/kp/aus/kcc20-tokens.csv
+            /mnt/kp/aus/kcc20-zaehlung.json
+            /mnt/kp/aus/kcc20-tx-liste.jsonl
+            /mnt/kp/aus/kcc20-namen.csv
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: vor dem zweiten upload warten
+        if: always() && steps.hoch.outcome == 'failure'
+        run: sleep 300
+
+      - name: ergebnis hochladen, zweiter versuch
+        if: always() && steps.hoch.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: kcc20-zaehlung
