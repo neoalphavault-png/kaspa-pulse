@@ -1,0 +1,20 @@
+{
+ "wochen": [
+  {
+   "woche_von_utc": "2026-11-09T00:00:00Z",
+   "woche_bis_utc": "2026-11-16T00:00:00Z",
+   "abdeckung_prozent": 12.9,
+   "vollstaendig": "nein",
+   "kettenbloecke": 3125,
+   "angekuendigt": 3121,
+   "abgehaengt": 10,
+   "ohne_kopf": 0,
+   "tiefe_1": 10,
+   "tiefe_2": 0,
+   "tiefe_3_plus": 0,
+   "offen": 0
+  }
+ ],
+ "laeufe": 4,
+ "kette_spitze_utc": "2026-11-13T19:14:29Z"
+}
