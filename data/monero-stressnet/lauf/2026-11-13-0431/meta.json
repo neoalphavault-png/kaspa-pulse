@@ -1,0 +1,47 @@
+{
+ "skript": "scripts/monero/stressnet_lauscher.py",
+ "tag": "v0.19.0.0-beta.3.1",
+ "start_utc": "2026-11-13 04:31:33",
+ "ende_utc": "2026-11-13 09:56:44",
+ "dauer_min": 325.2,
+ "peers_versucht": 32,
+ "peers_verbunden": 20,
+ "peers_stressnet": 13,
+ "peers_kein_stressnet": 7,
+ "stressnet_modus": {
+  "sync": {
+   "peers": 8,
+   "mit_fluffy_block": 8,
+   "bis_ende_verbunden": 8,
+   "timed_sync": 2188
+  },
+  "spitze": {
+   "peers": 5,
+   "mit_fluffy_block": 5,
+   "bis_ende_verbunden": 4,
+   "timed_sync": 1039
+  }
+ },
+ "bloecke": 164,
+ "bloecke_hash_bestaetigt_durch_nachfolger": 163,
+ "bloecke_mit_bekanntem_vorgaenger": 164,
+ "angekuendigt": 164,
+ "nachgeholt": 0,
+ "noch_fehlend": 0,
+ "missed_ids": 0,
+ "untergrenze": 3130521,
+ "hoehen": [
+  3130521,
+  3130684
+ ],
+ "tx_hash_ankuendigungen": 0,
+ "trennungen": {
+  "kein stressnet": 7,
+  "getrennt": 3,
+  "TimeoutError": 8,
+  "[Errno 104] Connection reset by peer": 1,
+  "[Errno 111] Connection refused": 1,
+  "ende": 12
+ },
+ "hinweis": "ein zuhoerer an einem ort, arbeitsnachweis nicht geprueft; keine adressen in den dateien"
+}
