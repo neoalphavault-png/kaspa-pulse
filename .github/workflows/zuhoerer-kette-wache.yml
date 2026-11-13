@@ -1,0 +1,72 @@
+# zuhoerer-kette-wache.yml - Meldung nach #ops-log, wenn die Kette des
+# Zcash-Zuhoerers abreisst oder ihr Ende naht (Ben, 12.11.2026, Dauerlauf
+# "dauer", Endzeit in scripts/zcash/lauscher_ketten.json).
+#
+# Stuendlich: Laeuft oder wartet kein Lauf von zcash-mainnet-lauscher.yml,
+# obwohl die Endzeit noch nicht erreicht ist, und endete der letzte Lauf in
+# der letzten Stunde (oder ist er rot), geht eine Meldung nach #ops-log mit den
+# Eingaben fuer den Start von Hand. Eine Meldung je Abriss: spaeter meldet die
+# Wache denselben Abriss nicht noch einmal.
+#
+# Vor dem Ende: 7 Tage und 1 Tag vor der Endzeit aus lauscher_ketten.json je
+# eine Meldung, damit die Reihe nicht still auslaeuft wie am 8.11.2026.
+# Verlaengern heisst: ende_utc in scripts/zcash/lauscher_ketten.json auf main
+# spaeter setzen; der naechste Lauf uebernimmt die Zeit.
+#
+# Keine Werte in dieser Datei. Der Webhook kommt aus den Secrets.
+name: zuhoerer kette wache
+
+on:
+  schedule:
+    - cron: "41 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  WORKFLOW: zcash-mainnet-lauscher.yml
+  NAME: dauer
+  DAUER_MIN: "330"
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: kette pruefen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
+        run: |
+          set -eu
+          ENDE_UTC=$(python3 -c 'import json,sys;print(json.load(open("scripts/zcash/lauscher_ketten.json"))[sys.argv[1]]["ende_utc"])' "$NAME")
+          JETZT=$(date -u +%s)
+          ENDE=$(date -u -d "$ENDE_UTC" +%s)
+          REST=$((ENDE - JETZT))
+          # Vorwarnung, je einmal im Stundenfenster 7 Tage und 1 Tag vor dem Ende
+          for T in 604800 86400; do
+            if [ "$REST" -le "$T" ] && [ "$REST" -gt $((T - 3600)) ]; then
+              python3 scripts/ops_melden.py --art log --text "zcash zuhoerer, kette $NAME endet $ENDE_UTC, in $((T / 86400)) tag(en). Verlaengern: ende_utc in scripts/zcash/lauscher_ketten.json auf main spaeter setzen, der naechste Lauf uebernimmt sie."
+            fi
+          done
+          if [ "$JETZT" -ge $((ENDE - 900)) ]; then echo "endzeit erreicht, nichts zu pruefen"; exit 0; fi
+          AKTIV=$(gh run list --workflow "$WORKFLOW" --limit 20 --json status \
+                  --jq '[.[] | select(.status=="queued" or .status=="in_progress" or .status=="waiting")] | length')
+          if [ "$AKTIV" != "0" ]; then echo "kette laeuft ($AKTIV aktiv)"; exit 0; fi
+          LETZT=$(gh run list --workflow "$WORKFLOW" --limit 1 --json databaseId,conclusion,updatedAt \
+                  --jq '.[0] | "\(.databaseId) \(.conclusion) \(.updatedAt)"')
+          set -- $LETZT
+          ID="$1"; ERG="$2"; ZEIT="$3"
+          SEIT=$(( JETZT - $(date -u -d "$ZEIT" +%s) ))
+          echo "kein aktiver lauf, letzter $ID ($ERG) endete vor $((SEIT / 60)) min"
+          if [ "$SEIT" -gt 4500 ]; then echo "abriss schon gemeldet oder alt, keine neue meldung"; exit 0; fi
+          N=$(gh api "repos/$GITHUB_REPOSITORY/contents/data/zcash-mainnet/lauscher-$NAME?ref=messung/zcash-mainnet" \
+                --jq '[.[] | select(.name | endswith("-meta.json"))] | length' 2>/dev/null || echo "?")
+          if [ "$N" = "?" ]; then SEG="Zahl der Laeufe plus 1"; else SEG=$((N + 1)); fi
+          TEXT="zcash zuhoerer, kette $NAME abgerissen: letzter lauf $ID ($ERG), kein neuer lauf, endzeit $ENDE_UTC. Start von Hand: Actions, zcash mainnet lauscher, Run workflow auf main mit name=$NAME, segment=$SEG, dauer_min=$DAUER_MIN, ende_utc=$ENDE_UTC."
+          echo "$TEXT"
+          python3 scripts/ops_melden.py --art log --text "$TEXT"

@@ -1,0 +1,7 @@
+{
+ "_zweck": "Feste Endzeit je Messreihe des Zcash-Zuhoerers (zcash-mainnet-lauscher.yml). Jeder Lauf liest sie hier, also verlaengert eine Aenderung auf main die laufende Kette ohne Neustart. zuhoerer-kette-wache.yml meldet 7 Tage und 1 Tag vor dem Ende nach #ops-log.",
+ "dauer": {
+  "ende_utc": "2027-02-01T00:00:00Z",
+  "grund": "Vorher-Linie fuer NU8, vorgeschlagen fuer Ende Januar 2027 (Forum 59124), Ben 12.11.2026: bis mindestens So 31.1.2027"
+ }
+}

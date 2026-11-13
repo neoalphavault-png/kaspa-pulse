@@ -12,7 +12,8 @@
 # Kette von Laeufen: ein Job darf hoechstens 6 h laufen. Jeder Lauf hoert bis
 # zu dauer_min Minuten zu und startet 8 Minuten vor seinem Ende den naechsten
 # (workflow_dispatch mit segment+1), damit keine Luecke entsteht. Schluss ist
-# allein die feste Endzeit ende_utc (scripts/zcash/lauscher_weiter.py, Ben
+# allein die feste Endzeit ende_utc, fuer Messreihen in
+# scripts/zcash/lauscher_ketten.json die Zeit dort (scripts/zcash/lauscher_weiter.py, Ben
 # 10.11.2026): der letzte Lauf wird bis dahin gekuerzt, danach startet keiner
 # mehr. Frueher hing das Ende an einem kurzen Kopfabruf ("48 h nach NU7"); die
 # NU7-Kette endete deshalb nach Lauf 13 am 8.11. 15:30 UTC statt zu einer
@@ -31,6 +32,8 @@ on:
       - "scripts/zcash/zcash_lauscher.py"
       - "scripts/zcash/lauscher_auswertung.py"
       - "scripts/zcash/lauscher_weiter.py"
+      - "scripts/zcash/lauscher_woche.py"
+      - "scripts/zcash/lauscher_ketten.json"
       - ".github/workflows/zcash-mainnet-lauscher.yml"
   workflow_dispatch:
     inputs:
@@ -44,8 +47,9 @@ on:
         description: "Minuten zuhoeren je Lauf, hoechstens 330"
         default: "330"
       ende_utc:
-        description: "Feste Endzeit der Kette (UTC, JJJJ-MM-TTTHH:MM:SSZ), der letzte Lauf endet dort"
-        required: true
+        description: "Feste Endzeit der Kette (UTC, JJJJ-MM-TTTHH:MM:SSZ); steht die Messreihe in scripts/zcash/lauscher_ketten.json, gilt die Zeit dort"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -85,6 +89,13 @@ jobs:
             NAME=test; SEGMENT=1; DAUER=8; ENDE=2000-01-01T00:00:00Z
           fi
           case "$NAME" in ''|*[!a-z0-9-]*) echo "name unklar"; exit 1;; esac
+          # Endzeit aus der Konfiguration, wenn die Messreihe dort steht (Ben 12.11.2026:
+          # "dauer" bis mindestens 31.1.2027, verlaengerbar ohne Neustart der Kette)
+          KONF=$(python3 -c 'import json,sys;print(json.load(open("scripts/zcash/lauscher_ketten.json")).get(sys.argv[1],{}).get("ende_utc",""))' "$NAME")
+          if [ -n "$KONF" ]; then
+            [ "$KONF" = "$ENDE" ] || echo "endzeit aus scripts/zcash/lauscher_ketten.json: $KONF (eingabe war ${ENDE:-leer})"
+            ENDE="$KONF"
+          fi
           case "$SEGMENT$DAUER" in *[!0-9]*) echo "zahl unklar"; exit 1;; esac
           [ "$DAUER" -le 330 ] || { echo "dauer_min ueber 330"; exit 1; }
           case "$ENDE" in [0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z) ;; *) echo "ende_utc unklar"; exit 1;; esac
@@ -178,6 +189,9 @@ jobs:
           done
           python3 scripts/zcash/lauscher_auswertung.py --ereignisse "${E[@]}" --koepfe "${K[@]}" --meta "${M[@]}" \
             --kette "$RUNNER_TEMP/kette.csv.gz" --nu7 "$NU7" --aus "$O/zusammenfassung.json"
+          # je Kalenderwoche Mo 00:00 bis Mo 00:00 UTC (Ben 12.11.2026, Dauerlauf)
+          python3 scripts/zcash/lauscher_woche.py --ereignisse "${E[@]}" --koepfe "${K[@]}" --meta "${M[@]}" \
+            --kette "$RUNNER_TEMP/kette.csv.gz" --csv "$O/wochen.csv" --aus "$O/wochen.json" > /dev/null
           {
             echo "## Zcash Mainnet Zuhoerer, $NAME, ${#M[@]} laeufe"
             echo '```'
