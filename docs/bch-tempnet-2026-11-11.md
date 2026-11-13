@@ -1,8 +1,8 @@
 # BCH Tempnet 2027 (Faster Blocks), Zählung Stand 2026-11-11 10:00 UTC
 
-**Fenster:** 2026-10-15 12:56:56 bis 2026-11-11 09:58:11 UTC, Blöcke 327.989 bis 365.753 (37.765 Blöcke). **Abruf:** 2026-11-11T10:07:23Z.
+**Fenster:** 2026-10-15 12:56:56 bis 2026-11-11 09:58:11 UTC, Blöcke 327.989 bis 365.753 (37.765 Blöcke). **Abruf:** 2026-11-13T06:02:01Z.
 
-Quelle: eigene Header über P2P (`scripts/bch/tempnet_koepfe.py`), geprüft auf Verkettung und PoW gegen nBits, erster Tempnet-Block 327.989 als Fixpunkt, Gegenprobe mit weiteren Peers: /Bitcoin Cash Node:29.2.1(9500-tempnet)/ 500/500, /Bitcoin Cash Node:29.2.1/ 500/500. Peer-Software: /Bitcoin Cash Node:29.2.1/, /Bitcoin Cash Node:29.2.1(9500-tempnet)/.
+Quelle: eigene Header über P2P (`scripts/bch/tempnet_koepfe.py`), geprüft auf Verkettung und PoW gegen nBits, erster Tempnet-Block 327.989 als Fixpunkt, Gegenprobe mit weiteren Peers: /Bitcoin Cash Node:29.2.1(tempnet-20261015)/ 500/500, /Bitcoin Cash Node:29.2.1/ 500/500. Peer-Software: /Bitcoin Cash Node:29.2.1/, /Bitcoin Cash Node:29.2.1(tempnet-20261015)/.
 
 Gegenprobe source chaingraph: nicht verfügbar (HTTPError: HTTP Error 403: Forbidden).
 
@@ -25,8 +25,8 @@ Gegenprobe source chaingraph: nicht verfügbar (HTTPError: HTTP Error 403: Forbi
 | Block-Zeitstempel minus MTP davor, Median | 342,0 s | 340,1 s |
 | dto. p90 / p99 | 548,0 / 1.408,5 s | 556,5 / 786,0 s |
 | dto. kleinster Wert (Konsens verlangt > 0) | 2 s |  |
-| Abrufzeit minus MTP der Spitze | 404 s | Median 340,4 s, p90 555,8 s |
-| Abrufzeit minus Zeitstempel der Spitze | 11 s | Median 41,7 s, p90 137,5 s |
+| Abrufzeit minus MTP der Spitze | 212 s | Median 340,4 s, p90 555,8 s |
+| Abrufzeit minus Zeitstempel der Spitze | 7 s | Median 41,7 s, p90 137,5 s |
 
 Die Abrufzeit ist eine einzelne Messung je Lauf; die wöchentlichen Läufe sammeln weitere.
 
