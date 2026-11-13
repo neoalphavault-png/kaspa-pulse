@@ -1,19 +1,12 @@
 {
   "netz": "zcash mainnet",
   "quelle": "eigene header ueber p2p",
-  "abruf_utc": "2026-11-12T13:54:42Z",
+  "abruf_utc": "2026-11-13T13:16:08Z",
   "peer_software": [
-    "/Zakura:1.8.4/",
     "/Zebra:7.0.0/",
-    "/Zakura:1.8.6/"
+    "/Zakura:1.8.7/"
   ],
-  "gegenproben": [
-    {
-      "agent": "/Zebra:7.0.0/",
-      "verglichen": 500,
-      "gleich": 500
-    }
-  ],
+  "gegenproben": [],
   "pruefungen": [
     "prev-hash-kette",
     "hash <= ziel aus nbits",
@@ -24,10 +17,10 @@
   "nu7_hoehe": 3543405,
   "bereich": {
     "von_hoehe": 3489717,
-    "bis_hoehe": 3565583,
+    "bis_hoehe": 3568947,
     "von_utc": "2026-09-20 06:59:07",
-    "bis_utc": "2026-11-12 13:54:11",
-    "bloecke": 75867
+    "bis_utc": "2026-11-13 13:15:25",
+    "bloecke": 79231
   },
   "vor_nu7": {
     "abstaende": 53687,
@@ -110,17 +103,17 @@
   },
   "vorhersage": null,
   "nach_nu7": {
-    "abstaende": 22178,
+    "abstaende": 25542,
     "gezaehlt": {
-      "mittel_s": 25.21,
+      "mittel_s": 25.19,
       "median_s": 17.0,
       "p90_s": 58.0,
       "p99_s": 117.0,
       "laengste_luecke_s": 249,
       "laengste_luecke_vor_block": 3543445,
       "laengste_luecke_utc": "2026-11-06 03:11:24",
-      "anteil_ueber_3T_prozent": 5.05,
-      "anteil_ueber_T_ln1000_prozent": 0.099,
+      "anteil_ueber_3T_prozent": 5.01,
+      "anteil_ueber_T_ln1000_prozent": 0.11,
       "negativ": 0
     },
     "berechnet": {
@@ -129,18 +122,18 @@
       "median_s": 17.3,
       "p90_s": 57.6,
       "p99_s": 115.1,
-      "laengste_luecke_s": 265,
+      "laengste_luecke_s": 268,
       "anteil_ueber_3T_prozent": 4.98,
       "anteil_ueber_T_ln1000_prozent": 0.1
     },
     "bereich": {
       "von_hoehe": 3543406,
-      "bis_hoehe": 3565583
+      "bis_hoehe": 3568947
     },
     "erster_nu7_block_utc": "2026-11-06 02:34:02"
   },
   "einpendeln": {
-    "bloecke_nach_nu7": 22178,
+    "bloecke_nach_nu7": 25542,
     "fenster": 100,
     "toleranz_prozent": 20,
     "halten_bloecke": 1000,
