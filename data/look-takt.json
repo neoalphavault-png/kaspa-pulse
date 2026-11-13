@@ -42,6 +42,13 @@
     "motiv": "sternenfeld",
     "schritt": 2,
     "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-11-13",
+    "look": "D-hell",
+    "motiv": "glitch-raster",
+    "schritt": 3,
+    "serie": "tagesgrafik"
    }
   ],
   "story/instagram": [
@@ -91,6 +98,11 @@
     "datum": "2026-11-12",
     "look": "A-papier",
     "schritt": 0
+   },
+   {
+    "datum": "2026-11-13",
+    "look": "D-dunkel",
+    "schritt": 1
    }
   ],
   "tagesgrafik/threads": [
@@ -118,6 +130,11 @@
     "datum": "2026-11-12",
     "look": "A-papier",
     "schritt": 0
+   },
+   {
+    "datum": "2026-11-13",
+    "look": "D-dunkel",
+    "schritt": 1
    }
   ],
   "tagesgrafik/x": [
@@ -145,6 +162,11 @@
     "datum": "2026-11-12",
     "look": "A-papier",
     "schritt": 0
+   },
+   {
+    "datum": "2026-11-13",
+    "look": "D-dunkel",
+    "schritt": 1
    }
   ]
  }
