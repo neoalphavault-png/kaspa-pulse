@@ -1,48 +1,53 @@
-# Stand der taeglichen Automatik-Pruefung
+# Automatik-Pruefung, aktueller Stand
 
-Zeitpunkt: 13.11.2026, 09:41 bis 10:00 Uhr Berlin-Zeit (08:41 bis 09:00 utc).
-Freitag, also kein Uhrwerk-Bericht.
+Stand: Samstag, 14.11.2026, 10:10 Uhr Berlin-Zeit (09:10 utc).
+Geprueft wurde von 09:41 bis 10:10 Berlin (08:41 bis 09:10 utc).
+Lauf gruen, kein roter Lauf, keine Unsicherheit.
 
-## Meldung an Ben
+## Meldung an Ben, woertlich
 
-1. NOD: heute lag bis 08:41 utc kein Lauf vor, deshalb von der Pruefung genau
-   einmal gestartet (workflow_dispatch auf main) -- Lauf 328, Run-ID
-   43395205821, gruen durchgelaufen 08:41:35 bis 08:42:14 utc. Kein zweiter
-   Start. (Lauf 327 vom 12.11. 17:44 utc steht auf success, hat aber nichts
-   getan: Die Doppellauf-Sperre hat gegriffen, alle Schritte danach skipped.)
-2. X-Post: nein. `x pausiert` gruen, `post to x` bleibt `skipped`, der
-   Schalter X_GOKU_AN steht weiter auf Bens Pause vom 07.11.; letzter Eintrag
-   in data/x-post-log.json ist nod-2026-11-08, Post-ID 2119349802983125215.
-   Kein Fehler, sondern der Schalter.
-3. Datenstaende: ok. data/kas-candles.json auf 13.11. 07:09 utc (also heute),
-   letzte Tageskerze 12.11.; multibagger-pick.json date 2026-11-12 und
-   multibagger-state.json last_run 2026-11-12, Cursor 1321 -- Donnerstag war
-   der letzte geschlossene Handelstag. Nichts repariert.
-4. Wachstumslog: eingetragen wurde genau eine Zeile, der Short 2FmcA5-WBJU
-   vom 10.11. 11:00 utc (69,9 h alt; 66 Aufrufe und 22 engagedViews in
-   Analytics, 159 oeffentlich, 29 s durchschnittliche Wiedergabedauer,
-   87,63 Prozent gesehener Anteil, 1 Like, 1 Kommentar, 0 neue Abos;
-   Impressionen und Klickrate wie immer offen). Noch nicht faellig und
-   deshalb nicht eingetragen: Short 7BkVbLxaIGc (48-h-Marke heute 11:00 utc),
-   Short zpqk0P3GIJc (14.11. 11:00 utc) und der Erklaerer SFcWhABVOfg vom
-   12.11. 22:01 utc (24-h-Marke heute 22:01 utc). Diff: 106 Einfuegungen,
-   0 Loeschungen. Branch claude/wachstumslog-2026-11-13, Commit f18db03.
-5. Reels: 0 eingetragen. Kein Reel im Fenster 48 bis 72 Stunden (10.11. 08:55
-   bis 11.11. 08:55 utc); juengstes Reel ist weiter DffDJnHo7UR vom 08.11.
-   15:18 utc, 113,6 h alt und am 11.11. eingetragen. Seit dem 08.11. kein
-   neues Reel, das sind fuenf Tage ohne Instagram-Veroeffentlichung.
-   Instagram-Follower 146 (12.11.: 145). Keine Zwei-Satz-Notiz faellig, da
-   keine Skip-Rate im Fenster zu pruefen war.
-6. Haengender Lauf: `monero stressnet dauer` Lauf 1, Run-ID 42374283536, steht
-   seit 07.11. 12:51 utc auf queued, rund 140 Stunden, Branch
-   messung/monero-stressnet. Nicht angefasst. Ben entscheidet.
-7. Kanal Kaspa Pulse: 121 Abos, 19.694 Aufrufe, 63 Videos (12.11.: 120 Abos,
-   19.638 Aufrufe, 61 Videos). Pulse Hawk wie bekannt ohne neues Video und
-   ohne vidIQ-Analytics-Zugang, nicht als Fehler gewertet.
+NOD: heute lag bis 08:41 utc kein Lauf vor, deshalb von der Pruefung genau
+einmal gestartet (workflow_dispatch auf main, Antwort 204 queued), kein
+zweiter Start, nicht auf das Ergebnis gewartet.
 
-## Hinweis zur Ablage selbst
+X-Post: nein, nach Vorgabe pausiert (X_GOKU_AN steht auf false, Schritt
+"post to x" ist skipped), letzter Eintrag bleibt nod-2026-11-08.
 
-Dieser Branch faellt unter automerge-claude.yml: Der Push landet per Merge auf
-main, danach wird der Branch geloescht. Die Ablage ist deshalb unter
-ablage/automatik-pruefung-stand.md auf main zu finden, so wie am 12.11. Der
-unten genannte Head-Commit bleibt gueltig.
+Datenstaende: ok. kas-candles.json auf 2026-11-14 06:57 utc, letzte
+Tageskerze 13.11.; multibagger-pick.json date 2026-11-13, state last_run
+2026-11-13, Scan committet nachmittags, also planmaessig der Vortagslauf.
+
+Wachstumslog: zwei Zeilen eingetragen, Short 7BkVbLxaIGc (88 Aufrufe,
+24 s, 67,26 Prozent gesehen, 0 neue Abos) und Erklaerer SFcWhABVOfg
+(Analytics liefert noch nichts, deshalb alles offen ausser 110
+oeffentlichen Aufrufen). Offen bleiben zpqk0P3GIJc (46,0 h) und
+6TfVlsBJtQs (22,0 h), beide noch nicht faellig. Diff: 128 Einfuegungen,
+0 Loeschungen.
+
+Reels: keine Zeile, kein Reel im Fenster 48 bis 72 Stunden, keine
+Reel-Ansicht faellig. Neu: am 13.11. 14:00 utc ist nach fuenf Tagen Pause
+wieder ein Reel erschienen (Dfry_BqJvHr, 488 Aufrufe, Skip-Rate 62,7
+Prozent), es wird am 15. oder 16.11. faellig.
+
+Nebenbei: der am 13.11. gemeldete haengende Lauf "monero stressnet dauer"
+(Run-ID 42374283536) ist fertig, completed und success, zuletzt
+aktualisiert 14.11. 07:39 utc. Es bleibt nur der bekannte Lauf 166.
+Wachstumslog liegt auf Branch claude/wachstumslog-2026-11-14, Commit
+3d16c9736829f10ee6aa6e91e59b1f9284517d02.
+
+## Einzelheiten
+
+- NOD-Workflow number-of-day.yml: letzter Lauf vor der Pruefung war Lauf 332
+  (Run-ID 43472198854) vom 13.11. 17:22 utc, success, aber ohne Arbeit, weil
+  die Doppellauf-Sperre gegriffen hat. Letzter Lauf mit echter Arbeit war
+  Lauf 328 vom 13.11. 08:41 utc.
+- graphics/archive/2026-11-14.png lag zum Pruefzeitpunkt nicht auf main,
+  juengster Stand 2026-11-13.png. Der heute gestartete Lauf hat also Arbeit.
+- Kanal Kaspa Pulse: 121 Abos, 20.158 Aufrufe, 64 Videos (13.11.: 121 Abos,
+  19.694 Aufrufe, 63 Videos).
+- Instagram kaspapulse: 151 Follower (13.11.: 146), netto plus fuenf.
+- Kanal Pulse Hawk: kein neues Video, kein vidIQ-Analytics-Zugang, bekannt
+  und nicht als Fehler gewertet.
+- Samstag, deshalb keine Kanalzeile und kein Uhrwerk-Bericht.
+- Nichts repariert, nichts umgestellt, keine Workflow-Datei angefasst, kein
+  Post von Hand.
