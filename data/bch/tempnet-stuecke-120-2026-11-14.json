@@ -1,0 +1,40 @@
+{
+ "koepfe": [
+  327989,
+  370349
+ ],
+ "stuecke": 353,
+ "voll_abgedeckt": 231,
+ "stale_in_vollen_stuecken": 1492,
+ "stale_ereignisse_in_vollen_stuecken": 1235,
+ "letztes_stueck_endet": 370348,
+ "ausbreitung_c2_minus_github": {
+  "n": 6848,
+  "c2_bloecke": 6848,
+  "median_s": -0.037,
+  "p10_s": -0.053,
+  "p90_s": 0.042,
+  "min_s": -0.103,
+  "max_s": 0.217,
+  "c2_zuerst": 4215,
+  "github_zuerst": 2627
+ },
+ "ohne_diff1": {
+  "regel": "gleiche chunk_n und hoehen, bloecke mit nBits 1d00ffff zaehlen nicht, block_count je stueck, mittel, blockzeiten und stale nur ueber die uebrigen, blockzeit = kopfzeit minus vorgaenger",
+  "stale_in_vollen_stuecken": 1436,
+  "stale_ereignisse_in_vollen_stuecken": 1179,
+  "weggefallen_summe": 9273,
+  "weggefallen_median": 18,
+  "weggefallen_max": 120,
+  "stuecke_ohne_wegfall": 25,
+  "stuecke_ganz_ohne_bloecke": 23,
+  "top_stuecke_gleich": true
+ },
+ "eingaenge": {
+  "koepfe": "data/bch/tempnet-koepfe.csv.gz, abruf 2026-11-14T14:02:54Z, hoehe 327989 bis 370349",
+  "zuhoerer_github": "data/bch/lauscher/zusammenfassung.json und bloecke.csv, 89 laeufe bis 2026-11-14T12:01:37Z",
+  "zuhoerer_c2": "data/bch/lauscher-c2/, 21 laeufe 2026-11-09T16:30Z bis 2026-11-14T12:01:28Z, ausgewertet mit scripts/bch/lauscher_auswertung.py gegen dieselben koepfe",
+  "skript": "scripts/bch/tempnet_stuecke.py (PR #309, #312)",
+  "luecke": "zuhoerer github 2026-11-03T13:59Z bis 2026-11-04T10:08Z ohne lauf"
+ }
+}
