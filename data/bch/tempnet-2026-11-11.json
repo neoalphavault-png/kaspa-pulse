@@ -10,37 +10,36 @@
   },
   "quelle": {
     "quelle": "BCH-Tempnet P2P (getheaders), Peers aus der oeffentlichen Tempnet-Konfiguration",
-    "abruf_utc": "2026-11-13T06:02:01Z",
+    "abruf_utc": "2026-11-14T14:02:54Z",
     "start_checkpoint": 327988,
     "erste_hoehe": 327989,
-    "spitze_hoehe": 368474,
-    "spitze_hash": "00000000228015e6c2a5290487cd27612aaafa10d7e502cd158b46c0f3972493",
+    "spitze_hoehe": 370349,
+    "spitze_hash": "000000007d7f6d1607b0e557ade8e0bf17ec405aced6301ee96c9d1b9aa589ce",
     "fixpunkte": {
       "letzter_gemeinsamer": 327988,
       "erster_tempnet": 327989
     },
     "checkpoints_geprueft": 1,
     "peer_software": [
-      "/Bitcoin Cash Node:29.2.1/",
-      "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/"
+      "/Bitcoin Cash Node:29.2.1/"
     ],
     "peer_fehler": 0,
-    "zielhoehe_gemeldet": 368473,
+    "zielhoehe_gemeldet": 370349,
     "zielhoehe_aus_peers_mit_abzweig": 4,
-    "proben_ohne_abzweig": 7,
+    "proben_ohne_abzweig": 5,
     "abzweige_verworfen": [],
     "gegenproben": [
       {
-        "agent": "/Bitcoin Cash Node:29.2.1(tempnet-20261015)/",
+        "agent": "/Bitcoin Cash Node:29.2.1/",
         "verglichen": 500,
         "gleich": 500,
-        "spitze_peer": 368474
+        "spitze_peer": 370349
       },
       {
         "agent": "/Bitcoin Cash Node:29.2.1/",
         "verglichen": 500,
         "gleich": 500,
-        "spitze_peer": 368474
+        "spitze_peer": 370349
       }
     ],
     "gegenproben_ohne_antwort": [],
@@ -86,9 +85,9 @@
       "max": 27799
     },
     "verzug_block_min": 2,
-    "abruf_minus_mtp": 212,
-    "abruf_minus_spitze": 7,
-    "spitze_beim_abruf": 368474,
+    "abruf_minus_mtp": 306,
+    "abruf_minus_spitze": 144,
+    "spitze_beim_abruf": 370349,
     "erwartung": {
       "verzug_block": {
         "anzahl": 200000,
@@ -801,7 +800,7 @@
   "gegenprobe_chaingraph": {
     "quelle": "source chaingraph",
     "endpunkt": "https://tempnet.chaingraph.cash/v1/graphql",
-    "proben": 83,
+    "proben": 87,
     "verglichen": 0,
     "gleich": 0,
     "fehler": "HTTPError: HTTP Error 403: Forbidden"
