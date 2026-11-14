@@ -314,6 +314,18 @@
    "datei": "berichte/2026-11-13-voll-knoten.md",
    "sha256": "d5dea14b27481089dd91d0bdcaee47ea180d795a6cb4e148f14e668bf698c86b",
    "utc": "2026-11-13T06:05:24Z"
+  },
+  {
+   "branch": "bericht/2026-11-14-bch-tempnet-nachtrag",
+   "datei": "berichte/2026-11-14-bch-tempnet-nachtrag.md",
+   "sha256": "429c5feda02b897743dfba36223663c0b5f8dd5c1daf94a8ee52bd20cb60ae89",
+   "utc": "2026-11-14T14:08:11Z"
+  },
+  {
+   "branch": "bericht/2026-11-14-bch-tempnet-nachtrag",
+   "datei": "berichte/2026-11-14-bch-tempnet-stuecke-nachtrag.md",
+   "sha256": "d9c4bf184b0cfcd7786da6538963306b71c7a954b2cff145ea7fc2b4b5fe4d2b",
+   "utc": "2026-11-14T14:08:13Z"
   }
  ]
 }
