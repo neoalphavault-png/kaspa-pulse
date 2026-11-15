@@ -1,5 +1,5 @@
-Quelle: eigene Header ueber P2P, Abruf 2026-11-14T12:20:29Z UTC. Peer-Software: /Zakura:1.8.5/, /Zebra:7.0.0/, /Zakura:1.8.7/. Gegenproben: /Zebra:7.0.0/ 500/500, /Zebra:7.0.0/ 500/500.
-Bereich 3,489,717 bis 3,572,268 (2026-09-20 06:59:07 bis 2026-11-14 12:19:42 UTC).
+Quelle: eigene Header ueber P2P, Abruf 2026-11-15T12:51:02Z UTC. Peer-Software: /Zebra:7.0.0/, /Zakura:1.8.5/, /Zakura:1.7.0/, /Zakura:1.8.7/, /Zakura:1.8.0/, /Zakura:1.8.8/. Gegenproben: /Zebra:7.0.0/ 500/500, /Zebra:7.0.0/ 500/500.
+Bereich 3,489,717 bis 3,575,794 (2026-09-20 06:59:07 bis 2026-11-15 12:50:38 UTC).
 
 ### Vor NU7, gegen 75 s (53,687 Abstaende, Bloecke 3,489,718 bis 3,543,404)
 
@@ -25,24 +25,24 @@ Bereich 3,489,717 bis 3,572,268 (2026-09-20 06:59:07 bis 2026-11-14 12:19:42 UTC
 | 2026-W44 | 8,028 | 75.33 s | 53.0 s |
 | 2026-W45 | 4,711 | 75.32 s | 51 s |
 
-### Ab NU7, gegen 25 s (28,863 Abstaende, Bloecke 3,543,406 bis 3,572,268)
+### Ab NU7, gegen 25 s (32,389 Abstaende, Bloecke 3,543,406 bis 3,575,794)
 
 | Kennzahl | gezaehlt | berechnet |
 |---|---:|---:|
-| Mittel | 25.17 s | 25 s |
+| Mittel | 25.15 s | 25 s |
 | Median | 17 s | 17.3 s |
 | p90 | 58.0 s | 57.6 s |
-| p99 | 116.4 s | 115.1 s |
-| Anteil ueber 75 s | 4.96 % | 4.98 % |
-| Anteil ueber 173 s | 0.107 % | 0.1 % |
-| Laengste Luecke | 249 s (vor Block 3,543,445, 2026-11-06 03:11:24 UTC) | 271 s |
+| p99 | 116.0 s | 115.1 s |
+| Anteil ueber 75 s | 4.92 % | 4.98 % |
+| Anteil ueber 173 s | 0.108 % | 0.1 % |
+| Laengste Luecke | 249 s (vor Block 3,543,445, 2026-11-06 03:11:24 UTC) | 274 s |
 | Negative Abstaende | 0 | 0 |
 
 ### Einpendeln nach NU7
 
 ```
 {
-  "bloecke_nach_nu7": 28863,
+  "bloecke_nach_nu7": 32389,
   "fenster": 100,
   "toleranz_prozent": 20,
   "halten_bloecke": 1000,
@@ -57,7 +57,7 @@ Bereich 3,489,717 bis 3,572,268 (2026-09-20 06:59:07 bis 2026-11-14 12:19:42 UTC
     "block_nu7_plus_1000": 0.321,
     "block_nu7_plus_5000": 0.326
   },
-  "schwierigkeit_spitze_relativ": 0.335,
+  "schwierigkeit_spitze_relativ": 0.325,
   "berechnet_bei_gleicher_hashrate": 0.333
 }
 ```
