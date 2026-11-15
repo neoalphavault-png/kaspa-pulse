@@ -1,44 +1,31 @@
 {
-  "issue": "NOV 14 2026",
+  "issue": "NOV 15 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "343 PH",
-  "value_label": "petahash per second securing the network on 14 nov",
-  "headline": "hashrate is *down 10%*\nagainst 4 weeks ago.",
+  "value": "5.61%",
+  "value_label": "of every kaspa in circulation sits in one address",
+  "headline": "*929 days* of supply\nin one address.",
   "panes": [
     {
-      "kind": "compare",
-      "title": "NETWORK HASHRATE",
-      "sub": "same measurement, two dates",
-      "rows": [
-        {
-          "label": "14 nov",
-          "sub": "",
-          "value": "343 PH",
-          "pct": 89.63017625245867,
-          "tone": "red"
-        },
-        {
-          "label": "4 weeks ago",
-          "sub": "",
-          "value": "383 PH",
-          "pct": 100.0,
-          "tone": "grey"
-        }
-      ]
+      "kind": "dots",
+      "title": "EVERY 100 KAS IN CIRCULATION",
+      "sub": "one dot is 1% of the circulating supply",
+      "total": 100,
+      "lit": 5.613871425588556,
+      "tone": "teal",
+      "note": "*5.6 of every 100* sit in one address."
     },
     {
       "kind": "anchor",
-      "title": "WHAT THE NUMBER IS",
+      "title": "WHO IT IS",
       "lines": [
-        "the difference is *40 PH*.",
-        "*read* from api.kaspa.org, both days."
+        "one address. *what it does*, counted daily."
       ]
     }
   ],
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "hashrate on kaspa is down 10% against 4 weeks ago. 343 PH on 14 nov, 383 PH then, both read from the kaspa rest api 26 days apart.",
-    "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
+    "x": "one address holds 5.61% of every kaspa in circulation, about 1.56B KAS. at the current emission rate the entire network needs 929 days to mine that much. it has never been named.",
+    "reply": "every move that wallet makes is on kaspapulse.com/entity-x.html. an address is not a person, one owner can hold many."
   }
 }
