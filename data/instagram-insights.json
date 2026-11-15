@@ -3201,6 +3201,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-15": {
+     "reach": 54,
+     "likes": 5,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -3250,6 +3257,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 1
+    },
+    "2026-11-15": {
+     "reach": 409,
+     "likes": 26,
+     "comments": 0,
+     "saved": 0,
+     "shares": 1
     }
    }
   },
@@ -3295,6 +3309,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-15": {
+     "reach": 62,
+     "likes": 8,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -3333,6 +3354,13 @@
      "comments": 2,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-15": {
+     "reach": 934,
+     "likes": 55,
+     "comments": 2,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -3364,6 +3392,13 @@
      "comments": 0,
      "saved": 1,
      "shares": 1
+    },
+    "2026-11-15": {
+     "reach": 2003,
+     "likes": 13,
+     "comments": 0,
+     "saved": 1,
+     "shares": 1
     }
    }
   },
@@ -3388,6 +3423,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-15": {
+     "reach": 42,
+     "likes": 2,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -3405,6 +3447,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-15": {
+     "reach": 56,
+     "likes": 4,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -3419,9 +3468,47 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-15": {
+     "reach": 398,
+     "likes": 24,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    }
+   }
+  },
+  "18109029227308899": {
+   "gepostet_utc": "2026-11-15T11:30:39+0000",
+   "typ": "IMAGE",
+   "permalink": "https://www.instagram.com/p/DfwrXF8FLm0/",
+   "form": 11,
+   "caption_sha": "f2af8aad30df",
+   "frage": null,
+   "tage": {
+    "2026-11-15": {
+     "reach": 11,
+     "likes": 0,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    }
+   }
+  },
+  "18061442075652050": {
+   "gepostet_utc": "2026-11-14T16:00:10+0000",
+   "typ": "VIDEO",
+   "permalink": "https://www.instagram.com/reel/DfulgX6J1uU/",
+   "tage": {
+    "2026-11-15": {
+     "reach": 2401,
+     "likes": 24,
+     "comments": 0,
+     "saved": 1,
+     "shares": 2
     }
    }
   }
  },
- "stand_utc": "2026-11-14T12:29:43+00:00"
+ "stand_utc": "2026-11-15T12:57:12+00:00"
 }
