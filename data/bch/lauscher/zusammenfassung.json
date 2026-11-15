@@ -651,9 +651,16 @@
       "ende_utc": "2026-11-15T09:30:43Z",
       "peers_ohne_abzweig_abgelehnt": 103,
       "peers": 67
+    },
+    {
+      "lauf": "20261115T0922",
+      "start_utc": "2026-11-15T09:22:56Z",
+      "ende_utc": "2026-11-15T14:52:56Z",
+      "peers_ohne_abzweig_abgelehnt": 112,
+      "peers": 58
     }
   ],
-  "abgedeckt_h": 495.4,
+  "abgedeckt_h": 500.9,
   "peer_software": [
     "/Bitcoin Cash Node:29.2.1(9500-tempnet)/",
     "/Bitcoin Cash Node:29.2.1(my-tempnet-node)/",
@@ -661,34 +668,34 @@
     "/Bitcoin Cash Node:29.2.1/",
     "/Vcash:0.1/"
   ],
-  "kette_spitze": 371526,
-  "kettenbloecke": 29396,
-  "davon_angekuendigt_gesehen": 29314,
+  "kette_spitze": 371733,
+  "kettenbloecke": 29603,
+  "davon_angekuendigt_gesehen": 29520,
   "first_seen_typ": {
-    "inv": 29285,
+    "inv": 29491,
     "headers": 29,
     "cmpctblock": 0
   },
   "timestamp_deviation_s": {
-    "n": 29314,
-    "mittel": 3.3,
-    "median": 1.988,
-    "p90": 4.6,
-    "p99": 32.782,
+    "n": 29520,
+    "mittel": 3.297,
+    "median": 2.033,
+    "p90": 4.594,
+    "p99": 32.728,
     "min": 0.047,
     "max": 501.548
   },
   "propagation_spread_ms": {
-    "n": 29285,
-    "mittel": 5925.0,
-    "median": 279,
-    "p90": 10228,
-    "p99": 13076,
+    "n": 29491,
+    "mittel": 5885.0,
+    "median": 274,
+    "p90": 10225,
+    "p99": 13043,
     "min": 0,
     "max": 2644850
   },
   "peers_je_block": {
-    "n": 29314,
+    "n": 29520,
     "mittel": 29.6,
     "median": 27,
     "p90": 60,
@@ -697,11 +704,11 @@
     "max": 85
   },
   "compact": {
-    "bloecke_mit_cmpctblock": 28866,
+    "bloecke_mit_cmpctblock": 29072,
     "davon_von_selbst": 0,
     "kurz_ids": {
-      "n": 28866,
-      "mittel": 17.9,
+      "n": 29072,
+      "mittel": 18.0,
       "median": 5,
       "p90": 36,
       "p99": 226,
@@ -709,21 +716,21 @@
       "max": 1032
     },
     "fehlend_geschaetzt": {
-      "n": 28866,
+      "n": 29072,
       "mittel": 0.9,
       "median": 0,
       "p90": 0,
-      "p99": 31,
+      "p99": 30,
       "min": 0,
       "max": 817
     },
-    "bloecke_ohne_fehlende": 28131,
+    "bloecke_ohne_fehlende": 28336,
     "hinweis": "geschaetzt gegen die bei uns per inv angekuendigten Transaktionen, kein eigener Mempool"
   },
   "stale": {
-    "anzahl": 1497,
+    "anzahl": 1498,
     "bestaetigungen": 6,
-    "anteil_prozent": 4.859,
+    "anteil_prozent": 4.829,
     "noch_offen_unter_6": 0,
     "ohne_kopf": 78,
     "bloecke": [
@@ -14199,6 +14206,15 @@
         "first_seen_type": "inv",
         "peers_announced": 22,
         "canonical_hash_at_height": "00000000112faad606753231d36dce1bf6ccf7d808b65f903f1ba9fa518c31d3"
+      },
+      {
+        "height": 371715,
+        "hash": "00000000e73a68160ded6ce3964d08e58c25adda319a7aeecb96bf0eacc2d8bb",
+        "header_time_utc": "2026-11-15T14:20:08Z",
+        "first_seen_utc": "2026-11-15T14:20:08.613Z",
+        "first_seen_type": "inv",
+        "peers_announced": 49,
+        "canonical_hash_at_height": "00000000b28a87bec9c713de515f6bc2f52d10f13c2873c834d0158854b2cce1"
       }
     ]
   }
