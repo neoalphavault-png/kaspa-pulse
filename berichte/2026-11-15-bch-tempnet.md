@@ -55,4 +55,4 @@ Alle Stände sind gezählt ab 327.989. Abstand ist die Kopfzeit minus die Kopfze
 ## Was Ben tun muss
 
 - Die Frage zum Job-Log entscheiden. Wenn du löschen willst, geht das unter Actions, Lauf 10 von „bch tempnet“, Logs löschen.
-- Den Entwurf in #ph-drafts prüfen. Er geht nicht automatisch auf X.
+- Den Entwurf im privaten Entwurfskanal prüfen. Er geht nicht automatisch auf X.
