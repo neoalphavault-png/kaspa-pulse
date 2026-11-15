@@ -1,85 +1,78 @@
-# Stand: KASPA WEEKLY vorbereiten (Routine 3)
+# Stand der Montagsvorbereitung — KASPA WEEKLY
 
-**So 08.11.2026, 08:35 Berlin time.** Lauf für die Montagsfolge am
-09.11.2026 und den Montags-Short desselben Tages.
-
-Diese Datei ist die Ablage des Kopfteils der Meldung an Ben. Sie enthält
-keine Skripte, keine Titel und keine Uploadfelder — das Repo ist öffentlich.
-
----
+**Zeitpunkt: Sonntag, 15.11.2026, 08:33 Berlin time.**
+Lauf: Wochenvorbereitung für Montag 16.11.2026 (Folge 12 und Montags-Short).
+Diese Datei ist die Ablage für Claude. Sie enthält keine Skripte, keine Titel
+und keine Uploadfelder; das Repo ist öffentlich.
 
 ## Zahl der Woche
 
-Kaspa hat die Woche zum 07.11.2026 bei 0,02967 $ geschlossen, 8,90 % tiefer,
-und steht 15,54 % unter der 50-Wochen-Linie — der weiteste Abstand unter
-dieser Linie seit der Woche zum 05.09.2026, gezählt in den 53 Wochen, die
-unsere Reihe diese Linie führt, und die zweite Woche in Folge unter beiden
-Linien.
+Kaspa hat die Woche zum Samstag 14.11.2026 bei 0,02637 USD geschlossen,
+11,12 % tiefer als die Woche davor, und steht damit 23,63 % unter der
+50-Wochen-Linie — der weiteste Abstand unter dieser Linie seit **elf Wochen**
+und die dritte Woche in Folge unter beiden Linien. Die Reihe trägt die
+50-Wochen-Linie seit dem 02.11.2025, also 54 Wochen; über alle 54 ist dieser
+Abstand der 44.-weiteste, also **kein Rekord**.
 
 ## Prüfzeilen
 
-- **Short-Skript enthalten: ja, Manifest-Eintrag: ja.**
-- **Rekorde geprüft: alle mit Zeitraum.** Vier Rekord-Aussagen, jede mit
-  ihrem Fenster im selben Satz: „widest gap … in nine weeks", „the fewest
-  sats in nine weeks", „the third strongest of the ten full weeks in our own
-  log", „five of them closed above it … fifty three weeks". Ausdrücklich
-  **kein** Allzeitwert: der Abstand ist der 45.-weiteste von 53 Wochen.
-- **Quellen geprüft: ok.** Zwei fremde Zahlen im Gesprochenen, beide mit
-  „source kaspalytics" im selben Satz. Nichts ergänzt, nichts nachgetragen.
-- **Keine Wenn-dann-Sätze zum Kurs: geprüft.** `preis_wache.verstoesse()`
-  und `weekly_numbers.kurs_wenn_dann()` über Skript, Beschreibung, Pin,
-  X-Teaser, Telegram, Discord, Short und Befund: leer. Erste Folge, die den
-  Schwellensatz durch die beiden Linienwerte als Daten ersetzt.
-- **Telegram 440 Zeichen, Discord 444 Zeichen, Verhältnisse geprüft, keine
-  Echtzeit-Wörter.**
-- **Gegenprobe bestanden:** dieselbe Rechnung reproduziert die vierzehn
-  Endzahlen der Vorwoche exakt.
-- **Maschinelle Prüfung des Sprechskripts:** 690 Wörter, längster Satz 14
-  Wörter, 0 Ziffern, 0 verbotene Wörter; elf Befunde der Wache, alle von
-  Hand geprüft und im Paket einzeln begründet (Einheiten, Liniendefinition,
-  Rückbezug, feste Wendung, Linienwert-Sätze, ein Fehlalarm).
-- **Test dieser Woche: keiner von Ben freigegeben.** Der Uhrwerk-Bericht vom
-  02.11. schlägt zwei vor, eine Freigabe steht in keiner Datei. Es gilt nur
-  Test & Compare.
+| Prüfung | Ergebnis |
+| --- | --- |
+| Short-Skript enthalten | **ja** |
+| Manifest-Eintrag des Shorts enthalten | **ja** |
+| Rekorde geprüft | **alle mit Zeitraum** |
+| Quellen geprüft | **ok**, keine Quelle ergänzt |
+| Keine Wenn-dann-Sätze zum Kurs | **geprüft**, 0 Treffer in Skript, Short und allen geschriebenen Texten |
+| Echtzeit-Wörter in veröffentlichten Texten | **0** |
+| Verhältnisse gegen die Rechnung geprüft | **ja**, Tabelle in der Lieferung |
+| Gegenprobe gegen die Vorwoche | **bestanden**, zwölf von zwölf Werten gleich |
+| Maschinelle Prüfung des Sprechskripts | 685 Wörter, 9 Befunde, alle von Hand geprüft, keiner ein Regelbruch |
+| Maschinelle Prüfung des Shorts | 80 Wörter, 2 Befunde, beide wie in den Wochen 43 bis 46 |
+| Test dieser Woche | **keiner von Ben freigegeben**, es gilt nur Test & Compare; der Short trägt `test: "keiner"` |
 
-## Zahlen auf offen
+## Zeilen, die auf „offen" stehen
 
-| Zeile | Letzte echte Messung | Alter am Montag |
-| --- | --- | --- |
-| Gebührenanteil in Dollar (`fees_day`) | Mo 17.08.2026 | 84 Tage |
-| Kaspalytics-Wochenzeile (tps, Halter, aktive Adressen, Börsen, ruhender Anteil) | Mo 02.11.2026 | 7 Tage |
-| vidIQ-Score der drei Cover | nicht gemessen, das Werkzeug braucht eine abrufbare Adresse | — |
+| Zeile | Letzte echte Messung |
+| --- | --- |
+| Gebührenanteil in Dollar (`fees_day`) | Mo 17.08.2026, am Erscheinungstag **91 Tage** alt |
+| vidIQ-Score der drei Cover | **nicht gemessen** — der Upload-Weg über `vidiq_upload_image` ist in diesem Lauf erstmals versucht worden und am Netz dieser Sitzung gescheitert |
 
-Alles Übrige ist gerechnet. Die drei Titel **sind** gescort, vidIQ war in
-dieser Sitzung angemeldet.
+Alles Übrige ist gerechnet oder aus einer frischen Reihe gelesen.
 
 ## Datenausfall
 
 | Reihe | Letzter gültiger Wert |
 | --- | --- |
 | `fees_day` / `fees_7d` | Wochenzeile Mo 17.08.2026 |
-| Entity-X-Transaktionsliste mit Absender-Label | keine Liste für 01.–07.11.2026 |
-| `igra_tx` / `kasplex_tx` | dauerhaft `null` |
+| `igra_tx` / `kasplex_tx` | dauerhaft leer |
+| Entity-X-Transaktionsliste mit Absender-Label | keine Liste für 08. bis 14.11.2026 |
 
-Keine dieser Reihen trägt eine gesprochene Zahl. Die beiden fremden
-Datendienste sind aus dieser Sitzung durch die Netzrichtlinie nicht
-erreichbar; die Kaspalytics-Zeile ist deshalb die vom 02.11.2026.
+Keine dieser Reihen trägt eine gesprochene Zahl.
+
+## Weitere Meldungen aus diesem Lauf
+
+1. **Kaspalytics ist aus dieser Sitzung nicht erreichbar** (Netzrichtlinie).
+   Die jüngste Kaspalytics-Zeile stammt vom 09.11.2026 und ist am
+   Erscheinungstag genau sieben Tage alt, also nicht älter als sieben Tage.
+2. **`data/weekly-history.json` hat keine Zeile für den 09.11.2026**, die
+   letzte ist die Ausgabe 17 vom 02.11. `data/weekly.json` hat die Zeile.
+   Für die Lieferung folgenlos, sieht aber so aus, als wäre der Montags-Post
+   am 09.11. nicht durchgelaufen. Nur gemeldet, nicht repariert.
+3. **Das im Auftrag genannte Verzeichnis `data/pruefung/` existiert nicht.**
+   Die eigene Monatszählung der Gebühren steht wie in den Vorwochen in
+   `data/tagesgrafik-log.json`, Lauf vom 15.11.2026.
+4. **Hashrate-Lesungen nachgetragen**: 7 Lesungen dazu, 91 insgesamt. Keine
+   Lücke gemeldet, kein Fehler.
+5. **Keine „LUECKE:"-Zeile** im Lauf von `build_kp_short.py
+   --lesungen-nachtragen`.
 
 ## Branch und Head
 
-- **Lieferung:** `review/weekly-2026-11-09` in `pulse-studio`, Head
-  `f8583bf`, ein Commit, nichts unter `.github/workflows/`.
-- **Diese Ablage:** `claude/ablage-weekly-vorbereiten` in `kaspa-pulse`.
+| | |
+| --- | --- |
+| Lieferung | `review/weekly-2026-11-16` im Repo `pulse-studio` |
+| Head der Lieferung | `215959f99db6facf0726f58a10455192a3ec6f09` |
+| Ablage | `claude/ablage-weekly-vorbereiten` im Repo `kaspa-pulse` |
 
-## Was Ben tun muss
-
-1. Die Lieferung bis Sonntagabend mergen, sonst rechnet die Montagsroutine
-   selbst.
-2. Die sechs m4a der Folge in die Rendersitzung geben, die eine m4a des
-   Shorts in die Shorts-Builder-Sitzung.
-3. Entscheiden, ob die Wochenseiten-Adresse in Telegram und Discord
-   UTM-Parameter tragen soll — die Form steht in der Lieferung, sie braucht
-   vorher einen Eintrag in `docs/kanal-links.md`.
-4. Zur Kenntnis: die vier Donnerstags-Titel der Woche 46 sind am 08.11.
-   nachgemessen worden, drei liegen unter 85. Geändert wurde keiner, das ist
-   die Lieferung eines anderen Laufs.
+Die Lieferung liegt bewusst **nicht** auf einem `claude/`-Branch: Ben liest
+sie und merged selbst.
