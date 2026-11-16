@@ -50,7 +50,9 @@ Keine Adresse, kein Peer, kein Secret. Der Knoten laeuft nur im Runner.
 """
 import argparse
 import asyncio
+import bisect
 import datetime as dt
+import itertools
 import json
 import math
 import os
@@ -128,16 +130,26 @@ def prognose(punkte, ziel, ziehungen=ZIEHUNGEN, saat=SAAT):
     if rest <= 0:
         raise SystemExit("ziel schon erreicht")
     rnd = random.Random(saat)
+    T = [t for t, _ in iv]
+    D = [d for _, d in iv]
+    mittel_d = sum(D) / len(D)
+    alle = range(len(iv))
     sims = []
     for _ in range(ziehungen):
         acc_d = acc_t = 0.0
         while True:
-            t, d = iv[rnd.randrange(len(iv))]
-            if acc_d + d >= rest:
-                acc_t += t * (rest - acc_d) / d
-                break
-            acc_d += d
-            acc_t += t
+            # ziehungen in bloecken, die kumulierte summe zeigt den uebergang
+            k = int((rest - acc_d) / mittel_d * 1.05) + 16
+            idx = rnd.choices(alle, k=k)
+            cd = list(itertools.accumulate(D[i] for i in idx))
+            if acc_d + cd[-1] < rest:
+                acc_d += cd[-1]
+                acc_t += sum(T[i] for i in idx)
+                continue
+            j = bisect.bisect_left(cd, rest - acc_d)
+            vor_d = cd[j - 1] if j else 0
+            acc_t += sum(T[i] for i in idx[:j]) + T[idx[j]] * (rest - acc_d - vor_d) / D[idx[j]]
+            break
         sims.append(ref_t + acc_t)
     gesamt_t = sum(t for t, _ in iv)
     gesamt_d = sum(d for _, d in iv)
@@ -246,16 +258,30 @@ async def daten_holen(ziel=None):
             k = feld(feld(b, "block") or b, "header") or {}
             return {"hash": h, "zeit_ms": int(feld(k, "timestamp")), "daa": int(feld(k, "daaScore", "daa_score"))}
 
-        vc = await c.get_virtual_chain_from_block({"startHash": pp, "includeAcceptedTransactionIds": False})
-        kette = [pp] + list(feld(vc, "addedChainBlockHashes", "added_chain_block_hashes") or [])
+        sink = feld(await c.get_sink(), "sink")
+        # die antwort ist begrenzt (probe 16.11.2026: nur etwa 28 min ab dem
+        # pruning-punkt), deshalb seitenweise bis zum sink
+        kette, start = [pp], pp
+        for _ in range(5000):
+            vc = await c.get_virtual_chain_from_block({"startHash": start, "includeAcceptedTransactionIds": False})
+            neu = list(feld(vc, "addedChainBlockHashes", "added_chain_block_hashes") or [])
+            if not neu:
+                break
+            kette += neu
+            start = neu[-1]
+            if start == sink:
+                break
         schritt = max(1, len(kette) // PUNKTE)
         wahl = kette[::schritt]
         if wahl[-1] != kette[-1]:
             wahl.append(kette[-1])
+        if sink and wahl[-1] != sink:
+            wahl.append(sink)
         punkte = [await kopf(h) for h in wahl]
         aus = {"abruf_utc": iso(time.time()), "virtual_daa": virt, "ziel_daa": ziel,
                "knoten": {"version": feld(info, "serverVersion", "server_version"),
-                          "synchron": bool(feld(info, "isSynced", "is_synced")), "kettenbloecke": len(kette)},
+                          "synchron": bool(feld(info, "isSynced", "is_synced")), "kettenbloecke": len(kette),
+                          "kette_bis_sink": kette[-1] == sink},
                "punkte": punkte}
         if virt >= ziel and punkte and punkte[0]["daa"] < ziel:
             lo, hi = 0, len(kette) - 1     # erster kettenblock mit daa >= ziel, die kette steigt im daa
