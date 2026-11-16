@@ -338,6 +338,30 @@
    "datei": "berichte/2026-11-16-methods-schritt5-pr1.md",
    "sha256": "b66545c7306f4ed42c90efae6bf10f1e07a4535cff6b9ef84729c9a1f4080977",
    "utc": "2026-11-16T09:10:55Z"
+  },
+  {
+   "branch": "bericht/2026-11-16-track-record-events",
+   "datei": "berichte/2026-11-12-zcash-zuhoerer-dauer.md",
+   "sha256": "d47b95621169ac91cddb4ac280be0eb5e9e4c8868a1dd482ff1ee90e7f0f5abf",
+   "utc": "2026-11-16T19:25:47Z"
+  },
+  {
+   "branch": "bericht/2026-11-16-track-record-events",
+   "datei": "berichte/2026-11-13-ph-entwurf-uebernahme.md",
+   "sha256": "6b3f004fe7633159d5eb636b62aa0d8749ba64fd35cd66b3773b7ab717f2e034",
+   "utc": "2026-11-16T19:25:49Z"
+  },
+  {
+   "branch": "bericht/2026-11-16-track-record-events",
+   "datei": "berichte/2026-11-13-wache-secret-schritt.md",
+   "sha256": "c1649e885733427e6c2299655040a017ca16e01cdb1172c778a987c1700d38a2",
+   "utc": "2026-11-16T19:25:52Z"
+  },
+  {
+   "branch": "bericht/2026-11-16-track-record-events",
+   "datei": "berichte/2026-11-16-track-record-protocol-events.md",
+   "sha256": "1ef2d21b9a89333f51b0c9b13fca2d64e1176b48f9771c4cd42e8dd304242061",
+   "utc": "2026-11-16T19:25:54Z"
   }
  ]
 }
