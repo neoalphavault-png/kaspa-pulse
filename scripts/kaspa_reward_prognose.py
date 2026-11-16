@@ -26,7 +26,7 @@ Prognose (Activation Forecast v1, wie PH-M-006)
   Eingang sind Bloecke der ausgewaehlten Kette des eigenen Knotens ab dem
   Pruning-Punkt, je etwa 400 gleich verteilt, mit Kopfzeit und DAA score. Aus
   aufeinanderfolgenden Punkten entstehen Intervalle (Sekunden, DAA). Die
-  restlichen DAA bis zum Ziel werden 4.000 mal mit Zuruecklegen aus diesen
+  restlichen DAA bis zum Ziel werden 20.000 mal mit Zuruecklegen aus diesen
   Intervallen gezogen und die Sekunden aufaddiert, ab dem letzten Punkt. Der
   Median ist die Prognose, 10 % bis 90 % das 80-%-Band, 2,5 % bis 97,5 % das
   95-%-Band. Feste Saat, gleiche Eingaenge geben gleiche Zahlen.
@@ -70,7 +70,7 @@ QUELLE = ("rusty-kaspa v2.1.0, consensus/core/src/config/params.rs (MAINNET_PARA
 
 STUFEN = [("14d", 14 * 86400), ("7d", 7 * 86400), ("2d", 2 * 86400), ("24h", 86400)]
 TAKT_S = 12 * 3600          # der Workflow laeuft alle 12 h
-ZIEHUNGEN = 4000
+ZIEHUNGEN = 20000
 SAAT = 2027
 PUNKTE = 400
 
