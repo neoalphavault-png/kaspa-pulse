@@ -63,6 +63,13 @@
     "motiv": "knotennetz",
     "schritt": 1,
     "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-11-16",
+    "look": "A-teal",
+    "motiv": "punktraster",
+    "schritt": 2,
+    "serie": "tagesgrafik"
    }
   ],
   "story/instagram": [
@@ -137,6 +144,11 @@
     "datum": "2026-11-15",
     "look": "D-hell",
     "schritt": 3
+   },
+   {
+    "datum": "2026-11-16",
+    "look": "A-papier",
+    "schritt": 0
    }
   ],
   "tagesgrafik/threads": [
@@ -179,6 +191,11 @@
     "datum": "2026-11-15",
     "look": "D-hell",
     "schritt": 3
+   },
+   {
+    "datum": "2026-11-16",
+    "look": "A-papier",
+    "schritt": 0
    }
   ],
   "tagesgrafik/x": [
@@ -221,6 +238,11 @@
     "datum": "2026-11-15",
     "look": "D-hell",
     "schritt": 3
+   },
+   {
+    "datum": "2026-11-16",
+    "look": "A-papier",
+    "schritt": 0
    }
   ]
  }

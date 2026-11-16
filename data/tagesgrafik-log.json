@@ -826,6 +826,28 @@
      "verhaeltnis": 649.93
     }
    }
+  },
+  {
+   "datum": "2026-11-16",
+   "form": 1,
+   "grund": "montag, zahl des tages mined_left (vorab gerechnet), uebersprungen [10]",
+   "messzeit_utc": "2026-11-16T06:30:56+00:00",
+   "looks": {
+    "instagram": "A-teal",
+    "threads": "A-papier",
+    "x": "A-papier",
+    "discord": "A-papier"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-17",
+     "bis": "2026-11-15",
+     "fees": 70247.61797886,
+     "emission": 52258114.21109059,
+     "verhaeltnis": 743.91
+    }
+   }
   }
  ]
 }
