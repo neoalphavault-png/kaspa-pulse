@@ -219,6 +219,27 @@
     "true",
     "false"
    ]
+  },
+  {
+   "datum": "2026-11-16",
+   "tag": "mo",
+   "art": "quiz",
+   "frage": "what share of all KAS has not moved in a year?",
+   "richtig": 2,
+   "aufloesung": {
+    "frage": "what share of all KAS has not moved in a year?",
+    "zahl": "52%",
+    "einheit": "",
+    "satz": "52.2% of all KAS has not moved in a year",
+    "datum": "week to 31 oct 2026 · source kaspalytics"
+   },
+   "quelle_vorlage": "weekly 2026-11-02",
+   "antworten": [
+    "21%",
+    "35%",
+    "52%",
+    "74%"
+   ]
   }
  ]
 }
