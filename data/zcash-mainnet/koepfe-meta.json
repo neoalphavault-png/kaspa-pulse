@@ -2,68 +2,35 @@
   "quelle": "Zcash-Mainnet P2P (getheaders), Peers aus DNS-Seeds",
   "netz": "mainnet",
   "nu7_hoehe": 3543405,
-  "abruf_utc": "2026-11-15T12:51:02Z",
+  "abruf_utc": "2026-11-16T13:49:38Z",
   "start_checkpoint": 3489716,
   "erste_hoehe": 3489717,
-  "spitze_hoehe": 3575794,
-  "spitze_hash": "00000000005ccf224a0bde14c89174b3de29b55eb5c761849d3a365c0d62f1fa",
+  "spitze_hoehe": 3579389,
+  "spitze_hash": "00000000010d2394b2e275aa65261bd40544040c5e7e61bf261dcad43b98ea6a",
   "checkpoints_quelle": "https://raw.githubusercontent.com/ZcashFoundation/zebra/main/zebra-chain/src/parameters/checkpoint/main-checkpoints.txt",
   "checkpoints_geprueft": 89,
   "peer_software": [
-    "/Zebra:7.0.0/",
-    "/Zakura:1.8.5/",
-    "/Zakura:1.7.0/",
-    "/Zakura:1.8.7/",
-    "/Zakura:1.8.0/",
-    "/Zakura:1.8.8/"
+    "/Zakura:1.8.8/",
+    "/Zebra:7.0.0/"
   ],
-  "peer_fehler": 0,
-  "zielhoehe_gemeldet": 3575793,
+  "peer_fehler": 1,
+  "zielhoehe_gemeldet": 3579387,
   "abzweige_verworfen": [],
   "gegenproben": [
     {
       "agent": "/Zebra:7.0.0/",
       "verglichen": 500,
       "gleich": 500,
-      "spitze_peer": 3575794
+      "spitze_peer": 3579390
     },
     {
-      "agent": "/Zebra:7.0.0/",
+      "agent": "/Zakura:1.8.8/",
       "verglichen": 500,
       "gleich": 500,
-      "spitze_peer": 3575795
+      "spitze_peer": 3579390
     }
   ],
-  "gegenproben_ohne_antwort": [
-    {
-      "agent": "/Zakura:1.8.5/",
-      "fehler": "TimeoutError"
-    },
-    {
-      "agent": "/Zakura:1.7.0/",
-      "fehler": "TimeoutError"
-    },
-    {
-      "agent": "/Zakura:1.8.7/",
-      "fehler": "TimeoutError"
-    },
-    {
-      "agent": "/Zakura:1.8.7/",
-      "fehler": "TimeoutError"
-    },
-    {
-      "agent": "/Zakura:1.8.0/",
-      "fehler": "TimeoutError"
-    },
-    {
-      "agent": "/Zakura:1.8.8/",
-      "fehler": "TimeoutError"
-    },
-    {
-      "agent": "/Zakura:1.8.8/",
-      "fehler": "TimeoutError"
-    }
-  ],
+  "gegenproben_ohne_antwort": [],
   "pruefungen": [
     "prev-hash-kette",
     "hash <= ziel aus nbits",
