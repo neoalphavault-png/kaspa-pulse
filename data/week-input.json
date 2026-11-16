@@ -1,9 +1,9 @@
 {
-  "week": "2026-11-09",
+  "week": "2026-11-16",
   "manual": {},
-  "read": "the close fell 8.90% from saturday 31 october to saturday 7 november, after falling 9.65% the week before. it sits 15.54% below the 50 week average, after 7.72% below it a week earlier, the widest gap under that line in nine weeks, since the week to 5 september 2026. hashrate read 355.09 PH/s on saturday 7 november and averaged 356.11 PH/s from 1 to 7 november, against 356.32 PH/s from 25 to 31 october, in our own daily log.",
+  "read": "the close fell 11.12% from saturday 7 november to saturday 14 november, after falling 8.90% the week before, the third falling week in a row. it sits 23.63% below the 50 week average, after 15.54% below it a week earlier, the widest gap under that line in eleven weeks, since the week to 29 august 2026. hashrate read 343.29 PH/s on saturday 14 november and averaged 328.45 PH/s from 8 to 14 november, against 356.11 PH/s from 1 to 7 november, in our own daily log.",
   "override": {
-    "hashrate": 355.09
+    "hashrate": 343.29
   },
   "issue": null,
   "_hinweise": {
