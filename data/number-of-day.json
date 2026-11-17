@@ -1,32 +1,44 @@
 {
-  "issue": "NOV 16 2026",
+  "issue": "NOV 17 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "96.89%",
-  "value_label": "of every KAS that will ever exist is already mined",
-  "headline": "the supply story is *almost over*.",
+  "value": "304 PH",
+  "value_label": "petahash per second securing the network on 17 nov",
+  "headline": "hashrate is *down 20%*\nagainst 3 weeks ago.",
   "panes": [
     {
-      "kind": "dots",
-      "title": "EVERY KAS THAT WILL EVER EXIST",
-      "sub": "one dot is 1% of the maximum",
-      "total": 100,
-      "lit": 96.89473979360953,
-      "tone": "teal",
-      "note": "*96.89%* mined, 3.11% still to come."
+      "kind": "compare",
+      "title": "NETWORK HASHRATE",
+      "sub": "same measurement, two dates",
+      "rows": [
+        {
+          "label": "17 nov",
+          "sub": "",
+          "value": "304 PH",
+          "pct": 79.701006869771,
+          "tone": "red"
+        },
+        {
+          "label": "3 weeks ago",
+          "sub": "",
+          "value": "381 PH",
+          "pct": 100.0,
+          "tone": "grey"
+        }
+      ]
     },
     {
       "kind": "anchor",
-      "title": "WHAT IS LEFT",
+      "title": "WHAT THE NUMBER IS",
       "lines": [
-        "*891,334,995 KAS* are still to come.",
-        "99% is reached in june 2028."
+        "the difference is *77 PH*.",
+        "*read* from api.kaspa.org, both days."
       ]
     }
   ],
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "96.89% of every KAS that will ever exist is already mined. 891,334,995 KAS are still to come, and 99% is reached in june 2028 at the current schedule. what comes after keeps halving every twelve months.",
-    "reply": "the full emission schedule is on kaspapulse.com/kaspa-halving.html. the remaining amount shrinks and never quite reaches the maximum."
+    "x": "hashrate on kaspa is down 20% against 3 weeks ago. 304 PH on 17 nov, 381 PH then, both read from the kaspa rest api 22 days apart.",
+    "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
   }
 }
