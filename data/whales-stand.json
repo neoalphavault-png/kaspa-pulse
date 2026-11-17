@@ -98,15 +98,11 @@
     "d90": 4277
    },
    "senkung": {
-    "stichtag": "2026-11-01",
-    "jetzt": 2.0601722350058376,
-    "naechste": 1.9445436523220434,
-    "zeit_utc": "2026-11-04T13:45:44Z",
+    "stichtag": "2026-11-17",
+    "jetzt": 1.9445436523220434,
+    "naechste": 1.8354048033150188,
+    "zeit_utc": "2026-12-05T00:15:44Z",
     "stufen": [
-     [
-      "2026-11-04T13:45:44Z",
-      1.9445436523220434
-     ],
      [
       "2026-12-05T00:15:44Z",
       1.8354048033150188
@@ -198,6 +194,10 @@
      [
       "2028-10-04T15:15:44Z",
       0.5150430587514598
+     ],
+     [
+      "2028-11-04T01:45:44Z",
+      0.48613591308051124
      ]
     ]
    },
@@ -937,6 +937,16 @@
       316522
      ]
     ]
+   }
+  },
+  "korrektur": {
+   "utc": "2026-11-17T18:10:55+00:00",
+   "zahl": 5,
+   "name": "senkung",
+   "grund": "zahl 5 korrigiert (Ben, 17.11.2026): die naechste reward-stufe nur als schaetzung ohne uhrzeit, aus scripts/stufe_schaetzung.py. die anderen sieben zahlen und stichtage unveraendert, ausgabe-nummer bleibt",
+   "vorher": {
+    "stichtag": "2026-11-01",
+    "zeit_utc": "2026-11-04T13:45:44Z"
    }
   }
  }

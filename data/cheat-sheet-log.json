@@ -28,12 +28,24 @@
     "boersen": "2026-10-25",
     "unbewegt": "2026-10-31",
     "halter": "2026-10-25",
-    "senkung": "2026-11-01",
+    "senkung": "2026-11-17",
     "gebuehren": "2026-11-01",
     "hashrate": "2026-10-31",
     "covenants": "2026-10-25"
    },
-   "herkunft": "scripts/cheat_sheet.py"
+   "herkunft": "scripts/cheat_sheet.py",
+   "korrekturen": [
+    {
+     "utc": "2026-11-17T18:10:55+00:00",
+     "zahl": 5,
+     "name": "senkung",
+     "grund": "zahl 5 korrigiert (Ben, 17.11.2026): die naechste reward-stufe nur als schaetzung ohne uhrzeit, aus scripts/stufe_schaetzung.py. die anderen sieben zahlen und stichtage unveraendert, ausgabe-nummer bleibt",
+     "stichtag_vorher": "2026-11-01",
+     "stichtag_neu": "2026-11-17",
+     "zeit_vorher": "2026-11-04T13:45:44Z",
+     "zeit_neu": "2026-12-05T00:15:44Z"
+    }
+   ]
   }
  ]
 }

@@ -1239,7 +1239,60 @@ def main():
             json.dump(history, fh, indent=2)
             fh.write("\n")
         print("history fortgeschrieben, %d wochen" % len(history))
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            history_sichern(inp["week"])
     return 0
+
+
+# HISTORY SOFORT SICHERN (Ben, 17.11.2026). Am 9.11. und am 16.11. ging der
+# Wochenpost raus, aber der Push der history scheiterte: takt-uhrwerk pusht
+# taeglich um 18:40 Berlin, in derselben Minute wie takt-weeklynumbers am
+# Montag, und der Schritt im Workflow hat nur einen Versuch (lauf 42666853629
+# "cannot lock ref", lauf 43920758686 "fetch first"). Ohne die Woche in der
+# history fehlt dem Karussell am Samstag die Montagsausgabe (14.11.), und die
+# Dublettenbremse kennt die Woche nicht. Deshalb committet und pusht das
+# Skript die history selbst, mit Wiederholung. Der Schritt "history
+# zurueckschreiben" im Workflow findet danach nichts mehr und endet gruen.
+PUSH_WARTEN = (5, 10, 20, 40)          # sekunden vor dem 2. bis 5. versuch
+
+
+def _git(*args, lauf=None):
+    import subprocess
+    lauf = lauf or subprocess.run
+    r = lauf(["git", "-C", ROOT] + list(args), capture_output=True, text=True)
+    return r.returncode, (r.stdout or "") + (r.stderr or "")
+
+
+def history_sichern(week, lauf=None, warten=None):
+    """Commit und Push von data/weekly-history.json, bis zu fuenf Versuche.
+    Gibt die Zahl der Versuche zurueck, sonst Stop mit klarer Meldung: der
+    Post ist dann schon draussen, nur die history fehlt."""
+    warten = warten if warten is not None else time.sleep
+    rel = os.path.relpath(HISTORY_PATH, ROOT)
+    rc, _ = _git("diff", "--quiet", "--", rel, lauf=lauf)
+    if rc == 0:
+        print("history ohne aenderung, nichts zu pushen")
+        return 0
+    _git("add", rel, lauf=lauf)
+    rc, out = _git("-c", "user.name=kaspa pulse bot", "-c", "user.email=actions@github.com",
+                   "commit", "-m", "weekly numbers, woche %s fortgeschrieben" % week, lauf=lauf)
+    if rc != 0:
+        raise Stop("history nicht committet, der post ist raus. %s" % out.strip()[-200:])
+    letzter = ""
+    for n in range(len(PUSH_WARTEN) + 1):
+        if n:
+            warten(PUSH_WARTEN[n - 1])
+        rc, out = _git("pull", "--rebase", "origin", "main", lauf=lauf)
+        if rc == 0:
+            rc, out = _git("push", "origin", "HEAD:main", lauf=lauf)
+            if rc == 0:
+                print("history gepusht, versuch %d" % (n + 1))
+                return n + 1
+        letzter = out.strip().splitlines()[-1] if out.strip() else "ohne ausgabe"
+        print("history push versuch %d abgelehnt, %s" % (n + 1, letzter))
+    raise Stop("history nach %d versuchen nicht gepusht, der post ist raus. woche %s fehlt in "
+               "data/weekly-history.json, das karussell am samstag hat dann keine montagsausgabe. "
+               "zuletzt %s" % (len(PUSH_WARTEN) + 1, week, letzter))
 
 
 # ---------------------------------------------------------------- selftest --
@@ -1884,10 +1937,58 @@ def run_selftest():
     lp = os.path.join(tmp, "wn.log")
     with open(lp, "w", encoding="utf-8") as fh:
         fh.write("ABBRUCH sprungbremse. tvl_total springt\n")
-    ok("ops ohne secret springt sauber ueber",
-       ops_melden(lp, hook="", lauf="https://x/run/1", anlass="schedule") == 0)
-    ok("ops ohne logdatei stuerzt nicht ab",
-       ops_melden(os.path.join(tmp, "fehlt.log"), hook="") == 0)
+    # die ausgabe dieser beiden faelle bleibt im puffer: der selbsttest
+    # schreibt ins selbe weekly.log wie der echte lauf, und ihre zeile
+    # "ABBRUCH sprungbremse" stand am 9.11. und 16.11. als grund in #ops-log,
+    # obwohl der push gescheitert war (Ben, 17.11.2026)
+    import contextlib
+    import io
+    puffer = io.StringIO()
+    with contextlib.redirect_stdout(puffer):
+        r1 = ops_melden(lp, hook="", lauf="https://x/run/1", anlass="schedule")
+        r2 = ops_melden(os.path.join(tmp, "fehlt.log"), hook="")
+    ok("ops ohne secret springt sauber ueber", r1 == 0)
+    ok("ops ohne logdatei stuerzt nicht ab", r2 == 0)
+    ok("die ABBRUCH-zeile des ops-tests bleibt im puffer, nicht im log", "ABBRUCH" in puffer.getvalue())
+
+    # 19 history sofort sichern, der fall vom 9.11. und 16.11.2026
+    class Erg:
+        def __init__(self, rc, out=""):
+            self.returncode, self.stdout, self.stderr = rc, out, ""
+
+    def git_falsch(antworten):
+        rufe = []
+
+        def lauf(cmd, capture_output=True, text=True):
+            arg = cmd[3:]
+            rufe.append(arg)
+            if arg[:1] == ["diff"]:
+                return Erg(1)
+            if arg[:1] == ["push"]:
+                return antworten.pop(0)
+            return Erg(0)
+        return lauf, rufe
+    pausen = []
+    lauf, rufe = git_falsch([Erg(1, " ! [remote rejected] main -> main (cannot lock ref 'refs/heads/main')"),
+                             Erg(0)])
+    with contextlib.redirect_stdout(io.StringIO()):
+        n = history_sichern("2026-11-16", lauf=lauf, warten=pausen.append)
+    ok("push abgelehnt wie am 9.11., zweiter versuch klappt", n == 2 and pausen == [5]
+       and sum(1 for r in rufe if r[:1] == ["push"]) == 2
+       and sum(1 for r in rufe if r[:1] == ["pull"]) == 2, (n, pausen))
+    pausen.clear()
+    lauf, rufe = git_falsch([Erg(1, " ! [rejected] main -> main (fetch first)")] * 5)
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            history_sichern("2026-11-16", lauf=lauf, warten=pausen.append)
+        ok("fuenfmal abgelehnt meldet klar", False)
+    except Stop as exc:
+        ok("fuenfmal abgelehnt meldet klar, post ist raus, history fehlt",
+           "nicht gepusht" in str(exc) and "post ist raus" in str(exc) and pausen == [5, 10, 20, 40],
+           str(exc)[:120])
+    ok("die abbruchzeile des pushs geht an ops", ops_zeile(
+        "selbsttest ok\ngepostet\nhistory fortgeschrieben, 13 wochen\nABBRUCH history nach 5 versuchen "
+        "nicht gepusht, der post ist raus\n").startswith("ABBRUCH history nach 5 versuchen"))
 
     print("")
     if fails:

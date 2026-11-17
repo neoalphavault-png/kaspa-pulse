@@ -124,8 +124,16 @@ def ausgaben_fuer(history, fuer):
     Ohne passende Ausgabe kein Entwurf, eine alte Woche waere ein falsches
     Datum im Bild."""
     montag = (dt.date.fromisoformat(fuer) - dt.timedelta(days=5)).isoformat()
+    davor = (dt.date.fromisoformat(montag) - dt.timedelta(days=7)).isoformat()
     for i, e in enumerate(history):
         if e.get("week") == montag and i > 0:
+            # die texte sagen "than a week before" und "in a week". fehlt die
+            # ausgabe davor (9.11.2026: push der history gescheitert), waere der
+            # vergleich zwei wochen lang und die aussage falsch (Ben, 17.11.2026)
+            if history[i - 1].get("week") != davor:
+                raise Stopp("keine montagsausgabe %s vor der ausgabe %s in weekly-history.json (davor "
+                            "steht %s), ein wochenvergleich waere falsch"
+                            % (davor, montag, history[i - 1].get("week")))
             return e, history[i - 1]
     raise Stopp("keine montagsausgabe %s in weekly-history.json (letzte %s)"
                 % (montag, history[-1].get("week") if history else "-"))
@@ -750,6 +758,22 @@ def selbsttest():
         ok("ohne montagsausgabe der woche kein entwurf", False)
     except Stopp:
         ok("ohne montagsausgabe der woche kein entwurf", True)
+    # der fall vom 14.11.2026: am 9.11. ging der post raus, die history nicht
+    h14 = [{"week": "2026-10-26"}, {"week": "2026-11-02"}]
+    try:
+        ausgaben_fuer(h14, "2026-11-14")
+        ok("14.11., ausgabe 9.11. fehlt in der history, kein entwurf", False)
+    except Stopp as exc:
+        ok("14.11., ausgabe 9.11. fehlt in der history, kein entwurf",
+           "keine montagsausgabe 2026-11-09" in str(exc))
+    try:
+        ausgaben_fuer(h14 + [{"week": "2026-11-16"}], "2026-11-21")
+        ok("21.11. mit luecke davor, kein zwei-wochen-vergleich als wochenvergleich", False)
+    except Stopp as exc:
+        ok("21.11. mit luecke davor, kein zwei-wochen-vergleich als wochenvergleich",
+           "keine montagsausgabe 2026-11-09 vor der ausgabe 2026-11-16" in str(exc))
+    j, v = ausgaben_fuer(h14 + [{"week": "2026-11-09"}, {"week": "2026-11-16"}], "2026-11-21")
+    ok("21.11. mit beiden ausgaben, 16.11. gegen 9.11.", (j["week"], v["week"]) == ("2026-11-16", "2026-11-09"))
     ok("texte halten die wachen", not text_pruefen(seiten_texte(ss)))
     c = caption_woche(ss)
     ok("caption nach den content-regeln (%s)" % "; ".join(caption_pruefen(c)), not caption_pruefen(c))

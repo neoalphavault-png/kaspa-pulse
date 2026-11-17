@@ -68,6 +68,11 @@ MONATE_LANG = ["january", "february", "march", "april", "may", "june", "july",
                "august", "september", "october", "november", "december"]
 
 
+def _stufe():
+    import stufe_schaetzung
+    return stufe_schaetzung
+
+
 class Abbruch(Exception):
     """Eine Zahl fehlt oder ist zu alt. Lieber kein PDF als ein falsches."""
 
@@ -659,10 +664,10 @@ def g_stufen(z):
         out.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="4" fill="%s"/>'
                    % (i * bw + 3, hy(v), bw - 6, hoch * v / obergrenze, col))
     # Ben, 28.10.2026: "until <tag der senkung>" statt "now"
-    out.append(txt(2, hy(z["jetzt"]) - 14, "%.2f until %s" % (z["jetzt"], tag_kurz(z["zeit_utc"])),
+    out.append(txt(2, hy(z["jetzt"]) - 14, "%.2f until around %s" % (z["jetzt"], tag_kurz(z["zeit_utc"])),
                    28, INK2, weight=600))
     out.append(txt(2 * bw + 11, hy(z["naechste"]) + 34,
-                   "%.2f on %s" % (z["naechste"], tag_kurz(z["zeit_utc"])), 30, INK, weight=600))
+                   "%.2f around %s" % (z["naechste"], tag_kurz(z["zeit_utc"])), 30, INK, weight=600))
     # die stufe in einem jahr und die letzte im fenster, als anker
     for k, anchor in ((11, "middle"), (len(z["stufen"]) - 1, "end")):
         s = z["stufen"][k]
@@ -765,7 +770,10 @@ def karten(p):
 
     se = z["senkung"]
     se_zeit = dt.datetime.fromisoformat(se["zeit_utc"].replace("Z", "+00:00"))
-    se_tage = (se_zeit.date() - heute).days
+    # die tage zaehlen ab dem stichtag der senkung, nicht ab dem stand: in
+    # einer korrektur (Ben, 17.11.2026) ist die senkung neuer als die ausgabe
+    se_ab = dt.date.fromisoformat(se.get("stichtag") or heute.isoformat())
+    se_tage = (se_zeit.date() - se_ab).days
 
     ge = z["gebuehren"]
     ge_x = ge["emission"] / ge["fees"]
@@ -833,18 +841,19 @@ def karten(p):
                   "0.01 KAS." % (ha["alle"] / 1e6),
              signal="the 30 day direction of the 100+ line.",
              src="source kaspalytics · checked by kaspa pulse"),
+        # die naechste stufe nur als schaetzung, ohne uhrzeit (Ben, 12.11. und
+        # 17.11.2026), beide formen aus scripts/stufe_schaetzung.py
         dict(n=5, tag="miners", q="when do miners get paid less again?",
-             big=tag_kurz(se_zeit.date()),
-             unit="next block reward cut, %s utc" % se_zeit.strftime("%H:%M"),
-             date="%.2f to %.2f KAS per block · %d days from %s" % (
-                 se["jetzt"], se["naechste"], se_tage, tag_kurz(heute)),
+             big="around %s" % tag_kurz(se_zeit.date()),
+             unit="next block reward cut, estimate",
+             date="%.2f to %.2f KAS per block · about %d days from %s" % (
+                 se["jetzt"], se["naechste"], se_tage, tag_kurz(se_ab)),
              chart=g_stufen(se),
              plain="every month kaspa pays a little less per block. twelve steps halve the "
-                   "reward. the next one is on %d %s." % (se_zeit.day,
-                                                          MONATE_LANG[se_zeit.month - 1]),
+                   "reward. the next one is %s." % _stufe().lang(se_zeit),
              nerd="factor 0.5 to the power 1/12 per step, one step every 365.25 / 12 days, 10 "
-                  "blocks per second. the cut lands on a block score, so the exact minute drifts "
-                  "a little.",
+                  "blocks per second. the cut lands on a DAA score, not on a clock time, so the "
+                  "day is an estimate.",
              signal="whether fees grow while the reward shrinks. see number 6.",
              src="computed from the emission schedule"),
         dict(n=6, tag="miners", q="what actually pays the miners?",
@@ -904,14 +913,13 @@ KL = " · source kaspalytics"
 def uebersicht(p, k):
     """Die acht Zeilen auf dem Deckblatt, in derselben Reihenfolge."""
     z = p["zahlen"]
-    se_zeit = dt.datetime.fromisoformat(z["senkung"]["zeit_utc"].replace("Z", "+00:00"))
     return [
         ("biggest wallet, share of supply", "entity x · %s"
          % tag_kurz(z["entityx"]["stichtag"]), k[0]["big"]),
         ("KAS on exchanges", tag_kurz(z["boersen"]["stichtag"]) + KL, k[1]["big"]),
         ("untouched for a year or more", tag_kurz(z["unbewegt"]["stichtag"]) + KL, k[2]["big"]),
         ("addresses with 100 KAS or more", tag_kurz(z["halter"]["stichtag"]) + KL, k[3]["big"]),
-        ("next block reward cut", "%s utc" % se_zeit.strftime("%H:%M"), k[4]["big"]),
+        ("next block reward cut", "estimate · set by DAA score", k[4]["big"]),
         ("new coins vs fees, %d days" % z["gebuehren"]["tage"],
          "to %s · fees source kaspalytics" % tag_kurz(z["gebuehren"]["bis"]), k[5]["big"]),
         ("hashrate, %d day mean" % HASH_FENSTER,
@@ -1215,7 +1223,7 @@ def teaser_datum(p, n):
     name = ZAHLEN[n - 1][0]
     if name == "senkung":
         t = dt.datetime.fromisoformat(p["zahlen"]["senkung"]["zeit_utc"].replace("Z", "+00:00"))
-        return "%s, %s utc" % (tag_lang(t.date()), t.strftime("%H:%M"))
+        return _stufe().kurz(t)
     return "as of %s" % tag_lang(p["zahlen"][name]["stichtag"])
 
 
@@ -1366,6 +1374,47 @@ def festschreiben(p, edition, pdf, log=None, pfad=LOG):
                 "stichtage": {k: p["zahlen"][k]["stichtag"] for k, _ in ZAHLEN},
                 "herkunft": "scripts/cheat_sheet.py"})
     log["editionen"] = sorted(eds, key=lambda e: e["monat"])
+    Path(pfad).write_text(json.dumps(log, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    WEBSEITE.write_bytes(Path(pdf).read_bytes())
+    whales_festschreiben(p, edition)
+    return WEBSEITE
+
+
+KORREKTUR_GRUND = ("zahl 5 korrigiert (Ben, 17.11.2026): die naechste reward-stufe nur als "
+                   "schaetzung ohne uhrzeit, aus scripts/stufe_schaetzung.py. die anderen sieben "
+                   "zahlen und stichtage unveraendert, ausgabe-nummer bleibt")
+
+
+def korrektur_senkung(p, heute, jetzt=None):
+    """Eine korrigierte Fassung derselben Ausgabe: nur Zahl 5 (die Senkung) neu
+    gerechnet fuer heute, alles andere bleibt Zeichen fuer Zeichen. Die
+    Frist gilt hier nicht fuer die sieben alten Zahlen, die sind die der
+    veroeffentlichten Ausgabe, und genau die sollen stehen bleiben."""
+    neu = json.loads(json.dumps(p))
+    alt = neu["zahlen"]["senkung"]
+    neu["zahlen"]["senkung"] = z_senkung(heute)
+    neu["korrektur"] = {"utc": (jetzt or dt.datetime.now(dt.timezone.utc)).isoformat(timespec="seconds"),
+                        "zahl": 5, "name": "senkung", "grund": KORREKTUR_GRUND,
+                        "vorher": {"stichtag": alt.get("stichtag"), "zeit_utc": alt.get("zeit_utc")}}
+    return neu
+
+
+def korrektur_festschreiben(p, edition, pdf, log=None, pfad=LOG):
+    """Wie festschreiben, aber die Ausgabe behaelt ihre Zeile im Log und
+    bekommt einen Eintrag unter "korrekturen"."""
+    log = log if log is not None else edition_log(pfad)
+    monat = p["stand"][:7]
+    treffer = [e for e in log.get("editionen", []) if e["monat"] == monat and e["n"] == edition]
+    if not treffer:
+        raise Abbruch("keine ausgabe %d im %s im log, eine korrektur braucht die veroeffentlichte ausgabe"
+                      % (edition, monat))
+    e = treffer[0]
+    k = p["korrektur"]
+    e.setdefault("korrekturen", []).append({
+        "utc": k["utc"], "zahl": k["zahl"], "name": k["name"], "grund": k["grund"],
+        "stichtag_vorher": e["stichtage"].get(k["name"]), "stichtag_neu": p["zahlen"][k["name"]]["stichtag"],
+        "zeit_vorher": k["vorher"].get("zeit_utc"), "zeit_neu": p["zahlen"][k["name"]]["zeit_utc"]})
+    e["stichtage"][k["name"]] = p["zahlen"][k["name"]]["stichtag"]
     Path(pfad).write_text(json.dumps(log, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     WEBSEITE.write_bytes(Path(pdf).read_bytes())
     whales_festschreiben(p, edition)
@@ -1537,6 +1586,9 @@ def main(argv=None):
     ap.add_argument("--melden", action="store_true",
                     help="pdf und deckblatt melden, scharf nach #ops-log, sonst VON HAND nach #moderator-only")
     ap.add_argument("--selbsttest", action="store_true")
+    ap.add_argument("--korrektur-senkung", action="store_true",
+                    help="korrigierte fassung einer veroeffentlichten ausgabe (--aus, --edition): nur zahl 5 "
+                         "neu fuer heute (oder --stand), pdf, log mit korrektur, /whales")
     ap.add_argument("--teaser", help="nur den teaser aus --aus bauen (eine probe oder data/whales-stand.json), "
                                      "in diesen ordner, nichts senden")
     a = ap.parse_args(argv)
@@ -1554,6 +1606,16 @@ def main(argv=None):
         print(teaser_caption(p, a.edition or 1))
         return 1 if f_ else 0
     heute = dt.date.fromisoformat(a.stand) if a.stand else dt.datetime.now(dt.timezone.utc).date()
+    if a.korrektur_senkung:
+        if not (a.aus and a.edition):
+            raise Abbruch("--korrektur-senkung braucht --aus (die probe der ausgabe) und --edition")
+        p = korrektur_senkung(_json(a.aus), heute)
+        pdf, deck, roh = bauen(p, a.edition, a.ziel)
+        ziel = korrektur_festschreiben(p, a.edition, pdf)
+        Path(a.aus).write_text(json.dumps(p, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+        print("korrektur edition %d, %s, %d byte, festgeschrieben %s und %s"
+              % (a.edition, pdf, pdf.stat().st_size, LOG, ziel))
+        return 0
     p = _json(a.aus) if a.aus else probe(heute)
     if a.stand:
         p["stand"] = heute.isoformat()
@@ -1658,6 +1720,45 @@ def selbsttest():
 
     # der ganze bau aus den daten vom 11.10.2026 muss Fassung 2.1 ergeben
     s = html(p, 1, fonts="")
+    import stufe_schaetzung
+    ok("zahl 5 ohne uhrzeit, keine kuenftige stufe ohne schaetzung (stand 11.10.)",
+       "13:45" not in s and stufe_schaetzung.verstoesse(
+           " ".join(re.sub(r"<[^>]+>", " ", s).split()), dt.date(2026, 10, 11)) == [],
+       stufe_schaetzung.verstoesse(" ".join(re.sub(r"<[^>]+>", " ", s).split()), dt.date(2026, 10, 11))[:3])
+    ok("teaser-datum zahl 5 als schaetzung", teaser_datum(p, 5) == "around 4 nov, estimate", teaser_datum(p, 5))
+    # die korrektur vom 17.11.2026: ausgabe 2 vom 1.11. behaelt sieben zahlen, nur zahl 5 neu
+    p2 = json.loads(json.dumps(p))
+    p2["stand"] = "2026-11-01"
+    kp = korrektur_senkung(p2, dt.date(2026, 11, 17), jetzt=dt.datetime(2026, 11, 17, 18, 0, tzinfo=dt.timezone.utc))
+    k5 = karten(kp)[4]
+    ok("korrektur, zahl 5 around 5 dec, estimate, ohne uhrzeit",
+       (k5["big"], k5["unit"]) == ("around 5 dec", "next block reward cut, estimate")
+       and "around 5 December 2026, an estimate, because the step is set by DAA score" in k5["plain"]
+       and ":" not in k5["big"] + k5["unit"] + k5["date"], (k5["big"], k5["unit"], k5["date"]))
+    ok("korrektur, 1.94 to 1.84 ab dem stichtag der senkung", k5["date"]
+       == "1.94 to 1.84 KAS per block · about 18 days from 17 nov", k5["date"])
+    ok("korrektur, die anderen sieben zahlen zeichengleich", all(
+       kp["zahlen"][n] == p2["zahlen"][n] for n, _ in ZAHLEN if n != "senkung")
+       and [k["big"] for i, k in enumerate(karten(kp)) if i != 4]
+       == [k["big"] for i, k in enumerate(karten(p2)) if i != 4] and kp["stand"] == "2026-11-01")
+    import tempfile as _tf
+    with _tf.TemporaryDirectory() as td:
+        lp = Path(td) / "log.json"
+        lp.write_text(json.dumps({"editionen": [{"n": 2, "monat": "2026-11", "stand": "2026-11-01",
+                                                 "stichtage": {n: "2026-11-01" for n, _ in ZAHLEN}}]}))
+        alt_web, alt_wh = globals()["WEBSEITE"], globals()["whales_festschreiben"]
+        globals()["WEBSEITE"], globals()["whales_festschreiben"] = Path(td) / "web.pdf", lambda p_, e_: None
+        try:
+            (Path(td) / "x.pdf").write_bytes(b"%PDF")
+            korrektur_festschreiben(kp, 2, Path(td) / "x.pdf", pfad=lp)
+        finally:
+            globals()["WEBSEITE"], globals()["whales_festschreiben"] = alt_web, alt_wh
+        lg = json.loads(lp.read_text())
+        e2 = lg["editionen"][0]
+        ok("korrektur im log, nummer bleibt 2, eine ausgabe, ein korrektur-eintrag",
+           len(lg["editionen"]) == 1 and e2["n"] == 2 and len(e2.get("korrekturen", [])) == 1
+           and e2["korrekturen"][0]["zahl"] == 5 and e2["stichtage"]["senkung"] == "2026-11-17"
+           and e2["stichtage"]["hashrate"] == "2026-11-01", e2)
     ok("zehn seiten", s.count('<section class="pg') == 10, s.count('<section class="pg'))
     muss = [
         "edition 1 · october 2026", "the 8 kaspa numbers <em>whales watch</em>",
@@ -1678,10 +1779,11 @@ def selbsttest():
         "almost 300,000 wallets hold 100 KAS or more",
         "the last month added about 2,000, the last 90 days are slightly negative",
         "54.9 million addresses hold something",
-        # 5 senkung
-        "<b>4 nov</b>", "next block reward cut, 13:45 utc",
-        "2.06 to 1.94 KAS per block · 24 days from 11 oct",
-        "the next one is on 4 november", "2.06 until 4 nov", "1.94 on 4 nov",
+        # 5 senkung, seit 17.11.2026 nur als schaetzung (stufe_schaetzung), ohne uhrzeit
+        "<b>around 4 nov</b>", "next block reward cut, estimate",
+        "2.06 to 1.94 KAS per block · about 24 days from 11 oct",
+        "the next one is around 4 November 2026, an estimate, because the step is set by DAA score",
+        "2.06 until around 4 nov", "1.94 around 4 nov", "estimate · set by DAA score",
         "1.03 · oct 2027", "0.52 · oct 2028",
         # 6 gebuehren
         "<b>765x</b>", "30 days, 3 sep to 2 oct 2026", "they got 765 KAS in new coins",

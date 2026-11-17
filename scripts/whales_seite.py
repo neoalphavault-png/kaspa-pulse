@@ -119,12 +119,17 @@ def einheit(k):
     und nur als Schaetzung (Ben, 12.11.2026), "around 4 nov" gross, darunter
     "next block reward cut, estimate"."""
     if k["n"] == 5:
-        return re.sub(r",\s*\d{1,2}:\d{2} utc$", "", k["unit"]) + ", estimate"
+        # seit 17.11.2026 liefert cheat_sheet.karten() die form selbst
+        # ("next block reward cut, estimate"), aeltere staende tragen noch die uhrzeit
+        u = re.sub(r",\s*\d{1,2}:\d{2} utc$", "", k["unit"])
+        return u if u.endswith("estimate") else u + ", estimate"
     return ziffern(k["unit"])
 
 
 def gross(k):
-    return "around " + k["big"] if k["n"] == 5 else k["big"]
+    if k["n"] == 5 and not k["big"].startswith("around"):
+        return "around " + k["big"]
+    return k["big"]
 
 
 def karten(p):
