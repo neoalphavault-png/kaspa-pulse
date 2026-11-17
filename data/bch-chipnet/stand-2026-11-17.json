@@ -1,0 +1,156 @@
+{
+  "netz": "bch chipnet",
+  "quelle": "eigene header ueber p2p (chipnet_koepfe.py)",
+  "abruf_utc": "2026-11-17T19:41:22Z",
+  "peer_software": [
+    "/Vcash:0.1/",
+    "/Bitcoin Cash Node:29.2.1",
+    "/Bitcoin Cash Node:29.2.1/",
+    "/Rapids:2026-11.4df41e42/"
+  ],
+  "gegenproben": [
+    {
+      "agent": "/Bitcoin Cash Node:29.2.1",
+      "verglichen": 500,
+      "gleich": 500
+    },
+    {
+      "agent": "/Bitcoin Cash Node:29.2.1/",
+      "verglichen": 500,
+      "gleich": 500
+    },
+    {
+      "agent": "/Rapids:2026-11.4df41e42/",
+      "verglichen": 500,
+      "gleich": 500
+    }
+  ],
+  "pruefungen": [
+    "prev-hash-kette",
+    "hash <= ziel aus nbits",
+    "bchn-checkpoints chipnet",
+    "nicht der tempnet-block bei 327989"
+  ],
+  "checkpoints_geprueft": 1,
+  "proben_tempnet_oder_ohne_antwort": 1,
+  "bereich": {
+    "ab_utc": "2026-10-01 00:01:12",
+    "bis_utc": "2026-11-17 19:40:09",
+    "von_hoehe": 325791,
+    "bis_hoehe": 335744,
+    "abstaende": 9954
+  },
+  "zielabstand_s": 600.0,
+  "counted": {
+    "abstaende_s": {
+      "n": 9954,
+      "mittel": 415.1,
+      "median": 180.0,
+      "p90": 1203.0,
+      "p99": 1384.5,
+      "min": -6000,
+      "max": 2223
+    },
+    "anteil_ueber_5min_prozent": 42.24,
+    "anteil_ueber_2T_prozent": 15.98,
+    "laengste_luecke_s": 2223,
+    "laengste_luecke_vor_block": 326691,
+    "laengste_luecke_utc": "2026-10-07 06:38:57",
+    "negativ": 131,
+    "mindestschwierigkeit": {
+      "bloecke": 2539,
+      "anteil_prozent": 25.51
+    },
+    "mtp_abstand_s": {
+      "median": 2662.0,
+      "p90": 4936.0,
+      "p99": 7549.8
+    },
+    "abruf_minus_mtp_spitze_s": 487,
+    "abruf_minus_spitze_s": 73,
+    "wartezeit_ab_zufallszeitpunkt_s": {
+      "median": 380.0,
+      "p90": 995.0,
+      "p99": 1225.0,
+      "raster_s": 10
+    }
+  },
+  "computed": {
+    "mittel_s": 600.0,
+    "median_s": 415.9,
+    "p90_s": 1381.6,
+    "p99_s": 2763.1,
+    "anteil_ueber_5min_prozent": 60.65,
+    "anteil_ueber_2T_prozent": 13.53,
+    "laengste_luecke_s": 5870,
+    "mtp_abstand_s": {
+      "median": 3404.1,
+      "p90": 5552.8,
+      "p99": 7821.2
+    },
+    "wartezeit_ab_zufallszeitpunkt_s": {
+      "median": 415.9,
+      "p90": 1381.6,
+      "p99": 2763.1
+    },
+    "hinweis": "ideale kette, exponentielle abstaende, ohne die mindestschwierigkeits-regel"
+  },
+  "je_woche": [
+    {
+      "woche": "2026-W40",
+      "abstaende": 576,
+      "mittel_s": 599.8,
+      "median_s": 514.5,
+      "mindest": 89
+    },
+    {
+      "woche": "2026-W41",
+      "abstaende": 1112,
+      "mittel_s": 544.2,
+      "median_s": 397.0,
+      "mindest": 205
+    },
+    {
+      "woche": "2026-W42",
+      "abstaende": 998,
+      "mittel_s": 605.0,
+      "median_s": 519.5,
+      "mindest": 227
+    },
+    {
+      "woche": "2026-W43",
+      "abstaende": 1018,
+      "mittel_s": 594.3,
+      "median_s": 465.0,
+      "mindest": 256
+    },
+    {
+      "woche": "2026-W44",
+      "abstaende": 1008,
+      "mittel_s": 600.6,
+      "median_s": 483.5,
+      "mindest": 275
+    },
+    {
+      "woche": "2026-W45",
+      "abstaende": 1004,
+      "mittel_s": 602.2,
+      "median_s": 495.0,
+      "mindest": 263
+    },
+    {
+      "woche": "2026-W46",
+      "abstaende": 1637,
+      "mittel_s": 369.7,
+      "median_s": 122,
+      "mindest": 452
+    },
+    {
+      "woche": "2026-W47",
+      "abstaende": 2601,
+      "mittel_s": 60.5,
+      "median_s": 53,
+      "mindest": 772
+    }
+  ]
+}
