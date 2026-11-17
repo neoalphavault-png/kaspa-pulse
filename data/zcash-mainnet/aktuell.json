@@ -1,10 +1,12 @@
 {
   "netz": "zcash mainnet",
   "quelle": "eigene header ueber p2p",
-  "abruf_utc": "2026-11-16T13:49:38Z",
+  "abruf_utc": "2026-11-17T14:42:05Z",
   "peer_software": [
+    "/Zakura:1.8.9/",
     "/Zakura:1.8.8/",
-    "/Zebra:7.0.0/"
+    "/Zebra:7.0.0/",
+    "/Zebra:7.1.0/"
   ],
   "gegenproben": [
     {
@@ -13,7 +15,7 @@
       "gleich": 500
     },
     {
-      "agent": "/Zakura:1.8.8/",
+      "agent": "/Zebra:7.1.0/",
       "verglichen": 500,
       "gleich": 500
     }
@@ -23,15 +25,15 @@
     "hash <= ziel aus nbits",
     "zebra-checkpoints"
   ],
-  "checkpoints_geprueft": 89,
+  "checkpoints_geprueft": 219,
   "abzweige_verworfen": 0,
   "nu7_hoehe": 3543405,
   "bereich": {
     "von_hoehe": 3489717,
-    "bis_hoehe": 3579389,
+    "bis_hoehe": 3582977,
     "von_utc": "2026-09-20 06:59:07",
-    "bis_utc": "2026-11-16 13:49:20",
-    "bloecke": 89673
+    "bis_utc": "2026-11-17 14:41:36",
+    "bloecke": 93261
   },
   "vor_nu7": {
     "abstaende": 53687,
@@ -114,17 +116,17 @@
   },
   "vorhersage": null,
   "nach_nu7": {
-    "abstaende": 35984,
+    "abstaende": 39572,
     "gezaehlt": {
-      "mittel_s": 25.14,
+      "mittel_s": 25.12,
       "median_s": 17.0,
       "p90_s": 58.0,
       "p99_s": 116.0,
       "laengste_luecke_s": 249,
       "laengste_luecke_vor_block": 3543445,
       "laengste_luecke_utc": "2026-11-06 03:11:24",
-      "anteil_ueber_3T_prozent": 4.93,
-      "anteil_ueber_T_ln1000_prozent": 0.106,
+      "anteil_ueber_3T_prozent": 4.91,
+      "anteil_ueber_T_ln1000_prozent": 0.101,
       "negativ": 0
     },
     "berechnet": {
@@ -133,18 +135,18 @@
       "median_s": 17.3,
       "p90_s": 57.6,
       "p99_s": 115.1,
-      "laengste_luecke_s": 277,
+      "laengste_luecke_s": 279,
       "anteil_ueber_3T_prozent": 4.98,
       "anteil_ueber_T_ln1000_prozent": 0.1
     },
     "bereich": {
       "von_hoehe": 3543406,
-      "bis_hoehe": 3579389
+      "bis_hoehe": 3582977
     },
     "erster_nu7_block_utc": "2026-11-06 02:34:02"
   },
   "einpendeln": {
-    "bloecke_nach_nu7": 35984,
+    "bloecke_nach_nu7": 39572,
     "fenster": 100,
     "toleranz_prozent": 20,
     "halten_bloecke": 1000,
@@ -159,7 +161,7 @@
       "block_nu7_plus_1000": 0.321,
       "block_nu7_plus_5000": 0.326
     },
-    "schwierigkeit_spitze_relativ": 0.335,
+    "schwierigkeit_spitze_relativ": 0.344,
     "berechnet_bei_gleicher_hashrate": 0.333
   }
 }
