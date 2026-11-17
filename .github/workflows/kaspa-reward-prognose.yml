@@ -18,6 +18,7 @@ name: kaspa reward prognose
 
 on:
   schedule:
+    # 03:41 und 15:41 UTC = 04:41 und 16:41 Berlin (Winterzeit, UTC+1; Sommerzeit 05:41 und 17:41)
     - cron: "41 3,15 * * *"
   workflow_dispatch:
   push:
