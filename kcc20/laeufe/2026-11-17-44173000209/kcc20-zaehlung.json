@@ -1,0 +1,89 @@
+{
+ "quelle": "counted by kaspa pulse, eigener knoten, zustaende per blake2b-hash bewiesen",
+ "tokens_mit_lebenden_outputs": 438,
+ "tokens_mit_aktivitaet_seit": 430,
+ "halter_outputs": 6578,
+ "halter_je_token_summiert": 3999,
+ "halter_eindeutig": 2024,
+ "transfers_counted": 1252,
+ "transfers_counted_ab_utc": "2026-11-11T07:39:27.707000+00:00",
+ "eigene_fenster_utc": [
+  [
+   "2026-10-25T06:06:09.858000+00:00",
+   "2026-10-26T12:17:43.558000+00:00"
+  ],
+  [
+   "2026-11-01T06:23:49.852000+00:00",
+   "2026-11-02T20:02:58.952000+00:00"
+  ],
+  [
+   "2026-11-01T18:25:00.829000+00:00",
+   "2026-11-03T12:17:39.730000+00:00"
+  ],
+  [
+   "2026-11-05T06:37:19.515000+00:00",
+   "2026-11-06T20:11:01.405000+00:00"
+  ],
+  [
+   "2026-11-07T07:27:47.870000+00:00",
+   "2026-11-08T18:37:31.626000+00:00"
+  ],
+  [
+   "2026-11-08T07:29:40.531000+00:00",
+   "2026-11-09T22:54:31.817000+00:00"
+  ],
+  [
+   "2026-11-09T07:33:00.707000+00:00",
+   "2026-11-10T20:19:44.293000+00:00"
+  ],
+  [
+   "2026-11-11T07:39:27.707000+00:00",
+   "2026-11-12T20:29:55.653000+00:00"
+  ],
+  [
+   "2026-11-11T07:39:27.707000+00:00",
+   "2026-11-12T22:53:29.565000+00:00"
+  ],
+  [
+   "2026-11-12T07:41:03.865000+00:00",
+   "2026-11-13T20:15:12.150000+00:00"
+  ],
+  [
+   "2026-11-13T07:44:00.266000+00:00",
+   "2026-11-14T19:00:48.725000+00:00"
+  ],
+  [
+   "2026-11-14T07:43:15.337000+00:00",
+   "2026-11-15T19:40:57.863000+00:00"
+  ],
+  [
+   "2026-11-15T07:45:04.293000+00:00",
+   "2026-11-16T22:41:25.963000+00:00"
+  ],
+  [
+   "2026-11-16T07:45:45.866000+00:00",
+   "2026-11-17T21:48:18.171000+00:00"
+  ]
+ ],
+ "transfers_vor_eigenem_fenster_nicht_counted": 13662,
+ "transfers_seit": 14914,
+ "transfers_seit_je_quelle": {
+  "api-tx.jsonl": 4358,
+  "frueherer lauf": 10253,
+  "tx.jsonl": 303
+ },
+ "transfers_je_token_summiert": 15008,
+ "transfer_tx_ohne_bewiesenen_token_seit": 0,
+ "token_outputs_nicht_bewiesen": 140,
+ "token_outputs_nicht_bewiesen_kas": 1153.48,
+ "tokens_mit_unbewiesenen_outputs": 138,
+ "covenant_utxos_gesamt": 23247,
+ "covenant_utxos_nicht_dekodiert": 16669,
+ "covenant_utxos_nicht_dekodiert_kas": 2952165.23614468,
+ "covenant_ids_nicht_dekodiert": 1850,
+ "lebende_outputs_ohne_erzeugende_tx": 0,
+ "templates": 8,
+ "tx_gelesen": 33285,
+ "stichzeit": "2026-11-17T12:00:00Z",
+ "transfers_seit_utc": "2026-10-21T00:00:00Z"
+}
