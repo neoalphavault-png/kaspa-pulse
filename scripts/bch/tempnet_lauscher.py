@@ -271,8 +271,10 @@ class Zuhoerer:
                 probe = p.koepfe([START_HASH], warten=20)
             except (OSError, ConnectionError, TimeoutError, struct.error, IndexError):
                 continue
-            if not probe or sha256d(probe[0]) != ERSTER_HASH:
-                # Chipnet-Knoten oder einer, der den Abzweig nicht liefert (Ben, 21.10.2026)
+            # tempnet: der erste Kopf nach 327.988 muss der Tempnet-Block sein (Ben, 21.10.2026).
+            # chipnet (Ben, 17.11.2026): er darf es nicht sein, sonst steht der Peer auf dem Tempnet.
+            auf_tempnet = bool(probe) and sha256d(probe[0]) == ERSTER_HASH
+            if not probe or auf_tempnet != (NETZ == "tempnet"):
                 self.ohne_abzweig += 1
                 p.zu()
                 continue
@@ -299,22 +301,36 @@ class Zuhoerer:
             threading.Thread(target=self.peer_lauf, args=(p, label, info), daemon=True).start()
 
 
+NETZ = "tempnet"
+
+
+def peers_des_netzes():
+    if NETZ == "chipnet":
+        import chipnet_koepfe  # noqa: WPS433, Peers aus BCHN chainparams (CChipNetParams)
+        return chipnet_koepfe.peers_finden()
+    return peers_finden()
+
+
 def main():
+    global NETZ
     ap = argparse.ArgumentParser()
+    ap.add_argument("--netz", choices=["tempnet", "chipnet"], default="tempnet",
+                    help="chipnet ab 17.11.2026 (Ben): gleicher Zuhoerer, Peers aus BCHN, Abzweig-Probe umgekehrt")
     ap.add_argument("--dauer", type=float, required=True, help="Minuten")
     ap.add_argument("--aus", required=True, help="Ordner fuer ereignisse/koepfe/compact.jsonl und meta.json")
     args = ap.parse_args()
+    NETZ = args.netz
     os.makedirs(args.aus, exist_ok=True)
 
     start = time.time()
     ende = start + args.dauer * 60
     z = Zuhoerer(ende, args.aus)
-    adressen, quelle_zeit = peers_finden(), time.time()
+    adressen, quelle_zeit = peers_des_netzes(), time.time()
     versucht = set()
     letzte_meldung = 0
     while time.time() < ende:
         if time.time() - quelle_zeit > QUELLE_NEU_S:
-            adressen, quelle_zeit = peers_finden(), time.time()
+            adressen, quelle_zeit = peers_des_netzes(), time.time()
             versucht = set()
         z.verbinden(adressen, versucht)
         if time.time() - letzte_meldung > 600:
@@ -327,7 +343,10 @@ def main():
     time.sleep(2)
 
     meta = {
-        "art": "ein Zuhoerer (kein eigener Knoten), Verbindungen zu Tempnet-Knoten aus der oeffentlichen Konfiguration",
+        "art": ("ein Zuhoerer (kein eigener Knoten), Verbindungen zu Chipnet-Knoten aus BCHN chainparams"
+                if NETZ == "chipnet" else
+                "ein Zuhoerer (kein eigener Knoten), Verbindungen zu Tempnet-Knoten aus der oeffentlichen Konfiguration"),
+        "netz": NETZ,
         "start_utc": datetime.fromtimestamp(start, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "ende_utc": datetime.fromtimestamp(tatsaechliches_ende, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "geplantes_ende_utc": datetime.fromtimestamp(ende, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
