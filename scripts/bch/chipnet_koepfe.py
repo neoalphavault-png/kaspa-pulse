@@ -56,6 +56,10 @@ import time
 import urllib.request
 from datetime import datetime, timezone
 
+# Software-Kennung gekuerzt wie auf main (#327, Ben 17.11.2026)
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from peer_kennung import kennung  # noqa: E402
+
 MAGIC = bytes.fromhex("e2b7daaf")  # Chipnet und Tempnet
 PORT = 48333
 # Oeffentliche Konfiguration des Tempnets; daraus kommen die Peers (zur Laufzeit).
@@ -165,7 +169,7 @@ class Peer:
                 self.version = struct.unpack_from("<i", p, 0)[0]
                 i = 4 + 8 + 8 + 26 + 26 + 8
                 n, i = lies_varint(p, i)
-                self.agent = p[i:i + n].decode(errors="replace")
+                self.agent = kennung(p[i:i + n].decode(errors="replace"))
                 i += n
                 self.hoehe = struct.unpack_from("<i", p, i)[0]
                 self.senden("verack")
