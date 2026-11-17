@@ -240,6 +240,23 @@
     "52%",
     "74%"
    ]
+  },
+  {
+   "datum": "2026-11-17",
+   "tag": "di",
+   "art": "slider",
+   "frage": "how many KAS are mined during one movie of 2 hours?",
+   "richtig": null,
+   "aufloesung": {
+    "frage": "how many KAS are mined during one movie of 2 hours?",
+    "zahl": "148k",
+    "einheit": "KAS",
+    "satz": "1,779,989 KAS a day, so 148,332 KAS in one movie of 2 hours",
+    "datum": "as of 2 nov 2026 · source kaspa emission schedule"
+   },
+   "quelle_vorlage": "emission 2026-11-02",
+   "antwort": "148k KAS",
+   "emoji": "🍿"
   }
  ]
 }
