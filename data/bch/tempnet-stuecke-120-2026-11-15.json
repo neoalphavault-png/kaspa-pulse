@@ -1,0 +1,29 @@
+{
+ "koepfe": [
+  327989,
+  371646
+ ],
+ "stuecke": 363,
+ "voll_abgedeckt": 243,
+ "stale_in_vollen_stuecken": 1494,
+ "stale_ereignisse_in_vollen_stuecken": 1237,
+ "letztes_stueck_endet": 371548,
+ "ohne_diff1_zweigregel": {
+  "zweige": 1314,
+  "zweige_weg": 77,
+  "stale_bloecke_weg": 103,
+  "zweige_ohne_kopf_am_abzweig": 0,
+  "stale_bloecke_bleiben": 1394,
+  "zweige_anders_bei_weiterer_lesart": 1,
+  "stale_in_vollen_stuecken": 1392,
+  "stale_ereignisse_in_vollen_stuecken": 1135
+ },
+ "eingaenge": {
+  "koepfe": "data/bch/tempnet-koepfe.csv.gz, abruf 2026-11-15T12:06:50Z, gekuerzt auf hoehe 327989 bis 371646 (letzter block vor 2026-11-15T12:00Z)",
+  "zuhoerer": "data/bch/lauscher/, 94 laeufe bis 2026-11-15T14:52:56Z, neu ausgewertet mit scripts/bch/lauscher_auswertung.py gegen dieselben koepfe",
+  "skript": "scripts/bch/tempnet_stuecke.py (PR #309, #312, zweigregel 17.11.2026)",
+  "regel_zweite_csv": "bloecke mit nBits 1d00ffff zaehlen nicht (block_count, mittel, blockzeiten). stale nach der regel von bitcoincashautist, Forum 2173 Beitrag 52: ein abgezweigter zweig faellt ganz weg, wenn am abzweig der kettenblock oder sein geschwister difficulty 1 hat",
+  "abgleich": "source bitcoincashautist, Forum 2173 Beitrag 50, chunks.csv sha256 d60a3dc46e50fb3220a3aed8c1be07c496380c1e4122342bc671f689c542b9cd und chunks_nomin.csv sha256 18e880016b8c57e16c4854438b63bf7f6b1c4bcc05561b22ae3cdd5cf36e121c, aus der html-seite der gists gelesen, nur als daten, sein skript nicht ausgefuehrt",
+  "luecke": "zuhoerer github 2026-11-03T13:59Z bis 2026-11-04T10:08Z ohne lauf"
+ }
+}
