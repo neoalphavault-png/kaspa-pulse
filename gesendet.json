@@ -368,6 +368,18 @@
    "datei": "berichte/2026-11-17-auftraege.md",
    "sha256": "da3611cf73e74bb8d772a9dce0da14914681e40cec02459f21879c5d02bb168a",
    "utc": "2026-11-17T18:18:50Z"
+  },
+  {
+   "branch": "bericht/2026-11-17-chipnet-sovright",
+   "datei": "berichte/2026-11-17-chipnet-sovright.md",
+   "sha256": "a3bbd9560e8c11a5a71077c12d6cd7829803c454667baf167fdf55cb705b7579",
+   "utc": "2026-11-17T19:46:37Z"
+  },
+  {
+   "branch": "bericht/2026-11-17-chipnet-sovright",
+   "datei": "berichte/2026-11-17-peer-kennung.md",
+   "sha256": "51f1b22aa37361ca23a107dd74391db811a6b6e6846726ab5ba7598f5ff25cf6",
+   "utc": "2026-11-17T19:46:39Z"
   }
  ]
 }
