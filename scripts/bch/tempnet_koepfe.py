@@ -34,12 +34,16 @@ import io
 import json
 import os
 import random
+import re
 import socket
 import struct
 import sys
 import time
 import urllib.request
 from datetime import datetime, timezone
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from peer_kennung import kennung, selbsttest  # noqa: E402
 
 MAGIC = bytes.fromhex("e2b7daaf")  # Chipnet und Tempnet
 PORT = 48333
@@ -55,6 +59,7 @@ NU7_HOEHE = ERSTER_TEMPNET[0]  # Name aus dem Zcash-Abrufer, hier: erster Tempne
 
 def log(*a):
     print(*a, file=sys.stderr, flush=True)
+
 
 
 def sha256d(b):
@@ -149,7 +154,7 @@ class Peer:
                 self.version = struct.unpack_from("<i", p, 0)[0]
                 i = 4 + 8 + 8 + 26 + 26 + 8
                 n, i = lies_varint(p, i)
-                self.agent = p[i:i + n].decode(errors="replace")
+                self.agent = kennung(p[i:i + n].decode(errors="replace"))
                 i += n
                 self.hoehe = struct.unpack_from("<i", p, i)[0]
                 self.senden("verack")
@@ -275,6 +280,8 @@ def verbinden(adressen, ausschluss=(), mindesthoehe=0):
 
 
 def main():
+    if sys.argv[1:] == ["--selbsttest"]:
+        sys.exit(selbsttest())
     ap = argparse.ArgumentParser()
     ap.add_argument("--ab", type=int, default=NU7_HOEHE)
     ap.add_argument("--vorlauf", type=int, default=1, help="Start beim letzten gemeinsamen Block")

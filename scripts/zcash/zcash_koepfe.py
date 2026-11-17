@@ -46,6 +46,9 @@ import time
 import urllib.request
 from datetime import datetime, timezone
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from peer_kennung import kennung  # noqa: E402
+
 CP_BASIS = "https://raw.githubusercontent.com/ZcashFoundation/zebra/main/zebra-chain/src/parameters/checkpoint/"
 NETZE = {
     # protokoll: die Version, die die Knoten des Netzes selbst melden. Testnet
@@ -169,7 +172,7 @@ class Peer:
                 self.version = struct.unpack_from("<i", p, 0)[0]
                 i = 4 + 8 + 8 + 26 + 26 + 8
                 n, i = lies_varint(p, i)
-                self.agent = p[i:i + n].decode(errors="replace")
+                self.agent = kennung(p[i:i + n].decode(errors="replace"))
                 i += n
                 self.hoehe = struct.unpack_from("<i", p, i)[0]
                 self.senden("verack")

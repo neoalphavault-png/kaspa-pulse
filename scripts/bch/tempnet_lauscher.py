@@ -129,7 +129,7 @@ class TempnetPeer(Peer):
                 self.version = struct.unpack_from("<i", p, 0)[0]
                 i = 4 + 8 + 8 + 26 + 26 + 8
                 n, i = lies_varint(p, i)
-                self.agent = p[i:i + n].decode(errors="replace")
+                self.agent = TK.kennung(p[i:i + n].decode(errors="replace"))
                 self.hoehe = struct.unpack_from("<i", p, i + n)[0]
                 self.senden("verack")
                 hat_version = True
