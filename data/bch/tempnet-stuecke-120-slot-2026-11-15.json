@@ -1,0 +1,94 @@
+{
+ "zaehlweise": "bitcoincashautist, Forum 2173 Beitrag 54, readme extras/tempnet in seinem Repo (Commit 9fc586e6, 18.11.2026): ereignisse, gabelungen und bloecke (nach hash entdoppelt) je umkaempftem slot F+1; ohne difficulty 1: gabelung nur, wenn kettenblock und eigener slot-block difficulty ueber 1 haben, gekuerzt vor ihrem ersten difficulty-1-block; blockzeit zwischen aufeinanderfolgenden gewerteten bloecken im stueck",
+ "quelle_vergleich": "source bitcoincashautist, dump_chunks.csv sha256 1a4f9bbc4487a40a9197638c070acac0b143799e594d63c193d540eb75758bef, dump_chunks_nomin.csv sha256 d1dcbe52bc8f0c8f950d8b1136b64c3b1556a64caa298528a62e6576a93ecae4, ueber die gitlab-api gelesen, nur als daten, sein skript nicht ausgefuehrt",
+ "eingaenge": "koepfe bis 371646 (letzter block vor 2026-11-15T12:00Z), zuhoerer 94 laeufe bis 2026-11-15T14:52:56Z, wie tempnet-stuecke-120-2026-11-15.json",
+ "fenster": "volle abdeckung des zuhoerers, 25.10. 09:15 bis 15.11. 12:00 utc ohne die luecke 3.11. 13:59 bis 4.11. 10:08 utc",
+ "zaehlung_alle": {
+  "spitzen": 1329,
+  "main_min": 0,
+  "sibling_min": 0,
+  "gekuerzt": 0,
+  "ohne_kopf": 0,
+  "stale_events": 1106,
+  "stale_forks": 1326,
+  "stale_blocks": 1494
+ },
+ "zaehlung_ohne_diff1": {
+  "spitzen": 1329,
+  "main_min": 49,
+  "sibling_min": 28,
+  "gekuerzt": 1,
+  "ohne_kopf": 0,
+  "stale_events": 1030,
+  "stale_forks": 1250,
+  "stale_blocks": 1391
+ },
+ "abgleich": {
+  "alle": {
+   "gemeinsam": 363,
+   "hoehen_gleich": 363,
+   "hoehen_blockzahl_difficulty_gleich": 363,
+   "voll": 243,
+   "abweichend": {
+    "block_count": 0,
+    "mean_difficulty": 0,
+    "mean_block_time_s": 0,
+    "median_block_time_s": 0,
+    "stale_events": 35,
+    "stale_forks": 39,
+    "stale_blocks": 41,
+    "stale_max_fork_depth": 10
+   },
+   "summen_voll": {
+    "stale_events": {
+     "pulsehawk": 1106,
+     "bitcoincashautist": 1142
+    },
+    "stale_forks": {
+     "pulsehawk": 1326,
+     "bitcoincashautist": 1404
+    },
+    "stale_blocks": {
+     "pulsehawk": 1494,
+     "bitcoincashautist": 1651
+    }
+   },
+   "stale_alle_drei_gleich": 202,
+   "er_mehr_bloecke": 36,
+   "er_weniger_bloecke": 5
+  },
+  "nomin": {
+   "gemeinsam": 363,
+   "hoehen_gleich": 363,
+   "hoehen_blockzahl_difficulty_gleich": 363,
+   "voll": 243,
+   "abweichend": {
+    "block_count": 0,
+    "mean_difficulty": 0,
+    "mean_block_time_s": 0,
+    "median_block_time_s": 0,
+    "stale_events": 33,
+    "stale_forks": 34,
+    "stale_blocks": 35,
+    "stale_max_fork_depth": 13
+   },
+   "summen_voll": {
+    "stale_events": {
+     "pulsehawk": 1030,
+     "bitcoincashautist": 1061
+    },
+    "stale_forks": {
+     "pulsehawk": 1250,
+     "bitcoincashautist": 1320
+    },
+    "stale_blocks": {
+     "pulsehawk": 1391,
+     "bitcoincashautist": 1463
+    }
+   },
+   "stale_alle_drei_gleich": 208,
+   "er_mehr_bloecke": 30,
+   "er_weniger_bloecke": 5
+  }
+ }
+}
