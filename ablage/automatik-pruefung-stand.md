@@ -1,65 +1,52 @@
-# Automatik-Pruefung, aktueller Stand
+# Automatik-Pruefung, Stand 18.11.2026 09:47 Berlin-Zeit
 
-Stand: Dienstag, 17.11.2026, 10:05 Uhr Berlin-Zeit (09:05 utc).
-Geprueft wurde von 09:42 bis 10:05 Berlin (08:42 bis 09:05 utc).
-Lauf gruen, kein roter Lauf, keine Unsicherheit. Dienstag, deshalb ohne
-Kanalzeile und ohne Uhrwerk-Bericht.
+Taegliche Pruefung der Kaspa-Pulse- und PulseHawk-Automatik. Heute ist
+Mittwoch, kein Uhrwerk-Bericht faellig (der kommt montags).
 
-## Meldung an Ben, woertlich
+## Meldung an Ben
 
-NOD: heute lag bis 08:42 utc kein Lauf vor, deshalb von der Pruefung genau
-einmal gestartet (workflow_dispatch auf main, Antwort 204 queued), kein
-zweiter Start. Lauf 348, Run-ID 44049136588, 08:43:14 bis 08:44:18 utc,
-conclusion success.
+Unsicherheit: YouTube-Analytics reicht nur bis zum 15.11., der 16. bis
+18.11. fehlt ganz; das Weekly vom 16.11. hat deshalb noch keine
+Analytics-Werte, alle Analytics-Felder seiner Zeile stehen auf "offen".
 
-X-Post: nein. Schritt "post to x" steht auf skipped, "x pausiert" auf
-success, beide an der Bedingung X_GOKU_AN, im Lauf-Log auf false. Das ist
-die Pause, die Ben am 07.11.2026 gesetzt hat, kein Fehler. Letzter Eintrag
-in data/x-post-log.json bleibt nod-2026-11-08, insgesamt 53 Eintraege.
+NOD: bis 08:41 utc lag heute kein Lauf vor, deshalb hat die Pruefung
+number-of-day.yml genau einmal gestartet (workflow_dispatch auf main,
+Antwort 204 queued). Nicht gewartet, kein zweiter Start.
 
-Datenstaende: abweichend. data/kas-candles.json steht auf 2026-11-17
-08:24 utc, also auf heute, das ist in Ordnung. multibagger-pick.json in
-pulsehawk-site traegt date 2026-11-16 (Pick MRNA, Moderna, mult 8,9491),
-der Schlusskurs darin stammt aber vom 13.11., und multibagger-state.json
-meldet last_run 2026-11-16 (Cursor 1143). Heute ist Dienstag, letzter
-geschlossener Handelstag war Montag der 16.11. Der Montag ist im Pick
-nicht angekommen; der Scan committet gegen 13 bis 15 utc, der heutige Lauf
-steht also noch aus. Nur gemeldet, nichts korrigiert.
+X-Post: nein, und zwar nach Vorgabe. Der Schritt "post to x" steht auf
+skipped, der Schalter X_GOKU_AN im Lauf-Log auf false. Letzter Eintrag in
+data/x-post-log.json bleibt nod-2026-11-08, damit fehlen zehn Tage.
 
-Wachstumslog: heute war keine YouTube-Zeile faellig. Das Weekly
-Dz30qv1Ch5Y vom 16.11. 15:00 utc erreicht die 24-Stunden-Marke erst heute
-um 15:00 utc, der Short RORbbV3uPWw vom 16.11. 16:00 utc die
-48-Stunden-Marke am 18.11. um 16:00 utc. Beide sind damit nicht
-vorgezogen. Offen: keine. Diff: 80 Einfuegungen, 0 Loeschungen, nur
-docs/projekt/wachstum-log.md geaendert. Branch
-claude/wachstumslog-2026-11-17, Commit 641251e.
+Datenstaende: ok. kas-candles.json steht auf 2026-11-18 07:52 utc,
+multibagger-pick.json auf 2026-11-17, dem letzten geschlossenen Handelstag.
 
-Reels: 1 eingetragen, DfulgX6J1uU vom 14.11. 16:00 utc (Alter 64,8 h,
-3.826 Aufrufe, Skip-Rate 64,5 %, geschauter Anteil 56,1 %, 3,4 s
-durchschnittliche Wiedergabezeit, 29 Likes, 0 Kommentare, 2 Teilen,
-1 Speichern, Trial nein). Die Skip-Rate liegt unter 80 %, deshalb war
-heute keine Ansicht mit vidiq_watch_shortform_content faellig und keine
-Zwei-Satz-Notiz. Dfw__UGpt7R vom 15.11. ist mit 42,3 h noch zu jung und
-morgen faellig.
+Wachstumslog: eingetragen das Weekly Dz30qv1Ch5Y (24-h-Marke erreicht,
+Analytics-Felder offen) und das Reel Dfw__UGpt7R. Nicht faellig: Short
+RORbbV3uPWw (19.11.) und Short xrkFmvbq00U (20.11.). Diff: 97
+Einfuegungen, 0 Loeschungen. Branch claude/wachstumslog-2026-11-18.
+
+Reels: 1 eingetragen. Die Skip-Rate liegt mit 82,5 Prozent ueber der
+Schwelle, deshalb ist die eine Ansicht gelaufen: Die erste Sekunde zeigt
+einen dunklen, vernebelten Spielhallengang, in dem der Automat gerade erst
+angeht, die Zahl 864.000 ist da noch nicht lesbar. Ohne Stimme und ohne
+einen Text, der sie ankuendigt, gibt es in Sekunde 0 nichts, worauf der
+Zuschauer warten koennte.
 
 Ablage: claude/ablage-automatik-pruefung, Head siehe Commit dieser Datei.
 
-## Weitere Festhaltungen
+## Belege
 
-Haengende Laeufe: die Abfrage mit status=queued gibt genau einen zurueck,
-den bekannten Lauf 166 vom 07.10.2026, der nach Vorgabe nicht gemeldet und
-nicht angefasst wird. Kein anderer haengender Lauf.
-
-Kanal Kaspa Pulse UCLheLoijZUZOE79vRtJtJ9Q: 121 Abos, 20.712 Aufrufe,
-66 Videos (16.11.: 120 Abos, 20.533 Aufrufe, 64 Videos). Abos plus eins,
-Aufrufe plus 179, Videos plus zwei. Guthaben vidIQ 669 (615 erneuerbar,
-54 Zusatz).
-
-Kanal Pulse Hawk: weiter kein Video im Fenster und kein
-vidIQ-Analytics-Zugang. Nach Vorgabe kein Fehler und keine Unsicherheit.
-
-Instagram kaspapulse: connectionActive true, Recht
-instagram_business_manage_insights vorhanden, Follower 161.
-
-Nichts gestartet ausser dem einen Tageslauf, nichts abgebrochen, keine
-Daten korrigiert, kein Post von Hand, keine Workflow-Datei angefasst.
+- NOD-Laeufe heute: keiner bis 08:41 utc; letzter davor Lauf 352, Run-ID
+  44151132014, 17.11. 18:44 utc, conclusion success. Kein roter Lauf,
+  deshalb keine Fehlerzeile.
+- Haengende Laeufe: status=queued gibt genau einen zurueck, den bekannten
+  Lauf 166 vom 07.10. Nach Vorgabe nicht gemeldet und nicht angefasst.
+  Kein anderer haengender Lauf.
+- Kanal Kaspa Pulse: 121 Abos, 20.789 Aufrufe, 67 Videos (17.11.: 121 /
+  20.712 / 66). Instagram kaspapulse: 163 Follower (17.11.: 161).
+- Reel Dfw__UGpt7R, 15.11. 14:30 utc, Alter 66,4 h: 324 Aufrufe,
+  Skip-Rate 82,5 Prozent, geschauter Anteil noch nicht da, 2,8 s
+  durchschnittliche Wiedergabezeit, 9 Likes, 0 Kommentare, 0 Teilen,
+  0 Speichern, Trial nein.
+- Kanal Pulse Hawk: weiter kein Video im Fenster, kein Analytics-Zugang.
+  Nach Vorgabe kein Meldepunkt.
