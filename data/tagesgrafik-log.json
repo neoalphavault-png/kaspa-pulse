@@ -873,6 +873,28 @@
      "verhaeltnis": 756.67
     }
    }
+  },
+  {
+   "datum": "2026-11-18",
+   "form": 9,
+   "grund": "rotation, 3 laeufe in 30 tagen, zahl des tages hashrate_move (vorab gerechnet), uebersprungen [7, 8]",
+   "messzeit_utc": "2026-11-18T06:39:42+00:00",
+   "looks": {
+    "instagram": "A-papier",
+    "threads": "A-teal",
+    "x": "A-teal",
+    "discord": "A-teal"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-19",
+     "bis": "2026-11-17",
+     "fees": 69382.0913322,
+     "emission": 52058308.02021299,
+     "verhaeltnis": 750.31
+    }
+   }
   }
  ]
 }
