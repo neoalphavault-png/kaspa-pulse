@@ -1,0 +1,160 @@
+{
+  "art": "ein Zuhoerer, kein eigener Knoten, ein Netzwerkpfad",
+  "laeufe": [
+    {
+      "lauf": "20261117T1944",
+      "start_utc": "2026-11-17T19:44:24Z",
+      "ende_utc": "2026-11-18T01:14:24Z",
+      "peers_ohne_abzweig_abgelehnt": 61,
+      "peers": 114
+    }
+  ],
+  "abgedeckt_h": 5.5,
+  "peer_software": [
+    "/Bitcoin Cash Node:29.2.1",
+    "/Bitcoin Cash Node:29.2.1/",
+    "/Rapids:2026-11.4df41e42/",
+    "/Rapids:2026-11.88096962/",
+    "/Vcash:0.1/"
+  ],
+  "kette_spitze": 336078,
+  "kettenbloecke": 331,
+  "davon_angekuendigt_gesehen": 331,
+  "first_seen_typ": {
+    "inv": 292,
+    "headers": 0,
+    "cmpctblock": 39
+  },
+  "timestamp_deviation_s": {
+    "n": 331,
+    "mittel": 21.409,
+    "median": 17.185,
+    "p90": 50.133,
+    "p99": 73.858,
+    "min": -9.435,
+    "max": 124.19
+  },
+  "propagation_spread_ms": {
+    "n": 331,
+    "mittel": 493.0,
+    "median": 208,
+    "p90": 403,
+    "p99": 1484,
+    "min": 0,
+    "max": 39710
+  },
+  "peers_je_block": {
+    "n": 331,
+    "mittel": 60.3,
+    "median": 61,
+    "p90": 102,
+    "p99": 114,
+    "min": 2,
+    "max": 114
+  },
+  "compact": {
+    "bloecke_mit_cmpctblock": 328,
+    "davon_von_selbst": 324,
+    "kurz_ids": {
+      "n": 328,
+      "mittel": 9.5,
+      "median": 3,
+      "p90": 30,
+      "p99": 45,
+      "min": 0,
+      "max": 52
+    },
+    "fehlend_geschaetzt": {
+      "n": 328,
+      "mittel": 0.0,
+      "median": 0,
+      "p90": 0,
+      "p99": 0,
+      "min": 0,
+      "max": 0
+    },
+    "bloecke_ohne_fehlende": 328,
+    "hinweis": "geschaetzt gegen die bei uns per inv angekuendigten Transaktionen, kein eigener Mempool"
+  },
+  "stale": {
+    "anzahl": 8,
+    "bestaetigungen": 6,
+    "anteil_prozent": 2.36,
+    "noch_offen_unter_6": 0,
+    "ohne_kopf": 0,
+    "bloecke": [
+      {
+        "height": 335774,
+        "hash": "00000000c79bd2033776d37f63411907b2327ce6f6c27a797d5327e882a2f4c3",
+        "header_time_utc": "2026-11-17T20:14:53Z",
+        "first_seen_utc": "2026-11-17T20:14:55.823Z",
+        "first_seen_type": "cmpctblock",
+        "peers_announced": 6,
+        "canonical_hash_at_height": "0000000043fb654b3d6cd871d5d37cc95c77ebb8a0574f1aa56409b8e0aa94cf"
+      },
+      {
+        "height": 335799,
+        "hash": "000000008994282b6fb2843e93baec09a766903edf355dc34a86745dc50c10fe",
+        "header_time_utc": "2026-11-17T20:37:31Z",
+        "first_seen_utc": "2026-11-17T20:37:33.653Z",
+        "first_seen_type": "inv",
+        "peers_announced": 4,
+        "canonical_hash_at_height": "0000000028fbf5164f38d5eb7fc4e8f418b00c20e94d73f88882d2bfca91080e"
+      },
+      {
+        "height": 335801,
+        "hash": "00000000a21e0ddfc201e01ca8fd3c726860a16677ef9f2ff6ff6bfe07d314d2",
+        "header_time_utc": "2026-11-17T20:39:57Z",
+        "first_seen_utc": "2026-11-17T20:39:59.635Z",
+        "first_seen_type": "cmpctblock",
+        "peers_announced": 21,
+        "canonical_hash_at_height": "00000000624b1826b925918e6e205a37355d5fb76da55a300c2a61432b1bc0f6"
+      },
+      {
+        "height": 335802,
+        "hash": "000000006332ab9e039af16c3ddff01a4bd435357b4b34302eba46aabe81181d",
+        "header_time_utc": "2026-11-17T20:41:58Z",
+        "first_seen_utc": "2026-11-17T20:42:00.616Z",
+        "first_seen_type": "cmpctblock",
+        "peers_announced": 17,
+        "canonical_hash_at_height": "00000000fbcc3cfb5ec4ed815703b46de0b3696c224f1de2e939353228fee560"
+      },
+      {
+        "height": 335826,
+        "hash": "000000009fdd4e6f7c9de2acc2a40196925fd958584ebd2e731b9a22a86b9317",
+        "header_time_utc": "2026-11-17T21:04:53Z",
+        "first_seen_utc": "2026-11-17T21:04:55.560Z",
+        "first_seen_type": "cmpctblock",
+        "peers_announced": 31,
+        "canonical_hash_at_height": "000000005a87b46ba913e9df06b6207d18f4306ce288bca3f21cf0affac959cc"
+      },
+      {
+        "height": 335831,
+        "hash": "00000000cf947ff39932b0fc69f4ed2deb5468aa35987ae8a688d208e3c67b66",
+        "header_time_utc": "2026-11-17T21:11:11Z",
+        "first_seen_utc": "2026-11-17T21:11:06.127Z",
+        "first_seen_type": "inv",
+        "peers_announced": 31,
+        "canonical_hash_at_height": "0000000000008fb09a7a9592f4bbb2537f193c326a269dc903d28131ace3f412"
+      },
+      {
+        "height": 335916,
+        "hash": "0000000029a2da6c370e8f658e3f1d69d23d671a184ddde16983c075708706db",
+        "header_time_utc": "2026-11-17T22:29:30Z",
+        "first_seen_utc": "2026-11-17T22:29:32.573Z",
+        "first_seen_type": "cmpctblock",
+        "peers_announced": 61,
+        "canonical_hash_at_height": "00000000000029bd805b1888411f94c98f199dd47ba9ae83f1b27baa118bb3b9"
+      },
+      {
+        "height": 335926,
+        "hash": "000000006a11d97961006ff924c8e8f700c7999544b1e86e54d1acbf08a346a2",
+        "header_time_utc": "2026-11-17T22:43:47Z",
+        "first_seen_utc": "2026-11-17T22:43:49.595Z",
+        "first_seen_type": "inv",
+        "peers_announced": 61,
+        "canonical_hash_at_height": "000000000000314b0b7736b1e9f0d1b3bb737c5cb5657ceb279d7bce1dce14f8"
+      }
+    ]
+  }
+}
