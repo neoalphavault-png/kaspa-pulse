@@ -176,6 +176,15 @@
    "modus": "scharf",
    "bild": "https://raw.githubusercontent.com/neoalphavault-png/kaspa-pulse/9eb2948a4f8bcc7a8a52c76f5bbc9933a422c9d4/ig/tagesgrafik-2026-11-17-form04-threads.jpg",
    "text": "Kaspa added 285,000 blocks while you slept.\n8 hours at the block rate we measured over 10 minutes, 17 Nov 2026, 06:30 UTC."
+  },
+  {
+   "tag": "2026-11-18",
+   "container": "",
+   "media": "18120627388998535",
+   "modus": "scharf",
+   "bild": "",
+   "text": "How far can Kaspa's block rate go? Core developer Michael Sutton says the current software could already handle 20 blocks a second, after a lot of testing. 100 would need much lighter header processing. The network has run at 10 since May 2025. Source Bitcoin Takeover S17E52.",
+   "nachgeholt": "2026-11-18"
   }
  ]
 }
