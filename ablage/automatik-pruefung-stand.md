@@ -11,7 +11,8 @@ Analytics-Werte, alle Analytics-Felder seiner Zeile stehen auf "offen".
 
 NOD: bis 08:41 utc lag heute kein Lauf vor, deshalb hat die Pruefung
 number-of-day.yml genau einmal gestartet (workflow_dispatch auf main,
-Antwort 204 queued). Nicht gewartet, kein zweiter Start.
+Antwort 204 queued). Kein zweiter Start. Dieser Lauf ist gruen
+durchgelaufen: Lauf 353, Run-ID 44269246095, 08:42:01 bis 08:43:13 utc.
 
 X-Post: nein, und zwar nach Vorgabe. Der Schritt "post to x" steht auf
 skipped, der Schalter X_GOKU_AN im Lauf-Log auf false. Letzter Eintrag in
@@ -37,7 +38,9 @@ Ablage: claude/ablage-automatik-pruefung, Head siehe Commit dieser Datei.
 ## Belege
 
 - NOD-Laeufe heute: keiner bis 08:41 utc; letzter davor Lauf 352, Run-ID
-  44151132014, 17.11. 18:44 utc, conclusion success. Kein roter Lauf,
+  44151132014, 17.11. 18:44 utc, conclusion success. Der von der Pruefung
+  gestartete Lauf 353, Run-ID 44269246095, steht auf conclusion success
+  (08:42:01 bis 08:43:13 utc, auf Commit 81d7344). Kein roter Lauf,
   deshalb keine Fehlerzeile.
 - Haengende Laeufe: status=queued gibt genau einen zurueck, den bekannten
   Lauf 166 vom 07.10. Nach Vorgabe nicht gemeldet und nicht angefasst.
