@@ -172,6 +172,95 @@ def koepfe_der_laeufe(laeufe):
     return kopf
 
 
+SLOT_SPALTEN = ["chunk_n", "first_height", "last_height", "start_utc", "mean_difficulty", "mean_block_time_s",
+                "median_block_time_s", "block_count", "stale_events", "stale_forks", "stale_blocks",
+                "stale_max_fork_depth", "listener_coverage_pct", "full_coverage"]
+
+
+def slot_zaehlung(stale, kopf, kanon, nomin):
+    """Zaehlweise von bitcoincashautist, Forum 2173 Beitrag 54 (readme in
+    seinem Repo, Stand 18.11.2026), nachgebaut aus unseren Aufzeichnungen.
+
+    stale: Liste (hoehe, hash). kopf: hash -> (prev, nbits). kanon: hoehe ->
+    (hash, difficulty) der Kette. Eine Gabelung ist eine Spitze: ein
+    Stale-Block, der nicht Vorgaenger eines anderen Stale-Blocks ist. Von der
+    Spitze geht es ueber prev zurueck bis zum Slot F+1, dem ersten Block nach
+    der Kette. Jede Zaehlung gehoert zum Slot. Mit nomin zaehlt eine Gabelung
+    nur, wenn der Kettenblock am Slot und ihr eigener Slot-Block Difficulty
+    ueber 1 haben, und sie endet vor ihrem ersten Block mit Difficulty 1.
+    Bloecke sind ueber alles nach Hash entdoppelt. Ohne Kopf bleibt die
+    Gabelung ungekuerzt (wie sein kept-unknown).
+    Gibt (slot -> {forks, blocks, depths}, Kennzahlen)."""
+    hoehe = {x: h for h, x in stale}
+    eltern = {x: (kopf.get(x) or (None, None))[0] for _, x in stale}
+    hat_kind = {p for p in eltern.values() if p in hoehe}
+    gesehen, slots = set(), {}
+    zahl = {"spitzen": 0, "main_min": 0, "sibling_min": 0, "gekuerzt": 0, "ohne_kopf": 0}
+    for h, x in sorted(stale):
+        if x in hat_kind:
+            continue
+        zahl["spitzen"] += 1
+        weg = [(h, x)]                     # von der spitze zurueck bis zum slot
+        while eltern.get(weg[-1][1]) in hoehe:
+            p = eltern[weg[-1][1]]
+            weg.append((hoehe[p], p))
+        weg.reverse()                      # slot zuerst
+        slot = weg[0][0]
+        if nomin:
+            if diff1(kanon.get(slot, (None, 0))[1]):
+                zahl["main_min"] += 1
+                continue
+            schnitt = None
+            for i, (hh, xx) in enumerate(weg):
+                if xx not in kopf:
+                    zahl["ohne_kopf"] += 1
+                    break
+                if diff1(difficulty(kopf[xx][1])):
+                    schnitt = i
+                    break
+            if schnitt == 0:
+                zahl["sibling_min"] += 1
+                continue
+            if schnitt is not None:
+                weg = weg[:schnitt]
+                zahl["gekuerzt"] += 1
+        s = slots.setdefault(slot, {"forks": 0, "blocks": 0, "depths": []})
+        s["forks"] += 1
+        s["depths"].append(len(weg))
+        for _, xx in weg:
+            if xx not in gesehen:
+                gesehen.add(xx)
+                s["blocks"] += 1
+    return slots, zahl
+
+
+def stuecke_slot(koepfe, slots, fenster, nomin):
+    """Stuecke wie in seinem readme: Blockzeit als Abstand zwischen
+    aufeinanderfolgenden gewerteten Bloecken im Stueck (der erste Block hat
+    keinen Abstand), mit nomin ohne Bloecke mit Difficulty 1; Stale je Slot."""
+    zeilen = []
+    for n, i in enumerate(range(0, len(koepfe), STUECK), 1):
+        teil = koepfe[i:i + STUECK]
+        if len(teil) < STUECK:
+            break
+        bleibt = [k for k in teil if not (nomin and diff1(k[2]))]
+        iv = [b[1] - a[1] for a, b in zip(bleibt, bleibt[1:])]
+        abd = abdeckung(fenster, teil[0][1], teil[-1][1])
+        voll = abd >= VOLL
+        sl = [slots[h] for h, _, _ in teil if h in slots]
+        z = {"chunk_n": n, "first_height": teil[0][0], "last_height": teil[-1][0], "start_utc": iso(teil[0][1]),
+             "mean_difficulty": round(sum(d for _, _, d in bleibt) / len(bleibt), 3) if bleibt else "",
+             "mean_block_time_s": round(sum(iv) / len(iv), 2) if iv else "",
+             "median_block_time_s": statistics.median(iv) if iv else "",
+             "block_count": len(bleibt),
+             "stale_events": len(sl) if voll else "", "stale_forks": sum(s["forks"] for s in sl) if voll else "",
+             "stale_blocks": sum(s["blocks"] for s in sl) if voll else "",
+             "stale_max_fork_depth": max([d for s in sl for d in s["depths"]], default=0) if voll else "",
+             "listener_coverage_pct": round(abd, 1), "full_coverage": "yes" if voll else "no"}
+        zeilen.append(z)
+    return zeilen
+
+
 def ausbreitung(c2_pfad, gh_pfad):
     def lesen(p):
         return {r["hash"]: ts(r["first_seen_utc"]) + (float("0." + r["first_seen_utc"][20:23]) if "." in r["first_seen_utc"] else 0)
@@ -224,6 +313,21 @@ def selbsttest():
     ok("gleiches chunk_n und gleiche hoehen", z3[0]["first_height"] == 1000 and z3[0]["last_height"] == 1119)
     z4 = stuecke(k3, [1005, 1006, 1006, 1007], [(0, 70000)])
     ok("ohne schalter unveraendert", "block_count" not in z4[0] and z4[0]["stale_blocks"] == 4)
+    # zaehlweise beitrag 54: slot 1005 mit drei spitzen wie im beispiel seines readme,
+    # s1 mit difficulty 1 am slot, s2 und s3 je zwei bloecke tief mit gemeinsamem stamm
+    kan = {h: ("m%d" % h, 2.0) for h in range(1000, 1010)}
+    kp = {"s1": ("m1004", "1d00ffff"), "a": ("m1004", "1c00ffff"), "b2": ("a", "1c00ffff"),
+          "b3": ("a", "1c00ffff"), "c": ("m1006", "1c00ffff"), "c2": ("c", "1d00ffff"), "c3": ("c2", "1c00ffff")}
+    st = [(1005, "s1"), (1005, "a"), (1006, "b2"), (1006, "b3"), (1007, "c"), (1008, "c2"), (1009, "c3")]
+    sl, zl = slot_zaehlung(st, kp, kan, nomin=True)
+    ok("slot 1005: s1 faellt, zwei gabelungen, drei bloecke, tiefe 2",
+       sl[1005]["forks"] == 2 and sl[1005]["blocks"] == 3 and max(sl[1005]["depths"]) == 2 and zl["sibling_min"] == 1)
+    ok("gabelung vor dem ersten difficulty-1-block gekuerzt", sl[1007]["blocks"] == 1 and zl["gekuerzt"] == 1)
+    sa, _ = slot_zaehlung(st, kp, kan, nomin=False)
+    ok("ohne regel zaehlt alles", sa[1005]["forks"] == 3 and sa[1005]["blocks"] == 4 and sa[1007]["blocks"] == 3)
+    kan[1007] = ("m1007", 1.0)
+    sm, zm = slot_zaehlung(st, kp, kan, nomin=True)
+    ok("kettenblock am slot mit difficulty 1, alle gabelungen dort fallen", 1007 not in sm and zm["main_min"] == 1)
     print("alle testfaelle bestanden" if not fehler else f"{len(fehler)} fehler")
     return 1 if fehler else 0
 
@@ -238,6 +342,8 @@ def main():
     ap.add_argument("--gh-bloecke")
     ap.add_argument("--csv")
     ap.add_argument("--ohne-diff1-csv", help="zweite CSV ohne Bloecke mit Difficulty 1, Spalten wie --csv plus block_count")
+    ap.add_argument("--slot-csv", help="Zaehlweise von bitcoincashautist (Beitrag 54), alle Bloecke")
+    ap.add_argument("--slot-nomin-csv", help="dieselbe ohne Difficulty 1, Gabelungen nach seiner Regel")
     ap.add_argument("--aus")
     a = ap.parse_args()
     if a.selbsttest:
@@ -281,6 +387,25 @@ def main():
         zweig_info.update({"stale_in_vollen_stuecken": sum(z["stale_blocks"] for z in voll1),
                            "stale_ereignisse_in_vollen_stuecken": sum(z["stale_events"] for z in voll1)})
         out["ohne_diff1_zweigregel"] = zweig_info
+    if a.slot_csv or a.slot_nomin_csv:
+        kanon2 = {}
+        with gzip.open(a.koepfe, "rt") as f:
+            for z in csv.DictReader(f):
+                kanon2[int(z["hoehe"])] = (z["hash"], difficulty(z["nbits"]))
+        stale_hx = [(s["height"], s["hash"]) for s in zus["stale"]["bloecke"] if s.get("height") not in (None, "")]
+        kopf = koepfe_der_laeufe(a.laeufe)
+        for pfad, nomin, name in ((a.slot_csv, False, "slot_alle"), (a.slot_nomin_csv, True, "slot_nomin")):
+            if not pfad:
+                continue
+            slots, zahl = slot_zaehlung(stale_hx, kopf, kanon2, nomin)
+            zs = stuecke_slot(koepfe, slots, fenster, nomin)
+            with open(pfad, "w", newline="") as f:
+                w = csv.DictWriter(f, fieldnames=SLOT_SPALTEN, lineterminator="\n")
+                w.writeheader()
+                w.writerows(zs)
+            vz = [z for z in zs if z["full_coverage"] == "yes"]
+            zahl.update({k: sum(z[k] for z in vz) for k in ("stale_events", "stale_forks", "stale_blocks")})
+            out[name] = zahl
     if a.c2_bloecke and a.gh_bloecke:
         out["ausbreitung_c2_minus_github"] = ausbreitung(a.c2_bloecke, a.gh_bloecke)
     json.dump(out, open(a.aus, "w"), indent=1, ensure_ascii=False)
