@@ -1,0 +1,136 @@
+# Kaspa Pulse - Prognose des naechsten Kaspa-Reward-Schritts (Ben, 16.11.2026)
+#
+# Track Record, Rubrik "scheduled protocol events". Kleiner Test ohne Fixkosten
+# bis nach dem Schritt um den 5.12.2026. Stufen 14 Tage, 7 Tage, 2 Tage und
+# 24 Stunden vor dem Prognosemedian, danach die Wertung. Rechnung und Regeln in
+# scripts/kaspa_reward_prognose.py.
+#
+# Alle 12 h. Der Schritt "plan" liest den Zustand von messung/kaspa-reward und
+# startet den eigenen Knoten nur, wenn eine Stufe faellig ist oder gewertet
+# werden muss. Eigener Knoten im Runner (rusty-kaspa v2.1.0) wie bei der
+# KCC-20-Zaehlung, Logs nur in eine Datei, nie ausgegeben. Kein Secret.
+# Ergebnis als Commit auf messung/kaspa-reward, nie main. Der Commit ist der
+# Zeitstempel der Prognose.
+#
+# Probe: ein Push auf kaspa/reward-prognose laeuft den ganzen Weg mit Knoten,
+# committet aber nichts.
+name: kaspa reward prognose
+
+on:
+  schedule:
+    # 03:41 und 15:41 UTC = 04:41 und 16:41 Berlin (Winterzeit, UTC+1; Sommerzeit 05:41 und 17:41)
+    - cron: "41 3,15 * * *"
+  workflow_dispatch:
+  push:
+    branches: ["kaspa/reward-prognose"]
+    paths:
+      - ".github/workflows/kaspa-reward-prognose.yml"
+      - "scripts/kaspa_reward_prognose.py"
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: kaspa-reward-prognose
+  cancel-in-progress: false
+
+env:
+  ABLAGE: messung/kaspa-reward
+  KASPA_TAG: v2.1.0
+  APP: /mnt/kp/app
+
+jobs:
+  prognose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: selbsttest
+        run: python3 scripts/kaspa_reward_prognose.py --selbsttest | tail -n 1
+      - name: zustand holen
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ablage"
+          if git fetch -q origin "$ABLAGE" 2>/dev/null; then
+            git worktree add -q "$RUNNER_TEMP/ablage" FETCH_HEAD
+          else
+            git worktree add -q --orphan -b ablage-neu "$RUNNER_TEMP/ablage"
+          fi
+          echo "Z=$RUNNER_TEMP/ablage/data/kaspa-reward/zustand.json" >> "$GITHUB_ENV"
+      - name: plan
+        id: plan
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then echo "knoten=ja" >> "$GITHUB_OUTPUT"; echo "probe, knoten immer"; exit 0; fi
+          python3 scripts/kaspa_reward_prognose.py plan --zustand "$Z"
+      - name: sdk, version und pruefsumme fest
+        if: steps.plan.outputs.knoten == 'ja'
+        run: "pip install --only-binary=:all: --require-hashes -r scripts/maschinenzahlungen-requirements.txt"
+      - name: platz schaffen
+        if: steps.plan.outputs.knoten == 'ja'
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost || true
+          sudo mkdir -p /mnt/kp && sudo chown "$USER" /mnt/kp
+      - name: kaspad holen (fertiges release)
+        id: bin
+        if: steps.plan.outputs.knoten == 'ja'
+        run: |
+          set -euo pipefail
+          mkdir -p /mnt/kp/bin && cd /mnt/kp/bin
+          curl -fsSL -H "Authorization: Bearer ${{ github.token }}" \
+            "https://api.github.com/repos/kaspanet/rusty-kaspa/releases/tags/${KASPA_TAG}" > rel.json
+          url=$(python3 -c "
+          import json
+          a=[x for x in json.load(open('rel.json'))['assets'] if 'linux' in x['name'] and ('amd64' in x['name'] or 'x86_64' in x['name']) and x['name'].endswith('.zip')]
+          print(a[0]['browser_download_url'] if a else '')")
+          if [ -z "$url" ]; then echo "kein fertiges linux-release gefunden"; exit 1; fi
+          curl -fsSL "$url" -o k.zip && unzip -q k.zip
+          k=$(find . -type f -name kaspad | head -n 1)
+          chmod +x "$k" && cp "$k" /mnt/kp/kaspad
+          sha256sum /mnt/kp/kaspad | cut -c1-64
+      - name: knoten starten, ausgabe nur in datei
+        if: steps.plan.outputs.knoten == 'ja'
+        run: |
+          mkdir -p "$APP"
+          nohup /mnt/kp/kaspad --yes --appdir="$APP" --nologfiles --disable-upnp \
+            --rpclisten-borsh > /mnt/kp/kaspad.log 2>&1 &
+          echo $! > /mnt/kp/kaspad.pid
+          sleep 20
+          kill -0 "$(cat /mnt/kp/kaspad.pid)" && echo "knoten laeuft"
+      - name: warten bis synchron
+        if: steps.plan.outputs.knoten == 'ja'
+        run: |
+          ms=$(( ($(date -u +%s) - 900) * 1000 ))
+          python3 scripts/kp_stichzeit_warten.py --stichzeit-ms "$ms" --max-min 270 --vorlauf-min 0
+      - name: daten vom knoten
+        if: steps.plan.outputs.knoten == 'ja'
+        run: python3 scripts/kaspa_reward_prognose.py daten --zustand "$Z" --aus "$RUNNER_TEMP/punkte.json"
+      - name: knoten stoppen
+        if: always() && steps.plan.outputs.knoten == 'ja'
+        run: |
+          p=$(cat /mnt/kp/kaspad.pid 2>/dev/null || true)
+          [ -n "$p" ] && kill -INT "$p" 2>/dev/null || true
+          for i in $(seq 1 120); do kill -0 "$p" 2>/dev/null || break; sleep 5; done
+          kill -0 "$p" 2>/dev/null && echo "knoten noch nicht beendet" || echo "knoten beendet"
+      - name: rechnen
+        if: steps.plan.outputs.knoten == 'ja'
+        run: |
+          python3 scripts/kaspa_reward_prognose.py rechnen --zustand "$Z" --punkte "$RUNNER_TEMP/punkte.json"
+          python3 -c "import json,sys; z=json.load(open(sys.argv[1])); print(json.dumps({k: z.get(k) for k in ('vorschau','prognosen','ergebnis')}, indent=1)[:4000])" "$Z"
+      - name: auf messung/kaspa-reward legen
+        if: steps.plan.outputs.knoten == 'ja' && github.event_name != 'push'
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/ablage"
+          stempel=$(date -u +%Y%m%dT%H%M)
+          mkdir -p data/kaspa-reward/punkte
+          cp "$RUNNER_TEMP/punkte.json" "data/kaspa-reward/punkte/$stempel.json"
+          python3 "$GITHUB_WORKSPACE/scripts/secret_scan.py" --baum
+          git config user.name "kaspa reward bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/kaspa-reward
+          git commit -q -m "kaspa reward: prognose $stempel [bot] [skip ci]"
+          git push origin HEAD:"$ABLAGE"
