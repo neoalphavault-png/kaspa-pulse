@@ -378,6 +378,8 @@ def emission_am_tag(datum):
 # gezeigte Zahl selbst aus Kettendaten oder dem Emissionsplan gerechnet
 # haben. Steckt eine Kaspalytics-Zahl darin, steht allein die Quelle.
 SELBST = "counted by kaspa pulse"
+# form 6, der daa score aus /info/blockdag (virtualDaaScore)
+QUELLE_DAA = "source kaspa rest api"
 # Werte aus festen Protokollregeln (Ben, 9.11.2026): der Reward-Cut-Countdown
 # kommt aus dem Emissionsplan, gezaehlt wird dort nichts.
 RECHNUNG = "computed by kaspa pulse from the emission schedule"
@@ -896,9 +898,12 @@ def vorlage_6(w, now):
     return {"kopf": "FROM THE CHAIN", "zahl": "%dM" % mio,
             "bedeutung": "blocks since nov 2021, %d%% of them since may 2025" % math.floor(danach),
             "zusatz": "daa score, a mark every 100 million, 10 blocks a second since may 2025, 1 before",
-            "herkunft": SELBST, "objekt": objekt,
+            # der daa score ist ein zaehler des protokolls, den wir von der api
+            # lesen. wir zaehlen ihn nicht und rechnen ihn nicht aus einer regel,
+            # also "source kaspa rest api" statt "counted" (Ben, 13.11.2026)
+            "herkunft": QUELLE_DAA, "objekt": objekt,
             "x1": "the kaspa chain has passed %d million blocks since nov 2021." % (daa // 1000000),
-            "x2": "counted by the network's daa score, %s, %s" % (tag(now.date()), uhr(now)),
+            "x2": "the daa score on %s, %s, %s" % (tag(now.date()), uhr(now), QUELLE_DAA),
             "x3": "who keeps that count?",
             "einordnung": "every kaspa node keeps the same count, the daa score",
             "pointe": "one counter, running since nov 2021",
@@ -2582,7 +2587,8 @@ def selbsttest():
         ok("instagram form %d mit dem stichtag der quelle, %s" % (f, c), c.startswith("As of 28 Sep 2026, "))
     for f in (2, 3, 4, 6, 10):
         c = _asof(seite_bauen(f, FAKE[f], FAKE_NOW, log)["instagram"])
-        ok("instagram form %d eigene zaehlung mit dem messtag" % f, c.startswith("As of 29 Sep 2026, "))
+        # form 6 liest den daa score von der api, ihr stichtag ist der tag der messung
+        ok("instagram form %d mit dem messtag" % f, c.startswith("As of 29 Sep 2026, "))
     # zahl mit einheit und datum fuer kommentar-entwuerfe (Ben, 09.10.2026)
     for f in sorted(FAKE):
         s = seite_bauen(f, FAKE[f], FAKE_NOW, log)
@@ -2906,6 +2912,12 @@ def selbsttest():
        and ">blocks, 281,000<" in o4 and o4.index(RESTTON) < o4.index(AK))
     s6 = seite_bauen(6, FAKE[6], FAKE_NOW, log)
     o6 = s6["objekt"](*objektzone(zahlgroesse(s6["zahl"])))
+    k6 = ("datumszeile", "x", "threads", "discord", "instagram")
+    ok("form 6, daa score mit source kaspa rest api, nirgends counted (Ben, 13.11.2026)",
+       s6["herkunft"] == QUELLE_DAA and s6["datumszeile"].endswith(QUELLE_DAA)
+       and all("counted" not in s6[k].lower() for k in k6 if s6.get(k))
+       and all("source kaspa rest api" in s6[k].lower() for k in k6 if s6.get(k)))
+    ok("form 6, stichtag ist der tag der messung", s6["ig_stand"] == tag(FAKE_NOW.date()))
     ok("form 6, lineal vor und nach crescendo", ">may 2025<" in o6 and "80% of them since may 2025"
        in s6["bedeutung"])
     s7 = seite_bauen(7, FAKE[7], FAKE_NOW, log)
