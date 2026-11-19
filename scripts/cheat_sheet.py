@@ -446,6 +446,15 @@ def probe(heute):
     return aus
 
 
+def stufe_vorbei(p, heute):
+    """Nennt die Probe als naechste Reward-Stufe einen Tag, der heute schon
+    erreicht ist? Dann sagen Sheet und /whales "next" zu einem vergangenen
+    Schritt, wie am 13.11.2026 mit "4 nov" (Ben). Gibt den Tag zurueck oder
+    None."""
+    t = dt.datetime.fromisoformat(p["zahlen"]["senkung"]["zeit_utc"].replace("Z", "+00:00")).date()
+    return t if t <= heute else None
+
+
 def frische_pruefen(p, heute, frist=FRIST_TAGE):
     """Jeder Stichtag hoechstens frist Tage alt, sonst Abbruch mit Namen."""
     alt = []
@@ -1735,6 +1744,15 @@ def selbsttest():
        (k5["big"], k5["unit"]) == ("around 5 dec", "next block reward cut, estimate")
        and "around 5 December 2026, an estimate, because the step is set by DAA score" in k5["plain"]
        and ":" not in k5["big"] + k5["unit"] + k5["date"], (k5["big"], k5["unit"], k5["date"]))
+    # kein vergangener schritt als "next" (Ben, 13.11.2026)
+    p_alt = json.loads(json.dumps(p2))
+    p_alt["zahlen"]["senkung"]["zeit_utc"] = "2026-11-04T13:45:00Z"
+    ok("vergangener schritt als next faellt auf, 4 nov am 13.11.",
+       stufe_vorbei(p_alt, dt.date(2026, 11, 13)) == dt.date(2026, 11, 4)
+       and stufe_vorbei(p_alt, dt.date(2026, 11, 3)) is None)
+    ok("korrektur nennt einen kuenftigen schritt, 5 dec am 17.11.",
+       stufe_vorbei(kp, dt.date(2026, 11, 17)) is None
+       and "next" in k5["unit"] and "4 nov" not in " ".join(str(v) for v in k5.values()))
     ok("korrektur, 1.94 to 1.84 ab dem stichtag der senkung", k5["date"]
        == "1.94 to 1.84 KAS per block · about 18 days from 17 nov", k5["date"])
     ok("korrektur, die anderen sieben zahlen zeichengleich", all(

@@ -625,7 +625,12 @@ def main(argv=None):
     alt = ZIEL.read_text(encoding="utf-8") if ZIEL.exists() else ""
     if a.pruefen:
         print("whales/index.html passt" if s == alt else "whales/index.html weicht ab, whales_seite.py laufen lassen")
-        return 0 if s == alt else 1
+        # kein vergangener reward-schritt als "next" (Ben, 13.11.2026)
+        vorbei = cheat_sheet.stufe_vorbei(stand_lesen()[0], dt.datetime.now(dt.timezone.utc).date())
+        if vorbei:
+            print("zahl 5 nennt %s als naechsten schritt, der ist vorbei. neue ausgabe oder "
+                  "cheat_sheet.py --korrektur-senkung" % vorbei.isoformat())
+        return 0 if s == alt and not vorbei else 1
     if s != alt:
         ZIEL.parent.mkdir(exist_ok=True)
         ZIEL.write_text(s, encoding="utf-8")
