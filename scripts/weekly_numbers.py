@@ -394,10 +394,22 @@ def tail(key, now, prev, extra=""):
 
 
 def cut_phrase(nxt, nxt_ts, now_ts):
-    d = utc(nxt_ts)
-    days_out = (nxt_ts - now_ts) / DAY
-    when = WEEKDAYS[d.weekday()] if days_out <= 8 else month_day(d)
-    return "cut to %.3f on %s, %02d.%02d utc" % (nxt, when, d.hour, d.minute)
+    """Die naechste Stufe nur als Schaetzung, ohne Uhrzeit und ohne Wochentag
+    (Ben, 12.11. und 19.11.2026): "cut to 1.835 around 5 dec, estimate". Der
+    Termin haengt am DAA score, die Form kommt aus stufe_schaetzung.py, wie im
+    Cheat Sheet und auf /whales. now_ts bleibt fuer die Aufrufer."""
+    import stufe_schaetzung
+    return "cut to %.3f %s" % (nxt, stufe_schaetzung.kurz(utc(nxt_ts)))
+
+
+def stufe_pruefen(*texte, now=None):
+    """Der fertige Post nennt die naechste Stufe nur als Schaetzung (Ben,
+    19.11.2026). Ein Fund haelt den Post an, wie assert_punctuation."""
+    import stufe_schaetzung
+    fund = [v for t in texte for v in stufe_schaetzung.verstoesse(t, now)]
+    if fund:
+        raise Stop("der post nennt die naechste stufe nicht als schaetzung: %s" % fund[0])
+    return True
 
 
 def vergleich_seit(prev, week_date):
@@ -1223,6 +1235,7 @@ def main():
                            price=price, show_usd=show_usd, quelle="tg")
     assert_punctuation(msg)
     assert_punctuation(msg_tg)
+    stufe_pruefen(msg, msg_tg, now=dt.datetime.now(dt.timezone.utc).date())
     print(msg)
     print("---- %d zeichen ----" % len(msg))
 
@@ -1341,7 +1354,8 @@ GOLD_MSG = "\n".join([
     "",
     "⛏️ **mining**",
     "hashrate **342.5 PH/s** \U0001f7e2 up 30.6% this week",
-    "block reward **2.45 KAS** \U0001f53b cut to 2.312 on wednesday, 06.15 utc",
+    # seit 19.11.2026 die stufe als schaetzung, sonst zeichengleich wie am 03.08.
+    "block reward **2.45 KAS** \U0001f53b cut to 2.312 around 5 aug, estimate",
     "emission **2,116,775 KAS** per day",
     "",
     "\U0001f310 **network** · source kaspalytics",
@@ -1422,14 +1436,34 @@ def run_selftest():
     ok("cut am 5.8.2026 06.15 utc",
        utc(nxt_ts).strftime("%Y-%m-%d %H.%M") == "2026-08-05 06.15",
        utc(nxt_ts))
-    ok("cut satz", cut_phrase(nxt, nxt_ts, ts) ==
-       "cut to 2.312 on wednesday, 06.15 utc", cut_phrase(nxt, nxt_ts, ts))
+    ok("cut satz als schaetzung", cut_phrase(nxt, nxt_ts, ts) ==
+       "cut to 2.312 around 5 aug, estimate", cut_phrase(nxt, nxt_ts, ts))
 
-    # 4 weit entfernter cut nennt datum statt wochentag
+    # 4 weit entfernter cut, dieselbe form
     far = calendar.timegm((2026, 7, 6, 12, 0, 0))
     c2, n2, t2 = reward_state(far)
-    ok("ferner cut nennt datum", "august 5" in cut_phrase(n2, t2, far),
+    ok("ferner cut, dieselbe form", cut_phrase(n2, t2, far) == "cut to 2.312 around 5 aug, estimate",
        cut_phrase(n2, t2, far))
+
+    # 4b der fall vom 16.11.2026 (Ben, 19.11.): "cut to 1.835 on december 5, 00.15 utc"
+    import stufe_schaetzung
+    nov = calendar.timegm((2026, 11, 16, 17, 40, 0))
+    c3, n3, t3 = reward_state(nov)
+    cp = cut_phrase(n3, t3, nov)
+    ok("cut 16.11. around 5 dec, estimate, ohne uhrzeit", cp == "cut to 1.835 around 5 dec, estimate", cp)
+    zeile = "block reward **%.2f KAS** \U0001f53b %s" % (c3, cp)
+    ok("stufe_schaetzung findet nichts in der reward-zeile",
+       stufe_schaetzung.verstoesse(zeile, dt.date(2026, 11, 16)) == []
+       and bool(stufe_schaetzung.verstoesse("block reward **1.94 KAS** cut to 1.835 on december 5, 00.15 utc",
+                                            dt.date(2026, 11, 16))),
+       stufe_schaetzung.verstoesse(zeile, dt.date(2026, 11, 16)))
+    try:
+        stufe_pruefen("block reward **1.94 KAS** cut to 1.835 on december 5, 00.15 utc",
+                      now=dt.date(2026, 11, 16))
+        halt = False
+    except Stop:
+        halt = True
+    ok("der alte satz haelt den post an", halt)
 
     # 5 richtung der farbe
     ok("boersenbestand runter ist gruen",
