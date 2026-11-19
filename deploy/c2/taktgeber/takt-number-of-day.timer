@@ -3,10 +3,13 @@ Description=Kaspa Pulse Takt, Zahl des Tages
 
 [Timer]
 Unit=takt@number-of-day.service
-# Zwei Termine wie bisher auf GitHub (08:12 und 09:42 utc), hier in
-# Ortszeit. Der zweite faengt den ersten auf.
-OnCalendar=*-*-* 10:12:00 Europe/Berlin
-OnCalendar=*-*-* 11:42:00 Europe/Berlin
+# Zwei Termine wie auf GitHub, 08:12 und 09:42 UTC. Der zweite faengt den
+# ersten auf. Bis 19.11.2026 standen hier 10:12 und 11:42 Berlin: das war
+# 08:12 UTC nur in der Sommerzeit. Seit 25.10. kam der Lauf um 09:12 UTC,
+# nach der Automatik-Pruefung um 08:41 UTC, die ihn dann selbst startete
+# (16. bis 19.11.). In UTC bleibt der Termin das ganze Jahr gleich.
+OnCalendar=*-*-* 08:12:00 UTC
+OnCalendar=*-*-* 09:42:00 UTC
 Persistent=true
 AccuracySec=30s
 
