@@ -602,6 +602,17 @@ def vorbereiten(art, fuer, history=None, story=None, teiltag=False, stand=None):
         vorbereiten.bauplan, cap = caption_woche(ss, fuer=fuer, stand=stand, mit_plan=True)
     else:
         st = json.loads(Path(story or STORY).read_text(encoding="utf-8"))
+        if st.get("vorlage") == "kaspa-is":
+            # "kaspa is ___" (Ben, 19.11.2026), zahlen frisch, look v2, scripts/kaspa_ist.py
+            import kaspa_ist
+            try:
+                ss, cap, vorbereiten.bauplan = kaspa_ist.vorbereiten(st, fuer, stand=stand)
+            except kaspa_ist.Stopp as exc:
+                raise Stopp("kaspa is, %s" % exc)
+            fehler = text_pruefen(kaspa_ist.texte(ss)) + caption_pruefen(cap) + deckblatt_pruefen(ss)
+            if fehler:
+                raise Stopp("textpruefung, %s" % "; ".join(fehler))
+            return ss, cap
         ss = seiten_story(st, fuer)
         vorbereiten.bauplan, cap = caption_story(st, ss, fuer=fuer, stand=stand, mit_plan=True)
     fehler = text_pruefen(seiten_texte(ss)) + caption_pruefen(cap) + deckblatt_pruefen(ss)
@@ -616,7 +627,18 @@ LOOK_V2_AB = "2026-10-31"
 
 
 def v2(art, fuer):
-    return art == "schalter" or (art == "woche" and str(fuer) >= LOOK_V2_AB)
+    return art == "schalter" or (art == "woche" and str(fuer) >= LOOK_V2_AB) or story_vorlage(art, fuer) == "kaspa-is"
+
+
+def story_vorlage(art, fuer, pfad=None):
+    """Die Vorlage der Story-Datei fuer diesen Mittwoch, sonst None."""
+    if art != "story":
+        return None
+    try:
+        st = json.loads(Path(pfad or STORY).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return st.get("vorlage") if st.get("mittwoch") == str(fuer) else None
 
 
 def rendern(art, fuer, ss, looks, out, motiv=None, speicher=None, merken=False):
@@ -628,6 +650,12 @@ def rendern(art, fuer, ss, looks, out, motiv=None, speicher=None, merken=False):
         try:
             if art == "schalter":
                 bilder, info = look_motor.karussell_schalter(fuer, ss, out, speicher, merken=merken)
+            elif art == "story":
+                import kaspa_ist
+                try:
+                    bilder, info = kaspa_ist.bilder(fuer, ss, out, speicher, merken=merken)
+                except kaspa_ist.Stopp as exc:
+                    raise Stopp("kaspa is, %s" % exc)
             else:
                 bilder, info = look_motor.karussell_woche(fuer, ss, out, speicher, merken=merken)
         except look_motor.Stopp as exc:
