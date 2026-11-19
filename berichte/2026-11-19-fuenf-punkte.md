@@ -83,7 +83,7 @@ Auftrag von Ben vom Do 19.11.2026. Die Punkte kommen nach Vorrang, jeder Punkt i
   - 295,043 addresses (15 nov 2026)
   - 324.8 PH/s (12. bis 18.11.)
   - Caption mit Bauplan zahl_zuerst: „9.3 blocks a second, Kaspa is fast.“, dann „Counted by Kaspa Pulse over 1 minutes, 19 Nov 2026, 15:45 UTC.“, die Newsletter-Zeile und drei Hashtags. Seither heißt es richtig „minute“.
-- **Selbsttest `kaspa_ist.py`:** 19 Fälle, mit `--bild` auch beide Varianten durch alle Wachen.
+- **Selbsttest `kaspa_ist.py`:** 17 Fälle, mit `--bild` 19, dann gehen auch beide Varianten durch alle Wachen.
   - Lücke ohne Zahl, 5 Fortsetzungen und Newsletter-Folie.
   - Ein Methoden-Wort je Folie, counted nur bei der eigenen Zählung.
   - Die Stufe als Schätzung, Textwachen und Caption ohne Fund.
