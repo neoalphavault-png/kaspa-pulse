@@ -895,6 +895,28 @@
      "verhaeltnis": 750.31
     }
    }
+  },
+  {
+   "datum": "2026-11-19",
+   "form": 2,
+   "grund": "rotation, 3 laeufe in 30 tagen, zahl des tages hashrate_move (vorab gerechnet), uebersprungen [7, 8]",
+   "messzeit_utc": "2026-11-19T06:34:18+00:00",
+   "looks": {
+    "instagram": "D-dunkel",
+    "threads": "D-hell",
+    "x": "D-hell",
+    "discord": "D-hell"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-20",
+     "bis": "2026-11-18",
+     "fees": 68692.19322024,
+     "emission": 51958404.92477419,
+     "verhaeltnis": 756.39
+    }
+   }
   }
  ]
 }
