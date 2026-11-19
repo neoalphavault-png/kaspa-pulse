@@ -92,3 +92,33 @@ Auftrag von Ben vom Do 19.11.2026. Die Punkte kommen nach Vorrang, jeder Punkt i
 - **Für Ben:**
   - Pinnen auf Platz 2 nach dem Post.
   - Die Routine „Donnerstags-Erklärer vorbereiten“ schreibt laut `karussell.py` ebenfalls `data/karussell-story.json`. Läuft sie vor dem 25.11. für diesen Mittwoch, ersetzt sie die Vorlage.
+
+## 5. Zwei Entscheidungen von Ben
+### a) Newsletter, Preis- und Echtzeit-Wache vor dem Versand
+- **Neu in `scripts/brevo_send.py`:** `text_wachen(html)`. `html_lesen_und_pruefen` ruft sie vor jeder Übergabe an Brevo auf, für Test, Update, Fix und Planung.
+  - Preis-Wache: `preis_wache.seite_pruefen`. Sie findet Preise, kursnahe Sätze (auch im Skript) und eine Reward-Stufe ohne Schätzung.
+  - Echtzeit-Wache: `content_wache.echtzeit_ausdruck` auf dem sichtbaren Text.
+- **Bei einem Fund** wird nichts gesendet. Der Grund mit den Funden geht über `ops_melden.hand` als „📤 VON HAND“ nach #moderator-only, und der Lauf endet rot mit „Nichts an Brevo geschickt“.
+- **Gegenprobe:** Über die Ausgaben vom 12.10. bis 16.11. finden beide Wachen nichts.
+- **Selbsttest `brevo_send.py`:** Ein Preis, ein Wenn-dann-Satz mit Dollar und „right now“ halten je den Versand an, und je eine Meldung geht raus. Die Ausgabe vom 16.11. ist grün.
+
+### b) Karussell, VON-HAND-Meldung bei rotem posten
+- **Neu in `scripts/karussell_post.py`:** `von_hand_melden`. Endet der Schritt posten rot, mit Stopp oder Ausnahme und außer bei einer Probe, geht nach #moderator-only:
+  - „📤 VON HAND“ mit Datum, Uhrzeit und Plattform,
+  - der Grund, zum Beispiel „bild nicht oeffentlich, http 404“,
+  - die Seiten als Bilder in der Reihenfolge des Entwurfs,
+  - die Caption als Codeblock.
+- **Sonderfälle:**
+  - Ist die Caption zu lang für eine Nachricht, hängt sie als `caption.txt` an.
+  - Ist kein Entwurf lesbar, kommt die Meldung ohne Bilder und sagt das.
+  - Scheitert die Meldung selbst, bleibt der Lauf trotzdem rot.
+- **Nur `scripts/`:** `karussell.yml` ist nicht geändert. Der Schritt „rot nach ops-log“ dort bleibt.
+- **Selbsttest mit einem roten Fall:**
+  - posten endet mit „bild nicht oeffentlich, http 404“, Exit 1 und genau eine Meldung.
+  - Die Meldung beginnt mit VON HAND, nennt den Grund und 13:00 Berlin und trägt die Caption als Codeblock und die drei Seiten als JPEG.
+  - Ohne Entwurf kommt die Meldung ohne Bilder. Eine Probe meldet nichts. Eine lange Caption hängt als Datei an.
+
+### Prüfung
+- **Selbsttests mit 0 Fehlern:** brevo_send, karussell_post, karussell, ops_melden und preis_wache.
+- **Secret-Scan:** ohne Fund.
+- **Kopf:** Die Änderung steht in `12f30e40` auf `fc42256e`. Dieser Abschnitt liegt als eigener Commit darauf.
