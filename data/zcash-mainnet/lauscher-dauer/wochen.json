@@ -17,18 +17,18 @@
   {
    "woche_von_utc": "2026-11-16T00:00:00Z",
    "woche_bis_utc": "2026-11-23T00:00:00Z",
-   "abdeckung_prozent": 51.7,
+   "abdeckung_prozent": 54.9,
    "vollstaendig": "nein",
-   "kettenbloecke": 12497,
-   "angekuendigt": 12494,
-   "abgehaengt": 45,
+   "kettenbloecke": 13284,
+   "angekuendigt": 13282,
+   "abgehaengt": 52,
    "ohne_kopf": 11,
-   "tiefe_1": 34,
+   "tiefe_1": 41,
    "tiefe_2": 0,
    "tiefe_3_plus": 0,
    "offen": 0
   }
  ],
- "laeufe": 30,
- "kette_spitze_utc": "2026-11-19T14:51:42Z"
+ "laeufe": 31,
+ "kette_spitze_utc": "2026-11-19T20:16:03Z"
 }
