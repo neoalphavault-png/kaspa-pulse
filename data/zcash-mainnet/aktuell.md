@@ -1,5 +1,5 @@
-Quelle: eigene Header ueber P2P, Abruf 2026-11-18T14:19:15Z UTC. Peer-Software: /Zakura:1.8.5/, /Zebra:7.1.0/, /Zakura:1.8.9/, /Zakura:1.8.0/, /Zebra:7.0.0/. Gegenproben: /Zakura:1.8.9/ 500/500, /Zebra:7.0.0/ 500/500.
-Bereich 3,489,717 bis 3,586,394 (2026-09-20 06:59:07 bis 2026-11-18 14:18:54 UTC).
+Quelle: eigene Header ueber P2P, Abruf 2026-11-19T14:34:18Z UTC. Peer-Software: /Zakura:1.8.9/, /Zakura:1.8.7/, /Zebra:7.1.0/. Gegenproben: /Zakura:1.8.9/ 500/500, /Zakura:1.8.9/ 500/500, /Zebra:7.1.0/ 500/500.
+Bereich 3,489,717 bis 3,589,880 (2026-09-20 06:59:07 bis 2026-11-19 14:33:54 UTC).
 
 ### Vor NU7, gegen 75 s (53,687 Abstaende, Bloecke 3,489,718 bis 3,543,404)
 
@@ -25,7 +25,7 @@ Bereich 3,489,717 bis 3,586,394 (2026-09-20 06:59:07 bis 2026-11-18 14:18:54 UTC
 | 2026-W44 | 8,028 | 75.33 s | 53.0 s |
 | 2026-W45 | 4,711 | 75.32 s | 51 s |
 
-### Ab NU7, gegen 25 s (42,989 Abstaende, Bloecke 3,543,406 bis 3,586,394)
+### Ab NU7, gegen 25 s (46,475 Abstaende, Bloecke 3,543,406 bis 3,589,880)
 
 | Kennzahl | gezaehlt | berechnet |
 |---|---:|---:|
@@ -34,15 +34,15 @@ Bereich 3,489,717 bis 3,586,394 (2026-09-20 06:59:07 bis 2026-11-18 14:18:54 UTC
 | p90 | 58.0 s | 57.6 s |
 | p99 | 116.0 s | 115.1 s |
 | Anteil ueber 75 s | 4.88 % | 4.98 % |
-| Anteil ueber 173 s | 0.098 % | 0.1 % |
-| Laengste Luecke | 249 s (vor Block 3,543,445, 2026-11-06 03:11:24 UTC) | 281 s |
+| Anteil ueber 173 s | 0.101 % | 0.1 % |
+| Laengste Luecke | 249 s (vor Block 3,543,445, 2026-11-06 03:11:24 UTC) | 283 s |
 | Negative Abstaende | 0 | 0 |
 
 ### Einpendeln nach NU7
 
 ```
 {
-  "bloecke_nach_nu7": 42989,
+  "bloecke_nach_nu7": 46475,
   "fenster": 100,
   "toleranz_prozent": 20,
   "halten_bloecke": 1000,
@@ -57,7 +57,7 @@ Bereich 3,489,717 bis 3,586,394 (2026-09-20 06:59:07 bis 2026-11-18 14:18:54 UTC
     "block_nu7_plus_1000": 0.321,
     "block_nu7_plus_5000": 0.326
   },
-  "schwierigkeit_spitze_relativ": 0.367,
+  "schwierigkeit_spitze_relativ": 0.355,
   "berechnet_bei_gleicher_hashrate": 0.333
 }
 ```
