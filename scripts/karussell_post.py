@@ -615,10 +615,12 @@ def posten(art, fuer, quelle=None, start="hand", probe=False, log_pfad=None, now
     if quelle is None:
         quelle = artefakt_holen(art, fuer, tempfile.mkdtemp(prefix="karussell-"))
     m, bilder = manifest_lesen(quelle, art, fuer)
+    posten.stand = {"manifest": m, "bilder": list(bilder)}
     import look_takt
     scharf = start == "takt" and live() and not probe and not look_takt.trockenlauf()
     sag("%s fuer %s, %d seiten, %s" % (art, fuer, len(bilder), "SCHARF" if scharf else "trocken"))
     jpegs = [ig().jpeg(b, Path(quelle) / "jpg") for b in bilder]
+    posten.stand["bilder"] = list(jpegs)
     ids, urls = [], []
     eintrag = {"art": art, "fuer": fuer, "modus": "scharf" if scharf else "trocken", "start": start,
                "seiten": len(bilder), "look": m["look"], "motiv": m.get("motiv", ""),
@@ -651,6 +653,41 @@ def posten(art, fuer, quelle=None, start="hand", probe=False, log_pfad=None, now
         ig().json_schreiben(log_pfad or LOG, log)
     posten.manifest = m
     return eintrag
+
+
+# ------------------------------------------------------------ von hand
+
+def von_hand_text(art, fuer, grund, caption=None):
+    """Die Meldung nach #moderator-only, wenn posten rot endet (Ben,
+    19.11.2026): Uhrzeit, Plattform, was zu tun ist, die Caption als
+    Codeblock zum Kopieren. Die Seiten haengen als Bilder an."""
+    import karussell
+    import ops_melden
+    zeit = "%s %s Berlin" % (fuer, karussell.POSTZEIT[art][1] if art in karussell.POSTZEIT else "")
+    was = ("karussell %s fuer %s ging nicht raus (%s). bitte die seiten in dieser reihenfolge von hand "
+           "posten" % (art, fuer, ops_melden.sauber(grund)[:300]))
+    rest = ("CAPTION\n```\n%s\n```" % caption) if caption else "kein entwurf lesbar, die seiten fehlen"
+    return ops_melden.hand_text(zeit.strip(), "instagram", was, rest=rest)
+
+
+def von_hand_melden(art, fuer, grund, stand=None, sender=None):
+    """Schickt die Meldung mit den Seiten als Bilder. Passt die Caption nicht
+    in die Nachricht, haengt sie zusaetzlich als caption.txt an. Gibt den
+    Text zurueck."""
+    import ops_melden
+    stand = stand or {}
+    m = stand.get("manifest") or {}
+    bilder = [Path(b) for b in stand.get("bilder") or [] if Path(b).exists()]
+    text = von_hand_text(art, fuer, grund, m.get("caption"))
+    dateien = [(b, "image/jpeg" if b.suffix.lower() in (".jpg", ".jpeg") else "image/png") for b in bilder]
+    if m.get("caption") and len(text) > ops_melden.GRENZE - len(ops_melden.VON_HAND) - 2:
+        cap = Path(tempfile.mkdtemp(prefix="karussell-cap-")) / "caption.txt"
+        cap.write_text(m["caption"] + "\n", encoding="utf-8")
+        text = von_hand_text(art, fuer, grund).replace("kein entwurf lesbar, die seiten fehlen",
+                                                        "die caption haengt als caption.txt an")
+        dateien = dateien[:ops_melden.MAX_DATEIEN - 1] + [(cap, "text/plain")]
+    (sender or ops_melden.hand)(text, dateien[:ops_melden.MAX_DATEIEN], was="karussell von hand")
+    return text
 
 
 # ------------------------------------------------------------ selbsttest
@@ -1009,6 +1046,49 @@ def selbsttest():
                 os.environ.pop(k, None)
             else:
                 os.environ[k] = v
+    # rot im schritt posten: VON-HAND-meldung mit den seiten und der caption
+    # als codeblock (Ben, 19.11.2026). ein roter fall wie am 14.11.
+    from PIL import Image
+    seiten = []
+    for i in range(3):
+        b = tmp / ("vh-%d.jpg" % i)
+        Image.new("RGB", (108, 135), (240, 240, 230)).save(b)
+        seiten.append(b)
+    cap = "295,043 addresses hold at least 100 KAS.\n\nSource kaspalytics, 15 Nov 2026.\n\n#kaspa"
+    gemeldet = []
+    import ops_melden as _om
+    alt_hand, alt_posten, alt_ausgabe = _om.hand, globals()["posten"], globals()["ausgabe_datei"]
+
+    def rot(*a, **k):
+        rot.stand = {"manifest": {"caption": cap}, "bilder": seiten}
+        raise Stopp("bild nicht oeffentlich, http 404")
+    _om.hand = lambda text, dateien=None, was="meldung": gemeldet.append((text, list(dateien or [])))
+    globals()["posten"], globals()["ausgabe_datei"] = rot, (lambda **k: None)
+    try:
+        r = main(["posten", "--art", "woche", "--fuer", "2026-11-21", "--start", "takt"])
+        t, d = gemeldet[-1] if gemeldet else ("", [])
+        ok("posten rot, exit 1 und eine meldung", r == 1 and len(gemeldet) == 1)
+        ok("meldung beginnt mit VON HAND und nennt den grund", t.startswith(_om.VON_HAND)
+           and "bild nicht oeffentlich, http 404" in t and "instagram" in t and "13:00 Berlin" in t)
+        ok("caption als codeblock", "```\n%s\n```" % cap in t)
+        ok("die seiten als bilder, in der reihenfolge", [x[0] for x in d] == seiten
+           and all(x[1] == "image/jpeg" for x in d))
+        gemeldet.clear()
+        rot2 = lambda *a, **k: (_ for _ in ()).throw(Stopp("kein entwurf"))
+        rot2.stand = None
+        globals()["posten"] = rot2
+        main(["posten", "--art", "woche", "--fuer", "2026-11-21", "--start", "takt"])
+        ok("ohne entwurf trotzdem eine meldung, ohne bilder",
+           len(gemeldet) == 1 and gemeldet[0][1] == [] and "die seiten fehlen" in gemeldet[0][0])
+        gemeldet.clear()
+        main(["posten", "--art", "woche", "--fuer", "2026-11-21", "--start", "takt", "--probe"])
+        ok("eine probe meldet nichts", gemeldet == [])
+        lang = von_hand_melden("woche", "2026-11-21", "x", {"manifest": {"caption": "y" * 2100},
+                                                          "bilder": seiten}, sender=lambda t, d, was: gemeldet.append((t, d)))
+        ok("lange caption als caption.txt dazu", len(lang) <= _om.GRENZE and gemeldet[-1][1][-1][0].name == "caption.txt")
+    finally:
+        _om.hand = alt_hand
+        globals()["posten"], globals()["ausgabe_datei"] = alt_posten, alt_ausgabe
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 
@@ -1060,6 +1140,8 @@ def main(argv=None):
                                  else "", probe=a.probe)
     except Stopp as exc:
         sag("STOPP %s" % exc)
+        if a.schritt == "posten" and not a.probe:
+            _von_hand_sicher(a.art, fuer, "stopp, %s" % sauber(exc))
         if a.schritt == "posten" and a.art == "woche" and a.start == "takt" and not a.probe:
             community_melden(fuer, grund_kein="der posten-lauf stoppte, %s" % sauber(exc))
         return 1
@@ -1071,6 +1153,8 @@ def main(argv=None):
         ausgabe_datei(gebaut="0")
         return 0
     except Exception as exc:                               # noqa: BLE001
+        if a.schritt == "posten" and not a.probe:
+            _von_hand_sicher(a.art, fuer, "%s, %s" % (type(exc).__name__, sauber(exc)))
         if a.schritt == "posten" and a.art == "woche" and a.start == "takt" and not a.probe:
             try:
                 community_melden(fuer, grund_kein="der posten-lauf brach ab, %s" % type(exc).__name__)
@@ -1079,6 +1163,14 @@ def main(argv=None):
         raise
     ausgabe_datei(gebaut="1")
     return 0
+
+
+def _von_hand_sicher(art, fuer, grund):
+    """Die VON-HAND-Meldung, ohne dass ihr Scheitern den roten Lauf verdeckt."""
+    try:
+        von_hand_melden(art, fuer, grund, getattr(posten, "stand", None))
+    except Exception as exc:                               # noqa: BLE001
+        sag("von-hand-meldung gescheitert, %s" % type(exc).__name__)
 
 
 if __name__ == "__main__":
