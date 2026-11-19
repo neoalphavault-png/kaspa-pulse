@@ -66,7 +66,8 @@ _MON = r"(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y
        r"sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)"
 DATUM = re.compile(r"\b(\d{1,2})\s+" + _MON + r"\b(?:\s+(\d{4}))?", re.I)
 DATUM_US = re.compile(r"\b" + _MON + r"\s+(\d{1,2})\b(?:,?\s+(\d{4}))?", re.I)
-UHRZEIT = re.compile(r"\b\d{1,2}:\d{2}\b")
+# "00:15" und "00.15 utc" (so schrieb der wochenpost bis 19.11.2026)
+UHRZEIT = re.compile(r"\b\d{1,2}:\d{2}\b|\b\d{1,2}\.\d{2}\s*utc\b", re.I)
 SATZENDE = re.compile(r"(?<=[.?!])\s+")
 
 
@@ -195,6 +196,10 @@ def selbsttest():
         ok("gruen: %s" % neu[:60], not verstoesse(neu, h), verstoesse(neu, h))
     ok("schaetzung mit uhrzeit ist rot", bool(verstoesse(
         "next step around 5 Dec 2026 at 00:15 UTC, an estimate", h)))
+    ok("uhrzeit mit punkt und utc ist rot", bool(verstoesse(
+        "cut to 1.835 around 5 dec, estimate, 00.15 utc", h)))
+    ok("ein betrag mit punkt ist keine uhrzeit", not verstoesse(
+        "cut to 1.835 around 5 dec, estimate, block reward 1.94 KAS", h))
     ok("vergangene stufe mit uhrzeit ist gruen", not verstoesse(
         "the reward stepped down on 4 nov 2026 at 13:45 UTC", h))
     ok("messtag mit uhrzeit ist keine stufe", not verstoesse(
