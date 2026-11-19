@@ -1,14 +1,5 @@
 [
   {
-    "date": "2026-09-20",
-    "candidate": "hashrate_consequence",
-    "hashrate": 352.554853,
-    "tvl_total": 1477518.190837,
-    "mined_pct": 96.539935,
-    "price_kas": 0.039808,
-    "whale_kas": 1523915192.089634
-  },
-  {
     "date": "2026-09-21",
     "candidate": "mined_left",
     "hashrate": 331.922886,
@@ -572,5 +563,15 @@
     "price_kas": 0.027293,
     "whale_kas": 1561274881.199243,
     "circ": 27816059229.411144
+  },
+  {
+    "date": "2026-11-19",
+    "candidate": "hashrate_move",
+    "hashrate": 300.569426,
+    "tvl_total": 562307.441694,
+    "mined_pct": 96.912291,
+    "price_kas": 0.027332,
+    "whale_kas": 1561274881.399243,
+    "circ": 27817738646.20173
   }
 ]
