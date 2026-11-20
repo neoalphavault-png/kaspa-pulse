@@ -87,7 +87,7 @@ footer a:hover{color:var(--ink)}
     <p class="date">1,542,974,288 KAS · 1 nov 2026</p>
     <p class="src">counted by kaspa pulse from the public address, supply as of 26 oct 2026</p>
   </li>
-  <li>
+  <li data-zahl="5">
     <h2 class="q">when do miners get paid less again?</h2>
     <p class="big">around 5 dec</p>
     <p class="unit">next block reward cut, estimate</p>
@@ -172,6 +172,21 @@ footer a:hover{color:var(--ink)}
         .then(function () { btn.disabled = false; btn.textContent = alt; });
     });
   });
+})();
+</script>
+<script>
+(function(){
+  // zahl 5 aus dem emissionsplan, dieselben konstanten wie scripts/number_of_day_data.py
+  var A = 1783280744 * 1000, R0 = 2.44997148, S = (365.25 / 12) * 86400000, R = Math.pow(0.5, 1 / 12);
+  var M = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  var li = document.querySelector('[data-zahl="5"]'); if (!li) return;
+  var jetzt = Date.now(), n = Math.floor((jetzt - A) / S), cur = R0 * Math.pow(R, n), nxt = cur * R;
+  var t = new Date(A + (n + 1) * S), tage = Math.max(1, Math.round((t - jetzt) / 86400000));
+  li.querySelector('.big').textContent = 'around ' + t.getUTCDate() + ' ' + M[t.getUTCMonth()];
+  li.querySelector('.unit').textContent = 'next block reward cut, estimate';
+  li.querySelector('.date').textContent = cur.toFixed(2) + ' to ' + nxt.toFixed(2) +
+    ' KAS per block, about ' + tage + ' days, estimate';
+  li.querySelector('.src').textContent = 'computed in your browser from the emission schedule';
 })();
 </script>
 <script src="/utm.js" defer></script>

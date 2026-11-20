@@ -20,7 +20,10 @@ ZWEI FORMATE
   story   Mi 18:00 "The story of ...", 4 bis 5 Seiten, Entwurf Mi 16:00.
           Thema ist der Donnerstags-Erklaerer der Vorwoche. Die Routine
           "Donnerstags-Erklaerer vorbereiten" schreibt danach
-          data/karussell-story.json:
+          data/karussell-story.json, geschrieben ueber
+          "python3 scripts/karussell.py story-setzen <datei> [--force]". Eine
+          Datei mit gesetzter "vorlage" fuer einen Mittwoch ab heute wird
+          ohne --force nicht ersetzt (Ben, 20.11.2026):
             {"mittwoch": "JJJJ-MM-TT", "stand": "JJJJ-MM-TT", "titel": "the story of ...",
              "seiten": [{"kopf": "...", "satz": "ein gedanke",
                          "zahl": "optional", "datum": "16 oct 2026",
@@ -864,12 +867,80 @@ def selbsttest():
             ok("story stoppt bei %s" % name, True)
     ok("naechster samstag nach freitag 23.10. ist der 24.10.",
        naechster(5, dt.date(2026, 10, 23)) == "2026-10-24")
+    # schutz der story-datei (Ben, 20.11.2026)
+    import tempfile as _tf
+    sp = Path(_tf.mkdtemp(prefix="story-")) / "karussell-story.json"
+    sp.write_text(json.dumps({"mittwoch": "2026-11-25", "vorlage": "kaspa-is"}), encoding="utf-8")
+    neu = {"mittwoch": "2026-11-25", "titel": "the story of something else"}
+    try:
+        story_schreiben(neu, sp, heute=dt.date(2026, 11, 20))
+        geschuetzt = False
+    except Stopp:
+        geschuetzt = True
+    ok("vorlage fuer einen kommenden mittwoch wird nicht ersetzt", geschuetzt
+       and json.loads(sp.read_text())["vorlage"] == "kaspa-is")
+    ok("am mittwoch selbst auch nicht", _wirft(lambda: story_schreiben(neu, sp, heute=dt.date(2026, 11, 25))))
+    story_schreiben(neu, sp, heute=dt.date(2026, 11, 26))
+    ok("nach dem mittwoch darf die naechste story kommen", json.loads(sp.read_text())["titel"].endswith("else"))
+    sp.write_text(json.dumps({"mittwoch": "2026-11-25", "vorlage": "kaspa-is"}), encoding="utf-8")
+    story_schreiben(neu, sp, force=True, heute=dt.date(2026, 11, 20))
+    ok("mit force geht es", "vorlage" not in json.loads(sp.read_text()))
+    sp.write_text(json.dumps({"mittwoch": "2026-11-25", "titel": "the story of x"}), encoding="utf-8")
+    story_schreiben(neu, sp, heute=dt.date(2026, 11, 20))
+    ok("eine story ohne vorlage darf ersetzt werden", json.loads(sp.read_text())["titel"].endswith("else"))
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 
 
+def _wirft(fn):
+    try:
+        fn()
+        return False
+    except Stopp:
+        return True
+
+
+def story_schreiben(daten, pfad=None, force=False, heute=None):
+    """Schreibt data/karussell-story.json, aber nie ueber eine Datei mit
+    gesetzter "vorlage" fuer einen Mittwoch, der heute oder spaeter liegt,
+    ausser mit force (Ben, 20.11.2026). So ersetzt die Routine
+    "Donnerstags-Erklaerer vorbereiten" die Vorlage "kaspa is" fuer den
+    25.11. nicht. Gibt den Pfad zurueck."""
+    pfad = Path(pfad or STORY)
+    heute = heute or dt.datetime.now(dt.timezone.utc).date()
+    try:
+        alt = json.loads(pfad.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        alt = {}
+    if alt.get("vorlage") and not force:
+        try:
+            mi = dt.date.fromisoformat(str(alt.get("mittwoch", "")))
+        except ValueError:
+            mi = None
+        if mi and mi >= heute:
+            raise Stopp("story-datei traegt die vorlage %r fuer mittwoch %s, das ist heute oder spaeter. "
+                        "nicht ueberschrieben, mit --force geht es trotzdem" % (alt["vorlage"], mi))
+    pfad.write_text(json.dumps(daten, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    return pfad
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
+    if argv is None:
+        argv = sys.argv[1:]
+    if argv[:1] == ["story-setzen"]:
+        # python3 scripts/karussell.py story-setzen neue-story.json [--force]
+        sp = argparse.ArgumentParser(prog="karussell.py story-setzen")
+        sp.add_argument("datei")
+        sp.add_argument("--force", action="store_true")
+        b = sp.parse_args(argv[1:])
+        try:
+            ziel = story_schreiben(json.loads(Path(b.datei).read_text(encoding="utf-8")), force=b.force)
+        except Stopp as exc:
+            print("ABBRUCH %s" % exc)
+            return 1
+        print("story-datei geschrieben, %s" % ziel)
+        return 0
     ap.add_argument("art", nargs="?", choices=["woche", "story"])
     ap.add_argument("--fuer", default="", help="post-datum JJJJ-MM-TT, ohne: der naechste sa bzw. mi")
     ap.add_argument("--out", default="graphics/karussell")

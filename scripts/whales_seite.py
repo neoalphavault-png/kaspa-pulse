@@ -254,13 +254,38 @@ def seite(p, edition=1):
 
 
 def karte_offen(k):
-    return ('  <li>\n'
+    return ('  <li%s>\n'
             '    <h2 class="q">%s</h2>\n'
             '    <p class="big">%s</p>\n'
             '    <p class="unit">%s</p>\n'
             '    <p class="date">%s</p>\n'
             '    <p class="src">%s</p>\n'
-            '  </li>' % (esc(k["q"]), esc(k["big"]), esc(k["unit"]), esc(k["date"]), esc(k["src"])))
+            '  </li>' % (Z5_ATTR if k["n"] == 5 else "", esc(k["q"]), esc(k["big"]), esc(k["unit"]),
+                         esc(k["date"]), esc(k["src"])))
+
+
+# Zahl 5 rechnet der Browser aus dem Emissionsplan (Ben, 20.11.2026, Weg 3).
+# Die Ausgabe vom 1. eines Monats nennt den Schritt um den 5., danach waere
+# er vorbei. Im HTML steht der Stand der Ausgabe, beim Laden setzt das Skript
+# den naechsten Schritt als Schaetzung. Das PDF bleibt, wie es ist.
+Z5_ATTR = ' data-zahl="5"'
+
+
+def zahl5_skript():
+    import number_of_day_data as nod
+    return ("<script>\n(function(){\n"
+            "  // zahl 5 aus dem emissionsplan, dieselben konstanten wie scripts/number_of_day_data.py\n"
+            "  var A = %d * 1000, R0 = %r, S = (365.25 / 12) * 86400000, R = Math.pow(0.5, 1 / 12);\n"
+            "  var M = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];\n"
+            "  var li = document.querySelector('[data-zahl=\"5\"]'); if (!li) return;\n"
+            "  var jetzt = Date.now(), n = Math.floor((jetzt - A) / S), cur = R0 * Math.pow(R, n), nxt = cur * R;\n"
+            "  var t = new Date(A + (n + 1) * S), tage = Math.max(1, Math.round((t - jetzt) / 86400000));\n"
+            "  li.querySelector('.big').textContent = 'around ' + t.getUTCDate() + ' ' + M[t.getUTCMonth()];\n"
+            "  li.querySelector('.unit').textContent = 'next block reward cut, estimate';\n"
+            "  li.querySelector('.date').textContent = cur.toFixed(2) + ' to ' + nxt.toFixed(2) +\n"
+            "    ' KAS per block, about ' + tage + ' days, estimate';\n"
+            "  li.querySelector('.src').textContent = 'computed in your browser from the emission schedule';\n"
+            "})();\n</script>" % (nod.ANCHOR_TS, nod.ANCHOR_REWARD))
 
 
 def karte_zu(k):
@@ -294,7 +319,7 @@ def seite_teaser(p):
 %(form)s
 </section>
 """ % dict(versprechen=VERSPRECHEN, monat=monat, stand=startseite.d_kurz(stand), offen=offen, zu=zu,
-           form=form) + SEITE_FUSS % dict(skript=SKRIPT, analytics=web_analytics.BLOCK)
+           form=form) + SEITE_FUSS % dict(skript=SKRIPT + "\n" + zahl5_skript(), analytics=web_analytics.BLOCK)
 
 
 SEITE_KOPF = """<!DOCTYPE html>
@@ -333,14 +358,7 @@ def seite_voll(p):
     stand = dt.date.fromisoformat(p["stand"])
     ks = karten(p)
     lis = "\n".join(
-        '  <li>\n'
-        '    <h2 class="q">%s</h2>\n'
-        '    <p class="big">%s</p>\n'
-        '    <p class="unit">%s</p>\n'
-        '    <p class="date">%s</p>\n'
-        '    <p class="src">%s</p>\n'
-        '  </li>' % (esc(k["q"]), esc(k["big"]), esc(k["unit"]), esc(k["date"]), esc(k["src"]))
-        for k in ks)
+        karte_offen(k) for k in ks)
     return """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -377,7 +395,7 @@ def seite_voll(p):
 </body>
 </html>
 """ % dict(versprechen=VERSPRECHEN, titel=esc(TITEL), beschr=esc(BESCHREIBUNG), url=URL, stil=STIL, analytics=web_analytics.BLOCK,
-           stand=startseite.d_kurz(stand), form=formular(), lis=lis, skript=SKRIPT)
+           stand=startseite.d_kurz(stand), form=formular(), lis=lis, skript=SKRIPT + "\n" + zahl5_skript())
 
 
 def texte(s):
@@ -546,6 +564,12 @@ def selbsttest():
     ok("e-mail-feld nach den guidelines", 'autocomplete="email" spellcheck="false"' in s)
     ok("noindex", 'content="noindex, follow"' in s)
     ok("kein falke", "falke" not in s.lower() and "falcon" not in s.lower() and "hawk" not in s.lower())
+    import number_of_day_data as _nod
+    z5 = zahl5_skript()
+    ok("zahl 5 rechnet der browser aus dem emissionsplan, mit estimate (Ben, 20.11.2026)",
+       ("%d * 1000" % _nod.ANCHOR_TS) in z5 and repr(_nod.ANCHOR_REWARD) in z5 and "estimate" in z5
+       and "computed in your browser from the emission schedule" in z5 and karte_offen(ks[4]).startswith('  <li data-zahl="5">')
+       and 'data-zahl="5"' not in karte_offen(ks[0]))
     ok("reward cut ohne uhrzeit, als schaetzung", ks[4]["big"] == "around 4 nov"
        and ks[4]["unit"] == "next block reward cut, estimate"
        and "13:45" not in s, ks[4]["unit"])
