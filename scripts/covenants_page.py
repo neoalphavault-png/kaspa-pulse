@@ -290,7 +290,9 @@ MARKE = re.compile(r"(<!--AUTO:([a-z0-9_]+)-->)(.*?)(<!--/AUTO:\2-->)", re.S)
 # bloecke, die andere skripte auf derselben seite pflegen (SEO, 06.10.2026):
 # faq kommt aus scripts/seo_faq.py, seitenstand aus scripts/seo_seiten.py.
 # die bleiben hier unberuehrt und zaehlen nicht als fehlender inhalt.
-FREMDE = {"faq", "seitenstand"}
+# analytics kommt aus scripts/web_analytics.py (seit 26.10.2026 auf der seite, erst
+# plausible, seit 12.11. cloudflare). ohne diesen eintrag brach der lauf ab dem 27.10. ab.
+FREMDE = {"faq", "seitenstand", "analytics"}
 
 
 def rendere(html, log):
@@ -422,7 +424,8 @@ def run_selftest():
 
     # zweimal rendern gibt dasselbe, sonst waere der lauf nicht wiederholbar
     check("rendern ist wiederholbar", rendere(neu, log)[0], neu)
-    fremd = neu + "<!--AUTO:faq-->x<!--/AUTO:faq--><!--AUTO:seitenstand-->y<!--/AUTO:seitenstand-->"
+    fremd = (neu + "<!--AUTO:faq-->x<!--/AUTO:faq--><!--AUTO:seitenstand-->y<!--/AUTO:seitenstand-->"
+             "<!--AUTO:analytics-->z<!--/AUTO:analytics-->")
     check("fremde bloecke bleiben stehen", rendere(fremd, log)[:2], (fremd, []))
 
     # der letzte utxo-wert steht im quelltext, nicht nur als platzhalter
