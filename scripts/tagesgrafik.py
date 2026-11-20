@@ -909,7 +909,8 @@ def vorlage_6(w, now):
             # lesen. wir zaehlen ihn nicht und rechnen ihn nicht aus einer regel,
             # also "source kaspa rest api" statt "counted" (Ben, 13.11.2026)
             "herkunft": QUELLE_DAA, "objekt": objekt,
-            "x1": "the kaspa chain has passed %d million blocks since nov 2021." % (daa // 1000000),
+            # zeile 1 rundet wie das bild, ueberall dieselbe zahl (Ben, 20.11.2026)
+            "x1": "the kaspa chain counts about %d million blocks since nov 2021." % mio,
             "x2": "the daa score on %s, %s, %s" % (tag(now.date()), uhr(now), QUELLE_DAA),
             "x3": "who keeps that count?",
             "einordnung": "every kaspa node keeps the same count, the daa score",
@@ -2924,6 +2925,8 @@ def selbsttest():
        s6["herkunft"] == QUELLE_DAA and s6["datumszeile"].endswith(QUELLE_DAA)
        and all("counted" not in s6[k].lower() for k in k6 if s6.get(k))
        and all("source kaspa rest api" in s6[k].lower() for k in k6 if s6.get(k)))
+    ok("form 6, zeile 1 rundet wie das bild", ("about %s million blocks" % s6["zahl"][:-1]) in s6["x"]
+       and all(("%s million" % s6["zahl"][:-1]) in s6[k] for k in ("threads", "discord", "instagram") if s6.get(k)))
     ok("form 6, stichtag ist der tag der messung", s6["ig_stand"] == tag(FAKE_NOW.date()))
     ok("form 6, lineal vor und nach crescendo", ">may 2025<" in o6 and "80% of them since may 2025"
        in s6["bedeutung"])
