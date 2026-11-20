@@ -1,24 +1,15 @@
-# Automatik-Pruefung, Stand 19.11.2026 09:50 Berlin-Zeit
+# Automatik-Prüfung, Stand 20.11.2026 09:46 Berlin
 
 ## FÜR DAS FENSTER
-
-Status: gelb
+Status: grün
 Sofort gemeldet: nein
-- X-Post der Number of the Day fehlt heute erneut, nach Vorgabe (Schalter X_GOKU_AN aus, Pause seit 07.11.), letzter Eintrag nod-2026-11-08, jetzt elf Tage. Bei Ben: ja (nur falls die Pause enden soll)
-Für das Fenster: 1 Zeilen
+Für das Fenster: 0 Zeilen
 
 ## Meldung
 
-NOD: gruen, von der Pruefung gestartet (bis 08:41 utc kein Lauf), Lauf 358, Run-ID 44489828158, 08:42:04 bis 08:42:47 utc, ein Start.
-X-Post: nein, "post to x" skipped nach Vorgabe (X_GOKU_AN aus), letzter Eintrag nod-2026-11-08.
-Datenstaende: ok (kas-candles 2026-11-19 07:50 utc, multibagger-pick 2026-11-18).
-Wachstumslog: eingetragen Short RORbbV3uPWw (Analytics wieder da: 102 Aufrufe, 16 s, 1 Abo); nicht faellig xrkFmvbq00U (20.11.) und qrgOFG8hRzw (21.11.). Diff: 57 Einfuegungen, 0 Loeschungen. Branch claude/wachstumslog-2026-11-19, Commit 5eb954a.
-Reels: 0 eingetragen, keines im Fenster 48 bis 72 h (Df2GJqZp8pw folgt am 20.11.).
-Ablage: claude/ablage-automatik-pruefung, Head siehe Commit dieser Datei.
-
-## Belege
-
-- Haengende Laeufe: status=queued zeigt nur den bekannten Lauf 166.
-- YouTube Kaspa Pulse: 121 Abos, 21.039 Aufrufe, 68 Videos (18.11.: 121, 20.789, 67).
-- Instagram kaspapulse: 165 Follower (18.11.: 163).
-- Analytics-Rueckstand vom 18.11. (Daten nur bis 15.11.) ist fuer den Short vom 16.11. aufgeholt.
+alles grün
+NOD: kein Lauf bis 09:41, von der Prüfung gestartet, Lauf 363 (Run-ID 44704636790) grün.
+X-Post: nein, nach Vorgabe pausiert (post to x skipped, Pause seit 07.11.), letzter Eintrag nod-2026-11-08.
+Datenstände: ok (kas-candles 2026-11-20 07:41 utc, Multibagger-Pick 2026-11-19).
+Wachstumslog: Short xrkFmvbq00U eingetragen; Erklärer YmUyddMdYI0 und Short qrgOFG8hRzw fällig am 21.11. (qrgOFG8hRzw heute nicht in der vidIQ-Videoliste). Diff: 59 Einfügungen, 0 Löschungen. Commit 4f385f3 auf claude/wachstumslog-2026-11-20.
+Reels: 1 eingetragen (Df2GJqZp8pw, Skip-Rate 57,5 %), keine Ansicht fällig.
