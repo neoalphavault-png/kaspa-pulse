@@ -91,6 +91,13 @@
     "motiv": "zahnraeder",
     "schritt": 1,
     "serie": "tagesgrafik"
+   },
+   {
+    "datum": "2026-11-20",
+    "look": "A-teal",
+    "motiv": "sternenfeld",
+    "schritt": 2,
+    "serie": "tagesgrafik"
    }
   ],
   "story/instagram": [
@@ -147,11 +154,6 @@
   ],
   "tagesgrafik/discord": [
    {
-    "datum": "2026-11-08",
-    "look": "A-papier",
-    "schritt": 0
-   },
-   {
     "datum": "2026-11-09",
     "look": "D-dunkel",
     "schritt": 1
@@ -205,15 +207,15 @@
     "datum": "2026-11-19",
     "look": "D-hell",
     "schritt": 3
+   },
+   {
+    "datum": "2026-11-20",
+    "look": "A-papier",
+    "schritt": 0
    }
   ],
   "tagesgrafik/threads": [
    {
-    "datum": "2026-11-08",
-    "look": "A-papier",
-    "schritt": 0
-   },
-   {
     "datum": "2026-11-09",
     "look": "D-dunkel",
     "schritt": 1
@@ -267,15 +269,15 @@
     "datum": "2026-11-19",
     "look": "D-hell",
     "schritt": 3
+   },
+   {
+    "datum": "2026-11-20",
+    "look": "A-papier",
+    "schritt": 0
    }
   ],
   "tagesgrafik/x": [
    {
-    "datum": "2026-11-08",
-    "look": "A-papier",
-    "schritt": 0
-   },
-   {
     "datum": "2026-11-09",
     "look": "D-dunkel",
     "schritt": 1
@@ -329,6 +331,11 @@
     "datum": "2026-11-19",
     "look": "D-hell",
     "schritt": 3
+   },
+   {
+    "datum": "2026-11-20",
+    "look": "A-papier",
+    "schritt": 0
    }
   ]
  }
