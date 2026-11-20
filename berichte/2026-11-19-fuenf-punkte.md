@@ -92,3 +92,43 @@ Auftrag von Ben vom Do 19.11.2026. Die Punkte kommen nach Vorrang, jeder Punkt i
 - **Für Ben:**
   - Pinnen auf Platz 2 nach dem Post.
   - Die Routine „Donnerstags-Erklärer vorbereiten“ schreibt laut `karussell.py` ebenfalls `data/karussell-story.json`. Läuft sie vor dem 25.11. für diesen Mittwoch, ersetzt sie die Vorlage.
+
+## 5. Zwei Entscheidungen von Ben
+### a) Newsletter, Preis- und Echtzeit-Wache vor dem Versand
+- **Neu in `scripts/brevo_send.py`:** `text_wachen(html)`. `html_lesen_und_pruefen` ruft sie vor jeder Übergabe an Brevo auf, für Test, Update, Fix und Planung.
+  - Preis-Wache: `preis_wache.seite_pruefen`. Sie findet Preise, kursnahe Sätze (auch im Skript) und eine Reward-Stufe ohne Schätzung.
+  - Echtzeit-Wache: `content_wache.echtzeit_ausdruck` auf dem sichtbaren Text.
+- **Bei einem Fund** wird nichts gesendet. Der Grund mit den Funden geht über `ops_melden.hand` als „📤 VON HAND“ nach #moderator-only, und der Lauf endet rot mit „Nichts an Brevo geschickt“.
+- **Gegenprobe:** Über die Ausgaben vom 12.10. bis 16.11. finden beide Wachen nichts.
+- **Selbsttest `brevo_send.py`:** Ein Preis, ein Wenn-dann-Satz mit Dollar und „right now“ halten je den Versand an, und je eine Meldung geht raus. Die Ausgabe vom 16.11. ist grün.
+
+### b) Karussell, VON-HAND-Meldung bei rotem posten
+- **Neu in `scripts/karussell_post.py`:** `von_hand_melden`. Endet der Schritt posten rot, mit Stopp oder Ausnahme und außer bei einer Probe, geht nach #moderator-only:
+  - „📤 VON HAND“ mit Datum, Uhrzeit und Plattform,
+  - der Grund, zum Beispiel „bild nicht oeffentlich, http 404“,
+  - die Seiten als Bilder in der Reihenfolge des Entwurfs,
+  - die Caption als Codeblock.
+- **Sonderfälle:**
+  - Ist die Caption zu lang für eine Nachricht, hängt sie als `caption.txt` an.
+  - Ist kein Entwurf lesbar, kommt die Meldung ohne Bilder und sagt das.
+  - Scheitert die Meldung selbst, bleibt der Lauf trotzdem rot.
+- **Nur `scripts/`:** `karussell.yml` ist nicht geändert. Der Schritt „rot nach ops-log“ dort bleibt.
+- **Selbsttest mit einem roten Fall:**
+  - posten endet mit „bild nicht oeffentlich, http 404“, Exit 1 und genau eine Meldung.
+  - Die Meldung beginnt mit VON HAND, nennt den Grund und 13:00 Berlin und trägt die Caption als Codeblock und die drei Seiten als JPEG.
+  - Ohne Entwurf kommt die Meldung ohne Bilder. Eine Probe meldet nichts. Eine lange Caption hängt als Datei an.
+
+### Nachtrag 20.11.2026, Selbsttest ohne Spuren (Wache 20.11.)
+- **Fund der Wache:** Der neue Selbsttest in `karussell_post.py` rief `main(["posten", "--art", "woche", "--fuer", "2026-11-21", ...])` mit einem roten posten auf. `community_melden` war dabei nicht ersetzt. So stand in der echten `data/karussell-log.json` der Community-Eintrag `{"woche": "2026-11-21", "art": "log"}`.
+  - Er war schon im PR, mit zeit_utc 2026-11-19T15:49:45+00:00, und wäre bei jedem Lauf von `karussell.yml` im Schritt selbsttest neu entstanden.
+  - Fiele das Wochen-Karussell am Sa 21.11. aus, hätte `community_eintrag` die Meldung „kein Beitrag fuer Kaspa Community“ unterdrückt.
+- **a)** Der Eintrag ist raus. `data/karussell-log.json` ist in diesem PR wieder der Stand von main, ohne Änderung.
+- **b)** Im Selbsttest zeigt `LOG` auf eine Datei im tmp-Ordner, und `community_melden` ist ersetzt. Das Datum ist Sa 2.1.1999, einen solchen Samstag gibt es im Betrieb nie.
+- **c) Byte-Gleichheit:**
+  - `karussell_post.py --selbsttest` läuft jetzt über `selbsttest_ohne_spuren`. Danach muss `data/karussell-log.json` byte-gleich sein, sonst ist der Test rot und die Datei kommt zurück. Ein Fall im Selbsttest prüft das mit einem Test, der absichtlich schreibt.
+  - `brevo_send.py --selftest` hat bisher nichts unter `data/` oder `newsletter/` geschrieben, geprüft mit sha256 über alle Dateien vor und nach dem Lauf. Er läuft jetzt trotzdem über `selftest_ohne_spuren`, das jede Datei unter beiden Ordnern vergleicht, auch neue und fehlende, und bei einer Abweichung rot wird und zurücksetzt. Gegenprobe mit einem schreibenden Test: rot, Datei zurück, neue Datei weg.
+
+### Prüfung
+- **Selbsttests mit 0 Fehlern:** brevo_send und karussell_post, je mit der Prüfung auf byte-gleiche Daten, dazu karussell, ops_melden und preis_wache.
+- **Secret-Scan:** ohne Fund.
+- **Kopf:** Die Änderung steht nach dem Neuaufsetzen auf main in den Commits dieses PRs, der Nachtrag vom 20.11. in `aaf4d986`. Dieser Abschnitt liegt als eigener Commit darauf.

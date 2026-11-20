@@ -264,6 +264,55 @@ def fehlende_bilder(html):
     return fehlt
 
 
+def text_wachen(html):
+    """Die Funde von Preis-Wache (preis_wache.seite_pruefen: Preise,
+    kursnahe Saetze auch im Skript, Reward-Stufe nur als Schaetzung) und
+    Echtzeit-Wache (content_wache.echtzeit_ausdruck auf dem sichtbaren Text).
+    Leere Liste heisst gruen."""
+    import content_wache
+    import number_of_day
+    import preis_wache
+    fund = ["preis-wache, %s" % v for v in preis_wache.seite_pruefen(html)]
+    text = number_of_day._strip_technical(preis_wache.sichtbarer_text(html))
+    for m in content_wache.echtzeit_ausdruck().finditer(text):
+        fund.append("echtzeit-wache, %r in %r" % (m.group(0), text[max(0, m.start() - 40):m.end() + 40]))
+    return fund
+
+
+def _stand(ordner):
+    """{pfad: inhalt} aller Dateien unter den Ordnern, fuer den Vergleich."""
+    aus = {}
+    for o in ordner:
+        for wurzel, _, dateien in os.walk(o):
+            for d in dateien:
+                pf = os.path.join(wurzel, d)
+                with open(pf, "rb") as fh:
+                    aus[pf] = fh.read()
+    return aus
+
+
+def selftest_ohne_spuren(ordner=None, test=None):
+    """Der Selbsttest, danach die Pruefung: unter data/ und newsletter/ ist
+    jede Datei byte-gleich wie vorher, keine dazu, keine weg (Ben,
+    20.11.2026). Sonst ist der Test rot und der alte Stand kommt zurueck."""
+    ordner = ordner or [os.path.join(ROOT, "data"), os.path.join(ROOT, "newsletter")]
+    vorher = _stand(ordner)
+    r = (test or selftest)()
+    nachher = _stand(ordner)
+    geaendert = sorted(set(vorher) ^ set(nachher) | {p for p in vorher if p in nachher and vorher[p] != nachher[p]})
+    for pf in geaendert:
+        if pf in vorher:
+            with open(pf, "wb") as fh:
+                fh.write(vorher[pf])
+        else:
+            os.remove(pf)
+    if geaendert:
+        print("FEHL selftest hat %s geaendert, zurueckgesetzt" % ", ".join(geaendert))
+        return 1
+    print("ok   selftest laesst data/ und newsletter/ byte-gleich")
+    return r
+
+
 def html_lesen_und_pruefen(pfad):
     """HTML laden und die eine Rechnung pruefen, die am 05.10.2026 falsch war:
     eine gedruckte Differenz, die nicht zur Differenz ihrer gedruckten
@@ -296,6 +345,20 @@ def html_lesen_und_pruefen(pfad):
                  "VIDEO_URL fuellt der Link der Folge, und zwar erst, wenn sie "
                  "oeffentlich ist. Am 05.10.2026 ging genau dieser Knopf tot raus."
                  % (pfad, " und ".join(offen), pfad))
+    # Preis-Wache und Echtzeit-Wache (Ben, 19.11.2026): ein Fund haelt den
+    # Versand an, der Grund geht nach #moderator-only.
+    fund = text_wachen(html)
+    if fund:
+        grund = ("newsletter %s geht nicht raus, %d fund(e) der text-wachen:\n%s"
+                 % (os.path.basename(pfad), len(fund), "\n".join("- " + f for f in fund[:12])))
+        try:
+            import ops_melden
+            ops_melden.hand(grund + "\nbitte die ausgabe korrigieren und den lauf neu starten.",
+                            was="newsletter-wache")
+        except Exception as exc:  # noqa: BLE001
+            print("meldung nach #moderator-only gescheitert: %s" % exc, file=sys.stderr)
+        sys.exit(grund + "\nNichts an Brevo geschickt.")
+    print("text-wachen ok: keine preise, keine kursnahen saetze, keine echtzeit-woerter")
     if newsletter_issue.pruefe(pfad) != 0:
         print("WARNUNG: die Ausgabennummer zaehlt nicht wie erwartet weiter. "
               "Gewollt? Dann weiter. Sonst 'newsletter_issue.py set %s'." % pfad)
@@ -770,6 +833,32 @@ def selftest():
         fh.write("<html><body><td>1,525,975,596 to 1,524,397,554 kas, 1,578,042 less</td>" + rumpf)
     assert html_lesen_und_pruefen(gut)
 
+    # preis-wache und echtzeit-wache (Ben, 19.11.2026): ein fund haelt den
+    # versand an, der grund geht nach #moderator-only (ohne webhook: job-log)
+    import ops_melden as _om
+    gemeldet = []
+    _alt_hand = _om.hand
+    _om.hand = lambda text, dateien=None, was="meldung": gemeldet.append(text)
+    try:
+        for name, satz in (("preis", "<td>pre-audit review from 150 \u20ac per round</td>"),
+                           ("kurs", "<td>a close above $0.035239 next week would put it back above</td>"),
+                           ("echtzeit", "<td>the hashrate right now sits at 340 PH/s</td>")):
+            roh = bad.replace("n.html", "w-%s.html" % name)
+            with open(roh, "w", encoding="utf-8") as fh:
+                fh.write("<html><body>" + satz + rumpf)
+            vorher = len(gemeldet)
+            try:
+                html_lesen_und_pruefen(roh)
+            except SystemExit as e:
+                assert "Nichts an Brevo" in str(e), str(e)
+            else:
+                raise AssertionError("die wache haette %s ablehnen muessen" % name)
+            assert len(gemeldet) == vorher + 1 and "geht nicht raus" in gemeldet[-1], gemeldet
+        assert not text_wachen(open("newsletter/2026-11-16.html", encoding="utf-8").read()
+                               if os.path.exists("newsletter/2026-11-16.html") else "<p>ok</p>")
+    finally:
+        _om.hand = _alt_hand
+
     # ein offener platzhalter haelt den versand an, fehlende bilder warnen nur
     assert fehlende_bilder('<img src="https://kaspapulse.com/graphics/social/x.png">') == \
         ["graphics/social/x.png"]
@@ -861,7 +950,7 @@ def main(argv=None):
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args(argv)
     if a.selftest:
-        return selftest()
+        return selftest_ohne_spuren()
     if not a.mode:
         sys.exit("--mode fehlt (test, schedule oder cancel)")
     # zuerst die Empfaengerliste, vor jeder anderen Pruefung und vor dem
