@@ -36,7 +36,7 @@ Log steht es am 01.10. wörtlich: *„kein cron im fenster"*.
 | `takt-reel` | Di–So 15:30, Mo 17:00 (bis 5.11.2026 Di–So 12:00) | `instagram-reel.yml` in pulse-studio |
 | `takt-weeklynumbers` | Mo 18:40 | `weeklynumbers.yml` in kaspa-pulse |
 | `takt-cheat-sheet` | am 1. im Monat 09:00 | `cheat-sheet.yml` in kaspa-pulse |
-| `takt-number-of-day` | täglich 10:12 und 11:42 | `number-of-day.yml` in kaspa-pulse |
+| `takt-number-of-day` | täglich 08:12 und 09:42 UTC (Berlin im Winter 09:12 und 10:42, im Sommer 10:12 und 11:42) | `number-of-day.yml` in kaspa-pulse |
 | `takt-story-vorlage` | Mo–Sa 07:45 | `story-vorlage.yml` in kaspa-pulse, `senden=true`, nur nach #moderator-only |
 | `takt-ig-story-auto` | Di und Do 17:30 | `ig-story-auto.yml` in kaspa-pulse, `modus=takt`, scharf nur mit `IG_STORY_AUTO_LIVE=true` |
 | `takt-karussell-woche-entwurf` | Sa 11:00 (bis 5.11.2026 09:00) | `karussell.yml`, `art=woche schritt=entwurf start=takt` |
