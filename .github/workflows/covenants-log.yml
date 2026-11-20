@@ -71,3 +71,20 @@ jobs:
             git commit -m "covenants log $(date -u +%F)"
             git push
           fi
+
+      # 20.11.2026: vom 27.10. bis 19.11. war jeder lauf rot, ohne dass es jemand sah.
+      # ein roter lauf meldet sich jetzt in #ops-log, wie bei karussell und cheat-sheet.
+      - name: rot nach ops-log
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 - <<'PY' || true
+          import os, sys
+          sys.path.insert(0, "scripts")
+          import ops_melden
+          text = ("covenants log ist rot, data/covenants-log.json und kaspa-covenants.html bleiben auf dem alten stand\n%s"
+                  % os.environ.get("LAUF", ""))
+          ops_melden.log(text, was="rot")
+          PY
