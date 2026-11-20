@@ -291,6 +291,25 @@
     "datum": "18 nov 2026 · source kaspa rest api"
    },
    "quelle_vorlage": "zahl des tages 2026-11-18, kein erklaerer gefunden"
+  },
+  {
+   "datum": "2026-11-20",
+   "tag": "fr",
+   "art": "wahr",
+   "frage": "true or false?",
+   "richtig": 0,
+   "aufloesung": {
+    "frage": "one address holds more than 1 billion KAS",
+    "zahl": "TRUE",
+    "einheit": "",
+    "satz": "1.56B KAS sit at the entity x address",
+    "datum": "as of 19 nov 2026 · source kaspa rest api, address tracked by kaspa pulse"
+   },
+   "quelle_vorlage": "entity x, eigene zaehlung",
+   "optionen": [
+    "true",
+    "false"
+   ]
   }
  ]
 }
