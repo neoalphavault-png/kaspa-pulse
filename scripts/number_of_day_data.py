@@ -91,6 +91,13 @@ MIN_GAP = {
     "weekly_line": 3,
     "sats_divergence": 4,
     "hashrate_consequence": 5,
+    # der neue vorrat (Ben, 20.11.2026). was sich langsam aendert, wartet laenger
+    "emission_year": 10,
+    "blocks_since_cut": 6,
+    "holders_1kas": 5,
+    "top_share": 7,
+    "kcc20_count": 14,
+    "hashrate_year": 7,
 }
 COOLDOWN_FACTOR = 0.15
 MIN_ANCHOR_AGE_DAYS = 21
@@ -177,6 +184,7 @@ def fetch_live():
                 tvl.setdefault("igra", float(row.get("tvl") or 0.0))
     except Stop:
         tvl = {}
+    hashrate_year = fetch_optional("api.kaspa.org hashrate history", fetch_hashrate_year)
     prices = fetch_optional("coingecko", fetch_prices)
     whale = fetch_optional("adressbestand", fetch_whale)
     return {
@@ -190,6 +198,7 @@ def fetch_live():
         "price_kas": prices[0] if prices else None,
         "price_btc": prices[1] if prices else None,
         "whale_kas": whale,
+        "hashrate_year": hashrate_year,
     }
 # ---------------------------------------------------------------- rechnen
 def reward_state(now_ts):
@@ -519,8 +528,9 @@ def cand_cut_countdown(ctx):
         "payload": {
             "issue": issue_line(ctx["today"]),
             "eyebrow": "NUMBER OF THE DAY",
-            "value": "%d" % d,
-            "value_label": "%s until the next kaspa reward cut" % word,
+            "value": "about %d" % d,
+            # die tage bis zur stufe sind eine schaetzung (Ben, 20.11.2026)
+            "value_label": "%s until the next kaspa reward cut, an estimate" % word,
             "headline": "bitcoin waits *%d days*.\nkaspa cuts %d times before then."
                         % (btc_days, int(btc_days / (STEP / DAY))),
             "panes": [
@@ -548,7 +558,7 @@ def cand_cut_countdown(ctx):
             "sources": "api.kaspa.org",
             "site": "kaspapulse.com",
             "post": post_block(
-                "the next kaspa reward cut lands in %d %s. bitcoin waits about "
+                "the next kaspa reward cut lands in about %d %s, an estimate. bitcoin waits about "
                 "%s days for its next one, and kaspa cuts %d more times before "
                 "that date. daily emission drops from %s to %s KAS, the block "
                 "reward from %.4f to %.4f."
@@ -556,7 +566,7 @@ def cand_cut_countdown(ctx):
                    fmt_millions(e_now), fmt_millions(e_next),
                    ctx["reward"], ctx["next_reward"]),
                 "the countdown runs on " + HALVING_URL + ". the kaspa date "
-                "is arithmetic, the bitcoin date is an estimate."),
+                "and the bitcoin date are both estimates, the kaspa step is set by daa score."),
         },
     }
 def cand_mined_left(ctx):
@@ -1082,6 +1092,211 @@ def cand_hashrate_consequence(ctx):
     return res
 
 
+# ------------------------------------------- vorrat ohne preis (Ben, 20.11.2026)
+# seit dem 1.11. waren vier kandidaten gesperrt, und hashrate_move lief am 9.
+# bis 14.11. sechsmal und am 17. bis 20.11. viermal in folge. diese sechs
+# kommen aus werten, die schon im repo liegen oder aus dem emissionsplan
+# folgen, jeder mit datum und genau einer herkunft (counted, source, computed).
+THRESH_PATH = os.path.join(ROOT, "data", "address-thresholds-log.json")
+RICHLIST_PATH = os.path.join(ROOT, "data", "richlist-log.json")
+KCC20_PATH = os.path.join(ROOT, "data", "kcc20-stand.json")
+FRISCH_TAGE = 9          # aelter ist ein stichtag zu alt fuer die zahl des tages
+JAHR = 365.25 * DAY
+
+
+def _anker_tag(day):
+    return "%d %s %d" % (day.day, MONTHS[day.month - 1].lower(), day.year)
+
+
+def _vergleich(ctx, title, sub, jetzt, dann, fmt, tag_jetzt, tag_dann, tone_jetzt="teal"):
+    a, b = bar_pair(jetzt, dann)
+    return {"kind": "compare", "title": title, "sub": sub,
+            "rows": [{"label": stichtag(tag_jetzt), "sub": "", "value": fmt(jetzt), "pct": a, "tone": tone_jetzt},
+                     {"label": stichtag(tag_dann) if tag_dann.year == tag_jetzt.year else _anker_tag(tag_dann),
+                      "sub": "", "value": fmt(dann), "pct": max(2.0, b), "tone": "grey"}]}
+
+
+def cand_emission_year(ctx):
+    """Neue KAS je Tag gegen denselben Tag vor einem Jahr, aus dem Emissionsplan."""
+    jetzt = emission_per_day(ctx["reward"])
+    dann = emission_per_day(reward_state(ctx["now_ts"] - JAHR)[0])
+    vor = ctx["today"] - dt.timedelta(days=365)
+    return {"score": 26.0, "payload": {
+        "issue": issue_line(ctx["today"]), "eyebrow": "NUMBER OF THE DAY",
+        "value": "%.2fM" % (jetzt / 1e6), "value_label": "new KAS per day on %s" % stichtag(ctx["today"]),
+        "headline": "*half* the new coins\nof a year ago.",
+        "panes": [_vergleich(ctx, "NEW KAS PER DAY", "computed from the emission schedule", jetzt, dann, fmt_int,
+                             ctx["today"], vor),
+                  {"kind": "anchor", "title": "WHY HALF",
+                   "lines": ["twelve monthly steps, *no single halving day*.",
+                             "*computed* from the emission schedule."]}],
+        "sources": "emission schedule", "site": "kaspapulse.com",
+        "post": post_block(
+            "kaspa mints %s new KAS a day on %s, computed from the emission schedule. a year earlier it "
+            "was %s. twelve monthly steps halve it, there is no single halving day."
+            % (fmt_int(jetzt), stichtag(ctx["today"]), fmt_int(dann)),
+            "the full schedule is on " + HALVING_URL + ".")}}
+
+
+def cand_blocks_since_cut(ctx):
+    """Bloecke seit dem letzten Schnitt, gerechnet mit 10 je Sekunde."""
+    letzter = ctx["next_cut_ts"] - STEP
+    sek = ctx["now_ts"] - letzter
+    if sek < 2 * DAY:
+        return None
+    kas = BPS * sek
+    btc = BTC_BLOCKS_PER_DAY * sek / DAY
+    tag_cut = dt.datetime.fromtimestamp(letzter, dt.timezone.utc).date()
+    return {"score": 22.0, "payload": {
+        "issue": issue_line(ctx["today"]), "eyebrow": "NUMBER OF THE DAY",
+        "value": "%.1fM" % (kas / 1e6),
+        "value_label": "blocks since the reward cut of %s, to %s" % (stichtag(tag_cut), stichtag(ctx["today"])),
+        "headline": "*%.1f million blocks*\nsince the last cut." % (kas / 1e6),
+        "panes": [{"kind": "compare", "title": "BLOCKS SINCE %s" % stichtag(tag_cut).upper(),
+                   "sub": "computed at the protocol rate",
+                   "rows": [{"label": "kaspa", "sub": "ten per second", "value": "%.1fM" % (kas / 1e6),
+                             "pct": 100.0, "tone": "teal"},
+                            {"label": "bitcoin", "sub": "one per ten minutes", "value": fmt_int(btc),
+                             "pct": 2.0, "tone": "grey"}]},
+                  {"kind": "anchor", "title": "WHAT THE NUMBER IS",
+                   "lines": ["*computed* at 10 blocks a second.", "every block since then pays the new reward."]}],
+        "sources": "emission schedule", "site": "kaspapulse.com",
+        "post": post_block(
+            "about %.1f million kaspa blocks since the reward cut of %s, computed at 10 blocks a second to %s. "
+            "bitcoin adds about %s in the same time. each of them pays the new, smaller reward."
+            % (kas / 1e6, stichtag(tag_cut), stichtag(ctx["today"]), fmt_int(btc)),
+            "the reward schedule is on " + HALVING_URL + ".")}}
+
+
+def _reihe(pfad, liste, feld, datum="datum"):
+    d = load_json(pfad, {}) or {}
+    return sorted((dt.date.fromisoformat(x[datum]), float(x[feld])) for x in d.get(liste, [])
+                  if x.get(feld) not in (None, "") and x.get(datum))
+
+
+def _jetzt_und_vorher(reihe, heute, abstand=28):
+    bis = [r for r in reihe if r[0] <= heute]
+    if not bis or (heute - bis[-1][0]).days > FRISCH_TAGE:
+        return None
+    t, v = bis[-1]
+    vor = [r for r in bis if (t - r[0]).days >= abstand]
+    return (t, v, vor[-1][0], vor[-1][1]) if vor else None
+
+
+def cand_holders_1kas(ctx):
+    """Adressen mit mindestens 1 KAS gegen vier Wochen davor, source kaspalytics."""
+    jv = _jetzt_und_vorher(_reihe(ctx.get("thresh_path") or THRESH_PATH, "tage", "holders_1kas"), ctx["today"])
+    if not jv:
+        return None
+    t, v, t0, v0 = jv
+    d = v - v0
+    return {"score": 24.0 + min(10.0, abs(100.0 * d / v0)), "payload": {
+        "issue": issue_line(ctx["today"]), "eyebrow": "NUMBER OF THE DAY",
+        "value": fmt_int(v), "value_label": "addresses with at least 1 KAS on %s" % stichtag(t),
+        "headline": "*%s %s*\nin four weeks." % (fmt_int(abs(d)), "more addresses" if d >= 0 else "fewer addresses"),
+        "panes": [_vergleich(ctx, "ADDRESSES WITH 1 KAS OR MORE", "source kaspalytics address thresholds",
+                             v, v0, fmt_int, t, t0, "teal" if d >= 0 else "red"),
+                  {"kind": "anchor", "title": "WHAT THE NUMBER IS",
+                   "lines": ["an address is not a person.", "*read* from kaspalytics, both days."]}],
+        "sources": "kaspalytics.com", "site": "kaspapulse.com",
+        "post": post_block(
+            "%s kaspa addresses held at least 1 KAS on %s, against %s on %s, source kaspalytics. "
+            "one wallet can use many addresses, so this counts addresses, not people."
+            % (fmt_int(v), stichtag(t), fmt_int(v0), stichtag(t0)),
+            "the address counts are on " + SITE_URL + ".")}}
+
+
+def cand_top_share(ctx):
+    """Anteil der 10.000 groessten Adressen am Umlauf gegen vier Wochen davor."""
+    jv = _jetzt_und_vorher(_reihe(ctx.get("richlist_path") or RICHLIST_PATH, "wochen", "anteil_rangliste_pct"),
+                           ctx["today"])
+    if not jv:
+        return None
+    t, v, t0, v0 = jv
+    d = v - v0
+    fmt = lambda x: "%.1f%%" % x      # noqa: E731
+    return {"score": 21.0 + min(8.0, 4 * abs(d)), "payload": {
+        "issue": issue_line(ctx["today"]), "eyebrow": "NUMBER OF THE DAY",
+        "value": fmt(v), "value_label": "of all KAS in circulation sits in the largest 10,000 addresses on %s"
+                                          % stichtag(t),
+        "headline": "the largest 10,000 addresses\nhold *%s*." % fmt(v),
+        "panes": [_vergleich(ctx, "SHARE OF THE LARGEST 10,000", "source kaspa rest api, weekly reading",
+                             v, v0, fmt, t, t0),
+                  {"kind": "anchor", "title": "WHAT THE NUMBER IS",
+                   "lines": ["exchanges count as single addresses.", "*read* from the kaspa rest api, both days."]}],
+        "sources": "api.kaspa.org", "site": "kaspapulse.com",
+        "post": post_block(
+            "the largest 10,000 kaspa addresses held %s of the coins in circulation on %s, against %s on %s, "
+            "source the kaspa rest api. exchange wallets are single addresses here."
+            % (fmt(v), stichtag(t), fmt(v0), stichtag(t0)),
+            "the weekly readings are on " + SITE_URL + ".")}}
+
+
+def cand_kcc20_count(ctx):
+    """KCC-20 Tokens und Halter aus unserer Zaehlung, mit ihrem Stichtag."""
+    k = load_json(ctx.get("kcc20_path") or KCC20_PATH, {}) or {}
+    try:
+        t = dt.date.fromisoformat(str(k["stichzeit_utc"])[:10])
+        tokens, halter = int(k["tokens"]), int(k["halter_eindeutig"])
+    except (KeyError, ValueError, TypeError):
+        return None
+    if t > ctx["today"] or (ctx["today"] - t).days > 45:
+        return None
+    return {"score": 23.0, "payload": {
+        "issue": issue_line(ctx["today"]), "eyebrow": "NUMBER OF THE DAY",
+        "value": fmt_int(tokens), "value_label": "KCC-20 tokens on kaspa layer 1, counted on %s" % stichtag(t),
+        "headline": "*%s tokens*\nin the new standard." % fmt_int(tokens),
+        "panes": [{"kind": "compare", "title": "KCC-20 ON %s" % stichtag(t).upper(),
+                   "sub": "counted by kaspa pulse from our own node",
+                   "rows": [{"label": "tokens", "sub": "", "value": fmt_int(tokens), "pct": 100.0 * tokens /
+                             max(tokens, halter), "tone": "teal"},
+                            {"label": "holders", "sub": "unique addresses", "value": fmt_int(halter),
+                             "pct": 100.0 * halter / max(tokens, halter), "tone": "grey"}]},
+                  {"kind": "anchor", "title": "WHAT THE NUMBER IS",
+                   "lines": ["the standard is final since 21 oct 2026.", "*counted* by kaspa pulse."]}],
+        "sources": "counted by kaspa pulse", "site": "kaspapulse.com",
+        "post": post_block(
+            "%s KCC-20 tokens and %s holding addresses on kaspa layer 1, counted by kaspa pulse on %s. "
+            "the token standard is final since 21 october 2026."
+            % (fmt_int(tokens), fmt_int(halter), stichtag(t)),
+            "the full count is on " + SITE_URL + ".")}}
+
+
+def fetch_hashrate_year(now_ts=None):
+    """Tagesmittel der Hashrate vor 365 Tagen, (PH/s, tag), aus der Historie der API."""
+    roh = http_json("https://api.kaspa.org/info/hashrate/history")
+    ziel = (dt.datetime.fromtimestamp(now_ts or dt.datetime.now(dt.timezone.utc).timestamp(),
+                                      dt.timezone.utc) - dt.timedelta(days=365)).date()
+    werte = [x["hashrate_kh"] / 1e12 for x in roh
+             if dt.datetime.fromtimestamp(x["timestamp"] / 1000, dt.timezone.utc).date() == ziel]
+    return (sum(werte) / len(werte), ziel.isoformat()) if werte else None
+
+
+def cand_hashrate_year(ctx):
+    """Hashrate gegen den Tag vor einem Jahr, ein eigener Kandidat."""
+    jahr = ctx.get("hashrate_year")
+    now = ctx.get("hashrate")
+    if not jahr or not now:
+        return None
+    then, tag = jahr
+    t0 = dt.date.fromisoformat(tag)
+    ch = 100.0 * (now - then) / then
+    fmt = lambda v: "%.0f PH/s" % v   # noqa: E731
+    return {"score": 25.0 + min(10.0, abs(ch) / 10.0), "payload": {
+        "issue": issue_line(ctx["today"]), "eyebrow": "NUMBER OF THE DAY",
+        "value": fmt(now), "value_label": "network hashrate on %s" % stichtag(ctx["today"]),
+        "headline": "hashrate is *%s %.0f%%*\nagainst a year ago." % ("up" if ch >= 0 else "down", abs(ch)),
+        "panes": [_vergleich(ctx, "NETWORK HASHRATE", "source kaspa rest api, daily mean a year ago",
+                             now, then, fmt, ctx["today"], t0, "teal" if ch >= 0 else "red"),
+                  {"kind": "anchor", "title": "WHAT THE NUMBER IS",
+                   "lines": ["the work securing the network.", "*read* from the kaspa rest api, both days."]}],
+        "sources": "api.kaspa.org", "site": "kaspapulse.com",
+        "post": post_block(
+            "kaspa hashrate %s on %s against %s on %s, %s %.0f%% in a year, source the kaspa rest api."
+            % (fmt(now), stichtag(ctx["today"]), fmt(then), _anker_tag(t0), "up" if ch >= 0 else "down", abs(ch)),
+            "the hashrate history is on " + SITE_URL + ".")}}
+
+
 CANDIDATES = [
     ("cut_today", cand_cut_today),
     ("cut_countdown", cand_cut_countdown),
@@ -1094,6 +1309,12 @@ CANDIDATES = [
     ("weekly_line", cand_weekly_line),
     ("sats_divergence", cand_sats_divergence),
     ("hashrate_consequence", cand_hashrate_consequence),
+    ("emission_year", cand_emission_year),
+    ("blocks_since_cut", cand_blocks_since_cut),
+    ("holders_1kas", cand_holders_1kas),
+    ("top_share", cand_top_share),
+    ("kcc20_count", cand_kcc20_count),
+    ("hashrate_year", cand_hashrate_year),
 ]
 # ---------------------------------------------------------------- auswahl
 def recent_picks(log, today, window=None):
@@ -1141,8 +1362,29 @@ def nod_verstoesse(payload):
     return aus
 
 
+# kein thema an zwei folgetagen und hoechstens zweimal in sieben tagen (Ben,
+# 19./20.11.2026). der kandidat von gestern kommt heute nie dran, auch nicht
+# als ersatz. ist sonst nichts waehlbar, faellt der post aus ("none" im log).
+WOCHE_TAGE, WOCHE_MAX = 7, 2
+WOCHE_FREI = {"cut_today", "cut_countdown"}
+
+
+def picks_in_tagen(log, today, tage=WOCHE_TAGE):
+    """{kandidat: anzahl} der posts in den letzten tage-1 tagen vor heute."""
+    out = {}
+    for row in log or []:
+        try:
+            d = dt.date.fromisoformat(str(row.get("date")))
+        except ValueError:
+            continue
+        if 1 <= (today - d).days < tage and row.get("candidate") not in (None, "none"):
+            out[row["candidate"]] = out.get(row["candidate"], 0) + 1
+    return out
+
+
 def choose(ctx, log, force=None):
     cooled = recent_picks(log, ctx["today"])
+    woche = picks_in_tagen(log, ctx["today"])
     scored = []   # waehlbar
     spare = []    # nur standardsperre, darf im notfall einspringen
     locked = []   # eigene MIN_GAP, kommt heute unter keinen umstaenden dran
@@ -1159,6 +1401,13 @@ def choose(ctx, log, force=None):
         score = float(res["score"])
         note = ""
         age = cooled.get(name)
+        if age == 1:
+            locked.append((score, name, res["payload"], " (gestern dran, heute nie)"))
+            continue
+        if name not in WOCHE_FREI and woche.get(name, 0) >= WOCHE_MAX:
+            locked.append((score, name, res["payload"],
+                           " (schon %d mal in %d tagen)" % (woche[name], WOCHE_TAGE)))
+            continue
         gap = MIN_GAP.get(name, HARD_BLOCK_DAYS)
         if age is not None and name != "cut_today":
             if age <= gap:
@@ -1215,6 +1464,36 @@ def build_context(now_ts=None, live=None, history=None, candles=None):
 # den Anteil, und der ist whale_kas geteilt durch circ.
 LOG_READINGS = ["hashrate", "tvl_total", "mined_pct", "price_kas", "whale_kas",
                 "circ"]
+
+
+def simulation(von, bis, log=None, history=None, candles=None, extra=None):
+    """Spielt choose() Tag fuer Tag mit den Tageswerten aus dem Log durch
+    (Ben, 20.11.2026). Vor `von` gilt das echte Log, ab `von` die simulierten
+    Picks. Gibt [(tag, kandidat oder "none")] zurueck."""
+    log = load_json(LOG_PATH, []) if log is None else log
+    history = load_json(HISTORY_PATH, []) if history is None else history
+    candles = load_json(CANDLES_PATH, {}) if candles is None else candles
+    werte = {r["date"]: r for r in log}
+    sim = [r for r in log if r.get("date", "") < von.isoformat()]
+    aus = []
+    d = von
+    while d <= bis:
+        r = werte.get(d.isoformat(), {})
+        circ, pct = r.get("circ"), r.get("mined_pct")
+        live = {"circ": circ, "max": (circ * 100.0 / pct) if circ and pct else None, "mined_pct": pct,
+                "hashrate": r.get("hashrate"), "tvl_total": r.get("tvl_total"), "whale_kas": r.get("whale_kas"),
+                "price_kas": None, "price_btc": None, "hashrate_year": None}
+        live.update((extra or {}).get(d.isoformat(), {}))
+        noon = dt.datetime.combine(d, dt.time(12), dt.timezone.utc).timestamp()
+        ctx = build_context(now_ts=noon, live=live, history=history, candles=candles)
+        try:
+            name = choose(ctx, sim)[0]
+        except (Skip, Stop):
+            name = "none"
+        sim.append({"date": d.isoformat(), "candidate": name})
+        aus.append((d.isoformat(), name))
+        d += dt.timedelta(days=1)
+    return aus
 def append_log(log, name, ctx=None):
     """
     Schreibt die auswahl fort und legt die tagesmesswerte daneben.
@@ -1455,6 +1734,82 @@ def run_selftest():
        res and res["payload"]["value"] == KENNZAHLEN["whale_weight"]["fmt"](
            FAKE_LIVE["whale_kas"], FAKE_LIVE["circ"]))
 
+    print("vorrat ohne preis und keine folgetage (Ben, 20.11.2026)")
+    import stufe_schaetzung
+    t20 = dt.datetime(2026, 11, 20, 12, tzinfo=dt.timezone.utc).timestamp()
+    lv = dict(FAKE_LIVE, hashrate=294.7, hashrate_year=(180.0, "2025-11-20"))
+    c20 = build_context(now_ts=t20, live=lv, history=FAKE_HISTORY)
+    neu = ("emission_year", "blocks_since_cut", "holders_1kas", "top_share", "kcc20_count", "hashrate_year")
+    geliefert = []
+    for name in neu:
+        res = dict(CANDIDATES)[name](c20)
+        if not res:
+            continue
+        geliefert.append(name)
+        pl = res["payload"]
+        try:
+            walk_and_check(pl)
+            regel = True
+        except ValueError as exc:
+            regel = str(exc)
+        texte = " ".join(t for _, t in oeffentliche_texte(pl))
+        ok("%s haelt die textregeln" % name, regel is True, regel)
+        ok("%s ohne preis, link oder echtzeit" % name, nod_verstoesse(pl) == [], nod_verstoesse(pl))
+        ok("%s nennt ein datum und genau eine herkunft" % name,
+           re.search(r"\b\d{1,2} (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b", texte, re.I) is not None
+           and sum(1 for w in ("counted", "computed", "source", "read") if re.search(r"\b%s\b" % w, pl["post"]["x"]))
+           >= 1 and "$" not in texte and "usd" not in texte.lower())
+        ok("%s ohne stufe ohne schaetzung" % name,
+           stufe_schaetzung.verstoesse(texte, dt.date(2026, 11, 20)) == [])
+    ok("mindestens vier neue kandidaten liefern am 20.11.", len(geliefert) >= 4, geliefert)
+    cd = cand_cut_countdown(build_context(now_ts=ANCHOR_TS + STEP - 5 * DAY, live=FAKE_LIVE,
+                                          history=FAKE_HISTORY))
+    cdt = " ".join(t for _, t in oeffentliche_texte(cd["payload"]))
+    ok("countdown der zahl des tages als schaetzung",
+       "lands in about 5 days, an estimate" in cd["payload"]["post"]["x"]
+       and stufe_schaetzung.verstoesse(cd["payload"]["post"]["x"], dt.date(2026, 7, 31)) == []
+       and cd["payload"]["value"] == "about 5" and "an estimate" in cd["payload"]["value_label"], cdt[:200])
+    # die regeln einzeln
+    nur_gestern = [("hashrate_move", lambda c: {"score": 50.0, "payload": {}})]
+    alt_c, alt_g = globals()["CANDIDATES"], set(OHNE_PREIS_GESPERRT)
+    try:
+        globals()["CANDIDATES"] = nur_gestern
+        try:
+            choose(c20, [{"date": "2026-11-19", "candidate": "hashrate_move"}])
+            ersatz = True
+        except Skip:
+            ersatz = False
+        ok("der kandidat von gestern springt nie ein, der post faellt aus", not ersatz)
+        zwei = [{"date": "2026-11-16", "candidate": "hashrate_move"},
+                {"date": "2026-11-18", "candidate": "hashrate_move"}]
+        try:
+            choose(c20, zwei)
+            dritt = True
+        except Skip:
+            dritt = False
+        ok("kein drittes mal in sieben tagen", not dritt)
+        globals()["CANDIDATES"] = [("cut_countdown", lambda c: {"score": 50.0, "payload": {}})]
+        ok("cut_countdown ist von der wochengrenze ausgenommen",
+           choose(c20, [dict(r, candidate="cut_countdown") for r in zwei])[0] == "cut_countdown")
+    finally:
+        globals()["CANDIDATES"] = alt_c
+    # simulation mit den logwerten vom 21.10. bis 20.11. (Ben, 20.11.2026)
+    import contextlib
+    import io
+    slog = load_json(LOG_PATH, [])
+    if any(r.get("date") == "2026-11-20" for r in slog):
+        with contextlib.redirect_stdout(io.StringIO()):
+            sim = simulation(dt.date(2026, 10, 21), dt.date(2026, 11, 20), log=slog)
+        folge = [sim[i][1] for i in range(1, len(sim)) if sim[i][1] == sim[i - 1][1] and sim[i][1] != "none"]
+        aus = sum(1 for _, n in sim if n == "none")
+        ok("simulation 21.10. bis 20.11., kein kandidat an zwei folgetagen", not folge, folge)
+        ok("simulation, hoechstens zwei ausfaelle (%d)" % aus, aus <= 2)
+        w = {}
+        for i, (tag, n) in enumerate(sim):
+            if n in WOCHE_FREI or n == "none":
+                continue
+            w[n] = sum(1 for _, m in sim[max(0, i - 6):i + 1] if m == n)
+        ok("simulation, keiner mehr als zweimal in sieben tagen", max(w.values() or [0]) <= 2, w)
     print("kandidat am schnitttag")
     ctx = build_context(now_ts=ANCHOR_TS + STEP - 3600,
                         live=FAKE_LIVE, history=FAKE_HISTORY)
@@ -1482,7 +1837,7 @@ def run_selftest():
     ok("countdown feuert fuenf tage vorher", res is not None)
     if res:
         walk_and_check(res["payload"])
-        ok("countdown zeigt fuenf", res["payload"]["value"] == "5",
+        ok("countdown zeigt about 5", res["payload"]["value"] == "about 5",
            res["payload"]["value"])
     far = build_context(now_ts=ANCHOR_TS + 3 * DAY,
                         live=FAKE_LIVE, history=FAKE_HISTORY)
