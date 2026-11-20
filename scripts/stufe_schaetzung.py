@@ -96,10 +96,20 @@ def _daten(satz, heute):
     return tage
 
 
+# eine tageszaehlung bis zur stufe ist dieselbe schaetzung wie ein datum
+# (Ben, 20.11.2026): "15 days to the next block reward cut", "again in 15 days",
+# "lands in 5 days", "5 days until the next kaspa reward cut"
+ZAEHLUNG = re.compile(r"\b\d+\s+days?\s+(?:to|until|before)\s+the\s+next\b"
+                      r"|\b(?:again\s+in|lands\s+in|in)\s+(?:about\s+)?\d+\s+days?\b", re.I)
+
+
 def satz_verstoss(satz, heute):
     """None oder der Grund, warum der Satz eine kuenftige Stufe ohne Schaetzung nennt."""
     if not STUFENWORT.search(satz):
         return None
+    t = satz.lower()
+    if ZAEHLUNG.search(satz) and ("about" not in t or "estimate" not in t):
+        return "tage bis zur stufe ohne about und estimate"
     # nach heute. der messtag selbst ("on 12 November 2026 at 15:16 UTC") ist
     # keine kuenftige stufe
     kuenftig = [d for d in _daten(satz, heute) if d > heute]
@@ -191,11 +201,18 @@ def selbsttest():
                 "The next monthly reward step is %s." % lang(stufe),
                 "the kaspa block reward stepped down on 4 nov, from 2.0602 to 1.9445 KAS per block",
                 "296,503 addresses hold at least 100 KAS on 8 nov 2026, source kaspalytics.",
-                "6 days to the next block reward cut.",
+                "about 6 days to the next block reward cut, estimate.",
                 "the next step is estimated for around 5 december 2026."):
         ok("gruen: %s" % neu[:60], not verstoesse(neu, h), verstoesse(neu, h))
     ok("schaetzung mit uhrzeit ist rot", bool(verstoesse(
         "next step around 5 Dec 2026 at 00:15 UTC, an estimate", h)))
+    ok("tageszaehlung ohne about und estimate ist rot", bool(verstoesse(
+        "15 days to the next block reward cut.", h)))
+    ok("tageszaehlung mit about und estimate ist gruen", not verstoesse(
+        "about 15 days to the next block reward cut, estimate.", h))
+    ok("again in 15 days ohne estimate ist rot", bool(verstoesse(
+        "kaspa cuts its block reward again in 15 days.", h)))
+    ok("tage ohne stufe sind kein fall", not verstoesse("hashrate rose 3% in 7 days", h))
     ok("uhrzeit mit punkt und utc ist rot", bool(verstoesse(
         "cut to 1.835 around 5 dec, estimate, 00.15 utc", h)))
     ok("ein betrag mit punkt ist keine uhrzeit", not verstoesse(
