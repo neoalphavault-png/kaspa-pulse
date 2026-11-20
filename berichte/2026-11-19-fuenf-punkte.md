@@ -118,7 +118,17 @@ Auftrag von Ben vom Do 19.11.2026. Die Punkte kommen nach Vorrang, jeder Punkt i
   - Die Meldung beginnt mit VON HAND, nennt den Grund und 13:00 Berlin und trägt die Caption als Codeblock und die drei Seiten als JPEG.
   - Ohne Entwurf kommt die Meldung ohne Bilder. Eine Probe meldet nichts. Eine lange Caption hängt als Datei an.
 
+### Nachtrag 20.11.2026, Selbsttest ohne Spuren (Wache 20.11.)
+- **Fund der Wache:** Der neue Selbsttest in `karussell_post.py` rief `main(["posten", "--art", "woche", "--fuer", "2026-11-21", ...])` mit einem roten posten auf. `community_melden` war dabei nicht ersetzt. So stand in der echten `data/karussell-log.json` der Community-Eintrag `{"woche": "2026-11-21", "art": "log"}`.
+  - Er war schon im PR, mit zeit_utc 2026-11-19T15:49:45+00:00, und wäre bei jedem Lauf von `karussell.yml` im Schritt selbsttest neu entstanden.
+  - Fiele das Wochen-Karussell am Sa 21.11. aus, hätte `community_eintrag` die Meldung „kein Beitrag fuer Kaspa Community“ unterdrückt.
+- **a)** Der Eintrag ist raus. `data/karussell-log.json` ist in diesem PR wieder der Stand von main, ohne Änderung.
+- **b)** Im Selbsttest zeigt `LOG` auf eine Datei im tmp-Ordner, und `community_melden` ist ersetzt. Das Datum ist Sa 2.1.1999, einen solchen Samstag gibt es im Betrieb nie.
+- **c) Byte-Gleichheit:**
+  - `karussell_post.py --selbsttest` läuft jetzt über `selbsttest_ohne_spuren`. Danach muss `data/karussell-log.json` byte-gleich sein, sonst ist der Test rot und die Datei kommt zurück. Ein Fall im Selbsttest prüft das mit einem Test, der absichtlich schreibt.
+  - `brevo_send.py --selftest` hat bisher nichts unter `data/` oder `newsletter/` geschrieben, geprüft mit sha256 über alle Dateien vor und nach dem Lauf. Er läuft jetzt trotzdem über `selftest_ohne_spuren`, das jede Datei unter beiden Ordnern vergleicht, auch neue und fehlende, und bei einer Abweichung rot wird und zurücksetzt. Gegenprobe mit einem schreibenden Test: rot, Datei zurück, neue Datei weg.
+
 ### Prüfung
-- **Selbsttests mit 0 Fehlern:** brevo_send, karussell_post, karussell, ops_melden und preis_wache.
+- **Selbsttests mit 0 Fehlern:** brevo_send und karussell_post, je mit der Prüfung auf byte-gleiche Daten, dazu karussell, ops_melden und preis_wache.
 - **Secret-Scan:** ohne Fund.
-- **Kopf:** Die Änderung steht in `12f30e40` auf `fc42256e`. Dieser Abschnitt liegt als eigener Commit darauf.
+- **Kopf:** Die Änderung steht nach dem Neuaufsetzen auf main in den Commits dieses PRs, der Nachtrag vom 20.11. in `aaf4d986`. Dieser Abschnitt liegt als eigener Commit darauf.
