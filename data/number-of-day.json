@@ -1,9 +1,9 @@
 {
-  "issue": "NOV 19 2026",
+  "issue": "NOV 20 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "301 PH",
-  "value_label": "petahash per second securing the network on 19 nov",
-  "headline": "hashrate is *down 21%*\nagainst 3 weeks ago.",
+  "value": "295 PH",
+  "value_label": "petahash per second securing the network on 20 nov",
+  "headline": "hashrate is *down 23%*\nagainst 4 weeks ago.",
   "panes": [
     {
       "kind": "compare",
@@ -11,14 +11,14 @@
       "sub": "same measurement, two dates",
       "rows": [
         {
-          "label": "19 nov",
+          "label": "20 nov",
           "sub": "",
-          "value": "301 PH",
-          "pct": 78.90203869494324,
+          "value": "295 PH",
+          "pct": 77.36183339896728,
           "tone": "red"
         },
         {
-          "label": "3 weeks ago",
+          "label": "4 weeks ago",
           "sub": "",
           "value": "381 PH",
           "pct": 100.0,
@@ -30,7 +30,7 @@
       "kind": "anchor",
       "title": "WHAT THE NUMBER IS",
       "lines": [
-        "the difference is *80 PH*.",
+        "the difference is *86 PH*.",
         "*read* from api.kaspa.org, both days."
       ]
     }
@@ -38,7 +38,7 @@
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "hashrate on kaspa is down 21% against 3 weeks ago. 301 PH on 19 nov, 381 PH then, both read from the kaspa rest api 24 days apart.",
+    "x": "hashrate on kaspa is down 23% against 4 weeks ago. 295 PH on 20 nov, 381 PH then, both read from the kaspa rest api 25 days apart.",
     "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
   }
 }
