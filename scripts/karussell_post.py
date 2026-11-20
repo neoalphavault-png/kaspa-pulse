@@ -1057,7 +1057,16 @@ def selbsttest():
     cap = "295,043 addresses hold at least 100 KAS.\n\nSource kaspalytics, 15 Nov 2026.\n\n#kaspa"
     gemeldet = []
     import ops_melden as _om
+    # nichts davon darf in das echte log schreiben (20.11.2026: der test schrieb
+    # einen community-eintrag fuer sa 21.11. in data/karussell-log.json). LOG
+    # zeigt auf tmp, community_melden ist ersetzt, und das datum ist ein samstag,
+    # den es im betrieb nie gibt
     alt_hand, alt_posten, alt_ausgabe = _om.hand, globals()["posten"], globals()["ausgabe_datei"]
+    alt_log, alt_community = globals()["LOG"], globals()["community_melden"]
+    globals()["LOG"] = tmp / "karussell-log-test.json"
+    community = []
+    globals()["community_melden"] = lambda *a, **k: community.append((a, k))
+    SA_TEST = "1999-01-02"
 
     def rot(*a, **k):
         rot.stand = {"manifest": {"caption": cap}, "bilder": seiten}
@@ -1065,7 +1074,7 @@ def selbsttest():
     _om.hand = lambda text, dateien=None, was="meldung": gemeldet.append((text, list(dateien or [])))
     globals()["posten"], globals()["ausgabe_datei"] = rot, (lambda **k: None)
     try:
-        r = main(["posten", "--art", "woche", "--fuer", "2026-11-21", "--start", "takt"])
+        r = main(["posten", "--art", "woche", "--fuer", SA_TEST, "--start", "takt"])
         t, d = gemeldet[-1] if gemeldet else ("", [])
         ok("posten rot, exit 1 und eine meldung", r == 1 and len(gemeldet) == 1)
         ok("meldung beginnt mit VON HAND und nennt den grund", t.startswith(_om.VON_HAND)
@@ -1077,18 +1086,28 @@ def selbsttest():
         rot2 = lambda *a, **k: (_ for _ in ()).throw(Stopp("kein entwurf"))
         rot2.stand = None
         globals()["posten"] = rot2
-        main(["posten", "--art", "woche", "--fuer", "2026-11-21", "--start", "takt"])
+        main(["posten", "--art", "woche", "--fuer", SA_TEST, "--start", "takt"])
         ok("ohne entwurf trotzdem eine meldung, ohne bilder",
            len(gemeldet) == 1 and gemeldet[0][1] == [] and "die seiten fehlen" in gemeldet[0][0])
         gemeldet.clear()
-        main(["posten", "--art", "woche", "--fuer", "2026-11-21", "--start", "takt", "--probe"])
+        main(["posten", "--art", "woche", "--fuer", SA_TEST, "--start", "takt", "--probe"])
         ok("eine probe meldet nichts", gemeldet == [])
-        lang = von_hand_melden("woche", "2026-11-21", "x", {"manifest": {"caption": "y" * 2100},
+        lang = von_hand_melden("woche", SA_TEST, "x", {"manifest": {"caption": "y" * 2100},
                                                           "bilder": seiten}, sender=lambda t, d, was: gemeldet.append((t, d)))
         ok("lange caption als caption.txt dazu", len(lang) <= _om.GRENZE and gemeldet[-1][1][-1][0].name == "caption.txt")
+        ok("community_melden lief nur ersetzt, nie gegen das echte log", len(community) >= 1)
+        spur = tmp / "spur.json"
+        spur.write_text("{}")
+
+        def schreibt():
+            spur.write_text('{"x": 1}')
+            return 0
+        ok("ein test, der ins log schreibt, ist rot und wird zurueckgesetzt",
+           selbsttest_ohne_spuren([spur], schreibt) == 1 and spur.read_text() == "{}")
     finally:
         _om.hand = alt_hand
         globals()["posten"], globals()["ausgabe_datei"] = alt_posten, alt_ausgabe
+        globals()["LOG"], globals()["community_melden"] = alt_log, alt_community
     print("%d fehler" % fehler)
     return 1 if fehler else 0
 
@@ -1115,7 +1134,7 @@ def main(argv=None):
     ap.add_argument("--selbsttest", "--selftest", action="store_true")
     a = ap.parse_args(argv)
     if a.selbsttest:
-        return selbsttest()
+        return selbsttest_ohne_spuren()
     if not a.schritt or not a.art:
         ap.error("schritt und --art fehlen")
     fuer = fuer_aufloesen(a.art, a.fuer)
@@ -1163,6 +1182,27 @@ def main(argv=None):
         raise
     ausgabe_datei(gebaut="1")
     return 0
+
+
+def selbsttest_ohne_spuren(pfade=None, test=None):
+    """Der Selbsttest, danach die Pruefung: data/karussell-log.json ist
+    byte-gleich wie vorher (Ben, 20.11.2026). Sonst wird die Datei
+    zurueckgesetzt und der Test ist rot."""
+    pfade = [Path(p) for p in (pfade or [LOG])]
+    vorher = {p: (p.read_bytes() if p.exists() else None) for p in pfade}
+    r = (test or selbsttest)()
+    geaendert = [p for p in pfade if (p.read_bytes() if p.exists() else None) != vorher[p]]
+    for p in geaendert:
+        if vorher[p] is None:
+            p.unlink()
+        else:
+            p.write_bytes(vorher[p])
+    print("%-4s selbsttest laesst %s byte-gleich" % ("ok" if not geaendert else "FEHL",
+                                                     ", ".join(p.name for p in pfade)))
+    if geaendert:
+        print("     geaendert und zurueckgesetzt: %s" % ", ".join(str(p) for p in geaendert))
+        return 1
+    return r
 
 
 def _von_hand_sicher(art, fuer, grund):

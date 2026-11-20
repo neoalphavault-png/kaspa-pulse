@@ -279,6 +279,40 @@ def text_wachen(html):
     return fund
 
 
+def _stand(ordner):
+    """{pfad: inhalt} aller Dateien unter den Ordnern, fuer den Vergleich."""
+    aus = {}
+    for o in ordner:
+        for wurzel, _, dateien in os.walk(o):
+            for d in dateien:
+                pf = os.path.join(wurzel, d)
+                with open(pf, "rb") as fh:
+                    aus[pf] = fh.read()
+    return aus
+
+
+def selftest_ohne_spuren(ordner=None, test=None):
+    """Der Selbsttest, danach die Pruefung: unter data/ und newsletter/ ist
+    jede Datei byte-gleich wie vorher, keine dazu, keine weg (Ben,
+    20.11.2026). Sonst ist der Test rot und der alte Stand kommt zurueck."""
+    ordner = ordner or [os.path.join(ROOT, "data"), os.path.join(ROOT, "newsletter")]
+    vorher = _stand(ordner)
+    r = (test or selftest)()
+    nachher = _stand(ordner)
+    geaendert = sorted(set(vorher) ^ set(nachher) | {p for p in vorher if p in nachher and vorher[p] != nachher[p]})
+    for pf in geaendert:
+        if pf in vorher:
+            with open(pf, "wb") as fh:
+                fh.write(vorher[pf])
+        else:
+            os.remove(pf)
+    if geaendert:
+        print("FEHL selftest hat %s geaendert, zurueckgesetzt" % ", ".join(geaendert))
+        return 1
+    print("ok   selftest laesst data/ und newsletter/ byte-gleich")
+    return r
+
+
 def html_lesen_und_pruefen(pfad):
     """HTML laden und die eine Rechnung pruefen, die am 05.10.2026 falsch war:
     eine gedruckte Differenz, die nicht zur Differenz ihrer gedruckten
@@ -916,7 +950,7 @@ def main(argv=None):
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args(argv)
     if a.selftest:
-        return selftest()
+        return selftest_ohne_spuren()
     if not a.mode:
         sys.exit("--mode fehlt (test, schedule oder cancel)")
     # zuerst die Empfaengerliste, vor jeder anderen Pruefung und vor dem
