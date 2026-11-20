@@ -737,10 +737,17 @@ def vorlage_3(w, now):
         # die zahl steht neben der naechsten stufe, nicht darueber
         xs = x + len(w["stufen"]) * (bw + gap) + 24
         ys = y + hh - hh * w["stufen"][-1] / max(w["stufen"])
+        # die tage bis zur stufe sind eine schaetzung, die stufe haengt am daa
+        # score (Ben, 20.11.2026): "about" ueber der zahl, "estimate" darunter
+        s += ("<text x='%.1f' y='%.1f' fill='%s' font-family='Archivo' font-weight='800' "
+              "font-size='64'>about</text>" % (xs + 6, ys - 24, WEISS))
         s += ("<text x='%.1f' y='%.1f' fill='%s' font-family='Archivo' font-weight='900' "
               "font-size='220' letter-spacing='-6' data-rolle='zahl'>%d</text><text x='%.1f' y='%.1f' "
-              "fill='%s' font-family='Archivo' font-weight='800' font-size='64'>day%s</text>" % (xs, ys + 150, WEISS, tage, xs + 6, ys + 222, WEISS,
-                                              "" if tage == 1 else "s"))
+              "fill='%s' font-family='Archivo' font-weight='800' font-size='64'>day%s</text>"
+              "<text x='%.1f' y='%.1f' fill='%s' font-family='Archivo' font-weight='800' "
+              "font-size='64'>estimate</text>"
+              % (xs, ys + 150, WEISS, tage, xs + 6, ys + 222, WEISS, "" if tage == 1 else "s",
+                 xs + 6, ys + 294, WEISS))
         # die beiden letzten stufen tragen ihren wert, klein ueber der saeule
         # (Ben, 02.10.2026). kein eigenes textelement der seite, die zahl
         # bleibt die einzige grosse zahl, die fusszeile bleibt.
@@ -756,7 +763,7 @@ def vorlage_3(w, now):
             "bedeutung": "KAS per block, one step a month. the next step %s" % stufe_kurz(t),
             "zusatz": "from zero",
             "herkunft": RECHNUNG, "objekt": objekt,
-            "x1": "kaspa cuts its block reward again in %s." % zahl,
+            "x1": "kaspa cuts its block reward again in about %s, estimate." % zahl,
             "x2": "next step %s, %s" % (stufe_kurz(t), RECHNUNG),
             "x3": "how often does that happen?",
             "einordnung": "the reward steps down once a month, and 12 steps halve it",
@@ -1500,7 +1507,7 @@ def ig_zahl(s, form):
     if form == 6 and z.endswith("M"):
         return "%s million blocks since nov 2021" % z[:-1]
     muster = {2: "%s of all KAS in circulation at one address",
-              3: "%s to the next block reward cut",
+              3: "about %s to the next block reward cut, estimate",
               4: "%s blocks while you slept",
               5: "%s more KAS for miners from new coins than from fees",
               8: "%s of hashrate",
@@ -2950,6 +2957,12 @@ def selbsttest():
     # die naechste stufe nur als schaetzung, ohne uhrzeit (Ben, 12.11.2026)
     import stufe_schaetzung
     k3 = ("bedeutung", "x", "threads", "discord", "instagram", "antwort")
+    o3 = s3["objekt"](*objektzone(zahlgroesse(s3["zahl"])))
+    ok("form 3, tage bis zur stufe als schaetzung in bild, caption, threads, discord und x (Ben, 20.11.2026)",
+       ">about<" in o3 and ">estimate<" in o3
+       and s3["ig_zahl"] == "about 6 days to the next block reward cut, estimate"
+       and all("about 6 days" in s3[k].lower() and "estimate" in s3[k].lower()
+               for k in ("x", "threads", "discord", "instagram")))
     ok("form 3, naechste stufe nur mit around und estimate, ohne uhrzeit",
        all(not stufe_schaetzung.verstoesse(s3[k], FAKE_NOW.date()) for k in k3 if s3.get(k))
        and "around 5 oct, estimate" in s3["x"].lower() and "03:15" not in " ".join(s3.get(k, "") for k in k3))
