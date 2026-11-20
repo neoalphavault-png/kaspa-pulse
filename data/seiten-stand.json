@@ -30,10 +30,10 @@
     "zeit": "2026-11-17T08:44:11+00:00"
   },
   "kaspa-covenants.html": {
-    "datum": "2026-10-26",
-    "hash": "e0b0dd63415d4b23",
+    "datum": "2026-11-20",
+    "hash": "8f5cbd3b592459f0",
     "veroeffentlicht": "2026-09-22T08:11:33+00:00",
-    "zeit": "2026-10-26T20:02:27+00:00"
+    "zeit": "2026-11-20T15:30:44+00:00"
   },
   "kaspa-data-sources.html": {
     "datum": "2026-11-02",
@@ -49,15 +49,15 @@
   },
   "kaspa-hashrate.html": {
     "datum": "2026-11-20",
-    "hash": "c8674ccf1bb6a809",
+    "hash": "c67b0f8337316555",
     "veroeffentlicht": "2026-07-29T18:24:29+00:00",
-    "zeit": "2026-11-20T15:28:04+00:00"
+    "zeit": "2026-11-20T15:30:44+00:00"
   },
   "kaspa-mining.html": {
     "datum": "2026-11-20",
-    "hash": "2e0d2637befbe1c2",
+    "hash": "b86db385a3e95b1c",
     "veroeffentlicht": "2026-07-31T06:55:54+00:00",
-    "zeit": "2026-11-20T15:28:04+00:00"
+    "zeit": "2026-11-20T15:30:44+00:00"
   },
   "kaspa-security-budget.html": {
     "datum": "2026-10-26",
@@ -66,10 +66,10 @@
     "zeit": "2026-10-26T20:02:27+00:00"
   },
   "kaspa-smart-contracts.html": {
-    "datum": "2026-11-02",
-    "hash": "c41dbc040bb439bf",
+    "datum": "2026-11-20",
+    "hash": "9675173fde49a8fe",
     "veroeffentlicht": "2026-07-31T06:55:54+00:00",
-    "zeit": "2026-11-02T07:54:15+00:00"
+    "zeit": "2026-11-20T15:30:44+00:00"
   },
   "kaspa-staking.html": {
     "datum": "2026-10-26",
