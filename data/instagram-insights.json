@@ -3660,6 +3660,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-21": {
+     "reach": 50,
+     "likes": 6,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -3704,6 +3711,13 @@
      "shares": 2
     },
     "2026-11-20": {
+     "reach": 2971,
+     "likes": 32,
+     "comments": 0,
+     "saved": 1,
+     "shares": 2
+    },
+    "2026-11-21": {
      "reach": 2971,
      "likes": 32,
      "comments": 0,
@@ -3754,6 +3768,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-21": {
+     "reach": 49,
+     "likes": 4,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -3796,6 +3817,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-21": {
+     "reach": 260,
+     "likes": 9,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -3826,6 +3854,13 @@
      "shares": 3
     },
     "2026-11-20": {
+     "reach": 3538,
+     "likes": 33,
+     "comments": 0,
+     "saved": 1,
+     "shares": 3
+    },
+    "2026-11-21": {
      "reach": 3538,
      "likes": 33,
      "comments": 0,
@@ -3869,6 +3904,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-21": {
+     "reach": 26,
+     "likes": 5,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -3900,6 +3942,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-21": {
+     "reach": 61,
+     "likes": 3,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -3918,6 +3967,13 @@
     "2026-11-20": {
      "reach": 542,
      "likes": 26,
+     "comments": 0,
+     "saved": 0,
+     "shares": 3
+    },
+    "2026-11-21": {
+     "reach": 565,
+     "likes": 28,
      "comments": 0,
      "saved": 0,
      "shares": 3
@@ -3945,6 +4001,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-21": {
+     "reach": 58,
+     "likes": 4,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -3962,9 +4025,47 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-21": {
+     "reach": 1333,
+     "likes": 6,
+     "comments": 0,
+     "saved": 0,
+     "shares": 1
+    }
+   }
+  },
+  "18086494817706690": {
+   "gepostet_utc": "2026-11-21T12:00:55+0000",
+   "typ": "CAROUSEL_ALBUM",
+   "permalink": "https://www.instagram.com/p/DgALnJ9Fvny/",
+   "tage": {
+    "2026-11-21": {
+     "reach": 7,
+     "likes": 1,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    }
+   }
+  },
+  "18121582433045715": {
+   "gepostet_utc": "2026-11-21T11:30:32+0000",
+   "typ": "IMAGE",
+   "permalink": "https://www.instagram.com/p/DgAIIatiTYk/",
+   "form": 8,
+   "caption_sha": "267a6b476e25",
+   "frage": null,
+   "tage": {
+    "2026-11-21": {
+     "reach": 16,
+     "likes": 2,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   }
  },
- "stand_utc": "2026-11-20T14:21:10+00:00"
+ "stand_utc": "2026-11-21T13:42:08+00:00"
 }
