@@ -98,9 +98,16 @@
       "ende_utc": "2026-11-20T23:04:34Z",
       "peers_ohne_abzweig_abgelehnt": 46,
       "peers": 89
+    },
+    {
+      "lauf": "20261120T2256",
+      "start_utc": "2026-11-20T22:56:47Z",
+      "ende_utc": "2026-11-21T04:26:47Z",
+      "peers_ohne_abzweig_abgelehnt": 40,
+      "peers": 98
     }
   ],
-  "abgedeckt_h": 77.0,
+  "abgedeckt_h": 82.5,
   "peer_software": [
     "/Bitcoin Cash Node:29.2.1",
     "/Bitcoin Cash Node:29.2.1/",
@@ -108,55 +115,55 @@
     "/Rapids:2026-11.88096962/",
     "/Vcash:0.1/"
   ],
-  "kette_spitze": 340243,
-  "kettenbloecke": 4496,
-  "davon_angekuendigt_gesehen": 4496,
+  "kette_spitze": 340629,
+  "kettenbloecke": 4882,
+  "davon_angekuendigt_gesehen": 4882,
   "first_seen_typ": {
-    "inv": 4397,
+    "inv": 4749,
     "headers": 0,
-    "cmpctblock": 99
+    "cmpctblock": 133
   },
   "timestamp_deviation_s": {
-    "n": 4496,
-    "mittel": -10.878,
-    "median": 2.649,
-    "p90": 33.739,
-    "p99": 65.66,
+    "n": 4882,
+    "mittel": -9.457,
+    "median": 2.684,
+    "p90": 31.636,
+    "p99": 65.456,
     "min": -718.741,
     "max": 124.19
   },
   "propagation_spread_ms": {
-    "n": 4496,
-    "mittel": 1252.0,
-    "median": 192,
-    "p90": 672,
-    "p99": 14175,
+    "n": 4882,
+    "mittel": 1269.0,
+    "median": 193,
+    "p90": 679,
+    "p99": 19198,
     "min": 0,
     "max": 490602
   },
   "peers_je_block": {
-    "n": 4496,
-    "mittel": 74.2,
-    "median": 73,
-    "p90": 128,
+    "n": 4882,
+    "mittel": 72.4,
+    "median": 71,
+    "p90": 127,
     "p99": 152,
     "min": 2,
     "max": 169
   },
   "compact": {
-    "bloecke_mit_cmpctblock": 4458,
-    "davon_von_selbst": 4358,
+    "bloecke_mit_cmpctblock": 4840,
+    "davon_von_selbst": 4737,
     "kurz_ids": {
-      "n": 4458,
-      "mittel": 12.4,
+      "n": 4840,
+      "mittel": 13.7,
       "median": 7,
-      "p90": 32,
-      "p99": 59,
+      "p90": 34,
+      "p99": 83,
       "min": 0,
-      "max": 271
+      "max": 294
     },
     "fehlend_geschaetzt": {
-      "n": 4458,
+      "n": 4840,
       "mittel": 0.0,
       "median": 0,
       "p90": 0,
@@ -164,13 +171,13 @@
       "min": 0,
       "max": 1
     },
-    "bloecke_ohne_fehlende": 4453,
+    "bloecke_ohne_fehlende": 4835,
     "hinweis": "geschaetzt gegen die bei uns per inv angekuendigten Transaktionen, kein eigener Mempool"
   },
   "stale": {
-    "anzahl": 74,
+    "anzahl": 81,
     "bestaetigungen": 6,
-    "anteil_prozent": 1.619,
+    "anteil_prozent": 1.632,
     "noch_offen_unter_6": 0,
     "ohne_kopf": 0,
     "bloecke": [
@@ -839,6 +846,69 @@
         "first_seen_type": "cmpctblock",
         "peers_announced": 68,
         "canonical_hash_at_height": "000000000015162d5d29e192831573c974a74358ee800c4f06c208d58a4ab4a5"
+      },
+      {
+        "height": 340367,
+        "hash": "0000000000010336350efd73c04f9ac801ec209e38f66d087e8eeaf6a9aea80c",
+        "header_time_utc": "2026-11-21T00:45:07Z",
+        "first_seen_utc": "2026-11-21T00:45:29.764Z",
+        "first_seen_type": "inv",
+        "peers_announced": 35,
+        "canonical_hash_at_height": "0000000000000a36dfcb2d88ca152950a463bb01765e42022014a8bf4b645100"
+      },
+      {
+        "height": 340375,
+        "hash": "0000000000002e3f919b059f23caa44682ae2726e639a36090632d9380a0f10d",
+        "header_time_utc": "2026-11-21T00:50:32Z",
+        "first_seen_utc": "2026-11-21T00:50:53.831Z",
+        "first_seen_type": "inv",
+        "peers_announced": 35,
+        "canonical_hash_at_height": "000000000000530af6abcaf85cc3209b05725d957d7e25a72051441d3cc70a39"
+      },
+      {
+        "height": 340429,
+        "hash": "000000000000753f35b603398f7e0f393372dac6615cdd5bce70affb7f7d56e8",
+        "header_time_utc": "2026-11-21T01:28:42Z",
+        "first_seen_utc": "2026-11-21T01:28:53.093Z",
+        "first_seen_type": "inv",
+        "peers_announced": 45,
+        "canonical_hash_at_height": "0000000000004fd01f1ab65c871e328580a21ce80a96694f15f7b4951a27a2cf"
+      },
+      {
+        "height": 340481,
+        "hash": "000000003f83e491419dfcfcfebd24482d5c3f14642bd60735f6f37993f56936",
+        "header_time_utc": "2026-11-21T02:10:51Z",
+        "first_seen_utc": "2026-11-21T02:10:46.634Z",
+        "first_seen_type": "cmpctblock",
+        "peers_announced": 61,
+        "canonical_hash_at_height": "000000000000ad237cc5a6bd4a469a310888527d52b53c8f54b83d5ebee7442a"
+      },
+      {
+        "height": 340507,
+        "hash": "00000000000078b99d0d7bc834670ca27f998a891caf7ff772a45d36c0b0fe61",
+        "header_time_utc": "2026-11-21T02:32:39Z",
+        "first_seen_utc": "2026-11-21T02:32:33.115Z",
+        "first_seen_type": "inv",
+        "peers_announced": 71,
+        "canonical_hash_at_height": "0000000000008b2bb21ebe0684334dae6dd6a3ca3c5b69dac439c1b1e6e4b87c"
+      },
+      {
+        "height": 340554,
+        "hash": "0000000090c8aff144fd3ac8b895e5057e4f62fd6087ace0a588989cbef0e643",
+        "header_time_utc": "2026-11-21T03:16:23Z",
+        "first_seen_utc": "2026-11-21T03:16:20.988Z",
+        "first_seen_type": "cmpctblock",
+        "peers_announced": 76,
+        "canonical_hash_at_height": "0000000000009c7a832ffc032ff3e9fcb76aa2af556d04879a746b77faf76c0a"
+      },
+      {
+        "height": 340574,
+        "hash": "00000000000066441e72bd47d740fcef4eba52b956baa954fec6e52a40aa4941",
+        "header_time_utc": "2026-11-21T03:38:50Z",
+        "first_seen_utc": "2026-11-21T03:38:56.088Z",
+        "first_seen_type": "inv",
+        "peers_announced": 88,
+        "canonical_hash_at_height": "00000000000082a21c7d168775c0abdc7e72c20f3d66ad6532438b9dd7bd7d90"
       }
     ]
   }
