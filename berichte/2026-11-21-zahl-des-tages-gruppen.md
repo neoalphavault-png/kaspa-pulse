@@ -95,7 +95,7 @@ Nachtrag von Ben vom 21.11.2026, Frist Mi 25.11. 16:00 Berlin. Geändert sind nu
   - Die Zahl des Tages und /whales lesen die Reihe täglich, für sie ist eine Woche zu alt.
 - **Nachgetragen:** Ein Lauf von Hand (`workflow_dispatch`, Lauf 10, 21.11. 10:00 UTC, grün) hat den 16. bis 20.11. geholt. Die Quelle lieferte alle fünf Tage. Auf main steht die Reihe jetzt bis 20.11.
 - **Meldung in #ops-log:** Nein. Der Workflow hat keinen Schritt „rot nach ops-log“ wie seit #341 das covenants log, und ein leerer Lauf („nichts geaendert“) meldet sich auch nicht.
-- **Was dafür nötig ist:** eine Workflow-Änderung, also ein eigener PR an Ben (#345). Er bringt
+- **Was dafür nötig ist:** eine Workflow-Änderung, also ein eigener PR an Ben (#346). Er bringt
   - einen täglichen Lauf,
   - einen Schritt „rot nach ops-log“ wie in #341,
   - eine Meldung nach #ops-log, wenn ein Lauf keinen neuen Tag bringt.
