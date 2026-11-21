@@ -1409,8 +1409,12 @@ def gruppen_in_tagen(log, today, tage=WOCHE_TAGE):
 
 
 def schritt_frei(ctx):
-    """In den 12 Tagen vor einem Schritt gilt keine Gruppenregel fuer schritt."""
-    return 0 <= (ctx["next_cut_ts"] - ctx["now_ts"]) / DAY <= SCHRITT_FREI_TAGE
+    """In den 12 Tagen vor einem Schritt gilt keine Gruppenregel fuer schritt,
+    und am Tag des Schritts selbst auch nicht: dann meldet cut_today, was
+    gerade passiert ist, auch wenn gestern der Countdown lief."""
+    vor = (ctx["next_cut_ts"] - ctx["now_ts"]) / DAY
+    nach = (ctx["now_ts"] - (ctx["next_cut_ts"] - STEP)) / DAY
+    return 0 <= vor <= SCHRITT_FREI_TAGE or 0 <= nach <= 1
 
 
 def picks_in_tagen(log, today, tage=WOCHE_TAGE):
@@ -1866,6 +1870,11 @@ def run_selftest():
         except Skip:
             frueh = False
         ok("weiter vor dem schritt gilt die gruppengrenze auch fuer schritt", not frueh)
+        globals()["CANDIDATES"] = [("cut_today", lambda c: {"score": 1000.0, "payload": {}})]
+        c5 = build_context(now_ts=dt.datetime(2026, 12, 5, 12, tzinfo=dt.timezone.utc).timestamp(),
+                           live=lv, history=FAKE_HISTORY)
+        ok("am tag des schritts kommt cut_today nach dem countdown von gestern",
+           choose(c5, [{"date": "2026-12-04", "candidate": "cut_countdown"}])[0] == "cut_today")
         # themengruppen (Ben, 21.11.2026)
         globals()["CANDIDATES"] = [("hashrate_year", lambda c: {"score": 50.0, "payload": {}})]
         try:
