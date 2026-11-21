@@ -741,6 +741,25 @@
    "caption": "15 days to the next block reward cut.\n\nDid you expect this number?\n\nAs of 20 Nov 2026, computed by Kaspa Pulse from the emission schedule.\n\nWeekly Kaspa numbers in our newsletter, link in bio.\n\n#kaspa #kas #blockdag",
    "caption_sha": "3e44a207e97c",
    "zeit_utc": "2026-11-20T11:30:20+00:00"
+  },
+  {
+   "datum": "2026-11-21",
+   "form": 8,
+   "modus": "scharf",
+   "start": "takt",
+   "container": "18104372375222481",
+   "status": "FINISHED",
+   "media": "18121582433045715",
+   "permalink": "https://www.instagram.com/p/DgAIIatiTYk/",
+   "bild": "https://raw.githubusercontent.com/neoalphavault-png/kaspa-pulse/43768db4e03b13b44908397dbf79e6437fb6bbf9/ig/tagesgrafik-2026-11-21-form08.jpg",
+   "quelle": "raw",
+   "zahl": "305.7 PH/s",
+   "zahl_text": "305.7 PH/s of hashrate",
+   "tag": "20 nov 2026",
+   "herkunft": "source kaspa rest api hashrate",
+   "caption": "305.7 PH/s of hashrate.\n\nThat is the work behind every block.\n\nAs of 20 Nov 2026, source Kaspa REST API hashrate.\n\nWeekly Kaspa numbers in our newsletter, link in bio.\n\n#kaspa #kas #blockdag #proofofwork",
+   "caption_sha": "267a6b476e25",
+   "zeit_utc": "2026-11-21T11:30:20+00:00"
   }
  ]
 }
