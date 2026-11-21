@@ -386,7 +386,7 @@ def post_block(text, reply):
 KENNZAHLEN = {
     "hashrate_move": {
         "mess": ("hashrate",),
-        "fmt": lambda v: "%.0f PH" % float(v),
+        "fmt": lambda v: "%.0f PH/s" % float(v),     # eine schreibweise, PH/s (Ben, 21.11.2026)
         "label": "petahash per second securing the network",
         "quelle": "api.kaspa.org",
     },
@@ -1048,7 +1048,7 @@ def cand_hashrate_consequence(ctx):
         "payload": {
             "issue": issue_line(ctx["today"]),
             "eyebrow": "NUMBER OF THE DAY",
-            "value": "%.0f PH" % now,
+            "value": "%.0f PH/s" % now,
             "value_label": "petahash per second securing the network",
             "headline": "hashrate *up %.0f%%*.\nthe reward fell."
                         % change,
@@ -1368,6 +1368,54 @@ def nod_verstoesse(payload):
 WOCHE_TAGE, WOCHE_MAX = 7, 2
 WOCHE_FREI = {"cut_today", "cut_countdown"}
 
+# themengruppen (Ben, 21.11.2026, "zu 90 % immer die PH-Nummer"): keine gruppe
+# an zwei folgetagen, hashrate hoechstens einmal in sieben tagen, jede andere
+# hoechstens zweimal. die gruppe schritt ist in den 12 tagen vor einem schritt
+# ausgenommen.
+GRUPPEN = {
+    "hashrate": ("hashrate_move", "hashrate_year", "hashrate_consequence"),
+    "angebot": ("mined_left", "emission_year"),
+    "adressen": ("whale_weight", "top_share", "holders_1kas"),
+    "bloecke": ("blocks_per_day", "blocks_since_cut"),
+    "schritt": ("cut_today", "cut_countdown"),
+    "tokens": ("kcc20_count",),
+}
+GRUPPE_VON = {k: g for g, ks in GRUPPEN.items() for k in ks}
+GRUPPE_MAX = {"hashrate": 1}          # sonst WOCHE_MAX
+SCHRITT_FREI_TAGE = 12
+
+
+def gruppe(name):
+    return GRUPPE_VON.get(name, name)
+
+
+def gruppen_in_tagen(log, today, tage=WOCHE_TAGE):
+    """({gruppe: anzahl} der letzten tage-1 tage, gruppe von gestern)."""
+    out, gestern = {}, None
+    for row in log or []:
+        try:
+            d = dt.date.fromisoformat(str(row.get("date")))
+        except ValueError:
+            continue
+        n = row.get("candidate")
+        if n in (None, "none"):
+            continue
+        alter = (today - d).days
+        if 1 <= alter < tage:
+            out[gruppe(n)] = out.get(gruppe(n), 0) + 1
+        if alter == 1:
+            gestern = gruppe(n)
+    return out, gestern
+
+
+def schritt_frei(ctx):
+    """In den 12 Tagen vor einem Schritt gilt keine Gruppenregel fuer schritt,
+    und am Tag des Schritts selbst auch nicht: dann meldet cut_today, was
+    gerade passiert ist, auch wenn gestern der Countdown lief."""
+    vor = (ctx["next_cut_ts"] - ctx["now_ts"]) / DAY
+    nach = (ctx["now_ts"] - (ctx["next_cut_ts"] - STEP)) / DAY
+    return 0 <= vor <= SCHRITT_FREI_TAGE or 0 <= nach <= 1
+
 
 def picks_in_tagen(log, today, tage=WOCHE_TAGE):
     """{kandidat: anzahl} der posts in den letzten tage-1 tagen vor heute."""
@@ -1385,6 +1433,7 @@ def picks_in_tagen(log, today, tage=WOCHE_TAGE):
 def choose(ctx, log, force=None):
     cooled = recent_picks(log, ctx["today"])
     woche = picks_in_tagen(log, ctx["today"])
+    gwoche, ggestern = gruppen_in_tagen(log, ctx["today"])
     scored = []   # waehlbar
     spare = []    # nur standardsperre, darf im notfall einspringen
     locked = []   # eigene MIN_GAP, kommt heute unter keinen umstaenden dran
@@ -1408,6 +1457,15 @@ def choose(ctx, log, force=None):
             locked.append((score, name, res["payload"],
                            " (schon %d mal in %d tagen)" % (woche[name], WOCHE_TAGE)))
             continue
+        g = gruppe(name)
+        if not (g == "schritt" and schritt_frei(ctx)):
+            if g == ggestern:
+                locked.append((score, name, res["payload"], " (gruppe %s gestern dran)" % g))
+                continue
+            if gwoche.get(g, 0) >= GRUPPE_MAX.get(g, WOCHE_MAX):
+                locked.append((score, name, res["payload"],
+                               " (gruppe %s schon %d mal in %d tagen)" % (g, gwoche[g], WOCHE_TAGE)))
+                continue
         gap = MIN_GAP.get(name, HARD_BLOCK_DAYS)
         if age is not None and name != "cut_today":
             if age <= gap:
@@ -1697,13 +1755,13 @@ def run_selftest():
              "tvl_total": 1120143.08, "mined_pct": 96.694078,
              "whale_kas": 1527589468.96, "circ": 27716000000.0}]
     k = kennzahl_heute("hashrate_move", flog, "2026-10-14")
-    ok("hashrate von heute kommt aus dem tageslog", k and k["value"] == "338 PH", k)
+    ok("hashrate von heute kommt aus dem tageslog", k and k["value"] == "338 PH/s", k)
     ok("die beschriftung ist die des kandidaten",
        k and k["value_label"] == KENNZAHLEN["hashrate_move"]["label"])
     ok("die quelle nennt das eigene log", k and "own daily log" in k["sources"])
     ok("das datum steht dabei", k and k["date"] == "2026-10-14")
     ok("gestern geht auch, wenn man danach fragt",
-       kennzahl_heute("hashrate_move", flog, "2026-10-13")["value"] == "342 PH")
+       kennzahl_heute("hashrate_move", flog, "2026-10-13")["value"] == "342 PH/s")
     ok("ein fehlender tag gibt None",
        kennzahl_heute("hashrate_move", flog, "2026-10-15") is None)
     ok("eine unbekannte kennzahl gibt None",
@@ -1762,6 +1820,17 @@ def run_selftest():
         ok("%s ohne stufe ohne schaetzung" % name,
            stufe_schaetzung.verstoesse(texte, dt.date(2026, 11, 20)) == [])
     ok("mindestens vier neue kandidaten liefern am 20.11.", len(geliefert) >= 4, geliefert)
+    # eine schreibweise fuer die einheit, PH/s (Ben, 21.11.2026)
+    ph = []
+    for name, fn in CANDIDATES:
+        try:
+            res = fn(c20)
+        except Exception:                                  # noqa: BLE001
+            res = None
+        if res:
+            ph += [t for _, t in oeffentliche_texte(res["payload"]) if re.search(r"\d\s?PH\b(?!/s)", t)]
+    ph += [KENNZAHLEN["hashrate_move"]["fmt"](338)] if not KENNZAHLEN["hashrate_move"]["fmt"](338).endswith("PH/s") else []
+    ok("einheit ueberall PH/s, nie PH allein", not ph, ph[:3])
     cd = cand_cut_countdown(build_context(now_ts=ANCHOR_TS + STEP - 5 * DAY, live=FAKE_LIVE,
                                           history=FAKE_HISTORY))
     cdt = " ".join(t for _, t in oeffentliche_texte(cd["payload"]))
@@ -1789,8 +1858,51 @@ def run_selftest():
             dritt = False
         ok("kein drittes mal in sieben tagen", not dritt)
         globals()["CANDIDATES"] = [("cut_countdown", lambda c: {"score": 50.0, "payload": {}})]
-        ok("cut_countdown ist von der wochengrenze ausgenommen",
-           choose(c20, [dict(r, candidate="cut_countdown") for r in zwei])[0] == "cut_countdown")
+        c25 = build_context(now_ts=dt.datetime(2026, 11, 25, 12, tzinfo=dt.timezone.utc).timestamp(),
+                            live=lv, history=FAKE_HISTORY)
+        zwei25 = [{"date": "2026-11-21", "candidate": "cut_countdown"},
+                  {"date": "2026-11-23", "candidate": "cut_countdown"}]
+        ok("cut_countdown ist in den 12 tagen vor dem schritt von wochen- und gruppengrenze ausgenommen",
+           choose(c25, zwei25)[0] == "cut_countdown")
+        try:
+            choose(c20, [dict(r, candidate="cut_countdown") for r in zwei])
+            frueh = True
+        except Skip:
+            frueh = False
+        ok("weiter vor dem schritt gilt die gruppengrenze auch fuer schritt", not frueh)
+        globals()["CANDIDATES"] = [("cut_today", lambda c: {"score": 1000.0, "payload": {}})]
+        c5 = build_context(now_ts=dt.datetime(2026, 12, 5, 12, tzinfo=dt.timezone.utc).timestamp(),
+                           live=lv, history=FAKE_HISTORY)
+        ok("am tag des schritts kommt cut_today nach dem countdown von gestern",
+           choose(c5, [{"date": "2026-12-04", "candidate": "cut_countdown"}])[0] == "cut_today")
+        # themengruppen (Ben, 21.11.2026)
+        globals()["CANDIDATES"] = [("hashrate_year", lambda c: {"score": 50.0, "payload": {}})]
+        try:
+            choose(c20, [{"date": "2026-11-19", "candidate": "hashrate_move"}])
+            folge = True
+        except Skip:
+            folge = False
+        ok("keine gruppe an zwei folgetagen, hashrate_year nach hashrate_move", not folge)
+        try:
+            choose(c20, [{"date": "2026-11-16", "candidate": "hashrate_consequence"}])
+            hw = True
+        except Skip:
+            hw = False
+        ok("hashrate hoechstens einmal in sieben tagen", not hw)
+        ok("hashrate wieder nach sieben tagen",
+           choose(c20, [{"date": "2026-11-13", "candidate": "hashrate_move"}])[0] == "hashrate_year")
+        globals()["CANDIDATES"] = [("top_share", lambda c: {"score": 50.0, "payload": {}})]
+        ok("adressen zweimal in sieben tagen erlaubt",
+           choose(c20, [{"date": "2026-11-15", "candidate": "whale_weight"}])[0] == "top_share")
+        try:
+            choose(c20, [{"date": "2026-11-15", "candidate": "whale_weight"},
+                         {"date": "2026-11-17", "candidate": "holders_1kas"}])
+            dritt_g = True
+        except Skip:
+            dritt_g = False
+        ok("adressen kein drittes mal in sieben tagen", not dritt_g)
+        ok("jeder kandidat hat eine gruppe", all(n in GRUPPE_VON for n, _ in alt_c if n not in OHNE_PREIS_GESPERRT),
+           [n for n, _ in alt_c if n not in GRUPPE_VON and n not in OHNE_PREIS_GESPERRT])
     finally:
         globals()["CANDIDATES"] = alt_c
     # simulation mit den logwerten vom 21.10. bis 20.11. (Ben, 20.11.2026)
@@ -1803,7 +1915,16 @@ def run_selftest():
         folge = [sim[i][1] for i in range(1, len(sim)) if sim[i][1] == sim[i - 1][1] and sim[i][1] != "none"]
         aus = sum(1 for _, n in sim if n == "none")
         ok("simulation 21.10. bis 20.11., kein kandidat an zwei folgetagen", not folge, folge)
-        ok("simulation, hoechstens zwei ausfaelle (%d)" % aus, aus <= 2)
+        # seit den themengruppen (Ben, 21.11.2026) gilt: lieber ein ausfall als ein
+        # drittes hashrate-thema. die grenze von zwei ausfaellen (20.11.) ist damit
+        # auf drei gestiegen, die zahl steht im bericht
+        ok("simulation, hoechstens drei ausfaelle (%d)" % aus, aus <= 3)
+        gfolge = [sim[i] for i in range(1, len(sim)) if sim[i][1] != "none"
+                  and gruppe(sim[i][1]) == gruppe(sim[i - 1][1]) and gruppe(sim[i][1]) != "schritt"]
+        ok("simulation, keine gruppe an zwei folgetagen", not gfolge, gfolge)
+        hw = [tag for i, (tag, nm) in enumerate(sim) if gruppe(nm) == "hashrate"
+              and sum(1 for _, m in sim[max(0, i - 6):i + 1] if gruppe(m) == "hashrate") > 1]
+        ok("simulation, hashrate hoechstens einmal in sieben tagen", not hw, hw)
         w = {}
         for i, (tag, n) in enumerate(sim):
             if n in WOCHE_FREI or n == "none":
