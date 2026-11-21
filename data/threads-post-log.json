@@ -201,6 +201,14 @@
    "modus": "scharf",
    "bild": "https://raw.githubusercontent.com/neoalphavault-png/kaspa-pulse/b3cfb116327f09b5916d732664a0517969de96d4/ig/tagesgrafik-2026-11-20-form03-threads.jpg",
    "text": "Kaspa cuts its block reward again in 15 days.\nNext step around 5 Dec, estimate, computed by Kaspa Pulse from the emission schedule.\nNo vote needed, the schedule sets the date."
+  },
+  {
+   "tag": "2026-11-21",
+   "container": "17898852912502428",
+   "media": "18124282618742058",
+   "modus": "scharf",
+   "bild": "https://raw.githubusercontent.com/neoalphavault-png/kaspa-pulse/4898598803609aa839a976d4e90fd8c1af38bd95/ig/tagesgrafik-2026-11-21-form08-threads.jpg",
+   "text": "On 20 Nov 2026, Kaspa miners ran 306 quadrillion hashes every second.\nSource Kaspa REST API hashrate."
   }
  ]
 }
