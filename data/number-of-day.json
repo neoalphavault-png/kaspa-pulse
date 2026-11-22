@@ -1,26 +1,26 @@
 {
-  "issue": "NOV 21 2026",
+  "issue": "NOV 22 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "328 PH/s",
-  "value_label": "network hashrate on 21 nov",
-  "headline": "hashrate is *down 44%*\nagainst a year ago.",
+  "value": "1.68M",
+  "value_label": "new KAS per day on 22 nov",
+  "headline": "*half* the new coins\nof a year ago.",
   "panes": [
     {
       "kind": "compare",
-      "title": "NETWORK HASHRATE",
-      "sub": "source kaspa rest api, daily mean a year ago",
+      "title": "NEW KAS PER DAY",
+      "sub": "computed from the emission schedule",
       "rows": [
         {
-          "label": "21 nov",
+          "label": "22 nov",
           "sub": "",
-          "value": "328 PH/s",
-          "pct": 56.26082756168792,
-          "tone": "red"
+          "value": "1,680,086",
+          "pct": 50.00000000000002,
+          "tone": "teal"
         },
         {
-          "label": "21 nov 2025",
+          "label": "22 nov 2025",
           "sub": "",
-          "value": "583 PH/s",
+          "value": "3,360,171",
           "pct": 100.0,
           "tone": "grey"
         }
@@ -28,17 +28,17 @@
     },
     {
       "kind": "anchor",
-      "title": "WHAT THE NUMBER IS",
+      "title": "WHY HALF",
       "lines": [
-        "the work securing the network.",
-        "*read* from the kaspa rest api, both days."
+        "twelve monthly steps, *no single halving day*.",
+        "*computed* from the emission schedule."
       ]
     }
   ],
-  "sources": "api.kaspa.org",
+  "sources": "emission schedule",
   "site": "kaspapulse.com",
   "post": {
-    "x": "kaspa hashrate 328 PH/s on 21 nov against 583 PH/s on 21 nov 2025, down 44% in a year, source the kaspa rest api.",
-    "reply": "the hashrate history is on kaspapulse.com."
+    "x": "kaspa mints 1,680,086 new KAS a day on 22 nov, computed from the emission schedule. a year earlier it was 3,360,171. twelve monthly steps halve it, there is no single halving day.",
+    "reply": "the full schedule is on kaspapulse.com/kaspa-halving.html."
   }
 }
