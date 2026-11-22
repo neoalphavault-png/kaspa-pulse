@@ -209,6 +209,14 @@
    "modus": "scharf",
    "bild": "https://raw.githubusercontent.com/neoalphavault-png/kaspa-pulse/4898598803609aa839a976d4e90fd8c1af38bd95/ig/tagesgrafik-2026-11-21-form08-threads.jpg",
    "text": "On 20 Nov 2026, Kaspa miners ran 306 quadrillion hashes every second.\nSource Kaspa REST API hashrate."
+  },
+  {
+   "tag": "2026-11-22",
+   "container": "17899079253502428",
+   "media": "18445539841198436",
+   "modus": "scharf",
+   "bild": "https://raw.githubusercontent.com/neoalphavault-png/kaspa-pulse/7f8aca2e9ff3addffce65d76461199a117856c63/ig/tagesgrafik-2026-11-22-form06-threads.jpg",
+   "text": "599 million blocks since Nov 2021.\nThe DAA score on 22 Nov 2026, 06:30 UTC, source Kaspa REST API."
   }
  ]
 }
