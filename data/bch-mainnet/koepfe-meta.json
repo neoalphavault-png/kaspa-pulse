@@ -1,0 +1,53 @@
+{
+  "method": "PH-M-001",
+  "network": "bch-mainnet",
+  "source": "peer to peer protocol (getheaders)",
+  "fetched_utc": "2026-11-22T10:01:42Z",
+  "start_height": 951145,
+  "first_height": 951146,
+  "tip_height": 978460,
+  "tip_hash": "000000000000000001703a121da4b3f052e0d8c855cbb8d4e0c3087ff6ee9a05",
+  "fixed_points": [
+    478559
+  ],
+  "checkpoints_checked": 2,
+  "checks": [
+    "parent hash linkage",
+    "hash <= target from nBits",
+    "fixed points and checkpoints"
+  ],
+  "not_checked": [
+    "difficulty adjustment rule",
+    "block contents",
+    "consensus rules beyond the header"
+  ],
+  "csv_sha256": "cb39ab409d07fb80b988fa8b879f48ca6fde159f663c0271588ec48c80c5d9d3",
+  "target_height": 978460,
+  "target_from_peers": 4,
+  "probes_refused": 0,
+  "peer_errors": 0,
+  "forks_dropped": [],
+  "cross_checks": [
+    {
+      "software": "Bitcoin Cash Node",
+      "compared": 500,
+      "equal": 500,
+      "peer_height_checked": 978460
+    },
+    {
+      "software": "Bitcoin Cash Node",
+      "compared": 500,
+      "equal": 500,
+      "peer_height_checked": 978460
+    }
+  ],
+  "cross_checks_without_answer": [
+    {
+      "software": "Bitcoin Cash Node",
+      "error": "ConnectionError"
+    }
+  ],
+  "peer_software": [
+    "Bitcoin Cash Node"
+  ]
+}
