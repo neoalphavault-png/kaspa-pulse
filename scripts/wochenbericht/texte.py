@@ -21,7 +21,11 @@ bt = ("Waiting times on chipnet with one minute blocks, from the first sighting 
       tag(bc["zuhoerer"]["von"]), tag(bc["zuhoerer"]["bis"]), n(bc["zuhoerer"]["hoehen"][0]), n(bc["zuhoerer"]["hoehen"][1]),
       d(bc["warten_1"]["median_s"]), d(bc["warten_3"]["median_s"]), d(bc["warten_6"]["median_s"]), d(bc["warten_12"]["median_s"]),
       d(bc["warten_6"]["p90_s"]), d(bc["warten_6"]["p99_s"]), n(bc["aktivierung"]), bc["diff1_prozent"], d(bm["6"]["0.5"]))
-xt = ("Bitcoin Cash chipnet with one minute blocks. We counted the wait for six confirmations at our listener, usually %s, and 9 of 10 times within %s. "
-      "Wallets and pools, which wait do you show your users before you call a payment done?") % (d(bc["warten_6"]["median_s"]), d(bc["warten_6"]["p90_s"]))
+# Ben 22.11.2026: X-Text ohne die 9-von-10-Zahl, und jede Chipnet-Spanne in
+# einem X-Text fuehrt den Hinweis auf Difficulty 1 mit.
+xt = ("Bitcoin Cash chipnet with one minute blocks. We counted the wait for six confirmations at our listener, usually %s. "
+      "Of the chipnet blocks, %s %% carry difficulty 1, a testnet rule, and they are part of every wait. "
+      "Wallets and pools, which wait do you show your users before you call a payment done?") % (d(bc["warten_6"]["median_s"]), bc["diff1_prozent"])
+assert "chipnet" not in xt.lower() or "difficulty 1" in xt, "X-Text mit Chipnet-Spanne braucht den Hinweis auf Difficulty 1"
 for name, t in (("zcash_59124", zt), ("bch_2173", bt), ("x", xt)):
     print("== %s, %d woerter, %d zeichen\n%s\n" % (name, len(t.split()), len(t), t))
