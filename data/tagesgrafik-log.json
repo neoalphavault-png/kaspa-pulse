@@ -961,6 +961,29 @@
      "verhaeltnis": 796.31
     }
    }
+  },
+  {
+   "datum": "2026-11-22",
+   "form": 6,
+   "grund": "rotation, 3 laeufe in 30 tagen, zahl des tages emission_year (vorab gerechnet), uebersprungen [7]",
+   "messzeit_utc": "2026-11-22T06:30:57+00:00",
+   "looks": {
+    "instagram": "A-teal",
+    "threads": "A-papier",
+    "x": "A-papier",
+    "discord": "A-papier"
+   },
+   "messwerte": {
+    "daa": 599086178,
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-23",
+     "bis": "2026-11-21",
+     "fees": 64019.68728665,
+     "emission": 51658695.6384578,
+     "verhaeltnis": 806.92
+    }
+   }
   }
  ]
 }
