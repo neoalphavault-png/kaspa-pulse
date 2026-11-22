@@ -133,9 +133,16 @@
       "ende_utc": "2026-11-22T01:55:49Z",
       "peers_ohne_abzweig_abgelehnt": 46,
       "peers": 94
+    },
+    {
+      "lauf": "20261122T0148",
+      "start_utc": "2026-11-22T01:48:02Z",
+      "ende_utc": "2026-11-22T07:18:02Z",
+      "peers_ohne_abzweig_abgelehnt": 43,
+      "peers": 95
     }
   ],
-  "abgedeckt_h": 104.5,
+  "abgedeckt_h": 110.0,
   "peer_software": [
     "/Bitcoin Cash Node:29.2.0/",
     "/Bitcoin Cash Node:29.2.1",
@@ -144,55 +151,55 @@
     "/Rapids:2026-11.88096962/",
     "/Vcash:0.1/"
   ],
-  "kette_spitze": 342232,
-  "kettenbloecke": 6485,
-  "davon_angekuendigt_gesehen": 6483,
+  "kette_spitze": 342537,
+  "kettenbloecke": 6790,
+  "davon_angekuendigt_gesehen": 6788,
   "first_seen_typ": {
-    "inv": 6180,
+    "inv": 6414,
     "headers": 2,
-    "cmpctblock": 301
+    "cmpctblock": 372
   },
   "timestamp_deviation_s": {
-    "n": 6483,
-    "mittel": -5.041,
-    "median": 2.878,
-    "p90": 27.223,
+    "n": 6788,
+    "mittel": -4.274,
+    "median": 2.952,
+    "p90": 27.165,
     "p99": 63.615,
     "min": -718.741,
     "max": 124.684
   },
   "propagation_spread_ms": {
-    "n": 6483,
-    "mittel": 1634.0,
+    "n": 6788,
+    "mittel": 1756.0,
     "median": 192,
-    "p90": 685,
-    "p99": 42945,
+    "p90": 707,
+    "p99": 50322,
     "min": 0,
     "max": 490602
   },
   "peers_je_block": {
-    "n": 6483,
-    "mittel": 66.7,
-    "median": 64,
-    "p90": 121,
+    "n": 6788,
+    "mittel": 66.0,
+    "median": 63,
+    "p90": 120,
     "p99": 149,
     "min": 2,
     "max": 169
   },
   "compact": {
-    "bloecke_mit_cmpctblock": 6430,
-    "davon_von_selbst": 6082,
+    "bloecke_mit_cmpctblock": 6727,
+    "davon_von_selbst": 6360,
     "kurz_ids": {
-      "n": 6430,
-      "mittel": 17.2,
+      "n": 6727,
+      "mittel": 18.0,
       "median": 8,
-      "p90": 40,
-      "p99": 150,
+      "p90": 43,
+      "p99": 153,
       "min": 0,
       "max": 294
     },
     "fehlend_geschaetzt": {
-      "n": 6430,
+      "n": 6727,
       "mittel": 0.0,
       "median": 0,
       "p90": 0,
@@ -200,15 +207,15 @@
       "min": 0,
       "max": 1
     },
-    "bloecke_ohne_fehlende": 6423,
+    "bloecke_ohne_fehlende": 6720,
     "hinweis": "geschaetzt gegen die bei uns per inv angekuendigten Transaktionen, kein eigener Mempool"
   },
   "stale": {
-    "anzahl": 126,
+    "anzahl": 144,
     "bestaetigungen": 6,
-    "anteil_prozent": 1.906,
-    "noch_offen_unter_6": 1,
-    "ohne_kopf": 0,
+    "anteil_prozent": 2.077,
+    "noch_offen_unter_6": 2,
+    "ohne_kopf": 1,
     "bloecke": [
       {
         "height": 335774,
@@ -1343,6 +1350,168 @@
         "first_seen_type": "cmpctblock",
         "peers_announced": 5,
         "canonical_hash_at_height": "000000000e522d00cc56ba251b5865b2d5ef4546bba5f5675dfe568646faa4e0"
+      },
+      {
+        "height": 342231,
+        "hash": "00000000e0a5a3a617b164d1589db272a62a8ff67e1ebc98001de97b2726dadb",
+        "header_time_utc": "2026-11-22T01:52:51Z",
+        "first_seen_utc": "2026-11-22T01:52:53.849Z",
+        "first_seen_type": "cmpctblock",
+        "peers_announced": 7,
+        "canonical_hash_at_height": "00000000af0b55ca793e09379e8e0e86cdca35fbb9d44bd09bcca4bcaea9c275"
+      },
+      {
+        "height": 342253,
+        "hash": "00000000d5798a2da66346e34763aab498938bce2a0762f6b46313c5cb9a19c8",
+        "header_time_utc": "2026-11-22T02:20:26Z",
+        "first_seen_utc": "2026-11-22T02:20:28.828Z",
+        "first_seen_type": "cmpctblock",
+        "peers_announced": 1,
+        "canonical_hash_at_height": "00000000c5cf255586976ecae4c85e2be032daa376014ca54ead6556c584683e"
+      },
+      {
+        "height": 342284,
+        "hash": "00000000280601c5d8eb2e9caf2fe3ba3f7b2000d8e559b37cdf03e02c77cf53",
+        "header_time_utc": "2026-11-22T02:51:29Z",
+        "first_seen_utc": "2026-11-22T02:51:31.752Z",
+        "first_seen_type": "cmpctblock",
+        "peers_announced": 1,
+        "canonical_hash_at_height": "000000003032983c1fb8b80be35bdaf3f74f84acfcb0e479637d87d956f5ffa9"
+      },
+      {
+        "height": 342293,
+        "hash": "00000000000003775982f6c1a32457ecc2ddde73227d6f2527db64dabe6a7d8e",
+        "header_time_utc": "2026-11-22T02:57:37Z",
+        "first_seen_utc": "2026-11-22T02:58:00.787Z",
+        "first_seen_type": "inv",
+        "peers_announced": 28,
+        "canonical_hash_at_height": "00000000000003f486a2069bb2c26270c950e0534ef7ca3a9c31ef64716507cb"
+      },
+      {
+        "height": 342303,
+        "hash": "0000000075b7cb8344e363f6a579c59a2d154fd469fa50818fbbb0cebad771a1",
+        "header_time_utc": "2026-11-22T03:04:35Z",
+        "first_seen_utc": "2026-11-22T03:04:38.098Z",
+        "first_seen_type": "cmpctblock",
+        "peers_announced": 2,
+        "canonical_hash_at_height": "00000000f1bbcb72adf17af331015ba50edf52b609bdca642df03fa0158c5470"
+      },
+      {
+        "height": 342309,
+        "hash": "00000000000001811df92fdbebc833f87d1f5f185a6c5a89ccabc245fee0b144",
+        "header_time_utc": "2026-11-22T03:09:15Z",
+        "first_seen_utc": "2026-11-22T03:09:42.514Z",
+        "first_seen_type": "inv",
+        "peers_announced": 28,
+        "canonical_hash_at_height": "000000000000043586c23d2dfc59858e2f3107ab17b581385752cf242dcc2be3"
+      },
+      {
+        "height": 342323,
+        "hash": "00000000faa603d234dded1685ec606dbcf1f5aa278405777db77f2ae8754ec9",
+        "header_time_utc": "2026-11-22T03:20:57Z",
+        "first_seen_utc": "2026-11-22T03:20:59.826Z",
+        "first_seen_type": "cmpctblock",
+        "peers_announced": 3,
+        "canonical_hash_at_height": "000000006a5bfaf2b6adfb7743f09b60fec375a6bf2d1626f3c407dd60c2e7c2"
+      },
+      {
+        "height": 342345,
+        "hash": "0000000088517ad974e7b54c2e64fe6e3d3cec04c210075ed4f6b232fae919ec",
+        "header_time_utc": "2026-11-22T03:48:16Z",
+        "first_seen_utc": "2026-11-22T03:50:19.707Z",
+        "first_seen_type": "inv",
+        "peers_announced": 4,
+        "canonical_hash_at_height": "00000000b5a946b5a6d4a633f4adb7dacc6bf022c1ef747478d5e5915033d620"
+      },
+      {
+        "height": 342346,
+        "hash": "00000000cd7d88e071a09bba79e34ebfbfef7eacd312bb394621f2fc0085e0f1",
+        "header_time_utc": "2026-11-22T03:50:17Z",
+        "first_seen_utc": "2026-11-22T03:50:19.787Z",
+        "first_seen_type": "inv",
+        "peers_announced": 13,
+        "canonical_hash_at_height": "0000000059a09772c8860b47c07aec1bc9e7aadcbf39454419290d57b3cfcaaa"
+      },
+      {
+        "height": 342353,
+        "hash": "000000000000039cb33ca189baf341a7f345d914e8a7abd75785a7aa4e92a6e3",
+        "header_time_utc": "2026-11-22T03:55:25Z",
+        "first_seen_utc": "2026-11-22T03:55:52.638Z",
+        "first_seen_type": "inv",
+        "peers_announced": 46,
+        "canonical_hash_at_height": "0000000000000105dc2ae8d3a52b15c2e10f5d853707c7f840905ce028518db4"
+      },
+      {
+        "height": 342361,
+        "hash": "0000000050716cbb33ee79d05f405369185f2059b9cf7d1f3cf91dc2cacc01c3",
+        "header_time_utc": "2026-11-22T04:08:42Z",
+        "first_seen_utc": "2026-11-22T04:08:44.789Z",
+        "first_seen_type": "cmpctblock",
+        "peers_announced": 4,
+        "canonical_hash_at_height": "00000000b53de73cffd663aee622ccaf2ba2d0215336bb61a6178f92316190d4"
+      },
+      {
+        "height": 342389,
+        "hash": "0000000043bf07374d41bb5923112ce6c81c03224388f877c2d32a35ea68a90e",
+        "header_time_utc": "2026-11-22T04:36:42Z",
+        "first_seen_utc": "2026-11-22T04:36:45.271Z",
+        "first_seen_type": "cmpctblock",
+        "peers_announced": 5,
+        "canonical_hash_at_height": "0000000099af9dfca86c6eceabdb07facbfd43dd8faf00f40c115099d708a2a8"
+      },
+      {
+        "height": 342432,
+        "hash": "00000000000000f362e28b34aa754b3e2cc2ea587a27e0e52d18f4da053d0027",
+        "header_time_utc": "2026-11-22T05:33:23Z",
+        "first_seen_utc": "2026-11-22T05:33:28.505Z",
+        "first_seen_type": "inv",
+        "peers_announced": 71,
+        "canonical_hash_at_height": "0000000000000400e7998ea4f22b47a01a86c4b5f37da45286bb9b9ca3df672c"
+      },
+      {
+        "height": 342468,
+        "hash": "00000000ab887fd785767724824b2688da8ddab55e6785b18c3df5a6a73a677a",
+        "header_time_utc": "2026-11-22T05:58:21Z",
+        "first_seen_utc": "2026-11-22T05:58:24.680Z",
+        "first_seen_type": "inv",
+        "peers_announced": 2,
+        "canonical_hash_at_height": "00000000e94e5159d67cbb3b9b35aeb5ddc8ffa345c1482290058b0c9b395fcc"
+      },
+      {
+        "height": 342472,
+        "hash": "00000000428bd0818045c9d4b441056cd58460038df1863a08d96c2636455765",
+        "header_time_utc": "2026-11-22T06:04:59Z",
+        "first_seen_utc": "2026-11-22T06:05:02.018Z",
+        "first_seen_type": "cmpctblock",
+        "peers_announced": 8,
+        "canonical_hash_at_height": "000000000001789170dfd364d96721628bd571763f0ffeadd745c748604f2de7"
+      },
+      {
+        "height": 342488,
+        "hash": "00000000d8ae22d02730a316e4a1088b4e9b9afa32b61c223cc2ee1d2ea6436c",
+        "header_time_utc": "2026-11-22T06:23:35Z",
+        "first_seen_utc": "2026-11-22T06:23:38.463Z",
+        "first_seen_type": "inv",
+        "peers_announced": 4,
+        "canonical_hash_at_height": "00000000d0e039b8a45f8ae0a5a845afe7e58640d419ea4a6edc25bf88a2cac8"
+      },
+      {
+        "height": 342491,
+        "hash": "00000000ab889973452ad2a4c05b212c9017a3b7e29853e8ace34b7043210fe8",
+        "header_time_utc": "2026-11-22T06:28:43Z",
+        "first_seen_utc": "2026-11-22T06:28:45.795Z",
+        "first_seen_type": "cmpctblock",
+        "peers_announced": 85,
+        "canonical_hash_at_height": "00000000e1dce07fa082f64b03b7f875aa0953754d77e3dff1393f8c14f13db0"
+      },
+      {
+        "height": 342530,
+        "hash": "00000000000004169337a064df2b442271e05656b51afd2d32bc56786693a8cb",
+        "header_time_utc": "2026-11-22T07:09:43Z",
+        "first_seen_utc": "2026-11-22T07:10:10.572Z",
+        "first_seen_type": "inv",
+        "peers_announced": 93,
+        "canonical_hash_at_height": "000000000000032a1b340d5c0a5e1639befb86df7a179869b39aa71c422c057b"
       }
     ]
   }
