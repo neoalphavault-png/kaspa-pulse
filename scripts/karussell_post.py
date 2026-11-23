@@ -20,7 +20,7 @@ gepostet hat sie niemand. Ab jetzt laeuft jeder Termin in zwei Schritten:
   probe     beides in einem Lauf, nie veroeffentlicht, nichts gemerkt. Der
             Vorschau-Lauf, nach dem Ben KARUSSELL_LIVE setzt.
 
-TERMINE (karussell.POSTZEIT): woche Sa 13:00 (bis 5.11.2026 11:00), story Mi 18:00, meme Sa 15:00,
+TERMINE (karussell.POSTZEIT): woche Mo 19:00 (seit 23.11.2026, vorher Sa 13:00), story Mi 18:00, meme Sa 15:00,
 einmalig schalter Fr 6.11.2026 11:00 (Reward Cut), Entwurf jeweils 2 Stunden vorher. Der Takt kommt von c2.
 
 SCHARF nur, wenn alles zusammenkommt:
@@ -570,7 +570,9 @@ def community_melden(fuer, eintrag=None, manifest=None, grund_kein="", probe=Fal
         return None
     gepostet = bool(eintrag and eintrag.get("modus") == "scharf" and eintrag.get("permalink"))
     ab = ig().berlin(postzeit("woche", fuer) + COMMUNITY_AB)
-    kopf = "%s Sa ab %s, Instagram-App, Kanal Kaspa Community." % (ops_melden.VON_HAND, ab.strftime("%H:%M"))
+    # der wochentag aus der postzeit, seit 23.11.2026 montag statt samstag
+    kopf = "%s %s ab %s, Instagram-App, Kanal Kaspa Community." % (
+        ops_melden.VON_HAND, ("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")[ab.weekday()], ab.strftime("%H:%M"))
     if not gepostet:
         if community_eintrag(log, fuer, "log"):
             return None
@@ -692,6 +694,14 @@ def von_hand_melden(art, fuer, grund, stand=None, sender=None):
 
 # ------------------------------------------------------------ selbsttest
 
+def _stoppt(fn):
+    try:
+        fn()
+        return False
+    except Stopp:
+        return True
+
+
 def selbsttest():
     import karussell
     import instagram
@@ -706,9 +716,10 @@ def selbsttest():
     os.environ.pop("KARUSSELL_STOPP", None)
     os.environ.pop("KARUSSELL_LIVE", None)
     utc = dt.timezone.utc
-    sa_1300 = dt.datetime(2026, 10, 31, 12, 0, tzinfo=utc)       # 13:00 berlin, winterzeit
-    ok("postzeiten woche sa 13:00, story mi 18:00, meme sa 15:00, schalter fr 11:00",
-       karussell.POSTZEIT == {"woche": (5, "13:00"), "story": (2, "18:00"), "meme": (5, "15:00"),
+    # das wochen-karussell montags 19:00 berlin (seit 23.11.2026, Ben)
+    sa_1300 = dt.datetime(2026, 11, 2, 18, 0, tzinfo=utc)        # mo 19:00 berlin, winterzeit
+    ok("postzeiten woche mo 19:00, story mi 18:00, meme sa 15:00, schalter fr 11:00",
+       karussell.POSTZEIT == {"woche": (0, "19:00"), "story": (2, "18:00"), "meme": (5, "15:00"),
                               "schalter": (4, "11:00")})
     ok("schalter fr 6.11. 11:00 berlin ist 10:00 utc",
        postzeit("schalter", "2026-11-06").astimezone(utc) == dt.datetime(2026, 11, 6, 10, 0, tzinfo=utc))
@@ -719,35 +730,34 @@ def selbsttest():
         ok("schalter nur am 6.11.", True)
     ok("schalter ohne datum ist der naechste freitag",
        fuer_aufloesen("schalter", "", dt.datetime(2026, 11, 5, 17, 0, tzinfo=utc)) == "2026-11-06")
-    ok("woche sa 31.10. 13:00 berlin ist 12:00 utc", postzeit("woche", "2026-10-31").astimezone(utc) == sa_1300)
-    ok("woche: 11:00 berlin, der alte termin, ist nicht mehr im fenster",
-       "fenster" in (faellig("woche", "2026-10-31", "takt", {"posts": []},
-                             dt.datetime(2026, 10, 31, 10, 0, tzinfo=utc)) or ""))
-    ok("woche: 12:30 berlin, die zeit der tagesgrafik, ist nicht im fenster",
-       "fenster" in (faellig("woche", "2026-10-31", "takt", {"posts": []},
-                             dt.datetime(2026, 10, 31, 11, 30, tzinfo=utc)) or ""))
+    ok("woche mo 2.11. 19:00 berlin ist 18:00 utc", postzeit("woche", "2026-11-02").astimezone(utc) == sa_1300)
+    ok("woche: 18:40 berlin, das daten-update der weekly numbers, ist nicht im fenster",
+       "fenster" in (faellig("woche", "2026-11-02", "takt", {"posts": []},
+                             dt.datetime(2026, 11, 2, 17, 40, tzinfo=utc)) or ""))
+    ok("woche: der alte samstag ist nicht mehr der posttag",
+       _stoppt(lambda: termin_pruefen("woche", "2026-10-31")))
     ok("entwurf 2 stunden vorher", VORLAUF == dt.timedelta(hours=2))
     leer = {"posts": []}
-    ok("im fenster faellig", faellig("woche", "2026-10-31", "takt", leer, sa_1300) is None)
-    ok("zu frueh nicht faellig", "fenster" in (faellig("woche", "2026-10-31", "takt", leer,
+    ok("im fenster faellig", faellig("woche", "2026-11-02", "takt", leer, sa_1300) is None)
+    ok("zu frueh nicht faellig", "fenster" in (faellig("woche", "2026-11-02", "takt", leer,
                                                      sa_1300 - dt.timedelta(minutes=30)) or ""))
-    ok("zwei stunden zu spaet nicht faellig", "fenster" in (faellig("woche", "2026-10-31", "takt", leer,
+    ok("zwei stunden zu spaet nicht faellig", "fenster" in (faellig("woche", "2026-11-02", "takt", leer,
                                                                   sa_1300 + dt.timedelta(hours=2)) or ""))
-    ok("anderer tag nicht faellig", "nicht heute" in (faellig("woche", "2026-10-31", "takt", leer,
+    ok("anderer tag nicht faellig", "nicht heute" in (faellig("woche", "2026-11-02", "takt", leer,
                                                             sa_1300 - dt.timedelta(days=1)) or ""))
-    ok("von hand ohne fenster", faellig("woche", "2026-10-31", "hand", leer, sa_1300 - dt.timedelta(days=3)) is None)
-    os.environ["KARUSSELL_STOPP"] = "2026-10-31"
-    ok("stopp mit datum greift", "STOPP" in (faellig("woche", "2026-10-31", "takt", leer, sa_1300) or ""))
+    ok("von hand ohne fenster", faellig("woche", "2026-11-02", "hand", leer, sa_1300 - dt.timedelta(days=3)) is None)
+    os.environ["KARUSSELL_STOPP"] = "2026-11-02"
+    ok("stopp mit datum greift", "STOPP" in (faellig("woche", "2026-11-02", "takt", leer, sa_1300) or ""))
     os.environ["KARUSSELL_STOPP"] = "immer"
-    ok("stopp immer greift, auch von hand", bool(faellig("woche", "2026-10-31", "hand", leer, sa_1300)))
+    ok("stopp immer greift, auch von hand", bool(faellig("woche", "2026-11-02", "hand", leer, sa_1300)))
     os.environ["KARUSSELL_STOPP"] = "2026-10-24"
-    ok("stopp fuer einen anderen tag greift nicht", faellig("woche", "2026-10-31", "takt", leer, sa_1300) is None)
+    ok("stopp fuer einen anderen tag greift nicht", faellig("woche", "2026-11-02", "takt", leer, sa_1300) is None)
     os.environ.pop("KARUSSELL_STOPP")
-    gepostet = {"posts": [{"art": "woche", "fuer": "2026-10-31", "modus": "scharf", "media": "1", "permalink": "p"},
+    gepostet = {"posts": [{"art": "woche", "fuer": "2026-11-02", "modus": "scharf", "media": "1", "permalink": "p"},
                           {"art": "meme", "fuer": "2026-10-31", "modus": "scharf", "media": "2",
                            "motiv": "kaspa-chemie"},
                           {"art": "story", "fuer": "2026-11-04", "modus": "trocken"}]}
-    ok("schon gepostet nicht noch einmal", "schon gepostet" in (faellig("woche", "2026-10-31", "takt",
+    ok("schon gepostet nicht noch einmal", "schon gepostet" in (faellig("woche", "2026-11-02", "takt",
                                                                        gepostet, sa_1300) or ""))
     ok("ein trockener eintrag sperrt nicht", schon_gepostet(gepostet, "story", fuer="2026-11-04") is None)
     ok("ein meme-motiv nur einmal", schon_gepostet(gepostet, "meme", motiv="kaspa-chemie") is not None)
@@ -762,7 +772,7 @@ def selbsttest():
         ok("woche an einem freitag stoppt", True)
     ok("ohne datum der naechste samstag", fuer_aufloesen("meme", "", dt.datetime(2026, 10, 25, 12, tzinfo=utc))
        == "2026-10-31")
-    ok("am posttag selbst heute", fuer_aufloesen("woche", "", sa_1300) == "2026-10-31")
+    ok("am posttag selbst heute", fuer_aufloesen("woche", "", sa_1300) == "2026-11-02")
     os.environ["MEDIA_REPO_TOKEN"] = "ghp_" + "x" * 30
     ok("sauber verbirgt den media-token", "ghp_" not in sauber("fehler bei " + os.environ["MEDIA_REPO_TOKEN"]))
 
@@ -774,14 +784,14 @@ def selbsttest():
     quelle.mkdir()
     bilder = []
     for i in range(3):
-        p = quelle / ("karussell-woche-2026-10-31-%d-hell.png" % (i + 1))
+        p = quelle / ("karussell-woche-2026-11-02-%d-hell.png" % (i + 1))
         Image.new("RGB", (1080, 1350), (238, 243, 241)).save(p)
         bilder.append(p)
     ss = karussell.seiten_woche(*reversed(json.loads((REPO / "data" / "weekly-history.json")
                                                      .read_text(encoding="utf-8"))[-2:]))
     cap = karussell.caption_woche(ss)
     (quelle / "manifest.json").write_text(json.dumps({
-        "art": "woche", "fuer": "2026-10-31", "look": "hell", "caption": cap, "motiv": "",
+        "art": "woche", "fuer": "2026-11-02", "look": "hell", "caption": cap, "motiv": "",
         "bilder": [{"datei": b.name, "sha256": sha(b)} for b in bilder]}), encoding="utf-8")
     aufrufe = []
     zustand = {"asset": 0, "geloescht": [], "graph_kaputt": False}
@@ -816,7 +826,7 @@ def selbsttest():
     os.environ["IG_USER_ID"] = "17841400000000000"
     try:
         logp = tmp / "log.json"
-        e = posten("woche", "2026-10-31", quelle=quelle, start="hand", log_pfad=logp, takt=0)
+        e = posten("woche", "2026-11-02", quelle=quelle, start="hand", log_pfad=logp, takt=0)
         g = [a for a in aufrufe if a[0] == "graph"]
         kinder = [a for a in g if a[3].get("is_carousel_item") == "true"]
         haupt = [a for a in g if a[3].get("media_type") == "CAROUSEL"]
@@ -831,17 +841,17 @@ def selbsttest():
         # vom takt, live, im fenster: veroeffentlicht
         os.environ["KARUSSELL_LIVE"] = "true"
         aufrufe.clear()
-        e = posten("woche", "2026-10-31", quelle=quelle, start="takt", log_pfad=logp, now=sa_1300, takt=0)
+        e = posten("woche", "2026-11-02", quelle=quelle, start="takt", log_pfad=logp, now=sa_1300, takt=0)
         ok("takt plus KARUSSELL_LIVE veroeffentlicht", e["modus"] == "scharf" and e["media"] == "999"
            and any(a[0] == "graph" and a[2].endswith("media_publish") for a in aufrufe))
         try:
-            posten("woche", "2026-10-31", quelle=quelle, start="takt", log_pfad=logp, now=sa_1300, takt=0)
+            posten("woche", "2026-11-02", quelle=quelle, start="takt", log_pfad=logp, now=sa_1300, takt=0)
             ok("zweiter lauf am selben termin postet nicht", False)
         except NichtFaellig:
             ok("zweiter lauf am selben termin postet nicht", True)
         # probe: nie scharf, nichts im log
         logp2 = tmp / "log2.json"
-        e = posten("woche", "2026-10-31", quelle=quelle, start="takt", probe=True, log_pfad=logp2,
+        e = posten("woche", "2026-11-02", quelle=quelle, start="takt", probe=True, log_pfad=logp2,
                    now=sa_1300, takt=0)
         ok("probe ist nie scharf und schreibt kein log", e["modus"] == "trocken" and not logp2.exists())
         os.environ.pop("KARUSSELL_LIVE")
@@ -864,7 +874,7 @@ def selbsttest():
         zustand["geloescht"].clear()
         zustand["graph_kaputt"] = True
         try:
-            posten("woche", "2026-10-31", quelle=quelle, start="hand", log_pfad=tmp / "log4.json", takt=0)
+            posten("woche", "2026-11-02", quelle=quelle, start="hand", log_pfad=tmp / "log4.json", takt=0)
             ok("graph-fehler stoppt", False)
         except Stopp:
             ok("graph-fehler stoppt, anhaenge trotzdem entfernt", len(zustand["geloescht"]) == 3)
@@ -872,12 +882,12 @@ def selbsttest():
         # ein veraendertes bild wird nicht gepostet
         Image.new("RGB", (1080, 1350), (0, 0, 0)).save(bilder[1])
         try:
-            manifest_lesen(quelle, "woche", "2026-10-31")
+            manifest_lesen(quelle, "woche", "2026-11-02")
             ok("ein bild, das vom entwurf abweicht, stoppt", False)
         except Stopp:
             ok("ein bild, das vom entwurf abweicht, stoppt", True)
         try:
-            manifest_lesen(einzel, "woche", "2026-10-31")
+            manifest_lesen(einzel, "woche", "2026-11-02")
             ok("ein entwurf fuer eine andere art stoppt", False)
         except Stopp:
             ok("ein entwurf fuer eine andere art stoppt", True)
@@ -902,10 +912,10 @@ def selbsttest():
     try:
         Image.new("RGB", (1080, 1350), (238, 243, 241)).save(bilder[1])
         (quelle / "manifest.json").write_text(json.dumps({
-            "art": "woche", "fuer": "2026-10-31", "look": "hell", "caption": cap, "motiv": "",
+            "art": "woche", "fuer": "2026-11-02", "look": "hell", "caption": cap, "motiv": "",
             "bilder": [{"datei": b.name, "sha256": sha(b)} for b in bilder]}), encoding="utf-8")
         aufrufe.clear()
-        e = posten("woche", "2026-10-31", quelle=quelle, start="hand", probe=True, log_pfad=tmp / "log5.json",
+        e = posten("woche", "2026-11-02", quelle=quelle, start="hand", probe=True, log_pfad=tmp / "log5.json",
                    takt=0)
         bilder_urls = [a[3].get("image_url") for a in aufrufe if a[0] == "graph" and a[3].get("image_url")]
         ok("ohne media-token drei bilder unter ig/karussell auf main", len(gesetzt) == 3
@@ -926,7 +936,7 @@ def selbsttest():
         instagram.url_warten = lambda url, laenge, frist=600, takt=15: (gewartet.append((url, laenge))
                                                                         or fristen.append(frist) or True)
         aufrufe.clear()
-        e = posten("woche", "2026-10-31", quelle=quelle, start="hand", probe=True, log_pfad=tmp / "log7.json",
+        e = posten("woche", "2026-11-02", quelle=quelle, start="hand", probe=True, log_pfad=tmp / "log7.json",
                    takt=0)
         bilder_urls = [a[3].get("image_url") for a in aufrufe if a[0] == "graph" and a[3].get("image_url")]
         ok("instagram holt die seiten ueber die raw-adresse des ablage-commits, 120 s",
@@ -937,7 +947,7 @@ def selbsttest():
         globals()["_roh"] = roh_falsch
         os.environ["GITHUB_REF_NAME"] = "fix/x"
         try:
-            posten("woche", "2026-10-31", quelle=quelle, start="hand", probe=True, log_pfad=tmp / "log6.json",
+            posten("woche", "2026-11-02", quelle=quelle, start="hand", probe=True, log_pfad=tmp / "log6.json",
                    takt=0)
             ok("ablage unter ig nur von main", False)
         except Stopp as exc:
@@ -1001,7 +1011,7 @@ def selbsttest():
 
     def lauf(**kw):
         with contextlib.redirect_stdout(io.StringIO()):
-            return community_melden("2026-10-31", log_pfad=tmp / "logc.json", **kw)
+            return community_melden("2026-11-02", log_pfad=tmp / "logc.json", **kw)
     try:
         satz = community_satz(mk)
         ok("satz klein, mit zahl, datum und source", satz ==
@@ -1018,7 +1028,7 @@ def selbsttest():
            and [g[0] for g in gesendet] == ["hand"])
         t = gesendet[-1][1]
         ok("nennt zeit, plattform, permalink und satz",
-           t.startswith("📤 VON HAND Sa ab 13:15, Instagram-App, Kanal Kaspa Community.")
+           t.startswith("📤 VON HAND Mo ab 19:15, Instagram-App, Kanal Kaspa Community.")
            and "https://www.instagram.com/p/abc/" in t and satz in t)
         ok("hoechstens eine aufforderung je woche", lauf(eintrag=ep, manifest=mk) is None and len(gesendet) == 1)
         (tmp / "logc.json").unlink()
@@ -1078,7 +1088,7 @@ def selbsttest():
         t, d = gemeldet[-1] if gemeldet else ("", [])
         ok("posten rot, exit 1 und eine meldung", r == 1 and len(gemeldet) == 1)
         ok("meldung beginnt mit VON HAND und nennt den grund", t.startswith(_om.VON_HAND)
-           and "bild nicht oeffentlich, http 404" in t and "instagram" in t and "13:00 Berlin" in t)
+           and "bild nicht oeffentlich, http 404" in t and "instagram" in t and "19:00 Berlin" in t)
         ok("caption als codeblock", "```\n%s\n```" % cap in t)
         ok("die seiten als bilder, in der reihenfolge", [x[0] for x in d] == seiten
            and all(x[1] == "image/jpeg" for x in d))
@@ -1102,8 +1112,9 @@ def selbsttest():
         def schreibt():
             spur.write_text('{"x": 1}')
             return 0
-        ok("ein test, der ins log schreibt, ist rot und wird zurueckgesetzt",
-           selbsttest_ohne_spuren([spur], schreibt) == 1 and spur.read_text() == "{}")
+        with contextlib.redirect_stdout(io.StringIO()):     # die absichtliche FEHL-zeile nicht ins log
+            neg = selbsttest_ohne_spuren([spur], schreibt)
+        ok("ein test, der ins log schreibt, ist rot und wird zurueckgesetzt", neg == 1 and spur.read_text() == "{}")
     finally:
         _om.hand = alt_hand
         globals()["posten"], globals()["ausgabe_datei"] = alt_posten, alt_ausgabe
