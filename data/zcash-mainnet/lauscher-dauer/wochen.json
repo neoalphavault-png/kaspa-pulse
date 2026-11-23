@@ -17,18 +17,32 @@
   {
    "woche_von_utc": "2026-11-16T00:00:00Z",
    "woche_bis_utc": "2026-11-23T00:00:00Z",
-   "abdeckung_prozent": 99.7,
-   "vollstaendig": "nein",
-   "kettenbloecke": 24072,
-   "angekuendigt": 24070,
+   "abdeckung_prozent": 100.0,
+   "vollstaendig": "ja",
+   "kettenbloecke": 24162,
+   "angekuendigt": 24160,
    "abgehaengt": 97,
    "ohne_kopf": 13,
    "tiefe_1": 84,
    "tiefe_2": 0,
    "tiefe_3_plus": 0,
    "offen": 0
+  },
+  {
+   "woche_von_utc": "2026-11-23T00:00:00Z",
+   "woche_bis_utc": "2026-11-30T00:00:00Z",
+   "abdeckung_prozent": 2.9,
+   "vollstaendig": "nein",
+   "kettenbloecke": 717,
+   "angekuendigt": 716,
+   "abgehaengt": 3,
+   "ohne_kopf": 0,
+   "tiefe_1": 3,
+   "tiefe_2": 0,
+   "tiefe_3_plus": 0,
+   "offen": 1
   }
  ],
- "laeufe": 45,
- "kette_spitze_utc": "2026-11-22T23:26:13Z"
+ "laeufe": 46,
+ "kette_spitze_utc": "2026-11-23T04:49:09Z"
 }
