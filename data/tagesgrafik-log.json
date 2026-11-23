@@ -984,6 +984,28 @@
      "verhaeltnis": 806.92
     }
    }
+  },
+  {
+   "datum": "2026-11-23",
+   "form": 1,
+   "grund": "montag, zahl des tages cut_countdown (vorab gerechnet), uebersprungen [3]",
+   "messzeit_utc": "2026-11-23T06:30:43+00:00",
+   "looks": {
+    "instagram": "D-hell",
+    "threads": "D-dunkel",
+    "x": "D-dunkel",
+    "discord": "D-dunkel"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-24",
+     "bis": "2026-11-22",
+     "fees": 61736.97330179,
+     "emission": 51558792.543019,
+     "verhaeltnis": 835.14
+    }
+   }
   }
  ]
 }
