@@ -1,10 +1,8 @@
 {
-  "week": "2026-11-16",
+  "week": "2026-11-23",
   "manual": {},
-  "read": "the close fell 11.12% from saturday 7 november to saturday 14 november, after falling 8.90% the week before, the third falling week in a row. it sits 23.63% below the 50 week average, after 15.54% below it a week earlier, the widest gap under that line in eleven weeks, since the week to 29 august 2026. hashrate read 343.29 PH/s on saturday 14 november and averaged 328.45 PH/s from 8 to 14 november, against 356.11 PH/s from 1 to 7 november, in our own daily log.",
-  "override": {
-    "hashrate": 343.29
-  },
+  "read": "37 addresses held kUSDT on saturday 21 november, 6 days after the token's genesis on 15 november, after 14 holders on 16 november, in our own node count. across all 455 KCC-20 tokens 2,126 addresses held at least one on 21 november, 197 more than the 1,929 on 14 november. the close fell 3.53% from saturday 14 november to saturday 21 november, the fourth falling week in a row, to $0.02544, the lowest weekly close in our series of 104 weeks since 24 november 2024. it sits 25.21% below the 50 week average on 21 november, after 23.63% below it on 14 november. the 50 week line sits at $0.034017 and the 21 week line at $0.032859, source kraken, week to 21 november.",
+  "override": {},
   "issue": null,
   "_hinweise": {
     "week": "der tag an dem der post rausgeht, format JJJJ-MM-TT. steht die woche schon in der history, passiert nichts und der lauf bleibt gruen. das datum ist der schalter, erst wenn du es hochstellst geht ein post raus.",
