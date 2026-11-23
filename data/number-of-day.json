@@ -1,26 +1,26 @@
 {
-  "issue": "NOV 22 2026",
+  "issue": "NOV 23 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "1.68M",
-  "value_label": "new KAS per day on 22 nov",
-  "headline": "*half* the new coins\nof a year ago.",
+  "value": "about 12",
+  "value_label": "days until the next kaspa reward cut, an estimate",
+  "headline": "bitcoin waits *510 days*.\nkaspa cuts 16 times before then.",
   "panes": [
     {
       "kind": "compare",
-      "title": "NEW KAS PER DAY",
-      "sub": "computed from the emission schedule",
+      "title": "TIME TO THE NEXT REDUCTION",
+      "sub": "counted from 23 nov, in days",
       "rows": [
         {
-          "label": "22 nov",
-          "sub": "",
-          "value": "1,680,086",
-          "pct": 50.00000000000002,
+          "label": "kaspa",
+          "sub": "monthly",
+          "value": "12",
+          "pct": 2.2879955197530935,
           "tone": "teal"
         },
         {
-          "label": "22 nov 2025",
-          "sub": "",
-          "value": "3,360,171",
+          "label": "bitcoin",
+          "sub": "estimated",
+          "value": "510",
           "pct": 100.0,
           "tone": "grey"
         }
@@ -28,17 +28,16 @@
     },
     {
       "kind": "anchor",
-      "title": "WHY HALF",
+      "title": "WHAT CHANGES",
       "lines": [
-        "twelve monthly steps, *no single halving day*.",
-        "*computed* from the emission schedule."
+        "daily emission drops from 1.68 million to *1.59 million KAS*. no vote, no announcement."
       ]
     }
   ],
-  "sources": "emission schedule",
+  "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "kaspa mints 1,680,086 new KAS a day on 22 nov, computed from the emission schedule. a year earlier it was 3,360,171. twelve monthly steps halve it, there is no single halving day.",
-    "reply": "the full schedule is on kaspapulse.com/kaspa-halving.html."
+    "x": "the next kaspa reward cut lands in about 12 days, an estimate. bitcoin waits about 510 days for its next one, and kaspa cuts 16 more times before that date. daily emission drops from 1.68 million to 1.59 million KAS, the block reward from 1.9445 to 1.8354.",
+    "reply": "the countdown runs on kaspapulse.com/kaspa-halving.html. the kaspa date and the bitcoin date are both estimates, the kaspa step is set by daa score."
   }
 }
