@@ -1,20 +1,20 @@
 {
-  "generated_at": 1793615677,
+  "generated_at": 1795434626,
   "address": "kaspa:qpz2vgvlxhmyhmt22h538pjzmvvd52nuut80y5zulgpvyerlskvvwm7n4uk5a",
   "method": "volume weighted daily average price, kucoin with mexc and bybit gap fill",
   "reliable": true,
-  "deposits": 339,
-  "kas_received": 1612932020.28,
-  "kas_priced": 1612932020.28,
-  "usd_invested": 138044763.35,
-  "avg_cost_usd": 0.085586,
-  "outflow_kas": 69957865.56,
-  "outflow_count": 28,
-  "transactions_total": 565,
-  "dust_transactions": 198,
-  "dust_kas": 133.1136,
+  "deposits": 347,
+  "kas_received": 1643619335.55,
+  "kas_priced": 1643619335.55,
+  "usd_invested": 138929815.67,
+  "avg_cost_usd": 0.084527,
+  "outflow_kas": 77340146.66,
+  "outflow_count": 30,
+  "transactions_total": 581,
+  "dust_transactions": 204,
+  "dust_kas": 137.5136,
   "first_outflow": "2024-03-07",
-  "last_outflow": "2026-10-15",
+  "last_outflow": "2026-11-19",
   "outflows": [
     {
       "day": "2024-03-07",
@@ -155,21 +155,31 @@
       "day": "2026-10-15",
       "kas": 3859963.0,
       "tx": "e5ac927c0865ecc9a7c63def02d9159f55820e173b7d2586c0850e3f43903f66"
+    },
+    {
+      "day": "2026-11-12",
+      "kas": 4776144.1,
+      "tx": "f216afe6e9c91a2e7e6da03719672a029622a93368de443ff7cae57ca1a2e47f"
+    },
+    {
+      "day": "2026-11-19",
+      "kas": 2606137.0,
+      "tx": "e09e702275ca635a859ed576b75a745fbc204c10479eed0ed8d3b1e920b2ced1"
     }
   ],
-  "balance_kas": 1542974287.84,
+  "balance_kas": 1566279326.4,
   "first_deposit": "2024-03-06",
-  "last_deposit": "2026-10-30",
+  "last_deposit": "2026-11-20",
   "largest_deposit_kas": 90000000.0,
   "largest_deposit_day": "2024-03-11",
-  "price_now": 0.03246,
-  "value_now_usd": 50084945.38,
-  "unrealized_usd": -87959817.96,
-  "unrealized_pct": -63.72,
+  "price_now": 0.02723,
+  "value_now_usd": 42649786.06,
+  "unrealized_usd": -96280029.61,
+  "unrealized_pct": -69.3,
   "missing_price_days": [],
   "missing_share": 0.0,
   "price_source_days": {
-    "kucoin": 973,
+    "kucoin": 994,
     "mexc": 0,
     "bybit": 0
   },
@@ -365,6 +375,12 @@
       "kas": 28835898.49,
       "usd": 1097726.55,
       "avg": 0.038068
+    },
+    {
+      "month": "2026-11",
+      "kas": 30687315.27,
+      "usd": 885052.32,
+      "avg": 0.028841
     }
   ]
 }
