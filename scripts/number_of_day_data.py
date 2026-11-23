@@ -98,6 +98,8 @@ MIN_GAP = {
     "top_share": 7,
     "kcc20_count": 14,
     "hashrate_year": 7,
+    "covenant_tx": 4,
+    "exchange_kas": 7,
 }
 COOLDOWN_FACTOR = 0.15
 MIN_ANCHOR_AGE_DAYS = 21
@@ -1265,6 +1267,65 @@ def cand_kcc20_count(ctx):
             "the full count is on " + SITE_URL + ".")}}
 
 
+COVENANTS_PATH = os.path.join(ROOT, "data", "covenants-log.json")
+
+
+def cand_covenant_tx(ctx):
+    """Covenant-Transaktionen an einem Tag gegen sieben Tage davor, source
+    kaspalytics (Ben, 23.11.2026 freigegeben)."""
+    reihe = _reihe(ctx.get("covenants_path") or COVENANTS_PATH, "tage", "tx")
+    jv = _jetzt_und_vorher(reihe, ctx["today"], abstand=7)
+    if not jv:
+        return None
+    t, v, t0, v0 = jv
+    if v0 <= 0:
+        return None
+    ch = 100.0 * (v - v0) / v0
+    return {"score": 23.0 + min(10.0, abs(ch) / 10.0), "payload": {
+        "issue": issue_line(ctx["today"]), "eyebrow": "NUMBER OF THE DAY",
+        "value": fmt_int(v), "value_label": "covenant transactions on kaspa layer 1 on %s" % stichtag(t),
+        "headline": "*%s covenant transactions*\nin one day." % fmt_int(v),
+        "panes": [_vergleich(ctx, "COVENANT TRANSACTIONS PER DAY", "source kaspalytics, full utc days",
+                             v, v0, fmt_int, t, t0, "teal" if v >= v0 else "red"),
+                  {"kind": "anchor", "title": "WHAT THE NUMBER IS",
+                   "lines": ["transactions that use a covenant output.", "*read* from kaspalytics, both days."]}],
+        "sources": "kaspalytics.com", "site": "kaspapulse.com",
+        "post": post_block(
+            "%s covenant transactions on kaspa layer 1 on %s, against %s on %s, source kaspalytics. "
+            "covenants are the layer 1 rules that let an output say how it may be spent."
+            % (fmt_int(v), stichtag(t), fmt_int(v0), stichtag(t0)),
+            "the daily covenant count is on " + SITE_URL + ".")}}
+
+
+def cand_exchange_kas(ctx):
+    """KAS auf Boersen-Adressen gegen vier Wochen davor, aus der Wochenreihe,
+    source kaspalytics (Ben, 23.11.2026 freigegeben)."""
+    reihe = sorted((dt.date.fromisoformat(r["week"]), float(r["exchange_kas"])) for r in ctx["history"] or []
+                   if r.get("exchange_kas") and r.get("week"))
+    jv = _jetzt_und_vorher(reihe, ctx["today"], abstand=28)
+    if not jv:
+        return None
+    t, v, t0, v0 = jv
+    # die montagsausgabe zaehlt die woche bis zum samstag davor
+    t, t0 = t - dt.timedelta(days=2), t0 - dt.timedelta(days=2)
+    d = v - v0
+    fmt = lambda x: "%.2fB" % (x / 1e9)   # noqa: E731
+    return {"score": 22.0 + min(8.0, abs(100.0 * d / v0)), "payload": {
+        "issue": issue_line(ctx["today"]), "eyebrow": "NUMBER OF THE DAY",
+        "value": fmt(v) + " KAS", "value_label": "KAS on exchange addresses in the week to %s" % stichtag(t),
+        "headline": "*%s KAS %s*\nexchanges in four weeks." % (fmt(abs(d)), "more on" if d >= 0 else "fewer on"),
+        "panes": [_vergleich(ctx, "KAS ON EXCHANGE ADDRESSES", "source kaspalytics, weekly reading",
+                             v, v0, fmt, t, t0, "teal" if d < 0 else "red"),
+                  {"kind": "anchor", "title": "WHAT THE NUMBER IS",
+                   "lines": ["known exchange addresses only.", "*read* from kaspalytics, both weeks."]}],
+        "sources": "kaspalytics.com", "site": "kaspapulse.com",
+        "post": post_block(
+            "%s KAS were on known exchange addresses in the week to %s, against %s in the week to %s, "
+            "source kaspalytics. only addresses labelled as exchanges count."
+            % (fmt(v), stichtag(t), fmt(v0), stichtag(t0)),
+            "the weekly numbers are on " + SITE_URL + ".")}}
+
+
 def fetch_hashrate_year(now_ts=None):
     """Tagesmittel der Hashrate vor 365 Tagen, (PH/s, tag), aus der Historie der API."""
     roh = http_json("https://api.kaspa.org/info/hashrate/history")
@@ -1318,6 +1379,8 @@ CANDIDATES = [
     ("top_share", cand_top_share),
     ("kcc20_count", cand_kcc20_count),
     ("hashrate_year", cand_hashrate_year),
+    ("covenant_tx", cand_covenant_tx),
+    ("exchange_kas", cand_exchange_kas),
 ]
 # ---------------------------------------------------------------- auswahl
 def recent_picks(log, today, window=None):
@@ -1382,6 +1445,8 @@ GRUPPEN = {
     "bloecke": ("blocks_per_day", "blocks_since_cut"),
     "schritt": ("cut_today", "cut_countdown"),
     "tokens": ("kcc20_count",),
+    "covenants": ("covenant_tx",),
+    "boersen": ("exchange_kas",),
 }
 GRUPPE_VON = {k: g for g, ks in GRUPPEN.items() for k in ks}
 GRUPPE_MAX = {"hashrate": 1}          # sonst WOCHE_MAX
@@ -1815,7 +1880,8 @@ def run_selftest():
     t20 = dt.datetime(2026, 11, 20, 12, tzinfo=dt.timezone.utc).timestamp()
     lv = dict(FAKE_LIVE, hashrate=294.7, hashrate_year=(180.0, "2025-11-20"))
     c20 = build_context(now_ts=t20, live=lv, history=FAKE_HISTORY)
-    neu = ("emission_year", "blocks_since_cut", "holders_1kas", "top_share", "kcc20_count", "hashrate_year")
+    neu = ("emission_year", "blocks_since_cut", "holders_1kas", "top_share", "kcc20_count", "hashrate_year",
+           "covenant_tx", "exchange_kas")
     geliefert = []
     for name in neu:
         res = dict(CANDIDATES)[name](c20)
@@ -1838,6 +1904,19 @@ def run_selftest():
         ok("%s ohne stufe ohne schaetzung" % name,
            stufe_schaetzung.verstoesse(texte, dt.date(2026, 11, 20)) == [])
     ok("mindestens vier neue kandidaten liefern am 20.11.", len(geliefert) >= 4, geliefert)
+    # exchange_kas mit der echten wochenreihe (Ben, 23.11.2026 freigegeben)
+    ex = cand_exchange_kas(dict(c20, history=load_json(HISTORY_PATH, [])))
+    if ex:
+        ext = " ".join(t for _, t in oeffentliche_texte(ex["payload"]))
+        try:
+            walk_and_check(ex["payload"])
+            exr = True
+        except ValueError as exc:
+            exr = str(exc)
+        ok("exchange_kas haelt die textregeln, ohne preis, mit datum und source", exr is True
+           and nod_verstoesse(ex["payload"]) == [] and "source kaspalytics" in ex["payload"]["post"]["x"]
+           and "week to" in ex["payload"]["value_label"] and "$" not in ext and "usd" not in ext.lower(), exr)
+    ok("exchange_kas liefert am 20.11. mit der wochenreihe", ex is not None)
     # eine schreibweise fuer die einheit, PH/s (Ben, 21.11.2026)
     ph = []
     for name, fn in CANDIDATES:
@@ -1948,7 +2027,7 @@ def run_selftest():
         # seit den themengruppen (Ben, 21.11.2026) gilt: lieber ein ausfall als ein
         # drittes hashrate-thema. die grenze von zwei ausfaellen (20.11.) ist damit
         # auf drei gestiegen, die zahl steht im bericht
-        ok("simulation, hoechstens drei ausfaelle (%d)" % aus, aus <= 3)
+        ok("simulation, hoechstens zwei ausfaelle (%d)" % aus, aus <= 2)
         gfolge = [sim[i] for i in range(1, len(sim)) if sim[i][1] != "none"
                   and gruppe(sim[i][1]) == gruppe(sim[i - 1][1]) and gruppe(sim[i][1]) != "schritt"]
         ok("simulation, keine gruppe an zwei folgetagen", not gfolge, gfolge)
