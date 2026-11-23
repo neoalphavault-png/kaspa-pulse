@@ -205,6 +205,10 @@ def bloecke(log):
     schnitt7 = round(sum(sieben) / len(sieben)) if sieben else 0
     ruhig_tag, ruhig = min(tx_t, key=lambda p: p[1]) if tx_t else (None, None)
     laut_tag, laut = max(tx_t, key=lambda p: p[1]) if tx_t else (None, None)
+    # zeitraum fuer hoechst-, tiefst- und medianwert, aus den daten (Ben, 23.11.2026:
+    # ein "so far" steht nie ohne zeitraum)
+    erster_tx_tag = tx_t[0][0] if tx_t else None
+    letzter_t_tag = tx_t[-1][0] if tx_t else None
     summe_tx = sum(x for _, x in tx_t)
     summe_out = sum(x for _, x in outp_t)
     erster_utxo = utxo_t[0][1] if utxo_t else None
@@ -223,15 +227,17 @@ def bloecke(log):
         '<div class="fact"><div class="v teal">%s</div>'
         '<div class="l">covenant transactions on %s, the last full day in the log</div></div>\n'
         '    <div class="fact"><div class="v">%s</div>'
-        '<div class="l">average per day over the last seven full days</div></div>\n'
+        '<div class="l">average per day over the last seven full days, through %s</div></div>\n'
         '    <div class="fact"><div class="v">%s</div>'
-        '<div class="l">the busiest single day so far, %s</div></div>\n'
+        '<div class="l">the busiest single day from %s through %s, on %s</div></div>\n'
         '    <div class="fact"><div class="v">%s</div>'
-        '<div class="l">the quietest single day so far, %s</div></div>'
+        '<div class="l">the quietest single day from %s through %s, on %s</div></div>'
         % (v("tx_letzter", zahl(letzte_tx)), v("tx_datum", datum_lang(letzte_tx_tag)),
-           v("tx_schnitt7", zahl(schnitt7)),
-           v("tx_max", zahl(laut)), v("tx_max_datum", datum_lang(laut_tag)),
-           v("tx_min", zahl(ruhig)), v("tx_min_datum", datum_lang(ruhig_tag)))
+           v("tx_schnitt7", zahl(schnitt7)), v("tx_schnitt7_bis", datum_lang(letzte_tx_tag)),
+           v("tx_max", zahl(laut)), v("tx_max_von", datum_lang(erster_tx_tag)),
+           v("tx_max_bis", datum_lang(letzter_t_tag)), v("tx_max_datum", datum_lang(laut_tag)),
+           v("tx_min", zahl(ruhig)), v("tx_min_von", datum_lang(erster_tx_tag)),
+           v("tx_min_bis", datum_lang(letzter_t_tag)), v("tx_min_datum", datum_lang(ruhig_tag)))
     )
 
     aus["txchart"] = balken(tx_t, "#E8B04B", "transactions")
@@ -246,11 +252,12 @@ def bloecke(log):
     mitte = (sortiert[len(sortiert) // 2] if len(sortiert) % 2
              else round((sortiert[len(sortiert) // 2 - 1] + sortiert[len(sortiert) // 2]) / 2))
     aus["skala"] = (
-        'The tallest bar is <b>%s</b> transactions on %s. On the median day the '
-        'count is <b>%s</b>, which at the same scale is a hairline. We leave it '
+        'The tallest bar is <b>%s</b> transactions on %s. On the median day from %s '
+        'through %s the count is <b>%s</b>, which at the same scale is a hairline. We leave it '
         'that way. A log axis or a clipped outlier would make this chart easier '
         'on the eye and would hide the one property the chart exists to show.'
         % (v("tx_max2", zahl(laut)), v("tx_max_datum2", datum_lang(laut_tag)),
+           v("tx_median_von", datum_lang(erster_tx_tag)), v("tx_median_bis", datum_lang(letzter_t_tag)),
            v("tx_median", zahl(mitte))))
 
     aus["summe"] = (
@@ -341,6 +348,13 @@ def pruefe(html, log):
 
     soll = {
         "tx_median": mitte,
+        "tx_median_von": datum_lang(tx_t[0][0]),
+        "tx_median_bis": datum_lang(tx_t[-1][0]),
+        "tx_schnitt7_bis": datum_lang(tx[-1][0]),
+        "tx_max_von": datum_lang(tx_t[0][0]),
+        "tx_max_bis": datum_lang(tx_t[-1][0]),
+        "tx_min_von": datum_lang(tx_t[0][0]),
+        "tx_min_bis": datum_lang(tx_t[-1][0]),
         "tx_max2": max(x for _, x in tx_t),
         "tx_max_datum2": datum_lang(max(tx_t, key=lambda p: p[1])[0]),
         "utxo_count": utxo[-1][1],
@@ -430,6 +444,12 @@ def run_selftest():
 
     # der letzte utxo-wert steht im quelltext, nicht nur als platzhalter
     check("die zahl steht im quelltext", '>1,900<' in neu, True)
+    # Ben 23.11.2026: kein "so far" ohne zeitraum, der zeitraum kommt aus dem log
+    nur_text = re.sub(r"<[^>]+>", "", neu)
+    check("kein so far auf der seite", "so far" in nur_text, False)
+    check("zeitraum bei hoechst-, tiefst- und medianwert",
+          nur_text.count("from 30 jun 2026 through 7 jul 2026"), 3)
+    check("sieben-tage-schnitt mit datum", "seven full days, through 7 jul 2026" in nur_text, True)
     check("das datum steht dabei", "7 jul 2026" in neu, True)
 
     # die zwei tage VOR toccata zaehlen nicht in die summenzeile
@@ -465,7 +485,7 @@ def run_selftest():
         for f in fails:
             print("  " + f)
         return 1
-    print("selftest ok, 13 faelle")
+    print("selftest ok, 16 faelle")
     return 0
 
 
