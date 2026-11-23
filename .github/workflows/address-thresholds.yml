@@ -8,7 +8,8 @@ name: address thresholds log
 # und ab 100 KAS halten, dazu die Zahl aller Adressen mit Guthaben und die
 # der "nennenswerten". Das sind keine Stufen, und die Datei sagt das auch.
 #
-# Taeglich 06:17 UTC (bis 21.11.2026 montags 06:00 UTC). Die Reihen reichen bis zum
+# Taeglich 06:17 UTC, 07:17 Berlin (Winterzeit, im Sommer 08:17), bis
+# 21.11.2026 montags 06:00 UTC. Die Reihen reichen bis zum
 # 27.08.2023 zurueck; der erste Lauf fuellt die Datei vollstaendig, jeder
 # weitere schreibt fort. Faellt ein Lauf aus, holt der naechste die fehlenden
 # Tage nach, weil immer die ganze Reihe verschmolzen wird.
@@ -86,6 +87,7 @@ jobs:
             echo "neu=0" >> "$GITHUB_OUTPUT"
           else
             git commit -m "address thresholds $(date -u +%F)"
+            git pull --rebase --autostash origin main
             git push
             echo "neu=1" >> "$GITHUB_OUTPUT"
           fi
