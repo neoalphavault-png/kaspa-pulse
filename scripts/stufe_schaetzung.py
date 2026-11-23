@@ -58,6 +58,24 @@ def lang(d):
     return "around %d %s %d, an estimate, %s" % (d.day, MON_LANG[d.month - 1], d.year, GRUND)
 
 
+def countdown(d):
+    """'around 5 dec, an estimate, the step is set by daa score', die feste
+    Formulierung fuer jeden Countdown bis zur Stufe (Ben, 23.11.2026). Die
+    Schreibung macht daraus 'around 5 Dec, an estimate, the step is set by
+    DAA score'."""
+    d = _tag(d)
+    return "around %d %s, an estimate, the step is set by daa score" % (d.day, MON_KURZ[d.month - 1])
+
+
+COUNTDOWN_PFLICHT = ("an estimate", "the step is set by daa score")
+
+
+def countdown_fehlt(text):
+    """Die Teile der festen Formulierung, die im Text fehlen (klein verglichen)."""
+    t = (text or "").lower()
+    return [w for w in COUNTDOWN_PFLICHT if w not in t]
+
+
 # ---------------------------------------------------------------- wache
 
 STUFENWORT = re.compile(r"\b(?:reward|rewards|step|steps|stepping|cut|cuts|halving|emission|minted)\b"
@@ -186,6 +204,10 @@ def selbsttest():
     h = dt.date(2026, 11, 12)
     stufe = dt.datetime(2026, 12, 5, 0, 15, tzinfo=dt.timezone.utc)
     ok("kurzform", kurz(stufe) == "around 5 dec, estimate", kurz(stufe))
+    ok("countdown-formulierung", countdown(stufe) == "around 5 dec, an estimate, the step is set by daa score")
+    ok("countdown_fehlt findet das fehlende estimate", countdown_fehlt("15 days to the next block reward cut")
+       == ["an estimate", "the step is set by daa score"] and countdown_fehlt(
+           "About 10 days, around 5 Dec, an estimate, the step is set by DAA score.") == [])
     ok("fliesstext", lang(stufe) == "around 5 December 2026, an estimate, because the step is set by DAA score",
        lang(stufe))
     for alt in ("daily emission steps down to 1,585,790 KAS on 5 dec",

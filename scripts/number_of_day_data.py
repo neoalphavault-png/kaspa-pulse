@@ -522,6 +522,8 @@ def cand_cut_countdown(ctx):
     e_next = emission_per_day(ctx["next_reward"])
     a, b = bar_pair(days, btc_days)
     d = int(round(days))
+    import stufe_schaetzung
+    satz = stufe_schaetzung.countdown(dt.datetime.fromtimestamp(ctx["next_cut_ts"], dt.timezone.utc))
     word = "day" if d == 1 else "days"
     return {
         "score": 60.0 + (12.0 - days) * 3.0,
@@ -530,7 +532,8 @@ def cand_cut_countdown(ctx):
             "eyebrow": "NUMBER OF THE DAY",
             "value": "about %d" % d,
             # die tage bis zur stufe sind eine schaetzung (Ben, 20.11.2026)
-            "value_label": "%s until the next kaspa reward cut, an estimate" % word,
+            # die feste formulierung (Ben, 23.11.2026), stufe_schaetzung.countdown
+            "value_label": "%s until the next kaspa reward cut, %s" % (word, satz),
             "headline": "bitcoin waits *%d days*.\nkaspa cuts %d times before then."
                         % (btc_days, int(btc_days / (STEP / DAY))),
             "panes": [
@@ -558,11 +561,11 @@ def cand_cut_countdown(ctx):
             "sources": "api.kaspa.org",
             "site": "kaspapulse.com",
             "post": post_block(
-                "the next kaspa reward cut lands in about %d %s, an estimate. bitcoin waits about "
+                "the next kaspa reward cut lands in about %d %s, %s. bitcoin waits about "
                 "%s days for its next one, and kaspa cuts %d more times before "
                 "that date. daily emission drops from %s to %s KAS, the block "
                 "reward from %.4f to %.4f."
-                % (d, word, fmt_int(btc_days), int(btc_days / (STEP / DAY)),
+                % (d, word, satz, fmt_int(btc_days), int(btc_days / (STEP / DAY)),
                    fmt_millions(e_now), fmt_millions(e_next),
                    ctx["reward"], ctx["next_reward"]),
                 "the countdown runs on " + HALVING_URL + ". the kaspa date "
@@ -1430,6 +1433,16 @@ def picks_in_tagen(log, today, tage=WOCHE_TAGE):
     return out
 
 
+COUNTDOWN_KANDIDATEN = {"cut_countdown"}
+
+
+def countdown_ohne_schaetzung(payload):
+    """Die fehlenden Teile der festen Formulierung in Beschriftung und Post."""
+    import stufe_schaetzung
+    t = " ".join([payload.get("value_label", ""), (payload.get("post") or {}).get("x", "")])
+    return stufe_schaetzung.countdown_fehlt(t)
+
+
 def choose(ctx, log, force=None):
     cooled = recent_picks(log, ctx["today"])
     woche = picks_in_tagen(log, ctx["today"])
@@ -1450,6 +1463,11 @@ def choose(ctx, log, force=None):
         score = float(res["score"])
         note = ""
         age = cooled.get(name)
+        if name in COUNTDOWN_KANDIDATEN and countdown_ohne_schaetzung(res["payload"]):
+            # ohne "estimate" und die feste formulierung geht der countdown nie raus
+            # (Ben, 23.11.2026, nach "15 days to the next block reward cut" am 20.11.)
+            locked.append((score, name, res["payload"], " (ohne estimate, nicht gepostet)"))
+            continue
         if age == 1:
             locked.append((score, name, res["payload"], " (gestern dran, heute nie)"))
             continue
@@ -1835,9 +1853,10 @@ def run_selftest():
                                           history=FAKE_HISTORY))
     cdt = " ".join(t for _, t in oeffentliche_texte(cd["payload"]))
     ok("countdown der zahl des tages als schaetzung",
-       "lands in about 5 days, an estimate" in cd["payload"]["post"]["x"]
+       "lands in about 5 days, around 5 aug, an estimate, the step is set by daa score" in cd["payload"]["post"]["x"]
        and stufe_schaetzung.verstoesse(cd["payload"]["post"]["x"], dt.date(2026, 7, 31)) == []
-       and cd["payload"]["value"] == "about 5" and "an estimate" in cd["payload"]["value_label"], cdt[:200])
+       and cd["payload"]["value"] == "about 5" and "an estimate" in cd["payload"]["value_label"])
+    ok("countdown mit der festen formulierung geht durch die wache", countdown_ohne_schaetzung(cd["payload"]) == [])
     # die regeln einzeln
     nur_gestern = [("hashrate_move", lambda c: {"score": 50.0, "payload": {}})]
     alt_c, alt_g = globals()["CANDIDATES"], set(OHNE_PREIS_GESPERRT)
@@ -1857,7 +1876,9 @@ def run_selftest():
         except Skip:
             dritt = False
         ok("kein drittes mal in sieben tagen", not dritt)
-        globals()["CANDIDATES"] = [("cut_countdown", lambda c: {"score": 50.0, "payload": {}})]
+        mit_satz = {"value_label": "days until the next kaspa reward cut, around 5 dec, an estimate, "
+                                   "the step is set by daa score", "post": {"x": ""}}
+        globals()["CANDIDATES"] = [("cut_countdown", lambda c: {"score": 50.0, "payload": mit_satz})]
         c25 = build_context(now_ts=dt.datetime(2026, 11, 25, 12, tzinfo=dt.timezone.utc).timestamp(),
                             live=lv, history=FAKE_HISTORY)
         zwei25 = [{"date": "2026-11-21", "candidate": "cut_countdown"},
@@ -1870,6 +1891,15 @@ def run_selftest():
         except Skip:
             frueh = False
         ok("weiter vor dem schritt gilt die gruppengrenze auch fuer schritt", not frueh)
+        # ohne estimate wird der countdown nicht gepostet (Ben, 23.11.2026)
+        globals()["CANDIDATES"] = [("cut_countdown", lambda c: {"score": 50.0, "payload": {
+            "value_label": "days until the next kaspa reward cut", "post": {"x": "15 days to the next block reward cut."}}})]
+        try:
+            choose(c25, [])
+            ohne = True
+        except Skip:
+            ohne = False
+        ok("countdown ohne estimate wird nicht gepostet, der post faellt aus", not ohne)
         globals()["CANDIDATES"] = [("cut_today", lambda c: {"score": 1000.0, "payload": {}})]
         c5 = build_context(now_ts=dt.datetime(2026, 12, 5, 12, tzinfo=dt.timezone.utc).timestamp(),
                            live=lv, history=FAKE_HISTORY)
