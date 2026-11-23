@@ -255,7 +255,7 @@ def schreiben(stand, pfad=None, heute=None):
                                    encoding="utf-8")
 
 
-def waehlen(tag, plattform, bauen, stand, pruefen=None):
+def waehlen(tag, plattform, bauen, stand, pruefen=None, zuerst=None):
     """Waehlt den Bauplan fuer einen Kanal und baut den Text.
 
     bauen(bauplan) gibt den fertigen Text oder None, wenn der Bauplan fuer
@@ -271,6 +271,11 @@ def waehlen(tag, plattform, bauen, stand, pruefen=None):
     if heute.get(plattform) in folge:
         folge.remove(heute[plattform])
         folge.insert(0, heute[plattform])
+    elif zuerst in folge:
+        # ein bauplan, der fuer dieses motiv zuerst versucht wird (Ben, 23.11.2026:
+        # das countdown-bild mit frage). die tagesregel gilt weiter
+        folge.remove(zuerst)
+        folge.insert(0, zuerst)
     gruende = []
     for b in folge:
         if b in belegt:

@@ -191,6 +191,12 @@ def tag_kurz(d):
     return "%d %s" % (d.day, MONATE[d.month - 1])
 
 
+def stufe_satz(t):
+    """'around 5 dec, an estimate, the step is set by daa score'."""
+    import stufe_schaetzung
+    return stufe_schaetzung.countdown(t)
+
+
 def stufe_kurz(t):
     """'around 5 dec, estimate', die naechste Reward-Stufe nur als Schaetzung
     (Ben, 12.11.2026). Die Form kommt aus stufe_schaetzung.py."""
@@ -712,14 +718,34 @@ def vorlage_2(w, now):
 
 # --------------------------------------------------------------- form 3
 
-def messen_3(now):
+def daa_schritt_ts(now, daa=None):
+    """Der naechste Schritt als Zeitpunkt, geschaetzt aus dem DAA-Score am
+    Morgen (Ben, 23.11.2026): Ziel-Score nach kaspa_reward_prognose, die
+    restlichen Scores bei 10 je Sekunde. None, wenn der Score nicht kommt."""
+    import kaspa_reward_prognose as krp
+    try:
+        daa = int(daa if daa is not None else hole(REST + "/info/blockdag")["virtualDaaScore"])
+    except Exception as exc:                               # noqa: BLE001
+        print("daa-score nicht erreichbar (%s), der schritt kommt aus dem emissionsplan" % type(exc).__name__)
+        return None
+    _, ziel = krp.naechster(daa)
+    return now.timestamp() + (ziel - daa) / 10.0
+
+
+def messen_3(now, daa=None):
     nod = reward_plan()
     cur, nxt, nxt_ts = nod.reward_state(now.timestamp())
+    plan_ts = nxt_ts
+    geschaetzt = daa_schritt_ts(now, daa)
+    # nur eine schaetzung, die zum plan passt (hoechstens zwei tage daneben)
+    if geschaetzt is not None and abs(geschaetzt - plan_ts) < 2 * 86400:
+        nxt_ts = geschaetzt
     # fuenf vergangene stufen, die laufende, die naechste
     stufen = [nod.reward_state(nxt_ts - (k + 0.5) * nod.STEP)[0] for k in range(5, -1, -1)]
     if abs(stufen[-1] - cur) > 1e-9:
         raise Stop("treppe passt nicht zur laufenden stufe")
-    return {"cur": cur, "nxt": nxt, "nxt_ts": nxt_ts, "stufen": stufen + [nxt]}
+    return {"cur": cur, "nxt": nxt, "nxt_ts": nxt_ts, "plan_ts": plan_ts, "stufen": stufen + [nxt],
+            "aus_daa": nxt_ts != plan_ts}
 
 
 def cut_tage(w, now):
@@ -763,8 +789,10 @@ def vorlage_3(w, now):
             "bedeutung": "KAS per block, one step a month. the next step %s" % stufe_kurz(t),
             "zusatz": "from zero",
             "herkunft": RECHNUNG, "objekt": objekt,
-            "x1": "kaspa cuts its block reward again in about %s, estimate." % zahl,
-            "x2": "next step %s, %s" % (stufe_kurz(t), RECHNUNG),
+            # die feste formulierung (Ben, 23.11.2026), stufe_schaetzung.countdown
+            "stufe_satz": stufe_satz(t),
+            "x1": "kaspa cuts its block reward again in about %s, %s." % (zahl, stufe_satz(t)),
+            "x2": "as of %s, %s" % (tag(now.date()), RECHNUNG),
             "x3": "how often does that happen?",
             "einordnung": "the reward steps down once a month, and 12 steps halve it",
             "pointe": "no vote needed, the schedule sets the date",
@@ -1508,7 +1536,7 @@ def ig_zahl(s, form):
     if form == 6 and z.endswith("M"):
         return "%s million blocks since nov 2021" % z[:-1]
     muster = {2: "%s of all KAS in circulation at one address",
-              3: "about %s to the next block reward cut, estimate",
+              3: "about %s to the next block reward cut, " + s.get("stufe_satz", "estimate"),
               4: "%s blocks while you slept",
               5: "%s more KAS for miners from new coins than from fees",
               8: "%s of hashrate",
@@ -1573,6 +1601,11 @@ def ig_pruefung(t, form, s=None, bauplan=None):
     if len(t) > IG_MAX_ZEICHEN:
         fehler.append("instagram hat %d zeichen, erlaubt %d" % (len(t), IG_MAX_ZEICHEN))
     if s:
+        # die feste countdown-formulierung nennt den schritt mit datum (Ben,
+        # 23.11.2026). sie zaehlt nicht als zweites datum und nicht als zweite zahl
+        if form == 3 and s.get("stufe_satz"):
+            t = re.sub(re.escape(s["stufe_satz"]), "STUFE", t, flags=re.I)
+            absaetze = t.split("\n\n")
         muster = _ig_zahlmuster(s.get("zahl"))
         if muster and len(muster.findall(t)) != 1:
             fehler.append("instagram nennt %s %d mal, genau einmal ist richtig"
@@ -1695,7 +1728,9 @@ def texte(s, form, messzeit, stand=None, tag_iso=None):
                "discord": lambda t, b: pruefe_eine(t, form, "discord", massstab=b == "vergleich")}
     s["bauplaene"] = {}
     for k in KANAL_FOLGE:
-        b, t = stimme.waehlen(tag_iso, k, bauen[k], stand, pruefen[k])
+        # das countdown-bild geht auf instagram mit frage (Ben, 23.11.2026)
+        b, t = stimme.waehlen(tag_iso, k, bauen[k], stand, pruefen[k],
+                              zuerst="frage" if form == 3 and k == "instagram" else None)
         s["bauplaene"][k] = b
         s[k] = t
     return s
@@ -1972,20 +2007,46 @@ def cut_lage(heute, tage_bis, nxt_ts, prev_ts, log):
     tag_senkung = berlin_tag(nxt_ts)
     cut_tag = berlin_tag(prev_ts) == heute or tag_senkung == heute
     im_fenster = 0 < tage_bis <= CUT_EREIGNIS_TAGE and not cut_tag
-    fenster_ab = berlin_tag(nxt_ts - CUT_EREIGNIS_TAGE * 86400)
-    schon = sorted(e["datum"] for e in log.get("laeufe", []) if e["form"] == 3
-                   and fenster_ab <= dt.date.fromisoformat(e["datum"]) < heute)
+    # seit 23.11.2026 (Ben): das countdown-bild kommt an tag 10, 7 und 3 vor
+    # dem schritt, gerechnet aus dem daa-score am morgen, an keinem anderen tag
+    ct = None if cut_tag else countdown_tag(tage_bis)
+    schon = [e["datum"] for e in log.get("laeufe", []) if e["form"] == 3 and e["datum"] == heute.isoformat()]
     gesperrt, text = set(), []
     if cut_tag:
         text.append("tag der reward-senkung")
-    if im_fenster and schon:
+    if ct and not schon:
+        text.append("countdown, tag %d vor dem schritt am %s" % (ct, tag_senkung))
+    else:
         gesperrt.add(3)
-        text.append("form 3 fuer die senkung am %s schon am %s, gesperrt" % (tag_senkung, schon[0]))
     if not cut_tag and heute < tag_senkung and (
             im_fenster or heute.isocalendar()[:2] == tag_senkung.isocalendar()[:2]):
         gesperrt.add(10)
         text.append("form 10 fuer den %s reserviert" % tag_senkung)
-    return im_fenster and not schon, cut_tag, gesperrt, ", ".join(text)
+    return bool(ct) and not schon, cut_tag, gesperrt, ", ".join(text)
+
+
+COUNTDOWN_TAGE = (10, 7, 3)
+
+
+def countdown_tag(tage_bis):
+    """10, 7 oder 3, wenn heute (gerundet) so viele Tage vor dem Schritt liegt."""
+    r = int(round(tage_bis))
+    return r if tage_bis > 0 and r in COUNTDOWN_TAGE else None
+
+
+def countdown_plan(nxt_ts, uhrzeit=(7, 30)):
+    """Die drei Tage in Berlin, an denen der Lauf um uhrzeit Form 3 waehlt."""
+    from zoneinfo import ZoneInfo
+    tz = ZoneInfo("Europe/Berlin")
+    aus = []
+    for n in COUNTDOWN_TAGE:
+        d = (dt.datetime.fromtimestamp(nxt_ts, tz) - dt.timedelta(days=n + 1)).date()
+        for k in range(3):
+            lauf = dt.datetime.combine(d + dt.timedelta(days=k), dt.time(*uhrzeit), tz)
+            if countdown_tag((nxt_ts - lauf.timestamp()) / 86400) == n:
+                aus.append((n, lauf.date()))
+                break
+    return aus
 
 
 # Das Geruest je Form (Ben, 15.10.2026). Zwei Diagramme nie nebeneinander:
@@ -2006,8 +2067,9 @@ def waehle_form(heute, log, ereignis_cut=False, ereignis_ex=False, verfuegbar=No
     frei = verfuegbar - diese_woche
     if cut_tag and 10 in frei:
         return 10, "tag der reward-senkung"
-    if ereignis_cut and 3 in frei:
-        return 3, "reward-senkung in hoechstens %d tagen" % CUT_EREIGNIS_TAGE
+    if ereignis_cut and 3 in verfuegbar:
+        # der countdown-tag geht vor, auch wenn form 3 diese woche schon lief
+        return 3, "countdown vor der reward-senkung"
     if ereignis_ex and 2 in frei:
         return 2, "entity-x-bewegung ab %s KAS in 24 h" % ganz(EX_EREIGNIS)
     if heute.weekday() == 0 and 1 in verfuegbar:
@@ -2963,12 +3025,15 @@ def selbsttest():
     o3 = s3["objekt"](*objektzone(zahlgroesse(s3["zahl"])))
     ok("form 3, tage bis zur stufe als schaetzung in bild, caption, threads, discord und x (Ben, 20.11.2026)",
        ">about<" in o3 and ">estimate<" in o3
-       and s3["ig_zahl"] == "about 6 days to the next block reward cut, estimate"
-       and all("about 6 days" in s3[k].lower() and "estimate" in s3[k].lower()
-               for k in ("x", "threads", "discord", "instagram")))
+       and s3["ig_zahl"] == "about 6 days to the next block reward cut, around 5 oct, an estimate, "
+                            "the step is set by daa score"
+       and all("about 6 days" in s3[k].lower() and "around 5 oct, an estimate, the step is set by daa score"
+               in s3[k].lower() for k in ("x", "threads", "discord", "instagram")))
+    ok("form 3, instagram mit frage (bauplan frage zuerst, Ben, 23.11.2026)",
+       s3["bauplaene"]["instagram"] == "frage" and s3["instagram"].count("?") == 1)
     ok("form 3, naechste stufe nur mit around und estimate, ohne uhrzeit",
        all(not stufe_schaetzung.verstoesse(s3[k], FAKE_NOW.date()) for k in k3 if s3.get(k))
-       and "around 5 oct, estimate" in s3["x"].lower() and "03:15" not in " ".join(s3.get(k, "") for k in k3))
+       and "around 5 oct, an estimate" in s3["x"].lower() and "03:15" not in " ".join(s3.get(k, "") for k in k3))
     for k in k3:
         if s3.get(k) and stufe_schaetzung.verstoesse(s3[k], FAKE_NOW.date()):
             print("     %s, %s" % (k, stufe_schaetzung.verstoesse(s3[k], FAKE_NOW.date())))
@@ -3020,41 +3085,42 @@ def selbsttest():
     woche = {"laeufe": [{"datum": "2026-10-0%d" % (5 + i), "form": g} for i, g in enumerate((1, 2, 3, 4))]}
     f, _ = waehle_form(dt.date(2026, 10, 9), woche)
     ok("keine form zweimal in derselben woche", f not in (2, 3, 4))
-    # reward-senkung 05.10.2026 03:15:44 utc, form 3 einmal je senkung (Ben, 03.10.2026)
-    nxt = 1791170144
+    # countdown an tag 10, 7 und 3 vor dem schritt (Ben, 23.11.2026), der schritt
+    # um den 5.12.2026 00:29 utc, wie am 23.11. aus dem daa-score geschaetzt
+    nxt = dt.datetime(2026, 12, 5, 0, 29, tzinfo=dt.timezone.utc).timestamp()
     prev = nxt - reward_plan().STEP
     nach = nxt + reward_plan().STEP
 
     def tage(berlin):
         return (nxt - dt.datetime.fromisoformat(berlin).timestamp()) / 86400
-    w40 = {"laeufe": [{"datum": "2026-09-29", "form": 2}, {"datum": "2026-09-30", "form": 4},
-                      {"datum": "2026-10-01", "form": 2}]}
-    e, ct, sp, _ = cut_lage(dt.date(2026, 10, 2), tage("2026-10-02T09:02:15+02:00"), nxt, prev, w40)
-    ok("02.10. erster treffer im fenster gibt form 3", e and not ct
-       and waehle_form(dt.date(2026, 10, 2), w40, e, False, FREIGESCHALTET - sp)[0] == 3)
-    w40["laeufe"].append({"datum": "2026-10-02", "form": 3})
-    e, ct, sp, txt = cut_lage(dt.date(2026, 10, 3), tage("2026-10-03T13:27:41+02:00"), nxt, prev, w40)
-    f, _ = waehle_form(dt.date(2026, 10, 3), w40, e, False, FREIGESCHALTET - sp - kollision("hashrate_move"))
-    ok("03.10. kein zweites mal form 3, rotation waehlt %d" % f,
-       not e and sp == {3, 10} and f not in (1, 2, 3, 4, 8, 10) and "2026-10-02" in txt)
-    w40["laeufe"].append({"datum": "2026-10-03", "form": f})
-    e, ct, sp, _ = cut_lage(dt.date(2026, 10, 4), tage("2026-10-04T07:30:00+02:00"), nxt, prev, w40)
-    ok("04.10. form 3 bleibt bis zur senkung gesperrt", not e and 3 in sp and 10 in sp)
-    e, ct, sp, _ = cut_lage(dt.date(2026, 10, 5), 30.2, nach, nxt, w40)
-    ok("05.10. tag der senkung gibt form 10, auch am montag", ct and not e
-       and waehle_form(dt.date(2026, 10, 5), w40, e, False, FREIGESCHALTET - sp, ct)[0] == 10)
-    e, ct, sp, _ = cut_lage(dt.date(2026, 10, 6), 29.2, nach, nxt, w40)
-    ok("06.10. nach der senkung keine sperre", not e and not ct and not sp)
-    sa = {"laeufe": [{"datum": "2026-10-03", "form": 3}]}
-    di = 1791270000                      # dienstag 06.10.2026 09:00 berlin, gedachte senkung
-    e, ct, sp, _ = cut_lage(dt.date(2026, 10, 5), 1.06, di, di - reward_plan().STEP, sa)
-    ok("fenster ueber die woche, montag kein zweites mal form 3", not e and 3 in sp)
-    ok("ereignis haelt die wochenregel", waehle_form(dt.date(2026, 10, 3), w40, False, True)[0] != 2)
-    do = 1792058400                      # donnerstag 15.10.2026 12:00 berlin, gedachte senkung
-    e, ct, sp, _ = cut_lage(dt.date(2026, 10, 13), 2.2, do, do - reward_plan().STEP, {"laeufe": []})
-    ok("im fenster ohne treffer gibt form 3", e)
-    e, ct, sp, _ = cut_lage(dt.date(2026, 10, 12), 3.2, do, do - reward_plan().STEP, {"laeufe": []})
+    ok("countdown-plan 25.11., 28.11. und 2.12.", countdown_plan(nxt) == [
+        (10, dt.date(2026, 11, 25)), (7, dt.date(2026, 11, 28)), (3, dt.date(2026, 12, 2))])
+    w47 = {"laeufe": [{"datum": "2026-11-23", "form": 1}, {"datum": "2026-11-24", "form": 5}]}
+    e, ct, sp, txt = cut_lage(dt.date(2026, 11, 25), tage("2026-11-25T07:30:00+01:00"), nxt, prev, w47)
+    ok("25.11. tag 10 gibt form 3", e and not ct and 3 not in sp and "tag 10" in txt
+       and waehle_form(dt.date(2026, 11, 25), w47, e, False, FREIGESCHALTET - sp)[0] == 3)
+    w47["laeufe"].append({"datum": "2026-11-25", "form": 3})
+    e, ct, sp, _ = cut_lage(dt.date(2026, 11, 26), tage("2026-11-26T07:30:00+01:00"), nxt, prev, w47)
+    f, _ = waehle_form(dt.date(2026, 11, 26), w47, e, False, FREIGESCHALTET - sp)
+    ok("26.11. kein countdown-tag, form 3 gesperrt, rotation waehlt %d" % f, not e and 3 in sp and f != 3)
+    w47["laeufe"].append({"datum": "2026-11-26", "form": f})
+    e, ct, sp, _ = cut_lage(dt.date(2026, 11, 28), tage("2026-11-28T07:30:00+01:00"), nxt, prev, w47)
+    ok("28.11. tag 7 gibt form 3, auch in derselben woche wie der 25.11.", e
+       and waehle_form(dt.date(2026, 11, 28), w47, e, False, FREIGESCHALTET - sp)[0] == 3)
+    e, ct, sp, _ = cut_lage(dt.date(2026, 12, 2), tage("2026-12-02T07:30:00+01:00"), nxt, prev, w47)
+    ok("2.12. tag 3 gibt form 3", e and 3 not in sp)
+    e, ct, sp, _ = cut_lage(dt.date(2026, 12, 2), tage("2026-12-02T07:30:00+01:00"), nxt, prev,
+                            {"laeufe": [{"datum": "2026-12-02", "form": 3}]})
+    ok("am selben tag kein zweites mal", not e and 3 in sp)
+    e, ct, sp, _ = cut_lage(dt.date(2026, 12, 5), 30.2, nach, nxt, w47)
+    ok("5.12. tag der senkung gibt form 10", ct and not e
+       and waehle_form(dt.date(2026, 12, 5), w47, e, False, FREIGESCHALTET - sp, ct)[0] == 10)
+    e, ct, sp, _ = cut_lage(dt.date(2026, 12, 6), 29.2, nach, nxt, w47)
+    ok("6.12. nach der senkung kein countdown, form 3 gesperrt", not e and not ct and sp == {3})
+    e, ct, sp, _ = cut_lage(dt.date(2026, 11, 30), tage("2026-11-30T07:30:00+01:00"), nxt, prev, w47)
     ok("woche der senkung haelt form 10 frei", 10 in sp and not e)
+    e, ct, sp, _ = cut_lage(dt.date(2026, 11, 20), tage("2026-11-20T07:30:00+01:00"), nxt, prev, w47)
+    ok("20.11. (15 tage) kein countdown-bild mehr in der rotation", not e and 3 in sp)
     gezaehlt = {}
     lg = {"laeufe": []}
     d = dt.date(2026, 10, 1)
