@@ -245,9 +245,16 @@ def bestaetige(pfad, q, **felder):
     Konto. Im Merkzettel stand trotzdem test_to mit Bens Adresse, weil der
     Eintrag vor dem Aufruf geschrieben war. Wer das spaeter liest, haelt eine
     Mail fuer verschickt, die nie jemand bekommen hat."""
+    # die testadresse steht nie im merkzettel, nur ein marker (Ben, 23.11.2026):
+    # data/newsletter-queue.json liegt im oeffentlichen repo
+    if "test_to" in felder:
+        felder["test_to"] = TEST_TO_MARKER if felder["test_to"] else ""
     if q.get("history"):
         q["history"][-1].update(felder)
     save_queue(pfad, q)
+
+
+TEST_TO_MARKER = "gesetzt"
 
 
 # ---------------------------------------------------------------- Pruefung
@@ -313,6 +320,18 @@ def selftest_ohne_spuren(ordner=None, test=None):
     return r
 
 
+# HTML-Kommentare gehen nicht an Brevo (Ben, 23.11.2026): der Arbeitskommentar
+# am Dateianfang (Pfade, Laufnummern, Namen) stuende sonst im Quelltext jeder
+# Mail. Bedingte Kommentare fuer Outlook (<!--[if mso]> ... <![endif]-->)
+# bleiben, sie steuern das Layout.
+KOMMENTAR_RE = re.compile(r"<!--(?!\[if\b)(?!<!\[endif\])(?!\s*\[if\b).*?-->", re.S)
+
+
+def ohne_kommentare(html):
+    """Das HTML ohne Kommentare, ausser den bedingten fuer Outlook."""
+    return KOMMENTAR_RE.sub("", html)
+
+
 def html_lesen_und_pruefen(pfad):
     """HTML laden und die eine Rechnung pruefen, die am 05.10.2026 falsch war:
     eine gedruckte Differenz, die nicht zur Differenz ihrer gedruckten
@@ -376,7 +395,7 @@ def html_lesen_und_pruefen(pfad):
             print("WARNUNG: der videolink %s stand schon in %s. Vergessen?" % (vid, frueher))
     except OSError:
         pass
-    return html
+    return ohne_kommentare(html)
 
 
 # ---------------------------------------------------------------- Modi
@@ -392,7 +411,7 @@ def mode_test(a, key, q):
         if not test_to:
             sys.exit("FEHLT: keine Testadresse (vars.NEWSLETTER_TEST_TO oder --test-to)")
         print("WARNUNG: keine Testadresse gesetzt (vars.NEWSLETTER_TEST_TO fehlt), "
-              "die Testmail geht an den eigenen Absender %s" % test_to)
+              "die Testmail geht an den eigenen Absender")
     name = a.name or "kaspa pulse %s %s" % (a.subject, dt.date.today().isoformat())
     body = {
         "name": name,
@@ -421,7 +440,7 @@ def mode_test(a, key, q):
     save_queue(a.queue, q)          # ID sofort merken, bevor irgendetwas anderes passiert
     call("POST", "/emailCampaigns/%s/sendTest" % cid, key, {"emailTo": [test_to]})
     bestaetige(a.queue, q, test_to=test_to)   # erst jetzt ist die Mail belegt
-    print("testmail an %s raus. an die liste geht nichts, die kampagne bleibt entwurf." % test_to)
+    print("testmail an die testadresse raus. an die liste geht nichts, die kampagne bleibt entwurf.")
     return 0
 
 
@@ -462,7 +481,7 @@ def mode_update(a, key, q):
     save_queue(a.queue, q)
     call("POST", "/emailCampaigns/%s/sendTest" % cid, key, {"emailTo": [test_to]})
     bestaetige(a.queue, q, test_to=test_to)   # erst jetzt ist die Mail belegt
-    print("testmail an %s raus. an die liste geht nichts, die kampagne bleibt entwurf." % test_to)
+    print("testmail an die testadresse raus. an die liste geht nichts, die kampagne bleibt entwurf.")
     return 0
 
 
@@ -604,7 +623,7 @@ def mode_fix(a, key, q, call_fn=None):
     if test_to:
         call_fn("POST", "/emailCampaigns/%s/sendTest" % cid, key, {"emailTo": [test_to]})
         bestaetige(a.queue, q, test_to=test_to)   # erst jetzt ist die Mail belegt
-        print("testmail an %s raus, damit die korrigierte Fassung nachweisbar ist" % test_to)
+        print("testmail an die testadresse raus, damit die korrigierte Fassung nachweisbar ist")
     return 0
 
 
@@ -689,7 +708,9 @@ def selftest():
     # der empfaenger kommt erst nach dem versand in den eintrag (Ben, 26.10.2026)
     assert "test_to" not in again["history"][-1], again["history"][-1]
     bestaetige(tmp, q, test_to="ben@example.com")
-    assert load_queue(tmp)["history"][-1]["test_to"] == "ben@example.com"
+    assert load_queue(tmp)["history"][-1]["test_to"] == TEST_TO_MARKER
+    with open(tmp, encoding="utf-8") as fh:
+        assert "ben@example.com" not in fh.read(), "die testadresse steht im merkzettel"
     bestaetige(tmp, {"history": []}, test_to="x")   # ohne eintrag faellt nichts um
     # planung: ein PUT, ein GET, kein zweiter statusaufruf (25.09.2026)
     soll = "2126-09-28T18:00:00+02:00"
@@ -764,7 +785,9 @@ def selftest():
     assert fixe[3][2] == ("scheduledAt",), fixe[3]
     assert load_queue(F.queue)["history"][-1]["result"] == "wieder geplant"
     assert load_queue(F.queue)["scheduled_at"] == weit
-    assert load_queue(F.queue)["history"][-1]["test_to"] == "ben@example.com"
+    assert load_queue(F.queue)["history"][-1]["test_to"] == TEST_TO_MARKER
+    with open(F.queue, encoding="utf-8") as fh:
+        assert "ben@example.com" not in fh.read(), "die testadresse steht im merkzettel"
 
     # bricht die testmail, steht im merkzettel kein empfaenger. genau das ist
     # am 26.10.2026 schiefgegangen, nur anders herum.
@@ -832,6 +855,20 @@ def selftest():
     with open(gut, "w", encoding="utf-8") as fh:
         fh.write("<html><body><td>1,525,975,596 to 1,524,397,554 kas, 1,578,042 less</td>" + rumpf)
     assert html_lesen_und_pruefen(gut)
+
+    # html-kommentare gehen nicht an brevo, outlook-bedingungen schon (Ben, 23.11.2026)
+    roh = ("<!--\n  Arbeitskommentar, scripts/x.py, Lauf 123, Ben\n-->\n<html><body>"
+           "<!--[if mso]><table><tr><td><![endif]--><p>inhalt</p><!--[if mso]></td></tr></table><![endif]-->"
+           "<!-- noch ein kommentar --></body></html>")
+    sauber = ohne_kommentare(roh)
+    assert "Arbeitskommentar" not in sauber and "noch ein kommentar" not in sauber, sauber
+    assert sauber.count("<!--[if mso]>") == 2 and sauber.count("<![endif]-->") == 2, sauber
+    k = os.path.join(_tf.mkdtemp(), "k.html")
+    with open(k, "w", encoding="utf-8") as fh:
+        fh.write("<!--\n  Lauf 42, data/x.json, ein Name\n-->\n" + "<html><body><td>1,525,975,596 to 1,524,397,554 "
+                 "kas, 1,578,042 less</td>" + rumpf)
+    an_brevo = html_lesen_und_pruefen(k)
+    assert "<!--" not in an_brevo and "Lauf 42" not in an_brevo, "kommentar ginge an brevo"
 
     # preis-wache und echtzeit-wache (Ben, 19.11.2026): ein fund haelt den
     # versand an, der grund geht nach #moderator-only (ohne webhook: job-log)
