@@ -1,14 +1,5 @@
 [
   {
-    "date": "2026-09-25",
-    "candidate": "emission_vs_btc",
-    "hashrate": 340.701875,
-    "tvl_total": 1985270.093507,
-    "mined_pct": 96.572781,
-    "price_kas": 0.040724,
-    "whale_kas": 1524392806.776073
-  },
-  {
     "date": "2026-09-26",
     "candidate": "sats_divergence",
     "hashrate": 356.628415,
@@ -577,5 +568,15 @@
     "price_kas": 0.027253,
     "whale_kas": 1566279326.397572,
     "circ": 27824424922.59592
+  },
+  {
+    "date": "2026-11-24",
+    "candidate": "whale_weight",
+    "hashrate": 309.643071,
+    "tvl_total": 533123.907031,
+    "mined_pct": 96.941472,
+    "price_kas": 0.026766,
+    "whale_kas": 1566279326.397572,
+    "circ": 27826114678.525097
   }
 ]

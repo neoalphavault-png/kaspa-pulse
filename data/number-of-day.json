@@ -1,43 +1,31 @@
 {
-  "issue": "NOV 23 2026",
+  "issue": "NOV 24 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "about 12",
-  "value_label": "days until the next kaspa reward cut, an estimate",
-  "headline": "bitcoin waits *510 days*.\nkaspa cuts 16 times before then.",
+  "value": "5.63%",
+  "value_label": "of every kaspa in circulation sits in one address",
+  "headline": "*932 days* of supply\nin one address.",
   "panes": [
     {
-      "kind": "compare",
-      "title": "TIME TO THE NEXT REDUCTION",
-      "sub": "counted from 23 nov, in days",
-      "rows": [
-        {
-          "label": "kaspa",
-          "sub": "monthly",
-          "value": "12",
-          "pct": 2.2879955197530935,
-          "tone": "teal"
-        },
-        {
-          "label": "bitcoin",
-          "sub": "estimated",
-          "value": "510",
-          "pct": 100.0,
-          "tone": "grey"
-        }
-      ]
+      "kind": "dots",
+      "title": "EVERY 100 KAS IN CIRCULATION",
+      "sub": "one dot is 1% of the circulating supply",
+      "total": 100,
+      "lit": 5.628810721485142,
+      "tone": "teal",
+      "note": "*5.6 of every 100* sit in one address."
     },
     {
       "kind": "anchor",
-      "title": "WHAT CHANGES",
+      "title": "WHO IT IS",
       "lines": [
-        "daily emission drops from 1.68 million to *1.59 million KAS*. no vote, no announcement."
+        "one address. *what it does*, counted daily."
       ]
     }
   ],
   "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "the next kaspa reward cut lands in about 12 days, an estimate. bitcoin waits about 510 days for its next one, and kaspa cuts 16 more times before that date. daily emission drops from 1.68 million to 1.59 million KAS, the block reward from 1.9445 to 1.8354.",
-    "reply": "the countdown runs on kaspapulse.com/kaspa-halving.html. the kaspa date and the bitcoin date are both estimates, the kaspa step is set by daa score."
+    "x": "one address holds 5.63% of every kaspa in circulation, about 1.57B KAS. at the current emission rate the entire network needs 932 days to mine that much. it has never been named.",
+    "reply": "every move that wallet makes is on kaspapulse.com/entity-x.html. an address is not a person, one owner can hold many."
   }
 }
