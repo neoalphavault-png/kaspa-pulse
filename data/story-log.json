@@ -331,6 +331,23 @@
     "+2.1%",
     "+3.3%"
    ]
+  },
+  {
+   "datum": "2026-11-24",
+   "tag": "di",
+   "art": "slider",
+   "frage": "how many KAS are mined during one 25 minute lunch break?",
+   "richtig": null,
+   "aufloesung": {
+    "frage": "how many KAS are mined during one 25 minute lunch break?",
+    "zahl": "29k",
+    "einheit": "KAS",
+    "satz": "1,680,086 KAS a day, so 29,168 KAS in one 25 minute lunch break",
+    "datum": "as of 16 nov 2026 · source kaspa emission schedule"
+   },
+   "quelle_vorlage": "emission 2026-11-16",
+   "antwort": "29k KAS",
+   "emoji": "🥪"
   }
  ]
 }
