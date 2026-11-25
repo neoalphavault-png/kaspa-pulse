@@ -1,0 +1,78 @@
+{
+  "hauptstichblock": "21d112774c4601573f8dcd8e70ba12d8dad3ea5035e5248d7d8c39feecc8dff8",
+  "hauptstichzeit": "2026-11-25T12:00:00.000Z",
+  "kettenspitze_zeit": "2026-11-25T22:25:08.689Z",
+  "netz": "mainnet",
+  "pruning_punkt": "ec627a49fe78413308b3a5b55b2369dc00f14ad65c4a69e342417666ca9e826c",
+  "pruning_punkt_zeit": "2026-11-24T07:51:09.945Z",
+  "stichzeiten": [
+    {
+      "bestand": {
+        "alle_utxos": {
+          "sompi": "2782804938667099816",
+          "utxos": 65693027
+        },
+        "mit_covenant_id": {
+          "sompi": "353991536111030",
+          "utxos": 24183
+        },
+        "p2sh": {
+          "sompi": "17962842602376701",
+          "utxos": 223342
+        },
+        "p2sh_ohne_covenant_id": {
+          "sompi": "17608851066265671",
+          "utxos": 199159
+        }
+      },
+      "kettenindex": 144210,
+      "stichblock": "21d112774c4601573f8dcd8e70ba12d8dad3ea5035e5248d7d8c39feecc8dff8",
+      "stichblock_daa": 601874297,
+      "stichblock_zeit": "2026-11-25T11:59:59.770Z",
+      "stichzeit": "2026-11-25T12:00:00.000Z"
+    }
+  ],
+  "virtual_bestand": {
+    "alle_utxos": {
+      "sompi": "2782878014812152681",
+      "utxos": 65797714
+    },
+    "mit_covenant_id": {
+      "sompi": "354436833590525",
+      "utxos": 24242
+    },
+    "p2sh": {
+      "sompi": "17964617796371067",
+      "utxos": 223425
+    },
+    "p2sh_ohne_covenant_id": {
+      "sompi": "17610180962780542",
+      "utxos": 199183
+    }
+  },
+  "virtual_daa": 602250100,
+  "werkzeug": "kp-stichzeit 0.1.0, rusty-kaspa v2.1.0",
+  "zweitpruefung": {
+    "bestand": {
+      "alle_utxos": {
+        "sompi": "2782804938667099816",
+        "utxos": 65693027
+      },
+      "mit_covenant_id": {
+        "sompi": "353991536111030",
+        "utxos": 24183
+      },
+      "p2sh": {
+        "sompi": "17962842602376701",
+        "utxos": 223342
+      },
+      "p2sh_ohne_covenant_id": {
+        "sompi": "17608851066265671",
+        "utxos": 199159
+      }
+    },
+    "fehler": 0,
+    "identisch_mit_rueckweg": true,
+    "weg": "pruning-punkt plus diffs vorwaerts"
+  }
+}
