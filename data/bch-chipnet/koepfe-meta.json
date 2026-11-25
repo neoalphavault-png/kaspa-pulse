@@ -1,10 +1,10 @@
 {
   "quelle": "BCH-Chipnet P2P (getheaders), Peers aus BCHN chainparams (CChipNetParams)",
-  "abruf_utc": "2026-11-21T06:33:45Z",
+  "abruf_utc": "2026-11-25T05:27:07Z",
   "start_checkpoint": 313653,
   "erste_hoehe": 313654,
-  "spitze_hoehe": 340760,
-  "spitze_hash": "00000000dfcb826440d3d3585ba7e0fd304b6b447ee98cc4280fa9e5dcba2820",
+  "spitze_hoehe": 345611,
+  "spitze_hash": "000000001a48e247170781004e49e862f60e5dc990f3b8e271a5534d262b8067",
   "fixpunkte": {
     "bchn_checkpoints": [
       313653,
@@ -15,31 +15,32 @@
   "checkpoints_geprueft": 1,
   "peer_software": [
     "/Bitcoin Cash Node:29.2.1/",
-    "/Vcash:0.1/"
+    "/Vcash:0.1/",
+    "/Rapids:2026-11.951e9337/"
   ],
-  "peer_fehler": 0,
-  "zielhoehe_gemeldet": 340760,
+  "peer_fehler": 1,
+  "zielhoehe_gemeldet": 345611,
   "zielhoehe_aus_chipnet_peers": 4,
-  "proben_tempnet_oder_ohne_antwort": 2,
+  "proben_tempnet_oder_ohne_antwort": 6,
   "abzweige_verworfen": [],
   "gegenproben": [
     {
       "agent": "/Bitcoin Cash Node:29.2.1/",
       "verglichen": 500,
       "gleich": 500,
-      "spitze_peer": 340760
+      "spitze_peer": 345611
     },
     {
       "agent": "/Bitcoin Cash Node:29.2.1/",
       "verglichen": 500,
       "gleich": 500,
-      "spitze_peer": 340760
+      "spitze_peer": 345611
     },
     {
-      "agent": "/Vcash:0.1/",
+      "agent": "/Rapids:2026-11.951e9337/",
       "verglichen": 500,
       "gleich": 500,
-      "spitze_peer": 340760
+      "spitze_peer": 345611
     }
   ],
   "gegenproben_ohne_antwort": [],
