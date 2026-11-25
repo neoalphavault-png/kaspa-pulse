@@ -8,16 +8,19 @@ name: address thresholds log
 # und ab 100 KAS halten, dazu die Zahl aller Adressen mit Guthaben und die
 # der "nennenswerten". Das sind keine Stufen, und die Datei sagt das auch.
 #
-# Montags 06:00 UTC, also vor der Montagsroutine. Die Reihen reichen bis zum
+# Taeglich 06:17 UTC, 07:17 Berlin (Winterzeit, im Sommer 08:17), bis
+# 21.11.2026 montags 06:00 UTC. Die Reihen reichen bis zum
 # 27.08.2023 zurueck; der erste Lauf fuellt die Datei vollstaendig, jeder
 # weitere schreibt fort. Faellt ein Lauf aus, holt der naechste die fehlenden
 # Tage nach, weil immer die ganze Reihe verschmolzen wird.
 #
 # Noch keine Seite. Die kommt, wenn die Reihe etwas zu erzaehlen hat.
 
+# Seit 21.11.2026 taeglich (Ben, Zahl des Tages und /whales lesen die Reihe
+# taeglich; wochenweise endete sie bis zu acht Tage vor dem Lesetag).
 on:
   schedule:
-    - cron: "0 6 * * 1"
+    - cron: "17 6 * * *"
   workflow_dispatch:
 
 permissions:
@@ -74,13 +77,50 @@ jobs:
           PY
 
       - name: commit
+        id: commit
         run: |
           git config user.name "kaspa-pulse-bot"
           git config user.email "bot@kaspapulse.com"
           git add data/address-thresholds-log.json
           if git diff --staged --quiet; then
             echo "nichts geaendert"
+            echo "neu=0" >> "$GITHUB_OUTPUT"
           else
             git commit -m "address thresholds $(date -u +%F)"
+            git pull --rebase --autostash origin main
             git push
+            echo "neu=1" >> "$GITHUB_OUTPUT"
           fi
+
+      # 21.11.2026: ein leerer lauf (kein neuer tag) und ein roter lauf melden
+      # sich in #ops-log, wie seit #341 beim covenants log.
+      - name: leer nach ops-log
+        if: success() && steps.commit.outputs.neu == '0'
+        env:
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 - <<'PY' || true
+          import json, os, sys
+          sys.path.insert(0, "scripts")
+          import ops_melden
+          letzter = json.load(open("data/address-thresholds-log.json"))["tage"][-1]["datum"]
+          text = ("address thresholds log ohne neuen tag, die reihe endet weiter am %s\n%s"
+                  % (letzter, os.environ.get("LAUF", "")))
+          ops_melden.log(text, was="leer")
+          PY
+
+      - name: rot nach ops-log
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_LOG: ${{ secrets.DISCORD_WEBHOOK_LOG }}
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 - <<'PY' || true
+          import os, sys
+          sys.path.insert(0, "scripts")
+          import ops_melden
+          text = ("address thresholds log ist rot, data/address-thresholds-log.json bleibt auf dem alten stand\n%s"
+                  % os.environ.get("LAUF", ""))
+          ops_melden.log(text, was="rot")
+          PY
