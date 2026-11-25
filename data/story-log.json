@@ -348,6 +348,25 @@
    "quelle_vorlage": "emission 2026-11-16",
    "antwort": "29k KAS",
    "emoji": "🥪"
+  },
+  {
+   "datum": "2026-11-25",
+   "tag": "mi",
+   "art": "poll",
+   "frage": "kaspa hashrate this week, up or down?",
+   "richtig": 1,
+   "aufloesung": {
+    "frage": "kaspa hashrate this week, up or down?",
+    "zahl": "-3.3%",
+    "einheit": "",
+    "satz": "down, 343 PH/s against 355 PH/s in the week to 7 nov",
+    "datum": "week to 14 nov 2026 · source kaspa rest api"
+   },
+   "quelle_vorlage": "weekly 2026-11-16",
+   "optionen": [
+    "up",
+    "down"
+   ]
   }
  ]
 }
