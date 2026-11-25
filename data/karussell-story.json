@@ -1,6 +1,7 @@
 {
  "mittwoch": "2026-11-25",
  "vorlage": "kaspa-is",
- "variante": "v2",
- "hinweis": "Karussell \"kaspa is ___\" (Ben, 19.11.2026). Die Zahlen holt scripts/kaspa_ist.py bei jedem Bau frisch, Entwurf Mi 16:00, Post Mi 18:00 ueber den Takt art=story. Die Variante zweifarbig braucht \"zweifarbig_frei\": true."
+ "variante": "zweifarbig",
+ "hinweis": "Karussell \"kaspa is ___\" (Ben, 19.11.2026). Die Zahlen holt scripts/kaspa_ist.py bei jedem Bau frisch, Entwurf Mi 16:00, Post Mi 18:00 ueber den Takt art=story. Die Variante zweifarbig braucht \"zweifarbig_frei\": true. Zweifarbig freigegeben von Ben am 25.11.2026, 14:16 Berlin.",
+ "zweifarbig_frei": true
 }
