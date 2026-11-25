@@ -272,6 +272,8 @@ def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, send
         if stopp_gesetzt(fuer):
             vor += "STOPP GESETZT (KARUSSELL_STOPP), geht nicht raus. "
         karussell.ops_senden(art, fuer, look, bilder, cap, vor=vor)
+        if probe and art == "story" and karussell.story_vorlage(art, fuer) == "kaspa-is":
+            zweite_variante(fuer, ss, cap, out, sp)
     if not probe:
         look_takt.raster_merken(sp, serie, fuer)
         look_takt.schreiben(sp, speicher_pfad)
@@ -283,6 +285,22 @@ def entwurf(art, fuer, out, probe=False, log_pfad=None, speicher_pfad=None, send
             import stimme
             stimme.schreiben(stimm_stand, stimme_pfad, heute=fuer)
     return m
+
+
+def zweite_variante(fuer, ss, cap, out, speicher, sender=None):
+    """Bei einer Probe von "kaspa is" auch die andere Variante bauen und nach
+    #ops-log schicken, damit Ben beide nebeneinander sieht (Ben, 25.11.2026).
+    Gepostet wird weiter nur die Variante aus der Story-Datei."""
+    import json as _json
+    import karussell
+    import kaspa_ist
+    jetzt = ss[0].get("variante") or "v2"
+    andere = "zweifarbig" if jetzt == "v2" else "v2"
+    ss2 = [dict(x, variante=andere) for x in ss]
+    bilder2, _ = kaspa_ist.bilder(fuer, ss2, Path(out) / andere, _json.loads(_json.dumps(speicher)), merken=False)
+    (sender or karussell.ops_senden)("story", fuer, andere, bilder2, cap,
+                                     vor="PROBE, VARIANTE %s ZUM VERGLEICH, geht nicht raus. " % andere.upper())
+    return bilder2
 
 
 # ------------------------------------------------------------ artefakt
