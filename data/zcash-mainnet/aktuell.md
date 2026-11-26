@@ -1,5 +1,5 @@
-Quelle: eigene Header ueber P2P, Abruf 2026-11-25T15:48:45Z UTC. Peer-Software: /Zakura:1.8.9/, /Zakura:1.9.0-rc2/, /Zebra:7.1.0/. Gegenproben: /Zakura:1.9.0-rc2/ 500/500, /Zebra:7.1.0/ 500/500.
-Bereich 3,489,717 bis 3,610,793 (2026-09-20 06:59:07 bis 2026-11-25 15:48:06 UTC).
+Quelle: eigene Header ueber P2P, Abruf 2026-11-26T15:38:40Z UTC. Peer-Software: /Zebra:7.0.0/, /Zakura:1.8.9/. Gegenproben: /Zakura:1.8.9/ 500/500, /Zakura:1.8.9/ 500/500.
+Bereich 3,489,717 bis 3,614,221 (2026-09-20 06:59:07 bis 2026-11-26 15:38:15 UTC).
 
 ### Vor NU7, gegen 75 s (53,687 Abstaende, Bloecke 3,489,718 bis 3,543,404)
 
@@ -25,7 +25,7 @@ Bereich 3,489,717 bis 3,610,793 (2026-09-20 06:59:07 bis 2026-11-25 15:48:06 UTC
 | 2026-W44 | 8,028 | 75.33 s | 53.0 s |
 | 2026-W45 | 4,711 | 75.32 s | 51 s |
 
-### Ab NU7, gegen 25 s (67,388 Abstaende, Bloecke 3,543,406 bis 3,610,793)
+### Ab NU7, gegen 25 s (70,816 Abstaende, Bloecke 3,543,406 bis 3,614,221)
 
 | Kennzahl | gezaehlt | berechnet |
 |---|---:|---:|
@@ -33,16 +33,16 @@ Bereich 3,489,717 bis 3,610,793 (2026-09-20 06:59:07 bis 2026-11-25 15:48:06 UTC
 | Median | 17.0 s | 17.3 s |
 | p90 | 58.0 s | 57.6 s |
 | p99 | 115.0 s | 115.1 s |
-| Anteil ueber 75 s | 4.84 % | 4.98 % |
-| Anteil ueber 173 s | 0.107 % | 0.1 % |
-| Laengste Luecke | 268 s (vor Block 3,605,472, 2026-11-24 02:49:01 UTC) | 292 s |
+| Anteil ueber 75 s | 4.83 % | 4.98 % |
+| Anteil ueber 173 s | 0.106 % | 0.1 % |
+| Laengste Luecke | 268 s (vor Block 3,605,472, 2026-11-24 02:49:01 UTC) | 294 s |
 | Negative Abstaende | 0 | 0 |
 
 ### Einpendeln nach NU7
 
 ```
 {
-  "bloecke_nach_nu7": 67388,
+  "bloecke_nach_nu7": 70816,
   "fenster": 100,
   "toleranz_prozent": 20,
   "halten_bloecke": 1000,
@@ -57,7 +57,7 @@ Bereich 3,489,717 bis 3,610,793 (2026-09-20 06:59:07 bis 2026-11-25 15:48:06 UTC
     "block_nu7_plus_1000": 0.321,
     "block_nu7_plus_5000": 0.326
   },
-  "schwierigkeit_spitze_relativ": 0.375,
+  "schwierigkeit_spitze_relativ": 0.38,
   "berechnet_bei_gleicher_hashrate": 0.333
 }
 ```
