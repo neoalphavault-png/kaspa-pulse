@@ -1,32 +1,44 @@
 {
-  "issue": "NOV 25 2026",
+  "issue": "NOV 26 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "96.95%",
-  "value_label": "of every KAS that will ever exist is already mined",
-  "headline": "the supply story is *almost over*.",
+  "value": "948",
+  "value_label": "covenant transactions on kaspa layer 1 on 24 nov",
+  "headline": "*948 covenant transactions*\nin one day.",
   "panes": [
     {
-      "kind": "dots",
-      "title": "EVERY KAS THAT WILL EVER EXIST",
-      "sub": "one dot is 1% of the maximum",
-      "total": 100,
-      "lit": 96.94728587197497,
-      "tone": "teal",
-      "note": "*96.95%* mined, 3.05% still to come."
+      "kind": "compare",
+      "title": "COVENANT TRANSACTIONS PER DAY",
+      "sub": "source kaspalytics, full utc days",
+      "rows": [
+        {
+          "label": "24 nov",
+          "sub": "",
+          "value": "948",
+          "pct": 100.0,
+          "tone": "teal"
+        },
+        {
+          "label": "17 nov",
+          "sub": "",
+          "value": "472",
+          "pct": 49.78902953586498,
+          "tone": "grey"
+        }
+      ]
     },
     {
       "kind": "anchor",
-      "title": "WHAT IS LEFT",
+      "title": "WHAT THE NUMBER IS",
       "lines": [
-        "*876,252,150 KAS* are still to come.",
-        "99% is reached in may 2028."
+        "transactions that use a covenant output.",
+        "*read* from kaspalytics, both days."
       ]
     }
   ],
-  "sources": "api.kaspa.org",
+  "sources": "kaspalytics.com",
   "site": "kaspapulse.com",
   "post": {
-    "x": "96.95% of every KAS that will ever exist is already mined. 876,252,150 KAS are still to come, and 99% is reached in may 2028 at the current schedule. what comes after keeps halving every twelve months.",
-    "reply": "the full emission schedule is on kaspapulse.com/kaspa-halving.html. the remaining amount shrinks and never quite reaches the maximum."
+    "x": "948 covenant transactions on kaspa layer 1 on 24 nov, against 472 on 17 nov, source kaspalytics. covenants are the layer 1 rules that let an output say how it may be spent.",
+    "reply": "the daily covenant count is on kaspapulse.com."
   }
 }

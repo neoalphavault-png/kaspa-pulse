@@ -1,14 +1,5 @@
 [
   {
-    "date": "2026-09-27",
-    "candidate": "whale_weight",
-    "hashrate": 355.11855,
-    "tvl_total": 2042119.89145,
-    "mined_pct": 96.585927,
-    "price_kas": 0.048814,
-    "whale_kas": 1525975596.460555
-  },
-  {
     "date": "2026-09-28",
     "candidate": "weekly_line",
     "hashrate": 345.457281,
@@ -579,5 +570,15 @@
     "price_kas": 0.025994,
     "whale_kas": 1568655133.264901,
     "circ": 27827783454.772827
+  },
+  {
+    "date": "2026-11-26",
+    "candidate": "covenant_tx",
+    "hashrate": 303.127743,
+    "tvl_total": 527583.352111,
+    "mined_pct": 96.953144,
+    "price_kas": 0.026408,
+    "whale_kas": 1568655133.264901,
+    "circ": 27829464925.001503
   }
 ]
