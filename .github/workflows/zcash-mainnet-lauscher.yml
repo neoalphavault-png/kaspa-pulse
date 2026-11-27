@@ -123,15 +123,44 @@ jobs:
           python3 scripts/zcash/zcash_lauscher.py --netz mainnet --dauer "$DAUER" \
             --ereignisse "$T/ereignisse.jsonl" --koepfe "$T/koepfe.jsonl" --meta "$T/lauscher-meta.json" &
           PID=$!
+          # Ben 27.11.2026: Aufrufe der GitHub-API fuer den naechsten Lauf bei 5xx
+          # oder Zeitueberschreitung (30 s je Versuch) bis zu fuenfmal, mit 15, 30,
+          # 60 und 120 s Abstand, zusammen hoechstens 375 s der 8 min vor Laufende.
+          # Je Versuch eine Zeile im Log, nur Versuch, Ziel und Fehlerart (keine
+          # Ausgabe von gh, die enthaelt die URL der API). Scheitern alle Versuche,
+          # schreibt der Schritt eine Marke; der Lauf wird trotzdem zu Ende gehoert
+          # und committet, und der letzte Schritt endet rot.
+          api() {  # $1 = was, Rest = gh-Befehl; Ausgabe von gh nach $RUNNER_TEMP/api-aus
+            WAS=$1; shift
+            for V in 1 2 3 4 5; do
+              if timeout 30 "$@" > "$RUNNER_TEMP/api-aus" 2> "$RUNNER_TEMP/api-fehler"; then
+                echo "naechster lauf: $WAS, versuch $V von 5, ok"; return 0
+              else
+                RC=$?
+              fi
+              if [ "$RC" -eq 124 ]; then ART="zeitueberschreitung"
+              else ART=$(grep -oE 'HTTP [0-9]{3}' "$RUNNER_TEMP/api-fehler" | head -n 1 || true); ART=${ART:-"fehler ohne http-code"}; fi
+              echo "naechster lauf: $WAS, versuch $V von 5, $ART"
+              case "$ART" in
+                zeitueberschreitung|"HTTP 5"*) [ "$V" -lt 5 ] && sleep $(( 15 * (1 << (V - 1)) )) ;;
+                *) return 2 ;;   # 4xx und andere: nicht wiederholen
+              esac
+            done
+            return 1
+          }
           if [ "$EREIGNIS" = "workflow_dispatch" ] && [ "$DAUER" -gt 15 ]; then
             sleep $(( (DAUER - 8) * 60 ))
             # Nur die feste Endzeit entscheidet, kein Abruf aus dem Netz
             WEITER=$(python3 scripts/zcash/lauscher_weiter.py --ende-utc "$ENDE" --dauer-min "$EINGABE_DAUER") || WEITER="nein, entscheidung fehlgeschlagen"
             echo "naechster lauf: $WEITER"
             case "$WEITER" in
-              "ja "*) gh workflow run zcash-mainnet-lauscher.yml --ref "$GITHUB_REF_NAME" \
-                       -f name="$NAME" -f segment=$((NUMMER + 1)) -f dauer_min="${WEITER#ja }" \
-                       -f ende_utc="$ENDE" ;;
+              "ja "*) if api "start auf $GITHUB_REF_NAME" gh workflow run zcash-mainnet-lauscher.yml --ref "$GITHUB_REF_NAME" \
+                         -f name="$NAME" -f segment=$((NUMMER + 1)) -f dauer_min="${WEITER#ja }" \
+                         -f ende_utc="$ENDE"; then
+                        echo "naechster lauf: gestartet auf $GITHUB_REF_NAME"
+                      else
+                        touch "$RUNNER_TEMP/folgelauf-fehlgeschlagen"
+                      fi ;;
             esac
           fi
           wait $PID
@@ -199,3 +228,12 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
           scripts/zcash/daten_committen.sh "zcash mainnet: zuhoerer $NAME auswertung [bot]"
+
+      - name: naechster lauf gestartet
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/folgelauf-fehlgeschlagen" ]; then
+            echo "::error::Der naechste Lauf liess sich nicht starten, auch nicht mit Wiederholung (Zeilen naechster lauf im Schritt zuhoeren). Die Kette endet mit diesem Lauf, neu starten per workflow_dispatch."
+            exit 1
+          fi
+          echo "naechster lauf: in ordnung"
