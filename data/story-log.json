@@ -367,6 +367,25 @@
     "up",
     "down"
    ]
+  },
+  {
+   "datum": "2026-11-27",
+   "tag": "fr",
+   "art": "wahr",
+   "frage": "true or false?",
+   "richtig": 1,
+   "aufloesung": {
+    "frage": "entity x got KAS straight from mining",
+    "zahl": "FALSE",
+    "einheit": "",
+    "satz": "0 of 313 inflows came straight from mining",
+    "datum": "as of 21 sep 2026 · counted by kaspa pulse"
+   },
+   "quelle_vorlage": "entity x, eigene zaehlung",
+   "optionen": [
+    "true",
+    "false"
+   ]
   }
  ]
 }
