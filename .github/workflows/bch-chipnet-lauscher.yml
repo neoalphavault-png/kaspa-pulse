@@ -105,20 +105,47 @@ jobs:
           set -eu
           python3 scripts/bch/tempnet_lauscher.py --netz chipnet --dauer "$DAUER" --aus "$RUNNER_TEMP/lauf" &
           PID=$!
+          # Ben 27.11.2026: Aufrufe der GitHub-API fuer den naechsten Lauf bei 5xx
+          # oder Zeitueberschreitung (30 s je Versuch) bis zu fuenfmal, mit 15, 30,
+          # 60 und 120 s Abstand, zusammen hoechstens 375 s der 8 min vor Laufende.
+          # Je Versuch eine Zeile im Log, nur Versuch, Ziel und Fehlerart (keine
+          # Ausgabe von gh, die enthaelt die URL der API). Scheitern alle Versuche,
+          # schreibt der Schritt eine Marke; der Lauf wird trotzdem zu Ende gehoert
+          # und committet, und der letzte Schritt endet rot.
+          api() {  # $1 = was, Rest = gh-Befehl; Ausgabe von gh nach $RUNNER_TEMP/api-aus
+            WAS=$1; shift
+            for V in 1 2 3 4 5; do
+              if timeout 30 "$@" > "$RUNNER_TEMP/api-aus" 2> "$RUNNER_TEMP/api-fehler"; then
+                echo "naechster lauf: $WAS, versuch $V von 5, ok"; return 0
+              else
+                RC=$?
+              fi
+              if [ "$RC" -eq 124 ]; then ART="zeitueberschreitung"
+              else ART=$(grep -oE 'HTTP [0-9]{3}' "$RUNNER_TEMP/api-fehler" | head -n 1 || true); ART=${ART:-"fehler ohne http-code"}; fi
+              echo "naechster lauf: $WAS, versuch $V von 5, $ART"
+              case "$ART" in
+                zeitueberschreitung|"HTTP 5"*) [ "$V" -lt 5 ] && sleep $(( 15 * (1 << (V - 1)) )) ;;
+                *) return 2 ;;   # 4xx und andere: nicht wiederholen
+              esac
+            done
+            return 1
+          }
           if [ "$DAUER" -gt 15 ]; then
             sleep $(( (DAUER - 8) * 60 ))
             ENDE=$(( $(date +%s) + 8 * 60 ))
             if [ "$ENDE" -ge "$(date -d "$BIS" +%s)" ]; then
               echo "naechster lauf: nein, bis_utc erreicht"
-            elif [ "$(gh run list --workflow bch-chipnet-lauscher.yml --json status,databaseId \
-                     --jq "[.[] | select((.status==\"queued\" or .status==\"in_progress\") and .databaseId != $GITHUB_RUN_ID)] | length")" != "0" ]; then
+            elif ! api "laeufe pruefen" gh run list --workflow bch-chipnet-lauscher.yml --json status,databaseId \
+                     --jq "[.[] | select((.status==\"queued\" or .status==\"in_progress\") and .databaseId != $GITHUB_RUN_ID)] | length"; then
+              touch "$RUNNER_TEMP/folgelauf-fehlgeschlagen"
+            elif [ "$(cat "$RUNNER_TEMP/api-aus")" != "0" ]; then
               echo "naechster lauf: nein, ein anderer lauf ist schon aktiv"
-            elif gh workflow run bch-chipnet-lauscher.yml --ref "$GITHUB_REF_NAME" -f dauer_min="$DAUER" -f bis_utc="$BIS"; then
+            elif api "start auf $GITHUB_REF_NAME" gh workflow run bch-chipnet-lauscher.yml --ref "$GITHUB_REF_NAME" -f dauer_min="$DAUER" -f bis_utc="$BIS"; then
               echo "naechster lauf: gestartet auf $GITHUB_REF_NAME"
-            elif gh workflow run bch-chipnet-lauscher.yml --ref main -f dauer_min="$DAUER" -f bis_utc="$BIS"; then
+            elif [ "$GITHUB_REF_NAME" != "main" ] && api "start auf main" gh workflow run bch-chipnet-lauscher.yml --ref main -f dauer_min="$DAUER" -f bis_utc="$BIS"; then
               echo "naechster lauf: gestartet auf main"
             else
-              echo "::warning::naechster lauf nicht startbar (workflow noch nicht auf main?), anstoss per push noetig"
+              touch "$RUNNER_TEMP/folgelauf-fehlgeschlagen"
             fi
           fi
           wait $PID
@@ -180,3 +207,12 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
           scripts/bch/daten_committen.sh "bch chipnet: zuhoerer auswertung [bot]"
+
+      - name: naechster lauf gestartet
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/folgelauf-fehlgeschlagen" ]; then
+            echo "::error::Der naechste Lauf liess sich nicht starten, auch nicht mit Wiederholung (Zeilen naechster lauf im Schritt zuhoeren). Die Kette endet mit diesem Lauf, neu starten per workflow_dispatch."
+            exit 1
+          fi
+          echo "naechster lauf: in ordnung"
