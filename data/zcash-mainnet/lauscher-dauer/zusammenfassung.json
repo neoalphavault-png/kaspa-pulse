@@ -2,18 +2,18 @@
   "art": "ein Zuhoerer, kein eigener Knoten",
   "fenster_utc": [
     "2026-11-12T21:36:48Z",
-    "2026-11-27T10:50:54Z"
+    "2026-11-27T16:13:12Z"
   ],
   "erste_ankuendigung_utc": "2026-11-12 21:37:14",
-  "letzte_ankuendigung_utc": "2026-11-27 10:50:37",
-  "abgedeckt_min": 20953.4,
+  "letzte_ankuendigung_utc": "2026-11-27 16:13:11",
+  "abgedeckt_min": 21276.0,
   "peers_je_software": {
-    "zakura": 815,
-    "zebra": 1444
+    "zakura": 824,
+    "zebra": 1471
   },
   "ankuendigungen_je_software": {
-    "zakura": 364618,
-    "zebra": 107770
+    "zakura": 370519,
+    "zebra": 109411
   },
   "peer_software": [
     "/Zakura:1.7.0/",
@@ -38,9 +38,9 @@
     "/Zebra:7.1.0-modified/",
     "/Zebra:7.1.0/"
   ],
-  "kettenbloecke_im_fenster": 50306,
-  "davon_angekuendigt_gesehen": 50297,
-  "abgehaengt_anzahl": 203,
+  "kettenbloecke_im_fenster": 51091,
+  "davon_angekuendigt_gesehen": 51083,
+  "abgehaengt_anzahl": 208,
   "abgehaengt_ohne_kopf": 20,
   "phasen": {
     "nu7_hoehe": 3543405,
@@ -52,10 +52,10 @@
       "anteil_abgehaengt_prozent": null
     },
     "ab_nu7": {
-      "kettenbloecke_im_fenster": 50306,
-      "davon_angekuendigt_gesehen": 50297,
-      "abgehaengt": 203,
-      "anteil_abgehaengt_prozent": 0.402
+      "kettenbloecke_im_fenster": 51091,
+      "davon_angekuendigt_gesehen": 51083,
+      "abgehaengt": 208,
+      "anteil_abgehaengt_prozent": 0.406
     },
     "ab_nu7_je_6h": []
   },
@@ -449,9 +449,15 @@
       "ende_utc": "2026-11-27T10:50:54Z",
       "geplantes_ende_utc": "2026-11-27T10:50:54Z",
       "protokoll": 170190
+    },
+    {
+      "start_utc": "2026-11-27T10:43:12Z",
+      "ende_utc": "2026-11-27T16:13:12Z",
+      "geplantes_ende_utc": "2026-11-27T16:13:12Z",
+      "protokoll": 170190
     }
   ],
-  "zweige": 183,
+  "zweige": 188,
   "groesste_tiefe": 1,
   "tiefen": [
     1,
@@ -724,16 +730,16 @@
     }
   ],
   "zakura_minus_zebra_ms": {
-    "bloecke": 43402,
+    "bloecke": 44100,
     "median": -78.0,
-    "p10": -2500.0,
+    "p10": -2521.0,
     "p90": 19.0,
-    "zakura_zuerst": 37105
+    "zakura_zuerst": 37715
   },
   "streuung_alle_peers_ms": {
-    "bloecke": 50178,
-    "median": 956.0,
-    "p90": 50500.6,
+    "bloecke": 50964,
+    "median": 970.0,
+    "p90": 52302.9,
     "max": 346735
   },
   "erste_ankunft_minus_zeitstempel_s": {
@@ -745,7 +751,7 @@
     "netz": "mainnet",
     "protokoll": 170190,
     "start_utc": "2026-11-12T21:36:48Z",
-    "ende_utc": "2026-11-27T10:50:54Z",
+    "ende_utc": "2026-11-27T16:13:12Z",
     "geplantes_ende_utc": "2026-11-13T03:06:48Z",
     "dauer_min": 330.0,
     "ziel_verbindungen_je_software": 8,
@@ -15735,6 +15741,242 @@
       "software": "/Zebra:7.1.0/",
       "verbunden_utc": "2026-11-27T07:55:29Z",
       "ankuendigungen": 130
+    },
+    {
+      "peer": "s66/zebra-1",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T10:43:29Z",
+      "ankuendigungen": 256
+    },
+    {
+      "peer": "s66/zebra-2",
+      "software": "/Zebra:7.0.0/",
+      "verbunden_utc": "2026-11-27T10:43:30Z",
+      "ankuendigungen": 282
+    },
+    {
+      "peer": "s66/zakura-1",
+      "software": "/Zakura:1.8.9/",
+      "verbunden_utc": "2026-11-27T10:43:31Z",
+      "ankuendigungen": 811
+    },
+    {
+      "peer": "s66/zebra-3",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T10:43:35Z",
+      "ankuendigungen": 251
+    },
+    {
+      "peer": "s66/zakura-2",
+      "software": "/Zakura:1.8.9/",
+      "verbunden_utc": "2026-11-27T10:43:35Z",
+      "ankuendigungen": 809
+    },
+    {
+      "peer": "s66/zebra-4",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T10:43:35Z",
+      "ankuendigungen": 244
+    },
+    {
+      "peer": "s66/zakura-3",
+      "software": "/Zakura:1.8.9-modified/",
+      "verbunden_utc": "2026-11-27T11:13:54Z",
+      "ankuendigungen": 737
+    },
+    {
+      "peer": "s66/zebra-5",
+      "software": "/Zebra:7.0.0/",
+      "verbunden_utc": "2026-11-27T11:13:56Z",
+      "getrennt_utc": "2026-11-27T11:13:56Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zakura-4",
+      "software": "/Zakura:1.8.7/",
+      "verbunden_utc": "2026-11-27T11:13:57Z",
+      "ankuendigungen": 734
+    },
+    {
+      "peer": "s66/zakura-5",
+      "software": "/Zakura:1.8.9/",
+      "verbunden_utc": "2026-11-27T11:13:58Z",
+      "ankuendigungen": 737
+    },
+    {
+      "peer": "s66/zebra-6",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T11:14:04Z",
+      "getrennt_utc": "2026-11-27T11:14:05Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zakura-6",
+      "software": "/Zakura:1.8.9/",
+      "verbunden_utc": "2026-11-27T11:14:05Z",
+      "ankuendigungen": 735
+    },
+    {
+      "peer": "s66/zebra-7",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T11:14:09Z",
+      "getrennt_utc": "2026-11-27T11:14:09Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zebra-8",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T11:44:24Z",
+      "getrennt_utc": "2026-11-27T11:44:24Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zakura-7",
+      "software": "/Zakura:1.8.7/",
+      "verbunden_utc": "2026-11-27T11:44:25Z",
+      "ankuendigungen": 669
+    },
+    {
+      "peer": "s66/zebra-9",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T11:44:26Z",
+      "getrennt_utc": "2026-11-27T11:44:26Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zebra-10",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T11:44:31Z",
+      "ankuendigungen": 210
+    },
+    {
+      "peer": "s66/zakura-8",
+      "software": "/Zakura:1.8.9/",
+      "verbunden_utc": "2026-11-27T11:44:33Z",
+      "getrennt_utc": "2026-11-27T11:44:33Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zakura-9",
+      "software": "/Zakura:1.8.9/",
+      "verbunden_utc": "2026-11-27T11:44:36Z",
+      "ankuendigungen": 669
+    },
+    {
+      "peer": "s66/zebra-11",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T12:14:56Z",
+      "getrennt_utc": "2026-11-27T12:14:57Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zebra-12",
+      "software": "/Zebra:7.0.0/",
+      "verbunden_utc": "2026-11-27T12:14:57Z",
+      "getrennt_utc": "2026-11-27T12:14:57Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zebra-13",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T12:14:58Z",
+      "getrennt_utc": "2026-11-27T12:14:58Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zebra-14",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T12:45:32Z",
+      "getrennt_utc": "2026-11-27T12:45:32Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zebra-15",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T13:16:30Z",
+      "ankuendigungen": 149
+    },
+    {
+      "peer": "s66/zebra-16",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T13:16:31Z",
+      "ankuendigungen": 161
+    },
+    {
+      "peer": "s66/zebra-17",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T13:16:38Z",
+      "getrennt_utc": "2026-11-27T13:16:39Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zebra-18",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T13:17:39Z",
+      "getrennt_utc": "2026-11-27T13:17:39Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zebra-19",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T13:18:45Z",
+      "getrennt_utc": "2026-11-27T13:18:45Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zebra-20",
+      "software": "/Zebra:7.0.0/",
+      "verbunden_utc": "2026-11-27T13:47:17Z",
+      "getrennt_utc": "2026-11-27T13:47:17Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zebra-21",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T13:48:18Z",
+      "getrennt_utc": "2026-11-27T13:48:18Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zebra-22",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T13:49:23Z",
+      "getrennt_utc": "2026-11-27T13:49:23Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zebra-23",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T13:50:24Z",
+      "getrennt_utc": "2026-11-27T13:50:24Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zebra-24",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T13:51:31Z",
+      "getrennt_utc": "2026-11-27T13:51:31Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zebra-25",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T14:18:06Z",
+      "getrennt_utc": "2026-11-27T14:18:06Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zebra-26",
+      "software": "/Zebra:7.1.0/",
+      "verbunden_utc": "2026-11-27T14:19:11Z",
+      "getrennt_utc": "2026-11-27T14:19:11Z",
+      "ankuendigungen": 0
+    },
+    {
+      "peer": "s66/zebra-27",
+      "software": "/Zebra:7.0.0/",
+      "verbunden_utc": "2026-11-27T14:48:41Z",
+      "ankuendigungen": 88
     }
   ]
 }
