@@ -9,27 +9,27 @@
   "definition": "header time of the first selected chain block with DAA score at or above the target"
  },
  "vorschau": {
-  "ref_utc": "2026-11-20T22:55:57Z",
-  "ref_daa": 597948824,
-  "rest_daa": 12152176,
-  "p50_utc": "2026-12-05T00:15:54Z",
+  "ref_utc": "2026-11-27T14:12:14Z",
+  "ref_daa": 603681644,
+  "rest_daa": 6419356,
+  "p50_utc": "2026-12-05T00:31:29Z",
   "band80_utc": [
-   "2026-12-05T00:08:02Z",
-   "2026-12-05T00:23:50Z"
+   "2026-12-05T00:26:01Z",
+   "2026-12-05T00:36:57Z"
   ],
   "band95_utc": [
-   "2026-12-05T00:03:55Z",
-   "2026-12-05T00:28:01Z"
+   "2026-12-05T00:23:11Z",
+   "2026-12-05T00:39:54Z"
   ],
   "fenster": {
-   "von_utc": "2026-11-19T07:48:45Z",
-   "bis_utc": "2026-11-20T22:55:57Z",
+   "von_utc": "2026-11-26T07:52:32Z",
+   "bis_utc": "2026-11-27T14:12:14Z",
    "intervalle": 402,
-   "daa_je_s": 10.0068
+   "daa_je_s": 9.9997
   },
   "ziehungen": 20000,
   "saat": 2027,
-  "erstellt_utc": "2026-11-20T22:56:03Z"
+  "erstellt_utc": "2026-11-27T14:24:43Z"
  },
  "prognosen": [
   {
@@ -60,6 +60,37 @@
     "version": "2.1.0",
     "synchron": true,
     "kettenbloecke": 199427,
+    "kette_bis_sink": false
+   }
+  },
+  {
+   "ref_utc": "2026-11-27T14:12:14Z",
+   "ref_daa": 603681644,
+   "rest_daa": 6419356,
+   "p50_utc": "2026-12-05T00:31:29Z",
+   "band80_utc": [
+    "2026-12-05T00:26:01Z",
+    "2026-12-05T00:36:57Z"
+   ],
+   "band95_utc": [
+    "2026-12-05T00:23:11Z",
+    "2026-12-05T00:39:54Z"
+   ],
+   "fenster": {
+    "von_utc": "2026-11-26T07:52:32Z",
+    "bis_utc": "2026-11-27T14:12:14Z",
+    "intervalle": 402,
+    "daa_je_s": 9.9997
+   },
+   "ziehungen": 20000,
+   "saat": 2027,
+   "stufe": "7d",
+   "erstellt_utc": "2026-11-27T14:24:43Z",
+   "vorlauf_s": 641205,
+   "knoten": {
+    "version": "2.1.0",
+    "synchron": true,
+    "kettenbloecke": 157345,
     "kette_bis_sink": false
    }
   }
