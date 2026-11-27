@@ -1,27 +1,27 @@
 {
-  "issue": "NOV 26 2026",
+  "issue": "NOV 27 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "948",
-  "value_label": "covenant transactions on kaspa layer 1 on 24 nov",
-  "headline": "*948 covenant transactions*\nin one day.",
+  "value": "566,564",
+  "value_label": "addresses with at least 1 KAS on 25 nov",
+  "headline": "*449 fewer addresses*\nin four weeks.",
   "panes": [
     {
       "kind": "compare",
-      "title": "COVENANT TRANSACTIONS PER DAY",
-      "sub": "source kaspalytics, full utc days",
+      "title": "ADDRESSES WITH 1 KAS OR MORE",
+      "sub": "source kaspalytics address thresholds",
       "rows": [
         {
-          "label": "24 nov",
+          "label": "25 nov",
           "sub": "",
-          "value": "948",
-          "pct": 100.0,
-          "tone": "teal"
+          "value": "566,564",
+          "pct": 99.92081310305055,
+          "tone": "red"
         },
         {
-          "label": "17 nov",
+          "label": "28 oct",
           "sub": "",
-          "value": "472",
-          "pct": 49.78902953586498,
+          "value": "567,013",
+          "pct": 100.0,
           "tone": "grey"
         }
       ]
@@ -30,7 +30,7 @@
       "kind": "anchor",
       "title": "WHAT THE NUMBER IS",
       "lines": [
-        "transactions that use a covenant output.",
+        "an address is not a person.",
         "*read* from kaspalytics, both days."
       ]
     }
@@ -38,7 +38,7 @@
   "sources": "kaspalytics.com",
   "site": "kaspapulse.com",
   "post": {
-    "x": "948 covenant transactions on kaspa layer 1 on 24 nov, against 472 on 17 nov, source kaspalytics. covenants are the layer 1 rules that let an output say how it may be spent.",
-    "reply": "the daily covenant count is on kaspapulse.com."
+    "x": "566,564 kaspa addresses held at least 1 KAS on 25 nov, against 567,013 on 28 oct, source kaspalytics. one wallet can use many addresses, so this counts addresses, not people.",
+    "reply": "the address counts are on kaspapulse.com."
   }
 }
