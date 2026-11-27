@@ -2,38 +2,32 @@
   "quelle": "Zcash-Mainnet P2P (getheaders), Peers aus DNS-Seeds",
   "netz": "mainnet",
   "nu7_hoehe": 3543405,
-  "abruf_utc": "2026-11-27T05:31:38Z",
+  "abruf_utc": "2026-11-27T15:19:27Z",
   "start_checkpoint": 3489716,
   "erste_hoehe": 3489717,
-  "spitze_hoehe": 3616221,
-  "spitze_hash": "0000000000983be4bfca3865545d2ad165cd2cdcffc17913be5b740ed7de8247",
+  "spitze_hoehe": 3617641,
+  "spitze_hash": "0000000000907c6186a22546cfadf022cee55dd27df97c85faad9b4c9e9b75f3",
   "checkpoints_quelle": "https://raw.githubusercontent.com/ZcashFoundation/zebra/main/zebra-chain/src/parameters/checkpoint/main-checkpoints.txt",
   "checkpoints_geprueft": 219,
   "peer_software": [
     "/Zakura:1.8.9/",
-    "/Zebra:7.0.0/"
+    "/Zebra:7.1.0/"
   ],
   "peer_fehler": 0,
-  "zielhoehe_gemeldet": 3616221,
+  "zielhoehe_gemeldet": 3617638,
   "abzweige_verworfen": [],
   "gegenproben": [
     {
-      "agent": "/Zakura:1.8.9/",
+      "agent": "/Zebra:7.1.0/",
       "verglichen": 500,
       "gleich": 500,
-      "spitze_peer": 3616221
+      "spitze_peer": 3617641
     },
     {
       "agent": "/Zakura:1.8.9/",
       "verglichen": 500,
       "gleich": 500,
-      "spitze_peer": 3616221
-    },
-    {
-      "agent": "/Zebra:7.0.0/",
-      "verglichen": 500,
-      "gleich": 500,
-      "spitze_peer": 3616221
+      "spitze_peer": 3617642
     }
   ],
   "gegenproben_ohne_antwort": [],
