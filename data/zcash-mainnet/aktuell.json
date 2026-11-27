@@ -1,10 +1,10 @@
 {
   "netz": "zcash mainnet",
   "quelle": "eigene header ueber p2p",
-  "abruf_utc": "2026-11-26T15:38:40Z",
+  "abruf_utc": "2026-11-27T05:31:38Z",
   "peer_software": [
-    "/Zebra:7.0.0/",
-    "/Zakura:1.8.9/"
+    "/Zakura:1.8.9/",
+    "/Zebra:7.0.0/"
   ],
   "gegenproben": [
     {
@@ -14,6 +14,11 @@
     },
     {
       "agent": "/Zakura:1.8.9/",
+      "verglichen": 500,
+      "gleich": 500
+    },
+    {
+      "agent": "/Zebra:7.0.0/",
       "verglichen": 500,
       "gleich": 500
     }
@@ -28,10 +33,10 @@
   "nu7_hoehe": 3543405,
   "bereich": {
     "von_hoehe": 3489717,
-    "bis_hoehe": 3614221,
+    "bis_hoehe": 3616221,
     "von_utc": "2026-09-20 06:59:07",
-    "bis_utc": "2026-11-26 15:38:15",
-    "bloecke": 124505
+    "bis_utc": "2026-11-27 05:31:20",
+    "bloecke": 126505
   },
   "vor_nu7": {
     "abstaende": 53687,
@@ -114,17 +119,17 @@
   },
   "vorhersage": null,
   "nach_nu7": {
-    "abstaende": 70816,
+    "abstaende": 72816,
     "gezaehlt": {
-      "mittel_s": 25.07,
+      "mittel_s": 25.06,
       "median_s": 17.0,
       "p90_s": 58.0,
       "p99_s": 115.0,
       "laengste_luecke_s": 268,
       "laengste_luecke_vor_block": 3605472,
       "laengste_luecke_utc": "2026-11-24 02:49:01",
-      "anteil_ueber_3T_prozent": 4.83,
-      "anteil_ueber_T_ln1000_prozent": 0.106,
+      "anteil_ueber_3T_prozent": 4.82,
+      "anteil_ueber_T_ln1000_prozent": 0.103,
       "negativ": 0
     },
     "berechnet": {
@@ -139,12 +144,12 @@
     },
     "bereich": {
       "von_hoehe": 3543406,
-      "bis_hoehe": 3614221
+      "bis_hoehe": 3616221
     },
     "erster_nu7_block_utc": "2026-11-06 02:34:02"
   },
   "einpendeln": {
-    "bloecke_nach_nu7": 70816,
+    "bloecke_nach_nu7": 72816,
     "fenster": 100,
     "toleranz_prozent": 20,
     "halten_bloecke": 1000,
@@ -159,7 +164,7 @@
       "block_nu7_plus_1000": 0.321,
       "block_nu7_plus_5000": 0.326
     },
-    "schwierigkeit_spitze_relativ": 0.38,
+    "schwierigkeit_spitze_relativ": 0.385,
     "berechnet_bei_gleicher_hashrate": 0.333
   }
 }
