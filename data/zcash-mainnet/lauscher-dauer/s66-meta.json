@@ -1,0 +1,343 @@
+{
+  "art": "ein Zuhoerer (kein eigener Knoten), Verbindungen zu Mainnet-Knoten aus den DNS-Seeds",
+  "netz": "mainnet",
+  "protokoll": 170190,
+  "start_utc": "2026-11-27T10:43:12Z",
+  "ende_utc": "2026-11-27T16:13:12Z",
+  "geplantes_ende_utc": "2026-11-27T16:13:12Z",
+  "dauer_min": 330.0,
+  "ziel_verbindungen_je_software": 8,
+  "peers": [
+    {
+      "peer": "zebra-1",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3616962,
+      "verbunden_utc": "2026-11-27T10:43:29Z",
+      "ankuendigungen": 256
+    },
+    {
+      "peer": "zebra-2",
+      "software": "/Zebra:7.0.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3616962,
+      "verbunden_utc": "2026-11-27T10:43:30Z",
+      "ankuendigungen": 282
+    },
+    {
+      "peer": "zakura-1",
+      "software": "/Zakura:1.8.9/",
+      "version": 170190,
+      "gemeldete_hoehe": 3616962,
+      "verbunden_utc": "2026-11-27T10:43:31Z",
+      "ankuendigungen": 811
+    },
+    {
+      "peer": "zebra-3",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3616964,
+      "verbunden_utc": "2026-11-27T10:43:35Z",
+      "ankuendigungen": 251
+    },
+    {
+      "peer": "zakura-2",
+      "software": "/Zakura:1.8.9/",
+      "version": 170190,
+      "gemeldete_hoehe": 3616964,
+      "verbunden_utc": "2026-11-27T10:43:35Z",
+      "ankuendigungen": 809
+    },
+    {
+      "peer": "zebra-4",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3616964,
+      "verbunden_utc": "2026-11-27T10:43:35Z",
+      "ankuendigungen": 244
+    },
+    {
+      "peer": "zakura-3",
+      "software": "/Zakura:1.8.9-modified/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617036,
+      "verbunden_utc": "2026-11-27T11:13:54Z",
+      "ankuendigungen": 737
+    },
+    {
+      "peer": "zebra-5",
+      "software": "/Zebra:7.0.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617036,
+      "verbunden_utc": "2026-11-27T11:13:56Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T11:13:56Z"
+    },
+    {
+      "peer": "zakura-4",
+      "software": "/Zakura:1.8.7/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617034,
+      "verbunden_utc": "2026-11-27T11:13:57Z",
+      "ankuendigungen": 734
+    },
+    {
+      "peer": "zakura-5",
+      "software": "/Zakura:1.8.9/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617036,
+      "verbunden_utc": "2026-11-27T11:13:58Z",
+      "ankuendigungen": 737
+    },
+    {
+      "peer": "zebra-6",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617038,
+      "verbunden_utc": "2026-11-27T11:14:04Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T11:14:05Z"
+    },
+    {
+      "peer": "zakura-6",
+      "software": "/Zakura:1.8.9/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617038,
+      "verbunden_utc": "2026-11-27T11:14:05Z",
+      "ankuendigungen": 735
+    },
+    {
+      "peer": "zebra-7",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617038,
+      "verbunden_utc": "2026-11-27T11:14:09Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T11:14:09Z"
+    },
+    {
+      "peer": "zebra-8",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617103,
+      "verbunden_utc": "2026-11-27T11:44:24Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T11:44:24Z"
+    },
+    {
+      "peer": "zakura-7",
+      "software": "/Zakura:1.8.7/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617099,
+      "verbunden_utc": "2026-11-27T11:44:25Z",
+      "ankuendigungen": 669
+    },
+    {
+      "peer": "zebra-9",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617103,
+      "verbunden_utc": "2026-11-27T11:44:26Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T11:44:26Z"
+    },
+    {
+      "peer": "zebra-10",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617103,
+      "verbunden_utc": "2026-11-27T11:44:31Z",
+      "ankuendigungen": 210
+    },
+    {
+      "peer": "zakura-8",
+      "software": "/Zakura:1.8.9/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617103,
+      "verbunden_utc": "2026-11-27T11:44:33Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T11:44:33Z"
+    },
+    {
+      "peer": "zakura-9",
+      "software": "/Zakura:1.8.9/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617104,
+      "verbunden_utc": "2026-11-27T11:44:36Z",
+      "ankuendigungen": 669
+    },
+    {
+      "peer": "zebra-11",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617169,
+      "verbunden_utc": "2026-11-27T12:14:56Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T12:14:57Z"
+    },
+    {
+      "peer": "zebra-12",
+      "software": "/Zebra:7.0.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617169,
+      "verbunden_utc": "2026-11-27T12:14:57Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T12:14:57Z"
+    },
+    {
+      "peer": "zebra-13",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617169,
+      "verbunden_utc": "2026-11-27T12:14:58Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T12:14:58Z"
+    },
+    {
+      "peer": "zebra-14",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617243,
+      "verbunden_utc": "2026-11-27T12:45:32Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T12:45:32Z"
+    },
+    {
+      "peer": "zebra-15",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617330,
+      "verbunden_utc": "2026-11-27T13:16:30Z",
+      "ankuendigungen": 149
+    },
+    {
+      "peer": "zebra-16",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617330,
+      "verbunden_utc": "2026-11-27T13:16:31Z",
+      "ankuendigungen": 161
+    },
+    {
+      "peer": "zebra-17",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617330,
+      "verbunden_utc": "2026-11-27T13:16:38Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T13:16:39Z"
+    },
+    {
+      "peer": "zebra-18",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617334,
+      "verbunden_utc": "2026-11-27T13:17:39Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T13:17:39Z"
+    },
+    {
+      "peer": "zebra-19",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617335,
+      "verbunden_utc": "2026-11-27T13:18:45Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T13:18:45Z"
+    },
+    {
+      "peer": "zebra-20",
+      "software": "/Zebra:7.0.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617403,
+      "verbunden_utc": "2026-11-27T13:47:17Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T13:47:17Z"
+    },
+    {
+      "peer": "zebra-21",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617404,
+      "verbunden_utc": "2026-11-27T13:48:18Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T13:48:18Z"
+    },
+    {
+      "peer": "zebra-22",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617407,
+      "verbunden_utc": "2026-11-27T13:49:23Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T13:49:23Z"
+    },
+    {
+      "peer": "zebra-23",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617410,
+      "verbunden_utc": "2026-11-27T13:50:24Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T13:50:24Z"
+    },
+    {
+      "peer": "zebra-24",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617411,
+      "verbunden_utc": "2026-11-27T13:51:31Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T13:51:31Z"
+    },
+    {
+      "peer": "zebra-25",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617469,
+      "verbunden_utc": "2026-11-27T14:18:06Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T14:18:06Z"
+    },
+    {
+      "peer": "zebra-26",
+      "software": "/Zebra:7.1.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617471,
+      "verbunden_utc": "2026-11-27T14:19:11Z",
+      "ankuendigungen": 0,
+      "ende_grund": "ConnectionError",
+      "getrennt_utc": "2026-11-27T14:19:11Z"
+    },
+    {
+      "peer": "zebra-27",
+      "software": "/Zebra:7.0.0/",
+      "version": 170190,
+      "gemeldete_hoehe": 3617546,
+      "verbunden_utc": "2026-11-27T14:48:41Z",
+      "ankuendigungen": 88
+    }
+  ],
+  "block_hashes_gesehen": 817,
+  "koepfe_geholt": 817,
+  "zeitquelle": "Uhr des Runners (NTP), Millisekunden"
+}
