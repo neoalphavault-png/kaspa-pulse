@@ -1072,6 +1072,28 @@
      "verhaeltnis": 789.55
     }
    }
+  },
+  {
+   "datum": "2026-11-27",
+   "form": 2,
+   "grund": "entity-x-bewegung ab 500,000 KAS in 24 h, zahl des tages holders_1kas (vorab gerechnet)",
+   "messzeit_utc": "2026-11-27T06:30:42+00:00",
+   "looks": {
+    "instagram": "D-hell",
+    "threads": "D-dunkel",
+    "x": "D-dunkel",
+    "discord": "D-dunkel"
+   },
+   "messwerte": {
+    "gebuehren": {
+     "tage": 30,
+     "von": "2026-10-28",
+     "bis": "2026-11-26",
+     "fees": 60389.81438834,
+     "emission": 51159180.16126381,
+     "verhaeltnis": 847.15
+    }
+   }
   }
  ]
 }
