@@ -1,7 +1,7 @@
 # brevo-send.yml - der Newsletter-Versand, drei Modi, eine Kampagne.
 #
 # mode test      Kampagne aus dem HTML anlegen (Entwurf) und eine Testmail an
-#                vars.NEWSLETTER_TEST_TO schicken. An die Liste geht nichts.
+#                secrets.NEWSLETTER_TEST_TO schicken. An die Liste geht nichts.
 # mode schedule  Genau diese Kampagne auf Liste 16 planen, scheduledAt =
 #                send_at. Brevo plant serverseitig, also muss um 16:05 kein
 #                Runner mehr laufen und kein Rechner an sein.
@@ -127,7 +127,7 @@ jobs:
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
           BREVO_SENDER_EMAIL: ${{ vars.BREVO_SENDER_EMAIL }}
-          NEWSLETTER_TEST_TO: ${{ vars.NEWSLETTER_TEST_TO }}
+          NEWSLETTER_TEST_TO: ${{ secrets.NEWSLETTER_TEST_TO }}
           NEWSLETTER_LIST_ID: ${{ vars.NEWSLETTER_LIST_ID }}
           MODE: ${{ inputs.mode }}
           HTML_PATH: ${{ inputs.html_path }}

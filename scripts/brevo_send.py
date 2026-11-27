@@ -409,8 +409,8 @@ def mode_test(a, key, q):
         # Adresse, die wir ohne Vorgabe kennen duerfen.
         test_to = sender.get("email") or ""
         if not test_to:
-            sys.exit("FEHLT: keine Testadresse (vars.NEWSLETTER_TEST_TO oder --test-to)")
-        print("WARNUNG: keine Testadresse gesetzt (vars.NEWSLETTER_TEST_TO fehlt), "
+            sys.exit("FEHLT: keine Testadresse (secrets.NEWSLETTER_TEST_TO oder --test-to)")
+        print("WARNUNG: keine Testadresse gesetzt (secrets.NEWSLETTER_TEST_TO fehlt), "
               "die Testmail geht an den eigenen Absender")
     name = a.name or "kaspa pulse %s %s" % (a.subject, dt.date.today().isoformat())
     body = {
@@ -476,7 +476,7 @@ def mode_update(a, key, q):
         q["subject"] = a.subject.strip()
     test_to = (a.test_to or "").strip() or q.get("sender") or ""
     if not test_to:
-        sys.exit("FEHLT: keine Testadresse (vars.NEWSLETTER_TEST_TO oder --test-to)")
+        sys.exit("FEHLT: keine Testadresse (secrets.NEWSLETTER_TEST_TO oder --test-to)")
     note(q, "update", campaign_id=cid, html_path=q["html_path"])
     save_queue(a.queue, q)
     call("POST", "/emailCampaigns/%s/sendTest" % cid, key, {"emailTo": [test_to]})
