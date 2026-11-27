@@ -39,8 +39,8 @@ Log steht es am 01.10. wörtlich: *„kein cron im fenster"*.
 | `takt-number-of-day` | täglich 08:12 und 09:42 UTC (Berlin im Winter 09:12 und 10:42, im Sommer 10:12 und 11:42) | `number-of-day.yml` in kaspa-pulse |
 | `takt-story-vorlage` | Mo–Sa 07:45 | `story-vorlage.yml` in kaspa-pulse, `senden=true`, nur nach #moderator-only |
 | `takt-ig-story-auto` | Di und Do 17:30 | `ig-story-auto.yml` in kaspa-pulse, `modus=takt`, scharf nur mit `IG_STORY_AUTO_LIVE=true` |
-| `takt-karussell-woche-entwurf` | Sa 11:00 (bis 5.11.2026 09:00) | `karussell.yml`, `art=woche schritt=entwurf start=takt` |
-| `takt-karussell-woche` | Sa 13:00 (bis 5.11.2026 11:00) | `karussell.yml`, `art=woche schritt=posten start=takt` |
+| `takt-karussell-woche-entwurf` | Mo 18:50 (bis 23.11.2026 Sa 11:00) | `karussell.yml`, `art=woche schritt=entwurf start=takt` |
+| `takt-karussell-woche` | Mo 19:00 (bis 23.11.2026 Sa 13:00) | `karussell.yml`, `art=woche schritt=posten start=takt` |
 | `takt-karussell-story-entwurf` | Mi 16:00 | `karussell.yml`, `art=story schritt=entwurf start=takt` |
 | `takt-karussell-story` | Mi 18:00 | `karussell.yml`, `art=story schritt=posten start=takt` |
 | `takt-karussell-meme-entwurf` | Sa 13:00 | `karussell.yml`, `art=meme schritt=entwurf start=takt` |
@@ -104,6 +104,19 @@ er baut im Fenster um 12:00 einen zweiten Container und eine zweite
 Ops-Meldung, ohne je zu veröffentlichen. Die vier `cron`-Zeilen kommen
 deshalb in einem eigenen PR in `pulse-studio` heraus. Der Reel hängt
 danach allein am Takt von c2.
+
+## Wochen-Karussell am Montag (Ben, 23.11.2026)
+
+Das Karussell „the week in numbers“ zeigte am Sa 21.11. noch die Vorwoche,
+weil die neue Ausgabe erst am Montag 18:40 kommt (`takt-weeklynumbers`). Ab
+dem 30.11.2026:
+
+| Takt | vorher | jetzt |
+| --- | --- | --- |
+| `takt-karussell-woche-entwurf` | Sa 11:00 | Mo 18:50 |
+| `takt-karussell-woche` | Sa 13:00 | Mo 19:00 (`karussell.POSTZEIT`) |
+
+Auf c2 nach dem Merge: `cd /opt/kaspa-pulse && git pull && cd deploy/c2 && sudo ./setup.sh units`.
 
 ## Instagram-Zeiten nach den Insights (Ben, 5.11.2026)
 
