@@ -4353,6 +4353,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 1
+    },
+    "2026-11-28": {
+     "reach": 1969,
+     "likes": 11,
+     "comments": 0,
+     "saved": 0,
+     "shares": 1
     }
    }
   },
@@ -4398,6 +4405,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-28": {
+     "reach": 59,
+     "likes": 3,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -4436,6 +4450,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-28": {
+     "reach": 34,
+     "likes": 5,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -4460,6 +4481,13 @@
     },
     "2026-11-27": {
      "reach": 1930,
+     "likes": 9,
+     "comments": 0,
+     "saved": 0,
+     "shares": 2
+    },
+    "2026-11-28": {
+     "reach": 1933,
      "likes": 9,
      "comments": 0,
      "saved": 0,
@@ -4495,6 +4523,13 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-28": {
+     "reach": 58,
+     "likes": 2,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   },
@@ -4514,6 +4549,13 @@
      "shares": 0
     },
     "2026-11-27": {
+     "reach": 44,
+     "likes": 4,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    },
+    "2026-11-28": {
      "reach": 44,
      "likes": 4,
      "comments": 0,
@@ -4540,6 +4582,13 @@
      "comments": 10,
      "saved": 1,
      "shares": 1
+    },
+    "2026-11-28": {
+     "reach": 2049,
+     "likes": 18,
+     "comments": 12,
+     "saved": 1,
+     "shares": 1
     }
    }
   },
@@ -4557,9 +4606,33 @@
      "comments": 0,
      "saved": 0,
      "shares": 0
+    },
+    "2026-11-28": {
+     "reach": 53,
+     "likes": 3,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
+    }
+   }
+  },
+  "18121367999101187": {
+   "gepostet_utc": "2026-11-28T11:30:30+0000",
+   "typ": "IMAGE",
+   "permalink": "https://www.instagram.com/p/DgSJshGDSHE/",
+   "form": 3,
+   "caption_sha": "3da152b12a99",
+   "frage": null,
+   "tage": {
+    "2026-11-28": {
+     "reach": 11,
+     "likes": 1,
+     "comments": 0,
+     "saved": 0,
+     "shares": 0
     }
    }
   }
  },
- "stand_utc": "2026-11-27T15:35:01+00:00"
+ "stand_utc": "2026-11-28T14:31:09+00:00"
 }
