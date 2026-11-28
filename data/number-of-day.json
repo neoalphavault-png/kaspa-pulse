@@ -1,26 +1,26 @@
 {
-  "issue": "NOV 27 2026",
+  "issue": "NOV 28 2026",
   "eyebrow": "NUMBER OF THE DAY",
-  "value": "566,564",
-  "value_label": "addresses with at least 1 KAS on 25 nov",
-  "headline": "*449 fewer addresses*\nin four weeks.",
+  "value": "320 PH/s",
+  "value_label": "petahash per second securing the network on 28 nov",
+  "headline": "hashrate is *down 13%*\nagainst 4 weeks ago.",
   "panes": [
     {
       "kind": "compare",
-      "title": "ADDRESSES WITH 1 KAS OR MORE",
-      "sub": "source kaspalytics address thresholds",
+      "title": "NETWORK HASHRATE",
+      "sub": "same measurement, two dates",
       "rows": [
         {
-          "label": "25 nov",
+          "label": "28 nov",
           "sub": "",
-          "value": "566,564",
-          "pct": 99.92081310305055,
+          "value": "320 PH/s",
+          "pct": 87.05025815337184,
           "tone": "red"
         },
         {
-          "label": "28 oct",
+          "label": "4 weeks ago",
           "sub": "",
-          "value": "567,013",
+          "value": "368 PH/s",
           "pct": 100.0,
           "tone": "grey"
         }
@@ -30,15 +30,15 @@
       "kind": "anchor",
       "title": "WHAT THE NUMBER IS",
       "lines": [
-        "an address is not a person.",
-        "*read* from kaspalytics, both days."
+        "the difference is *48 PH/s*.",
+        "*read* from api.kaspa.org, both days."
       ]
     }
   ],
-  "sources": "kaspalytics.com",
+  "sources": "api.kaspa.org",
   "site": "kaspapulse.com",
   "post": {
-    "x": "566,564 kaspa addresses held at least 1 KAS on 25 nov, against 567,013 on 28 oct, source kaspalytics. one wallet can use many addresses, so this counts addresses, not people.",
-    "reply": "the address counts are on kaspapulse.com."
+    "x": "hashrate on kaspa is down 13% against 4 weeks ago. 320 PH/s on 28 nov, 368 PH/s then, both read from the kaspa rest api 26 days apart.",
+    "reply": "the weekly readings behind that are on kaspapulse.com. the anchor is the weekly reading we archived, not a chart high."
   }
 }
